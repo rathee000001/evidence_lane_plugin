@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-env-uop-authority-reference.v1",
+  "status": "PASS",
+  "scope": "INSTALLATION_SCOPED_EXECUTABLE_AI_ACTION_PLANE",
+  "project_authority": false,
+  "env_manifest": "env/authority-manifest.v1.json",
+  "env_manifest_sha256": "E4F283EC16F86995E2937288DD8A8E5623007351CBB1CA3FD01FDA5C7363B6C1",
+  "uop_manifest": "uop/authority-manifest.v1.json",
+  "uop_manifest_sha256": "BBA3CDAE9CC0FF981E5C6E19F83FBBCE6EB2ED8167CDBB2E9D1C557FA03CA57C",
+  "runtime": "sdk/env_uop/runtime.py",
+  "action_plane": "sdk/env_uop/action-plane.v1.json",
+  "receipt_sha256": "D33DE1B72FD2E686AC4AADA2D3E9466FF65646834422EA3148C7D1954CF0192D"
+}

@@ -1,0 +1,134 @@
+{
+  "schema": "evidence-lane.installed-non-sqlite-authority-surface.v1",
+  "status": "PASS",
+  "authority_id": "instructions",
+  "persistent_sqlite_authority": false,
+  "members": [
+    {
+      "path": "authorities/instructions/authority-contract.schema.json",
+      "bytes": 458,
+      "sha256": "9D58528A96FD5FC2C21E3EAAE0D62B2B4AB836637FC167FECF6D14F841C5758A"
+    },
+    {
+      "path": "authorities/instructions/authority-contract.v1.json",
+      "bytes": 461,
+      "sha256": "D762ADCEA83447E083F310FB656F94FD4919FDB1B611932FF195A0B40977A670"
+    },
+    {
+      "path": "authorities/instructions/dot-artifact.schema.json",
+      "bytes": 948,
+      "sha256": "D17BD0DE4819A17911E545FE03E1CC795351C67C5D962E88532CCB3D5936217B"
+    },
+    {
+      "path": "authorities/instructions/instructions.dot",
+      "bytes": 725,
+      "sha256": "D92A1DE1DFC7A24B1DDECEB49904EBA35EA1CC74C14C9F4112111DBCBAE70A92"
+    },
+    {
+      "path": "authorities/instructions/instructions.mmd",
+      "bytes": 1101,
+      "sha256": "B28FB3AF3FCB4068C117973C9C6C7DD2DD2D929FE84B9B2E96EBE08813FE2971"
+    },
+    {
+      "path": "authorities/instructions/manifest.schema.json",
+      "bytes": 850,
+      "sha256": "BF211C04B0283224C7B522CCAAB4A86AE5A197C6594DD8B1371541D98144D524"
+    },
+    {
+      "path": "authorities/instructions/mmd-artifact.schema.json",
+      "bytes": 965,
+      "sha256": "DB24C74721D5B31DC70FA09ED04D88D73891588CE30EE752FFE2F3F6E0750DF0"
+    },
+    {
+      "path": "authorities/instructions/pointer-contract.schema.json",
+      "bytes": 765,
+      "sha256": "B13FA0E54D157DAFDEC8444AF13400AC91B932455E92D677EA791011DD432955"
+    },
+    {
+      "path": "authorities/instructions/README.md",
+      "bytes": 229,
+      "sha256": "A79FFDA3081CD27E119B8AE493A43510B87D9379B019837A0A5FF42C301DA2AA"
+    },
+    {
+      "path": "authorities/instructions/runtime-binding.schema.json",
+      "bytes": 865,
+      "sha256": "B5E11B2756EA6E69C0F321A869F2D900842ACB1B7003A8D441889BE116C02DCC"
+    },
+    {
+      "path": "authorities/instructions/runtime.py",
+      "bytes": 398,
+      "sha256": "BC814DB701DCD3D84D9D8F9617281C1E27C0090B34DD2E4B30FC44BC021435DD"
+    },
+    {
+      "path": "authorities/instructions/tools.json",
+      "bytes": 9509,
+      "sha256": "8FBE258672D8963AC8F5D53BB08A0058784ACBDB4A1F1D9D08874B75FC7E5C39"
+    },
+    {
+      "path": "authorities/instructions/tools.schema.json",
+      "bytes": 530,
+      "sha256": "A78F2ECDF1B45BA6F8601F042636591C94723C8EA071C972F9D5C766432B37A7"
+    }
+  ],
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/agent_configuration.py": "FADD455E568DCE125B8E581B028E7987D04D6E70D6A538A3FEC0D2AE793B49B3",
+    "src/evidence_lane_plugin/conversation_memory.py": "875D1CF54192647A75124A4AD43090AA37F52CA2CF68A124B9DD36316216B886"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "instructions_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 3,
+    "edge_count": 2,
+    "group_count": 0,
+    "semantic_topology_sha256": "58FC9E2BBA93074ED5A6166273BF7C6D1BFDEE72E9C413DD1715E47696D98CF0",
+    "mmd_sha256": "B28FB3AF3FCB4068C117973C9C6C7DD2DD2D929FE84B9B2E96EBE08813FE2971",
+    "dot_sha256": "D92A1DE1DFC7A24B1DDECEB49904EBA35EA1CC74C14C9F4112111DBCBAE70A92",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "28F35FCC10312D614ED5FE6686EEF681F2F2B8AA4279F0EE6B54D56D5A64608F",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 3,
+      "edge_count": 2,
+      "weak_component_count": 1,
+      "strong_component_count": 3,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "WORK",
+          "in_degree": 2,
+          "out_degree": 0
+        },
+        {
+          "node_id": "AGENTS",
+          "in_degree": 0,
+          "out_degree": 1
+        },
+        {
+          "node_id": "MEMORY",
+          "in_degree": 0,
+          "out_degree": 1
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "9FA4DDE3A552BD36920357B42D013A5236CCBA0219D0F97F5E4B4F73026B744D",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "62AFA01D7ED4E1DB43B6958BCD70C1063DFA96D82DAC45D6EF5D45A3F701425A"
+  },
+  "authority_merged_with_sector_or_peer": false,
+  "receipt_sha256": "9390F4C8CF418B1ADD47228DBA25ADAE5D69FCFFFFF973B6A9298E0292F3B709"
+}

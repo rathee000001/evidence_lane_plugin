@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "receipt_ledger support refresh receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id",
+    "database",
+    "mmd",
+    "dot",
+    "tools",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.sqlite-authority-support-system.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "receipt_ledger"
+    },
+    "database": {
+      "type": "object"
+    },
+    "mmd": {
+      "type": "object"
+    },
+    "dot": {
+      "type": "object"
+    },
+    "tools": {
+      "type": "object"
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "33BE32B7AB80BFE3380378E0C33F360E1470F3F3EC8CBCB8AB1C5CB65AC08BCD"
+}

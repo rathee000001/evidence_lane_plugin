@@ -230,105 +230,81 @@ def test_public_surface_matrix_matches_executable_catalog() -> None:
     )
 
     public_surface_registry = derive_public_surface_registry(PLUGIN)
-    matrix = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
-    actions = matrix["native_actions"]
-    assert (NATIVE_TOOL_COUNT, NATIVE_READ_TOOL_COUNT, NATIVE_WRITE_TOOL_COUNT) == (
-        88,
-        27,
-        61,
+    catalog = json.loads(
+        (PLUGIN / "schemas" / "public-action-schemas.v001.json").read_text(
+            encoding="utf-8"
+        )
     )
-    assert actions == {
-        "total": NATIVE_TOOL_COUNT,
-        "read": NATIVE_READ_TOOL_COUNT,
-        "write": NATIVE_WRITE_TOOL_COUNT,
-        "increase_law": (
-            "INCREASE_ONLY_WHEN_A_DISTINCT_IMPLEMENTED_NATIVE_OPERATION_HAS_ITS_OWN_"
-            "CONTRACT_HANDLER_TEST_AND_PACKAGE_PROOF"
-        ),
-        "all_count_surfaces_must_change_together": True,
-    }
+    assert catalog["tool_count"] == NATIVE_TOOL_COUNT
+    assert catalog["read_tool_count"] == NATIVE_READ_TOOL_COUNT
+    assert catalog["write_tool_count"] == NATIVE_WRITE_TOOL_COUNT
+    assert catalog["counts_are_derived_not_fixed"] is True
 
     skill_names = sorted(
         path.parent.name for path in (PLUGIN / "skills").glob("*/SKILL.md")
     )
-    assert len(skill_names) == GOVERNED_SKILL_COUNT == 17
-    assert set(matrix["governed_skills"]["new_in_this_group"]) <= set(skill_names)
+    assert len(skill_names) == GOVERNED_SKILL_COUNT
 
-    hooks = matrix["lifecycle_hooks"]
+    hooks = public_surface_registry["hooks"]
     assert hooks["registered_event_count"] == len(HOOK_EVENT_NAMES) == 11
     assert hooks["event_names"] == list(HOOK_EVENT_NAMES)
-    hook_files = [
-        PLUGIN / "hooks" / "hooks.json",
-        *(PLUGIN / "hooks").glob("*.py"),
-        *(PLUGIN / "hooks").glob("*.ps1"),
-    ]
-    assert len({path.resolve() for path in hook_files}) == hooks["package_file_count"] == 15
+    assert hooks["handler_action_count"] == 44
 
     commands = sorted(path.name for path in (PLUGIN / "commands").glob("*.md"))
     assert commands == [
         row["name"] for row in public_surface_registry["commands"]["records"]
     ]
     assert public_surface_registry["catalog"]["commands"] == len(commands)
-    assert matrix["host_commands"]["command_files"] == commands
+    assert not MATRIX_PATH.exists()
 
 
 def test_canon_and_learning_public_actions_match_sdk_registration() -> None:
-    matrix = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
+    catalog = json.loads(
+        (PLUGIN / "schemas" / "public-action-schemas.v001.json").read_text(
+            encoding="utf-8"
+        )
+    )
     registered = {
         name: {"module": module, "operation": operation, "read": read_only}
         for name, _title, _description, module, operation, read_only in SDK_NATIVE_ACTIONS
     }
-    declared: dict[str, dict[str, object]] = {}
-    for module, arm in matrix["sdk_public_arms"].items():
-        for effect in ("read", "write"):
-            for name in arm[effect]:
-                operation = (
-                    name.removeprefix("learning_memory_")
-                    if module == "project_memory"
-                    else name.removeprefix("canon_").removeprefix("learning_")
-                )
-                declared[name] = {
-                    "module": module,
-                    "operation": operation,
-                    "read": effect == "read",
-                }
+    declared = {
+        row["name"]: {
+            "module": row["route_contract"]["internal_sdk"]["module_id"],
+            "operation": row["route_contract"]["internal_sdk"]["operation"],
+            "read": row["route_contract"]["internal_sdk"]["read_only"],
+        }
+        for row in catalog["tools"]
+        if row["route_contract"]["internal_sdk"] is not None
+    }
     assert declared == registered
-    assert len(registered) == 24
-    assert sum(row["read"] is True for row in registered.values()) == 6
+    assert len(registered) == len(SDK_NATIVE_ACTIONS) == 30
+    assert sum(row["read"] is True for row in registered.values()) == 9
 
 
 def test_every_current_group_declares_all_delta_surface_dimensions() -> None:
-    matrix = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
-    required = set(matrix["delta_surface_classification_law"]["required_dimensions"])
-    for row in matrix["current_group"]:
-        assert set(row) == {"group", *required}
-        assert all(str(row[key]).strip() for key in required)
-    assert matrix["delta_surface_classification_law"]["classification_required_before_delta_exit"] is True
+    catalog = json.loads(
+        (PLUGIN / "schemas" / "public-action-schemas.v001.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert all(row["route_contract"]["owner_skill"] for row in catalog["tools"])
+    assert all(row["route_contract"]["skill_workflows"] for row in catalog["tools"])
+    assert all(row["route_contract"]["status"] == "CURRENT_ROUTE" for row in catalog["tools"])
 
 
 def test_row196_does_not_absorb_the_later_full_vercel_guide_refresh() -> None:
-    matrix = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
-    boundary = matrix["vercel_phase_boundary"]
-
-    assert boundary == {
-        "current_row": 196,
-        "current_scope": [
-            "PLUGIN_PUBLIC_SURFACE_TRUTH",
-            "CURRENT_DELTA_LEDGER_AND_PLAN_PROJECTION",
-        ],
-        "later_row": 197,
-        "later_scope": [
-            "FULL_GUIDE_REFRESH_FOR_EVERY_NAVIGATION_PAGE",
-            "PAGE_SPECIFIC_CURRENT_PLUGIN_NARRATIVE",
-            "PAGE_SPECIFIC_HERO_ICON_ORB_RING_ANIMATION",
-            (
-                "PAIN_POINT_LED_HOMEPAGE_STORY_DERIVED_FROM_CURRENT_"
-                "ARCHITECTURE_AND_LANES"
-            ),
-        ],
-        "current_row_may_claim_later_row_complete": False,
-        "vercel_runtime_is_project_truth_authority": False,
-    }
+    assert not MATRIX_PATH.exists()
+    binding = json.loads(
+        (
+            ROOT / "apps" / "evidence-lane-remote-adapter"
+            / "app"
+            / "_data"
+            / "public-docs-backend-binding.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert binding["status"] == "PASS"
+    assert binding["main_merge_authorized"] is False
 
 
 def _oauth_config() -> OAuthJWTConfig:
@@ -447,7 +423,9 @@ def test_every_source_public_handler_executes_with_hooks_off(
         lifecycle: bool,
         project_id: str | None,
         session_id: str | None,
+        invocation_arguments: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        del invocation_arguments
         body = {
             "schema": "evidence-lane.public-entry-binding.v1",
             "status": "PASS",
@@ -670,61 +648,34 @@ def test_public_tool_matrix_rejects_one_untested_contract(tmp_path: Path) -> Non
     assert blocked["untested_public_tools"] == ["runtime_doctor"]
 
 
-def test_conformance_release_gate_is_derived_from_the_sealed_matrix() -> None:
+def test_conformance_release_gate_is_derived_from_the_current_source_matrix() -> None:
     gate = json.loads(RELEASE_GATE_PATH.read_text(encoding="utf-8"))
     generated = gate["generated_from"]
-    receipt_path = ROOT / generated["receipt_path"]
-    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
-    catalogs = gate["evaluated_catalogs"]
+    catalog_path = PLUGIN / generated["public_catalog_path"]
+    server = create_mcp_server()
+    matrix = server._evidence_lane_public_tool_evaluation_matrix  # type: ignore[attr-defined]
 
     assert gate["schema"] == "evidence-lane.public-tool-conformance-release-gate.v1"
-    assert gate["status"] == "PASS"
-    assert gate["source_delta_task_id"] == receipt["delta_task_id"]
-    assert generated["receipt_path"] == str(
-        receipt_path.relative_to(ROOT)
-    ).replace("\\", "/")
-    assert generated["receipt_file_sha256"] == hashlib.sha256(
-        receipt_path.read_bytes()
+    assert gate["status"] == "PASS_SOURCE_PREINSTALL"
+    assert generated["public_catalog_sha256"] == hashlib.sha256(
+        catalog_path.read_bytes()
     ).hexdigest().upper()
-    assert generated["source_matrix_sha256"] == receipt["implementation"][
-        "source_catalog"
-    ]["matrix_sha256"]
-    assert generated["installed_matrix_sha256"] == receipt["implementation"][
-        "exact_installed_catalog"
-    ]["matrix_sha256"]
-
-    assert catalogs["source"] == {
-        "tool_count": receipt["implementation"]["source_catalog"]["tool_count"],
-        "case_evaluation_count": receipt["implementation"]["source_catalog"][
-            "case_evaluation_count"
-        ],
+    assert generated["source_matrix_sha256"] == matrix["matrix_sha256"]
+    assert generated["installed_matrix_sha256"] is None
+    assert gate["evaluated_catalogs"]["source"] == {
+        "tool_count": NATIVE_TOOL_COUNT,
+        "case_evaluation_count": NATIVE_TOOL_COUNT * len(EVALUATION_CASES),
         "status": "PASS",
     }
-    assert catalogs["exact_installed"] == {
-        "tool_count": receipt["implementation"]["exact_installed_catalog"][
-            "tool_count"
-        ],
-        "case_evaluation_count": receipt["implementation"][
-            "exact_installed_catalog"
-        ]["case_evaluation_count"],
-        "status": "PASS",
+    assert gate["evaluated_catalogs"]["exact_installed"] == {
+        "tool_count": None,
+        "case_evaluation_count": None,
+        "status": "PENDING_POST_INSTALL",
     }
-    assert catalogs["source_only_preinstall_tools"] == receipt["implementation"][
-        "source_only_preinstall_tools"
-    ]
+    assert gate["evaluated_catalogs"]["source_only_preinstall_tools"] == []
     assert gate["applicable_case_results"] == {
         name: "PASS" for name in EVALUATION_CASES
     }
-    assert set(gate["immutable_case_locators"]) == set(EVALUATION_CASES)
-    assert all(
-        locator.startswith(
-            (
-                "tests/test_public_surface_parity_matrix.py::test_",
-                "tests/test_public_surface_registry.py::test_",
-            )
-        )
-        for locator in gate["immutable_case_locators"].values()
-    )
 
 
 def test_conformance_gate_binds_every_release_receipt_without_authorizing_it() -> None:

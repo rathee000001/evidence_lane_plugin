@@ -1,0 +1,129 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "source_git_history_build",
+  "title": "Seal full bounded Git history evidence",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "batch_id": {
+        "title": "Batch Id",
+        "type": "string"
+      },
+      "occurrence_ordinal": {
+        "title": "Occurrence Ordinal",
+        "type": "integer"
+      },
+      "max_refs": {
+        "default": 20000,
+        "title": "Max Refs",
+        "type": "integer"
+      },
+      "max_commits": {
+        "default": 100000,
+        "title": "Max Commits",
+        "type": "integer"
+      },
+      "max_objects": {
+        "default": 2000000,
+        "title": "Max Objects",
+        "type": "integer"
+      },
+      "max_tree_entries": {
+        "default": 5000000,
+        "title": "Max Tree Entries",
+        "type": "integer"
+      },
+      "max_file_changes": {
+        "default": 2000000,
+        "title": "Max File Changes",
+        "type": "integer"
+      },
+      "max_hunks": {
+        "default": 2000000,
+        "title": "Max Hunks",
+        "type": "integer"
+      },
+      "max_changed_lines": {
+        "default": 5000000,
+        "title": "Max Changed Lines",
+        "type": "integer"
+      },
+      "max_patch_bytes": {
+        "default": 2147483648,
+        "title": "Max Patch Bytes",
+        "type": "integer"
+      },
+      "max_single_object_bytes": {
+        "default": 1073741824,
+        "title": "Max Single Object Bytes",
+        "type": "integer"
+      },
+      "max_total_object_bytes": {
+        "default": 8589934592,
+        "title": "Max Total Object Bytes",
+        "type": "integer"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "batch_id",
+      "occurrence_ordinal"
+    ],
+    "title": "source_git_history_buildArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "source_git_history_buildDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "B053EB091AE5290127000452B72E8E7D81F23EC609D6600A4C64C26699DD5FE1",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "source_git_history_build"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "git-read-intake",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/source_git_history_build.action.v1.json",
+  "sdk_action_binding_sha256": "4DF43A7AA926C181279C3401AA402F5656487D0A7AAC2E81E6555BFED528A589",
+  "public_action_schema": "schemas/actions/source_git_history_build.schema.json",
+  "public_action_schema_sha256": "0992486BD5B65B71E96DD88692E3BDF72A7E1C1AB73357254DBAC0513EE82F20",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "872763D8CA613A06CB7F1C4BE30E0CE1AE0D751D4C4161F074000051CE8A5E07"
+}

@@ -138,7 +138,7 @@ def _prepared_rebind(service, source_repository: Path) -> tuple[str, dict]:
     )
     session = service.sessions.load("book-faires", session_id)
     assert session.task is not None
-    host_task_id = "host-session-state-travel-pv1"
+    host_task_id = str(session.metadata["current_host_session_id"])
     relative, approval_sha256 = _approval_receipt(
         source_repository,
         session_id=session_id,
@@ -203,7 +203,7 @@ def test_active_contract_rebind_preserves_all_execution_identities(
     assert receipt["idempotent_replay"] is False
     assert receipt["active_task_id"] == "active-read-only"
     assert receipt["runtime_task_id"] == contract["expected_runtime_task_id"]
-    assert receipt["host_task_id"] == "host-session-state-travel-pv1"
+    assert receipt["host_task_id"] == contract["host_task_id"]
     assert receipt["task_count"] == 2
     assert result["event_count"] == before["event_count"] + 1
     assert [row["task_id"] for row in result["active"]] == [
@@ -237,21 +237,18 @@ def test_active_contract_rebind_preserves_all_execution_identities(
     assert session.task["task_class"] == "fix_bug"
     assert session.task["write_boundary"] == "AUTHORIZED_SANDBOX_PATHS_ONLY"
     assert session.metadata["active_backlog_task_id"] == "active-read-only"
-    assert (
-        session.metadata["current_host_session_id"]
-        == "host-session-state-travel-pv1"
-    )
+    assert session.metadata["current_host_session_id"] == contract["host_task_id"]
     binding = session.metadata["task_classification_binding"]
     assert binding["runtime_task_id"] == contract["expected_runtime_task_id"]
     assert binding["authority_boundary"]["write_boundary"] == (
         "AUTHORIZED_SANDBOX_PATHS_ONLY"
     )
     rebind = session.metadata["active_contract_rebinds"][0]
-    assert rebind["recovery_binding_contract"] == {
+    assert rebind["task_binding_contract"] == {
         "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
-        "registry_mutability": "MUTABLE_APPEND_OR_REFRESH",
-        "invocation_binding_scope": "EXACT_CALLING_TASK",
-        "reentry_target": "host-session-state-travel-pv1",
+            "registry_mutability": "MUTABLE_APPEND_OR_REFRESH",
+            "invocation_binding_scope": "EXACT_CALLING_TASK",
+            "reentry_target": contract["host_task_id"],
         "installer_helper": "SEPARATE_COMPONENT",
     }
     assert session.candidate_id is None
@@ -421,6 +418,6 @@ def test_active_contract_rebind_extends_plan_tool_without_catalog_growth(
     service,
 ) -> None:
     tools = asyncio.run(create_mcp_server(service=service).list_tools())
-    assert len(tools) == NATIVE_TOOL_COUNT == 88
+    assert len(tools) == NATIVE_TOOL_COUNT
     plan_tool = next(tool for tool in tools if tool.name == "pv_plan_tasks")
     assert "active_contract_rebind" in plan_tool.inputSchema["properties"]

@@ -1,0 +1,21 @@
+{
+  "schema": "evidence-lane.local-install.v1",
+  "status": "PASS",
+  "local_install": {
+    "route": "PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW",
+    "ordered_steps": [
+      "PLUGIN_CREATOR_VALIDATE_AND_PACKAGE",
+      "ONE_CACHEBUSTER",
+      "CONFIGURED_LOCAL_SOURCE_STAGE",
+      "SEALED_LOCAL_CACHE_MATERIALIZER",
+      "TERMINAL_SAFE_RESTART_PREPARATION",
+      "CURRENT_RESPONSE_TERMINAL_COMPLETION",
+      "USER_EXACT_CHANNEL_CLOSE_REOPEN",
+      "EXACT_TASK_REATTACHMENT"
+    ],
+    "direct_add_compatibility_route_present": false,
+    "turn_drain_utility_present": false,
+    "programmatic_app_stop_allowed": false
+  },
+  "receipt_sha256": "F5766219C1D82419B2F902F78E1DAEEB342700B917B6B1FF4AFC3807894BBF90"
+}

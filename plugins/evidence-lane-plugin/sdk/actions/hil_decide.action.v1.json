@@ -1,0 +1,135 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "hil_decide",
+  "title": "Record exact six-way HIL decision",
+  "description": "Record APPROVE_WITH_DELTA, MORE_RESEARCH, REJECT, FAIL, or pointer-only ROLLBACK for one pending candidate. Exact APPROVE is deliberately rejected here and may promote only through pv_fuse. ROLLBACK preserves the candidate and accepted history; a bare target resolves to the current prompt/session entry PV.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "decision": {
+        "title": "Decision",
+        "type": "string"
+      },
+      "decided_by": {
+        "title": "Decided By",
+        "type": "string"
+      },
+      "reason": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Reason"
+      },
+      "correction_delta": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Correction Delta"
+      },
+      "research_question": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Research Question"
+      },
+      "rollback_to": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Rollback To"
+      },
+      "decision_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Decision Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "decision",
+      "decided_by"
+    ],
+    "title": "hil_decideArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "hil_decideDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "schema_sha256": "47102A9AAE2F25D54DDB2AA259EFB9B822BD89125C54052833694A0F01790D53",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-fuse",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "hil_decide"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-fuse",
+        "workflow": "dual-hil-non-promotion-decision",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/hil_decide.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "74E65541BF40789EA610468B30D1A7D6869897944A1C0438E0794A33D7E8B86E"
+}

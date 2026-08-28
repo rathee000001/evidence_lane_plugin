@@ -3,6 +3,10 @@
   "server_identity": "evidence-lane",
   "tool_owners": {
     "adaptive_delta_exit": "evidence-lane-code-lifecycle",
+    "ai_toolchain_route": "evi-toolchain",
+    "bigger_universe_link": "evi-bigger-universe",
+    "bigger_universe_register": "evi-bigger-universe",
+    "brain_scaling_select": "evi-brain-scaling",
     "canon_backfire_hil": "evi-canon",
     "canon_bind_edge": "evi-canon",
     "canon_classify": "evi-canon",
@@ -25,10 +29,11 @@
     "connector_plugin_route": "evi-plugin",
     "connector_plugin_settings": "evi-plugin",
     "fetch": "evi-source-intake",
+    "formula_engine_run": "evi-formula",
     "git_sync_selected": "evidence-lane-code-lifecycle",
-    "hil_decide": "evi-build",
-    "hil_intent_classify": "evi-build",
-    "hil_return_to_accepted": "evi-build",
+    "hil_decide": "evi-fuse",
+    "hil_intent_classify": "evi-fuse",
+    "hil_return_to_accepted": "evi-fuse",
     "lane_catalog": "evi-source-intake",
     "lane_configure_routes": "evi-source-intake",
     "lane_fetch": "evi-source-intake",
@@ -36,8 +41,9 @@
     "lane_status": "evi-source-intake",
     "learning_decide_candidate": "evi-learning",
     "learning_inspect": "evi-learning",
-    "learning_memory_query": "evi-learning",
-    "learning_memory_record_link": "evi-learning",
+    "project_memory_query": "evi-memory",
+    "project_memory_record_link": "evi-memory",
+    "project_recipe_compile": "evi-project-recipe",
     "learning_record_host_memory_import": "evi-learning",
     "learning_retrieve": "evi-learning",
     "learning_revoke": "evi-learning",
@@ -50,15 +56,12 @@
     "pv_build_initial": "evi-build",
     "pv_diff": "evi",
     "pv_enroll_project": "evi-boot",
-    "pv_fuse": "evi-build",
-    "pv_plan_steer_delta": "evi-mode",
-    "pv_plan_tasks": "evi-mode",
+    "pv_fuse": "evi-fuse",
+    "pv_plan_steer_delta": "evi-plan",
+    "pv_plan_tasks": "evi-plan",
     "pv_query": "evi",
-    "pv_refresh": "evi-refresh",
     "pv_rollback": "evi-rollback",
-    "pv_state_travel_prepare": "evi-state-travel",
     "pv_state_travel_direct_force_same_worktree": "evi-state-travel",
-    "pv_state_travel_resume": "evi-state-travel",
     "pv_status": "evi",
     "pv_summary": "evi",
     "pv_task_backlog": "evi",
@@ -85,7 +88,7 @@
     "source_intake_schema_configure": "evi-source-intake",
     "source_sqlite_inspect": "evi-source-intake",
     "storage_connector_inspect": "evi-storage",
-    "storage_connector_select": "evi-change-storage-connector",
+    "storage_connector_select": "evi-storage",
     "task_classify": "evidence-lane-code-lifecycle",
     "task_complete_and_refresh": "evi-refresh",
     "task_confirm_source_update": "evidence-lane-code-lifecycle",
@@ -95,14 +98,13 @@
     "schema": "evidence-lane.render-invocation-policy.v1",
     "owner": "evidence-lane-code-lifecycle",
     "allowed_triggers": [
-      "STATE_TRAVEL_EXACTLY_ONCE",
       "PHYSICALLY_FINAL_PV_HIL_PRESENTATION",
       "EXPLICIT_USER_REQUEST"
     ],
     "ordinary_boot_or_resume_allowed": false,
     "ordinary_owner_discovery_allowed": false,
     "ordinary_goal_continuation_allowed": false,
-    "state_travel_max_calls_per_render_tool": 1,
+    "state_travel_max_calls_per_render_tool": 0,
     "physical_final_hil_max_calls_per_render_tool": 1,
     "implicit_fallback_allowed": false
   },
@@ -266,26 +268,10 @@
           "tools": [
             "pv_build_initial"
           ],
-          "workflow": "initial-candidate"
+          "workflow": "source-intake-backed-pv0-bootstrap"
         },
         {
           "order": 2,
-          "tools": [
-            "pv_fuse",
-            "hil_decide",
-            "hil_intent_classify"
-          ],
-          "workflow": "hil-outcome"
-        },
-        {
-          "order": 3,
-          "tools": [
-            "hil_return_to_accepted"
-          ],
-          "workflow": "non-promotion-hil-return"
-        },
-        {
-          "order": 4,
           "tools": [
             "render_runtime_panel",
             "render_project_panel"
@@ -415,25 +401,6 @@
       ],
       "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
     },
-    "evi-change-storage-connector": {
-      "ordered_tool_groups": [
-        {
-          "order": 1,
-          "tools": [
-            "storage_connector_inspect"
-          ],
-          "workflow": "select-storage"
-        },
-        {
-          "order": 2,
-          "tools": [
-            "storage_connector_select"
-          ],
-          "workflow": "select-storage"
-        }
-      ],
-      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
-    },
     "evi-drop-additional-plugin": {
       "ordered_tool_groups": [
         {
@@ -485,18 +452,16 @@
           "order": 4,
           "tools": [
             "learning_inspect",
-            "learning_retrieve",
-            "learning_memory_query"
+            "learning_retrieve"
           ],
           "workflow": "learning-authority-read"
         },
         {
           "order": 5,
           "tools": [
-            "learning_memory_record_link",
             "learning_record_host_memory_import"
           ],
-          "workflow": "learning-memory-link"
+          "workflow": "learning-host-memory-import"
         },
         {
           "order": 6,
@@ -522,6 +487,73 @@
       ],
       "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
     },
+    "evi-instructions": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_status"
+          ],
+          "workflow": "agents-and-host-memory-read"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_task_backlog"
+          ],
+          "workflow": "agents-and-host-memory-read"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_query",
+            "search"
+          ],
+          "workflow": "agents-and-host-memory-read"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-memory": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_status"
+          ],
+          "workflow": "project-memory-authority-read"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_task_backlog"
+          ],
+          "workflow": "project-memory-authority-read"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_query"
+          ],
+          "workflow": "project-memory-authority-read"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "project_memory_query"
+          ],
+          "workflow": "project-memory-authority-read"
+        },
+        {
+          "order": 5,
+          "tools": [
+            "project_memory_record_link"
+          ],
+          "workflow": "project-memory-link"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
     "evi-mode": {
       "ordered_tool_groups": [
         {
@@ -530,16 +562,50 @@
             "mode_classify"
           ],
           "workflow": "classify-mode"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-plan": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_status"
+          ],
+          "workflow": "live-plan-authority-read"
         },
         {
           "order": 2,
+          "tools": [
+            "pv_task_backlog"
+          ],
+          "workflow": "live-plan-authority-read"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_query",
+            "search"
+          ],
+          "workflow": "live-six-authority-read"
+        },
+        {
+          "order": 4,
+          "tools": [
+            "mode_classify"
+          ],
+          "workflow": "classify-plan-mode"
+        },
+        {
+          "order": 5,
           "tools": [
             "pv_plan_tasks"
           ],
           "workflow": "persist-plan"
         },
         {
-          "order": 3,
+          "order": 6,
           "tools": [
             "pv_plan_steer_delta"
           ],
@@ -587,10 +653,23 @@
         {
           "order": 1,
           "tools": [
-            "pv_refresh",
+            "source_intake_classify"
+          ],
+          "workflow": "steer-prompt-source-intake-refresh-working-sectors"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "adaptive_delta_exit"
+          ],
+          "workflow": "adaptive-delta-exit-append-refresh"
+        },
+        {
+          "order": 3,
+          "tools": [
             "task_complete_and_refresh"
           ],
-          "workflow": "refresh-candidate"
+          "workflow": "hil-live-root-project-overlay-proposal"
         }
       ],
       "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
@@ -784,28 +863,6 @@
             "pv_plan_steer_delta"
           ],
           "workflow": "state-travel-plan-steer"
-        },
-        {
-          "order": 10,
-          "tools": [
-            "pv_state_travel_prepare"
-          ],
-          "workflow": "sealed-prepare-state-travel-branch-only"
-        },
-        {
-          "order": 11,
-          "tools": [
-            "pv_state_travel_resume"
-          ],
-          "workflow": "sealed-resume-state-travel-branch-only"
-        },
-        {
-          "order": 12,
-          "tools": [
-            "render_runtime_panel",
-            "render_project_panel"
-          ],
-          "workflow": "state-travel-final-authority-render-once"
         }
       ],
       "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
@@ -818,6 +875,40 @@
             "storage_connector_inspect"
           ],
           "workflow": "inspect-storage"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "storage_connector_select"
+          ],
+          "workflow": "select-storage"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-universe": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "pv_status"
+          ],
+          "workflow": "project-universe-authority-read"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "pv_task_backlog"
+          ],
+          "workflow": "project-universe-authority-read"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_query",
+            "search"
+          ],
+          "workflow": "project-universe-authority-read"
         }
       ],
       "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
@@ -958,7 +1049,101 @@
             "render_runtime_panel",
             "render_project_panel"
           ],
-          "workflow": "three-trigger-render-dispatch"
+          "workflow": "two-trigger-render-dispatch"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-formula": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "formula_engine_run"
+          ],
+          "workflow": "bounded-env-uop-formula-execution"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-brain-scaling": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "brain_scaling_select"
+          ],
+          "workflow": "deterministic-indexed-brain-slice-selection"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-project-recipe": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "project_recipe_compile"
+          ],
+          "workflow": "project-type-source-and-lane-recipe-compilation"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-toolchain": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "ai_toolchain_route"
+          ],
+          "workflow": "conditional-codex-toolchain-routing"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-bigger-universe": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "bigger_universe_register"
+          ],
+          "workflow": "register-changed-project-mini-brain-heads"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "bigger_universe_link"
+          ],
+          "workflow": "explicit-hash-only-cross-project-link"
+        }
+      ],
+      "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+    },
+    "evi-fuse": {
+      "ordered_tool_groups": [
+        {
+          "order": 1,
+          "tools": [
+            "hil_intent_classify"
+          ],
+          "workflow": "dual-hil-intent-classification"
+        },
+        {
+          "order": 2,
+          "tools": [
+            "hil_decide",
+            "hil_return_to_accepted"
+          ],
+          "workflow": "dual-hil-non-promotion-decision"
+        },
+        {
+          "order": 3,
+          "tools": [
+            "pv_fuse"
+          ],
+          "workflow": "exact-learning-then-project-approval-promotion"
         }
       ],
       "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
@@ -974,7 +1159,7 @@
       "reached_via": "governed-git-delivery"
     },
     "hil_return_to_accepted": {
-      "owner_skill": "evi-build",
+      "owner_skill": "evi-fuse",
       "reached_via": "non-promotion-hil-return"
     },
     "lane_configure_routes": {
@@ -1065,7 +1250,7 @@
       ],
       "failure_behavior": "CONFORMANCE_GATE_FAIL_CLOSED"
     },
-    "tool_count": 88,
+    "tool_count": 91,
     "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
     "host_display_namespace_is_authority": false,
     "installed_validation": "REBUILD_AND_COMPARE_AGAINST_THE_INSTALLED_NATIVE_CATALOG_AT_RELEASE_BOUNDARY"

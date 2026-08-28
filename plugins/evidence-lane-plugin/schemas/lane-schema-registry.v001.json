@@ -4,6 +4,10 @@
   "base_schema": {
     "schema_id": "evidence-lane.universal-lane.v2",
     "tables": [
+      "authority_index_fts",
+      "authority_index_node",
+      "authority_index_refresh_receipt",
+      "authority_index_source",
       "chunk_content_cas",
       "chunk_history",
       "chunk_index",
@@ -63,6 +67,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "sector_meta",
         "sector_head",
         "artifact_registry",
@@ -72,6 +80,9 @@
         "code_chunk",
         "code_symbol",
         "code_import",
+        "code_call",
+        "code_parser_receipt",
+        "code_parser_diagnostic",
         "code_route",
         "code_dependency",
         "code_route_api_boundary",
@@ -115,7 +126,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "AE283CEEB37D2C97D422D88956C05AA9B024D12AB8E01CE8EE6A6AD8A02689AF"
+      "sqlite_master_projection_sha256": "80BB3A3AC3080E8BD708DB502EFF7796AEEB700305F9BBAC5B5B58D309AB8AB0"
     },
     {
       "lane_id": "local_code",
@@ -137,6 +148,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "sector_meta",
         "sector_head",
         "artifact_registry",
@@ -146,6 +161,9 @@
         "code_chunk",
         "code_symbol",
         "code_import",
+        "code_call",
+        "code_parser_receipt",
+        "code_parser_diagnostic",
         "code_route",
         "code_dependency",
         "code_route_api_boundary",
@@ -189,7 +207,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "00315B7EC88091EF73571ABCDB0710E82BFA219117858AFC576A7AE7CD5BEFA1"
+      "sqlite_master_projection_sha256": "30D4B9375D6C476A98D3F5650F1BDDF06FFF7215A963B292B3D9E5EBDCEE0652"
     },
     {
       "lane_id": "chat_lineage",
@@ -211,6 +229,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "writeback_policy",
         "turn_prepare",
         "prompt_raw_exact",
@@ -243,7 +265,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "7D78979C25AABBEB23378F7D356D68EBE951FDE9566AE9F28510C4C78DBC217E"
+      "sqlite_master_projection_sha256": "D8962D934286FEAB90B054444C52D8E20DD37C000472DBC01B1D6688CF2625FD"
     },
     {
       "lane_id": "discussion",
@@ -265,6 +287,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "discussion_source",
         "discussion_turn",
         "discussion_item",
@@ -288,7 +314,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "0383D4F2BD862F90FBD3C6D27F480AC7320DF17F4D90CE2C23B123C04FBCE7B0"
+      "sqlite_master_projection_sha256": "8A059DE783104A25E24D6E8D895694403CB549B5A6E6038801436DCEC5359BD6"
     },
     {
       "lane_id": "analysis",
@@ -310,6 +336,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "analysis_source",
         "analysis_claim",
         "analysis_evidence",
@@ -334,7 +364,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "6056A1C33C36227C5BFA2A5EE2894A6CE98FC855D4CD4DC5BCFB36F05F3CB3A2"
+      "sqlite_master_projection_sha256": "A336D92800DFBF378A984B3CFC0A8926A36971367759F56D8FA998727DFD60AE"
     },
     {
       "lane_id": "plan",
@@ -356,6 +386,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "plan_source",
         "plan_phase",
         "plan_milestone",
@@ -381,7 +415,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "6FA5CDF124C5FBB0FF85D48FF2549B25A1E413F9B9F59D203D8F803F16DFDD15"
+      "sqlite_master_projection_sha256": "D3DB19971689E849D9D401AB04FBE735ED08422C61B2A33D5147D6DDE713EBC0"
     },
     {
       "lane_id": "mode",
@@ -403,6 +437,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "mode_source",
         "mode_scope",
         "mode_trigger",
@@ -428,7 +466,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "C86B005207703317BEFB523FEF7DD5B2FAA218C5AD0B84AF28B338784D53034E"
+      "sqlite_master_projection_sha256": "B162E1310FFCB0036FD5E2C4FAAF149557EA2BAD804052FA756272D7B738E06A"
     },
     {
       "lane_id": "docs",
@@ -450,6 +488,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "doc_file",
         "doc_structure",
         "doc_heading",
@@ -457,6 +499,7 @@
         "doc_table_extract",
         "doc_chunk",
         "doc_image_reference",
+        "docling_extraction",
         "source_structure_signature",
         "doc_fts"
       ],
@@ -473,7 +516,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "9973C660483DCDF602495548B822AD202CC8FCF8E2DF82CC3B787F79633D12DD"
+      "sqlite_master_projection_sha256": "C90B39E04C6345904B080BCFEA42A9277F530B8892271E6B21AB5D20BCDED73F"
     },
     {
       "lane_id": "data_excel",
@@ -495,6 +538,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "data_source",
         "sheet_workbook",
         "sheet_tab",
@@ -510,6 +557,12 @@
         "json_record_sample",
         "parquet_schema",
         "parquet_row_sample",
+        "duckdb_tabular_stage_receipt",
+        "polars_tabular_stage_receipt",
+        "openpyxl_workbook_inspection",
+        "pandas_workbook_inspection",
+        "tableau_hyper_inspection",
+        "docling_extraction",
         "data_chunk",
         "data_structure_signature",
         "data_fts"
@@ -527,7 +580,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "B021A2D22649A78B2D646E47F38D8C3FA372542FACEEF6D559BD79030155A208"
+      "sqlite_master_projection_sha256": "502D1D41AE57ACACED84E3FC20A9497B99E758ADA91F6EE220BCD58AF4C75D9A"
     },
     {
       "lane_id": "ppt",
@@ -549,6 +602,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "ppt_file",
         "ppt_slide",
         "ppt_shape",
@@ -556,6 +613,7 @@
         "ppt_notes",
         "ppt_table",
         "ppt_image_reference",
+        "docling_extraction",
         "ppt_slide_relationship",
         "ppt_chunk",
         "ppt_structure_signature",
@@ -574,7 +632,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "784BA68CEB91F691ED4EB5169284F1AD91DCC8ED216636FEA97D962F608AA323"
+      "sqlite_master_projection_sha256": "DEAC9B4DBB9D30258DC487A99E6C5E587B3B1037FA6B4062D38294FE747F79C9"
     },
     {
       "lane_id": "pdf_ocr",
@@ -596,6 +654,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "pdf_file",
         "pdf_page",
         "pdf_text_block",
@@ -604,6 +666,7 @@
         "pdf_ocr_block",
         "pdf_ocr_line",
         "pdf_review_region",
+        "docling_extraction",
         "pdf_structure_signature",
         "pdf_fts"
       ],
@@ -620,7 +683,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "A9867D179F45FD7D5431800AC5FBF944E265926948DED7544BDE3CB939DF6CE9"
+      "sqlite_master_projection_sha256": "B63A8204D72A17076CE0432865E0D0A64569DF932C17E480C4E350CF7FF82C52"
     },
     {
       "lane_id": "images_ocr",
@@ -642,6 +705,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "image_file",
         "image_metadata",
         "image_ocr_run",
@@ -663,7 +730,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "F655854A5E9440C5EE5959666AEF7495C483748EDF202B055973E96A55989C6D"
+      "sqlite_master_projection_sha256": "CC2654A2A26FA4E232C60248F9990841E19C2976CC8FC2BD8AD7731AF9B6950A"
     },
     {
       "lane_id": "artifacts",
@@ -685,11 +752,16 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "project_artifact",
         "artifact_metadata",
         "artifact_text_extract",
         "artifact_relation_edge",
         "artifact_review_required",
+        "artifact_media_probe",
         "artifact_fts"
       ],
       "lane_table_builder": "GENERIC_ENTITY_RECORD_V1",
@@ -705,7 +777,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "DD1CF8B8E82A88B0B36D18693E9E0C9F87DB759D7C259BA8AB533E724E914BE6"
+      "sqlite_master_projection_sha256": "E37EB5A42747EF6EB4B7D4EBFC7582777BC6DB580FCBBCDC5FF42CCA47CA8A6F"
     },
     {
       "lane_id": "custom",
@@ -727,6 +799,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "custom_source",
         "custom_item",
         "custom_evidence",
@@ -747,7 +823,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "483C83DB9975A6F3F1D49097B8F77B80CA79F2E1A4426970DBAE699D6C639306"
+      "sqlite_master_projection_sha256": "25D5188B8E41F18CAA9E91677A26B69744133F8FB9A1D5B2BEC2CE5D925B7B01"
     },
     {
       "lane_id": "brain_loader",
@@ -769,6 +845,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "brain_loader_source",
         "brain_loader_package",
         "brain_loader_member",
@@ -778,6 +858,7 @@
         "brain_loader_schema_object",
         "brain_loader_relationship",
         "brain_loader_receipt",
+        "sqlalchemy_schema_inspection",
         "brain_loader_fts"
       ],
       "lane_table_builder": "GENERIC_ENTITY_RECORD_V1",
@@ -793,7 +874,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "1E1CF6CABA752AFCD86ADADDC29E7F1D468A58DC202909BA2432950FA0B41295"
+      "sqlite_master_projection_sha256": "7469CE628E64EADB517BB4AE4304CED544D411C16191A18363005A8062DAB26F"
     },
     {
       "lane_id": "research",
@@ -815,6 +896,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "research_source",
         "research_question",
         "research_hypothesis",
@@ -840,7 +925,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "B0CE1158B747662C6369AE87818E6319CDC128555B9BED4CF5C732717BAE32B2"
+      "sqlite_master_projection_sha256": "4B6AC26B887627414772B2852DA3AC991B5B7DE448642211351070D8CA56B772"
     },
     {
       "lane_id": "project_engulf",
@@ -862,6 +947,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "project_engulf_source",
         "project_engulf_file",
         "project_engulf_component",
@@ -890,7 +979,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "E5B45FC7F98A2CF0DE3F48E7BEB9CA56EB1701DFA3E5694F45122C5A63C48F68"
+      "sqlite_master_projection_sha256": "15EB18AF74B4410BFB31B9B9CC2DA460F87FDC185DC9E27C309D11F40641FCAA"
     },
     {
       "lane_id": "sqlite_brain",
@@ -912,6 +1001,10 @@
         "tfidf_vector",
         "refresh_receipt",
         "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
         "loaded_sqlite_brain_source",
         "loaded_sqlite_brain_database",
         "loaded_sqlite_brain_schema_object",
@@ -924,6 +1017,7 @@
         "loaded_sqlite_brain_compatibility",
         "loaded_sqlite_brain_sector_mapping",
         "loaded_sqlite_brain_receipt",
+        "sqlalchemy_schema_inspection",
         "loaded_sqlite_brain_fts"
       ],
       "lane_table_builder": "GENERIC_ENTITY_RECORD_V1",
@@ -939,7 +1033,7 @@
           "additive_only": true
         }
       ],
-      "sqlite_master_projection_sha256": "ABEC75586D9D7FB39B1B6A61660AAF6C145EFE7295E8BF146F0077B3DC8F93A6"
+      "sqlite_master_projection_sha256": "6796E0304DBA413F5E3C8879E9E9D68D9883F9240926671056BFB793A7377E1C"
     }
   ]
 }

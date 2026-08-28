@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import pytest
+import evidence_lane_plugin.goal_usage as goal_usage
 from evidence_lane_plugin.goal_usage import (
     GOAL_COMPLETION_COMMAND,
     RICH_GOAL_COMPLETION_METRICS_ROUTE,
     build_component_token_accounting,
     build_goal_completion_authorization,
-    build_goal_usage_receipt,
     build_profile_observed_usage_context,
+    build_reset_aware_epoch_accounting,
     build_rich_goal_completion_metrics_receipt,
     compact_duration,
     compact_token_count,
@@ -34,19 +35,8 @@ def test_compact_token_count_uses_readable_k_m_and_b_notation() -> None:
     }
 
 
-def test_legacy_goal_usage_route_is_a_non_executing_tombstone() -> None:
-    tombstone = build_goal_usage_receipt(
-        current_tokens=1_500_000,
-        current_elapsed_seconds=3600,
-    )
-    assert tombstone["status"] == "OBSOLETE_ROUTE"
-    assert tombstone["required_current_route"] == (
-        RICH_GOAL_COMPLETION_METRICS_ROUTE
-    )
-    assert tombstone["legacy_execution_performed"] is False
-    assert tombstone["fallback_allowed"] is False
-    assert tombstone["mutation_performed"] is False
-    assert tombstone["supplied_values_returned"] is False
+def test_compact_single_epoch_goal_usage_route_is_purged() -> None:
+    assert not hasattr(goal_usage, "build_goal_usage_receipt")
 
 
 def test_goal_completion_is_exact_human_only_and_has_two_dispositions() -> None:
@@ -127,6 +117,7 @@ def _rich_telemetry() -> dict[str, object]:
         "raw_input_tokens": 100_000,
         "cached_input_tokens": 80_000,
         "uncached_input_tokens": 20_000,
+        "cache_write_input_tokens": 0,
         "output_tokens": 25_000,
         "reasoning_output_tokens": 5_000,
         "raw_input_output_total_tokens": 125_000,
@@ -134,6 +125,7 @@ def _rich_telemetry() -> dict[str, object]:
         "model_turn_starts": 12,
         "assistant_agent_messages": 31,
         "top_level_tool_calls": 18,
+        "execution_calls": 10,
         "native_mcp_completions": 7,
         "patch_applications": 4,
         "web_search_completions": 2,
@@ -141,6 +133,45 @@ def _rich_telemetry() -> dict[str, object]:
         "aborted_turns": 1,
         "unique_subagents": 2,
         "spawn_calls": 3,
+        "cumulative_token_samples": [
+            {
+                "timestamp": "2026-08-24T14:00:00Z",
+                "input_tokens": 60_000,
+                "cached_input_tokens": 40_000,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 15_000,
+                "reasoning_output_tokens": 3_000,
+                "total_tokens": 75_000,
+            },
+            {
+                "timestamp": "2026-08-25T14:00:00Z",
+                "input_tokens": 10_000,
+                "cached_input_tokens": 10_000,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 2_000,
+                "reasoning_output_tokens": 1_000,
+                "total_tokens": 12_000,
+            },
+            {
+                "timestamp": "2026-08-25T15:00:00Z",
+                "input_tokens": 40_000,
+                "cached_input_tokens": 40_000,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 10_000,
+                "reasoning_output_tokens": 2_000,
+                "total_tokens": 50_000,
+            },
+        ],
+        "daily_reconciliation_timezone": "America/New_York",
+        "native_turn_evidence": {
+            "returned_turn_count": 15,
+            "in_progress_turns": 0,
+            "populated_in_progress_turns": 0,
+            "empty_in_progress_turns": 0,
+            "context_compactions": 3,
+            "model_turn_starts": 12,
+            "aborted_turns": 1,
+        },
         "subagent_lifecycle_counts": {
             "started": 2,
             "interacted": 4,
@@ -179,6 +210,10 @@ def test_rich_goal_completion_metrics_are_exact_separate_and_subset_safe() -> No
         "raw"
     ] == 125_000
     assert receipt["accounting_laws"]["reasoning_tokens_double_counted"] is False
+    assert receipt["reset_aware_epoch_accounting"]["counter_reset_count"] == 1
+    assert receipt["reset_aware_epoch_accounting"]["epoch_count"] == 2
+    assert receipt["reset_aware_epoch_accounting"]["final_minus_initial_used"] is False
+    assert receipt["native_turn_reconciliation"]["status"] == "PASS"
     assert receipt["elapsed"] == {
         "availability": "AVAILABLE",
         "raw": 3_661,
@@ -189,13 +224,135 @@ def test_rich_goal_completion_metrics_are_exact_separate_and_subset_safe() -> No
     assert receipt["subagent_lifecycle_counts"]["interacted"]["raw"] == 4
     assert receipt["missing_fields"] == []
     assert receipt["completion_state"]["completion_call_performed"] is False
-    assert receipt["legacy_route"] == {
-        "identifier": "build_goal_usage_receipt",
-        "status": "OBSOLETE_ROUTE",
-        "executable": False,
-        "fallback_allowed": False,
-        "required_current_route": RICH_GOAL_COMPLETION_METRICS_ROUTE,
+    assert "legacy_route" not in receipt
+
+
+def test_duration_authorities_are_separate_nullable_and_never_summed() -> None:
+    telemetry = _rich_telemetry()
+    telemetry.update(
+        {
+            "host_completed_time_used_seconds": 82_053,
+            "user_confirmed_active_ui_runtime_seconds": 99_960,
+            "goal_calendar_span_seconds": 150_016.691,
+            "native_completed_turn_overlap_seconds": 81_950.691,
+            "duration_observation": {
+                "source_kind": "USER_CONFIRMED_ACTIVE_UI_RUNTIME",
+                "runtime_seconds": 99_960,
+                "observation_timestamp": None,
+                "goal_recompleted": False,
+                "main_token_segment_overwritten": False,
+            },
+            "non_execution_gaps": {
+                "large_gap_seconds": 67_845,
+                "small_gap_seconds": 221,
+                "total_seconds": 68_066,
+                "cause": "NON_EXECUTION_GAP_CAUSE_UNPROVEN",
+            },
+            "native_status_mismatches": [
+                {
+                    "native_status": "inProgress",
+                    "rollout_status": "task_complete",
+                }
+            ],
+            "hidden_overlay_truth": "STALE_INPROGRESS_VISIBLE",
+            "first_complete_goal_receipt_selected": True,
+        }
+    )
+    receipt = build_rich_goal_completion_metrics_receipt(
+        goal_id="goal-duration-001",
+        telemetry=telemetry,
+        provenance={"source": "first-native-complete-goal-receipt"},
+        binding=_binding(),
+    )
+
+    durations = receipt["duration_authorities"]
+    assert durations["USER_CONFIRMED_ACTIVE_UI_RUNTIME"]["exact_seconds"] == 99_960
+    assert durations["HOST_COMPLETED_TIME_USED"]["exact_seconds"] == 82_053
+    assert durations["GOAL_CALENDAR_SPAN"]["exact_seconds"] == 150_016.691
+    assert durations["NATIVE_COMPLETED_TURN_OVERLAP"]["exact_seconds"] == 81_950.691
+    reconciliation = receipt["duration_reconciliation"]
+    assert reconciliation["preferred_runtime_basis"] == (
+        "USER_CONFIRMED_ACTIVE_UI_RUNTIME"
+    )
+    assert reconciliation["preferred_runtime_seconds"] == 99_960
+    assert reconciliation["ui_minus_host_seconds"] == 17_907
+    assert reconciliation["host_overhead_seconds"] == 102.309
+    assert reconciliation["ui_host_wall_and_turn_overlap_summed"] is False
+    assert reconciliation["duration_authorities_aliased"] is False
+    assert reconciliation["active_ui_snapshot"]["availability"] == "UNAVAILABLE"
+    assert reconciliation["non_execution_gaps"]["counted_as_active_runtime"] is False
+    assert receipt["native_turn_reconciliation"][
+        "started_minus_completed_inference_used"
+    ] is False
+    assert receipt["full_option_2_display_contract"][
+        "post_append_closeout_tail_displayed_separately"
+    ] is True
+
+
+def test_active_ui_snapshot_is_client_presentation_not_admitted_runtime() -> None:
+    telemetry = _rich_telemetry()
+    telemetry["active_ui_snapshot"] = {
+        "observed_at": "2026-08-27T00:00:00+00:00",
+        "goal_status": "active",
+        "time_used_seconds": 82_053,
+        "updated_at": 1_787_780_000,
+        "computed_active_display_seconds": 99_960,
     }
+    receipt = build_rich_goal_completion_metrics_receipt(
+        goal_id="goal-ui-001",
+        telemetry=telemetry,
+        provenance={"source": "native-active-goal-object"},
+        binding=_binding(),
+    )
+    snapshot = receipt["duration_reconciliation"]["active_ui_snapshot"]
+    assert snapshot["presentation_class"] == "CLIENT_EXTRAPOLATED_PRESENTATION"
+    assert snapshot["admitted_to_duration_formula"] is False
+    assert snapshot["formula"] == (
+        "timeUsedSeconds + observation_timestamp - updatedAt"
+    )
+
+
+def test_reset_aware_goal_accounting_sums_positive_deltas_across_many_resets() -> None:
+    samples = []
+    for index, value in enumerate((10, 20, 3, 8, 1, 4)):
+        samples.append(
+            {
+                "timestamp": f"2026-08-25T{index:02d}:00:00Z",
+                "input_tokens": value,
+                "cached_input_tokens": value // 2,
+                "cache_write_input_tokens": 0,
+                "output_tokens": value,
+                "reasoning_output_tokens": value // 4,
+                "total_tokens": value * 2,
+            }
+        )
+    receipt = build_reset_aware_epoch_accounting(
+        cumulative_samples=samples,
+        timezone_name="America/New_York",
+    )
+    assert receipt["counter_reset_count"] == 2
+    assert receipt["epoch_count"] == 3
+    assert receipt["totals"]["input_tokens"] == 32
+    assert receipt["totals"]["output_tokens"] == 32
+    assert receipt["totals"]["total_tokens"] == 64
+    assert receipt["final_minus_initial_used"] is False
+
+
+def test_rich_goal_metrics_correction_supersedes_without_recompleting_goal() -> None:
+    telemetry = _rich_telemetry()
+    telemetry["correction_semantics"] = {
+        "status": "CORRECTION_SUPERSESSION",
+        "supersedes_receipt_sha256": "B" * 64,
+    }
+    receipt = build_rich_goal_completion_metrics_receipt(
+        goal_id="goal-correction",
+        telemetry=telemetry,
+        provenance={"source": "reset-aware-correction"},
+        binding=_binding(),
+    )
+    assert receipt["ledger_semantics"]["status"] == "CORRECTION_SUPERSESSION"
+    assert receipt["ledger_semantics"]["supersedes_receipt_sha256"] == "B" * 64
+    assert receipt["ledger_semantics"]["goal_recompleted_for_correction"] is False
 
 
 def test_completed_goal_reuses_persisted_rich_receipt_without_completion() -> None:
@@ -241,7 +398,7 @@ def test_incomplete_rich_telemetry_reports_missing_fields_without_fallback() -> 
     assert "host_accounted_goal_tokens" in receipt["missing_fields"]
     assert "host_accounting_formula" in receipt["missing_fields"]
     assert "persisted_completion_metrics_receipt" in receipt["missing_fields"]
-    assert receipt["legacy_route"]["fallback_allowed"] is False
+    assert "legacy_route" not in receipt
     assert receipt["completion_state"]["completion_call_performed"] is False
 
 

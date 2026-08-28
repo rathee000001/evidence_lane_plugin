@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Canon consequence graph runtime binding",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "module",
+    "source_sha256"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "canon_consequence_graph"
+    },
+    "module": {
+      "const": "evidence_lane_plugin.canon_consequence_graph"
+    },
+    "source_sha256": {
+      "const": "AF1112AE18285A93A2308CF9E31B683EFF1D16FA5199726195CD31F25649B7F2"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "043F23EEB137EDC1544342444F2C21C34A2D170CD9AC2D6E153D1627206DA5FA"
+}

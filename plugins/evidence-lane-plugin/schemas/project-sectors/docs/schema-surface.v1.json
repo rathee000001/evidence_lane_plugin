@@ -1,0 +1,64 @@
+{
+  "schema": "evidence-lane.project-sector-schema-surface.v1",
+  "status": "PASS",
+  "lane_id": "docs",
+  "authority_root": "authorities/project_sectors/docs",
+  "authority_manifest_sha256": "FDFE504A761625FB60A9B1C5155AC9286111642F9137DA7CE9D21198B8E83AB5",
+  "schema_file_count": 10,
+  "schema_files": [
+    {
+      "path": "authorities/project_sectors/docs/builder-contract.schema.json",
+      "bytes": 604,
+      "sha256": "142F02BE322806E5ACB6ECD309CAC1BFE9078F55C3F765D9A76DE4BC24FAD953"
+    },
+    {
+      "path": "authorities/project_sectors/docs/dot-artifact.schema.json",
+      "bytes": 932,
+      "sha256": "C57560D7F27C93A0387E43C8F13C2F50DC4B146610F947C0802858A0CFBAFBAA"
+    },
+    {
+      "path": "authorities/project_sectors/docs/lane-pointer.schema.json",
+      "bytes": 729,
+      "sha256": "68F2734400E2BAB7567E847769B4FAE0C2F9278C804F69117BD62CA72D859172"
+    },
+    {
+      "path": "authorities/project_sectors/docs/manifest.schema.json",
+      "bytes": 962,
+      "sha256": "D184C84B680E534566EA566F74D83E08CAD56B3EB546D0D0E41E97B896818895"
+    },
+    {
+      "path": "authorities/project_sectors/docs/mmd-artifact.schema.json",
+      "bytes": 949,
+      "sha256": "26F1E65D942AEBF52FA3760B4F3592DA3331022EBBA1A3B5291274CA75DBA0A9"
+    },
+    {
+      "path": "authorities/project_sectors/docs/reader-contract.schema.json",
+      "bytes": 754,
+      "sha256": "3C9CF63B7EAF7CB8483B83448A3C287F396714FA1774C25E9165EAE730408F0D"
+    },
+    {
+      "path": "authorities/project_sectors/docs/refresh-receipt.schema.json",
+      "bytes": 524,
+      "sha256": "F83A1C51C753B025512E60CD4B6249F18435206B916F28DF7B2D32E469946B18"
+    },
+    {
+      "path": "authorities/project_sectors/docs/schema.sql",
+      "bytes": 9312,
+      "sha256": "C53A648BE6C7CBFD8FC296764163323C20BA37935562D078B3B6268CF7EC044A"
+    },
+    {
+      "path": "authorities/project_sectors/docs/sqlite-artifact.schema.json",
+      "bytes": 951,
+      "sha256": "480ADA27D4759905401A0974AC316D392AEC4BD27305D8D9440FD59635138472"
+    },
+    {
+      "path": "authorities/project_sectors/docs/tools.schema.json",
+      "bytes": 993,
+      "sha256": "54A3653D9B391EE614E299AD4D068E9E0EB78264DC11B63494960645BEB1D254"
+    }
+  ],
+  "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
+  "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_bytes_duplicated_here": false,
+  "receipt_sha256": "A98CE5E92EE7E14C47F1B558651CFF9944B5E18B9721D47A398A83FC0A497B13"
+}

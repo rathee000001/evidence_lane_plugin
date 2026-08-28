@@ -1,0 +1,12 @@
+{
+  "schema": "evidence-lane.sdk-named-authority-binding.v1",
+  "status": "PASS",
+  "authority_id": "project_overlay",
+  "authority_root": "authorities/project_overlay",
+  "authority_manifest_sha256": "996D375A9889D9D6BF887BD4AB0BFD34A54F820D6988C6AD1F8C13D5AE87947F",
+  "schema_surface": "schemas/authorities/project_overlay/schema-surface.v1.json",
+  "persistent_sqlite_authority": true,
+  "linked_public_action_count": 10,
+  "merged_with_project_sector_or_peer": false,
+  "receipt_sha256": "B97319B7E67EA40E5A62CF3222C0CE8A57DBD950E5FE5B436198A1B242CE9B98"
+}

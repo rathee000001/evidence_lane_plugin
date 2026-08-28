@@ -1,0 +1,2572 @@
+{
+  "schema": "evidence-lane.tunnel-runtime-toolchain.v1",
+  "status": "PASS",
+  "requirement_count": 95,
+  "requirements": [
+    {
+      "tool": "Git",
+      "requirement": "REQUIRED_OPTIONAL_FOR_PROJECT_ENGULF",
+      "surfaces": [
+        "github_code",
+        "local_code",
+        "project_engulf",
+        "runtime_git_delivery"
+      ],
+      "role": "Refs, commits, parents, blobs, changes, and reviewed delivery.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "CODE"
+      ],
+      "primary_for": [
+        "CODE"
+      ],
+      "fallback_for": [],
+      "action_order": {
+        "CODE": 1
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "project_engulf"
+      ],
+      "implementation_owner": "git_optional.py + git_history.py",
+      "license_record": "toolchains/licenses/requirements/001-git/LICENSE-RECORD.json",
+      "license_record_sha256": "4CB37A54900E3E99BEA4DF8BA363298D43865D231962D361F5CAAFFF20B9C6C7"
+    },
+    {
+      "tool": "Python",
+      "requirement": "REQUIRED",
+      "surfaces": [
+        "github_code",
+        "local_code",
+        "package_runtime"
+      ],
+      "role": "Polyglot projection and native server runtime.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "scripts/bootstrap.py hidden runtime",
+      "license_record": "toolchains/licenses/requirements/002-python/LICENSE-RECORD.json",
+      "license_record_sha256": "EB46E8880C9C75278874D2B5C012457A30BE555F162832439F8F35BB7EB9FDD3"
+    },
+    {
+      "tool": "hashlib_pathlib",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "all_18_project_sectors",
+        "plan",
+        "canon",
+        "learning",
+        "memory",
+        "receipts"
+      ],
+      "role": "Exact hashing and bounded path handling.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "hashing.py",
+      "license_record": "toolchains/licenses/requirements/003-hashlib-pathlib/LICENSE-RECORD.json",
+      "license_record_sha256": "6A92B76DCCD57C1138947A6CE1A4448C2C5F652D90A209E30F7BB5B03FEB67B6"
+    },
+    {
+      "tool": "SQLite_CAS",
+      "requirement": "REQUIRED",
+      "surfaces": [
+        "all_18_project_sectors",
+        "project_authority",
+        "plan",
+        "chat_lineage",
+        "canon",
+        "learning",
+        "memory",
+        "sources",
+        "universe",
+        "project_overlay",
+        "connector_brain",
+        "receipt_ledger",
+        "session_authority"
+      ],
+      "role": "Durable facts, immutable content identity, sessions, state travel, and receipts.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "GOVERNANCE"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "GOVERNANCE"
+      ],
+      "action_order": {
+        "GOVERNANCE": 4
+      },
+      "eligible_lanes": [
+        "analysis",
+        "discussion",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "lane_engine.py + store.py",
+      "license_record": "toolchains/licenses/requirements/004-sqlite-cas/LICENSE-RECORD.json",
+      "license_record_sha256": "86193F63400110303F6DF3D96F2A1BE2D707BE3FD32C01D0D05951F6378E10B9"
+    },
+    {
+      "tool": "SQLite_FTS5_BM25",
+      "requirement": "REQUIRED",
+      "surfaces": [
+        "all_18_project_sectors",
+        "every_queryable_project_authority"
+      ],
+      "role": "Bounded indexed retrieval without loading a database or PV package into model context.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 3
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "discussion",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "sqlite_indexing.py + lane_reader.py",
+      "license_record": "toolchains/licenses/requirements/005-sqlite-fts5-bm25/LICENSE-RECORD.json",
+      "license_record_sha256": "E5E23806DA05F6B76154D94CB771A55D1351FB105A2B61F6E9541F44F9D97FF4"
+    },
+    {
+      "tool": "APSW_SQLite_engine",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "all_18_project_sectors",
+        "every_sqlite_authority",
+        "receipt_ledger",
+        "session_authority"
+      ],
+      "role": "Full SQLite API, backup/serialize/session/RBU/tracing, best-practice diagnostics, and per-lane benchmarked bulk-build option.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RETRIEVAL",
+        "DATA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RETRIEVAL",
+        "DATA"
+      ],
+      "action_order": {
+        "RETRIEVAL": 2,
+        "DATA": 3
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "discussion",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "sqlite_execution.py",
+      "license_record": "toolchains/licenses/requirements/006-apsw-sqlite-engine/LICENSE-RECORD.json",
+      "license_record_sha256": "4319D8F5B6FCF60B4AD603AB43228475B25689893CF62A93A92D522C5B9D449F"
+    },
+    {
+      "tool": "deterministic_TFIDF",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "all_18_project_sectors"
+      ],
+      "role": "Explicit term statistics and retrieval parity.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 10
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "discussion",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/007-deterministic-tfidf/LICENSE-RECORD.json",
+      "license_record_sha256": "8AC2323D659A2C7B8ED6B9A9E6C361C7947C78F46D67C3F38C538F5CD2768D25"
+    },
+    {
+      "tool": "LangGraph_Mermaid_engine",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "all_18_project_sectors",
+        "plan",
+        "canon_topology",
+        "all_named_authorities",
+        "all_workflows"
+      ],
+      "role": "System-wide semantic graph compilation and Mermaid export through langgraph==1.2.11 and its graph exporter.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "GRAPH"
+      ],
+      "primary_for": [
+        "GRAPH"
+      ],
+      "fallback_for": [],
+      "action_order": {
+        "GRAPH": 1
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "graph_pipeline.py",
+      "license_record": "toolchains/licenses/requirements/008-langgraph-mermaid-engine/LICENSE-RECORD.json",
+      "license_record_sha256": "88863BB514C8E1F7DC563A3C1BF8FFBC348682C770AA161466367F2C1EC50D19"
+    },
+    {
+      "tool": "Python_Graphviz_DOT_engine",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "all_18_project_sectors",
+        "plan",
+        "canon_topology",
+        "all_named_authorities",
+        "all_workflows"
+      ],
+      "role": "System-wide DOT construction through graphviz==0.21.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "GRAPH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "GRAPH"
+      ],
+      "action_order": {
+        "GRAPH": 3
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "graph_pipeline.py",
+      "license_record": "toolchains/licenses/requirements/009-python-graphviz-dot-engine/LICENSE-RECORD.json",
+      "license_record_sha256": "C6338EB019DD2F14FC52A6EDD26853EF484762932E86C2CBC486A490BF463873"
+    },
+    {
+      "tool": "LlamaIndex_SQLite_indexer",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "all_18_project_sectors",
+        "project_authority",
+        "canon",
+        "learning",
+        "memory",
+        "sources",
+        "universe",
+        "project_overlay",
+        "connector_brain",
+        "receipt_ledger",
+        "session_authority"
+      ],
+      "role": "Deterministic document/node construction stored in each owning SQLite with FTS5/BM25 and append-only refresh receipts.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary_for": [
+        "RETRIEVAL"
+      ],
+      "fallback_for": [],
+      "action_order": {
+        "RETRIEVAL": 1
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "discussion",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "sqlite_indexing.py",
+      "license_record": "toolchains/licenses/requirements/010-llamaindex-sqlite-indexer/LICENSE-RECORD.json",
+      "license_record_sha256": "6D5C695E04F09AEA7067A641C0678E215DA37EA11498784A1059B041597B8E6B"
+    },
+    {
+      "tool": "Mermaid_CLI_mmdc",
+      "requirement": "OPTIONAL_HIDDEN_RUNTIME_RENDERER",
+      "surfaces": [
+        "all_graph_surfaces"
+      ],
+      "role": "Derived Mermaid rendering; MMD source remains authoritative.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "GRAPH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "GRAPH"
+      ],
+      "action_order": {
+        "GRAPH": 5
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "native_toolchain.py (optional renderer)",
+      "license_record": "toolchains/licenses/requirements/011-mermaid-cli-mmdc/LICENSE-RECORD.json",
+      "license_record_sha256": "019DF3B95484A75829C41BA6CC430CB9A378680BE40CAFDA223F4B6ADE0A65D5"
+    },
+    {
+      "tool": "Graphviz_dot",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+      "surfaces": [
+        "all_graph_surfaces"
+      ],
+      "role": "Strict DOT parse, validation, layout, and deterministic derived rendering for every Graphviz-generated DOT.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "GRAPH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "GRAPH"
+      ],
+      "action_order": {
+        "GRAPH": 4
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "native_toolchain.py + graph_pipeline.py",
+      "license_record": "toolchains/licenses/requirements/012-graphviz-dot/LICENSE-RECORD.json",
+      "license_record_sha256": "74A27363589C07E60A2555926407F0D9A15BDB32CDE17EC39AE9BD5B478B6462"
+    },
+    {
+      "tool": "Python_structural_parser",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "all_structured_project_sectors"
+      ],
+      "role": "Bounded structural extraction.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "CODE"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 7
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "project_engulf"
+      ],
+      "implementation_owner": "lane_engine.py + ingest.py",
+      "license_record": "toolchains/licenses/requirements/013-python-structural-parser/LICENSE-RECORD.json",
+      "license_record_sha256": "DB53C1C08BB35FC51F1051F16CA1C88ABD0437FCA2A6031A8A245951B4FDADD7"
+    },
+    {
+      "tool": "Package_sealer",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "all_structured_project_sectors",
+        "candidate_lifecycle"
+      ],
+      "role": "Four-file lane packages, candidates, manifests, and receipts.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "sealing.py + pv_package.py",
+      "license_record": "toolchains/licenses/requirements/014-package-sealer/LICENSE-RECORD.json",
+      "license_record_sha256": "7410DF2189F3AF11806C031E20392B5CCC53AFB86E296F00C9CBBD8D1BEBE500"
+    },
+    {
+      "tool": "NodeJS_TypeScript",
+      "requirement": "REQUIRED_REPOSITORY_ONLY",
+      "surfaces": [
+        "github_code",
+        "local_code",
+        "public_adapter"
+      ],
+      "role": "JavaScript and TypeScript manifests, routes, and site build.",
+      "tunnel_prewarm_mode": "REGISTER_AND_VERIFY_AT_APPLICABLE_GATE",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "repository CI and remote_adapter build",
+      "license_record": "toolchains/licenses/requirements/015-nodejs-typescript/LICENSE-RECORD.json",
+      "license_record_sha256": "BC06F8F07FF9295B8E9D23F847C7F72783D35C74334EEE91ABD1ACC36ADA4F2E"
+    },
+    {
+      "tool": "pytest",
+      "requirement": "REQUIRED_CODE_ACCEPTANCE",
+      "surfaces": [
+        "github_code",
+        "local_code",
+        "plugin_tests"
+      ],
+      "role": "Executable Python contracts.",
+      "tunnel_prewarm_mode": "REGISTER_AND_VERIFY_AT_APPLICABLE_GATE",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "plugin tests + repository tests",
+      "license_record": "toolchains/licenses/requirements/016-pytest/LICENSE-RECORD.json",
+      "license_record_sha256": "33F9331BD83B3C559D3A38B24FC1456B36E55C9113C1A6ACB5EAB6B734F7689F"
+    },
+    {
+      "tool": "Ruff",
+      "requirement": "REQUIRED_CONFIGURED_GATE",
+      "surfaces": [
+        "github_code",
+        "local_code"
+      ],
+      "role": "Python quality checks.",
+      "tunnel_prewarm_mode": "REGISTER_AND_VERIFY_AT_APPLICABLE_GATE",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "repository quality gate",
+      "license_record": "toolchains/licenses/requirements/017-ruff/LICENSE-RECORD.json",
+      "license_record_sha256": "6464A0C2DF7BD119482CC62C8770B64FDD051F63721547B44BF3EFDFFCABEC68"
+    },
+    {
+      "tool": "MyPy",
+      "requirement": "REQUIRED_CONFIGURED_GATE",
+      "surfaces": [
+        "github_code",
+        "local_code"
+      ],
+      "role": "Typed-source checks.",
+      "tunnel_prewarm_mode": "REGISTER_AND_VERIFY_AT_APPLICABLE_GATE",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "repository type gate",
+      "license_record": "toolchains/licenses/requirements/018-mypy/LICENSE-RECORD.json",
+      "license_record_sha256": "EF71B51D7036522DE6D522327C167804F4D39C9259B126D07C3B771FD4FDBE96"
+    },
+    {
+      "tool": "Secret_redactor",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "chat_lineage",
+        "every_source_policy"
+      ],
+      "role": "Credential-shaped value exclusion.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "redaction.py",
+      "license_record": "toolchains/licenses/requirements/019-secret-redactor/LICENSE-RECORD.json",
+      "license_record_sha256": "80A508CB23BFC7F4659A81F4E4061598017D9D5C215B32AC006A7B64F350B265"
+    },
+    {
+      "tool": "Hash_chain_writer",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "chat_lineage",
+        "receipts"
+      ],
+      "role": "Idempotent visible-turn commit and lineage continuity.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "GOVERNANCE"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "GOVERNANCE"
+      ],
+      "action_order": {
+        "GOVERNANCE": 5
+      },
+      "eligible_lanes": [
+        "chat_lineage"
+      ],
+      "implementation_owner": "lineage.py + receipt_ledger.py",
+      "license_record": "toolchains/licenses/requirements/020-hash-chain-writer/LICENSE-RECORD.json",
+      "license_record_sha256": "001A3BE530B3FAE220E47D6CEFB94981577A85770DE38D7CBA843CA3E93EEA26"
+    },
+    {
+      "tool": "ENV_UOP_classifier",
+      "requirement": "REQUIRED_INTERNAL_AI_ACTION_PLANE",
+      "surfaces": [
+        "mode",
+        "lifecycle_entry",
+        "delta_entry",
+        "delta_mid",
+        "delta_exit"
+      ],
+      "role": "Ordered law intersection and operator routing.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "GOVERNANCE"
+      ],
+      "primary_for": [
+        "GOVERNANCE"
+      ],
+      "fallback_for": [],
+      "action_order": {
+        "GOVERNANCE": 1
+      },
+      "eligible_lanes": [
+        "mode"
+      ],
+      "implementation_owner": "mode_governance.py",
+      "license_record": "toolchains/licenses/requirements/021-env-uop-classifier/LICENSE-RECORD.json",
+      "license_record_sha256": "2462BC4C0E3ACC2602BC587F12DBB5EA3B8A461E79451AD6529785681457A46B"
+    },
+    {
+      "tool": "PCM_MBA_operators",
+      "requirement": "REQUIRED_INTERNAL_AI_ACTION_PLANE",
+      "surfaces": [
+        "mode",
+        "code_execution"
+      ],
+      "role": "Mode-specific execution governance.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "GOVERNANCE"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "GOVERNANCE"
+      ],
+      "action_order": {
+        "GOVERNANCE": 2
+      },
+      "eligible_lanes": [
+        "mode"
+      ],
+      "implementation_owner": "mode_governance.py + formula engine",
+      "license_record": "toolchains/licenses/requirements/022-pcm-mba-operators/LICENSE-RECORD.json",
+      "license_record_sha256": "2151CCA4D90EE7AF0A3839859ADF76757492395BE212A5E2798A1E97032B7E35"
+    },
+    {
+      "tool": "DOCX_OpenXML",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "docs"
+      ],
+      "role": "Hierarchy, text, relationships, and tables.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 6
+      },
+      "eligible_lanes": [
+        "docs"
+      ],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/023-docx-openxml/LICENSE-RECORD.json",
+      "license_record_sha256": "54DDA0E1CE16440DEEBC86B43A8CD055AD88B704CF603B0BAE739059879BB99D"
+    },
+    {
+      "tool": "defusedxml",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "docs",
+        "ppt"
+      ],
+      "role": "Hardened XML parsing.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/024-defusedxml/LICENSE-RECORD.json",
+      "license_record_sha256": "071651886EE5E3C1633ADED37FEEB357FB8DAEB47C341A905C616ACB25083E9B"
+    },
+    {
+      "tool": "OpenXML_CSV_JSON_parser",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "data_excel"
+      ],
+      "role": "Deterministic structural extraction.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/025-openxml-csv-json-parser/LICENSE-RECORD.json",
+      "license_record_sha256": "D8D820174A2FC578304BD11326EC8A182DDF845B0EC2821D9C70A50E83629E0E"
+    },
+    {
+      "tool": "openpyxl",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "data_excel"
+      ],
+      "role": "Workbook fidelity.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DATA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 6
+      },
+      "eligible_lanes": [
+        "data_excel"
+      ],
+      "implementation_owner": "data_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/026-openpyxl/LICENSE-RECORD.json",
+      "license_record_sha256": "5361FA67C0D615E52600AABF8075028590D599D0E280685BB4329C0EF5121041"
+    },
+    {
+      "tool": "pandas",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "data_excel"
+      ],
+      "role": "Bounded tabular inspection.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DATA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 4
+      },
+      "eligible_lanes": [
+        "data_excel"
+      ],
+      "implementation_owner": "data_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/027-pandas/LICENSE-RECORD.json",
+      "license_record_sha256": "CBAA6DD30F0D692D8552257A3CB1057B22138CC89614B97072C3969D80D0E292"
+    },
+    {
+      "tool": "python_calamine",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "data_excel"
+      ],
+      "role": "Legacy Excel extraction.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DATA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 7
+      },
+      "eligible_lanes": [
+        "data_excel"
+      ],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/028-python-calamine/LICENSE-RECORD.json",
+      "license_record_sha256": "6CF1A0707D52FB6B2E3AB08283EC06F2D5CC837BE358602D673098FF5D693B94"
+    },
+    {
+      "tool": "pyarrow",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "data_excel"
+      ],
+      "role": "Parquet schema and bounded samples.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DATA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 5
+      },
+      "eligible_lanes": [
+        "data_excel"
+      ],
+      "implementation_owner": "lane_engine.py + tabular_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/029-pyarrow/LICENSE-RECORD.json",
+      "license_record_sha256": "856661EFA67D57B22FFACBEEB7523AB472C1D64D95772306CD9B0E775F11047B"
+    },
+    {
+      "tool": "PPTX_OpenXML",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "ppt"
+      ],
+      "role": "Slides, notes, shapes, tables, and relationships.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 7
+      },
+      "eligible_lanes": [
+        "ppt"
+      ],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/030-pptx-openxml/LICENSE-RECORD.json",
+      "license_record_sha256": "1CBCCE578E8FA37D8521B347AA2CCCA118BBDB49917EBE5D8CC8ED79B5FC81B9"
+    },
+    {
+      "tool": "pypdf",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "pdf_ocr"
+      ],
+      "role": "Native PDF text and embedded-image extraction.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 4
+      },
+      "eligible_lanes": [
+        "pdf_ocr"
+      ],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/031-pypdf/LICENSE-RECORD.json",
+      "license_record_sha256": "18FE0655D19B6B0A8132BAE7CD22D34D21F999EAC229A3E63B07AE8AD51BF18B"
+    },
+    {
+      "tool": "pypdfium2",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "pdf_ocr"
+      ],
+      "role": "Full-page PDF raster fallback.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/032-pypdfium2/LICENSE-RECORD.json",
+      "license_record_sha256": "4BEAB9F613487FC2631E592C7CD214502EA92DD4F7FC3FD7AFC3A37D9C47BFBC"
+    },
+    {
+      "tool": "pdfplumber",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "pdf_ocr"
+      ],
+      "role": "Structural PDF extraction.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 3
+      },
+      "eligible_lanes": [
+        "pdf_ocr"
+      ],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/033-pdfplumber/LICENSE-RECORD.json",
+      "license_record_sha256": "BCD4D4D506D90AEF6BDB42832E6045EEF34E821A1690B36F31F3EE41CE5B69CE"
+    },
+    {
+      "tool": "RapidOCR_ONNX_Runtime",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "pdf_ocr",
+        "images_ocr"
+      ],
+      "role": "Local OCR.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary_for": [
+        "OCR_MEDIA"
+      ],
+      "fallback_for": [],
+      "action_order": {
+        "OCR_MEDIA": 1
+      },
+      "eligible_lanes": [
+        "pdf_ocr",
+        "images_ocr"
+      ],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/034-rapidocr-onnx-runtime/LICENSE-RECORD.json",
+      "license_record_sha256": "84C7A26767C540BCC73CDF9DD9367DA525640D6111E16CDE5D6AC7127B482AF8"
+    },
+    {
+      "tool": "pytesseract_Tesseract",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY_AND_DEPENDENCY",
+      "surfaces": [
+        "pdf_ocr",
+        "images_ocr"
+      ],
+      "role": "Secondary local OCR.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 2
+      },
+      "eligible_lanes": [
+        "pdf_ocr",
+        "images_ocr"
+      ],
+      "implementation_owner": "lane_engine.py + native_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/035-pytesseract-tesseract/LICENSE-RECORD.json",
+      "license_record_sha256": "8367F31F89B188745F3F3D9911A81D1584761A501A1DC5665DEDFB186DDE1912"
+    },
+    {
+      "tool": "Pillow",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "pdf_ocr",
+        "images_ocr"
+      ],
+      "role": "Page and image pixels plus metadata.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 4
+      },
+      "eligible_lanes": [
+        "pdf_ocr",
+        "images_ocr"
+      ],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/036-pillow/LICENSE-RECORD.json",
+      "license_record_sha256": "E10CA95894A9DC7D6FFE7E7BC853243BA69DF96A50867A2F2B9549090DC4D3BE"
+    },
+    {
+      "tool": "Poppler_pdftotext_pdfinfo",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+      "surfaces": [
+        "pdf_ocr"
+      ],
+      "role": "Local PDF text extraction and metadata fallback as separate GPL executables with exact license/source receipt.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 5
+      },
+      "eligible_lanes": [
+        "pdf_ocr"
+      ],
+      "implementation_owner": "native_toolchain.py + PDF fallbacks",
+      "license_record": "toolchains/licenses/requirements/037-poppler-pdftotext-pdfinfo/LICENSE-RECORD.json",
+      "license_record_sha256": "BA8CAA2B6791311DDA9515F100E28DE46FF3965346EF290D33BC903736978A44"
+    },
+    {
+      "tool": "Ghostscript",
+      "requirement": "OPTIONAL_EXTERNAL_LICENSE_GATED",
+      "surfaces": [
+        "pdf_ocr"
+      ],
+      "role": "PostScript/PDF fallback only when a compatible AGPL deployment or Artifex commercial-license reference is explicitly configured; never bundled into the proprietary runtime by default.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 6
+      },
+      "eligible_lanes": [
+        "pdf_ocr"
+      ],
+      "implementation_owner": "native_toolchain.py license-gated PDF fallback",
+      "license_record": "toolchains/licenses/requirements/038-ghostscript/LICENSE-RECORD.json",
+      "license_record_sha256": "B486DDF57FA2A8805D8BBFA875A45FDC1D8657CB370CD740A109DFB6697459E9"
+    },
+    {
+      "tool": "OpenCV",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "images_ocr"
+      ],
+      "role": "Image-region preprocessing.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 3
+      },
+      "eligible_lanes": [
+        "images_ocr"
+      ],
+      "implementation_owner": "lane_engine.py OCR preprocessing",
+      "license_record": "toolchains/licenses/requirements/039-opencv/LICENSE-RECORD.json",
+      "license_record_sha256": "A549CD341E58EC2887F18B3E1A51DBA9CD94AF11471C49143AAA061DE44C6B5A"
+    },
+    {
+      "tool": "Custom_schema_compiler",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "custom"
+      ],
+      "role": "Bounded user-defined lane contract.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "custom_source_schema.py",
+      "license_record": "toolchains/licenses/requirements/040-custom-schema-compiler/LICENSE-RECORD.json",
+      "license_record_sha256": "01B0AEC50492239D48695AEFA13E8E7F9ED53DA265B7D901FDB45B863D5B368F"
+    },
+    {
+      "tool": "SQLite_immutable_URI_reader",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "brain_loader",
+        "sqlite_brain"
+      ],
+      "role": "Read-only database and package inspection.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "lane_engine.py",
+      "license_record": "toolchains/licenses/requirements/041-sqlite-immutable-uri-reader/LICENSE-RECORD.json",
+      "license_record_sha256": "1ADB49747A06021C810C8229CDB5164852A84C3C3B0D591C9C2518EBB83625CA"
+    },
+    {
+      "tool": "Safe_archive_intake",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "brain_loader",
+        "project_engulf"
+      ],
+      "role": "Member, path, and manifest validation.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "lane_engine.py + source_authority.py",
+      "license_record": "toolchains/licenses/requirements/042-safe-archive-intake/LICENSE-RECORD.json",
+      "license_record_sha256": "BFF691BBB9E17E02844EB2B0ED0BC719B52E5D6E4821C40214EA04CA9603172E"
+    },
+    {
+      "tool": "Citation_binder",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "research"
+      ],
+      "role": "Claim, source, and date evidence binding.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "web_toolchain.py + research lane",
+      "license_record": "toolchains/licenses/requirements/043-citation-binder/LICENSE-RECORD.json",
+      "license_record_sha256": "2D898F3051145A04399DE0E48D0242C301ADE926E054C7312A61D36239C571E6"
+    },
+    {
+      "tool": "Project_inventory",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "project_engulf"
+      ],
+      "role": "Files, components, relationships, and conflicts.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "lane_engine.py project_engulf",
+      "license_record": "toolchains/licenses/requirements/044-project-inventory/LICENSE-RECORD.json",
+      "license_record_sha256": "3FEFFE0482754FF2C72E27521DA51C1D39C21339DCB40518274284C6CED5CF04"
+    },
+    {
+      "tool": "Git_detector",
+      "requirement": "OPTIONAL_INTERNAL",
+      "surfaces": [
+        "project_engulf"
+      ],
+      "role": "Repository identity when a readable Git worktree exists.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "git_optional.py",
+      "license_record": "toolchains/licenses/requirements/045-git-detector/LICENSE-RECORD.json",
+      "license_record_sha256": "D426EB164FB2A6DA51965FECFDD2713A091C561370C86E05A05189C7AEB8BA4C"
+    },
+    {
+      "tool": "Compatibility_mapper",
+      "requirement": "REQUIRED_INTERNAL",
+      "surfaces": [
+        "sqlite_brain"
+      ],
+      "role": "Schema version and sector mapping.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "lane_engine.py sqlite_brain",
+      "license_record": "toolchains/licenses/requirements/046-compatibility-mapper/LICENSE-RECORD.json",
+      "license_record_sha256": "D74604430C3B859CA31D62CE42657CFD6086B21640F8C07E2600C0FA929EF7F3"
+    },
+    {
+      "tool": "MCP_Python_SDK",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "native_mcp",
+        "internal_sdk"
+      ],
+      "role": "Typed native tool transport and results.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 3
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "mcp_server.py + internal_sdk.py",
+      "license_record": "toolchains/licenses/requirements/047-mcp-python-sdk/LICENSE-RECORD.json",
+      "license_record_sha256": "2C557DDD6FDAC9C4E319B337376595A30A514C79BDE92CD09E02069A2688AFDC"
+    },
+    {
+      "tool": "Pydantic",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "native_mcp",
+        "internal_sdk"
+      ],
+      "role": "Request and result validation.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "GOVERNANCE",
+        "RUNTIME_API"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "GOVERNANCE",
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "GOVERNANCE": 3,
+        "RUNTIME_API": 4
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "typed tool/request/result modules",
+      "license_record": "toolchains/licenses/requirements/048-pydantic/LICENSE-RECORD.json",
+      "license_record_sha256": "F75714DE3D995DFD8951C7040CD4B156AB1F68B2EC4FA1A30535F71275A6B93E"
+    },
+    {
+      "tool": "HTTPX",
+      "requirement": "REQUIRED_FOR_CONFIGURED_NETWORK_ADAPTERS",
+      "surfaces": [
+        "explicit_network_adapters"
+      ],
+      "role": "Bounded HTTP client transport.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 10
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "web_toolchain.py + persistence.py + GitHub adapter",
+      "license_record": "toolchains/licenses/requirements/049-httpx/LICENSE-RECORD.json",
+      "license_record_sha256": "0CD566AFAB9EA5B5C6CF88D8D0F7252E4292E17EC2294BA8D581FDD888FDBD2E"
+    },
+    {
+      "tool": "Cryptography_PyJWT",
+      "requirement": "REQUIRED_PROTECTED_REMOTE_PROFILES",
+      "surfaces": [
+        "headless_api_authentication"
+      ],
+      "role": "Envelope and JWT verification primitives.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "auth.py + protected remote profiles",
+      "license_record": "toolchains/licenses/requirements/050-cryptography-pyjwt/LICENSE-RECORD.json",
+      "license_record_sha256": "0BD29828DF03DC14DEFA20A2C216C375C19FC0EECA6ABA8CC7E6CADD0A6EC0A6"
+    },
+    {
+      "tool": "PowerShell_Win32_APIs",
+      "requirement": "REQUIRED_WINDOWS_HOST",
+      "surfaces": [
+        "installer",
+        "maintainer_helper",
+        "tunnel",
+        "hook_host"
+      ],
+      "role": "Hidden background launch, task binding, and current-user recovery.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 11
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "codex_release scripts + hook/tunnel hosts",
+      "license_record": "toolchains/licenses/requirements/051-powershell-win32-apis/LICENSE-RECORD.json",
+      "license_record_sha256": "0159E43B4FA9F0BE7BC96499324CD529F04AAFDE341776C55D53E8EDE4ECC273"
+    },
+    {
+      "tool": "ripgrep_15_2_0",
+      "requirement": "PACKAGED_PRE_INDEX_HELPER",
+      "surfaces": [
+        "bounded_source_discovery"
+      ],
+      "role": "Exact hash-pinned file and content search; never the FTS authority.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "CODE"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 5
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "search_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/052-ripgrep-15-2-0/LICENSE-RECORD.json",
+      "license_record_sha256": "6C546C776BE2CDAB1707C02AC8CB6C066B88A1E9AC7610B7B0B41945E8C76F6D"
+    },
+    {
+      "tool": "SevenZip_NSIS_extractor",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+      "surfaces": [
+        "local_update_native_toolchain"
+      ],
+      "role": "Hash-pinned non-elevated extraction of the pinned Tesseract NSIS payload into the hidden plugin runtime.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "install_native_toolchain.py non-elevated Tesseract extraction",
+      "license_record": "toolchains/licenses/requirements/053-sevenzip-nsis-extractor/LICENSE-RECORD.json",
+      "license_record_sha256": "DE8D0B2FF705ADEB15E0B114D27CA43D6EC47F8DEBF258D9B1BC5F5674A6A299"
+    },
+    {
+      "tool": "jq",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+      "surfaces": [
+        "json_tooling",
+        "manifests",
+        "receipts",
+        "routing"
+      ],
+      "role": "Deterministic bounded JSON projection and verification.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "CODE"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 6
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "native_toolchain.py JSON validation/projection",
+      "license_record": "toolchains/licenses/requirements/054-jq/LICENSE-RECORD.json",
+      "license_record_sha256": "298E38027788D53C95E7AF2B556130C18317F477606E0DA6842C512AB0918FA4"
+    },
+    {
+      "tool": "FFmpeg",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY_AND_DEPENDENCY",
+      "surfaces": [
+        "artifacts",
+        "images_ocr",
+        "project_engulf"
+      ],
+      "role": "Media metadata, bounded frame/audio extraction, and codec inspection through the hidden imageio-ffmpeg wheel binary.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 7
+      },
+      "eligible_lanes": [
+        "images_ocr",
+        "artifacts"
+      ],
+      "implementation_owner": "native_toolchain.py media probe/extraction",
+      "license_record": "toolchains/licenses/requirements/055-ffmpeg/LICENSE-RECORD.json",
+      "license_record_sha256": "FE05D5984EE12807CB0522B8974C2EC935026E22FA886C856A3EC8EF749CB649"
+    },
+    {
+      "tool": "PyMuPDF",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "pdf_ocr",
+        "docs"
+      ],
+      "role": "Primary high-fidelity PDF extraction and page geometry.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 2
+      },
+      "eligible_lanes": [
+        "docs",
+        "pdf_ocr"
+      ],
+      "implementation_owner": "lane_engine.py PDF primary",
+      "license_record": "toolchains/licenses/requirements/056-pymupdf/LICENSE-RECORD.json",
+      "license_record_sha256": "EFC05706BED2D1FE3B785C14C666B9F33BA23DFB4BF28DEF86C9D4D6CED7EBB1"
+    },
+    {
+      "tool": "Docling",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "docs",
+        "pdf_ocr",
+        "ppt",
+        "data_excel"
+      ],
+      "role": "Primary rich document structure conversion; lane-specific fallbacks remain explicit.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary_for": [
+        "DOCUMENT"
+      ],
+      "fallback_for": [],
+      "action_order": {
+        "DOCUMENT": 1
+      },
+      "eligible_lanes": [
+        "docs",
+        "pdf_ocr",
+        "ppt"
+      ],
+      "implementation_owner": "document_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/057-docling/LICENSE-RECORD.json",
+      "license_record_sha256": "987287F55A1D0C7C1841DDE494ED203FA56079255B88B3F769530B9889B63290"
+    },
+    {
+      "tool": "lxml",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "docs",
+        "ppt",
+        "web"
+      ],
+      "role": "Hardened structured XML and HTML parsing.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DOCUMENT",
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DOCUMENT",
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "DOCUMENT": 5,
+        "WEB_RESEARCH": 4
+      },
+      "eligible_lanes": [
+        "docs",
+        "ppt"
+      ],
+      "implementation_owner": "web_toolchain.py + lane XML processing",
+      "license_record": "toolchains/licenses/requirements/058-lxml/LICENSE-RECORD.json",
+      "license_record_sha256": "1DDF786AA11AE1E0AF6C814F89492FAD2DA0777A5D58C7738DAF67F204CB342F"
+    },
+    {
+      "tool": "BeautifulSoup4",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "docs",
+        "research",
+        "web"
+      ],
+      "role": "Bounded HTML DOM extraction fallback.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 3
+      },
+      "eligible_lanes": [
+        "research"
+      ],
+      "implementation_owner": "web_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/059-beautifulsoup4/LICENSE-RECORD.json",
+      "license_record_sha256": "767FD43ADA9E6AB48C524E1C86AFD1286674446CB60F3D9BA38F40A58A436799"
+    },
+    {
+      "tool": "markdownify",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "docs",
+        "research",
+        "web"
+      ],
+      "role": "HTML-to-Markdown projection.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 5
+      },
+      "eligible_lanes": [
+        "research"
+      ],
+      "implementation_owner": "web_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/060-markdownify/LICENSE-RECORD.json",
+      "license_record_sha256": "9AB347EE74445177283F7C243E34CD9E033F003BF82BE2C1BEDF30C08622D811"
+    },
+    {
+      "tool": "html2text",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "docs",
+        "research",
+        "web"
+      ],
+      "role": "Secondary HTML-to-text conversion.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 6
+      },
+      "eligible_lanes": [
+        "research"
+      ],
+      "implementation_owner": "web_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/061-html2text/LICENSE-RECORD.json",
+      "license_record_sha256": "D5F1F68CFBA0D47FFEA6EE708A662C5183D1D53076166F68DAB21F59485CEA05"
+    },
+    {
+      "tool": "trafilatura",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "research",
+        "web",
+        "source_intake"
+      ],
+      "role": "Primary article/content extraction.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [
+        "WEB_RESEARCH"
+      ],
+      "fallback_for": [],
+      "action_order": {
+        "WEB_RESEARCH": 1
+      },
+      "eligible_lanes": [
+        "research"
+      ],
+      "implementation_owner": "web_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/062-trafilatura/LICENSE-RECORD.json",
+      "license_record_sha256": "07837330984EF23B3207AE08C1CFBA7782056EE7D4463DBC30089F7AFC7CCC4E"
+    },
+    {
+      "tool": "DuckDB",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "data_excel",
+        "sqlite_brain",
+        "analysis"
+      ],
+      "role": "Analytical SQL over tabular/Parquet sources without replacing project SQLite authority.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DATA"
+      ],
+      "primary_for": [
+        "DATA"
+      ],
+      "fallback_for": [],
+      "action_order": {
+        "DATA": 1
+      },
+      "eligible_lanes": [
+        "data_excel",
+        "sqlite_brain",
+        "analysis"
+      ],
+      "implementation_owner": "tabular_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/063-duckdb/LICENSE-RECORD.json",
+      "license_record_sha256": "1BA0397D33CFF8117A6B61697BF938763F13498F4887FAB87649E3D5A6948C28"
+    },
+    {
+      "tool": "SQLAlchemy",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "sqlite_brain",
+        "data_excel",
+        "custom"
+      ],
+      "role": "Typed external database inspection and dialect mediation.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DATA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 9
+      },
+      "eligible_lanes": [
+        "data_excel",
+        "sqlite_brain",
+        "custom"
+      ],
+      "implementation_owner": "data_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/064-sqlalchemy/LICENSE-RECORD.json",
+      "license_record_sha256": "92A4E0C89B1030A4B8AD02B4E4B03280371D28DA6C1305187F697C4463ADA6A3"
+    },
+    {
+      "tool": "Tableau_Hyper_API",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "data_excel",
+        "brain_loader"
+      ],
+      "role": "Tableau Hyper extraction and schema inspection.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DATA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 8
+      },
+      "eligible_lanes": [
+        "data_excel",
+        "brain_loader"
+      ],
+      "implementation_owner": "data_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/065-tableau-hyper-api/LICENSE-RECORD.json",
+      "license_record_sha256": "0967DC5C944EFF9B8D3F0DD0EF4B4E7E63EF64F6129EEB41D8E1BA0B8995A077"
+    },
+    {
+      "tool": "LangChain",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "internal_sdk",
+        "workflow_graphs",
+        "rag"
+      ],
+      "role": "Runnable graph/tool composition used under the Evidence Lane SDK and ENV/UOP gates.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "hybrid_retrieval.py + graph_pipeline.py + SDK",
+      "license_record": "toolchains/licenses/requirements/066-langchain/LICENSE-RECORD.json",
+      "license_record_sha256": "D6A8B74E9DCE0F1A4EE1128127FDF39CBA8255EEC9DD9EE4A6915EDCEABDB617"
+    },
+    {
+      "tool": "SentenceTransformers",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "all_queryable_authorities",
+        "research",
+        "memory"
+      ],
+      "role": "Local semantic embedding primary where the lane permits vectors.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 7
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "discussion",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "semantic_retrieval.py",
+      "license_record": "toolchains/licenses/requirements/067-sentencetransformers/LICENSE-RECORD.json",
+      "license_record_sha256": "35B5AA624E2D8ADFD5CF050BF85889A05667AB1A416F18ACC297BE4A7A129C2E"
+    },
+    {
+      "tool": "FAISS_CPU",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "all_queryable_authorities",
+        "research",
+        "memory"
+      ],
+      "role": "Local ephemeral/vector-sidecar retrieval; SQLite remains durable authority.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 8
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "discussion",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "hybrid_retrieval.py",
+      "license_record": "toolchains/licenses/requirements/068-faiss-cpu/LICENSE-RECORD.json",
+      "license_record_sha256": "A92F3940D705457C770F84626CF73D0BE9A14B1C6EC5E27817DD166EF818311E"
+    },
+    {
+      "tool": "ChromaDB",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "all_queryable_authorities",
+        "research",
+        "memory"
+      ],
+      "role": "Persistent vector fallback only when the governing lane selects it; SQLite identities remain canonical.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 9
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "discussion",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "hybrid_retrieval.py",
+      "license_record": "toolchains/licenses/requirements/069-chromadb/LICENSE-RECORD.json",
+      "license_record_sha256": "2C369D412513054003F2EABCE3870DDA78D2BB811CBB9DF1352DBEA38E5A42D1"
+    },
+    {
+      "tool": "rank_bm25",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "all_queryable_authorities"
+      ],
+      "role": "Lexical parity/fallback verification beside SQLite FTS5 BM25.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 5
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "discussion",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "hybrid_retrieval.py + sqlite_indexing.py",
+      "license_record": "toolchains/licenses/requirements/070-rank-bm25/LICENSE-RECORD.json",
+      "license_record_sha256": "3167383AE286445D572516B6C7D13C99430269F2D595CA0FF7129A3FEBEDE6C9"
+    },
+    {
+      "tool": "FastAPI",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "tunnel",
+        "remote_adapter",
+        "headless_api"
+      ],
+      "role": "Typed private runtime API host.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary_for": [
+        "RUNTIME_API"
+      ],
+      "fallback_for": [],
+      "action_order": {
+        "RUNTIME_API": 1
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "runtime_api.py",
+      "license_record": "toolchains/licenses/requirements/071-fastapi/LICENSE-RECORD.json",
+      "license_record_sha256": "DC638FD02B5623C96D7FFEB3A6955F4F3B356C9C8354700EBB76A5241FBA8DDA"
+    },
+    {
+      "tool": "Uvicorn",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "tunnel",
+        "remote_adapter",
+        "headless_api"
+      ],
+      "role": "Hidden runtime ASGI server.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 2
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "runtime_api.py",
+      "license_record": "toolchains/licenses/requirements/072-uvicorn/LICENSE-RECORD.json",
+      "license_record_sha256": "5A875F672421D8CECECCAF8F8D5F16215E7ECFBD32C2C398C461F4D1B19691B1"
+    },
+    {
+      "tool": "Pydantic_Settings",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "tunnel",
+        "runtime_configuration"
+      ],
+      "role": "Typed secret-free runtime configuration.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 5
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "runtime_api.py",
+      "license_record": "toolchains/licenses/requirements/073-pydantic-settings/LICENSE-RECORD.json",
+      "license_record_sha256": "30A6921C447F35E20D3B3DDBEDD723C178D0CF7D0F3DD94840D2ADBFD3B67ED2"
+    },
+    {
+      "tool": "python_multipart",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "source_intake",
+        "headless_api"
+      ],
+      "role": "Bounded multipart source intake.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 6
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "runtime_api.py source staging",
+      "license_record": "toolchains/licenses/requirements/074-python-multipart/LICENSE-RECORD.json",
+      "license_record_sha256": "FC0E0D0D6B290CB44F326EBFABACA20BF8F8C3E0E8DFA59F5B5BA3F5FB445F9D"
+    },
+    {
+      "tool": "Requests",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "configured_network_adapters"
+      ],
+      "role": "Synchronous bounded HTTP fallback behind HTTPX.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 11
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "web_toolchain.py fallback",
+      "license_record": "toolchains/licenses/requirements/075-requests/LICENSE-RECORD.json",
+      "license_record_sha256": "C78FFF29CEF7847D8D82D095455B32E8ABA453D560F95AAC2FF2345DE5BCBE3D"
+    },
+    {
+      "tool": "aiofiles",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "tunnel",
+        "source_intake"
+      ],
+      "role": "Bounded asynchronous file streaming.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 7
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "runtime_api.py bounded staging",
+      "license_record": "toolchains/licenses/requirements/076-aiofiles/LICENSE-RECORD.json",
+      "license_record_sha256": "92520E6DE3CDB095C843DC9A5336EFF2269CF71B288655E537AB00D6C15242F8"
+    },
+    {
+      "tool": "orjson",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "tunnel",
+        "remote_adapter",
+        "manifests"
+      ],
+      "role": "Fast deterministic JSON transport; canonical hashing still uses the internal serializer.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 8
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "runtime_api.py response transport",
+      "license_record": "toolchains/licenses/requirements/077-orjson/LICENSE-RECORD.json",
+      "license_record_sha256": "304C02A4C385B9B6A40158DED66F4A658ACEC6B88151279EE23B39EEDE04276A"
+    },
+    {
+      "tool": "python_dotenv",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "maintainer_development_only"
+      ],
+      "role": "Development configuration loader; secrets are never committed or copied into project authority.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "runtime_api.py maintainer-only loader",
+      "license_record": "toolchains/licenses/requirements/078-python-dotenv/LICENSE-RECORD.json",
+      "license_record_sha256": "CEF28FA07E45C968D93CE888A6EF668834B52AEAA07F7B1B0A97C47FFB2BF5ED"
+    },
+    {
+      "tool": "Tenacity",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "bounded_network_adapters",
+        "tunnel"
+      ],
+      "role": "Bounded retry policy with explicit limits and receipts.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 9
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "web_toolchain.py bounded retry",
+      "license_record": "toolchains/licenses/requirements/079-tenacity/LICENSE-RECORD.json",
+      "license_record_sha256": "329F867935A914506AFA8D6A653B721DE65338B43991ED321BA0DFDE65E3908E"
+    },
+    {
+      "tool": "psutil",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "runtime_doctor",
+        "runtime_resource_telemetry"
+      ],
+      "role": "Bounded process and resource telemetry; never turn authority, interruption, or restart control.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 10
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "runtime_toolchain.py bounded process/resource telemetry",
+      "license_record": "toolchains/licenses/requirements/080-psutil/LICENSE-RECORD.json",
+      "license_record_sha256": "02CC34C74F9DD8C54B082F6831FAAC27DECF169F158E15308EC697FEDD84D405"
+    },
+    {
+      "tool": "DDGS",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "research",
+        "source_intake"
+      ],
+      "role": "Configured web discovery fallback; not used without the active lane and network policy.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 9
+      },
+      "eligible_lanes": [
+        "research"
+      ],
+      "implementation_owner": "web_toolchain.py explicit discovery",
+      "license_record": "toolchains/licenses/requirements/081-ddgs/LICENSE-RECORD.json",
+      "license_record_sha256": "F9A73650AB0C8AC646B6188D4BAB05DE1301C9145173B9374ECE4132CFAD77E9"
+    },
+    {
+      "tool": "PyGithub",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "github_code",
+        "git_delivery"
+      ],
+      "role": "GitHub API inspection and reviewed delivery support.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "CODE"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 3
+      },
+      "eligible_lanes": [
+        "github_code"
+      ],
+      "implementation_owner": "github_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/082-pygithub/LICENSE-RECORD.json",
+      "license_record_sha256": "78F79EBF25C9E1D65CB686F8EC005E5E8468EFB384AE95E16ACE1377B945B595"
+    },
+    {
+      "tool": "GitPython",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "github_code",
+        "local_code",
+        "project_engulf"
+      ],
+      "role": "Repository graph and object inspection beside the Git CLI.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "CODE"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 2
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "project_engulf"
+      ],
+      "implementation_owner": "git_optional.py parity",
+      "license_record": "toolchains/licenses/requirements/083-gitpython/LICENSE-RECORD.json",
+      "license_record_sha256": "ACAF4E1F8E448D8AFCB632004C8A8CC9FC589EC33190F34B51945EBA4A6C458D"
+    },
+    {
+      "tool": "tldextract",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "research",
+        "web",
+        "source_intake"
+      ],
+      "role": "Registrable-domain normalization.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 7
+      },
+      "eligible_lanes": [
+        "research"
+      ],
+      "implementation_owner": "web_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/084-tldextract/LICENSE-RECORD.json",
+      "license_record_sha256": "913C6729C3288305A38FCF30CAD716F4E241BE91CB0EEF816BEC4F57BF2167A9"
+    },
+    {
+      "tool": "validators",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "source_intake",
+        "web",
+        "routing"
+      ],
+      "role": "Typed URL and locator validation.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 8
+      },
+      "eligible_lanes": [],
+      "implementation_owner": "web_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/085-validators/LICENSE-RECORD.json",
+      "license_record_sha256": "2E7FCBA07E67230080FAF689967C082D945AC71AF70392FC5D8BFB9F600A74D6"
+    },
+    {
+      "tool": "readability_lxml",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "research",
+        "web"
+      ],
+      "role": "Readable-content extraction fallback after Trafilatura.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 2
+      },
+      "eligible_lanes": [
+        "research"
+      ],
+      "implementation_owner": "web_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/086-readability-lxml/LICENSE-RECORD.json",
+      "license_record_sha256": "52B30FEFE3B158971CEAF81C41CC827BD17DA723E070A1D08A0AF4DE39041BFB"
+    },
+    {
+      "tool": "Polars",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "data_excel",
+        "analysis",
+        "project_engulf",
+        "artifacts"
+      ],
+      "role": "Lazy and streaming CSV/Parquet/NDJSON transforms with projection and predicate pushdown; DuckDB remains analytical SQL primary and results persist to owning SQLite.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "DATA"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 2
+      },
+      "eligible_lanes": [
+        "data_excel",
+        "project_engulf",
+        "artifacts",
+        "analysis"
+      ],
+      "implementation_owner": "tabular_toolchain.py",
+      "license_record": "toolchains/licenses/requirements/087-polars/LICENSE-RECORD.json",
+      "license_record_sha256": "AA0E6AE033251FFA7DC81A1777BAC9455B3241A542916E573EE22D2127A11558"
+    },
+    {
+      "tool": "TreeSitter_LanguagePack",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "github_code",
+        "local_code",
+        "project_engulf"
+      ],
+      "role": "Multi-language concrete syntax trees, symbols, imports, calls, and syntax-error-tolerant structural extraction; deterministic parser remains fallback.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "CODE"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 4
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "project_engulf"
+      ],
+      "implementation_owner": "code_toolchain.py + ingest.py",
+      "license_record": "toolchains/licenses/requirements/088-treesitter-languagepack/LICENSE-RECORD.json",
+      "license_record_sha256": "DFBD56205DC7521D142E5AC6B95E9A655737583D6ACB23FC1F4E6F790D7F9C6D"
+    },
+    {
+      "tool": "RapidFuzz",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "project_engulf",
+        "sources",
+        "canon",
+        "memory",
+        "analysis",
+        "discussion"
+      ],
+      "role": "Bounded candidate entity/schema/name reconciliation with scores and thresholds; never auto-merges authority identities.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 6
+      },
+      "eligible_lanes": [
+        "project_engulf",
+        "analysis",
+        "discussion"
+      ],
+      "implementation_owner": "entity_reconciliation.py + project_engulf",
+      "license_record": "toolchains/licenses/requirements/089-rapidfuzz/LICENSE-RECORD.json",
+      "license_record_sha256": "2EE79527C70126AE3AE2A397CFB614DB2CCF0551F2B63996DC8518910720C2AE"
+    },
+    {
+      "tool": "rustworkx",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "surfaces": [
+        "all_18_project_sectors",
+        "canon_topology",
+        "all_named_authorities",
+        "project_universe",
+        "connector_brain",
+        "project_overlay"
+      ],
+      "role": "High-performance graph connectivity, cycle, component, shortest-path, and centrality analysis over SQLite-derived graphs.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "GRAPH"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "GRAPH"
+      ],
+      "action_order": {
+        "GRAPH": 2
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "graph_pipeline.py",
+      "license_record": "toolchains/licenses/requirements/090-rustworkx/LICENSE-RECORD.json",
+      "license_record_sha256": "060ECDA03FD5B201331D1BBA193B40ADCE8436AC2FE00C1B7AEFCC369CA33A6A"
+    },
+    {
+      "tool": "sqlite_vec",
+      "requirement": "CONDITIONAL_SQLITE_VECTOR_EXTENSION",
+      "surfaces": [
+        "every_queryable_project_authority",
+        "memory",
+        "research",
+        "learning"
+      ],
+      "role": "Optional SQLite-local vector index when extension loading and the active lane policy pass; FTS5/BM25 remains mandatory and SQLite identities remain canonical.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary_for": [],
+      "fallback_for": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 4
+      },
+      "eligible_lanes": [
+        "github_code",
+        "local_code",
+        "docs",
+        "pdf_ocr",
+        "images_ocr",
+        "ppt",
+        "data_excel",
+        "research",
+        "brain_loader",
+        "sqlite_brain",
+        "project_engulf",
+        "artifacts",
+        "analysis",
+        "discussion",
+        "plan",
+        "mode",
+        "chat_lineage",
+        "custom"
+      ],
+      "implementation_owner": "semantic_retrieval.py",
+      "license_record": "toolchains/licenses/requirements/091-sqlite-vec/LICENSE-RECORD.json",
+      "license_record_sha256": "84E90166B8B2AE4FA19E95281EB4F9961AC232144B001DEF9E4C4F6E6EE43D6F"
+    },
+    {
+      "tool": "HuggingFace_Hub_ModelSnapshot",
+      "requirement": "REQUIRED_LOCAL_UPDATE_MODEL_ACQUISITION",
+      "surfaces": [
+        "hidden_runtime_model_install",
+        "all_queryable_authorities"
+      ],
+      "role": "Local-update-only revision-pinned BAAI/bge-small-en-v1.5 snapshot acquisition into the hidden runtime; normal lane execution is offline and never calls the Hub.",
+      "tunnel_prewarm_mode": "INSTALL_OR_PROBE_HIDDEN_RUNTIME",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "install_native_toolchain.py model prefetch",
+      "license_record": "toolchains/licenses/requirements/092-huggingface-hub-modelsnapshot/LICENSE-RECORD.json",
+      "license_record_sha256": "43935E23241186F14DFE057C2038F707B1D408BA697F78848270C5135892AFAA"
+    },
+    {
+      "tool": "NextJS_React_ThreeJS_FramerMotion",
+      "requirement": "REPOSITORY_PUBLIC_ADAPTER_ONLY",
+      "surfaces": [
+        "documentation_adapter"
+      ],
+      "role": "Static documentation, interaction, and visual rendering; no project authority.",
+      "tunnel_prewarm_mode": "REGISTER_AND_VERIFY_AT_APPLICABLE_GATE",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "remote_adapter documentation projection",
+      "license_record": "toolchains/licenses/requirements/093-nextjs-react-threejs-framermotion/LICENSE-RECORD.json",
+      "license_record_sha256": "42C08616C59986B1A4D4F24C87BD023749EB8DC271B00CF1DA73AEAA5D089629"
+    },
+    {
+      "tool": "GitHub_Actions",
+      "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+      "surfaces": [
+        "reviewed_branch_ci"
+      ],
+      "role": "Clean CI and release evidence.",
+      "tunnel_prewarm_mode": "REGISTER_EXTERNAL_PROOF_GATE",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": ".github/workflows delivery proof",
+      "license_record": "toolchains/licenses/requirements/094-github-actions/LICENSE-RECORD.json",
+      "license_record_sha256": "4BFB654965CBF0FC9F43765B0F6294C041A8E42855884D0DA698FB18C3E004B3"
+    },
+    {
+      "tool": "Vercel_Git_integration",
+      "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+      "surfaces": [
+        "preview_production_documentation"
+      ],
+      "role": "Deployment evidence only; no lifecycle authority.",
+      "tunnel_prewarm_mode": "REGISTER_EXTERNAL_PROOF_GATE",
+      "action_classes": [],
+      "primary_for": [],
+      "fallback_for": [],
+      "action_order": {},
+      "eligible_lanes": [],
+      "implementation_owner": "branch preview delivery proof",
+      "license_record": "toolchains/licenses/requirements/095-vercel-git-integration/LICENSE-RECORD.json",
+      "license_record_sha256": "7C1C1DBFFE640D9E0753DEE94FD20DAED75E385EAD8136FF1DC6ADED0690E4A5"
+    }
+  ],
+  "full_matrix_requirement_count": 95,
+  "all_tool_requirements_linked": true,
+  "runtime_install_or_probe_count": 88,
+  "repository_or_build_gate_count": 5,
+  "external_service_gate_count": 2,
+  "full_matrix": "toolchains/tool-requirement-matrix.v1.json",
+  "full_matrix_sha256": "3D9AA351C78E796D57B18CFE749D90023EA2AACBD946A6FA2BB1BD2EB3DC2253",
+  "execution_routing": "toolchains/tool-execution-routing.v1.json",
+  "execution_routing_sha256": "0CBCBDDE862BE22EC30FDE333FED73A216CFD5B874F3AFB8D92811A6478FFC34",
+  "primary_and_fallback_order_explicit": true,
+  "prewarm_owner": "INSTALLER_RUNTIME_PREWARM_BEFORE_TUNNEL_OR_TASK_REOPEN",
+  "optional_unavailable_is_fail_visible": true,
+  "native_mcp_action_counted_here": false,
+  "all_runtime_dependencies_prewarmed": true,
+  "conditional_execution_not_run_everything": true,
+  "chatgpt_plane_mixed": false,
+  "receipt_sha256": "822C04DA15F13ABA34A762BC7D638BF38F5AFBA392067E2930D100AF97B8EB5A"
+}

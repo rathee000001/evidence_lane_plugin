@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 7,
+  "event": "PreCompact",
+  "handler_count": 4,
+  "event_binding": "hooks/events/PreCompact/event.v1.json",
+  "event_binding_sha256": "503A7CBE5C7D4AA4F316D0CDA428792200A426CB280FB7363B5A240540DE2CF5",
+  "handlers": [
+    {
+      "display_id": "7.1",
+      "path": "hooks/events/PreCompact/handler-7.1.v1.json",
+      "sha256": "6FC5FD55DD26431E9B85DCD53C5D9DE44009D4FE2AECBD4F5734A62BEC88F52E"
+    },
+    {
+      "display_id": "7.2",
+      "path": "hooks/events/PreCompact/handler-7.2.v1.json",
+      "sha256": "CCEF652A57A0D867614A1DC26B62D14BB96E2C0DEBB11EA9F36C88E28754D9E5"
+    },
+    {
+      "display_id": "7.3",
+      "path": "hooks/events/PreCompact/handler-7.3.v1.json",
+      "sha256": "D7B99017BF8DB01882ABD75E366968CBA189F4B30E5E24FA66694E9B721D03CF"
+    },
+    {
+      "display_id": "7.4",
+      "path": "hooks/events/PreCompact/handler-7.4.v1.json",
+      "sha256": "C37BEBB5168EF50486008044DD571177CAA3106119FA442B16F096C7C4B3D235"
+    }
+  ],
+  "canonical_hook_manifest": "hooks/hooks.json",
+  "canonical_logical_actions": "hooks/logical-actions.json",
+  "enabled_only_after_installed_event_pass": true,
+  "receipt_sha256": "987ED341D9D00DB65BFA13A22E5148A441FB8B20B13D24B873B5B6C5A71A9388"
+}

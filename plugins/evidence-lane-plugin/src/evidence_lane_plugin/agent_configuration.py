@@ -36,6 +36,11 @@ OFFICIAL_HOOKS_GUIDE_SHA256 = (
 
 _PRIMARY_FILENAMES = ("AGENTS.override.md", "AGENTS.md")
 _SAFE_FALLBACK_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+_OPTIONAL_EXECUTION_PROFILE_FIELDS = (
+    "submodel",
+    "reasoning_effort",
+    "reasoning_speed",
+)
 
 
 def _exact_text(value: object, *, field: str, max_length: int = 512) -> str:
@@ -48,6 +53,17 @@ def _exact_text(value: object, *, field: str, max_length: int = 512) -> str:
         field=field,
     )
     return exact
+
+
+def _bounded_execution_profile(value: Mapping[str, Any]) -> dict[str, str]:
+    """Bind available host selectors without inventing unavailable fields."""
+
+    profile = {"model": _exact_text(value.get("model"), field="model")}
+    for field in _OPTIONAL_EXECUTION_PROFILE_FIELDS:
+        if field not in value or value[field] is None:
+            continue
+        profile[field] = _exact_text(value[field], field=field)
+    return profile
 
 
 def _same_path(left: Path, right: Path) -> bool:
@@ -157,9 +173,7 @@ def _load_codex_project_doc_config(codex_home: Path) -> dict[str, Any]:
             status="BLOCKED",
         ) from exc
     raw_fallbacks = parsed.get("project_doc_fallback_filenames", [])
-    raw_max_bytes = parsed.get(
-        "project_doc_max_bytes", DEFAULT_PROJECT_DOC_MAX_BYTES
-    )
+    raw_max_bytes = parsed.get("project_doc_max_bytes", DEFAULT_PROJECT_DOC_MAX_BYTES)
     require(
         isinstance(raw_fallbacks, list),
         "AGENT_CONFIGURATION_FALLBACKS_INVALID",
@@ -244,16 +258,12 @@ def resolve_agent_configuration(
     """Resolve the exact global plus root-to-cwd instruction chain."""
 
     exact_project_id = _exact_text(project_id, field="project_id")
-    exact_session_id = _exact_text(
-        governed_session_id, field="governed_session_id"
-    )
+    exact_session_id = _exact_text(governed_session_id, field="governed_session_id")
     exact_task_id = _exact_text(host_task_id, field="host_task_id")
     exact_deep_link = _exact_text(
         host_task_deep_link, field="host_task_deep_link", max_length=1024
     )
-    exact_host_session_id = _exact_text(
-        host_session_id, field="host_session_id"
-    )
+    exact_host_session_id = _exact_text(host_session_id, field="host_session_id")
     require(
         exact_task_id == exact_host_session_id
         and exact_deep_link == f"codex://threads/{exact_task_id}",
@@ -261,14 +271,11 @@ def resolve_agent_configuration(
         "The AGENTS.md authority must bind the exact invoking Codex task and deep link.",
         status="MISMATCH",
     )
-    exact_workspace_id = _exact_text(workspace_id, field="workspace_id", max_length=2048)
-    exact_plan_task_id = _exact_text(
-        active_plan_task_id, field="active_plan_task_id"
+    exact_workspace_id = _exact_text(
+        workspace_id, field="workspace_id", max_length=2048
     )
-    profile = {
-        field: _exact_text(execution_profile.get(field), field=field)
-        for field in ("model", "submodel", "reasoning_effort", "reasoning_speed")
-    }
+    exact_plan_task_id = _exact_text(active_plan_task_id, field="active_plan_task_id")
+    profile = _bounded_execution_profile(execution_profile)
 
     exact_codex_home = Path(codex_home).resolve()
     exact_project_root = Path(project_root).resolve()

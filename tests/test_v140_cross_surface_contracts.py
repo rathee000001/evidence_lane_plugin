@@ -5,9 +5,11 @@ import re
 from itertools import pairwise
 from pathlib import Path
 
+from evidence_lane_plugin.constants import GOVERNED_SKILL_COUNT
+
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
-ADAPTER = PLUGIN / "remote_adapter"
+ADAPTER = ROOT / "apps" / "evidence-lane-remote-adapter"
 
 CONTROL_CONTRACT = (
     ("evi-boot", "Boot"),
@@ -21,6 +23,22 @@ CONTROL_CONTRACT = (
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def _reduced_motion_section(styles: str, selector: str) -> str:
+    return next(
+        section
+        for section in styles.split("@media (prefers-reduced-motion: reduce)")[1:]
+        if selector in section
+    )
+
+
+def _css_rule_with(styles: str, selector: str, required: str) -> str:
+    return next(
+        section.split("}", 1)[0]
+        for section in styles.split(selector)[1:]
+        if required in section.split("}", 1)[0]
+    )
 
 
 def test_exact_six_control_order_matches_skills_and_website() -> None:
@@ -74,11 +92,11 @@ def test_v2_codex_package_has_no_active_chatgpt_host_surface() -> None:
     assert manifest["mcpServers"] == "./.mcp.json"
     assert "apps" not in manifest
     assert not (PLUGIN / ".app.json").exists()
-    assert len(skill_files) == 17
+    assert len(skill_files) == GOVERNED_SKILL_COUNT
     assert not (PLUGIN / "chatgpt-app-connection.json").exists()
     assert not (PLUGIN / "chatgpt-app-submission.json").exists()
-    assert not (PLUGIN / "remote_adapter" / "api" / "index.py").exists()
-    assert not (PLUGIN / "remote_adapter" / "requirements.txt").exists()
+    assert not (ROOT / "apps" / "evidence-lane-remote-adapter" / "api" / "index.py").exists()
+    assert not (ROOT / "apps" / "evidence-lane-remote-adapter" / "requirements.txt").exists()
 def test_threejs_site_remains_and_meshy_is_not_a_runtime_dependency() -> None:
     package = json.loads(_read(ADAPTER / "package.json"))
     combined_dependencies = {
@@ -263,7 +281,7 @@ def test_hero_orbits_preserve_distinct_routes_and_independent_safe_motion() -> N
         assert f'extension: "{extension}"' in hero_source
     for x, y in ((24, 40), (76, 40), (24, 60), (76, 60)):
         assert f"x: {x}, y: {y}" in hero_source
-    reduced_motion = styles.rsplit("@media (prefers-reduced-motion: reduce)", 1)[1]
+    reduced_motion = _reduced_motion_section(styles, ".studioBuilderInput")
     assert ".studioBuilderInput" in reduced_motion
     assert ".heroOrbit--studio .studioBuilderBrain" in reduced_motion
     assert "opacity: .34;" in reduced_motion
@@ -322,7 +340,10 @@ def test_proof_hero_uses_lane_grammar_and_selected_lane_exact_artifacts() -> Non
     assert proof_sizes == [66, 84]
     assert 'label: "Lane proofs"' in proof_block
     assert "nodes: laneNodes" in proof_block
-    assert 'bottomTag("18", "lane proofs")' in proof_block
+    assert (
+        'bottomTag(String(currentProductContract.canonicalLaneCount), "lane proofs")'
+        in proof_block
+    )
     assert 'label: "Governed files"' in proof_block
     assert 'topTag("4", "governed files")' in proof_block
     for label in ("SQLite", "MMD", "DOT", "JSON / receipt"):
@@ -381,10 +402,12 @@ def test_glass_orbs_and_ring_markers_keep_centered_responsive_schema() -> None:
         in asset_source
     )
 
-    final_orb_rule = styles.rsplit(".glass-icon-orb {", 1)[1].split("}", 1)[0]
-    final_content_rule = styles.rsplit(".glass-icon-orb__content {", 1)[1].split(
-        "}", 1
-    )[0]
+    final_orb_rule = _css_rule_with(
+        styles, ".glass-icon-orb {", "overflow: hidden;"
+    )
+    final_content_rule = _css_rule_with(
+        styles, ".glass-icon-orb__content {", "left: 50%;"
+    )
     assert "overflow: hidden;" in final_orb_rule
     assert "left: 50%;" in final_content_rule
     assert "top: 50%;" in final_content_rule
@@ -465,7 +488,7 @@ def test_hero_frame_motion_is_perimeter_only_without_diagonal_rotation() -> None
     assert "transform:" not in trace_keyframes
     assert "rotate(" not in trace_keyframes
 
-    reduced_motion = styles.rsplit("@media (prefers-reduced-motion: reduce)", 1)[1]
+    reduced_motion = _reduced_motion_section(styles, ".orbitHeroFrame::before")
     assert ".orbitHeroFrame::before" in reduced_motion
     assert "animation: none !important;" in reduced_motion
     assert "hero-ring-clockwise-once" in styles

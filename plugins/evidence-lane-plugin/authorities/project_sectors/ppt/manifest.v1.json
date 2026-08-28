@@ -1,0 +1,107 @@
+{
+  "schema": "evidence-lane.installed-lane-surface.v1",
+  "status": "PASS",
+  "lane_id": "ppt",
+  "sqlite_filename": "ppt_sector_v001.sqlite",
+  "sqlite_integrity": "ok",
+  "sqlite_table_count": 39,
+  "schema_contract_table_count": 29,
+  "members": [
+    {
+      "path": "authorities/project_sectors/ppt/builder-contract.schema.json",
+      "bytes": 617,
+      "sha256": "85D51A82CB5B6D008BB338B488E1D64AC091C7093E234D9E39A39B418891F33F"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/builder.py",
+      "bytes": 571,
+      "sha256": "AFC634615C66D334FB06CAD7B7A29CEB2330742A3282C25411CD45F706C743C7"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/dot-artifact.schema.json",
+      "bytes": 929,
+      "sha256": "CBC1B4AEB7F414DB9D8B64FCE39D9F5534486B7AD2F0146B40C19E73E1417501"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/lane-contract.v1.json",
+      "bytes": 7427,
+      "sha256": "15AF9B6323D57C46E4B3BAAC10F5A5D5FB85B083F498F8DF438CDD74588257A5"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/lane-pointer.schema.json",
+      "bytes": 742,
+      "sha256": "699A1EF5B12CFDA1303E0B6A79AFEC68152B1D98C62D0464A3FE40C3445C43E9"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/manifest.schema.json",
+      "bytes": 974,
+      "sha256": "A436EB7ACD0D08BDBC862268BF964E3663F98D670AC990769164EDBC0D2914FF"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/mmd-artifact.schema.json",
+      "bytes": 946,
+      "sha256": "443E8405379BC9A9A7ABC361D518AB65ED96D80B652C6DA92D402866A56EF2E2"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/ppt.dot",
+      "bytes": 19163,
+      "sha256": "32CAA5AF0DD03B9F3F13FA808127AC94C36BFAE5317C81ACF59BE35641770B38"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/ppt.mmd",
+      "bytes": 15220,
+      "sha256": "0CAC1C1CF6ECCA347FE5CB8952C06170C6DBC1CBC6DA75B1C6E2899710A4BC55"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/ppt_sector_v001.sqlite",
+      "bytes": 253952,
+      "sha256": "C1C29D978B3F311DC3E90D332C8A4713FD764627C206C2147D07692FD820E89D"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/reader-contract.schema.json",
+      "bytes": 767,
+      "sha256": "3583FB0872B59A5DACCE0C748937A301E311AD7BF9A026F15D42A40A87534FF0"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/reader.py",
+      "bytes": 433,
+      "sha256": "FB2A55616879BEC8B4508ABE8CB5821786B1D39DB53BB6DD2F354E34DBBA4B0E"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/README.md",
+      "bytes": 374,
+      "sha256": "FACECF5C23925DCEC63C6E0889618E524A08C48E3607AE8E6611EF797C5BBDF7"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/refresh-receipt.schema.json",
+      "bytes": 537,
+      "sha256": "2FAEEC19B9481D9527F6ACA317512BF7845CF803A66B3F146230B47B4A77BA95"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/schema.sql",
+      "bytes": 9869,
+      "sha256": "C6879F7FCD7F8E15F7CDB00372A8D29D5E2AAD25EC912933D551201F4DF26BB3"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/sqlite-artifact.schema.json",
+      "bytes": 948,
+      "sha256": "2BEA4908A24155C64294B35872E590BC33DA1FD7E22370BC12BC9F68F1A37E35"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/tools.json",
+      "bytes": 1145,
+      "sha256": "4EC5D09815CA6DB6B6CDCE11155D827211558D48442E7864B6063A9BC27AE7A4"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/tools.schema.json",
+      "bytes": 1006,
+      "sha256": "805D412E1D172897D41DF2B9117A9EFF798D125E790B06C1488B4848BC506046"
+    }
+  ],
+  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_template": false,
+  "template_contains_identity_metadata_only": true,
+  "receipt_sha256": "683506A672FB6FC0F7345316949911A8CC48F0AD5FCEBDF15D9051CCCCA16A96"
+}

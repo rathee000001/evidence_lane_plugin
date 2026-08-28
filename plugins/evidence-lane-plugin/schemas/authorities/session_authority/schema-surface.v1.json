@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.named-authority-schema-surface.v1",
+  "status": "PASS",
+  "authority_id": "session_authority",
+  "authority_root": "authorities/session_authority",
+  "authority_manifest_sha256": "10376C794CB219D9CB6840140CD883905F6518860BBDB68CDFF684647FF7C6F8",
+  "persistent_sqlite_authority": true,
+  "schema_file_count": 11,
+  "schema_files": [
+    {
+      "path": "authorities/session_authority/build-refresh-contract.schema.json",
+      "bytes": 571,
+      "sha256": "3313E3901F1F39244ECE7AB65C290F325533395BD6F97FDAB28CAE49E50A056D"
+    },
+    {
+      "path": "authorities/session_authority/dot-artifact.schema.json",
+      "bytes": 979,
+      "sha256": "7BD936C1616A6E3D00AC0CCB66FF5907E5F66B113660079258BEC1B58741D8B4"
+    },
+    {
+      "path": "authorities/session_authority/manifest.schema.json",
+      "bytes": 1051,
+      "sha256": "FC641F1E74927619B84A9BB5855E289F5E70465C5C0774D640682A571D0B07E1"
+    },
+    {
+      "path": "authorities/session_authority/mmd-artifact.schema.json",
+      "bytes": 992,
+      "sha256": "70596D2D7F7ABC059A54B472AB1DC81719A5FCD572EF8DB90AAE215F60727016"
+    },
+    {
+      "path": "authorities/session_authority/pointer-contract.schema.json",
+      "bytes": 554,
+      "sha256": "5AEA7A54E67641522902558A834583AF5F6EB258F809AF224FED1FA90B11DCEE"
+    },
+    {
+      "path": "authorities/session_authority/reader-contract.schema.json",
+      "bytes": 773,
+      "sha256": "397A2D9C5051A56581CE2D1DD18B58C32485F20EC2B8B57BB4FD754045AC6986"
+    },
+    {
+      "path": "authorities/session_authority/refresh-receipt.schema.json",
+      "bytes": 892,
+      "sha256": "D6DC8CB9FA88A25599590C620E9B7EA72AEE152FE3540C54C5FFB32011171BB8"
+    },
+    {
+      "path": "authorities/session_authority/runtime-binding.schema.json",
+      "bytes": 605,
+      "sha256": "B149A56AE222D9BAAB0BDE36A58A5238F0BCB2CC08E104C3279BFAE64F534798"
+    },
+    {
+      "path": "authorities/session_authority/schema.sql",
+      "bytes": 4501,
+      "sha256": "08141CAAB3BB4CB924D83395898241E4B312E1BC764AD21E44E811DB4D636630"
+    },
+    {
+      "path": "authorities/session_authority/sqlite-artifact.schema.json",
+      "bytes": 970,
+      "sha256": "4C33E8BB7D9BE17A953519090B20DF02908EC357FAFB68630ABD51C8F7A8494F"
+    },
+    {
+      "path": "authorities/session_authority/tools.schema.json",
+      "bytes": 547,
+      "sha256": "262EC2EF4EEDE507AAB5CB2E21A196079BC641ABD98E563315EAB11624A3E627"
+    }
+  ],
+  "schema_bytes_duplicated_here": false,
+  "receipt_sha256": "C4AC5A1650B8AA9439ADE53A1AD36AEC07282B4F180B626956D0AC6AC42AE421"
+}

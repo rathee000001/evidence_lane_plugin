@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 8,
+  "event": "PostCompact",
+  "matcher_groups": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_validate.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_validate.py",
+          "timeout": 10,
+          "statusMessage": "Validating and bounding Evidence Lane hook signal"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_seal.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_seal.py",
+          "timeout": 10,
+          "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_transport.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_transport.py",
+          "timeout": 10,
+          "statusMessage": "Rehydrating Evidence Lane after compaction"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_emit.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_emit.py",
+          "timeout": 10,
+          "statusMessage": "Verifying and emitting Evidence Lane hook result"
+        }
+      ]
+    }
+  ],
+  "handler_count": 4,
+  "handlers": [
+    {
+      "display_id": "8.1",
+      "path": "hooks/events/PostCompact/handler-8.1.v1.json",
+      "sha256": "E6A53558C32A4572506C7AD62D8D77166F641E3A6B6380F7AB9F70C3835900D4"
+    },
+    {
+      "display_id": "8.2",
+      "path": "hooks/events/PostCompact/handler-8.2.v1.json",
+      "sha256": "32A06D68A5DC9C84A5E475AF97FA2A720C76584CC68E41889760C78CFE239736"
+    },
+    {
+      "display_id": "8.3",
+      "path": "hooks/events/PostCompact/handler-8.3.v1.json",
+      "sha256": "FFAD5694D7ABF994AA803C0AB8784602A58C2C537AEFE88EEF9840EE270D9F15"
+    },
+    {
+      "display_id": "8.4",
+      "path": "hooks/events/PostCompact/handler-8.4.v1.json",
+      "sha256": "08DE44AFB174CB878A8AF63A3B1B4BFF42AB48FB0782354607B0682E6A189C91"
+    }
+  ],
+  "adapter": "hooks/lifecycle_boundary.py",
+  "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
+  "precompact_seals_before_compaction": true,
+  "postcompact_rehydrates_after_compaction": true,
+  "receipt_sha256": "BB4F5336974B86DF376C7D322F60944C36604792DD560247BE6DF02DD4049D49"
+}

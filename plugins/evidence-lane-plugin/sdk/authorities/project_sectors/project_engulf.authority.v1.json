@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-project-sector-binding.v1",
+  "status": "PASS",
+  "lane_id": "project_engulf",
+  "authority_root": "authorities/project_sectors/project_engulf",
+  "authority_manifest_sha256": "7DCCCFC51EF3253A0E3C7B9A09FF2C2343C60E4BF087D6F375542D9F9F947A56",
+  "schema_surface": "schemas/project-sectors/project_engulf/schema-surface.v1.json",
+  "builder": "authorities/project_sectors/project_engulf/builder.py",
+  "reader": "authorities/project_sectors/project_engulf/reader.py",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_binding": false,
+  "receipt_sha256": "2907C5A4653E39B6388D58D405E78419EA884F141F01DFE035B76619E0505361"
+}

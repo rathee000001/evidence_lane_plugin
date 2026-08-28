@@ -1,0 +1,112 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "source_graph_impact",
+  "title": "Traverse a bounded affected source subgraph",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "graph_id": {
+        "title": "Graph Id",
+        "type": "string"
+      },
+      "seed_node_ids": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Seed Node Ids",
+        "type": "array"
+      },
+      "relations": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Relations"
+      },
+      "direction": {
+        "default": "UPSTREAM",
+        "title": "Direction",
+        "type": "string"
+      },
+      "max_depth": {
+        "default": 3,
+        "title": "Max Depth",
+        "type": "integer"
+      },
+      "max_nodes": {
+        "default": 1000,
+        "title": "Max Nodes",
+        "type": "integer"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "graph_id",
+      "seed_node_ids"
+    ],
+    "title": "source_graph_impactArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "source_graph_impactDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "5BC430CA60C5C8C5E40EE66087355C1B03B39F103C69B74B4EF801EEEAD3E451",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "source_graph_impact"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "source-graph-intake",
+        "order": 8
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/source_graph_impact.action.v1.json",
+  "sdk_action_binding_sha256": "DEC7EB81ADE8C022F92821C6C297F682FAC1A3A51F096CD74F16150A5402AAEC",
+  "public_action_schema": "schemas/actions/source_graph_impact.schema.json",
+  "public_action_schema_sha256": "818C9F68EE9F7665A3830EDA4E9905BB1C68038D17A81F0F75AA63A1D3C43BF6",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "3EB2B0B4A71619F03794A370FF790216C51C7F804C6618E54C1142072DB6A3D5"
+}

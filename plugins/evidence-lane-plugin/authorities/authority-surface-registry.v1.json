@@ -1,0 +1,118 @@
+{
+  "schema": "evidence-lane.installed-non-sector-authority-registry.v1",
+  "status": "PASS",
+  "authority_count": 11,
+  "authorities": [
+    {
+      "authority_id": "agent_learning",
+      "path": "authorities/agent_learning",
+      "manifest_sha256": "87CBD3E8A913964CEA44098E6B6D51EB4B34E14852830AA4B198BA633F8E1B7B",
+      "database_sha256": "54728352EBBC42F17AEE0099563714EF6950882742AF362ED736271D8FCCEB3F",
+      "table_count": 28,
+      "linked_public_action_count": 9,
+      "persistent_sqlite_authority": true
+    },
+    {
+      "authority_id": "canon_input",
+      "path": "authorities/canon_input",
+      "manifest_sha256": "8DF1F5AD209F70B2D4283BDB6034A0CB2E130226AE483CD6FA8DF560CC61E164",
+      "database_sha256": "68783FC35CFB5A164B76A2008512F46CF0A514863ECBF1D544AA88F2C747F42D",
+      "table_count": 18,
+      "linked_public_action_count": 19,
+      "persistent_sqlite_authority": true
+    },
+    {
+      "authority_id": "project_memory",
+      "path": "authorities/project_memory",
+      "manifest_sha256": "01EE5DE0E33CBE9B6099FDB7B66F2570D7E942177770067E13FE712C4362DC21",
+      "database_sha256": "F9A37C841CF8766F9BB2AFD8ECB65998E4EAE08634682464D5E12EF4191BA754",
+      "table_count": 22,
+      "linked_public_action_count": 5,
+      "persistent_sqlite_authority": true
+    },
+    {
+      "authority_id": "project_overlay",
+      "path": "authorities/project_overlay",
+      "manifest_sha256": "996D375A9889D9D6BF887BD4AB0BFD34A54F820D6988C6AD1F8C13D5AE87947F",
+      "database_sha256": "F043D4F31EA6CC9F904BCD581FE0D1A51C8A0E3BD4FA95D98B60E7C2887BECBE",
+      "table_count": 28,
+      "linked_public_action_count": 10,
+      "persistent_sqlite_authority": true
+    },
+    {
+      "authority_id": "source_authority",
+      "path": "authorities/source_authority",
+      "manifest_sha256": "3E6427CCAD90696405B3B2EFF8FC40FADF2792FF90694E2D54CE84F23811C835",
+      "database_sha256": "ECB2F8728B74F5F65BCED30F07F253520643BC7D767F18492BED7C1A124F7453",
+      "table_count": 56,
+      "linked_public_action_count": 18,
+      "persistent_sqlite_authority": true
+    },
+    {
+      "authority_id": "project_universe",
+      "path": "authorities/project_universe",
+      "manifest_sha256": "63DD3F24A2CCA62584C35E557DF31037D7ACE68FE2ED89F28122D31FAFD8DD2A",
+      "database_sha256": "8D02CBA83CC31D64DC2312AE664132FB548F0D238E54780CD2B8A37500FEE60D",
+      "table_count": 20,
+      "linked_public_action_count": 4,
+      "persistent_sqlite_authority": true
+    },
+    {
+      "authority_id": "connector_brain",
+      "path": "authorities/connector_brain",
+      "manifest_sha256": "4E8E667BD9D7D352165C0D3E5F4E772305CF7DC9C5608693469574AB9182EF55",
+      "database_sha256": "4D98403982833735F08A73202950BDBC90644BF9A1AD3239A6EAC07A71D4F692",
+      "table_count": 29,
+      "linked_public_action_count": 5,
+      "persistent_sqlite_authority": true
+    },
+    {
+      "authority_id": "project_authority",
+      "path": "authorities/project_authority",
+      "manifest_sha256": "1E38F77CFFE9D60CDA097B8C7334D9B673584C268380EF796A18437330D923F9",
+      "database_sha256": "3D9F746432140CBA554713C196DD4E70FF61458EAA967275B0215F9AAEDD6A8F",
+      "table_count": 20,
+      "linked_public_action_count": 21,
+      "persistent_sqlite_authority": true
+    },
+    {
+      "authority_id": "receipt_ledger",
+      "path": "authorities/receipt_ledger",
+      "manifest_sha256": "EBD4460F11959BB172C48B2A3B3C1050D236170316C0D74D1304230BA935BCD1",
+      "database_sha256": "2D486BDF4B6294A566A25C064DF2532D68D5F0E047A0FFEFB7049BFF304632CB",
+      "table_count": 18,
+      "linked_public_action_count": 17,
+      "persistent_sqlite_authority": true
+    },
+    {
+      "authority_id": "session_authority",
+      "path": "authorities/session_authority",
+      "manifest_sha256": "10376C794CB219D9CB6840140CD883905F6518860BBDB68CDFF684647FF7C6F8",
+      "database_sha256": "40EE2A9FEBFA1857069A989B1EDB9F9A5F03420B31637D68FE1D1176BBE328E3",
+      "table_count": 19,
+      "linked_public_action_count": 12,
+      "persistent_sqlite_authority": true
+    },
+    {
+      "authority_id": "instructions",
+      "path": "authorities/instructions",
+      "manifest_sha256": "81E08E867C94D8394508032AA73BC03F3850B98E4407FE9B30A3E7437126B7C6",
+      "database_sha256": null,
+      "table_count": null,
+      "linked_public_action_count": 4,
+      "persistent_sqlite_authority": false
+    }
+  ],
+  "sqlite_authority_count": 10,
+  "non_sqlite_authority_count": 1,
+  "non_sqlite_authority_ids": [
+    "instructions"
+  ],
+  "sector_lane_count": 18,
+  "project_sector_registry": "authorities/project_sectors/lane-surface-registry.v1.json",
+  "project_sector_registry_sha256": "55C9DE00C6F39DBCB574A7FD6F0073B88DE42DBD9AE9C9363BA7C747CB9A1FB2",
+  "authorities_are_outside_sector_count": true,
+  "sqlite_mmd_dot_tools_pointer_runtime_complete": true,
+  "shared_support_source_sha256": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754",
+  "receipt_sha256": "6D00CC529B993A2CCC23462B4CD176992D66E680D328622DCAB0BB9A563C22F3"
+}

@@ -1,0 +1,86 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "canon_supersede",
+  "title": "Supersede Canon input",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "canon_id": {
+        "title": "Canon Id",
+        "type": "string"
+      },
+      "superseded_by": {
+        "title": "Superseded By",
+        "type": "string"
+      },
+      "occurred_at": {
+        "title": "Occurred At",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "canon_id",
+      "superseded_by",
+      "occurred_at"
+    ],
+    "title": "canon_supersedeArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "canon_supersedeDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "8EE74D64D8B495ABA9BFFCEBD032E23B5176210C93A64D330DED6ACFA3BAEA7F",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_supersede"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "supersede",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-decision",
+        "order": 9
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/canon_supersede.action.v1.json",
+  "sdk_action_binding_sha256": "157D12F0BB9546DD19DAC8CECCD45462BA93E4F3D998337C2AAA442D6CC5C828",
+  "public_action_schema": "schemas/actions/canon_supersede.schema.json",
+  "public_action_schema_sha256": "8ECE6C520C7D34B20B0AA7A20B78541AC9E81832A0433C6D0CCF37CAA7C4F79E",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "286755B20CC325E18796894E448E92295FF94B55791EBB67FBB4BDA0449C52A7"
+}

@@ -4,14 +4,16 @@ from __future__ import annotations
 
 import json
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
+from .adaptive_delta_entry import run_adaptive_delta_entry
 from .adaptive_delta_exit import run_adaptive_delta_exit
 from .agent_configuration import AgentConfigurationManager
+from .agent_learning import inspect_learning_authority
 from .capture_routing import CaptureRouteAuthority
 from .connector_governance import ConnectorGovernance
 from .constants import LIFECYCLE_RESULT_SCHEMA, TOOL_RESULT_SCHEMA
@@ -26,8 +28,12 @@ from .enrollment import enroll_project, sync_selected_branch
 from .errors import EvidenceLaneError, require
 from .flash_authority import SessionFlashAuthority
 from .freshness import evaluate_freshness, evaluate_working_lane_freshness
-from .git_adapter import calculate_worktree_sha256, inspect_repository
-from .hashing import canonical_json_bytes, sha256_bytes
+from .git_adapter import (
+    calculate_worktree_change_identity,
+    calculate_worktree_sha256,
+    inspect_repository,
+)
+from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .hil_intent import classify_hil_intent
 from .host_entry_continuity import (
     TransactionalHostEntryBackend,
@@ -40,7 +46,8 @@ from .ids import prefixed_id
 from .lane_reader import LaneReader
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from .lineage import ProjectChatLineage
-from .models import ProjectConfig, normalize_host_kind
+from .models import ProjectConfig, SessionState, normalize_host_kind
+from .model_compatibility import model_compatibility_catalog
 from .next_actions import HIL_CHOICES, HIL_SUGGESTED_PROMPT
 from .operating_modes import classify_operating_modes
 from .persistence import (
@@ -61,6 +68,7 @@ from .redaction import redact
 from .remote_git import RemoteGitController
 from .runtime_activation import RuntimeActivation
 from .session import SessionManager
+from .source_fingerprint import tracked_worktree_file_manifest
 from .source_git_history import (
     build_registered_git_history,
     build_source_git_commit_impact,
@@ -968,9 +976,7 @@ def _lane_projection(
             ],
             "bundle_sha256": manifest.get("bundle_sha256"),
             "topology_status": (
-                "PASS"
-                if len(emitted) == len(CANONICAL_LANE_IDS)
-                else "NOT_PROVEN"
+                "PASS" if len(emitted) == len(CANONICAL_LANE_IDS) else "NOT_PROVEN"
             ),
             "lanes": working_lanes,
         }
@@ -1041,8 +1047,12 @@ class EvidenceLaneService:
         sync_service: PVSyncService | None = None,
     ) -> None:
         repository_root = identity_repository_root(__file__)
-        configured_environment_root = os.environ.get("EVIDENCE_LANE_DATA_ROOT")
-        legacy_plugin_root = os.environ.get("PLUGIN_DATA")
+        configured_runtime_root = os.environ.get(
+            "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"
+        )
+        hidden_runtime_root = (
+            Path.home() / ".codex" / "plugins" / "runtime" / "evidence-lane-plugin"
+        ).resolve()
         if data_root is not None:
             require(
                 bool(os.fspath(data_root).strip()),
@@ -1052,27 +1062,18 @@ class EvidenceLaneService:
             )
             configured_root = Path(data_root)
             root_source = "EXPLICIT_SERVICE_CONFIGURATION"
-        elif configured_environment_root is not None:
+        elif configured_runtime_root is not None:
             require(
-                bool(configured_environment_root.strip()),
-                "EVIDENCE_LANE_DATA_ROOT_INVALID",
-                "EVIDENCE_LANE_DATA_ROOT cannot be empty when it is configured.",
+                bool(configured_runtime_root.strip()),
+                "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT_INVALID",
+                "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT cannot be empty when configured.",
                 status="BLOCKED",
             )
-            configured_root = Path(configured_environment_root)
-            root_source = "EVIDENCE_LANE_DATA_ROOT"
-        elif legacy_plugin_root is not None:
-            require(
-                bool(legacy_plugin_root.strip()),
-                "EVIDENCE_LANE_DATA_ROOT_INVALID",
-                "PLUGIN_DATA cannot be empty when it is configured.",
-                status="BLOCKED",
-            )
-            configured_root = Path(legacy_plugin_root)
-            root_source = "PLUGIN_DATA_MIGRATION_COMPATIBILITY"
+            configured_root = Path(configured_runtime_root)
+            root_source = "HIDDEN_PLUGIN_RUNTIME_CONTROL_ROOT"
         else:
-            configured_root = Path.home() / "EvidenceLanePV"
-            root_source = "PLATFORM_PER_USER_DURABLE_DEFAULT"
+            configured_root = hidden_runtime_root
+            root_source = "HIDDEN_PLUGIN_RUNTIME_CONTROL_DEFAULT"
         self.store = ProjectStore(
             configured_root,
             configuration_source=root_source,
@@ -1147,8 +1148,7 @@ class EvidenceLaneService:
         profile_value = session.metadata.get("execution_profile")
         profile = dict(profile_value) if isinstance(profile_value, dict) else {}
         codex_home = Path(
-            str(os.environ.get("CODEX_HOME") or "").strip()
-            or (Path.home() / ".codex")
+            str(os.environ.get("CODEX_HOME") or "").strip() or (Path.home() / ".codex")
         )
         resolved = self._agent_configuration_manager.resolve(
             codex_home=codex_home,
@@ -1172,8 +1172,7 @@ class EvidenceLaneService:
         if not active_path.is_file():
             return None
         exact_session_id = str(
-            json.loads(active_path.read_text(encoding="utf-8")).get("session_id")
-            or ""
+            json.loads(active_path.read_text(encoding="utf-8")).get("session_id") or ""
         ).strip()
         if not exact_session_id:
             return None
@@ -1251,8 +1250,7 @@ class EvidenceLaneService:
         profile_value = session.metadata.get("execution_profile")
         profile = dict(profile_value) if isinstance(profile_value, dict) else {}
         codex_home = Path(
-            str(os.environ.get("CODEX_HOME") or "").strip()
-            or (Path.home() / ".codex")
+            str(os.environ.get("CODEX_HOME") or "").strip() or (Path.home() / ".codex")
         )
         resolved = self._conversation_memory_manager.resolve(
             codex_home=codex_home,
@@ -1276,8 +1274,7 @@ class EvidenceLaneService:
         if not active_path.is_file():
             return None
         exact_session_id = str(
-            json.loads(active_path.read_text(encoding="utf-8")).get("session_id")
-            or ""
+            json.loads(active_path.read_text(encoding="utf-8")).get("session_id") or ""
         ).strip()
         if not exact_session_id:
             return None
@@ -1313,6 +1310,7 @@ class EvidenceLaneService:
         lifecycle: bool,
         project_id: str | None,
         session_id: str | None,
+        invocation_arguments: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Attest one public action before its callback observes authority."""
 
@@ -1400,10 +1398,61 @@ class EvidenceLaneService:
                     ]["rows"]
                     if row.get("status") == "in_progress"
                 ]
-                require(
+                exact_active_task_bound = (
                     len(active_rows) == 1
                     and bool(active_task_id)
-                    and active_rows[0].get("task_id") == active_task_id,
+                    and active_rows[0].get("task_id") == active_task_id
+                )
+                arguments = dict(invocation_arguments or {})
+                preapproval_correction_entry = False
+                if (
+                    not exact_active_task_bound
+                    and exact_tool == "pv_task_transition"
+                    and arguments.get("transition_name") == "CORRECT_PREAPPROVAL_DONE"
+                ):
+                    requested_task_id = str(arguments.get("task_id") or "").strip()
+                    correction_of_event_id = str(
+                        arguments.get("correction_of_event_id") or ""
+                    ).strip()
+                    expected_backlog_sha256 = (
+                        str(arguments.get("expected_backlog_sha256") or "")
+                        .strip()
+                        .upper()
+                    )
+                    backlog = self.store._load_backlog(exact_project)
+                    task = next(
+                        (
+                            row
+                            for row in backlog.get("tasks", [])
+                            if row.get("task_id") == requested_task_id
+                        ),
+                        None,
+                    )
+                    correction_event = next(
+                        (
+                            row
+                            for row in backlog.get("events", [])
+                            if row.get("event_id") == correction_of_event_id
+                        ),
+                        None,
+                    )
+                    preapproval_correction_entry = bool(
+                        not active_rows
+                        and active_task_id
+                        and requested_task_id == active_task_id
+                        and isinstance(task, dict)
+                        and task.get("status") == "DONE"
+                        and task.get("last_event_id") == correction_of_event_id
+                        and isinstance(correction_event, dict)
+                        and correction_event.get("task_id") == requested_task_id
+                        and correction_event.get("event_type") == "TASK_DONE"
+                        and correction_event.get("from_status") == "ACTIVE"
+                        and correction_event.get("to_status") == "DONE"
+                        and expected_backlog_sha256
+                        == sha256_bytes(canonical_json_bytes(backlog))
+                    )
+                require(
+                    exact_active_task_bound or preapproval_correction_entry,
                     "PUBLIC_ENTRY_ACTIVE_TASK_BINDING_MISMATCH",
                     "The common entry boundary requires the exact sole active Plan task.",
                     status="MISMATCH",
@@ -1431,7 +1480,11 @@ class EvidenceLaneService:
                 )
                 binding.update(
                     {
-                        "binding_mode": "EXACT_ACTIVE_TASK_ENTRY",
+                        "binding_mode": (
+                            "EXACT_PREAPPROVAL_DONE_CORRECTION_ENTRY"
+                            if preapproval_correction_entry
+                            else "EXACT_ACTIVE_TASK_ENTRY"
+                        ),
                         "governed_session_id": exact_session,
                         "active_task_id": active_task_id,
                         "host_session_id_sha256": sha256_bytes(
@@ -1441,14 +1494,10 @@ class EvidenceLaneService:
                             canonical_json_bytes(profile)
                         ),
                         "agent_configuration_authority_sha256": (
-                            agent_configuration[
-                                "agent_configuration_authority_sha256"
-                            ]
+                            agent_configuration["agent_configuration_authority_sha256"]
                         ),
                         "conversation_memory_authority_sha256": (
-                            conversation_memory[
-                                "conversation_memory_authority_sha256"
-                            ]
+                            conversation_memory["conversation_memory_authority_sha256"]
                         ),
                     }
                 )
@@ -1845,6 +1894,7 @@ class EvidenceLaneService:
         report["session_flash"] = flash
         report["runtime_activation"] = runtime_activation
         report["store_routing"] = self.store.inspect_root()
+        report["model_compatibility"] = model_compatibility_catalog()
         report["checks"]["session_flash_bundle"] = flash["status"] == "PASS"
         report["status"] = "PASS" if all(report["checks"].values()) else "FAIL"
         report["warnings"] = flash["warnings"]
@@ -1990,7 +2040,9 @@ class EvidenceLaneService:
     def _connector_governance(self, project_id: str) -> ConnectorGovernance:
         self.store.config(project_id)
         return ConnectorGovernance(
-            self.store.project_root(project_id) / "connector_brain.sqlite"
+            self.store.project_root(project_id)
+            / "connector_brain"
+            / "connector-brain.sqlite"
         )
 
     def connector_plugin_register(
@@ -2066,6 +2118,7 @@ class EvidenceLaneService:
         authority_mode: str = "CLASSIFICATION_ONLY",
         source_assertions: dict[str, dict[str, Any]] | None = None,
         turn_entry: dict[str, Any] | None = None,
+        plan_dispatch: dict[str, Any] | None = None,
         working_authority_action: str = "CLASSIFY_ONLY",
     ) -> dict[str, Any]:
         """Classify ordered sources through one generalized public control."""
@@ -2088,6 +2141,7 @@ class EvidenceLaneService:
                 else None
             ),
             source_assertions=source_assertions,
+            registered_repository_path=config.repository_path,
         )
         active_session_id = session_id.strip() if session_id else ""
         if not active_session_id:
@@ -2101,8 +2155,7 @@ class EvidenceLaneService:
                 )
         normalized_working_action = working_authority_action.strip().upper()
         require(
-            normalized_working_action
-            in {"CLASSIFY_ONLY", "REFRESH_WORKING_SECTORS"},
+            normalized_working_action in {"CLASSIFY_ONLY", "REFRESH_WORKING_SECTORS"},
             "SOURCE_INTAKE_WORKING_ACTION_INVALID",
             "Source Intake working authority action must be CLASSIFY_ONLY or "
             "REFRESH_WORKING_SECTORS.",
@@ -2118,12 +2171,24 @@ class EvidenceLaneService:
             )
             pointer = self.store.pointer(project_id)
             accepted_pv = str(pointer.accepted_pv or "").strip()
-            require(
-                bool(accepted_pv),
-                "SOURCE_INTAKE_REFRESH_ACCEPTED_PV_REQUIRED",
-                "Explicit WORKING-sector refresh requires one accepted PV baseline.",
-                status="BLOCKED",
-            )
+            pv0_bootstrap = False
+            if not accepted_pv:
+                bootstrap_session = self.sessions.load(project_id, active_session_id)
+                pv0_bootstrap = (
+                    self.store.uses_external_project_authority(project_id)
+                    and pointer.generation == 0
+                    and bootstrap_session.state == SessionState.BOOTED
+                    and bootstrap_session.accepted_pv is None
+                    and bootstrap_session.candidate_id is None
+                )
+                require(
+                    pv0_bootstrap,
+                    "SOURCE_INTAKE_REFRESH_ACCEPTED_PV_REQUIRED",
+                    "WORKING-sector refresh requires an accepted baseline, except "
+                    "for the exact live-root PV0 bootstrap owned by initial Build.",
+                    status="BLOCKED",
+                )
+                accepted_pv = "PV0"
             repository = inspect_repository(config.repository_path)
             result["working_authority_refresh"] = migrate_working_project_sectors(
                 self.store.project_root(project_id),
@@ -2133,6 +2198,10 @@ class EvidenceLaneService:
                 pointer_generation=pointer.generation,
                 expected_branch=repository.branch,
                 expected_head=repository.commit_sha,
+                bootstrap_pv0=pv0_bootstrap,
+            )
+            result["working_authority_refresh"]["pv0_bootstrap_pending"] = (
+                pv0_bootstrap
             )
         else:
             result["working_authority_refresh"] = {
@@ -2419,6 +2488,101 @@ class EvidenceLaneService:
                 "pointer_moved": False,
                 "hil_inferred": False,
             }
+        if plan_dispatch is not None:
+            require(
+                isinstance(plan_dispatch, dict) and turn_entry is None,
+                "SOURCE_INTAKE_PLAN_DISPATCH_INVALID",
+                "Prompt Plan dispatch must be one separate structured classification.",
+                status="BLOCKED",
+            )
+            dispatch_class = str(
+                plan_dispatch.get("classification") or ""
+            ).strip().upper()
+            require(
+                dispatch_class in {"ORDINARY", "EXECUTION_CHANGING"},
+                "SOURCE_INTAKE_PLAN_DISPATCH_CLASS_INVALID",
+                "Prompt Plan dispatch must be ORDINARY or EXECUTION_CHANGING.",
+                status="BLOCKED",
+            )
+            if dispatch_class == "ORDINARY":
+                require(
+                    not any(
+                        plan_dispatch.get(field)
+                        for field in (
+                            "delta_id",
+                            "delta_text",
+                            "linked_task_id",
+                            "boundary",
+                        )
+                    ),
+                    "SOURCE_INTAKE_ORDINARY_PLAN_FIELDS_FORBIDDEN",
+                    "Questions and status requests cannot carry Plan-steer fields.",
+                    status="BLOCKED",
+                )
+                result["plan_dispatch"] = {
+                    "status": "PASS",
+                    "classification": "ORDINARY",
+                    "pv_plan_steer_delta_invoked": False,
+                    "plan_mutated": False,
+                    "chat_lineage_only": True,
+                }
+            else:
+                exact_delta_id = str(plan_dispatch.get("delta_id") or "").strip()
+                exact_delta_text = str(plan_dispatch.get("delta_text") or "").strip()
+                exact_linked_task_id = str(
+                    plan_dispatch.get("linked_task_id") or ""
+                ).strip()
+                exact_actor = str(plan_dispatch.get("actor") or "").strip()
+                changed_fields = sorted(
+                    {
+                        str(field).strip().upper()
+                        for field in plan_dispatch.get("changed_fields") or []
+                        if str(field).strip()
+                    }
+                )
+                allowed_changed_fields = {
+                    "OUTCOME",
+                    "DEPENDENCY",
+                    "ACCEPTANCE",
+                    "STOP_CONDITION",
+                    "RELEASE_ROUTE",
+                    "HIL_PATH",
+                }
+                require(
+                    bool(active_session_id)
+                    and bool(exact_delta_id)
+                    and bool(exact_delta_text)
+                    and bool(exact_linked_task_id)
+                    and bool(exact_actor)
+                    and bool(changed_fields)
+                    and set(changed_fields).issubset(allowed_changed_fields),
+                    "SOURCE_INTAKE_EXECUTION_STEER_REQUIRED",
+                    "Execution-changing prompts require stable steer identity, exact linked task, actor, text, and changed contract fields.",
+                    status="BLOCKED",
+                )
+                steer = self.record_steer_delta(
+                    project_id,
+                    delta_id=exact_delta_id,
+                    delta_text=exact_delta_text,
+                    actor=exact_actor,
+                    boundary=str(
+                        plan_dispatch.get("boundary") or "BEFORE_NEXT_HIL"
+                    ),
+                    linked_task_id=exact_linked_task_id,
+                    new_task_contract=None,
+                )
+                result["plan_dispatch"] = {
+                    "status": "PASS",
+                    "classification": "EXECUTION_CHANGING",
+                    "changed_fields": changed_fields,
+                    "pv_plan_steer_delta_invoked": True,
+                    "plan_steer": steer,
+                    "stable_idempotent_id": exact_delta_id,
+                    "source_intake_preceded_plan_steer": True,
+                    "chat_lineage_event_id": result.get("chat_lineage", {}).get(
+                        "event_id"
+                    ),
+                }
         result["agent_configuration"] = (
             self._active_agent_configuration_authority(project_id)
             if active_session_id
@@ -2445,6 +2609,47 @@ class EvidenceLaneService:
             session_id,
             **kwargs,
         )
+
+    def adaptive_delta_entry(
+        self,
+        project_id: str,
+        session_id: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Consume the live-root authorities before one Delta begins source work."""
+
+        return run_adaptive_delta_entry(
+            self,
+            project_id,
+            session_id,
+            **kwargs,
+        )
+
+    def classify_and_enter_delta(
+        self,
+        project_id: str,
+        session_id: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Classify through the current route and auto-fire first-class Delta entry."""
+
+        classified = self.sessions.classify(
+            project_id,
+            session_id,
+            **kwargs,
+        )
+        require(
+            classified.get("status") == "PASS",
+            "ADAPTIVE_DELTA_ENTRY_CLASSIFICATION_FAILED",
+            "Delta entry cannot run after a failed task classification.",
+            status="FAIL",
+        )
+        classified["adaptive_delta_entry"] = self.adaptive_delta_entry(
+            project_id,
+            session_id,
+            classification_result=classified,
+        )
+        return classified
 
     def _refresh_delta_source_authority(
         self,
@@ -2487,6 +2692,8 @@ class EvidenceLaneService:
         )
         repository_path = self.store.config(project_id).repository_path
         repository_before = inspect_repository(repository_path).as_dict()
+        file_manifest_before = tracked_worktree_file_manifest(repository_path)
+        dirty_identity_before = calculate_worktree_change_identity(repository_path)
         local_refresh = migrate_working_project_sectors(
             self.store.project_root(project_id),
             repository_root=repository_path,
@@ -2497,6 +2704,8 @@ class EvidenceLaneService:
             expected_head=repository_before["commit_sha"],
         )
         repository_after = inspect_repository(repository_path).as_dict()
+        file_manifest_after = tracked_worktree_file_manifest(repository_path)
+        dirty_identity_after = calculate_worktree_change_identity(repository_path)
         identity_fields = ("branch", "commit_sha", "tree_sha", "worktree_sha256")
         require(
             local_refresh.get("status") == "PASS"
@@ -2508,6 +2717,75 @@ class EvidenceLaneService:
             "Local Code refresh changed or crossed the exact Git/worktree baseline.",
             status="MISMATCH",
         )
+        require(
+            file_manifest_after == file_manifest_before,
+            "DELTA_SOURCE_REFRESH_FILE_FINGERPRINT_DRIFT",
+            "The per-file tracked source manifest changed during Delta exit refresh.",
+            status="MISMATCH",
+        )
+        require(
+            dirty_identity_after == dirty_identity_before,
+            "DELTA_SOURCE_REFRESH_DIRTY_BYTE_IDENTITY_DRIFT",
+            "The tracked-dirty or untracked byte identity changed during Delta exit refresh.",
+            status="MISMATCH",
+        )
+        fingerprint_root = (
+            self.store.project_root(project_id)
+            / "receipts"
+            / "delta-source-fingerprints"
+        )
+        fingerprint_path = (
+            fingerprint_root
+            / f"{file_manifest_before['receipt_sha256'].lower()}.json"
+        )
+        if fingerprint_path.is_file():
+            require(
+                json.loads(fingerprint_path.read_text(encoding="utf-8"))
+                == file_manifest_before,
+                "DELTA_SOURCE_REFRESH_FILE_FINGERPRINT_CONFLICT",
+                "The content-addressed per-file fingerprint receipt has different bytes.",
+                status="MISMATCH",
+            )
+        else:
+            atomic_write_json(fingerprint_path, file_manifest_before)
+        per_file_fingerprint = {
+            key: file_manifest_before[key]
+            for key in (
+                "schema",
+                "status",
+                "selection",
+                "tracked_path_count",
+                "current_file_count",
+                "current_symlink_count",
+                "tracked_deleted_count",
+                "path_set_sha256",
+                "file_manifest_sha256",
+                "receipt_sha256",
+                "untracked_paths_included",
+                "ignored_paths_included",
+                "remote_git_mutated",
+                "git_index_mutated",
+                "git_ref_mutated",
+            )
+        }
+        per_file_fingerprint["receipt_path"] = str(fingerprint_path)
+        per_file_fingerprint["full_entry_manifest_returned"] = False
+        dirty_byte_identity = {
+            key: dirty_identity_before.get(key)
+            for key in (
+                "dirty_path_count",
+                "dirty_path_set_sha256",
+                "dirty_content_sha256",
+                "tracked_dirty_path_count",
+                "tracked_dirty_content_sha256",
+                "untracked_path_count",
+                "untracked_content_sha256",
+                "status_sha256",
+                "working_identity_sha256",
+                "raw_paths_persisted",
+            )
+        }
+        dirty_byte_identity["identity_unchanged_during_refresh"] = True
         local_body = {
             "lane_id": "local_code",
             "status": "PASS",
@@ -2538,9 +2816,7 @@ class EvidenceLaneService:
             **git_body,
             "receipt_sha256": sha256_bytes(canonical_json_bytes(git_body)),
         }
-        canonical_lane_refresh = dict(
-            local_refresh.get("canonical_lane_refresh") or {}
-        )
+        canonical_lane_refresh = dict(local_refresh.get("canonical_lane_refresh") or {})
         body = {
             "schema": "evidence-lane.delta-source-authority-refresh.v1",
             "status": "PASS",
@@ -2558,6 +2834,8 @@ class EvidenceLaneService:
                 "resolved_instruction_sources",
             ],
             "repository_identity_unchanged": True,
+            "per_file_tracked_source_fingerprint": per_file_fingerprint,
+            "dirty_and_untracked_byte_identity": dirty_byte_identity,
             "candidate_created": False,
             "pointer_moved": False,
             "git_mutated": False,
@@ -3100,7 +3378,7 @@ class EvidenceLaneService:
         session_id: str | None = None,
         refresh_on_miss: bool = True,
     ) -> dict[str, Any]:
-        """Run the single live-root six-authority prompt/query route."""
+        """Run the ENV/UOP-governed live-root six-way prompt/query route."""
 
         from .live_authority_query import query_live_authorities
 
@@ -3544,7 +3822,7 @@ class EvidenceLaneService:
                 "suggested_next_prompt": "/pl",
                 "message": (
                     "Turn on Codex Plan mode with /pl, finish the plan, then run "
-                    "/evi-plan again so Plan Lane and the native Goal/task panel pair."
+                    "$evi-plan so Plan Lane and the native Goal/task panel pair."
                 ),
             }
         exact_plan_id = plan_id or prefixed_id("plan")
@@ -3657,11 +3935,11 @@ class EvidenceLaneService:
             "host_goal_mutation_supported_by_mcp": False,
             "host_scope": "CODEX_ONLY",
         }
-        result["agent_configuration"] = (
-            self._active_agent_configuration_authority(project_id)
+        result["agent_configuration"] = self._active_agent_configuration_authority(
+            project_id
         )
-        result["conversation_memory"] = (
-            self._active_conversation_memory_authority(project_id)
+        result["conversation_memory"] = self._active_conversation_memory_authority(
+            project_id
         )
         return result
 
@@ -3703,11 +3981,11 @@ class EvidenceLaneService:
 
     def task_backlog(self, project_id: str) -> dict[str, Any]:
         result = self.store.backlog_status(project_id)
-        result["agent_configuration"] = (
-            self._active_agent_configuration_authority(project_id)
+        result["agent_configuration"] = self._active_agent_configuration_authority(
+            project_id
         )
-        result["conversation_memory"] = (
-            self._active_conversation_memory_authority(project_id)
+        result["conversation_memory"] = self._active_conversation_memory_authority(
+            project_id
         )
         return result
 
@@ -3730,11 +4008,11 @@ class EvidenceLaneService:
                 query=exact_query or None,
                 limit=min(int(limit), 20),
             )
-            result["agent_configuration"] = (
-                self._active_agent_configuration_authority(project_id)
+            result["agent_configuration"] = self._active_agent_configuration_authority(
+                project_id
             )
-            result["conversation_memory"] = (
-                self._active_conversation_memory_authority(project_id)
+            result["conversation_memory"] = self._active_conversation_memory_authority(
+                project_id
             )
             return result
         require(
@@ -4252,11 +4530,11 @@ class EvidenceLaneService:
         result["project_lineage"] = ProjectChatLineage(
             resolved_chat_lineage_root(self.store.project_root(project_id))
         ).sync()
-        result["agent_configuration"] = (
-            self._active_agent_configuration_authority(project_id)
+        result["agent_configuration"] = self._active_agent_configuration_authority(
+            project_id
         )
-        result["conversation_memory"] = (
-            self._active_conversation_memory_authority(project_id)
+        result["conversation_memory"] = self._active_conversation_memory_authority(
+            project_id
         )
         return result
 
@@ -4327,33 +4605,11 @@ class EvidenceLaneService:
         result["project_lineage"] = ProjectChatLineage(
             resolved_chat_lineage_root(self.store.project_root(project_id))
         ).sync()
-        result["agent_configuration"] = (
-            self._active_agent_configuration_authority(project_id)
+        result["agent_configuration"] = self._active_agent_configuration_authority(
+            project_id
         )
-        result["conversation_memory"] = (
-            self._active_conversation_memory_authority(project_id)
-        )
-        return result
-
-    def prepare_state_travel(
-        self,
-        project_id: str,
-        session_id: str,
-        *,
-        resume_contract: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        """Seal accepted context or the exact verified unfinished boundary."""
-
-        result = self.sessions.prepare_state_travel(
-            project_id,
-            session_id,
-            resume_contract=resume_contract,
-        )
-        result["agent_configuration"] = (
-            self._active_agent_configuration_authority(project_id)
-        )
-        result["conversation_memory"] = (
-            self._active_conversation_memory_authority(project_id)
+        result["conversation_memory"] = self._active_conversation_memory_authority(
+            project_id
         )
         return result
 
@@ -4406,9 +4662,7 @@ class EvidenceLaneService:
                 project_id,
                 session_id,
                 authoritative_source_task_id=authoritative_source_task_id,
-                runtime_attachment_donor_task_id=(
-                    runtime_attachment_donor_task_id
-                ),
+                runtime_attachment_donor_task_id=(runtime_attachment_donor_task_id),
                 destination_task_id=destination_task_id,
                 destination_task_title=destination_task_title,
             )
@@ -4428,7 +4682,7 @@ class EvidenceLaneService:
         direct = cast(dict[str, Any], result["direct_state_travel"])
         plan = cast(dict[str, Any], direct["plan_task_proof"])
         pointer = cast(dict[str, Any], direct["accepted_pointer_baseline"])
-        recovery = cast(dict[str, Any], direct["calling_task_recovery_authority"])
+        task_binding = cast(dict[str, Any], direct["calling_task_binding_authority"])
         orchestration = cast(dict[str, Any], direct["destination_orchestration"])
         receipt_body = {
             "schema": (
@@ -4441,9 +4695,7 @@ class EvidenceLaneService:
             "session_id": session_id,
             "task_binding": {
                 "authoritative_source_task_id": authoritative_source_task_id,
-                "runtime_attachment_donor_task_id": (
-                    runtime_attachment_donor_task_id
-                ),
+                "runtime_attachment_donor_task_id": (runtime_attachment_donor_task_id),
                 "destination_task_id": destination_task_id,
                 "destination_task_deep_link": (
                     f"codex://threads/{destination_task_id}"
@@ -4463,13 +4715,11 @@ class EvidenceLaneService:
                 "next_hil_row": plan["next_hil_row"],
                 "physically_final_hil_row": plan["physically_final_hil_row"],
             },
-            "runtime_attestation_receipt_sha256": recovery[
+            "runtime_attestation_receipt_sha256": task_binding[
                 "runtime_instance_attestation_receipt_sha256"
             ],
             "direct_entry_receipt_sha256": direct["receipt_sha256"],
-            "destination_orchestration_receipt_sha256": orchestration[
-                "receipt_sha256"
-            ],
+            "destination_orchestration_receipt_sha256": orchestration["receipt_sha256"],
             "server_minted_replay_guard": True,
             "caller_supplied_nonce": False,
             "caller_supplied_volatile_authority": False,
@@ -4503,225 +4753,80 @@ class EvidenceLaneService:
             ),
         }
 
-    def _direct_force_same_worktree_state_travel_with_binding(
-        self,
-        *,
-        project_id: str,
-        session_id: str,
-        binding: dict[str, Any],
-        client_can_edit_source: bool | None = True,
-        server_has_durable_filesystem: bool | None = True,
-    ) -> dict[str, Any]:
-        """Private compatibility path for validating the legacy full binding."""
-
-        preflight = preflight_direct_forced_same_worktree_binding(binding)
-        exact_binding = cast(dict[str, Any], preflight["normalized_binding"])
-        destination = cast(dict[str, Any], exact_binding.get("destination") or {})
-        expected = cast(dict[str, Any], exact_binding.get("expected") or {})
-        execution_profile = cast(
-            dict[str, Any], expected.get("execution_profile") or {}
-        )
-        host_session_id = str(destination.get("task_id") or "").strip()
-        capture_route_binding = self._capture_route_binding(project_id)
-        flash = self.flash_authority.ensure_flashed()
-        route, storage_selection = self._selected_persistence_route(
-            project_id,
-            host="CODEX_DESKTOP",
-            ephemeral=False,
-            server_has_durable_filesystem=server_has_durable_filesystem,
-            runtime_context=execution_profile,
-            host_session_id=host_session_id,
-        )
-        require(
-            route.server_filesystem == "DURABLE" and not route.durable_required,
-            "DIRECT_STATE_TRAVEL_DURABLE_LOCAL_AUTHORITY_REQUIRED",
-            "Direct same-worktree State Travel requires the existing durable local authority.",
-            status="BLOCKED",
-        )
-        route_payload = self._persistence_route_payload(project_id, route)
-        with self.store.state_travel_resume_lock(project_id):
-            result = self.sessions.direct_force_same_worktree_entry(
-                project_id,
-                session_id,
-                binding=exact_binding,
-                persistence_mode=route.mode,
-                persistence_route=route_payload,
-                flash=flash,
-                client_can_edit_source=client_can_edit_source,
-                server_has_durable_filesystem=(route.server_filesystem == "DURABLE"),
-            )
-        result["session_flash"] = flash
-        result["persistence_route"] = {
-            **route_payload,
-            "selection": storage_selection,
-        }
-        result["capture_route_binding"] = capture_route_binding
-        result["binding_preflight"] = {
-            key: value
-            for key, value in preflight.items()
-            if key != "normalized_binding"
-        }
-        result["agent_configuration"] = (
-            self._active_agent_configuration_authority(project_id)
-        )
-        result["conversation_memory"] = (
-            self._active_conversation_memory_authority(project_id)
-        )
-        return result
-
-    def resume_state_travel(
-        self,
-        *,
-        project_id: str,
-        session_id: str,
-        handoff_id: str,
-        host: str,
-        host_session_id: str,
-        ephemeral: bool,
-        client_can_edit_source: bool | None = None,
-        server_has_durable_filesystem: bool | None = None,
-        runtime_context: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        """Consume one handoff globally once or return its no-rebind receipt."""
-
-        capture_route_binding = self._capture_route_binding(project_id)
-        with self.store.state_travel_resume_lock(project_id):
-            replay = self.sessions.state_travel_resume_replay(
-                project_id,
-                session_id,
-                handoff_id=handoff_id,
-                host=host,
-                host_session_id=host_session_id,
-                runtime_context=runtime_context,
-            )
-            if replay is not None:
-                return {
-                    **replay,
-                    "capture_route_binding": capture_route_binding,
-                    "agent_configuration": (
-                        self._active_agent_configuration_authority(project_id)
-                    ),
-                    "conversation_memory": (
-                        self._active_conversation_memory_authority(project_id)
-                    ),
-                }
-            result = self._resume_state_travel_locked(
-                project_id=project_id,
-                session_id=session_id,
-                handoff_id=handoff_id,
-                host=host,
-                host_session_id=host_session_id,
-                ephemeral=ephemeral,
-                client_can_edit_source=client_can_edit_source,
-                server_has_durable_filesystem=server_has_durable_filesystem,
-                runtime_context=runtime_context,
-            )
-            return {
-                **result,
-                "capture_route_binding": capture_route_binding,
-                "agent_configuration": (
-                    self._active_agent_configuration_authority(project_id)
-                ),
-                "conversation_memory": (
-                    self._active_conversation_memory_authority(project_id)
-                ),
-            }
-
-    def _resume_state_travel_locked(
-        self,
-        *,
-        project_id: str,
-        session_id: str,
-        handoff_id: str,
-        host: str,
-        host_session_id: str,
-        ephemeral: bool,
-        client_can_edit_source: bool | None = None,
-        server_has_durable_filesystem: bool | None = None,
-        runtime_context: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        """Verify Flash, resume in a fresh host window, verify pointer, and wait."""
-
-        active_path = self.store.project_root(project_id) / "active_session.json"
-        require(
-            active_path.is_file(),
-            "STATE_TRAVEL_ACTIVE_SESSION_MISSING",
-            "State Travel requires the sealed governed session to remain active.",
-            status="BLOCKED",
-            project_id=project_id,
-        )
-        active = json.loads(active_path.read_text(encoding="utf-8"))
-        require(
-            active.get("session_id") == session_id,
-            "STATE_TRAVEL_ACTIVE_SESSION_MISMATCH",
-            "The supplied State Travel session is not the active governed session.",
-            status="MISMATCH",
-            active_session_id=active.get("session_id"),
-            supplied_session_id=session_id,
-        )
-        flash = self.flash_authority.ensure_flashed()
-        destination_preflight = self.sessions.validate_state_travel_destination(
-            project_id,
-            session_id,
-            handoff_id=handoff_id,
-            host=host,
-            host_session_id=host_session_id,
-            runtime_context=runtime_context,
-        )
-        boot = self.resume_session(
-            project_id=project_id,
-            host=host,
-            host_session_id=host_session_id,
-            ephemeral=ephemeral,
-            client_can_edit_source=client_can_edit_source,
-            server_has_durable_filesystem=server_has_durable_filesystem,
-            runtime_context=runtime_context,
-        )
-        verified = self.sessions.complete_state_travel(
-            project_id,
-            session_id,
-            handoff_id=handoff_id,
-            flash=flash,
-            destination_runtime_context=runtime_context,
-        )
-        travel_mode = verified["state_travel"].get("travel_mode", "ACCEPTED_ENTRY")
-        ordered_entry_verification = (
-            [
-                "PHASE_1_CREATE_AND_BIND_EXACTLY_ONE_FRESH_DESTINATION",
-                "PHASE_2_ATOMIC_BOOT_FLASH_AND_PV_STATE_TRAVEL_RESUME_EXACTLY_ONCE",
-                "VERIFY_RECEIPT_POINTER_PACKAGE_SOURCE_PROFILE_AND_FULL_PLAN",
-                "PHASE_3_RESTORE_COMPLETE_HOST_PLAN",
-                "WAITING_FOR_EXPLICIT_HOST_PLAN_ACCEPTANCE",
-                "PHASE_4_AUTOMATIC_EVIDENCE_PLAN_AFTER_ACCEPTANCE",
-                "PHASE_5_AUTOMATIC_TRANSFERRED_GOAL_START_AFTER_PLAN_PROOF",
-            ]
-            if travel_mode == "UNFINISHED_VERIFIED_WORK"
-            else [
-                "/evi-boot",
-                "ATOMIC_BOOT_AND_LOCKED_ENV_UOP_FLASH_VERIFIED",
-                "VERIFY_ACCEPTED_POINTER_AND_SEALS",
-                "WAITING_FOR_NEXT_USER_COMMAND",
-            ]
-        )
-        return {
-            **verified,
-            "ordered_entry_verification": ordered_entry_verification,
-            "destination_preflight": destination_preflight,
-            "boot": boot,
-            "flash": flash,
-        }
-
     def build_initial(self, project_id: str, session_id: str) -> dict[str, Any]:
+        if self.store.uses_external_project_authority(project_id):
+            plan = self.store.backlog_status(project_id)
+            require(
+                int(
+                    dict(plan.get("canonical_plan_projection") or {}).get(
+                        "task_count"
+                    )
+                    or 0
+                )
+                > 0
+                and dict(plan.get("plan_runtime_projection") or {}).get("status")
+                == "PASS",
+                "PV0_INITIAL_PLAN_REQUIRED",
+                "PV0 work starts only after EVI Plan has persisted the initial canonical Plan.",
+                status="BLOCKED",
+                project_id=project_id,
+            )
+            config = self.store.config(project_id)
+            source_intake = self.source_intake(
+                project_id,
+                [config.repository_path],
+                session_id=session_id,
+                git_mode="AUTO",
+                authority_mode="GOVERNED_CONTENT_REGISTRY",
+                working_authority_action="REFRESH_WORKING_SECTORS",
+            )
+            result = self.sessions.bootstrap_pv0_entry(
+                project_id,
+                session_id,
+                source_intake=source_intake,
+            )
+            result["next_action"] = "CONTINUE_ACTIVE_GOAL_AND_STEP_TASK_LIST"
+            result["next_action_contract"] = {
+                "schema": "evidence-lane.initial-plan-goal-pv0-handoff.v2",
+                "ordered_actions": [
+                    "PROJECT_REGISTERED_WITH_EXTERNAL_AUTHORITY",
+                    "EVI_PLAN_PERSISTED_BEFORE_PV0",
+                    "HOST_PLAN_EXPLICITLY_ACCEPTED",
+                    "GOAL_AND_STEP_TASK_LIST_BOUND_BY_HOST_HOOKS",
+                    "SOURCE_INTAKE_AND_BUILD_ESTABLISHED_PV0",
+                    "CONTINUE_ACTIVE_PLAN_ROW",
+                ],
+                "evi_plan_completed_before_pv0": True,
+                "host_plan_acceptance_required": True,
+                "goal_start_requires_plan_acceptance": True,
+                "goal_and_step_binding_precede_source_work": True,
+                "state_travel_registration_or_pv0_creation_allowed": False,
+                "delta_exit_not_invoked": True,
+                "hil_not_invoked": True,
+                "pointer_moved": False,
+            }
+            result["hil_choices"] = []
+            result["suggested_next_prompt"] = (
+                "Continue the active Goal and fixed Step Task List from the initial "
+                "Plan. PV0 is established without HIL; proceed with the active row."
+            )
+            result["agent_configuration"] = (
+                self._active_agent_configuration_authority(project_id)
+            )
+            result["conversation_memory"] = (
+                self._active_conversation_memory_authority(project_id)
+            )
+            return result
         result = self.sessions.build_initial_entry(project_id, session_id)
         result["next_action"] = "PRESENT_SIX_WAY_HIL"
         result["suggested_next_prompt"] = HIL_SUGGESTED_PROMPT
         result["next_action_contract"] = result["candidate"]["next_action"]
         result["hil_choices"] = list(HIL_CHOICES)
-        result["agent_configuration"] = (
-            self._active_agent_configuration_authority(project_id)
+        result["agent_configuration"] = self._active_agent_configuration_authority(
+            project_id
         )
-        result["conversation_memory"] = (
-            self._active_conversation_memory_authority(project_id)
+        result["conversation_memory"] = self._active_conversation_memory_authority(
+            project_id
         )
         session = self.sessions.load(project_id, session_id)
         if session.metadata["persistence_mode"] in {
@@ -4736,7 +4841,7 @@ class EvidenceLaneService:
             )
         return result
 
-    def refresh(
+    def _refresh_hil_candidate(
         self,
         project_id: str,
         session_id: str,
@@ -4744,6 +4849,8 @@ class EvidenceLaneService:
         batch_task_evidence: list[dict[str, Any]] | None = None,
         batch_completion_confirmation: str | None = None,
     ) -> dict[str, Any]:
+        """Seal the HIL-only live-root proposal through its current private owner."""
+
         result = self.sessions.refresh_exit(
             project_id,
             session_id,
@@ -4754,6 +4861,11 @@ class EvidenceLaneService:
         result["suggested_next_prompt"] = HIL_SUGGESTED_PROMPT
         result["next_action_contract"] = result["candidate"]["next_action"]
         result["hil_choices"] = list(HIL_CHOICES)
+        if self.store.uses_external_project_authority(project_id):
+            result["dual_hil_presentation"] = self._dual_hil_presentation(
+                project_id,
+                candidate=result["candidate"],
+            )
         session = self.sessions.load(project_id, session_id)
         if session.metadata["persistence_mode"] in {
             "google_drive",
@@ -4766,6 +4878,87 @@ class EvidenceLaneService:
                 category="candidates",
             )
         return result
+
+    def _dual_hil_presentation(
+        self,
+        project_id: str,
+        *,
+        candidate: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Return the conjoined Project/Learning HIL summary without archive reads."""
+
+        proposed_pv = str(candidate.get("proposed_pv") or "").strip().upper()
+        candidate_id = str(candidate.get("candidate_id") or "").strip()
+        learning = inspect_learning_authority(
+            self.store.project_root(project_id),
+            project_id=project_id,
+        )
+        matching = [
+            dict(row)
+            for row in list(learning.get("learning_weaves") or [])
+            if row.get("target_project_pv") == proposed_pv
+            and row.get("weave_candidate_state")
+            in {"PENDING_LEARNING_HIL", "ACCEPTED"}
+        ]
+        require(
+            bool(proposed_pv)
+            and bool(candidate_id)
+            and len(matching) == 1,
+            "DUAL_HIL_LEARNING_WEAVE_REQUIRED",
+            "A full-PV Project proposal must present exactly one consolidated "
+            "Learning weave for the same PV before either HIL decision.",
+            status="BLOCKED",
+            proposed_pv=proposed_pv or None,
+            matching_weave_count=len(matching),
+        )
+        weave = matching[0]
+        member_count = int(weave.get("member_count") or 0)
+        ledger_candidate_count = int(learning.get("candidate_count") or 0)
+        relevant_hil_candidate_count = member_count + 1
+        return {
+            "schema": "evidence-lane.dual-project-learning-hil.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "target_pv": proposed_pv,
+            "project": {
+                "proposal_id": candidate_id,
+                "proposal_manifest_sha256": candidate.get("manifest_sha256"),
+                "decision_state": "PENDING_PROJECT_HIL",
+                "summary": "LIVE_ROOT_PROPOSAL_PLUS_HIL_ONLY_PROJECT_OVERLAY",
+            },
+            "learning": {
+                "weave_candidate_id": weave["weave_candidate_id"],
+                "weave_candidate_sha256": weave["weave_candidate_sha256"],
+                "weave_receipt_sha256": weave["receipt_sha256"],
+                "decision_state": weave["weave_candidate_state"],
+                "auto_accepted_delta_member_count": member_count,
+                "hil_relevant_candidate_count": relevant_hil_candidate_count,
+                "ledger_candidate_count": ledger_candidate_count,
+                "immutable_other_history_count": max(
+                    0, ledger_candidate_count - relevant_hil_candidate_count
+                ),
+                "member_set_sha256": weave["member_set_sha256"],
+                "full_member_payload_returned": False,
+                "summary": (
+                    f"{member_count} auto-accepted Delta Learning members are "
+                    f"woven into one {proposed_pv} Learning HIL candidate."
+                ),
+            },
+            "project_choices": list(HIL_CHOICES),
+            "learning_choices": list(HIL_CHOICES),
+            "required_exact_approval_tokens": {
+                "project": f"PROJECT {proposed_pv}: APPROVE",
+                "learning": f"AI LEARNING {proposed_pv}: APPROVE",
+            },
+            "plan_hil_stamp_required": True,
+            "plan_hil_stamp_scope": "PROJECT_AND_LEARNING_DECISIONS_SAME_PV",
+            "accepted_archive_role": "POST_APPROVAL_SNAPSHOT_ONLY",
+            "accepted_archive_opened": False,
+            "accepted_archive_queried": False,
+            "accepted_archive_model_context_source": False,
+            "candidate_directory_created": False,
+            "approval_inferred": False,
+        }
 
     def complete_task_and_refresh(
         self,
@@ -4797,7 +4990,41 @@ class EvidenceLaneService:
             session_id,
             confirmation=confirmation,
         )
-        refreshed = self.refresh(
+        pending_session = self.sessions.load(project_id, session_id)
+        if (
+            pending_session.candidate_id is not None
+            and pending_session.state.value.endswith("_CANDIDATE")
+        ):
+            reconciled = (
+                self.sessions.reconcile_pending_hil_candidate_after_lifecycle_append(
+                    project_id,
+                    session_id,
+                )
+            )
+            return {
+                **reconciled,
+                "automatic_refresh": False,
+                "candidate_rebuilt": False,
+                "candidate_id_preserved": True,
+                "candidate_history_preserved": True,
+                "user_refresh_command_required": False,
+                "source_confirmation": confirmed,
+                "next_action": "PRESENT_SIX_WAY_HIL",
+                "suggested_next_prompt": HIL_SUGGESTED_PROMPT,
+                "next_action_contract": reconciled["candidate"]["next_action"],
+                "hil_choices": list(HIL_CHOICES),
+                **(
+                    {
+                        "dual_hil_presentation": self._dual_hil_presentation(
+                            project_id,
+                            candidate=reconciled["candidate"],
+                        )
+                    }
+                    if self.store.uses_external_project_authority(project_id)
+                    else {}
+                ),
+            }
+        refreshed = self._refresh_hil_candidate(
             project_id,
             session_id,
             batch_task_evidence=batch_task_evidence,
@@ -4814,7 +5041,12 @@ class EvidenceLaneService:
             "hil_choices": list(HIL_CHOICES),
         }
 
-    def decide(self, project_id: str, session_id: str, **kwargs: Any) -> dict[str, Any]:
+    def decide(
+        self,
+        project_id: str,
+        session_id: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         result = self.sessions.decide(project_id, session_id, **kwargs)
         session = self.sessions.load(project_id, session_id)
         if session.metadata["persistence_mode"] in {
@@ -4833,11 +5065,7 @@ class EvidenceLaneService:
                 )
                 result["pointer_persistence"] = sync.sync_pointer(project_id)
         if result["candidate_promoted"]:
-            state_travel_handoff = self.sessions.prepare_state_travel(
-                project_id,
-                session_id,
-            )
-            result["state_travel_handoff"] = state_travel_handoff
+            result["automatic_state_travel"] = False
             result["session"] = self.sessions.load(project_id, session_id).as_dict()
         return result
 
@@ -4863,6 +5091,7 @@ class EvidenceLaneService:
         approval: str,
         decided_by: str,
         decision_id: str | None = None,
+        require_dual_learning_hil: bool = False,
     ) -> dict[str, Any]:
         require(
             approval == "APPROVE",
@@ -4871,12 +5100,80 @@ class EvidenceLaneService:
             status="BLOCKED",
             provided=approval,
         )
+        dual_learning_hil: dict[str, Any] = {
+            "status": "NOT_REQUIRED_LEGACY_INTERNAL_CALL",
+            "required": False,
+        }
+        if require_dual_learning_hil:
+            session = self.sessions.load(project_id, session_id)
+            require(
+                session.candidate_id is not None,
+                "PV_FUSE_PROJECT_CANDIDATE_REQUIRED",
+                "Dual HIL Fuse requires the exact pending Project proposal.",
+                status="BLOCKED",
+            )
+            project_candidate = self.store.candidate_validation(
+                project_id, str(session.candidate_id)
+            )
+            proposed_pv = str(project_candidate.get("proposed_pv") or "")
+            learning = inspect_learning_authority(
+                self.store.project_root(project_id),
+                project_id=project_id,
+            )
+            matching_weaves = [
+                dict(row)
+                for row in list(learning.get("learning_weaves") or [])
+                if row.get("target_project_pv") == proposed_pv
+                and row.get("weave_candidate_state") == "ACCEPTED"
+            ]
+            learning_pointer = dict(learning.get("current_pointer") or {})
+            require(
+                len(matching_weaves) == 1
+                and learning_pointer.get("accepted_candidate_id")
+                == matching_weaves[0].get("weave_candidate_id")
+                and bool(
+                    matching_weaves[0].get(
+                        "acceptance_decision_receipt_sha256"
+                    )
+                ),
+                "PV_FUSE_DUAL_LEARNING_HIL_APPROVAL_REQUIRED",
+                "Project Fuse requires the separately recorded exact APPROVE for "
+                "the one consolidated Learning weave targeting the same PV.",
+                status="BLOCKED",
+                proposed_pv=proposed_pv,
+                matching_accepted_weave_count=len(matching_weaves),
+                learning_pointer_candidate_id=learning_pointer.get(
+                    "accepted_candidate_id"
+                ),
+            )
+            weave = matching_weaves[0]
+            dual_learning_hil = {
+                "status": "PASS",
+                "required": True,
+                "project_target_pv": proposed_pv,
+                "learning_weave_candidate_id": weave["weave_candidate_id"],
+                "learning_weave_candidate_sha256": weave[
+                    "weave_candidate_sha256"
+                ],
+                "learning_weave_receipt_sha256": weave["receipt_sha256"],
+                "learning_approval_receipt_sha256": weave[
+                    "acceptance_decision_receipt_sha256"
+                ],
+                "learning_approved_at": weave["acceptance_decided_at"],
+                "learning_member_count": weave["member_count"],
+                "learning_pointer_generation": learning_pointer.get("generation"),
+                "learning_pointer_moved_by_project_fuse": False,
+                "individual_delta_learning_hil_invoked": False,
+            }
         result = self.decide(
             project_id,
             session_id,
             decision="APPROVE",
             decided_by=decided_by,
             decision_id=decision_id,
+            dual_learning_hil=(
+                dual_learning_hil if require_dual_learning_hil else None
+            ),
         )
         return {
             "status": "PASS",
@@ -4884,9 +5181,11 @@ class EvidenceLaneService:
             "exact_approval": approval,
             "decision": result["decision"],
             "pointer": result["pointer"],
-            "state_travel_handoff": result["state_travel_handoff"],
+            "automatic_state_travel": False,
             "candidate_promoted": True,
             "pointer_moved": result["pointer_moved"],
+            "dual_learning_hil": dual_learning_hil,
+            "dual_hil_plan_stamp": result["dual_hil_plan_stamp"],
         }
 
     def prompt_index_status(
@@ -4920,7 +5219,29 @@ class EvidenceLaneService:
         session_id: str,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        result = self.sessions.rollback_state(project_id, session_id, **kwargs)
+        rollback_mode = str(
+            kwargs.get("rollback_mode") or "LOGICAL_LIVE_ROOT_STATE"
+        ).upper()
+        if self.store.uses_external_project_authority(project_id):
+            result = self.sessions.rollback_live_root_state(
+                project_id,
+                session_id,
+                **kwargs,
+            )
+        else:
+            require(
+                rollback_mode == "LOGICAL_LIVE_ROOT_STATE",
+                "HARD_ROLLBACK_EXTERNAL_PROJECT_REQUIRED",
+                "Hard ZIP and Git rollback modes require an external Project/PV root.",
+                status="BLOCKED",
+            )
+            result = self.sessions.rollback_state(
+                project_id,
+                session_id,
+                decided_by=str(kwargs["decided_by"]),
+                rollback_to=kwargs.get("rollback_to"),
+                decision_id=kwargs.get("decision_id"),
+            )
         session = self.sessions.load(project_id, session_id)
         if session.metadata["persistence_mode"] in {
             "google_drive",
@@ -4959,6 +5280,7 @@ SERVICE_MCP_WORKFLOW_METHODS = frozenset(
         "adaptive_delta_exit",
         "boot_session",
         "build_initial",
+        "classify_and_enter_delta",
         "classify_hil_intent",
         "classify_mode",
         "complete_task_and_refresh",
@@ -4978,14 +5300,11 @@ SERVICE_MCP_WORKFLOW_METHODS = frozenset(
         "lane_status",
         "live_authority_search",
         "plan_tasks",
-        "prepare_state_travel",
         "prompt_index_status",
         "record_hil_decision",
         "record_steer_delta",
-        "refresh",
         "register_project",
         "resume_session",
-        "resume_state_travel",
         "rollback",
         "runtime_activation_status",
         "session_flash_status",
@@ -5048,6 +5367,14 @@ SERVICE_DISPATCH_BOUNDARY_METHODS = frozenset({"invoke"})
 # decide is the shared implementation below two deliberately separate public
 # HIL workflows.  Routing it directly would bypass the exact-APPROVE Fuse gate.
 SERVICE_INTERNAL_ORCHESTRATION_METHODS = {
+    "adaptive_delta_entry": {
+        "workflow": "FIRST_CLASS_DELTA_ENTRY_BEFORE_SOURCE_WORK",
+        "public_entrypoints": ["classify_and_enter_delta"],
+        "reason": (
+            "The existing task_classify MCP action owns automatic Delta entry; "
+            "the orchestration method is not an additional public tool."
+        ),
+    },
     "decide": {
         "workflow": "SPLIT_PROJECT_HIL_DECISION_CORE",
         "public_entrypoints": ["record_hil_decision", "fuse"],
@@ -5055,9 +5382,8 @@ SERVICE_INTERNAL_ORCHESTRATION_METHODS = {
             "Non-promotion outcomes are owned by record_hil_decision; exact "
             "APPROVE promotion is owned exclusively by fuse."
         ),
-    }
+    },
 }
-
 
 def inspect_service_route_parity(
     service_type: type[EvidenceLaneService] = EvidenceLaneService,
@@ -5076,7 +5402,9 @@ def inspect_service_route_parity(
     workflow = mcp | sdk
     classified = workflow | dispatch | internal
     overlaps = sorted(
-        (workflow & dispatch) | (workflow & internal) | (dispatch & internal)
+        (workflow & dispatch)
+        | (workflow & internal)
+        | (dispatch & internal)
     )
     unclassified = sorted(inventory - classified)
     unknown = sorted(classified - inventory)
@@ -5150,6 +5478,7 @@ def inspect_service_route_parity(
         "sdk_workflow_method_count": len(sdk),
         "dispatch_boundary_method_count": len(dispatch),
         "internal_orchestration_method_count": len(internal),
+        "compatibility_route_method_count": 0,
         "eligible_unrouted_method_count": 0,
         "eligible_unrouted_methods": [],
         "implementation_delta_candidates": [],

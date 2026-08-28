@@ -1,0 +1,48 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-project-recipe",
+  "skill_sha256": "651C4106451C1499BCD5003B5D99BC608F15ADC34BA00C27A706D12EF65AEC01",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "project_recipe_compile"
+      ],
+      "workflow": "project-type-source-and-lane-recipe-compilation"
+    }
+  ],
+  "action_count": 1,
+  "actions": [
+    {
+      "name": "project_recipe_compile",
+      "schema_sha256": "9B995E704D12C8C56BDCA41E1280D60302541F74513E54E618AF121DDFE5C59A",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-project-recipe",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "project_recipe_compile"
+        },
+        "internal_sdk": {
+          "module_id": "first_class_workflows",
+          "operation": "project_recipe_compile",
+          "read_only": true
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-project-recipe",
+            "workflow": "project-type-source-and-lane-recipe-compilation",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "40AB0642442C5907845A9D870206D775BDA066CE6E4DBF992037902A05CBB006"
+}

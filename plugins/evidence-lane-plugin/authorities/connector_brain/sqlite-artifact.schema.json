@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "connector_brain SQLITE_AUTHORITY artifact receipt",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "artifact_path",
+    "artifact_role",
+    "syntax",
+    "bytes",
+    "sha256",
+    "validator",
+    "status"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "connector_brain"
+    },
+    "artifact_path": {
+      "const": "connector-brain.sqlite"
+    },
+    "artifact_role": {
+      "const": "SQLITE_AUTHORITY"
+    },
+    "syntax": {
+      "const": "SQLITE3_FTS5"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "validator": {
+      "const": "authority_support._schema_snapshot"
+    },
+    "status": {
+      "const": "PASS"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "9190C6DE6A6C68CFA0984AC34050D72874E43B7640028173261575048C15AEEB"
+}

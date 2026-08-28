@@ -1,0 +1,97 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "storage_connector_select",
+  "title": "Select the project primary storage authority",
+  "description": "Append an exact project storage selection for AUTO, durable local SQLite, or one configured transactional durable connector. The exact SELECT_STORAGE token is required; Drive remains an optional mirror.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "mode": {
+        "enum": [
+          "AUTO",
+          "LOCAL_SQLITE",
+          "CONFIGURED_DURABLE_CONNECTOR"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "selected_by": {
+        "title": "Selected By",
+        "type": "string"
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string"
+      },
+      "confirmation": {
+        "title": "Confirmation",
+        "type": "string"
+      },
+      "connector_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Connector Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "mode",
+      "selected_by",
+      "reason",
+      "confirmation"
+    ],
+    "title": "storage_connector_selectArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "storage_connector_selectDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "6CA1E5660914849488AA0F5B7DC6FDBF88782AE0CFDE05C4C0C287A9BF225DBF",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-storage",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "storage_connector_select"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-storage",
+        "workflow": "select-storage",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/storage_connector_select.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "4536AEA2A069954C846A0B30274AE237D3BFFBA63E22198102F39FF5598FF8C8"
+}

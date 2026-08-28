@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.named-authority-schema-surface.v1",
+  "status": "PASS",
+  "authority_id": "project_universe",
+  "authority_root": "authorities/project_universe",
+  "authority_manifest_sha256": "63DD3F24A2CCA62584C35E557DF31037D7ACE68FE2ED89F28122D31FAFD8DD2A",
+  "persistent_sqlite_authority": true,
+  "schema_file_count": 11,
+  "schema_files": [
+    {
+      "path": "authorities/project_universe/build-refresh-contract.schema.json",
+      "bytes": 569,
+      "sha256": "066572B5E3FEE3D2B90F3C6AEB2320563DE3512DA5A8B51086EDD1CAB4C87646"
+    },
+    {
+      "path": "authorities/project_universe/dot-artifact.schema.json",
+      "bytes": 976,
+      "sha256": "0D0D2BF32C49375C13AE81BB88051D8144146586FC17448AEF8007ED263A1C74"
+    },
+    {
+      "path": "authorities/project_universe/manifest.schema.json",
+      "bytes": 1048,
+      "sha256": "53484169BE71AB1916471FD08795C809D84B756EE311225CC666CE4602D982C7"
+    },
+    {
+      "path": "authorities/project_universe/mmd-artifact.schema.json",
+      "bytes": 989,
+      "sha256": "F9C1080E466A09C71F07B6142D4A31638A4D81AEB74221B5D2B9E09860E26668"
+    },
+    {
+      "path": "authorities/project_universe/pointer-contract.schema.json",
+      "bytes": 552,
+      "sha256": "39205B3741D83BB499ADFC9215BCBE037770252524444BF1CFADA348597A6D13"
+    },
+    {
+      "path": "authorities/project_universe/reader-contract.schema.json",
+      "bytes": 771,
+      "sha256": "19ADE259CD2E0F2AFB16BDECE28C7DDCCD3FC3B8D01201687B213BBAB3580DEE"
+    },
+    {
+      "path": "authorities/project_universe/refresh-receipt.schema.json",
+      "bytes": 890,
+      "sha256": "9FF99C0FFC4A67B0105E365ED4793BA2117D01841CC3854AA826037C259149AC"
+    },
+    {
+      "path": "authorities/project_universe/runtime-binding.schema.json",
+      "bytes": 602,
+      "sha256": "DCFC041EF5420920896946258A2F138ADFC047231B9E209648369E4B643AD870"
+    },
+    {
+      "path": "authorities/project_universe/schema.sql",
+      "bytes": 3602,
+      "sha256": "487D20CF7963350A76863F166CB0C6C601B74C58748A7804848C945744A9D1EA"
+    },
+    {
+      "path": "authorities/project_universe/sqlite-artifact.schema.json",
+      "bytes": 967,
+      "sha256": "61F8219F3BEA1B78F057D0350DF8392BD8CD42DD09ADAB579268EE3A63AD43E2"
+    },
+    {
+      "path": "authorities/project_universe/tools.schema.json",
+      "bytes": 544,
+      "sha256": "7B61CABC8A072CC5E3545E678E83DC238ADB670C0D2659070EDCEAEAC160B437"
+    }
+  ],
+  "schema_bytes_duplicated_here": false,
+  "receipt_sha256": "A6AB0654CFED07798FF02075CEB13FDE962692F0C405556A3702763431C69134"
+}

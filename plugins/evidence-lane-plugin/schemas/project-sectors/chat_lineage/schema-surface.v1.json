@@ -1,0 +1,64 @@
+{
+  "schema": "evidence-lane.project-sector-schema-surface.v1",
+  "status": "PASS",
+  "lane_id": "chat_lineage",
+  "authority_root": "authorities/project_sectors/chat_lineage",
+  "authority_manifest_sha256": "85546211253DDEC424F886F64BEB269E6BC72AE29E72AB929AD5AA9B80A6C9DA",
+  "schema_file_count": 10,
+  "schema_files": [
+    {
+      "path": "authorities/project_sectors/chat_lineage/builder-contract.schema.json",
+      "bytes": 620,
+      "sha256": "0C2429673C96146B7F43CEC46A246E5365D941DC6EA21E0A72C9765E7F0BB0A4"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/dot-artifact.schema.json",
+      "bytes": 956,
+      "sha256": "9507A8AEE994DF5D0B7327B3B4EE56CDC13FBFF46A73BB5C60EFD4432BB08CE0"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/lane-pointer.schema.json",
+      "bytes": 745,
+      "sha256": "7E78EEAD769FCAD931F6D1A972A0F4B94A26BE19667DCC1D4153E40B1CC6ECE4"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/manifest.schema.json",
+      "bytes": 986,
+      "sha256": "B40CE45B04A00D8B0B61271989714E823180E15ADA719990AF0A9C66A8DC8D1F"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/mmd-artifact.schema.json",
+      "bytes": 973,
+      "sha256": "E5CA5F6BE5AF037185B38136180D9E33148CC4380EAAAC82C164CE063FD71DDC"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/reader-contract.schema.json",
+      "bytes": 770,
+      "sha256": "E13232E5CC7867CB03E7ED953B16EBF90FF1644772B1EEA84104A1DBFA788D1D"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/refresh-receipt.schema.json",
+      "bytes": 540,
+      "sha256": "187DB7C61C9B95F5298F3E25AFBBE173298C65B6342FD07EECC1D37780813669"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/schema.sql",
+      "bytes": 11679,
+      "sha256": "991D1A8AE30F8856B764636A1429736FE4641C2BE37D96FDCE6382B53DBE3CE9"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/sqlite-artifact.schema.json",
+      "bytes": 975,
+      "sha256": "4E3E8144E64AA0B954BB8D60AA5778A549343565663D0F1428F7F66336854576"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/tools.schema.json",
+      "bytes": 1009,
+      "sha256": "CBBD2015345D8CBC2E9C044DA7B68628C3269C297DF21A84A4ED44E06BF6A8D9"
+    }
+  ],
+  "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
+  "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_bytes_duplicated_here": false,
+  "receipt_sha256": "C1AD62A08F9E91FA7A4F88148DC2B461E0BE0248DD80C11C4019D7505ED488E8"
+}

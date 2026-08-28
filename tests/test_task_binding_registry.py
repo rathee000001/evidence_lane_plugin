@@ -54,7 +54,7 @@ def _rebind(
         "active_plan_row_identity_preserved": True,
         "governed_session_identity_preserved": True,
         "host_task_identity_preserved": True,
-        "recovery_binding_contract": {
+        "task_binding_contract": {
             "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
             "registry_mutability": "MUTABLE_APPEND_OR_REFRESH",
             "invocation_binding_scope": "EXACT_CALLING_TASK",
@@ -62,6 +62,9 @@ def _rebind(
             "installer_helper": "SEPARATE_COMPONENT",
         },
         "candidate_created": False,
+        "candidate_id_preserved": session.candidate_id,
+        "candidate_state_preserved": session.state.value,
+        "pending_hil": bool(session.metadata.get("pending_hil")),
         "pending_hil": False,
         "pointer_moved": False,
         "goal_completion_mutated": False,
@@ -114,17 +117,12 @@ def _prepare_context(
             decided_by="human-test",
             decision_id=f"decision-binding-{project_id}",
         )
-        handoff = decision["state_travel_handoff"]["state_travel"]
-        application.resume_state_travel(
-            project_id=project_id,
-            session_id=session_id,
-            handoff_id=handoff["handoff_id"],
-            host="CODEX_DESKTOP",
-            host_session_id=f"accepted-{project_id}",
-            ephemeral=False,
-            client_can_edit_source=True,
-            server_has_durable_filesystem=True,
-            runtime_context={"source": "binding-registry-test-entry"},
+        assert "state_travel_handoff" not in decision
+        application.sessions.begin_next_turn(
+            project_id,
+            session_id,
+            continue_same_host=True,
+            continuation_reason="EXPLICIT_USER_CONTINUATION",
         )
     active = {
         "task_id": plan_task_id,
@@ -375,9 +373,11 @@ def test_exact_binding_checkpoint_uses_shared_registry_without_installer(service
     root = service.store.root
     surface = package_surface_inventory()
     active_task_id = "turn-control-row"
-    session_id, _ = _strict_state_travel_session(service)
+    session_id, _ = _strict_state_travel_session(
+        service,
+        host_session_id=TASK_B,
+    )
     session = service.sessions.load("book-faires", session_id)
-    session.metadata["current_host_session_id"] = TASK_B
     if not dict(session.task or {}).get("task_id"):
         session.task = {
             "task_id": "task_ck_shared_registry_integration",
@@ -406,10 +406,13 @@ def test_exact_binding_checkpoint_uses_shared_registry_without_installer(service
     )
     assert exact["status"] == "PASS"
     assert exact["codex_thread_id"] == TASK_B
-    assert exact["task_binding_receipt_sha256"] == shared[
-        "task_binding_receipt_sha256"
-    ]
-    assert exact["identity_basis"].startswith("SHARED_EXACT_TASK_REGISTRY")
+    assert exact["task_binding_receipt_sha256"] == session.metadata[
+        "direct_forced_same_worktree_entry"
+    ]["receipt_sha256"]
+    assert exact["binding_authority_receipt_sha256"] == session.metadata[
+        "active_contract_rebind_receipt"
+    ]["receipt_sha256"]
+    assert exact["identity_basis"].startswith("SERVER_ATTESTED_DIRECT_ENTRY")
     assert exact["installer_helper_invoked"] is False
     assert exact["running_plugin"]["install_receipt_sha256"] is None
 
@@ -444,9 +447,11 @@ def test_checkpoint_and_lifecycle_use_registered_external_project_authority(
     root = service.store.root
     surface = package_surface_inventory()
     active_task_id = "turn-control-row"
-    session_id, _ = _strict_state_travel_session(service)
+    session_id, _ = _strict_state_travel_session(
+        service,
+        host_session_id=TASK_B,
+    )
     session = service.sessions.load("book-faires", session_id)
-    session.metadata["current_host_session_id"] = TASK_B
     if not dict(session.task or {}).get("task_id"):
         session.task = {
             "task_id": "task_ck_external_authority_integration",

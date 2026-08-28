@@ -32,7 +32,32 @@ from .auth import (
     OAuthToolAuthorizationPolicy,
     StaticBearerVerifier,
 )
-from .canon_task_graph import CanonTaskDispatcher
+from .canon_task_graph import (
+    CanonTaskDispatcher,
+    bind_received_canon_task_edge,
+    classify_canon_envelope,
+    decide_canon_input,
+    dispatch_linked_canon_task,
+    inspect_canon_authority,
+    inspect_canon_inbox,
+    raise_canon_backfire,
+    receive_canon_envelope,
+    register_canon_task_edge,
+    register_expected_canon_contract,
+    restore_canon_state_travel_continuity,
+    seal_canon_envelope,
+    seal_canon_state_travel_continuity,
+    seal_canon_task_result,
+    supersede_canon_input,
+)
+from .agent_learning import (
+    decide_learning_candidate,
+    inspect_learning_authority,
+    record_host_memory_import,
+    retrieve_accepted_learning,
+    revoke_learning_candidate,
+    seal_learning_candidate,
+)
 from .codex_turn_control import (
     TurnControlError,
     package_surface_inventory,
@@ -40,7 +65,6 @@ from .codex_turn_control import (
     seal_active_task_acceptance_checkpoint,
     seal_exact_task_project_session_binding,
     seal_per_delta_local_verification_checkpoint,
-    verify_codex_fallback_prewarmer,
 )
 from .constants import (
     ENGINE_VERSION,
@@ -53,8 +77,11 @@ from .github_automation_governance import (
     apply_fastmcp_tool_filter,
 )
 from .hashing import canonical_json_bytes, sha256_bytes
-from .internal_sdk import build_live_local_sdk_context
-from .lane_engine import prewarm_native_dependencies
+from .internal_sdk import (
+    PublicActionSDKDispatcher,
+    build_live_local_sdk_context,
+    build_public_action_sdk_dispatcher,
+)
 from .mcp_apps import (
     GOVERNED_PANEL_URI,
     MCP_APP_MIME_TYPE,
@@ -74,6 +101,7 @@ from .public_surface_registry import (
     derive_public_surface_registry,
     resolve_public_surface_plugin_root,
 )
+from .project_memory import query_memory_graph, record_memory_link
 from .service import EvidenceLaneService, inspect_service_route_parity
 
 _PUBLIC_SITE_URL = "https://evidencelane.org"
@@ -207,8 +235,8 @@ SDK_NATIVE_ACTIONS: tuple[tuple[str, str, str, str, str, bool], ...] = (
     ),
     (
         "canon_dispatch_linked_task",
-        "Dispatch linked Canon task",
-        "Dispatch exactly one TOP_LEVEL_TASK or explicitly authorized SUBAGENT through a supported host seam, then bind its exact UUID/deep link. Fail with HOST_CAPABILITY_UNAVAILABLE when the host seam is absent.",
+        "Launch or bind linked Canon work",
+        "Dispatch exactly one TOP_LEVEL_TASK or explicitly authorized SUBAGENT. Use an injected native host seam when present; otherwise return one stable HOST_ACTION_REQUIRED request for the caller's native Codex backend and bind only the exact sealed receipt on the second idempotent call. Never use UI control or fabricate a UUID/deep link.",
         "canon_input",
         "dispatch_linked_task",
         False,
@@ -262,17 +290,17 @@ SDK_NATIVE_ACTIONS: tuple[tuple[str, str, str, str, str, bool], ...] = (
         True,
     ),
     (
-        "learning_memory_query",
-        "Query cross-sector memory",
-        "Compatibility action name routed to the independent Project Memory SDK arm. Query one bounded project-isolated FTS5/BM25 locator slice across the governed sectors and authorities; raw databases and Markdown never enter the result.",
+        "project_memory_query",
+        "Query Project Memory",
+        "Query one bounded project-isolated Project Memory FTS5/BM25 locator slice across governed sectors and linked authorities; raw databases and Markdown never enter the result.",
         "project_memory",
         "query",
         True,
     ),
     (
-        "learning_memory_record_link",
-        "Record cross-sector memory link",
-        "Compatibility action name routed to the independent Project Memory SDK arm. Append one typed, content-addressed locator edge without storing raw source bytes, promoting a candidate, invoking HIL, or moving Project Truth.",
+        "project_memory_record_link",
+        "Record Project Memory link",
+        "Append one typed, content-addressed Project Memory locator edge without storing raw source bytes, promoting a candidate, invoking HIL, or moving Project Truth.",
         "project_memory",
         "record_link",
         False,
@@ -309,9 +337,218 @@ SDK_NATIVE_ACTIONS: tuple[tuple[str, str, str, str, str, bool], ...] = (
         "revoke",
         False,
     ),
+    (
+        "formula_engine_run",
+        "Run Formula Engine",
+        "Compile and optionally route one bounded ENV/UOP formula through the separate Formula Engine without making Mode the owner or changing Project Truth, HIL, candidate, or pointer state.",
+        "first_class_workflows",
+        "formula_engine_run",
+        False,
+    ),
+    (
+        "brain_scaling_select",
+        "Select bounded brain slice",
+        "Select one deterministic hash-addressed indexed slice inside explicit token and item budgets without model training, raw payload copying, or authority merge.",
+        "first_class_workflows",
+        "brain_scaling_select",
+        True,
+    ),
+    (
+        "project_recipe_compile",
+        "Compile project recipe",
+        "Compile one project-type Source Intake and lane execution recipe from exact source paths and outcome without creating a stored lane, candidate, HIL, or Mode alias.",
+        "first_class_workflows",
+        "project_recipe_compile",
+        True,
+    ),
+    (
+        "ai_toolchain_route",
+        "Resolve full AI toolchain",
+        "Resolve one conditional Codex-only lane toolchain with exact primary and eligible fallback order; never run every tool or mix the deferred ChatGPT plane.",
+        "first_class_workflows",
+        "ai_toolchain_route",
+        True,
+    ),
+    (
+        "bigger_universe_register",
+        "Register Bigger Universe project",
+        "Register hash-only current project mini-brain references and atomically advance only changed lane heads without replacing the per-project Universe or merging Project Truth.",
+        "first_class_workflows",
+        "bigger_universe_register",
+        False,
+    ),
+    (
+        "bigger_universe_link",
+        "Link Bigger Universe mini-brains",
+        "Append one explicitly granted hash-only edge between mini-brains from two registered projects without copying raw cross-project payloads.",
+        "first_class_workflows",
+        "bigger_universe_link",
+        False,
+    ),
 )
 
 SDK_NATIVE_READ_TOOL_NAMES = tuple(row[0] for row in SDK_NATIVE_ACTIONS if row[5])
+
+def _canon_graph_public_fields(
+    *, query: str | None = None, limit: int = 8
+) -> dict[str, Any]:
+    """Signature-only contract for the combined task/consequence graph query."""
+
+    return {"query": query, "limit": limit}
+
+
+def _formula_engine_public_fields(
+    *,
+    mode_governance: dict[str, Any],
+    execution_budget: dict[str, Any],
+    route: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return {
+        "mode_governance": mode_governance,
+        "execution_budget": execution_budget,
+        "route": route,
+    }
+
+
+def _brain_scaling_public_fields(
+    *,
+    authority_id: str,
+    slices: list[dict[str, Any]],
+    token_budget: int,
+    max_slices: int,
+) -> dict[str, Any]:
+    return {
+        "authority_id": authority_id,
+        "slices": slices,
+        "token_budget": token_budget,
+        "max_slices": max_slices,
+    }
+
+
+def _project_recipe_public_fields(
+    *,
+    source_paths: list[str],
+    requested_outcome: str,
+    explicit_project_type: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "source_paths": source_paths,
+        "requested_outcome": requested_outcome,
+        "explicit_project_type": explicit_project_type,
+    }
+
+
+def _ai_toolchain_public_fields(
+    *,
+    lane_id: str,
+    host_profile: str,
+    available_tools: list[str] | None = None,
+) -> dict[str, Any]:
+    return {
+        "lane_id": lane_id,
+        "host_profile": host_profile,
+        "available_tools": available_tools,
+    }
+
+
+def _bigger_universe_register_public_fields(
+    *,
+    project_root_identity_sha256: str,
+    universe_head_sha256: str,
+    pointer_generation: int,
+    mini_brains: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "project_root_identity_sha256": project_root_identity_sha256,
+        "universe_head_sha256": universe_head_sha256,
+        "pointer_generation": pointer_generation,
+        "mini_brains": mini_brains,
+    }
+
+
+def _bigger_universe_link_public_fields(
+    *,
+    source_mini_brain_id: str,
+    target_mini_brain_id: str,
+    relation: str,
+    explicit_grant_sha256: str,
+    evidence: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "source_mini_brain_id": source_mini_brain_id,
+        "target_mini_brain_id": target_mini_brain_id,
+        "relation": relation,
+        "explicit_grant_sha256": explicit_grant_sha256,
+        "evidence": evidence,
+    }
+
+
+_SDK_NATIVE_RICH_SCHEMA_TARGETS = {
+    "canon_inspect": inspect_canon_authority,
+    "canon_inbox": inspect_canon_inbox,
+    "canon_graph": _canon_graph_public_fields,
+    "canon_register_contract": register_expected_canon_contract,
+    "canon_seal_envelope": seal_canon_envelope,
+    "canon_receive": receive_canon_envelope,
+    "canon_classify": classify_canon_envelope,
+    "canon_decide": decide_canon_input,
+    "canon_supersede": supersede_canon_input,
+    "canon_register_edge": register_canon_task_edge,
+    "canon_bind_edge": bind_received_canon_task_edge,
+    "canon_dispatch_linked_task": dispatch_linked_canon_task,
+    "canon_backfire_hil": raise_canon_backfire,
+    "canon_seal_result": seal_canon_task_result,
+    "canon_seal_continuity": seal_canon_state_travel_continuity,
+    "canon_restore_continuity": restore_canon_state_travel_continuity,
+    "learning_inspect": inspect_learning_authority,
+    "learning_retrieve": retrieve_accepted_learning,
+    "project_memory_query": query_memory_graph,
+    "project_memory_record_link": record_memory_link,
+    "learning_record_host_memory_import": record_host_memory_import,
+    "learning_seal_candidate": seal_learning_candidate,
+    "learning_decide_candidate": decide_learning_candidate,
+    "learning_revoke": revoke_learning_candidate,
+    "formula_engine_run": _formula_engine_public_fields,
+    "brain_scaling_select": _brain_scaling_public_fields,
+    "project_recipe_compile": _project_recipe_public_fields,
+    "ai_toolchain_route": _ai_toolchain_public_fields,
+    "bigger_universe_register": _bigger_universe_register_public_fields,
+    "bigger_universe_link": _bigger_universe_link_public_fields,
+}
+
+
+def _sdk_native_public_signature(target: Any) -> inspect.Signature:
+    """Expose the real operation fields instead of one opaque payload object."""
+
+    target_signature = inspect.signature(target, eval_str=True)
+    parameters = [
+        inspect.Parameter(
+            "project_id",
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=str,
+        ),
+        inspect.Parameter(
+            "session_id",
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=str,
+        ),
+        inspect.Parameter(
+            "request_id",
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=str,
+        ),
+    ]
+    excluded = {"project_root", "project_id", "dispatcher"}
+    for name, parameter in target_signature.parameters.items():
+        if name in excluded:
+            continue
+        parameters.append(
+            parameter.replace(kind=inspect.Parameter.KEYWORD_ONLY)
+        )
+    return inspect.Signature(
+        parameters=parameters,
+        return_annotation=dict[str, Any],
+    )
 
 if (
     len(SDK_NATIVE_ACTIONS) != len({row[0] for row in SDK_NATIVE_ACTIONS})
@@ -354,10 +591,18 @@ class _MCPExposureBoundary:
         application: EvidenceLaneService,
         exposure_profile: str,
         authorization_policy: OAuthToolAuthorizationPolicy | None = None,
+        public_sdk_dispatcher: PublicActionSDKDispatcher | None = None,
     ) -> None:
         self._application = application
         self._exposure_profile = exposure_profile
         self._authorization_policy = authorization_policy
+        self._public_sdk_dispatcher = (
+            public_sdk_dispatcher
+            if public_sdk_dispatcher is not None
+            else build_public_action_sdk_dispatcher(
+                specialized_native_actions={row[0] for row in SDK_NATIVE_ACTIONS}
+            )
+        )
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._application, name)
@@ -408,6 +653,7 @@ class _MCPExposureBoundary:
             lifecycle=lifecycle,
             project_id=project_id,
             session_id=session_id,
+            invocation_arguments=callback_arguments,
         )
         if authorization_block is not None:
             return cast(dict[str, Any], authorization_block)
@@ -465,6 +711,8 @@ class _MCPExposureBoundary:
         }
         return self._application.invoke(
             tool_name,
+            self._public_sdk_dispatcher.dispatch,
+            tool_name,
             callback,
             *args,
             lifecycle=lifecycle,
@@ -479,6 +727,7 @@ class _MCPExposureBoundary:
         lifecycle: bool,
         project_id: str | None,
         session_id: str | None,
+        invocation_arguments: dict[str, Any] | None = None,
     ) -> tuple[CallToolResult | None, dict[str, Any] | None]:
         """Authorize and attest exact entry identity before callback work."""
 
@@ -494,6 +743,7 @@ class _MCPExposureBoundary:
             lifecycle=lifecycle,
             project_id=project_id,
             session_id=session_id,
+            invocation_arguments=invocation_arguments,
         )
         return None, receipt
 
@@ -721,8 +971,7 @@ def _apply_governed_tool_failure_boundary(
             wrapped_names.append(tool.name)
             continue
         lifecycle = bool(
-            tool.annotations is not None
-            and tool.annotations.readOnlyHint is False
+            tool.annotations is not None and tool.annotations.readOnlyHint is False
         )
 
         def governed_handler(
@@ -756,7 +1005,9 @@ def _apply_governed_tool_failure_boundary(
         "wrapped_handler_count": len(ordered),
         "wrapped_handler_names_sha256": hashlib.sha256(
             json.dumps(ordered, separators=(",", ":")).encode("utf-8")
-        ).hexdigest().upper(),
+        )
+        .hexdigest()
+        .upper(),
         "uncaught_handler_exception_allowed": False,
         "handler_domain_status_rewritten": False,
     }
@@ -1658,7 +1909,6 @@ def _native_route_receipt(
         "read_tool_count": len(registered_read_names),
         "write_tool_count": len(registered_write_names),
         "skill_count": public_surface["catalog"]["skills"],
-        "command_count": public_surface["catalog"]["commands"],
         "hook_event_count": public_surface["catalog"]["hook_events"],
         "hook_handler_count": public_surface["catalog"]["hook_handlers"],
         "provider_count": public_surface["catalog"]["providers"],
@@ -1768,10 +2018,14 @@ def create_mcp_server(
     authorization_policy = (
         OAuthToolAuthorizationPolicy(oauth_config) if oauth_config is not None else None
     )
+    public_sdk_dispatcher = build_public_action_sdk_dispatcher(
+        specialized_native_actions={row[0] for row in SDK_NATIVE_ACTIONS}
+    )
     application = _MCPExposureBoundary(
         backend_application,
         exact_exposure_profile,
-        authorization_policy,
+        authorization_policy=authorization_policy,
+        public_sdk_dispatcher=public_sdk_dispatcher,
     )
     effective_allowed_tool_names = allowed_tool_names
     auth = None
@@ -2021,7 +2275,10 @@ def create_mcp_server(
             "candidate, or moving a pointer. REFRESH_WORKING_SECTORS is the explicit "
             "transactional materialization action. Optional turn_entry is a separate "
             "immutable query over an already materialized WORKING projection and "
-            "appends its real formula lineage without adding another Plan row."
+            "appends its real formula lineage without adding another Plan row. Optional "
+            "plan_dispatch classifies the prompt as ORDINARY or EXECUTION_CHANGING; only "
+            "the latter may append exactly one stable-ID linked Plan steer after Source "
+            "Intake and ChatLineage pass."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Classifying Source Intake", "Source Intake classified"),
@@ -2032,11 +2289,16 @@ def create_mcp_server(
         sources: list[str],
         overrides: dict[str, str] | None = None,
         session_id: str | None = None,
-        git_mode: str = "AUTO",
-        authority_mode: str = "CLASSIFICATION_ONLY",
+        git_mode: Literal["AUTO", "REQUIRED", "DISABLED"] = "AUTO",
+        authority_mode: Literal[
+            "CLASSIFICATION_ONLY", "GOVERNED_CONTENT_REGISTRY"
+        ] = "CLASSIFICATION_ONLY",
         source_assertions: dict[str, dict[str, Any]] | None = None,
         turn_entry: dict[str, Any] | None = None,
-        working_authority_action: str = "CLASSIFY_ONLY",
+        plan_dispatch: dict[str, Any] | None = None,
+        working_authority_action: Literal[
+            "CLASSIFY_ONLY", "REFRESH_WORKING_SECTORS"
+        ] = "CLASSIFY_ONLY",
     ) -> dict[str, Any]:
         return application.invoke(
             "source_intake_classify",
@@ -2049,6 +2311,7 @@ def create_mcp_server(
             authority_mode=authority_mode,
             source_assertions=source_assertions,
             turn_entry=turn_entry,
+            plan_dispatch=plan_dispatch,
             working_authority_action=working_authority_action,
             lifecycle=True,
         )
@@ -2059,8 +2322,10 @@ def create_mcp_server(
         description=(
             "Verify the exact active Delta, targeted PASS receipts, grouped or exact "
             "local-install disposition, and all distinct registered hook states; then "
-            "refresh Learning, Canon, Memory, and Universe through the internal SDK, "
-            "close the task formula, and seal one replay-safe receipt. The route never "
+            "refresh changed live sector lanes, Learning, Canon, Memory, Universe, and "
+            "connector brain through the current routes, close the task formula, and "
+            "seal one replay-safe receipt. Ordinary rows never refresh Project Overlay. "
+            "The route never "
             "advances the Plan row, creates a candidate, invokes HIL, moves the accepted "
             "pointer, or mutates Git."
         ),
@@ -2918,10 +3183,12 @@ def create_mcp_server(
         title="Register one Git project",
         description=(
             "Register one explicitly authorized local Git repository and branch set "
-            "against one user-project authority root. Idempotent only when all "
-            "authority fields match. An existing legacy combined route may be "
-            "relocated only with the exact migration confirmation and pointer "
-            "preconditions; the route never creates a candidate, infers HIL, or "
+            "against one user-selected external Project/PV authority root. The "
+            "workspace and authority root are distinct. This route is used only by "
+            "the initial workflow for an unregistered project; State Travel reuses "
+            "the existing registration. Idempotent only when all authority fields "
+            "match. Relocation requires exact migration confirmation and pointer "
+            "preconditions. Registration never creates a candidate, infers HIL, or "
             "moves the accepted pointer."
         ),
         annotations=_LOCAL_WRITE,
@@ -2935,9 +3202,9 @@ def create_mcp_server(
         expected_owner: str,
         expected_name: str,
         allowed_branches: list[str],
+        project_authority_root: str,
         sensitivity: str = "PRIVATE",
         capture_route: str = "GOVERNED_PROJECT_FULL",
-        project_authority_root: str | None = None,
         project_authority_migration_confirmation: str | None = None,
         expected_accepted_pv: str | None = None,
         expected_pointer_generation: int | None = None,
@@ -3101,8 +3368,10 @@ def create_mcp_server(
             "Append one explicit DROP or SUPERSEDE transition to the immutable "
             "Delta lifecycle ledger. SUPERSEDE requires a different queued "
             "replacement task. CORRECT_DROP is a hash-bound recovery for a "
-            "DROP that was persisted before dependency validation failed; it "
-            "preserves the failed event and restores only the exact QUEUED state."
+            "DROP that was persisted before dependency validation failed. "
+            "CORRECT_PREAPPROVAL_DONE is a hash-bound recovery for the exact "
+            "premature TASK_DONE written while an unaccepted HIL proposal is "
+            "still pending. Both preserve the failed event."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Recording Delta transition", "Delta transition recorded"),
@@ -3111,7 +3380,12 @@ def create_mcp_server(
     def pv_task_transition(
         project_id: str,
         task_id: str,
-        transition: Literal["DROP", "SUPERSEDE", "CORRECT_DROP"],
+        transition: Literal[
+            "DROP",
+            "SUPERSEDE",
+            "CORRECT_DROP",
+            "CORRECT_PREAPPROVAL_DONE",
+        ],
         decided_by: str,
         reason: str,
         replacement_task_id: str | None = None,
@@ -3218,15 +3492,17 @@ def create_mcp_server(
 
     @mcp.tool(
         name="pv_build_initial",
-        title="Build initial PV1 candidate",
+        title="Build initial PV0 live authority",
         description=(
-            "Run the deterministic whole-source Git/code engine against a clean, "
-            "authorized repository to create—but not approve—PV1 candidate. "
-            "Mermaid rendering failure remains a warning and never invalidates a "
-            "correct SQLite PV."
+            "After initial project registration, explicit native Plan acceptance, "
+            "Goal start, and Step Task List binding, run Source Intake against the "
+            "authorized workspace, materialize all sector lanes, and establish the "
+            "starting PV0 baseline without a candidate or HIL. Later Deltas use "
+            "first-class Delta entry and Delta exit; only a full-PV HIL creates the "
+            "next proposal."
         ),
         annotations=_LOCAL_WRITE,
-        meta=_meta("Building initial PV1 candidate", "PV1 candidate sealed"),
+        meta=_meta("Building initial PV0 authority", "PV0 baseline established"),
         structured_output=True,
     )
     def pv_build_initial(project_id: str, session_id: str) -> dict[str, Any]:
@@ -3250,7 +3526,10 @@ def create_mcp_server(
             "pre/post worktree chain, live source/test hashes, bounded commands and "
             "PASS outputs, and negative cases. A generic PASS cannot advance such "
             "a row, and the route creates no candidate, HIL, pointer, Git, or install "
-            "effect."
+            "effect. After classification it automatically runs the first-class Delta "
+            "entry query over the active Plan row and linked steers, prior accepted "
+            "sub-PV, all live sector lanes, Learning, Canon, Memory, Universe, connector "
+            "brain, AGENTS.md, and host MEMORY.md before source work is authorized."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta("Classifying bounded task", "Task contract ready"),
@@ -3278,7 +3557,6 @@ def create_mcp_server(
             return cast(dict[str, Any], authorization_block)
         native_route_receipt = getattr(mcp, "_evidence_lane_native_route_receipt", None)
         active_session = application.sessions.load(project_id, session_id)
-        fallback_prewarm_proof: dict[str, Any] | None = None
         task_checkpoint_proof: dict[str, Any] | None = None
         active_backlog_task_id = str(
             active_session.metadata.get("active_backlog_task_id") or ""
@@ -3294,22 +3572,6 @@ def create_mcp_server(
         strong_delta_verification_required = isinstance(
             active_plan_task, dict
         ) and requires_per_delta_local_verification(active_plan_task)
-        if (
-            active_session.metadata.get("active_backlog_task_id")
-            == "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149"
-        ):
-            try:
-                fallback_prewarm_proof = verify_codex_fallback_prewarmer(
-                    application.store.root,
-                    project_id=project_id,
-                    session_id=session_id,
-                )
-            except TurnControlError as exc:
-                fallback_prewarm_proof = {
-                    "schema": "evidence-lane.codex-fallback-prewarm-proof.v1",
-                    "status": "FAIL",
-                    "error": exc.as_dict(),
-                }
         if (
             active_backlog_task_id
             == "EL-CODEX-EXACT_TASK_PROJECT_SESSION_BINDING-PROPOSAL-03"
@@ -3335,8 +3597,6 @@ def create_mcp_server(
             bool(backlog_task_id)
             and bool(active_backlog_task_id)
             and backlog_task_id != active_backlog_task_id
-            and active_backlog_task_id
-            != "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149"
         ):
             if strong_delta_verification_required:
                 try:
@@ -3394,7 +3654,7 @@ def create_mcp_server(
         )
         return application.invoke_preflighted(
             "task_classify",
-            application.sessions.classify,
+            application.classify_and_enter_delta,
             project_id,
             session_id,
             entry_binding=cast(dict[str, Any], entry_binding),
@@ -3408,7 +3668,6 @@ def create_mcp_server(
             _native_route_receipt=native_route_receipt,
             _installed_surface_inventory=package_surface_inventory(),
             _project_panel_snapshot=project_panel_snapshot,
-            _fallback_prewarm_proof=fallback_prewarm_proof,
             _task_checkpoint_proof=task_checkpoint_proof,
             lifecycle=True,
         )
@@ -3470,43 +3729,26 @@ def create_mcp_server(
         )
 
     @mcp.tool(
-        name="pv_refresh",
-        title="Build PV Refresh candidate",
-        description=(
-            "Rerun the same deterministic engine against the complete confirmed "
-            "final repository state, calculate exact file Delta, append lineage, "
-            "and seal the next candidate. Entry and exit slips are automatic internal "
-            "artifacts. It never promotes or pushes remotely."
-        ),
-        annotations=_LOCAL_WRITE,
-        meta=_meta("Building PV Refresh candidate", "PV Refresh candidate sealed"),
-        structured_output=True,
-    )
-    def pv_refresh(project_id: str, session_id: str) -> dict[str, Any]:
-        return application.invoke(
-            "pv_refresh",
-            application.refresh,
-            project_id,
-            session_id,
-            lifecycle=True,
-        )
-
-    @mcp.tool(
         name="task_complete_and_refresh",
-        title="Complete task and automatically seal exit PV",
+        title="Seal one HIL-only live-root proposal and dual presentation",
         description=(
             "Confirm the exact host-specific final source boundary and immediately "
-            "run deterministic Refresh in one governed operation. Entry and exit "
-            "slips are generated automatically, the candidate remains unaccepted, "
-            "and the result stops at the six-way HIL. An optional exact ordered "
+            "run the HIL-only live-root Project Overlay/proposal operation. The "
+            "proposal remains unaccepted and the result stops at the conjoined "
+            "Project and consolidated Learning six-way HIL, including the bounded "
+            "Learning weave summary. An optional exact ordered "
             "batch can append QUEUED -> ACTIVE -> DONE for every queued Delta only "
             "when each task has bounded implementation and verification evidence. "
+            "If the same pending live-root proposal predates bounded exit-side "
+            "writes, archive its prior seal and finalize that exact candidate ID "
+            "without clearing or rebuilding it. Accepted snapshot storage is not "
+            "opened or queried. "
             "Users do not need a separate Refresh or exit command."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta(
-            "Completing task and sealing exit candidate",
-            "Exit candidate sealed; HIL required",
+            "Sealing live-root HIL proposal",
+            "Dual Project and Learning HIL presentation ready",
         ),
         structured_output=True,
     )
@@ -3572,9 +3814,14 @@ def create_mcp_server(
         name="pv_fuse",
         title="Fuse candidate with exact APPROVE",
         description=(
-            "Require the exact case-sensitive token APPROVE, promote the pending "
-            "candidate byte-for-byte with compare-and-swap, and seal the exact "
-            "accepted-entry handoff. That handoff makes later user-requested or "
+            "Require the exact case-sensitive Project token APPROVE and verify "
+            "that the separate consolidated Learning weave for the same PV has "
+            "already received its own exact APPROVE. Then promote the pending "
+            "live-root proposal with compare-and-swap and seal one accepted root "
+            "ZIP excluding accepted/ itself, while appending the authoritative dual "
+            "approval stamp and bounded Learning weave summary to the exact Plan "
+            "HIL row. The ZIP is snapshot-only and never queried by entry or State "
+            "Travel. That result makes later user-requested or "
             "context-exhaustion State Travel eligible; it never auto-travels. No "
             "rebuild or remake occurs."
         ),
@@ -3600,37 +3847,7 @@ def create_mcp_server(
             approval=approval,
             decided_by=decided_by,
             decision_id=decision_id,
-            lifecycle=True,
-        )
-
-    @mcp.tool(
-        name="pv_state_travel_prepare",
-        title="Prepare exact-work State Travel",
-        description=(
-            "Idempotently seal the exact active governed boundary for a fresh host "
-            "task/chat. By default unfinished tasks or candidates preserve state, "
-            "source, pointer base, Plan Lane rows, additive Deltas, resume row, and "
-            "execution profile; explicit ACCEPTED_ENTRY selects accepted context. "
-            "This does not claim the host window or model selector was changed."
-        ),
-        annotations=_LOCAL_WRITE,
-        meta=_meta(
-            "Preparing exact-work State Travel",
-            "State Travel handoff prepared",
-        ),
-        structured_output=True,
-    )
-    def pv_state_travel_prepare(
-        project_id: str,
-        session_id: str,
-        resume_contract: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        return application.invoke(
-            "pv_state_travel_prepare",
-            application.prepare_state_travel,
-            project_id,
-            session_id,
-            resume_contract=resume_contract,
+            require_dual_learning_hil=True,
             lifecycle=True,
         )
 
@@ -3654,8 +3871,10 @@ def create_mcp_server(
             "dirty bytes, PV pointer baseline, live Plan/fixed-batch/HIL anchors, installed "
             "plugin/catalog, Flash/runtime/profile, sole-writer and hooks-off laws; "
             "then binds the existing governed session to the destination. It never "
-            "calls or consumes sealed prepare/resume, creates a candidate, infers "
-            "HIL, moves a pointer, runs Git, installs, or replays."
+            "calls or consumes sealed prepare/resume. An existing candidate and pending "
+            "HIL are integrity-checked and preserved byte-for-byte; they are never "
+            "cleared or rebuilt. The route creates no candidate, infers no HIL, moves "
+            "no pointer, runs no Git/install, and cannot replay."
         ),
         annotations=_LOCAL_WRITE,
         meta=_meta(
@@ -3678,67 +3897,26 @@ def create_mcp_server(
             project_id=project_id,
             session_id=session_id,
             authoritative_source_task_id=authoritative_source_task_id,
-            runtime_attachment_donor_task_id=(
-                runtime_attachment_donor_task_id
-            ),
+            runtime_attachment_donor_task_id=(runtime_attachment_donor_task_id),
             destination_task_id=destination_task_id,
             destination_task_title=destination_task_title,
             lifecycle=True,
         )
 
     @mcp.tool(
-        name="pv_state_travel_resume",
-        title="Verify State Travel in a fresh host window",
-        description=(
-            "Before binding the fresh host session, fail closed unless its supplied "
-            "model/submodel/reasoning/speed selectors match the prepared profile. "
-            "Then verify Flash, pointer base, any candidate, Plan Lane, live source, "
-            "and exact resume contract. Unfinished work becomes resume-ready at the "
-            "same row without clearing state; accepted entry waits for the user."
-        ),
-        annotations=_LOCAL_WRITE,
-        meta=_meta(
-            "Verifying State Travel entry",
-            "State Travel verified; waiting for user",
-        ),
-        structured_output=True,
-    )
-    def pv_state_travel_resume(
-        project_id: str,
-        session_id: str,
-        handoff_id: str,
-        host: str,
-        host_session_id: str,
-        ephemeral: bool,
-        client_can_edit_source: bool | None = None,
-        server_has_durable_filesystem: bool | None = None,
-        runtime_context: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        return application.invoke(
-            "pv_state_travel_resume",
-            application.resume_state_travel,
-            project_id=project_id,
-            session_id=session_id,
-            handoff_id=handoff_id,
-            host=host,
-            host_session_id=host_session_id,
-            ephemeral=ephemeral,
-            client_can_edit_source=client_can_edit_source,
-            server_has_durable_filesystem=server_has_durable_filesystem,
-            runtime_context=runtime_context,
-            lifecycle=True,
-        )
-
-    @mcp.tool(
         name="pv_rollback",
-        title="Travel to an immutable accepted PV",
+        title="Select a Plan-stamped rollback state",
         description=(
-            "Move only the accepted pointer to any immutable accepted PV after a "
-            "compare-and-swap check. Target PVn directly, use PROMPT <index> or TURN "
-            "<id>, or omit the target to use the current prompt/session entry PV. "
-            "Accepted history, candidates, source bytes, lane databases, and the "
-            "monotonic next-PV ordinal are preserved. This is an explicit HIL action "
-            "and never restores or rewrites the live source."
+            "Use one existing rollback owner for three explicitly selected modes. "
+            "LOGICAL_LIVE_ROOT_STATE moves only the Plan-stamped rollback cursor. "
+            "HARD_ACCEPTED_ZIP_RESTORE validates one exact user-selected full-PV ZIP "
+            "and restores it into a fresh Project/PV root. GIT_BRANCH_COMMIT_RESTORE "
+            "validates an exact registered repository, branch, and commit, restores "
+            "a fresh workspace, and rebuilds Local Code. Both hard modes preserve "
+            "history through the exact target row, make later executable rows inert, "
+            "and require a new user brief, EVI Plan, explicit Plan acceptance, and "
+            "new Goal before work. No mode resets the dirty current workspace, creates "
+            "a candidate, infers HIL, or silently continues the rejected Plan."
         ),
         annotations=_HIL_WRITE,
         meta=_meta("Verifying rollback state travel", "Rollback state travel recorded"),
@@ -3748,8 +3926,18 @@ def create_mcp_server(
         project_id: str,
         session_id: str,
         decided_by: str,
+        rollback_mode: str = "LOGICAL_LIVE_ROOT_STATE",
         rollback_to: str | None = None,
         decision_id: str | None = None,
+        confirmation: str | None = None,
+        archive_path: str | None = None,
+        expected_archive_sha256: str | None = None,
+        restore_root: str | None = None,
+        repository_path: str | None = None,
+        branch: str | None = None,
+        commit_sha: str | None = None,
+        restore_workspace: str | None = None,
+        target_plan_task_id: str | None = None,
     ) -> dict[str, Any]:
         return application.invoke(
             "pv_rollback",
@@ -3757,8 +3945,18 @@ def create_mcp_server(
             project_id,
             session_id,
             decided_by=decided_by,
+            rollback_mode=rollback_mode,
             rollback_to=rollback_to,
             decision_id=decision_id,
+            confirmation=confirmation,
+            archive_path=archive_path,
+            expected_archive_sha256=expected_archive_sha256,
+            restore_root=restore_root,
+            repository_path=repository_path,
+            branch=branch,
+            commit_sha=commit_sha,
+            restore_workspace=restore_workspace,
+            target_plan_task_id=target_plan_task_id,
             lifecycle=True,
         )
 
@@ -3898,11 +4096,13 @@ def create_mcp_server(
         name="search",
         title="Query live six-authority project intelligence",
         description=(
-            "Query the live project root through six separate ENV/UOP-governed "
-            "authorities: all eighteen sector lanes, Agent Learning, Canon graph, "
-            "Project Memory, AGENTS.md, and host conversation MEMORY.md. A stale or "
-            "empty intelligence arm triggers one bounded Learning/Canon/Memory refresh "
-            "and retry. Accepted HIL ZIPs are never opened or queried."
+            "Query the live project root through six primary ENV/UOP-governed "
+            "authorities plus Project Universe and connector brain: all eighteen "
+            "sector lanes, Agent Learning, Canon graph, Project Memory, AGENTS.md, "
+            "host conversation MEMORY.md, Universe, and connector integrity. A stale "
+            "or empty intelligence arm triggers one bounded Learning/Canon/Memory/"
+            "Universe refresh and retry. Project Overlay is HIL-only; accepted HIL "
+            "ZIPs are never opened or queried."
         ),
         annotations=_READ_ONLY,
         meta=_meta("Searching PV source intelligence", "PV search complete"),
@@ -4120,8 +4320,18 @@ def create_mcp_server(
             project_id: str,
             session_id: str,
             request_id: str,
-            payload: dict[str, Any] | None = None,
+            _legacy_payload: dict[str, Any] | None = None,
+            **action_fields: Any,
         ) -> dict[str, Any]:
+            exact_payload = dict(_legacy_payload or {})
+            require(
+                not (_legacy_payload is not None and action_fields),
+                "SDK_NATIVE_SCHEMA_AMBIGUOUS_PAYLOAD",
+                "Use the current typed action fields or the legacy internal payload, never both.",
+                status="BLOCKED",
+                tool_name=tool_name,
+            )
+            exact_payload.update(action_fields)
             return application.invoke(
                 tool_name,
                 invoke_native_sdk_action,
@@ -4130,13 +4340,16 @@ def create_mcp_server(
                 request_id,
                 module_id,
                 operation,
-                dict(payload or {}),
+                exact_payload,
                 read_only,
                 lifecycle=not read_only,
             )
 
         sdk_action.__name__ = tool_name
         sdk_action.__qualname__ = tool_name
+        target = _SDK_NATIVE_RICH_SCHEMA_TARGETS.get(tool_name)
+        if target is not None:
+            sdk_action.__signature__ = _sdk_native_public_signature(target)  # type: ignore[attr-defined]
         return sdk_action
 
     for (
@@ -4162,6 +4375,20 @@ def create_mcp_server(
                 read_only=sdk_read_only,
             )
         )
+
+    internal_sdk_public_dispatch_review = public_sdk_dispatcher.review(
+        {tool.name for tool in mcp._tool_manager.list_tools()}
+    )
+    if internal_sdk_public_dispatch_review["status"] != "PASS":
+        raise RuntimeError(
+            "Evidence Lane internal SDK public-action coverage is incomplete."
+        )
+    mcp._evidence_lane_internal_sdk_public_dispatch_review = (  # type: ignore[attr-defined]
+        internal_sdk_public_dispatch_review
+    )
+    mcp._evidence_lane_internal_sdk_public_dispatcher = (  # type: ignore[attr-defined]
+        public_sdk_dispatcher
+    )
 
     failure_boundary = _apply_governed_tool_failure_boundary(
         mcp,
@@ -4319,10 +4546,12 @@ def run_server(
             )
     application = EvidenceLaneService()
     application.sessions.ensure_installation()
-    # Native OCR/ONNX dependencies must be loaded before FastMCP starts its
-    # event loop.  Lane execution remains parallel; the cached engine is only
-    # serialized at its documented shared call boundary.
-    prewarm_native_dependencies()
+    # Keep the MCP initialize/tools-list path transport-only.  OCR/ONNX is a
+    # conditional lane dependency and its eager process-wide initialization
+    # can make Codex classify this otherwise healthy optional MCP server as
+    # pending during same-task restart.  lane_engine retains the required
+    # pre-worker cold-start barrier whenever an images_ocr or pdf_ocr lane is
+    # actually selected.
     server = create_mcp_server(
         service=application,
         host=host,

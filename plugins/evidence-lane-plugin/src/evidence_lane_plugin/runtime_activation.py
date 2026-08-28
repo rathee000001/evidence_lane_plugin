@@ -59,7 +59,7 @@ _REQUIRED_PRE_REASONING_SURFACES = (
         "capability_basis": "MEASURED_CODEX_DESKTOP_GOAL_ROUTE_BYPASSES_USERPROMPTSUBMIT",
         "tool_boundary_continuation_supported": True,
         "tool_boundary_hook_event": "preToolUse",
-        "tool_boundary_authority": "SEALED_ACTIVE_GOAL_RECOVERY_BINDING",
+        "tool_boundary_authority": "NATIVE_ACTIVE_TASK_GOAL_BINDING_VERIFIED",
         "tool_boundary_route": "thread/goal/set -> first PreToolUse boundary",
         "synthetic_prompt_required": False,
     },
@@ -254,7 +254,6 @@ class RuntimeActivation:
             and activation.get("state")
             in {
                 "INSTALLED_RESTART_REQUIRED",
-                "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED",
             }
             and hook_trust.get("schema") == HOOK_TRUST_SCHEMA
             and hook_trust.get("status") == "PASS"

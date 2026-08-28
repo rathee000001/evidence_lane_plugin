@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.lane_contract",
+  "source_path": "src/evidence_lane_plugin/lane_contract.py",
+  "source_sha256": "254159127E8C4B201D1C6C0E5A7AB5E203CBAC4C55C66390ED9A7A497DBC04AA",
+  "source_bytes": 12862,
+  "role": "SECTOR_LANE_ENGINE",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "1D3137EB8906354AF61ECE12ABAF285EA3F3603441B31967DFE08A7842D56594"
+}

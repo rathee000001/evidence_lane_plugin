@@ -1072,7 +1072,11 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     )
     parquet_states = _parser_states(data_database)
     if parquet_available:
-        assert "PARSED_PARQUET_PYARROW" in parquet_states
+        assert {
+            "PARSED_DUCKDB_PARQUET_TO_SQLITE",
+            "PARSED_POLARS_LAZY_PARQUET_TO_SQLITE",
+            "PARSED_PARQUET_PYARROW",
+        }.intersection(parquet_states)
         assert "parquet_row_sample" in _fact_kinds(data_database)
     else:
         assert (

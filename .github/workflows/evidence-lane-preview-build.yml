@@ -76,9 +76,9 @@ jobs:
         with:
           node-version: "24"
           cache: pnpm
-          cache-dependency-path: plugins/evidence-lane-plugin/remote_adapter/pnpm-lock.yaml
+          cache-dependency-path: apps/evidence-lane-remote-adapter/pnpm-lock.yaml
       - name: Install preview dependencies
-        run: pnpm --dir plugins/evidence-lane-plugin/remote_adapter install --frozen-lockfile
+        run: pnpm --dir apps/evidence-lane-remote-adapter install --frozen-lockfile
       - name: Execute preview build contract
         uses: ./.github/actions/evidence-lane-ci
         with:

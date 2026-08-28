@@ -8,6 +8,12 @@ from typing import Any
 
 import evidence_lane_plugin.mcp_server as mcp_server_module
 import pytest
+from evidence_lane_plugin.constants import (
+    GOVERNED_SKILL_COUNT,
+    NATIVE_READ_TOOL_COUNT,
+    NATIVE_TOOL_COUNT,
+    NATIVE_WRITE_TOOL_COUNT,
+)
 from evidence_lane_plugin.auth import (
     READ_SCOPE,
     OAuthJWTConfig,
@@ -54,9 +60,7 @@ def _public_entry_preflight_receipt(
 
 def _assert_self_hashed_receipt(receipt: dict[str, Any]) -> None:
     claimed = str(receipt["receipt_sha256"])
-    unsigned = {
-        key: value for key, value in receipt.items() if key != "receipt_sha256"
-    }
+    unsigned = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
     actual = sha256_bytes(canonical_json_bytes(unsigned))
     assert actual == claimed
 
@@ -78,8 +82,7 @@ def test_live_surface_counts_are_registry_derived_and_route_reconciled(
 ) -> None:
     registry = derive_public_surface_registry(PLUGIN)
     assert derive_runtime_catalog_constants(PLUGIN) == {
-        key: registry["catalog"][key]
-        for key in ("tools", "read", "write", "skills")
+        key: registry["catalog"][key] for key in ("tools", "read", "write", "skills")
     }
     assert registry["status"] == "PASS"
     assert registry["release_catalog_matches_derived"] is True
@@ -90,10 +93,19 @@ def test_live_surface_counts_are_registry_derived_and_route_reconciled(
         "skills": len(registry["skills"]["records"]),
         "commands": len(registry["commands"]["records"]),
         "hook_events": len(registry["hooks"]["event_names"]),
-        "hook_handlers": len(registry["hooks"]["event_names"]),
+        "hook_handlers": registry["hooks"]["handler_action_count"],
         "providers": len(registry["providers"]["names"]),
     }
     assert registry["tools"]["read_names"] == sorted(CODEX_READ_TOOL_NAMES)
+    assert registry["hooks"]["registered_event_count"] == 11
+    assert registry["hooks"]["handler_action_count"] == 44
+    assert registry["hooks"]["logical_action_count"] == 44
+    assert registry["hooks"]["event_action_inventory"][3]["actions"][0][
+        "action_number"
+    ] == "4.1"
+    assert registry["hooks"]["logical_action_inventory"][3][
+        "logical_actions"
+    ][0]["logical_action_number"] == "4.L1"
     assert len(registry["registry_sha256"]) == 64
 
     server = create_mcp_server(
@@ -135,9 +147,7 @@ def test_live_surface_counts_are_registry_derived_and_route_reconciled(
         is True
     )
     assert (
-        public_surface["package_identity"][
-            "caller_selected_cross_package_root_allowed"
-        ]
+        public_surface["package_identity"]["caller_selected_cross_package_root_allowed"]
         is False
     )
 
@@ -148,10 +158,10 @@ def test_installed_wheel_layout_uses_the_sealed_packaged_runtime_catalog(
     installed_root = tmp_path / "site-packages"
 
     assert derive_runtime_catalog_constants(installed_root) == {
-        "tools": 88,
-        "read": 27,
-        "write": 61,
-        "skills": 17,
+        "tools": NATIVE_TOOL_COUNT,
+        "read": NATIVE_READ_TOOL_COUNT,
+        "write": NATIVE_WRITE_TOOL_COUNT,
+        "skills": GOVERNED_SKILL_COUNT,
     }
 
 
@@ -174,6 +184,10 @@ def test_stale_release_total_blocks_the_derived_surface(tmp_path: Path) -> None:
         shutil.copy2(command, surface / "commands" / command.name)
     (surface / "hooks").mkdir(parents=True, exist_ok=True)
     shutil.copy2(PLUGIN / "hooks" / "hooks.json", surface / "hooks" / "hooks.json")
+    shutil.copy2(
+        PLUGIN / "hooks" / "logical-actions.json",
+        surface / "hooks" / "logical-actions.json",
+    )
     shutil.copy2(PLUGIN / ".mcp.json", surface / ".mcp.json")
     (surface / ".codex-plugin").mkdir(parents=True, exist_ok=True)
     shutil.copy2(
@@ -192,9 +206,9 @@ def test_stale_release_total_blocks_the_derived_surface(tmp_path: Path) -> None:
     registry = derive_public_surface_registry(surface)
     assert registry["status"] == "BLOCKED"
     assert registry["release_catalog_matches_derived"] is False
-    assert registry["release_claimed_catalog"]["tools"] + 1 == registry["catalog"][
-        "tools"
-    ]
+    assert (
+        registry["release_claimed_catalog"]["tools"] + 1 == registry["catalog"]["tools"]
+    )
 
 
 def test_every_public_tool_authorizes_before_backend_access() -> None:
@@ -288,6 +302,7 @@ def test_task_classify_reuses_one_preflight_receipt(
         lifecycle: bool,
         project_id: str | None,
         session_id: str | None,
+        invocation_arguments: dict[str, Any] | None = None,
     ) -> tuple[None, dict[str, Any]]:
         nonlocal preflight_calls
         preflight_calls += 1
@@ -306,6 +321,11 @@ def test_task_classify_reuses_one_preflight_receipt(
     monkeypatch.setattr(
         service.sessions,
         "classify",
+        lambda *args, **kwargs: {"status": "PASS"},
+    )
+    monkeypatch.setattr(
+        service,
+        "adaptive_delta_entry",
         lambda *args, **kwargs: {"status": "PASS"},
     )
     monkeypatch.setattr(

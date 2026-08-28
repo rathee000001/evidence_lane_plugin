@@ -107,6 +107,7 @@ def _root(tmp_path: Path) -> tuple[Path, str]:
         """
         CREATE TABLE plan_execution_row(
             task_id TEXT PRIMARY KEY,
+            row_number INTEGER NOT NULL,
             lifecycle_status TEXT NOT NULL,
             effective_for_execution INTEGER NOT NULL,
             task_contract_sha256 TEXT NOT NULL
@@ -114,8 +115,8 @@ def _root(tmp_path: Path) -> tuple[Path, str]:
         """
     )
     connection.execute(
-        "INSERT INTO plan_execution_row VALUES(?,?,?,?)",
-        (TASK_ID, "ACTIVE", 1, _hash("task-contract")),
+        "INSERT INTO plan_execution_row VALUES(?,?,?,?,?)",
+        (TASK_ID, 242, "ACTIVE", 1, _hash("task-contract")),
     )
     connection.commit()
     connection.close()

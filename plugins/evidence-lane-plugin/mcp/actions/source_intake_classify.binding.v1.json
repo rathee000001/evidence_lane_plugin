@@ -1,0 +1,167 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "source_intake_classify",
+  "title": "Classify generalized Source Intake",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "sources": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Sources",
+        "type": "array"
+      },
+      "overrides": {
+        "anyOf": [
+          {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Overrides"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      },
+      "git_mode": {
+        "default": "AUTO",
+        "enum": [
+          "AUTO",
+          "REQUIRED",
+          "DISABLED"
+        ],
+        "title": "Git Mode",
+        "type": "string"
+      },
+      "authority_mode": {
+        "default": "CLASSIFICATION_ONLY",
+        "enum": [
+          "CLASSIFICATION_ONLY",
+          "GOVERNED_CONTENT_REGISTRY"
+        ],
+        "title": "Authority Mode",
+        "type": "string"
+      },
+      "source_assertions": {
+        "anyOf": [
+          {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Source Assertions"
+      },
+      "turn_entry": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Turn Entry"
+      },
+      "plan_dispatch": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Plan Dispatch"
+      },
+      "working_authority_action": {
+        "default": "CLASSIFY_ONLY",
+        "enum": [
+          "CLASSIFY_ONLY",
+          "REFRESH_WORKING_SECTORS"
+        ],
+        "title": "Working Authority Action",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "sources"
+    ],
+    "title": "source_intake_classifyArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "source_intake_classifyDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "CBE89FF15C6A4AD750C1D4D17C6F987420D6A3946573FA2ABB4E2FD1715E0F8A",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "source_intake_classify"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-refresh",
+        "workflow": "steer-prompt-source-intake-refresh-working-sectors",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "classify-source-intake",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/source_intake_classify.action.v1.json",
+  "sdk_action_binding_sha256": "81D70EAB15A0C318E7F361493267EF4263FFEA758DB1027A7BBEDE629CC86F43",
+  "public_action_schema": "schemas/actions/source_intake_classify.schema.json",
+  "public_action_schema_sha256": "88852E1B789C61415457709CAD19F2A27ED67AAD0CA7F498025AD09F728DEA55",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "634678297CB7A6A2EE9FE8F37535589E05FB5ABE2BC1ED026EB51F766276EAB3"
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "lane_fetch",
+  "title": "Fetch one exact lane source",
+  "description": "Fetch one exact source registered in a lane with bounded text, hash, parser state, structured facts, live-root authority, and freshness. Binary source bytes remain inside the live sector SQLite authority; accepted HIL ZIPs and candidates are not opened.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "lane": {
+        "title": "Lane",
+        "type": "string"
+      },
+      "path": {
+        "title": "Path",
+        "type": "string"
+      },
+      "max_bytes": {
+        "default": 100000,
+        "title": "Max Bytes",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane",
+      "path"
+    ],
+    "title": "lane_fetchArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "lane_fetchDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "lane_fetch"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "lane-evidence-read",
+        "order": 9
+      },
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "bounded-source-retrieval",
+        "order": 15
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "D04A51C8DDBF2BD67B9FA72F4F533272230A37892E2317E3198EE79D2C67B62F",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "D466BF605C4263C745EFFD6151E93D0FB9E0569CF84441D93F61608AA8677BA5"
+}

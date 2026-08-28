@@ -342,7 +342,7 @@ def test_project_overlay_is_candidate_only_and_fans_out_visible_lineage(
     assert result["fanout_counts"]["chat_lineage"] == 1
     assert result["fanout_counts"]["local_code"] == 1
     assert result["fanout_counts"]["artifacts"] == 1
-    expected_overlay_order = ["chat_lineage", "local_code", "artifacts"]
+    expected_overlay_order = ["local_code", "chat_lineage", "artifacts"]
     assert result["sector_ids"] == expected_overlay_order
     connection = sqlite3.connect(output / "project_overlay.sqlite")
     assert [
@@ -387,14 +387,7 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     assert not (tmp_path / "store" / "projects" / "project-test").exists()
 
     root = Path(__file__).resolve().parents[1]
-    adapter_path = (
-        root
-        / "plugins"
-        / "evidence-lane-plugin"
-        / "remote_adapter"
-        / "api"
-        / "index.py"
-    )
+    adapter_path = root / "apps" / "evidence-lane-remote-adapter" / "api" / "index.py"
     adapter_root = adapter_path.parents[1]
     vercel = json.loads((adapter_root / "vercel.json").read_text(encoding="utf-8"))
     assert not adapter_path.exists()
@@ -412,7 +405,9 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     assert "HeroOrbit" in landing
     for retired in ("UniversalCommandDeck", "LaneToolchainExplorer", "SourceBrainLab"):
         assert retired not in landing
-    lanes_page = (adapter_root / "app" / "lanes" / "page.tsx").read_text(encoding="utf-8")
+    lanes_page = (adapter_root / "app" / "lanes" / "page.tsx").read_text(
+        encoding="utf-8"
+    )
     assert "LaneToolchainExplorer" in lanes_page
     assert "Documentation release identity exact" in release
     assert "prefers-reduced-motion" in styles
@@ -424,9 +419,9 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     active_brand_source = active_tsx + (adapter_root / "app" / "manifest.ts").read_text(
         encoding="utf-8"
     )
-    home_orbit = (
-        adapter_root / "app" / "_components" / "hero-orbit.tsx"
-    ).read_text(encoding="utf-8")
+    home_orbit = (adapter_root / "app" / "_components" / "hero-orbit.tsx").read_text(
+        encoding="utf-8"
+    )
     assert "/evidence-lane-full-logo.png" in active_brand_source
     assert "/evidence-lane-icon.png" in active_brand_source
     assert "evidence-root-fibers.png" not in active_brand_source

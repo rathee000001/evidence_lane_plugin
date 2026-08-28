@@ -19,6 +19,7 @@ from build_release_candidate_rehearsal import (
     EXPECTED_BEHAVIOR_OWNERSHIP,
     EXPECTED_STABLE_ACTIVATION_GATE,
     PackageBoundaryError,
+    _package_surface_coherence,
     build_rehearsal,
 )
 
@@ -38,6 +39,7 @@ def _write(root: Path, relative: str, content: bytes | str = b"fixture") -> None
 
 def _plugin_fixture(tmp_path: Path) -> Path:
     plugin = tmp_path / "plugin"
+    adapter = tmp_path / "apps" / "evidence-lane-remote-adapter"
     _write(
         plugin,
         ".mcp.json",
@@ -47,7 +49,36 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     _write(plugin, "LICENSE.md", "# Proprietary license\n")
     _write(plugin, "README.md", "# Evidence Lane plugin\n")
     _write(plugin, "THIRD_PARTY_NOTICES.md", "# Third-party notices\n")
-    _write(plugin, "tests/should_not_ship.py", "raise AssertionError('maintainer-only')\n")
+    _write(
+        plugin,
+        "tests/tools/should_not_ship.py",
+        "raise AssertionError('maintainer-only')\n",
+    )
+    _write(plugin, "tests/test_host_panel_governed_counts.py", "# installed test\n")
+    _write(
+        plugin, "tests/test_installed_package_surface_smoke.py", "# installed test\n"
+    )
+    _write(
+        plugin,
+        "tests/test-surface-policy.v1.json",
+        json.dumps(
+            {
+                "schema": "evidence-lane.installed-test-surface-policy.v1",
+                "status": "PASS",
+                "installed_executable_tests": [
+                    "tests/test_host_panel_governed_counts.py",
+                    "tests/test_installed_package_surface_smoke.py",
+                ],
+                "installed_verification_environment": {
+                    "PYTHONDONTWRITEBYTECODE": "1",
+                    "PYTEST_ADDOPTS": "-p no:cacheprovider",
+                },
+                "installed_verification_may_run_broad_regression": False,
+                "post_verification_forbidden_cache_artifact_count": 0,
+            }
+        )
+        + "\n",
+    )
     _write(
         plugin,
         ".codex-plugin/plugin.json",
@@ -136,22 +167,14 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "stable_updates_reinstall_in_place": True,
                     "build_identity_is_receipt_not_selector": True,
                     "native_server_identity": "evidence-lane",
-                    "native_tool_count": 88,
-                    "native_read_tool_count": 27,
+                    "native_tool_count": 91,
+                    "native_read_tool_count": 30,
                     "native_write_tool_count": 61,
-                    "skill_count": 17,
+                    "skill_count": 19,
                     "codex_apps_allowed": False,
                     "generated_namespace_allowed": False,
                     "direct_stdio_fallback_allowed": False,
                     "google_drive_bundled": False,
-                },
-                "retired_branch_recovery": {
-                    "slot_role": "RETIRED_PURGE_ONLY",
-                    "plugin_selector": (
-                        "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
-                    ),
-                    "installation_allowed": False,
-                    "direct_cache_deletion_allowed": False,
                 },
                 "local_testing": {
                     "release_line": "3.0.0",
@@ -198,51 +221,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "stable_selector_growth_allowed": False,
                     "max_active_native_mcp_count": 1,
                     "max_active_tunnel_count": 1,
-                },
-                "failover_operator": {
-                    "script": (
-                        "scripts/codex_release/"
-                        "Switch-EvidenceLaneCodexSlot.ps1"
-                    ),
-                    "registry_schema": "evidence-lane.codex-two-slot-main-local-registry.v1",
-                    "failure_target_slot": "stable-git-main",
-                    "versioned_local_failure_targets_verified_main_only": True,
-                    "single_transient_error_switch_allowed": False,
-                },
-                "goal_recovery": {
-                    "script": (
-                        "scripts/codex_release/"
-                        "Manage-EvidenceLaneCodexGoalRecovery.ps1"
-                    ),
-                    "scope": (
-                        "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_"
-                        "ON_THIS_WINDOWS_USER"
-                    ),
-                    "trigger": "AT_LOGON_CURRENT_WINDOWS_USER",
-                    "exact_task_uuid_required": True,
-                    "exact_host_app_binding_required": True,
-                    "supported_host_app_ids": [
-                        "OpenAI.Codex_2p2nqsd0c76g0!App",
-                        "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
-                    ],
-                    "persisted_goal_read_route": (
-                        "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
-                    ),
-                    "thread_resume_writer_allowed": False,
-                    "synthetic_prompt_allowed": False,
-                    "turn_start_allowed": False,
-                    "state_travel_allowed": False,
-                    "candidate_hil_pointer_or_git_mutation_allowed": False,
-                    "requires_exactly_one_enabled_allowed_two_slot_selector": True,
-                    "allowed_runtime_selectors": [
-                        "evidence-lane-plugin@evidence-lane-github",
-                        (
-                            "evidence-lane-plugin@"
-                            "evidence-lane-v300-testing-new"
-                        ),
-                    ],
-                    "stable_selector_growth_allowed": False,
-                    "raw_goal_objective_stored": False,
+                    "obsolete_marketplace_registrations_must_be_absent": True,
                 },
                 "behavior_ownership": EXPECTED_BEHAVIOR_OWNERSHIP,
                 "stable_activation_gate": EXPECTED_STABLE_ACTIVATION_GATE,
@@ -253,9 +232,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3D"
                         "EF87B8A129C4FA"
                     ),
-                    "resource_uri": (
-                        "ui://evidence-lane/governed-console-v6.html"
-                    ),
+                    "resource_uri": ("ui://evidence-lane/governed-console-v6.html"),
                     "manifest_icon_fields": [
                         "interface.composerIcon",
                         "interface.logo",
@@ -284,9 +261,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "account_tier_affects_routing": False,
                     "api_billing_affects_routing": False,
                     "headless_api": {
-                        "local_or_persistent_pv_storage": (
-                            "LOCAL_SQLITE_WHEN_DURABLE"
-                        ),
+                        "local_or_persistent_pv_storage": ("LOCAL_SQLITE_WHEN_DURABLE"),
                         "ephemeral_pv_storage": (
                             "DURABLE_MOUNT_ELSE_CONFIGURED_TRANSACTIONAL_CONNECTOR"
                         ),
@@ -296,10 +271,19 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "interactive_codex_app_local_or_persistent": {
                         "pv_storage": "DURABLE_LOCAL_SQLITE",
                         "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+                        "host_profile": "CODEX_DESKTOP",
+                        "desktop_app_variants": {
+                            "stable": "OpenAI.Codex_2p2nqsd0c76g0!App",
+                            "beta": "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+                            "shared_plugin_contract": True,
+                            "shared_host_wide_tunnel": True,
+                            "per_app_tunnel_allowed": False,
+                            "per_project_or_task_tunnel_allowed": False,
+                            "helper_requires_exact_requested_app_id": True,
+                            "cross_app_fallback_allowed": False,
+                        },
                         "native_mcp_available": {
-                            "tunnel_requirement": (
-                                "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
-                            ),
+                            "tunnel_requirement": ("NOT_REQUIRED_NATIVE_MCP_AVAILABLE"),
                             "tunnel_setup_frequency": "NONE",
                             "tunnel_key_retention": "NOT_APPLICABLE",
                             "tunnel_runtime_lifetime": "NOT_APPLICABLE",
@@ -321,9 +305,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         "pv_storage": "DURABLE_LOCAL_SQLITE",
                         "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
                         "native_mcp_available": {
-                            "tunnel_requirement": (
-                                "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
-                            ),
+                            "tunnel_requirement": ("NOT_REQUIRED_NATIVE_MCP_AVAILABLE"),
                         },
                         "host_tool_gap": {
                             "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
@@ -338,9 +320,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                         ),
                         "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
                         "native_mcp_available": {
-                            "tunnel_requirement": (
-                                "NOT_REQUIRED_NATIVE_MCP_AVAILABLE"
-                            ),
+                            "tunnel_requirement": ("NOT_REQUIRED_NATIVE_MCP_AVAILABLE"),
                         },
                         "host_tool_gap": {
                             "tunnel_requirement": "REQUIRED_FOR_HOST_TOOL_GAP",
@@ -447,23 +427,8 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     )
     _write(
         plugin,
-        "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1",
-        "# fixture stable updater\n",
-    )
-    _write(
-        plugin,
-        "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+        "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
         "# fixture restart helper\n",
-    )
-    _write(
-        plugin,
-        "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1",
-        "# fixture Goal recovery helper\n",
-    )
-    _write(
-        plugin,
-        "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1",
-        "# fixture three-slot operator\n",
     )
     _write(
         plugin,
@@ -472,26 +437,52 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     )
     _write(plugin, "evidence/prompt_studio/manifest.json", "{}\n")
     _write(plugin, "evidence/prompt_studio/studio_search.sqlite", b"sqlite")
-    _write(plugin, "remote_adapter/app/manifest.ts", "export const manifest = {};\n")
-    _write(plugin, "remote_adapter/package.json", '{"dependencies":{}}\n')
-    _write(plugin, "remote_adapter/pnpm-lock.yaml", "lockfileVersion: '9.0'\n")
+    _write(adapter, "app/manifest.ts", "export const manifest = {};\n")
+    _write(adapter, "package.json", '{"dependencies":{}}\n')
+    _write(adapter, "pnpm-lock.yaml", "lockfileVersion: '9.0'\n")
     _write(plugin, "pyproject.toml", '[project]\nname="fixture"\nversion="3.0.0"\n')
     _write(plugin, "requirements.lock.txt", "mcp==1.28.1\n")
+    _write(plugin, "requirements.toolchain.lock.txt", "mcp==1.28.1\n")
+    _write(
+        plugin,
+        "scripts/codex_release/install_native_toolchain.py",
+        "# fixture native toolchain installer\n",
+    )
+    _write(
+        plugin,
+        "scripts/generate_toolchain_execution_matrix.py",
+        "# fixture toolchain matrix generator\n",
+    )
+    _write(plugin, "toolchains/TOOLCHAIN_EXECUTION_MATRIX.md", "# Matrix\n")
+    _write(
+        plugin,
+        "toolchains/tool-execution-routing.v1.json",
+        json.dumps(
+            {
+                "schema": "evidence-lane.tool-execution-routing.v1",
+                "status": "PASS",
+                "primary_and_fallback_order_explicit": True,
+                "rows": [],
+            }
+        )
+        + "\n",
+    )
+    _write(plugin, "toolchains/native-tools.v1.json", "{}\n")
     _write(plugin, "src/evidence_lane_plugin/__init__.py", "VERSION = 'fixture'\n")
-    for index in range(17):
+    for index in range(19):
         _write(
             plugin,
             f"skills/skill-{index:02d}/SKILL.md",
             f"---\nname: skill-{index:02d}\n---\nFixture.\n",
         )
     for index in range(18):
-        lane = f"remote_adapter/public/dummy-lane-packages/lane-{index:02d}"
-        _write(plugin, f"{lane}/lane-{index:02d}.dot", "digraph fixture {}\n")
-        _write(plugin, f"{lane}/lane-{index:02d}.mmd", "flowchart LR\n")
-        _write(plugin, f"{lane}/lane-{index:02d}.mmd.8k.png", b"png")
-        _write(plugin, f"{lane}/lane-{index:02d}.mmd.vector.svg", "<svg/>\n")
-        _write(plugin, f"{lane}/lane-{index:02d}_sector_v001.sqlite", b"sqlite")
-        _write(plugin, f"{lane}/refresh_receipt.json", "{}\n")
+        lane = f"public/dummy-lane-packages/lane-{index:02d}"
+        _write(adapter, f"{lane}/lane-{index:02d}.dot", "digraph fixture {}\n")
+        _write(adapter, f"{lane}/lane-{index:02d}.mmd", "flowchart LR\n")
+        _write(adapter, f"{lane}/lane-{index:02d}.mmd.8k.png", b"png")
+        _write(adapter, f"{lane}/lane-{index:02d}.mmd.vector.svg", "<svg/>\n")
+        _write(adapter, f"{lane}/lane-{index:02d}_sector_v001.sqlite", b"sqlite")
+        _write(adapter, f"{lane}/refresh_receipt.json", "{}\n")
     return plugin
 
 
@@ -516,7 +507,72 @@ def _build(plugin: Path, output: Path) -> dict[str, object]:
         base_commit=COMMIT,
         base_tree=TREE,
         expected_version=VERSION,
+        surface_coherence_required=False,
     )
+
+
+def test_rehearsal_seals_systemwide_route_audit_when_supplied(
+    tmp_path: Path,
+) -> None:
+    plugin = _plugin_fixture(tmp_path)
+    audit_path = tmp_path / "systemwide-route-audit.json"
+    audit = {
+        "schema": "evidence-lane.systemwide-route-audit.v1",
+        "status": "PASS",
+        "active_row": 265,
+        "receipt_sha256": "A" * 64,
+        "accepted_archive_queried": False,
+        "candidate_created_or_cleared": False,
+        "pointer_moved": False,
+        "git_index_mutated": False,
+        "git_ref_mutated": False,
+        "consumer_parity": {"status": "PASS"},
+        "obsolete_route_purge": {"status": "PASS"},
+        "plan_supersession": {"status": "PASS", "rows_sha256": "B" * 64},
+        "current_registry": {
+            "registry_sha256": "C" * 64,
+            "public_tool_count": 88,
+            "obsolete_public_tools": [
+                "pv_refresh",
+                "pv_state_travel_prepare",
+                "pv_state_travel_resume",
+            ],
+        },
+        "systemwide_regression": {
+            "status": "PASS",
+            "file_sha256": "D" * 64,
+        },
+        "skill_current_route_audit": {
+            "status": "PASS",
+            "receipt_sha256": "E" * 64,
+        },
+    }
+    audit_path.write_text(json.dumps(audit), encoding="utf-8")
+
+    receipt = build_rehearsal(
+        plugin_root=plugin,
+        output_dir=tmp_path / "with-route-audit",
+        base_commit=COMMIT,
+        base_tree=TREE,
+        expected_version=VERSION,
+        systemwide_route_audit_receipt=audit_path,
+        surface_coherence_required=False,
+    )
+    assert receipt["systemwide_route_audit"]["status"] == "PASS"
+    archive = Path(receipt["receipt_path"]).parent / receipt["archive"]["filename"]
+    with zipfile.ZipFile(archive) as package:
+        assert "manifests/package/systemwide-route-audit.json" in (package.namelist())
+
+
+def test_current_plugin_package_surface_is_one_coherent_version() -> None:
+    receipt = _package_surface_coherence(ROOT / "plugins" / "evidence-lane-plugin")
+    assert receipt["status"] == "PASS"
+    assert receipt["mixed_version_members_allowed"] is False
+    assert receipt["mcp"]["tools"] == 91
+    assert receipt["skills"]["count"] == 25
+    assert receipt["commands"]["command_count"] == 26
+    assert receipt["hooks"]["event_count"] == 11
+    assert receipt["hooks"]["handler_action_count"] == 44
 
 
 def test_live_release_policy_matches_every_package_and_install_validator() -> None:
@@ -537,20 +593,24 @@ def test_live_release_policy_matches_every_package_and_install_validator() -> No
         ),
     ]
     for validator in validators:
-        assert validator["EXPECTED_BEHAVIOR_OWNERSHIP"] == contract[
-            "behavior_ownership"
-        ]
-        assert validator["EXPECTED_STABLE_ACTIVATION_GATE"] == contract[
-            "stable_activation_gate"
-        ]
+        assert (
+            validator["EXPECTED_BEHAVIOR_OWNERSHIP"] == contract["behavior_ownership"]
+        )
+        assert (
+            validator["EXPECTED_STABLE_ACTIVATION_GATE"]
+            == contract["stable_activation_gate"]
+        )
 
 
-def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path) -> None:
+def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(
+    tmp_path: Path,
+) -> None:
     plugin = _plugin_fixture(tmp_path)
     _write(plugin, ".venv/secret.txt", "sk-this-is-excluded-and-never-scanned-123456")
-    _write(plugin, "remote_adapter/node_modules/cache.js", "ignored\n")
-    _write(plugin, "remote_adapter/leaked.js.map", "{}\n")
-    _write(plugin, "remote_adapter/tsconfig.tsbuildinfo", "{}\n")
+    adapter = tmp_path / "apps" / "evidence-lane-remote-adapter"
+    _write(adapter, "node_modules/cache.js", "ignored\n")
+    _write(adapter, "leaked.js.map", "{}\n")
+    _write(adapter, "tsconfig.tsbuildinfo", "{}\n")
     _write(plugin, "src/evidence_lane_plugin/__pycache__/cache.pyc", b"ignored")
     _write(plugin, "src/evidence_lane_plugin.egg-info/SOURCES.txt", "ignored\n")
     _write(
@@ -568,16 +628,18 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path)
     first = _build(plugin, tmp_path / "first")
     second = _build(plugin, tmp_path / "second")
     assert first["archive"]["sha256"] == second["archive"]["sha256"]  # type: ignore[index]
-    assert first["working_source_manifest_sha256"] == second[
-        "working_source_manifest_sha256"
-    ]
+    assert (
+        first["working_source_manifest_sha256"]
+        == second["working_source_manifest_sha256"]
+    )
     assert first["boundary"] == BOUNDARY
     assert first["governed_candidate_created"] is False
     assert first["git_invoked"] is False
     assert first["accepted_pointer_moved"] is False
-    assert first["skill_count"] == 17
+    assert first["skill_count"] == 19
     assert first["canonical_lane_count"] == 18
-    assert "tests" in first["exclusion_policy"]["directory_names"]
+    assert "tests" not in first["exclusion_policy"]["directory_names"]
+    assert first["exclusion_policy"]["maintainer_test_prefixes"] == ["tests/tools/"]
     search_toolchain = first["search_toolchain"]
     assert search_toolchain["status"] == "PASS"
     assert search_toolchain["scope"] == "ALL_GOVERNED_PROJECTS"
@@ -590,12 +652,18 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path)
     assert search_toolchain["raw_paths_included"] is False
     assert Path(str(first["receipt_path"])).name.startswith("LOCAL_PACKAGE_REHEARSAL_")
 
-    first_archive = Path(str(first["receipt_path"])).parent / first["archive"][  # type: ignore[index]
-        "filename"
-    ]
-    second_archive = Path(str(second["receipt_path"])).parent / second["archive"][  # type: ignore[index]
-        "filename"
-    ]
+    first_archive = (
+        Path(str(first["receipt_path"])).parent
+        / first["archive"][  # type: ignore[index]
+            "filename"
+        ]
+    )
+    second_archive = (
+        Path(str(second["receipt_path"])).parent
+        / second["archive"][  # type: ignore[index]
+            "filename"
+        ]
+    )
     assert first_archive.read_bytes() == second_archive.read_bytes()
     with zipfile.ZipFile(first_archive) as archive:
         infos = archive.infolist()
@@ -609,36 +677,38 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(tmp_path: Path)
         assert not any("__pycache__" in name for name in names)
         assert not any(".egg-info" in name for name in names)
         assert not any("migrated-command-skills" in name for name in names)
-        assert not any(name == "tests" or name.startswith("tests/") for name in names)
-        assert names.count("_evidence_lane_rehearsal/exit-slip.json") == 1
+        assert not any(name.startswith("tests/tools/") for name in names)
+        assert names.count("manifests/package/exit-slip.json") == 1
+        assert not any(name.startswith("_evidence_lane_rehearsal/") for name in names)
         assert not any(name.endswith(".map") for name in names)
         assert not any(name.endswith(".tsbuildinfo") for name in names)
         assert ".env" not in names
-        for required in ("README.md", "LICENSE.md", "COPYRIGHT.md", "THIRD_PARTY_NOTICES.md"):
+        for required in (
+            "README.md",
+            "LICENSE.md",
+            "COPYRIGHT.md",
+            "THIRD_PARTY_NOTICES.md",
+        ):
             assert required in names
         assert "scripts/codex-release-channel.json" in names
         assert "scripts/codex_release/install_codex_stable.py" in names
         assert "scripts/codex_release/build_codex_exact_commit_package.py" in names
         assert "scripts/codex_release/seal_codex_git_ci_release_authority.py" in names
-        assert (
-            "scripts/codex_release/Update-EvidenceLaneCodexStableAndResume.ps1"
-            in names
-        )
-        assert "scripts/codex_release/Restart-EvidenceLaneCodex.ps1" in names
+        assert "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1" in names
+        assert "scripts/codex_release/Restart-EvidenceLaneCodex.ps1" not in names
+        assert "scripts/codex_release/drain_codex_task_turns.py" not in names
         assert (
             "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1"
-            in names
+            not in names
         )
-        assert "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1" in names
+        assert "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1" not in names
         assert "scripts/codex_release/accept_codex_stable.py" in names
         assert "chatgpt-app-connection.json" not in names
         assert "chatgpt-app-submission.json" not in names
         assert "release-channels.json" not in names
         assert not any(name.startswith("evidence/") for name in names)
         assert not any(name.startswith("remote_adapter/") for name in names)
-        exit_slip = json.loads(
-            archive.read("_evidence_lane_rehearsal/exit-slip.json")
-        )
+        exit_slip = json.loads(archive.read("manifests/package/exit-slip.json"))
         assert exit_slip["status"] == (
             "LOCAL_REHEARSAL_VERIFIED_NOT_A_GOVERNED_CANDIDATE"
         )
@@ -654,7 +724,11 @@ def test_rehearsal_rejects_generated_3d_assets(tmp_path: Path, suffix: str) -> N
 
 def test_rehearsal_rejects_high_confidence_secret_material(tmp_path: Path) -> None:
     plugin = _plugin_fixture(tmp_path)
-    _write(plugin, "config.txt", "sk-proj-this-is-not-a-real-key-but-must-be-rejected-123456\n")
+    _write(
+        plugin,
+        "config.txt",
+        "sk-proj-this-is-not-a-real-key-but-must-be-rejected-123456\n",
+    )
     with pytest.raises(PackageBoundaryError, match="openai_key"):
         _build(plugin, tmp_path / "output")
 
@@ -672,8 +746,10 @@ def test_rehearsal_rejects_meshy_dependency_or_mcp_binding(tmp_path: Path) -> No
 
 def test_rehearsal_fails_closed_on_skill_inventory_drift(tmp_path: Path) -> None:
     plugin = _plugin_fixture(tmp_path)
-    (plugin / "skills" / "skill-16" / "SKILL.md").unlink()
-    with pytest.raises(PackageBoundaryError, match="Expected 17 skills"):
+    (plugin / "skills" / "skill-18" / "SKILL.md").unlink()
+    with pytest.raises(
+        PackageBoundaryError, match="two-slot Git-main/local-testing contract drifted"
+    ):
         _build(plugin, tmp_path / "output")
 
 

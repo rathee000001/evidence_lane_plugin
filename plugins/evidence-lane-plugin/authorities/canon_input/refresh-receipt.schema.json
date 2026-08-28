@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "canon_input support refresh receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id",
+    "database",
+    "mmd",
+    "dot",
+    "tools",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.sqlite-authority-support-system.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "canon_input"
+    },
+    "database": {
+      "type": "object"
+    },
+    "mmd": {
+      "type": "object"
+    },
+    "dot": {
+      "type": "object"
+    },
+    "tools": {
+      "type": "object"
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "092BF8B32D55E4C6B203C654D7889C8B9EBDD020B647FEEB9BBDD1FBCB60E75D"
+}

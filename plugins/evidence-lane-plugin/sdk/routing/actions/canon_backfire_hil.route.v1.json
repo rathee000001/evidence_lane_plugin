@@ -1,0 +1,34 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "canon_backfire_hil",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_backfire_hil"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "backfire_hil",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-backfire",
+        "order": 13
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "0F0D2B241D47EE7D36B0CE7FF6E420EE626C67F29C72C18450B0230F3AAFBE9F",
+  "sdk_action_binding": "sdk/actions/canon_backfire_hil.action.v1.json",
+  "mcp_action_binding": "mcp/actions/canon_backfire_hil.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "71C76B3FAF20C1421F9880B9B6F5FCCC1946C4DB71912EC7DA6DE48D7AD382B4"
+}

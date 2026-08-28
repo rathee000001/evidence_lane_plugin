@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 4,
+  "event": "PreToolUse",
+  "matcher_groups": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_validate.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_validate.py",
+          "timeout": 10,
+          "statusMessage": "Validating and bounding Evidence Lane hook signal"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_seal.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_seal.py",
+          "timeout": 10,
+          "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_transport.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_transport.py",
+          "timeout": 10,
+          "statusMessage": "Guarding Evidence Lane governed tool use"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_emit.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_emit.py",
+          "timeout": 10,
+          "statusMessage": "Verifying and emitting Evidence Lane hook result"
+        }
+      ]
+    }
+  ],
+  "handler_count": 4,
+  "handlers": [
+    {
+      "display_id": "4.1",
+      "path": "hooks/events/PreToolUse/handler-4.1.v1.json",
+      "sha256": "9D50086290366CFAEF559760750CE8E6636316A7C55A57AC6B49760DF0737F3E"
+    },
+    {
+      "display_id": "4.2",
+      "path": "hooks/events/PreToolUse/handler-4.2.v1.json",
+      "sha256": "1F3CCF4838D8DABDE063F52215038DD9C86CE9C197CDC207FB058AF3F28ED120"
+    },
+    {
+      "display_id": "4.3",
+      "path": "hooks/events/PreToolUse/handler-4.3.v1.json",
+      "sha256": "84283D9CEFD8D520B940D107BABA7787AD6B4A2DF884A6F48FB70276B75F552C"
+    },
+    {
+      "display_id": "4.4",
+      "path": "hooks/events/PreToolUse/handler-4.4.v1.json",
+      "sha256": "A9037945D3615874CDE4DBF90A9C6880672CD8C6513334B5C5EC0A7E9785029F"
+    }
+  ],
+  "adapter": "hooks/pre_tool_use.py",
+  "adapter_sha256": "1D5EE052FD282B7DB09B56EA534762E4ABF49E5DC52A2F7D97B8B82EE97E746C",
+  "precompact_seals_before_compaction": true,
+  "postcompact_rehydrates_after_compaction": true,
+  "receipt_sha256": "888F1CDD8FB80501834FDF07F4AC2C0A82F92452F2CB4AB34231EDBC51C352EF"
+}

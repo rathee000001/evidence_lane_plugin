@@ -84,10 +84,10 @@ def test_postcompact_hook_signals_reentry_without_owning_behavior() -> None:
     config = json.loads(HOOKS.read_text(encoding="utf-8"))
     postcompact = config["hooks"]["PostCompact"][0]["hooks"][0]
     assert postcompact["command"].endswith(
-        "--event PostCompact --handler lifecycle_boundary.py"
+        "--event PostCompact --handler subhook_validate.py"
     )
     assert postcompact["commandWindows"].endswith(
-        'PostCompact lifecycle_boundary.py'
+        'PostCompact subhook_validate.py'
     )
     assert "EvidenceLaneHookHost.exe" in postcompact["commandWindows"]
 
@@ -96,6 +96,8 @@ def test_postcompact_hook_signals_reentry_without_owning_behavior() -> None:
     assert "WindowStyle = ProcessWindowStyle.Hidden" in windows_host
 
     hook = BOUNDARY_HOOK.read_text(encoding="utf-8")
+    dispatcher = (HOOKS.parent / "invoke_hook.py").read_text(encoding="utf-8")
+    assert '"PostCompact": ("lifecycle_boundary.py", ("PostCompact",))' in dispatcher
     runtime = SKILL_RUNTIME.read_text(encoding="utf-8")
     assert "consume_boundary_transport" in hook
     assert '"state": "SKILL_REENTRY_REQUIRED"' in runtime

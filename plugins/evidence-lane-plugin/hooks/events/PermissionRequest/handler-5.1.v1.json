@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 5,
+  "handler_number": 1,
+  "display_id": "5.1",
+  "event": "PermissionRequest",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_validate.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_validate.py",
+    "timeout": 10,
+    "statusMessage": "Validating and bounding Evidence Lane hook signal"
+  },
+  "logical_action": "VALIDATE_REDACT_AND_BOUND_VISIBLE_SIGNAL",
+  "stage": "hooks/subhook_validate.py",
+  "stage_sha256": "D218BB6F4923746A558FB1E70F9B8E32AE14EB0002D5EC13AAA042377066B874",
+  "adapter": "hooks/permission_request.py",
+  "adapter_sha256": "05283C844BCE39B541912BCC66500B76FC7BD93C8092E064D377F104B8D971A8",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "7C6C6A4583C175062B517BF28EC68209256F11BD2663730B0EBDB5D61CAA7F6F"
+}

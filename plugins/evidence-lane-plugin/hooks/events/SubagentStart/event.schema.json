@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence Lane SubagentStart event binding",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "event_number",
+    "event",
+    "handlers",
+    "adapter_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.hook-event-binding.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "event_number": {
+      "const": 2
+    },
+    "event": {
+      "const": "SubagentStart"
+    },
+    "handlers": {
+      "type": "array",
+      "minItems": 1
+    },
+    "adapter_sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "E2E78BEBF647AAB6E2528ECB37BAAB2969A379C1863A8FFE04936F562DDEAE0A"
+}

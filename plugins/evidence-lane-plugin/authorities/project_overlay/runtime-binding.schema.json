@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_overlay runtime binding",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "module",
+    "source_sha256"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "project_overlay"
+    },
+    "module": {
+      "const": "evidence_lane_plugin.project_overlay"
+    },
+    "source_sha256": {
+      "const": "E6641A9DFC739C8D822CA90B654B7472C6DE3B40697FCB7F0FAC059E01355229"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "414459038B041B832E682694400A4E5D2AF496AC8F472AE21517C7CB69030860"
+}

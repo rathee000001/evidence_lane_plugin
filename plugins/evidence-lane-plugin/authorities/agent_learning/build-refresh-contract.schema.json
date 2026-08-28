@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agent_learning support refresh request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "project_root",
+    "authority_id"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_id": {
+      "const": "agent_learning"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "F1F4A68EA0ACD68F4C745908884A28EE25F19F1CC70F5BFE832072F9998962A2"
+}

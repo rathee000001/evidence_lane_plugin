@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-host-contract-binding.v1",
+  "status": "PASS",
+  "contract": "hook-control",
+  "law": "PER_EVENT_CAS_TRUST_AND_ENABLEMENT",
+  "owner": "hooks/event_isolation.py",
+  "owner_sha256": "4164586FA1A03D433D954944919F77E5095B86915A08267C6E443F5B25497A55",
+  "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
+  "project_root_hardcoded": false,
+  "workspace_hardcoded": false,
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "E23AFADF10AA41DCCCCD870B37F70AD981E87C36285E3CBF21C42B8EDAFFEDD3"
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Data / Excel / CSV refresh receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "classification",
+    "recorded_at"
+  ],
+  "properties": {
+    "lane_id": {
+      "const": "data_excel"
+    },
+    "classification": {
+      "type": "object"
+    },
+    "recorded_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "65D482449E7001AE060A78BBA5CBAEE5212ADD5812737203E12899E26F7FF9EF"
+}

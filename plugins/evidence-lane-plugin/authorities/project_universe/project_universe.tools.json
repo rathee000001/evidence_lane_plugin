@@ -1,0 +1,418 @@
+{
+  "schema": "evidence-lane.installed-authority-tools.v1",
+  "status": "PASS",
+  "authority_id": "project_universe",
+  "database": "project_universe.sqlite",
+  "query_order": [
+    "project_universe.mmd",
+    "project_universe.dot",
+    "project_universe.sqlite"
+  ],
+  "sqlite_query_mode": "READ_ONLY_IMMUTABLE_BOUNDED_FTS5_BM25",
+  "json_role": "BUILD_REFRESH_SCHEMA_AND_POINTER_TOOLING",
+  "runtime_binding": "runtime.py",
+  "builder_binding": "builder.py:refresh",
+  "reader_binding": "reader.py:validate",
+  "linked_public_actions": [
+    {
+      "name": "pv_query",
+      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_query"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-learning",
+            "workflow": "learning-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-memory",
+            "workflow": "project-memory-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "post-entry-plan-authority-read",
+            "order": 8
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_status",
+      "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_status"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-learning",
+            "workflow": "learning-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-memory",
+            "workflow": "project-memory-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-plan-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "post-entry-plan-authority-read",
+            "order": 6
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-authority-read",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_task_backlog",
+      "schema_sha256": "C2746023576A61362CEE3340EF2BC090F6779067BEB16749F9AFDA15185AA6A9",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_task_backlog"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-learning",
+            "workflow": "learning-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-memory",
+            "workflow": "project-memory-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-plan-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "post-entry-plan-authority-read",
+            "order": 7
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-authority-read",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "search",
+      "schema_sha256": "1D4C303C7B3FE4AC1E729A6D7B45EA0A082FE57585D1C3251874A5BBE9769691",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "search"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 14
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "linked_skills": {
+    "skills/evi-universe/SKILL.md": "DBF0F755330D97025BCBA986C2107954F7694B8A90053768047375B2FFFE2147"
+  },
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/project_universe.py": "C54666A1ABA1850A46F5BF654FF009FFA387CEA8AC9CB0EEAA99CDCCF45A9649",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "project_universe",
+    "source_count": 0,
+    "node_count": 0,
+    "indexed_table_count": 0,
+    "indexed_tables": [],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:51.723604Z",
+    "receipt_sha256": "30A9E25943876FC08CD084362F72390F97EE9C141F77064A8969DB3CFE276D8F"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "project_universe_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 110,
+    "edge_count": 112,
+    "group_count": 1,
+    "semantic_topology_sha256": "0E393BF4161F6F2FAB22C94EF8209EA6F3940062E0F3553CC770E932D6B4BCC1",
+    "mmd_sha256": "E9B2A22FC7E737BBA1175805607055FF9B58E09982B658A6161812CE9E94EF6C",
+    "dot_sha256": "5A1E8167FA685EF0EE46117EF235E83EF0DC2292762619992713191DD895808B",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "7D58A1AFA532BACF46E9015B6FA3D8375FE9ED28941AED5A906B0E21ED6D6946",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 110,
+      "edge_count": 112,
+      "weak_component_count": 1,
+      "strong_component_count": 110,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 20
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_universe_edge",
+          "in_degree": 1,
+          "out_degree": 8
+        },
+        {
+          "node_id": "support_table_universe_node",
+          "in_degree": 3,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_universe_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_universe_refresh",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_universe_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_authority_index_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_universe_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_authority_index_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_universe_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_universe_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_universe_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_universe_meta",
+          "in_degree": 1,
+          "out_degree": 2
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "B9BA84FB865F826D7F90A02E9AA18B77CE09C9254CDBF9AC2A822A860EDDFB92",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "C18530DAA6926F08AC09825CB1494F7AA7E42B7CCF09C940D0651E57AF251410"
+  },
+  "receipt_sha256": "A86040C384656C95FD9E24FABEA91AEDD8C4643A06A57BE8659F5256738774E2"
+}

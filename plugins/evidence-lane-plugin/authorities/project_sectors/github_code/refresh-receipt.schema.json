@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GitHub Code refresh receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "classification",
+    "recorded_at"
+  ],
+  "properties": {
+    "lane_id": {
+      "const": "github_code"
+    },
+    "classification": {
+      "type": "object"
+    },
+    "recorded_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "22A407DAD3D4949B8C57F0C2681B8F1FF749994B11D30D669231E87E07D423E5"
+}

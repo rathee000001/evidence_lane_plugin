@@ -42,8 +42,6 @@ PACKAGED_FTS5_CONTRACT_PATH = (
     ROOT
     / "plugins"
     / "evidence-lane-plugin"
-    / "src"
-    / "evidence_lane_plugin"
     / "schemas"
     / "lane-search-fts5.v001.json"
 )

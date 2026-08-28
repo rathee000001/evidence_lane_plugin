@@ -1,0 +1,54 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "runtime_doctor",
+  "title": "Check Evidence Lane runtime",
+  "input_schema": {
+    "properties": {},
+    "title": "runtime_doctorArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "runtime_doctorDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "F364133F51E5A271CABD8480B1B81ED1C36BC66628D231B27CB2D0984810D9C4",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-boot",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "runtime_doctor"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-boot",
+        "workflow": "boot-or-resume",
+        "order": 3
+      },
+      {
+        "owner_skill": "evi-state-travel",
+        "workflow": "direct-destination-runtime-doctor",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/runtime_doctor.action.v1.json",
+  "sdk_action_binding_sha256": "EBB5A45C1ABE0B178A6A6352DE4219EA176684958EEDA1285EA3DC25C6D3FE1B",
+  "public_action_schema": "schemas/actions/runtime_doctor.schema.json",
+  "public_action_schema_sha256": "7B27C7B807E36F9C40BAD9A4538E74DF15AF1507DF11E298E0C89F00F83494A4",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "C020CAB5EC436B690177E230BCE810C86F398E9071D85592FEBFEBA685F79E06"
+}

@@ -1,0 +1,55 @@
+{
+  "schema": "evidence-lane.env-packaged-authority.v1",
+  "status": "PASS",
+  "authority": "ENV",
+  "canonical_root": "env",
+  "published_root": "env",
+  "member_count": 7,
+  "members": [
+    {
+      "path": "env/SOURCE_PACKET_AUDIT.json",
+      "canonical_path": "env/SOURCE_PACKET_AUDIT.json",
+      "bytes": 1191,
+      "sha256": "022CAD7DD9B9832190EF83B3BC2E38E0D4F7BCA151F5A1DE90158666559E5455"
+    },
+    {
+      "path": "env/UNIVERSAL_FLASH_PROMPT.md",
+      "canonical_path": "env/UNIVERSAL_FLASH_PROMPT.md",
+      "bytes": 2786,
+      "sha256": "2167BBABE80656C24B18544096E725E874D4FB46066B8F4F8364A3BF14A827DB"
+    },
+    {
+      "path": "env/env_law.md",
+      "canonical_path": "env/env_law.md",
+      "bytes": 3526,
+      "sha256": "FC410F6EED4EDB10C8BC2969C4556324CEAAB0CEE98F3163D30657D724A72433"
+    },
+    {
+      "path": "env/env_mmd.dot",
+      "canonical_path": "env/env_mmd.dot",
+      "bytes": 40584,
+      "sha256": "B873DCD12B6B0880A67A79D2D228053AECE63C81C56D73D972EF904D141E708C"
+    },
+    {
+      "path": "env/env_mmd.mmd",
+      "canonical_path": "env/env_mmd.mmd",
+      "bytes": 24433,
+      "sha256": "4FDE450BB73D470440C40DD8EA4E7C67BBEB7C0B123B7796BE23E41A9E03E9A4"
+    },
+    {
+      "path": "env/env_sqlite.sqlite",
+      "canonical_path": "env/env_sqlite.sqlite",
+      "bytes": 13455360,
+      "sha256": "2E771E34EEEA89CCC44A8B5607B1AE3287E9721389AC53A87BF5FA42347D44EB"
+    },
+    {
+      "path": "env/locked_mmd_hash.txt",
+      "canonical_path": "env/locked_mmd_hash.txt",
+      "bytes": 622,
+      "sha256": "185D0348B837E64DD1F8E33FB68AAA8B2F9221BF971F9465E6AD0BB1A86839B4"
+    }
+  ],
+  "canonical_packaged_authority": true,
+  "duplicate_authority_copy_present": false,
+  "receipt_sha256": "F1D8BBE24F8A742080936CFB2F5E414912C9A1827934D197E25A3DFDA8D07A92"
+}

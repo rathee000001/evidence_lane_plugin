@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Local Code lane tools",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "lane_id",
+    "builder",
+    "reader",
+    "query_traversal",
+    "retrieval_modes",
+    "canonical_shared_modules"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-lane-tooling.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "lane_id": {
+      "const": "local_code"
+    },
+    "builder": {
+      "const": "builder.py:build_lane_sources"
+    },
+    "reader": {
+      "const": "reader.py:LaneReader"
+    },
+    "query_traversal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval_modes": {
+      "const": [
+        "hybrid",
+        "fts5",
+        "bm25",
+        "tfidf"
+      ]
+    },
+    "canonical_shared_modules": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "FD7A2FF8128B68B21D068804D0BBC52C08B76CA2929BA30ECD032EB0CE60D309"
+}

@@ -19,28 +19,32 @@ from evidence_lane_plugin.runtime_activation import RuntimeActivation
 from .conftest import boot_local
 
 STABLE_FLASH_MANIFEST_SHA256 = (
-    "4585D703515D2DE245F688E3047F192C6BD3D507475B57855918561933C5293A"
+    "B41F53A66E2CEA58788FC43E1466D16847B5A07ECD90A2149BCEF5C8F1422512"
 )
 STABLE_FLASH_PROMPT_SHA256 = (
     "2167BBABE80656C24B18544096E725E874D4FB46066B8F4F8364A3BF14A827DB"
 )
 STABLE_FLASH_AUTHORITY_DIGEST = (
-    "644AEEAE1434B3808E544BA9C634ACE3685F21F73D3F86E0CF5DE31D4A6B48A5"
+    "A1E8F1FDCAB88FA5A6B7BD3FEC550CD5313F6CD097B03B44382C3B1FE886F3F1"
 )
 
 
 def _sealed_json_sha256(payload: dict[str, object]) -> str:
-    return hashlib.sha256(
-        (
-            json.dumps(
-                payload,
-                ensure_ascii=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            )
-            + "\n"
-        ).encode("utf-8")
-    ).hexdigest().upper()
+    return (
+        hashlib.sha256(
+            (
+                json.dumps(
+                    payload,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            ).encode("utf-8")
+        )
+        .hexdigest()
+        .upper()
+    )
 
 
 def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
@@ -127,10 +131,7 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
     }
     installation["receipt_sha256"] = _sealed_json_sha256(installation)
     current_installation = (
-        tmp_path
-        / "installations"
-        / "codex-v200"
-        / "CURRENT_INSTALLATION.json"
+        tmp_path / "installations" / "codex-v200" / "CURRENT_INSTALLATION.json"
     )
     current_installation.parent.mkdir(parents=True, exist_ok=True)
     current_installation.write_text(
@@ -151,28 +152,24 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
     assert proven["prompt_capture_partially_available"] is True
     assert proven["required_pre_reasoning_capture_complete"] is False
     assert proven["supported_pre_reasoning_capture_complete"] is True
-    assert proven["missing_required_pre_reasoning_surfaces"] == [
-        "GOAL_CONTINUATION"
-    ]
-    assert proven["host_capability_unavailable_surfaces"] == [
-        "GOAL_CONTINUATION"
-    ]
+    assert proven["missing_required_pre_reasoning_surfaces"] == ["GOAL_CONTINUATION"]
+    assert proven["host_capability_unavailable_surfaces"] == ["GOAL_CONTINUATION"]
     assert proven["capture_gap_code"] == (
         "HOST_PRE_REASONING_USER_INPUT_HOOK_UNAVAILABLE"
     )
     surfaces = {
-        row["surface"]: row
-        for row in proven["required_pre_reasoning_capture_surfaces"]
+        row["surface"]: row for row in proven["required_pre_reasoning_capture_surfaces"]
     }
-    assert surfaces["USER_PROMPT_CORRECTION_OR_HIL_TOKEN"][
-        "pre_reasoning_dispatch_runnable"
-    ] is True
+    assert (
+        surfaces["USER_PROMPT_CORRECTION_OR_HIL_TOKEN"][
+            "pre_reasoning_dispatch_runnable"
+        ]
+        is True
+    )
     assert surfaces["MID_GOAL_STEER"]["state"] == (
         "RUNNABLE_REQUIRES_PER_INPUT_PREPARE_RECEIPT"
     )
-    assert surfaces["GOAL_CONTINUATION"]["state"] == (
-        "HOST_CAPABILITY_UNAVAILABLE"
-    )
+    assert surfaces["GOAL_CONTINUATION"]["state"] == ("HOST_CAPABILITY_UNAVAILABLE")
     assert surfaces["GOAL_CONTINUATION"]["native_hook_event"] is None
     assert surfaces["GOAL_CONTINUATION"]["pre_reasoning_dispatch_runnable"] is False
     assert proven["visible_response_capture_active"] is True
@@ -217,7 +214,7 @@ def test_v2_reuses_the_existing_stable_flash_authority(tmp_path: Path) -> None:
         json.dumps(
             {
                 "schema": "evidence-lane.session-flash-receipt.v1",
-                "receipt_id": "flash_644aeeae1434b3808e544ba9",
+                "receipt_id": "flash_bd539f46d32345a17b7732bf",
                 "plugin_id": "evidence-lane-plugin",
                 "state": "FLASHED_UNTIL_PLUGIN_REMOVED",
                 "authority_version": FLASH_AUTHORITY_VERSION,
@@ -238,7 +235,7 @@ def test_v2_reuses_the_existing_stable_flash_authority(tmp_path: Path) -> None:
     reused = authority.ensure_flashed()
     assert reused["status"] == "PASS"
     assert reused["flash_action"] == "REUSED"
-    assert reused["receipt"]["receipt_id"] == "flash_644aeeae1434b3808e544ba9"
+    assert reused["receipt"]["receipt_id"] == "flash_bd539f46d32345a17b7732bf"
 
 
 def test_locked_env_uop_flash_is_visible_idempotent_and_outside_pv(service) -> None:
@@ -251,9 +248,10 @@ def test_locked_env_uop_flash_is_visible_idempotent_and_outside_pv(service) -> N
     assert before["authorities"]["env"]["sqlite"]["integrity"] == ["ok"]
     assert before["authorities"]["uop"]["sqlite"]["integrity"] == ["ok"]
     assert before["runtime_projection"]["status"] == "PASS"
-    assert before["runtime_projection"]["row_count"] == before[
-        "runtime_projection"
-    ]["fts_count"]
+    assert (
+        before["runtime_projection"]["row_count"]
+        == before["runtime_projection"]["fts_count"]
+    )
     assert before["source_packet"] == {
         "status": "PARTIAL_INTEGRITY",
         "whole_packet_accepted": False,
@@ -301,7 +299,9 @@ def test_locked_env_uop_flash_is_visible_idempotent_and_outside_pv(service) -> N
 def test_corrupted_locked_flash_member_fails_closed(tmp_path: Path) -> None:
     source = SessionFlashAuthority(data_root=tmp_path / "source-store").asset_root
     copied = tmp_path / "copied-authority"
-    shutil.copytree(source, copied)
+    copied.mkdir()
+    shutil.copytree(source / "env", copied / "env")
+    shutil.copytree(source / "uop", copied / "uop")
     with (copied / "env" / "env_mmd.mmd").open("ab") as handle:
         handle.write(b"\ncorruption")
     authority = SessionFlashAuthority(

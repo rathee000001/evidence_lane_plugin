@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.schema_topology",
+  "source_path": "src/evidence_lane_plugin/schema_topology.py",
+  "source_sha256": "EE373DE6CEC0BB61EE08834DEC6B002EAF1AD16132D363C1C8E7AE2941560AAA",
+  "source_bytes": 5930,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "F723038C5FB9CEA0A07D39010A59EB1A141B7B61D71D5B65A4AA109DB8E0F86B"
+}

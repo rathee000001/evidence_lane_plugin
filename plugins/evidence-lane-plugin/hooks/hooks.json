@@ -1,5 +1,5 @@
 {
-  "description": "Evidence Lane exact-session lifecycle transport: the registry-derived ordered command adapters validate, redact, bound, deduplicate, seal, and pass host signals to the installed lifecycle skill runtime. PermissionRequest and subagent events are observation-only and never grant, deny, or control a host action. After each exact consumer returns, the adapter issues and consumes one content-addressed behavior-handoff receipt; the receipt verifies ownership and binding but performs no behavior. The skill runtime owns Entry, PREPARE, tool/change receipts, compaction continuity, COMMIT, and best-effort boundary flush; skills also own native reads, classification, Plan refresh, Goal behavior, and HIL sequencing. Hook adapters never own source, Git, PV, pointer, candidate, HIL, Plan, Goal, approval, or credential behavior.",
+  "description": "Evidence Lane ordered native lifecycle pipeline. Every event class exposes four real host handlers: validate/bound, deduplicate/seal, execute the event transport exactly once, and verify/emit its result. Internal SDK metadata remains outside this host-owned schema.",
   "hooks": {
     "SessionStart": [
       {
@@ -7,10 +7,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler session_start.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionStart session_start.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionStart subhook_validate.py",
+            "timeout": 10,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionStart subhook_seal.py",
+            "timeout": 10,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionStart subhook_transport.py",
             "timeout": 10,
             "statusMessage": "Warm-attaching Evidence Lane locally"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionStart subhook_emit.py",
+            "timeout": 10,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }
@@ -20,10 +41,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subagent_start.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subagent_start.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_validate.py",
+            "timeout": 10,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_seal.py",
+            "timeout": 10,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_transport.py",
             "timeout": 10,
             "statusMessage": "Observing a bound Evidence Lane subagent start"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_emit.py",
+            "timeout": 10,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }
@@ -33,10 +75,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler prompt_submit.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit prompt_submit.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit subhook_validate.py",
+            "timeout": 10,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit subhook_seal.py",
+            "timeout": 10,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit subhook_transport.py",
             "timeout": 10,
             "statusMessage": "Preparing Evidence Lane governed turn"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit subhook_emit.py",
+            "timeout": 10,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }
@@ -46,10 +109,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler pre_tool_use.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse pre_tool_use.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_validate.py",
+            "timeout": 10,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_seal.py",
+            "timeout": 10,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_transport.py",
             "timeout": 10,
             "statusMessage": "Guarding Evidence Lane governed tool use"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_emit.py",
+            "timeout": 10,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }
@@ -59,10 +143,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler permission_request.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest permission_request.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_validate.py",
+            "timeout": 10,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_seal.py",
+            "timeout": 10,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_transport.py",
             "timeout": 10,
             "statusMessage": "Observing a bound Evidence Lane permission request"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_emit.py",
+            "timeout": 10,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }
@@ -72,10 +177,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler post_tool_use.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostToolUse post_tool_use.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostToolUse subhook_validate.py",
+            "timeout": 10,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostToolUse subhook_seal.py",
+            "timeout": 10,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostToolUse subhook_transport.py",
             "timeout": 10,
             "statusMessage": "Projecting Evidence Lane Plan and changes"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostToolUse subhook_emit.py",
+            "timeout": 10,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }
@@ -85,10 +211,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler lifecycle_boundary.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact lifecycle_boundary.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_validate.py",
+            "timeout": 10,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_seal.py",
+            "timeout": 10,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_transport.py",
             "timeout": 10,
             "statusMessage": "Sealing Evidence Lane compaction boundary"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_emit.py",
+            "timeout": 10,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }
@@ -98,10 +245,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler lifecycle_boundary.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact lifecycle_boundary.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_validate.py",
+            "timeout": 10,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_seal.py",
+            "timeout": 10,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_transport.py",
             "timeout": 10,
             "statusMessage": "Rehydrating Evidence Lane after compaction"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_emit.py",
+            "timeout": 10,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }
@@ -111,10 +279,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subagent_stop.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subagent_stop.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_validate.py",
+            "timeout": 10,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_seal.py",
+            "timeout": 10,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_transport.py",
             "timeout": 10,
             "statusMessage": "Observing a bound Evidence Lane subagent stop"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_emit.py",
+            "timeout": 10,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }
@@ -124,10 +313,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler stop_response.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" Stop stop_response.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" Stop subhook_validate.py",
+            "timeout": 10,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" Stop subhook_seal.py",
+            "timeout": 10,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" Stop subhook_transport.py",
             "timeout": 10,
             "statusMessage": "Committing Evidence Lane governed turn"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" Stop subhook_emit.py",
+            "timeout": 10,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }
@@ -137,10 +347,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler lifecycle_boundary.py",
-            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd lifecycle_boundary.py",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_validate.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_validate.py",
+            "timeout": 3,
+            "statusMessage": "Validating and bounding Evidence Lane hook signal"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_seal.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_seal.py",
+            "timeout": 3,
+            "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_transport.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_transport.py",
             "timeout": 3,
             "statusMessage": "Flushing Evidence Lane lifecycle boundary"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_emit.py",
+            "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_emit.py",
+            "timeout": 3,
+            "statusMessage": "Verifying and emitting Evidence Lane hook result"
           }
         ]
       }

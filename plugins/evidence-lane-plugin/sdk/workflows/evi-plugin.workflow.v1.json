@@ -1,0 +1,169 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-plugin",
+  "skill_sha256": "0CA3EA25CFB1D3B0E4D27E4C3D2EE98CB4CDDFAA8933C7FD5FF159B2CE255FA5",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "connector_plugin_catalog"
+      ],
+      "workflow": "inspect-connectors"
+    },
+    {
+      "order": 2,
+      "tools": [
+        "connector_plugin_settings"
+      ],
+      "workflow": "inspect-connectors"
+    },
+    {
+      "order": 3,
+      "tools": [
+        "connector_plugin_register",
+        "connector_plugin_drop"
+      ],
+      "workflow": "change-connector-registration"
+    },
+    {
+      "order": 4,
+      "tools": [
+        "connector_plugin_route"
+      ],
+      "workflow": "route-connector"
+    }
+  ],
+  "action_count": 5,
+  "actions": [
+    {
+      "name": "connector_plugin_catalog",
+      "schema_sha256": "875A7F67DDD477AF8D3B3BCA695ED624EE5317045BBFBBC8A93C5132AF0FBB5E",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-plugin",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "connector_plugin_catalog"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-additional-plugin",
+            "workflow": "register-connector",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-plugin",
+            "workflow": "inspect-connectors",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "connector_plugin_settings",
+      "schema_sha256": "8573EC7D81C530D9DEE2D0478B910647A6DF9823C6C6CB382D1CB34A905B4AEE",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-plugin",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "connector_plugin_settings"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-plugin",
+            "workflow": "inspect-connectors",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "connector_plugin_register",
+      "schema_sha256": "995977D28C357E8DABC518E2E6682DA7C3309CA50F72B495A8BCCD2995AC9FBE",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-additional-plugin",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "connector_plugin_register"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-additional-plugin",
+            "workflow": "register-connector",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-plugin",
+            "workflow": "change-connector-registration",
+            "order": 3
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "connector_plugin_drop",
+      "schema_sha256": "98F2DF9E5424ECD9A1FF29FED02140D78A0F886E7B0F07D3B0CE8D6B9CCC6DE8",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-drop-additional-plugin",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "connector_plugin_drop"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-drop-additional-plugin",
+            "workflow": "drop-connector",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-plugin",
+            "workflow": "change-connector-registration",
+            "order": 3
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "connector_plugin_route",
+      "schema_sha256": "4BA98E6EA9B8B66C57DB610BFA43F2B7F4E5D21A918250A93DFE4B1B45689888",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-plugin",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "connector_plugin_route"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-plugin",
+            "workflow": "route-connector",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "FCEC2163B2BF37E641779FDD165C7A8EC86F5823C8A044EE6C30C1B39591BD98"
+}

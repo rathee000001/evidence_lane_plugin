@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Artifacts lane tools",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "lane_id",
+    "builder",
+    "reader",
+    "query_traversal",
+    "retrieval_modes",
+    "canonical_shared_modules"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-lane-tooling.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "lane_id": {
+      "const": "artifacts"
+    },
+    "builder": {
+      "const": "builder.py:build_lane_sources"
+    },
+    "reader": {
+      "const": "reader.py:LaneReader"
+    },
+    "query_traversal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval_modes": {
+      "const": [
+        "hybrid",
+        "fts5",
+        "bm25",
+        "tfidf"
+      ]
+    },
+    "canonical_shared_modules": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "C62E8AB758621F85619FAE765B9390EC00939E970BDCB248AFDE4A1C4D063685"
+}

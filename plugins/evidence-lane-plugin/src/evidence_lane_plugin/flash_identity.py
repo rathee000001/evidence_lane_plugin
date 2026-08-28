@@ -22,9 +22,11 @@ FLASH_IDENTITY_GENERATOR_VERSION = "1"
 
 SOURCE_AUTHORITY_MEMBER_PATHS = frozenset(
     {
-        "env/env_mmd.png",
+        "env/env_mmd.mmd",
+        "env/env_mmd.dot",
         "env/env_sqlite.sqlite",
-        "uop/uop_mmd.png",
+        "uop/uop_mmd.mmd",
+        "uop/uop_mmd.dot",
         "uop/uop_sqlite.sqlite",
     }
 )
@@ -32,13 +34,9 @@ SOURCE_AUTHORITY_MEMBER_PATHS = frozenset(
 REQUIRED_CODEX_PROJECTION_MEMBER_PATHS = frozenset(
     {
         "env/env_law.md",
-        "env/env_mmd.mmd",
-        "env/env_mmd.svg",
         "env/locked_mmd_hash.txt",
         "uop/locked_mmd_hash.txt",
         "uop/uop_law.md",
-        "uop/uop_mmd.mmd",
-        "uop/uop_mmd.svg",
     }
 )
 

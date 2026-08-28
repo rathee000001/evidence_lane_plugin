@@ -2,8 +2,35 @@
 
 # Evidence Lane 3.0.0 architecture
 
+<!-- EVIDENCE_LANE_CURRENT_BACKEND_START -->
+## Current backend contract
+
+This public document is refreshed from the same source graph used by the installable plugin package.
+
+- Plugin package: `3.0.0+codex.20260828064341`.
+- Native MCP: **91 actions** (**30 read / 61 write**).
+- Native skills: **26 governed skills**; the separate command layer is absent.
+- Hooks: **11 events / 44 ordered handler actions**.
+- SDK: internal action SDK and outer routing SDK remain distinct; public action count **91**.
+- ENV/UOP: separate executable authorities with **7 ENV members / 5 UOP members**.
+- Runtime control lives in the hidden Codex plugin layer; Project/PV authority and task workspace remain separate user-selected identities.
+- Public copy excludes internal receipts, task corrections, forensic reports, and historical execution documents.
+
+Exact backend bindings:
+  - `plugins/evidence-lane-plugin/.codex-plugin/plugin.json` — `42A726CD910A27EF9B8987907F02D127789857C8B04E1E214A91D1F74D151A4B`
+  - `plugins/evidence-lane-plugin/schemas/public-action-schemas.v001.json` — `B571AF9EC31691C96DB0B3845ED0B7A6700D1C84A2578ABA9A2EA594982AF045`
+  - `plugins/evidence-lane-plugin/skills/skill-surface-registry.v1.json` — `38B1F95B8160E037B43B209A6D6047BF8BCA4D2599182C2F20E4606B6CBDF3A5`
+  - `plugins/evidence-lane-plugin/hooks/hooks.json` — `C37DB05DD4701087EAD0BD31203C843AAFA79ED39A081F2E9DFF313A77631EEF`
+  - `plugins/evidence-lane-plugin/sdk/sdk-manifest.v1.json` — `5BD21AEB96D7E41209E3D059D8A5296D851BDED1D453D6EF486C0CD50D745245`
+  - `plugins/evidence-lane-plugin/mcp/mcp-manifest.v1.json` — `E9E402C2F20B2BBE63B6BF91613B1C97E85E615F982D52CF6D020408251AFAFB`
+  - `plugins/evidence-lane-plugin/env/authority-manifest.v1.json` — `E4F283EC16F86995E2937288DD8A8E5623007351CBB1CA3FD01FDA5C7363B6C1`
+  - `plugins/evidence-lane-plugin/uop/authority-manifest.v1.json` — `BBA3CDAE9CC0FF981E5C6E19F83FBBCE6EB2ED8167CDBB2E9D1C557FA03CA57C`
+  - `plugins/evidence-lane-plugin/toolchains/TOOLCHAIN_EXECUTION_MATRIX.md` — `E5379D7C4B17BC9293F332216581D60F88ADF73A4B7B361D84D09B47FC4EA66F`
+<!-- EVIDENCE_LANE_CURRENT_BACKEND_END -->
+
+
 Evidence Lane is a Codex-native, local-first evidence lifecycle. Version 3.0.0
-is the current pre-HIL source line. Accepted Project Truth remains PV12 at
+is the current source line. Accepted Project Truth remains PV12 at
 generation 12 until a fresh six-way Project HIL authorizes a different result.
 Source, installed package slots, candidate identity, and accepted PV identity
 remain separate measured facts.
@@ -77,8 +104,8 @@ scope, exact commit and tree, governed push, Actions head, deterministic
 package, and branch-commit recovery slot. It creates no candidate, invokes no
 HIL, moves no accepted pointer, and does not merge `main`. A later release HIL
 may be presented only after the exact package is installed and native readback
-proves 88 actions (27 read/61 write), 17 skills, eight distinct hook events,
-and the migrated command surface.
+proves 91 actions (30 read/61 write), 26 native skills, no separate command
+surface, and eleven distinct hook events.
 
 A downstream user's project PV does not reinstall or release Evidence Lane and
 does not inherit the plugin maintainer's tunnel or CI topology. The project may
@@ -89,16 +116,14 @@ identity. An already accepted locked ENV/UOP identity cannot be edited in
 place.
 
 This maintainer route also owns version-bound Windows support processes. The
-release updater is private to Evidence Lane development; governed users receive
-the Goal-recovery helper and, when host classification requires transport, the
-Stable tunnel. They run persistently or with a true no-window launch. Older
-versioned copies remain retained and disabled. The pre-final-HIL fallback stays
-byte-frozen at its last verified identity. Only an exact final human release
-approval and Fuse may begin the serial rotation that proves main equals the accepted commit,
-hydrates both Stable and disabled fallback from the same accepted 3.0 package,
-rotates matching helper/tunnel identities, and leaves one active runtime. The
-same rule repeats for later plugin-maintainer releases, never for downstream
-project PVs.
+release updater, children-first drain utility, and dumb same-task restart helper
+are private to Evidence Lane development. Governed users receive one plugin
+version and, only when host classification requires transport, one matching
+tunnel. Removed executable helper and slot routes are absent rather than
+retained as fallbacks. Only an exact final human release approval and Fuse may
+begin the serial rotation that proves main equals the accepted commit and
+leaves one active runtime. The same rule repeats for later plugin-maintainer
+releases, never for downstream project PVs.
 
 Goal lifetime is a different human authority. `MARK GOAL COMPLETE` with
 `COMPLETE_THIS_TASK_AND_STATE_TRAVEL` closes only the current task boundary and
@@ -114,8 +139,8 @@ Boot/Flash, the public same-worktree route executes exactly once with only the
 project/session plus authoritative source, runtime donor, destination task, and
 destination-title identities. The server derives and validates all runtime,
 dirty-byte, Plan, pointer-baseline, and replay evidence; callers never compose
-bindings, nonces, PIDs, runtime IDs, hashes, PV/pointer payloads, PREPARE, or
-RESUME. On PASS it returns the small whole-authority Plan prompt and stops at
+bindings, nonces, PIDs, runtime IDs, hashes, PV/pointer payloads, or compatibility
+handoff payloads. On PASS it returns the small whole-authority Plan prompt and stops at
 the native **Implement this plan** gate. Only a distinct host acceptance event
 plus bounded Plan verification may reattach the carried Goal and fixed Plan
 projection.
@@ -126,8 +151,8 @@ hydration, or a React-root rerender is a first-class continuity failure even
 when the Codex root process remains alive. The critical section is serialized
 to one active task and zero subagents; on a renderer reset it fails closed,
 revalidates the complete native ledger, and reactivates the exact current host
-window before work. The maintainer release helper, governed-user Goal recovery
-helper, tunnel helper, scheduled recovery task, and subagents are not State
+window before work. The maintainer release helper, separate drain utility,
+tunnel helper, scheduled recovery task, and subagents are not State
 Travel executors.
 The plugin can enforce and attest this boundary but cannot guarantee survival
 of host-owned renderer state.
@@ -195,8 +220,8 @@ flowchart TB
     end
 
     subgraph Plugin["Evidence Lane 3.0 package"]
-      Skills["17 governed skills\n6 primary controls + routers and sidecars"]
-      MCP["Native evidence-lane MCP\n88 actions = 27 read + 61 write"]
+      Skills["25 governed skills\n6 primary controls + routers and sidecars"]
+      MCP["Native evidence-lane MCP\n91 actions = 30 read + 61 write"]
       SDK["Full internal SDK\nengine + contracts + provider/host adapters"]
       Search["SQLite FTS5 authority\nverified rg pre-index fallback"]
     end
@@ -247,8 +272,8 @@ promote Project Truth, Learning cannot overwrite it, hooks cannot govern it,
 the website cannot execute it, and the host Plan surface cannot accept a PV.
 
 The 3.0.0 package contains one package-local MCP server named
-`evidence-lane`, exactly 88 canonical actions (27 read-only and 61
-write-capable), 17 governed skills, six primary controls, and eleven lifecycle
+`evidence-lane`, exactly 91 canonical actions (30 read-only and 61
+write-capable), 25 governed skills, six primary controls, and eleven lifecycle
 events. The six controls are Boot, Rollback, Build, Refresh, Mode, and Source
 Intake. State Travel is a conditional exact-resume path; it is not a seventh
 primary control.
@@ -256,7 +281,7 @@ primary control.
 Hooks transport `SessionStart`, `SubagentStart`, `UserPromptSubmit`,
 `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PreCompact`, `PostCompact`,
 `SubagentStop`, `Stop`, and main-thread-only best-effort `SessionEnd`. Skills
-own PREPARE, native reads, classification, Plan refresh, and HIL behavior. The
+own prompt-intake sealing, native reads, classification, Plan refresh, and HIL behavior. The
 host owns UI rendering and permission prompts.
 
 SQLite FTS5/BM25 is the indexed query authority for Plan, lane, ChatLineage,
@@ -283,14 +308,10 @@ runtime, installed-selector controls, and generated Python dependencies remain
 host-managed runtime state. `F:\SOURCES` is immutable evidence intake and can
 never become project authority.
 
-An existing combined legacy root moves only through the existing governed
-project registration route with the exact relocation confirmation plus accepted
-PV and pointer-generation preconditions. The move stages and hashes active
-authority, copies only the current accepted PV, switches the registered route,
-then removes only byte-verified active duplicates. Older accepted versions and
-candidate history remain explicitly non-authoritative until the later
-content-addressed snapshot Delta; relocation never creates a candidate, infers
-HIL, or moves the accepted pointer.
+Initial project registration records three separate identities: the hidden
+Codex plugin runtime/control root, the user-selected external Project/PV root,
+and the task's user-selected workspace. State Travel reuses that registered
+project mapping across tasks and never creates or asks for another root.
 
 Stable/current and Beta desktop packages may expose multiple product surfaces.
 Evidence Lane 3.0.0 governs only a positively proven Codex layer. A package
@@ -321,16 +342,15 @@ deletes immutable evidence.
 Every public website route exposes the exact Git-tracked Markdown authority
 from which its current story is derived. The website is a projection, never a
 lifecycle authority. Route coverage and source-file existence are tested in
-clean CI. See [the public site source map](docs/PUBLIC_SITE_SOURCE_MAP.md).
+clean CI. See the [public repository map](docs/REPOSITORY_MAP.md).
 
 ## Detailed contracts
 
-- [Detailed system architecture](docs/ARCHITECTURE.md)
 - [Canon task graph and Canon Input HIL](docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md)
-- [Internal full-layer Codex SDK](docs/INTERNAL_CODEX_SDK.md)
-- [Host, storage, ENV/UOP, and Agent Learning](docs/HOST_STORAGE_ENV_MODE_CONTINUITY.md)
+- [SDK, MCP, and tool surfaces](docs/TOOLS.md)
+- [Host, storage, ENV/UOP, and Agent Learning](docs/HOST_AND_STORAGE_MATRIX.md)
 - [Skills](docs/SKILLS.md)
 - [Native MCP](docs/MCP.md)
 - [Hooks](docs/HOOKS.md)
-- [Implementation traceability](docs/IMPLEMENTATION_TRACEABILITY.md)
+- [Public repository map](docs/REPOSITORY_MAP.md)
 - [Security](SECURITY.md)

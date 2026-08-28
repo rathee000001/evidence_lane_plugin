@@ -1,0 +1,107 @@
+{
+  "schema": "evidence-lane.installed-lane-surface.v1",
+  "status": "PASS",
+  "lane_id": "pdf_ocr",
+  "sqlite_filename": "pdf_ocr_sector_v001.sqlite",
+  "sqlite_integrity": "ok",
+  "sqlite_table_count": 38,
+  "schema_contract_table_count": 28,
+  "members": [
+    {
+      "path": "authorities/project_sectors/pdf_ocr/builder-contract.schema.json",
+      "bytes": 612,
+      "sha256": "8D87C43AF8CC840CE7DA3189FCA8689A7B404F1D3DE61BE7E63DE402C441C34C"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/builder.py",
+      "bytes": 575,
+      "sha256": "9239F33637C2B479A4B2FE6E14E847F76E184A74C6A9CA1E1D7A7861D6F77F4C"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/dot-artifact.schema.json",
+      "bytes": 941,
+      "sha256": "516167978C318CFE276361B31155B5B7FE38E5963F297C31232F0279C5382DC7"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/lane-contract.v1.json",
+      "bytes": 7406,
+      "sha256": "9E003464C35DB3C8930F95AE282EA2533AB515AFA2DCC6029264BF79ED120B81"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/lane-pointer.schema.json",
+      "bytes": 737,
+      "sha256": "3E94917B869B276158DEC28C10540D8C3C23B55550D248A504E76CDF5156A74D"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/manifest.schema.json",
+      "bytes": 973,
+      "sha256": "7D816138EC7FB84BA5878C0A59E9ED7E0132C645348B45B36CF331D5207DBAC1"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/mmd-artifact.schema.json",
+      "bytes": 958,
+      "sha256": "99D947E8E707CBCB5D2FA3599F1C6C0EB1F41CABB7BFC8F70E1A9ACF4F4116C8"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/pdf_ocr.dot",
+      "bytes": 18578,
+      "sha256": "FA8990668C1DCBB1104FC2A064ADCE991208D3183D96A9F686B33B169E4EA516"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/pdf_ocr.mmd",
+      "bytes": 14756,
+      "sha256": "2030746039BA486079F8D9F4EDDC16845791C58424BCB3FA971076B0142A3AEA"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
+      "bytes": 249856,
+      "sha256": "F76E5431282F038C344F2FDA371B3803B3C96C175E64002CD49DD42E92FBAE56"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/reader-contract.schema.json",
+      "bytes": 762,
+      "sha256": "FB3791236193CA91ED3293AECBD8C5B69F0039B36F1CD2F5569A41AB02711888"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/reader.py",
+      "bytes": 437,
+      "sha256": "15D6A16D55AA4CFC2814CCE9D4D1BFC0CA8D57A4D76347487B816AD6B6957612"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/README.md",
+      "bytes": 365,
+      "sha256": "8AD7A9390E1DA051E59DA3D87D97849B01857B66DEEE6346003C233BA5C22A2E"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/refresh-receipt.schema.json",
+      "bytes": 532,
+      "sha256": "ACB73D4BF4A196DC159DEEEA3C3B8A51BA537DA752749BA6299B1926EBD1ED7D"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/schema.sql",
+      "bytes": 9588,
+      "sha256": "33F2A1F808FFAF72ACAE4CAE156E4EBDFB838EA78E6F3CFEE44F73DFC33A6D13"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/sqlite-artifact.schema.json",
+      "bytes": 960,
+      "sha256": "FECC46E972867CE8AA47384EBCB166F4A2A4053A3CE9E817F3BBE7FD808AF82B"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/tools.json",
+      "bytes": 1149,
+      "sha256": "054DBDBF7B9919E0CEBC0E114D0793ECC868E8C99543CEE6A7EF5D65A355D749"
+    },
+    {
+      "path": "authorities/project_sectors/pdf_ocr/tools.schema.json",
+      "bytes": 1001,
+      "sha256": "A628AC3E888E3FE8B25A23A4D04FFC01E0F29A14775BEBF0E37AE20E6B948A2A"
+    }
+  ],
+  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_template": false,
+  "template_contains_identity_metadata_only": true,
+  "receipt_sha256": "9424CA26DA33F70725C577DAA7B18DF4D623CBF8E5B348DEEAA486A66704CCCC"
+}

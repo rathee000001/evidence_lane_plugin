@@ -1,0 +1,30 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "source_git_history_build",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "source_git_history_build"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "git-read-intake",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "B053EB091AE5290127000452B72E8E7D81F23EC609D6600A4C64C26699DD5FE1",
+  "sdk_action_binding": "sdk/actions/source_git_history_build.action.v1.json",
+  "mcp_action_binding": "mcp/actions/source_git_history_build.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "A2C3F7C886264C4CB2C154B79DCE05FB309867A519AA5C371B00F59BC8D37225"
+}

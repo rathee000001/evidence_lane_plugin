@@ -1,0 +1,24 @@
+{
+  "schema": "evidence-lane.sdk-env-uop-action-plane.v1",
+  "status": "PASS",
+  "plane": {
+    "plane_id": "ENV_UOP_AI_ACTION_PLANE",
+    "role": "LOCKED_SQLITE_MMD_TO_GOVERNED_WORK_EXECUTION",
+    "module_id": "env_uop_operator_runtime",
+    "internal_operation_count": 4,
+    "counted_as_public_action": false,
+    "owns_mcp_schema_and_public_action_dispatch": false,
+    "owns_ai_formula_execution": true,
+    "authority_source": "LOCKED_ENV_UOP_SQLITE_PLUS_MMD"
+  },
+  "operations": [
+    "classify_mode",
+    "compile_formula",
+    "route_operator",
+    "status"
+  ],
+  "env_authority_manifest_sha256": "E4F283EC16F86995E2937288DD8A8E5623007351CBB1CA3FD01FDA5C7363B6C1",
+  "uop_authority_manifest_sha256": "BBA3CDAE9CC0FF981E5C6E19F83FBBCE6EB2ED8167CDBB2E9D1C557FA03CA57C",
+  "canonical_implementation": "src/evidence_lane_plugin/mode_governance.py",
+  "receipt_sha256": "31F9B4531C27D13C462AA4FE19D6343A0E3779ACEDA32DCB757C67A509CCFD99"
+}

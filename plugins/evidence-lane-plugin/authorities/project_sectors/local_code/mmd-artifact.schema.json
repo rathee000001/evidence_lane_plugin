@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "local_code MERMAID_TRAVERSAL_MAP artifact receipt",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "artifact_path",
+    "artifact_role",
+    "syntax",
+    "bytes",
+    "sha256",
+    "validator",
+    "status"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "local_code"
+    },
+    "artifact_path": {
+      "const": "local_code.mmd"
+    },
+    "artifact_role": {
+      "const": "MERMAID_TRAVERSAL_MAP"
+    },
+    "syntax": {
+      "const": "MERMAID_FLOWCHART"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "validator": {
+      "const": "topology_reconciliation.validate_mermaid"
+    },
+    "status": {
+      "const": "PASS"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "0F70FE66DC28189CA97AB5FA0111D801F1096269DC3A567E33A4CC7D929E99FD"
+}

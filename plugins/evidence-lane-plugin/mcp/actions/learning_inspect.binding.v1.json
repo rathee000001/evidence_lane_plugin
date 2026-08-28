@@ -1,0 +1,71 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "learning_inspect",
+  "title": "Inspect Agent Learning",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id"
+    ],
+    "title": "learning_inspectArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "learning_inspectDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "01B06073F895CBC106E9EF2115C36F31C046135F8C9F5C5CADE56714481FBFD9",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-learning",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "learning_inspect"
+    },
+    "internal_sdk": {
+      "module_id": "agent_learning",
+      "operation": "inspect",
+      "read_only": true
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-authority-read",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/learning_inspect.action.v1.json",
+  "sdk_action_binding_sha256": "E04BBF4B57F785540B1C1D373513D9916DE32E01C34C3EFDE93DA72A31D211FC",
+  "public_action_schema": "schemas/actions/learning_inspect.schema.json",
+  "public_action_schema_sha256": "795A5AEC562D52FAE4488D8A8DFD88992209378F3D0D7C9164A03826DFA78B35",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "B4DF63724A49337D5C386C226516794AC63C9C953FE28B7C6FE9C767E58E737E"
+}

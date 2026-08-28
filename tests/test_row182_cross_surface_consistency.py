@@ -7,11 +7,11 @@ import tomllib
 from pathlib import Path
 from urllib.parse import unquote
 
-from evidence_lane_plugin.constants import ENGINE_VERSION
+from evidence_lane_plugin.constants import ENGINE_VERSION, GOVERNED_SKILL_COUNT
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
-ADAPTER = PLUGIN / "remote_adapter"
+ADAPTER = ROOT / "apps" / "evidence-lane-remote-adapter"
 SCRIPTS = PLUGIN / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
@@ -19,7 +19,9 @@ if str(SCRIPTS) not in sys.path:
 from build_release_candidate_rehearsal import _source_inventory
 
 RELEASE = "3.0.0"
-CODEX_RELEASE = "3.0.0+codex.20260816074428"
+CODEX_RELEASE = json.loads(
+    (PLUGIN / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+)["version"]
 PUBLIC_SITE_SNAPSHOT_RELEASE = "3.0.0"
 SITE = "https://evidencelane.org"
 REPOSITORY = "https://github.com/rathee000001/evidence_lane_plugin"
@@ -65,7 +67,7 @@ def test_every_repository_markdown_path_link_resolves() -> None:
     assert {
         ROOT / "README.md",
         ROOT / "SECURITY.md",
-        ROOT / "docs" / "ARCHITECTURE.md",
+        ROOT / "ARCHITECTURE.md",
     }.issubset(markdown)
     patterns = (
         re.compile(r"!?\[[^\]]*\]\(([^)]+)\)"),
@@ -178,7 +180,6 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
         "credits",
         "hil",
         "hooks",
-        "helper",
         "git-ci",
         "lanes",
         "license",
@@ -219,7 +220,6 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
         "security",
         "credits",
         "commands",
-        "helper",
         "tunnel",
     ):
         assert f'href="/{route}"' in footer
@@ -234,7 +234,7 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
 
 def test_all_skill_manifests_are_unique_complete_and_package_owned() -> None:
     skill_files = sorted((PLUGIN / "skills").glob("*/SKILL.md"))
-    assert len(skill_files) == 17
+    assert len(skill_files) == GOVERNED_SKILL_COUNT
     names: list[str] = []
     descriptions: list[str] = []
     for path in skill_files:
@@ -251,8 +251,8 @@ def test_all_skill_manifests_are_unique_complete_and_package_owned() -> None:
         assert len(description.group(1).strip()) >= 40
         names.append(name.group(1).strip())
         descriptions.append(description.group(1).strip())
-    assert len(names) == len(set(names)) == 17
-    assert len(descriptions) == len(set(descriptions)) == 17
+    assert len(names) == len(set(names)) == GOVERNED_SKILL_COUNT
+    assert len(descriptions) == len(set(descriptions)) == GOVERNED_SKILL_COUNT
 
     codex_mcp = json.loads(_read(PLUGIN / ".mcp.json"))
     assert codex_mcp["mcpServers"]["evidence-lane"]["command"] == "python"
@@ -330,26 +330,24 @@ def test_direct_dependency_license_correction_and_render_provenance_are_explicit
         for path in sorted(base.rglob("*.py"))
     )
 
-    for project in (root_project, plugin_project):
-        dependencies = project["dependencies"]
-        assert "pypdfium2==5.12.1" in dependencies
-        assert not any("pymupdf" in dependency.casefold() for dependency in dependencies)
+    assert "pypdfium2==5.12.1" in root_project["dependencies"]
+    assert "pypdfium2==5.12.1" in plugin_project["dependencies"]
+    assert "PyMuPDF==1.28.2" in plugin_project["dependencies"]
     assert "pypdfium2==5.12.1" in requirements
     assert "pypdfium2==5.12.1" in lock
-    assert "PyMuPDF==" not in requirements
-    assert "PyMuPDF==" not in lock
-    assert "import fitz" not in active_python
-    assert "fitz." not in active_python
+    assert "PyMuPDF==1.28.2" in requirements
+    assert "pymupdf==1.28.2" in lock
+    assert "import pymupdf" in active_python
 
-    audit = ROOT / "docs" / "DEPENDENCY_LICENSE_AUDIT.md"
+    audit = ROOT / "docs" / "THIRD_PARTY_LICENSES.md"
     assert audit.is_file()
     audit_text = _read(audit)
-    assert "PyMuPDF==1.28.0" in audit_text
+    assert "PyMuPDF==1.28.2" in audit_text
     assert "pypdfium2==5.12.1" in audit_text
     assert "SBOM" in audit_text
-    assert "FIX-THEN-PURSUE (high confidence)" in audit_text
-    assert "docs/DEPENDENCY_LICENSE_AUDIT.md" in _read(ROOT / "README.md")
-    assert "DEPENDENCY_LICENSE_AUDIT.md" in _read(
+    assert "AGPL-or-commercial-license-gated" in audit_text
+    assert "docs/THIRD_PARTY_LICENSES.md" in _read(ROOT / "README.md")
+    assert "THIRD_PARTY_LICENSES.md" in _read(
         ROOT / "docs" / "CREDITS_AND_CONTRIBUTIONS.md"
     )
     assert "bundled PDFium and dependency license notices" in _read(
@@ -412,11 +410,7 @@ def test_current_codex_surfaces_reject_active_chatgpt_delivery_claims() -> None:
     current_surfaces = {
         "README.md": _read(ROOT / "README.md"),
         "SECURITY.md": _read(ROOT / "SECURITY.md"),
-        "docs/ARCHITECTURE.md": _read(ROOT / "docs" / "ARCHITECTURE.md"),
-        "docs/VERSIONING.md": _read(ROOT / "docs" / "VERSIONING.md"),
-        "docs/IMPLEMENTATION_TRACEABILITY.md": _read(
-            ROOT / "docs" / "IMPLEMENTATION_TRACEABILITY.md"
-        ),
+        "ARCHITECTURE.md": _read(ROOT / "ARCHITECTURE.md"),
         "plugins/evidence-lane-plugin/README.md": _read(PLUGIN / "README.md"),
         "plugins/evidence-lane-plugin/.codex-plugin/plugin.json": _read(
             PLUGIN / ".codex-plugin" / "plugin.json"

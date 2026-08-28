@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "session_authority runtime binding",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "module",
+    "source_sha256"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "session_authority"
+    },
+    "module": {
+      "const": "evidence_lane_plugin.session_authority"
+    },
+    "source_sha256": {
+      "const": "33298393CDB6CFA11E2BD47601AC864857AEEA5571EBB6D1A2AD1BD927897043"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "E03E3CD3EEE57FFF239FE39A6DE0885C3C19C1D95A27D32AA1039894577F1E66"
+}

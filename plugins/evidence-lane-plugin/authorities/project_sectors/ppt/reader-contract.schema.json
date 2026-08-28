@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PPT / Presentation bounded reader request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "lane_id",
+    "query",
+    "retrieval",
+    "limit"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lane_id": {
+      "const": "ppt"
+    },
+    "query": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval": {
+      "enum": [
+        "hybrid",
+        "fts5",
+        "bm25",
+        "tfidf"
+      ]
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "1E22C524FDBA48F235ED3BF803C462461A8DF699867BDFE1A547EA768C43F1EF"
+}

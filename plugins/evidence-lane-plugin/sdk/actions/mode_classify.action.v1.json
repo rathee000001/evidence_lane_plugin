@@ -1,0 +1,115 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "mode_classify",
+  "title": "Classify an ENV15 mode intersection and lanes",
+  "description": "At any lifecycle position, classify one or more locked ENV15 modes such as Analysis + Planning + Code, map them to canonical Evidence Lanes, always include Chat Lineage, append only the privacy-minimized classification receipt when a session is active, and return to the prior lifecycle position without creating a task, candidate, HIL, or pointer movement. The result includes visible ENV/UOP formulas, PCM/MBA operator receipts, controlled CI/CD requirements, and lane-specific meanings for the universal six HIL tokens; render those fields visibly and never substitute generic Code-mode HIL semantics.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "request": {
+        "title": "Request",
+        "type": "string"
+      },
+      "explicit_modes": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Explicit Modes"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      },
+      "custom_modes": {
+        "anyOf": [
+          {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Custom Modes"
+      }
+    },
+    "required": [
+      "project_id",
+      "request"
+    ],
+    "title": "mode_classifyArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "mode_classifyDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "4E85D82EC4364F65F640B8347FA7E01BF611FA8A80A4427868261A155BCB3F39",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-mode",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "mode_classify"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-mode",
+        "workflow": "classify-mode",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-plan",
+        "workflow": "classify-plan-mode",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [
+    "PROMPT_OR_STEER_ENTRY"
+  ],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/mode_classify.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "5F31EB9B0F0691DAA45BF758F3F18918316158D6AA406ED8A21DDB6656839B8C"
+}

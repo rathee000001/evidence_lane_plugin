@@ -1,0 +1,34 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "learning_decide_candidate",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-learning",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "learning_decide_candidate"
+    },
+    "internal_sdk": {
+      "module_id": "agent_learning",
+      "operation": "decide_candidate",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-candidate",
+        "order": 7
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "991154FE28FF2E4108C4587D2CFF30E29772E1F299B7573D5C0FDCF49D652A60",
+  "sdk_action_binding": "sdk/actions/learning_decide_candidate.action.v1.json",
+  "mcp_action_binding": "mcp/actions/learning_decide_candidate.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "52717634B1D1085A8E78945115C6C66D03852ED0F37A3B5B9DDC5AF098CA45C4"
+}

@@ -1,0 +1,95 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "connector_plugin_route",
+  "title": "Route one capability through governed plugin policy",
+  "description": "Evaluate active grant, capability/action, canonical lane, and host guards in a fixed order. Select the sole eligible plugin, or require one exact preferred plugin ID when multiple routes qualify; ambiguity and failed guards remain fail-closed.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "capability": {
+        "title": "Capability",
+        "type": "string"
+      },
+      "canonical_lane_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Canonical Lane Id"
+      },
+      "host_profile": {
+        "const": "CODEX",
+        "default": "CODEX",
+        "title": "Host Profile",
+        "type": "string"
+      },
+      "preferred_plugin_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Preferred Plugin Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "capability"
+    ],
+    "title": "connector_plugin_routeArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "connector_plugin_routeDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "4BA98E6EA9B8B66C57DB610BFA43F2B7F4E5D21A918250A93DFE4B1B45689888",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-plugin",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "connector_plugin_route"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-plugin",
+        "workflow": "route-connector",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/connector_plugin_route.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "E3AAD929B105BB2CC2CE1A1686DCBCDE3A3977478D187A75E6312922A065131A"
+}

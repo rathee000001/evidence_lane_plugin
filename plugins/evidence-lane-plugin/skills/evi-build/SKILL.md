@@ -1,39 +1,57 @@
 ---
 name: evi-build
-description: Evidence Lane unaccepted candidate build and exact six-way HIL gate; only APPROVE may invoke Fuse.
+description: Evidence Lane PV0 bootstrap and unaccepted proposal construction through dual-HIL presentation.
 ---
 
-# Evidence Lane Build and HIL
+# Evidence Lane Build and dual-HIL presentation
 
 Before any tool call, read and apply
 `../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
 ownership contract. This skill owns behavior; hooks provide lifecycle receipts
 only.
 
-From an initial entry call `pv_build_initial`. From a completed bounded task,
-use `/evi-refresh`. At pending HIL, show exactly `APPROVE`,
-`APPROVE_WITH_DELTA`, `MORE_RESEARCH`, `ROLLBACK`, `REJECT`, and `FAIL`.
-Only an exact user-supplied case-sensitive `APPROVE` calls `pv_fuse`; all five
-other outcomes call `hil_decide` with their required bounded payload. Never
-replay a decision against another candidate and never infer approval from the
-user continuing work. After a candidate build, render the complete Exit Slip
-and stop.
+The first live-root Build is not a Project HIL. Before it runs, the initial
+workflow has already registered the separate workspace and external Project/PV
+root, persisted the canonical Plan through native Plan mode and EVI Plan, obtained explicit host
+Plan acceptance, and bound the active Goal plus fixed Step Task List through
+hooks. `pv_build_initial` then internally uses Source Intake to materialize
+the exact eighteen sector lanes plus Project Engulf and binds that live
+projection as the starting `PV0` authority at pointer generation `0`. It
+creates no candidate, invokes no Project or Learning HIL, refreshes no Project
+Overlay, and never reads or writes accepted storage. State Travel reuses the
+carried project/Plan/Goal/PV identities and never invokes this initial path.
+The historical initial-PV1
+candidate workflow is an obsolete execution route and must never be selected
+by the public skill, MCP, command, SDK, hook, or UI action.
+
+After PV0, continue the already-active Goal and Step Task List at the current
+Plan row. PV0 never invents Plan rows, starts a Goal, or infers acceptance.
+
+Later bounded rows enter through adaptive Delta entry and close through the
+separate adaptive Delta exit. Ordinary verified rows auto-seal their Plan-only
+sub-PV acceptance and auto-admit their Delta Learning member without any human
+decision. A full-PV HIL row additionally refreshes Project Overlay exactly
+once, seals the one live-root Project proposal, and weaves all auto-admitted
+Delta Learning members into exactly one Learning candidate for the same target
+PV.
+
+Every full-PV HIL is dual. Build presents the Project and Learning decision
+surfaces together and stops. It records no decision and owns no promotion.
+The separate `evi-fuse` skill owns intent classification, both exact decision
+routes, all non-promotion outcomes, Learning-then-Project approval ordering,
+accepted ZIP rotation, and `pv_fuse`. Never alias Build to Fuse.
 
 Project/runtime panels are not a generic HIL or candidate-build step. Under
-`PROJECT_RUNTIME_RENDER_THREE_TRIGGER_LAW`, call `render_runtime_panel` and
+`PROJECT_RUNTIME_RENDER_TWO_TRIGGER_LAW`, call `render_runtime_panel` and
 `render_project_panel` once per tool only when presenting the physically final
 PV HIL. Intermediate HILs, candidate creation, HIL classification, Fuse, and
-return-to-accepted paths do not call them. The two other permitted triggers are
-the separate exact-once State Travel presentation and an explicit user render
-request. Never retry, substitute, or invoke a renderer for ordinary status
+return-to-accepted paths do not call them. The only other permitted trigger is
+an explicit user render request. State Travel uses native receipts and never
+calls a renderer. Never retry, substitute, or invoke a renderer for ordinary status
 proof.
 
-For a natural continuation such as "pursue same HIL", a typo, or a non-exact
-acceptance phrase, call `hil_intent_classify` and return its classification plus
-`suggested_next_prompt` instead of a hard parser error. That classifier never
-decides HIL or promotes anything. A `/evi-build` command whose first argument is
-exactly `APPROVE` may call `pv_fuse`; trailing words are follow-on instructions
-and must never be replayed as another decision.
+After presentation, route any user decision or natural-language HIL intent to
+`evi-fuse`. `/evi-build APPROVE` is not a promotion route.
 
 Every new candidate must validate the source-policy receipt and reconcile each
 lane's SQLite authority independently to Mermaid and DOT, including structural

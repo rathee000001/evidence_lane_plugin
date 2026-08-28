@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Local Code lane pointer",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "parent_pv",
+    "proposed_pv",
+    "pointer_generation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.lane-pointer-evidence.v1"
+    },
+    "lane_id": {
+      "const": "local_code"
+    },
+    "parent_pv": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "proposed_pv": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pointer_generation": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "4CC7E454F5DBEBF4708133CFB947D18F8DBF7E17A7F90F4854CC306C241E3849"
+}

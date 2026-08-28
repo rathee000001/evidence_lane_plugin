@@ -5,16 +5,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
-GOAL_RECOVERY = (
-    PLUGIN / "scripts" / "codex_release" / "Manage-EvidenceLaneCodexGoalRecovery.ps1"
-)
-RESTART = PLUGIN / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1"
-STABLE_UPDATE = (
-    PLUGIN / "scripts" / "codex_release" / "Update-EvidenceLaneCodexStableAndResume.ps1"
-)
-INSTALLER = PLUGIN / "scripts" / "codex_release" / "install_codex_stable.py"
-SLOT_SWITCH = (
-    PLUGIN / "scripts" / "codex_release" / "Switch-EvidenceLaneCodexSlot.ps1"
+RESTART = (
+    PLUGIN
+    / "scripts"
+    / "codex_release"
+    / "Prepare-EvidenceLaneCodexRestart.ps1"
 )
 TUNNEL_INSTALL = (
     PLUGIN / "scripts" / "windows_tunnel" / "Install-EvidenceLaneTunnel.ps1"
@@ -49,7 +44,9 @@ def test_every_plugin_owned_python_child_process_has_no_console_flag() -> None:
                 ):
                     keywords = {keyword.arg for keyword in node.keywords}
                     if "creationflags" not in keywords:
-                        missing.append(f"{path}:{node.lineno}:subprocess.{node.func.attr}")
+                        missing.append(
+                            f"{path}:{node.lineno}:subprocess.{node.func.attr}"
+                        )
                 if (
                     isinstance(node.func.value, ast.Name)
                     and node.func.value.id == "os"
@@ -60,164 +57,55 @@ def test_every_plugin_owned_python_child_process_has_no_console_flag() -> None:
     assert not missing, "Missing Windows no-console creationflags:\n" + "\n".join(missing)
     assert not forbidden, "Un-governed child-process launch route:\n" + "\n".join(forbidden)
 
-    runner = (PLUGIN / "scripts" / "run_mcp.py").read_text(encoding="utf-8")
-    assert 'if args.transport == "stdio"' in runner
-    assert "The stdio relay must remain in the MCP client's process group" in runner
-    assert 'os.environ["EVIDENCE_LANE_PLUGIN_ROOT"] = str(plugin_root)' in runner
-    assert "Never inherit a stale source, cache, or" in runner
 
-
-def test_powershell_background_routes_are_hidden_and_never_loop_restart() -> None:
-    recovery = GOAL_RECOVERY.read_text(encoding="utf-8")
-    update = STABLE_UPDATE.read_text(encoding="utf-8")
-    installer = INSTALLER.read_text(encoding="utf-8")
-    switch = SLOT_SWITCH.read_text(encoding="utf-8")
+def test_background_routes_are_hidden_single_version_and_exact_task_only() -> None:
     restart = RESTART.read_text(encoding="utf-8")
     tunnel = TUNNEL_INSTALL.read_text(encoding="utf-8")
 
-    assert '"-WindowStyle", "Hidden"' in recovery
-    assert 'windows_console_policy = "POWERSHELL_WINDOWSTYLE_HIDDEN"' in recovery
-    assert 'scheduled_task_window_style = "HIDDEN"' in recovery
-    assert 'Release = "3.0.0"' in recovery
-    assert '"Evidence Lane Codex Goal Recovery $($script:ReleaseToken)"' in recovery
-    assert 'helper_audience = "GOVERNED_CODEX_USER"' in recovery
-    assert "prior_versioned_helpers_retained = $true" in recovery
-    assert "prior_versioned_helpers_disabled = $true" in recovery
-    assert "prior_versioned_helpers_deleted = $false" in recovery
-    assert "Disable-ScheduledTask -TaskName ([string]$priorTask.TaskName)" in recovery
-    assert 'host_owned_initial_mcp_spawn = "HOST_CAPABILITY_UNAVAILABLE"' in recovery
-    assert 'restart_loop_allowed = $false' in recovery
-    assert "-TwoSlotRegistry" in recovery
-    assert "Read-TwoSlotAuthority" in recovery
-    assert 'failure_target_slot -cne "stable-git-main"' in recovery
-    assert 'mutable_local_failure_targets_verified_main_only = $true' in recovery
-    assert 'exact_live_slot_count = 2' in recovery
+    assert not (
+        PLUGIN
+        / "scripts"
+        / "codex_release"
+        / "Manage-EvidenceLaneCodexGoalRecovery.ps1"
+    ).exists()
+    assert not (
+        PLUGIN
+        / "scripts"
+        / "codex_release"
+        / "Switch-EvidenceLaneCodexSlot.ps1"
+    ).exists()
+    assert not (
+        PLUGIN
+        / "scripts"
+        / "windows_tunnel"
+        / "Manage-EvidenceLaneTunnelVersions.ps1"
+    ).exists()
 
-    retired = "RETIRED_COMBINED_INSTALL_RESTART_HELPER"
-    assert retired in update
-    assert "install and verify the exact package" in update
-    assert "Restart-EvidenceLaneCodex.ps1" in update
-    assert "Stop-Process" not in update
-    assert "evidence-lane-v300-stable-recovery" not in update
-    assert "evidence-lane-v300-local-successor" not in update
+    assert not (
+        PLUGIN / "scripts" / "codex_release" / "drain_codex_task_turns.py"
+    ).exists()
+    assert "TERMINAL_SAFE_RESTART_PREPARED_NOT_EXECUTED" in restart
+    assert "current_turn_terminal_event_required_before_app_close = $true" in restart
+    assert "drain_utility_allowed = $false" in restart
+    assert "programmatic_process_stop_allowed = $false" in restart
+    assert '"turn/interrupt"' not in restart
+    assert "LocalTestCommitReceipt" not in restart
+    assert "TwoSlotRegistry" not in restart
+    assert "GoalRecovery" not in restart
+    assert "Start-Process" not in restart
+    assert "ActivateForProtocol" not in restart
+    assert "ShellExecuteEx" not in restart
+    assert "New-ScheduledTaskAction" not in restart
+    assert "Stop-Process" not in restart
 
-    assert "VERIFY_DISABLED_SUCCESSOR_FROM_SEALED_PRIMARY" in installer
-    assert "The local-successor marketplace is retired" in installer
-    assert "route is retired" in installer
-    assert '"loaded_primary_hooks_all_disabled": True' in installer
-    assert '"successor_hooks_all_disabled": True' in installer
-
-    assert 'helper_installs_plugin = $false' in restart
-    assert 'windows_ui_control_used = $false' in restart
-    assert 'local_update_helper_scope = if ($isPluginCreatorLocalRestart) { "DUMB_EXACT_TASK_CLOSE_REOPEN_ONLY" }' in restart
-    assert 'single_flight_required = $true' in restart
-    assert 'exact_app_stop_count = 1' in restart
-    assert 'exact_task_reopen_count = 1' in restart
-    assert 'fixed_delay_used = $false' in restart
-    assert 'condition_driven_waits_only = $true' in restart
-    assert "-RedirectStandardOutput" not in restart
-    assert "-RedirectStandardError" not in restart
-    assert 'Start-Process' not in restart
-    assert 'New-ScheduledTaskAction' in restart
-    assert 'Register-ScheduledTask' in restart
-    assert 'Start-ScheduledTask' in restart
-    assert 'Unregister-ScheduledTask' in restart
-    assert (
-        'launch_shape = "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK"'
-        in restart
-    )
-    assert 'state = "CHILD_SCHEDULED_BEFORE_EXACT_APP_STOP"' in restart
-    assert 'child_acknowledged_before_exact_app_stop = $true' in restart
-    assert "function Move-OrphanedExactRestartLease" in restart
-    assert 'state = "OBJECTIVELY_ORPHANED_LEASE_RETIRED"' in restart
-    assert "[Globalization.CultureInfo]::InvariantCulture" in restart
-    assert '$lease.PSObject.Properties[\n        "transient_scheduled_task_name"' in restart
-    assert 'target_process_stopped_by_recovery = $false' in restart
-    assert 'plugin_install_invoked_by_recovery = $false' in restart
-    assert 'version_matched_to_installed_plugin = $true' in restart
-    assert 'maximized_full_window_verified = -not $isPluginCreatorLocalRestart' in restart
-    assert '[ValidateSet("NATIVE_MCP_AVAILABLE", "HOST_TOOL_GAP")]' in restart
-    assert '$HostToolTransport = "NATIVE_MCP_AVAILABLE"' in restart
-    assert '$tunnelRequired = $HostToolTransport -eq "HOST_TOOL_GAP"' in restart
-    assert 'host_tool_transport = $HostToolTransport' in restart
-    assert 'tunnel_required = $tunnelRequired' in restart
-    assert '.codex\\plugins\\runtime\\evidence-lane-plugin' in restart
-    assert 'runtime_control_root_hidden = $true' in restart
-    assert 'project_data_root_separate = ' in restart
-    assert "$restartAuthority.versioned_local_failure_target = $mainGitSelector" in restart
-    assert "$restartAuthority.versioned_local_failure_targets_verified_main_only = $true" in restart
-    assert "$restartAuthority.branch_recovery_selector_retired = $true" in restart
-    assert restart.count("Stop-Process -Id $TargetProcessId -Force") == 1
-    assert "-WindowStyle Hidden" in restart
-    assert "-NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass" in restart
-
-    assert '"main-git-release"' in switch
-    assert '"branch-commit-recovery"' not in switch
-    assert '"versioned-local-testing"' in switch
-    assert '"VERSIONED_LOCAL_RUNTIME_FAILURE"' in switch
-    assert '$body.failure_target_slot -cne "stable-git-main"' in switch
-    assert 'pre_3_0_fallback_allowed = $false' in switch
-    assert "TARGET_SELECTED_RESTART_REQUIRED" in switch
-    assert "@openai\\codex-win32-x64" in switch
-    assert "The packaged WindowsApps codex.exe is not a supported" in switch
-    assert "Get-Command codex.exe" not in switch
-
-    assert (
-        tunnel.count("-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass")
-        >= 1
-    )
-    assert '"-NoLogo", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden"' in tunnel
-    assert 'windows_console_policy = "WINDOWS_GUI_HOST_CREATE_NO_WINDOW"' in tunnel
-    assert 'scheduled_task_window_style = "HIDDEN"' in tunnel
-    assert "New-ScheduledTaskAction -Execute $hostTarget" in tunnel
-    assert "scheduled_task_launcher_create_no_window = $true" in tunnel
-    assert 'prior_versioned_runtimes_retained = $true' in tunnel
-    assert 'prior_versioned_runtime_deletion_allowed = $false' in tunnel
-    assert '.codex\\plugins\\runtime\\evidence-lane-plugin' in tunnel
-    assert 'runtime_control_root_hidden = $true' in tunnel
-    assert 'project_data_root_separate = ' in tunnel
-    assert "-RestartCount 999" in tunnel
-    assert "-MultipleInstances IgnoreNew" in tunnel
-    assert '"main-git-release"' in tunnel
-    assert '"branch-commit-recovery"' not in tunnel
-    assert '"versioned-local-testing"' in tunnel
-
-
-def test_stable_and_beta_desktop_channels_both_expose_dual_surfaces() -> None:
-    for path in (GOAL_RECOVERY, RESTART):
-        text = path.read_text(encoding="utf-8")
-        assert 'desktop_release_channel = "CHATGPT_STABLE"' in text
-        assert 'desktop_release_channel = "CHATGPT_BETA"' in text
-        assert text.count('available_surfaces = @("CHATGPT", "CODEX")') == 2
-        assert text.count('governed_surface = "CODEX"') == 2
-        assert text.count("chatgpt_surface_governed = $false") == 2
-    retired = STABLE_UPDATE.read_text(encoding="utf-8")
-    assert "RETIRED_COMBINED_INSTALL_RESTART_HELPER" in retired
-    assert "desktop_release_channel" not in retired
-
-
-def test_goal_recovery_prewarm_is_exact_task_read_only_and_truthful() -> None:
-    text = GOAL_RECOVERY.read_text(encoding="utf-8")
-
-    assert 'ValidateSet("Probe", "Register", "RehydrateAll", "RecoverNow"' in text
-    assert 'method = "config/mcpServer/reload"' not in text
-    assert '-Method "plugin/list"' in text
-    assert '-Method "mcpServerStatus/list"' not in text
-    assert '-Method "mcpServer/resource/read"' not in text
-    assert 'canonical_plugin_selector = $resolvedPluginSelector' in text
-    assert 'exact_tool_count = $null' in text
-    assert 'task_local_native_proof_required = $true' in text
-    assert 'catalog_rehydrated = $false' in text
-    assert 'isolated_mcp_server_status_queried = $false' in text
-    assert 'exact_host_app_server_resource_sha256' in text
-    assert 'live_desktop_control_plane = "HOST_CAPABILITY_UNAVAILABLE_WINDOWS_APP_SERVER_DAEMON"' in text
-    assert 'mcp_inventory_scope = "TASK_LOCAL_NATIVE_PROOF_REQUIRED_ON_EXACT_OPEN"' in text
-    assert 'task_continuity_scope = "PERSISTED_EXACT_THREAD_AND_GOAL"' in text
-    assert "thread_scoped_mcp_inventory_available = $false" in text
-    assert "live_host_next_active_turn_refresh_claimed = $false" in text
-    assert "probe_sha256 = $probeSha256" in text
-    assert "thread_resume_invoked = $false" in text
-    assert "turn_started = $false" in text
-    assert "prompt_injected = $false" in text
-    assert "app_restarted = $false" in text
-    assert "restart_fallback_invoked = $false" in text
+    assert "Remove-StoppedPriorTunnelRuntimes" in tunnel
+    assert "Remove-StoppedPriorTunnelTasks" in tunnel
+    assert "prior_versioned_runtimes_retained = $false" in tunnel
+    assert "prior_versioned_tasks_retained = $false" in tunnel
+    assert "prior_versioned_runtime_deletion_required = $true" in tunnel
+    assert "one_active_version_required = $true" in tunnel
+    assert ".codex\\plugins\\runtime\\evidence-lane-plugin" in tunnel
+    assert "project_authority_root_hardcoded = $false" in tunnel
+    assert "workspace_hardcoded = $false" in tunnel
+    assert "New-ScheduledTaskTrigger -AtLogOn" in tunnel
+    assert "scheduled_task_transport_used = $true" in tunnel

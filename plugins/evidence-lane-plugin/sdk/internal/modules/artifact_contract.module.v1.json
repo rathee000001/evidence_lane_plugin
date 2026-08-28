@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.artifact_contract",
+  "source_path": "src/evidence_lane_plugin/artifact_contract.py",
+  "source_sha256": "35FA5641AE05C15DB4AB40AB26A7B263C4FBD6D183AB2837E10FC7C9F7007049",
+  "source_bytes": 6616,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "F5600D6AEC3083325125B318AFF16B8C306E7DB6093F90FC0B37792BF046ADFA"
+}

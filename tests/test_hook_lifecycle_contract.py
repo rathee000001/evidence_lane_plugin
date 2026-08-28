@@ -11,6 +11,7 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+import evidence_lane_plugin.hook_contract as hook_contract_module
 from evidence_lane_plugin.hook_contract import (
     HOOK_CAPABILITY_SCHEMA,
     HOOK_CONTRACT_SCHEMA,
@@ -92,6 +93,15 @@ def test_current_eleven_event_hook_contract_keeps_behavior_skill_owned() -> None
         "SessionEnd",
     )
     assert contract["registered_event_count"] == 11
+    assert contract["event_numbering"] == "HOOK_1_THROUGH_HOOK_11"
+    assert contract["nested_action_numbering"] == (
+        "HOOK_EVENT_ORDINAL.ACTION_ORDINAL"
+    )
+    assert contract["handler_cardinality_per_event"] == "ONE_OR_MORE"
+    assert contract["logical_action_count"] == 44
+    assert contract["logical_action_count_semantics"] == (
+        "NUMBERED_SERIAL_TRANSPORT_STEPS_INSIDE_HANDLER_ACTIONS"
+    )
     assert contract["hook_owner"] == (
         "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY"
     )
@@ -131,6 +141,10 @@ def test_current_eleven_event_hook_contract_keeps_behavior_skill_owned() -> None
     assert events["SessionEnd"]["delivery"] == (
         "BEST_EFFORT_HOST_CAPABILITY_GATED"
     )
+    assert [
+        row["logical_action_number"]
+        for row in events["PreToolUse"]["logical_actions"]
+    ] == ["4.L1", "4.L2", "4.L3", "4.L4"]
 
 
 def test_package_hook_configuration_matches_contract_order_and_handlers() -> None:
@@ -142,39 +156,54 @@ def test_package_hook_configuration_matches_contract_order_and_handlers() -> Non
     assert receipt["status"] == "PASS"
     assert receipt["schema"] == HOOK_CONTRACT_SCHEMA
     assert receipt["event_order"] == list(HOOK_EVENT_NAMES)
-    assert receipt["handler_count"] == 11
+    assert receipt["handler_count"] == 44
+    assert receipt["registered_event_count"] == 11
+    assert receipt["handler_count_semantics"] == (
+        "TOTAL_NESTED_HANDLER_ACTION_COUNT"
+    )
+    assert receipt["logical_action_count"] == 44
+    assert [row["action_number"] for row in receipt["handler_records"]] == [
+        f"{event_ordinal}.{action_ordinal}"
+        for event_ordinal in range(1, 12)
+        for action_ordinal in range(1, 5)
+    ]
     assert len(receipt["contract_sha256"]) == 64
     assert len(receipt["configuration_sha256"]) == 64
     assert "PermissionRequest" in configuration["hooks"]
     assert {"SubagentStart", "SubagentStop"}.issubset(configuration["hooks"])
-    records = {row["event_name"]: row for row in receipt["handler_records"]}
-    assert records["SessionEnd"]["timeout"] == 3
+    records = receipt["handler_records"]
+    assert all(
+        row["timeout"] == 3
+        for row in records
+        if row["event_name"] == "SessionEnd"
+    )
     assert all(
         row["timeout"] == 10
-        for event_name, row in records.items()
-        if event_name != "SessionEnd"
+        for row in records
+        if row["event_name"] != "SessionEnd"
     )
     assert all(
         row["windows_process_window_mode"] == "HOST_MANAGED_NO_CHILD_WINDOW"
-        for row in records.values()
+        for row in records
     )
-    assert all(row["windows_child_create_no_window"] is True for row in records.values())
+    assert all(row["windows_child_create_no_window"] is True for row in records)
     assert all(
         row["windows_interpreter_resolution"] == "SEALED_DERIVED_RUNTIME_ONLY"
-        for row in records.values()
+        for row in records
     )
     for event_name, groups in configuration["hooks"].items():
-        handler = groups[0]["hooks"][0]
-        windows = handler["commandWindows"]
-        assert windows.startswith(
-            '& "${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe" '
-        )
-        assert "%SystemRoot%" not in windows
-        assert "%PLUGIN_ROOT%" not in windows
-        assert "powershell.exe" not in windows.casefold()
-        assert "invoke_hook.ps1" not in windows.casefold()
-        assert event_name in windows
-        assert not windows.casefold().startswith("python ")
+        assert len(groups[0]["hooks"]) == 4
+        for handler in groups[0]["hooks"]:
+            windows = handler["commandWindows"]
+            assert windows.startswith(
+                '& "${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe" '
+            )
+            assert "%SystemRoot%" not in windows
+            assert "%PLUGIN_ROOT%" not in windows
+            assert "powershell.exe" not in windows.casefold()
+            assert "invoke_hook.ps1" not in windows.casefold()
+            assert event_name in windows
+            assert not windows.casefold().startswith("python ")
 
     reordered = json.loads(json.dumps(configuration))
     reordered["hooks"] = {
@@ -187,6 +216,58 @@ def test_package_hook_configuration_matches_contract_order_and_handlers() -> Non
     stale_timeout["hooks"]["SessionEnd"][0]["hooks"][0]["timeout"] = 10
     with pytest.raises(HookContractError, match="HOOK_HOST_TIMEOUT_MISMATCH"):
         validate_hook_configuration(stale_timeout)
+
+
+def test_hook_event_supports_distinct_numbered_nested_actions(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    configuration = json.loads(
+        (PLUGIN / "hooks" / "hooks.json").read_text(encoding="utf-8")
+    )
+    receipt = validate_hook_configuration(configuration)
+
+    precompact = [
+        row
+        for row in receipt["handler_records"]
+        if row["event_name"] == "PreCompact"
+    ]
+    assert [row["action_number"] for row in precompact] == [
+        "7.1", "7.2", "7.3", "7.4"
+    ]
+    assert [row["handler"] for row in precompact] == [
+        "subhook_validate.py",
+        "subhook_seal.py",
+        "subhook_transport.py",
+        "subhook_emit.py",
+    ]
+    assert receipt["event_action_counts"]["PreCompact"] == 4
+    assert receipt["registered_event_count"] == 11
+    assert receipt["handler_count"] == 44
+
+    launcher = _launcher_module()
+    monkeypatch.setattr(launcher, "_reexec_sealed_runtime", lambda *_: None)
+    calls: list[tuple[str, tuple[str, ...]]] = []
+    monkeypatch.setattr(
+        launcher,
+        "_execute_isolated_handler",
+        lambda _event, path, args, _payload: (
+            calls.append((path.name, args)) or {"systemMessage": "nested-action"}
+        ),
+    )
+    monkeypatch.setattr(launcher.sys, "stdin", io.StringIO("{}"))
+    assert launcher.main(
+        ["--event", "PreCompact", "--handler", "subhook_transport.py"]
+    ) == 0
+    assert calls == [
+        (
+            "subhook_transport.py",
+            ("PreCompact", "lifecycle_boundary.py", "PreCompact"),
+        )
+    ]
+    assert json.loads(capsys.readouterr().out) == {
+        "systemMessage": "nested-action"
+    }
 
 
 def test_hook_launcher_is_mapping_bound_secret_safe_and_host_nonblocking(
@@ -226,9 +307,15 @@ def test_hook_launcher_is_mapping_bound_secret_safe_and_host_nonblocking(
     monkeypatch.setattr(launcher, "_execute_isolated_handler", fake_execute)
     monkeypatch.setattr(launcher.sys, "stdin", io.StringIO("{}"))
     assert launcher.main(
-        ["--event", "PreCompact", "--handler", "lifecycle_boundary.py"]
+        ["--event", "PreCompact", "--handler", "subhook_validate.py"]
     ) == 0
-    assert calls == [("lifecycle_boundary.py", ("PreCompact",), "{}")]
+    assert calls == [
+        (
+            "subhook_validate.py",
+            ("PreCompact", "lifecycle_boundary.py", "PreCompact"),
+            "{}",
+        )
+    ]
     assert json.loads(capsys.readouterr().out) == {
         "systemMessage": "bounded-isolation-test"
     }
@@ -285,8 +372,10 @@ def test_windows_hook_host_is_synchronous_and_never_spawns_a_child_console(
     assert "RedirectStandardInput = true" in source
     assert "RedirectStandardOutput = true" in source
     assert "RedirectStandardError = true" in source
-    assert '"SessionStart", "session_start.py"' in source
-    assert '"SessionEnd", "lifecycle_boundary.py"' in source
+    assert '{ "SessionStart", StageHandlers() }' in source
+    assert '{ "SessionEnd", StageHandlers() }' in source
+    assert '"subhook_validate.py"' in source
+    assert '"subhook_emit.py"' in source
 
     raw = executable.read_bytes()
     pe_offset = struct.unpack_from("<I", raw, 0x3C)[0]
@@ -296,9 +385,9 @@ def test_windows_hook_host_is_synchronous_and_never_spawns_a_child_console(
     assert struct.unpack_from("<H", raw, subsystem_offset)[0] == 3
 
     environment = os.environ.copy()
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(tmp_path)
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(tmp_path)
     result = subprocess.run(
-        [str(executable), "SessionStart", "session_start.py"],
+        [str(executable), "SessionStart", "subhook_validate.py"],
         input=b'{"hook_event_name":"SessionStart"}',
         capture_output=True,
         check=False,

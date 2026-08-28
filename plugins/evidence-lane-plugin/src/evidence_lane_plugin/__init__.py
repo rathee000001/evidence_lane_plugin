@@ -6,6 +6,7 @@ from .state_travel_contract import (
     direct_forced_same_worktree_binding_contract,
     preflight_direct_forced_same_worktree_binding,
     verify_direct_destination_plan_acceptance,
+    verify_direct_source_option2_closeout,
 )
 from .task_attachment_rehydration import (
     GLOBAL_PLUGIN_UPDATE_REHYDRATION_LAW,
@@ -21,5 +22,6 @@ __all__ = [
     "plan_global_plugin_update_rehydration",
     "preflight_direct_forced_same_worktree_binding",
     "verify_direct_destination_plan_acceptance",
+    "verify_direct_source_option2_closeout",
 ]
 __version__ = ENGINE_VERSION

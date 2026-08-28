@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 11,
+  "handler_number": 4,
+  "display_id": "11.4",
+  "event": "SessionEnd",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_emit.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_emit.py",
+    "timeout": 3,
+    "statusMessage": "Verifying and emitting Evidence Lane hook result"
+  },
+  "logical_action": "VERIFY_AND_EMIT_EVENT_RESULT",
+  "stage": "hooks/subhook_emit.py",
+  "stage_sha256": "58483422B501DA08226BF4292310A9328F438EB1D8F0AC127178264844D816D0",
+  "adapter": "hooks/lifecycle_boundary.py",
+  "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "DAE97FA2A7A447EE29CD394AF3BCA1F834C6162D6283705C9CD059F737708177"
+}

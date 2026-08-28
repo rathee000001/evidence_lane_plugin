@@ -12,6 +12,7 @@ from .models import SessionState
 
 class LifecycleEvent(StrEnum):
     FLASH_VERIFIED = "FLASH_VERIFIED"
+    BOOTSTRAP_PV0 = "BOOTSTRAP_PV0"
     BUILD_INITIAL = "BUILD_INITIAL"
     CLASSIFY_TASK = "CLASSIFY_TASK"
     ADVANCE_VERIFIED_STATE_TRAVEL_TASK = "ADVANCE_VERIFIED_STATE_TRAVEL_TASK"
@@ -24,6 +25,9 @@ class LifecycleEvent(StrEnum):
     RECOVER_INTERRUPTED_EXIT = "RECOVER_INTERRUPTED_EXIT"
     SEAL_EXIT = "SEAL_EXIT"
     SEAL_INITIAL_RETRY = "SEAL_INITIAL_RETRY"
+    REOPEN_UNPRESENTED_CANDIDATE_FOR_DELTA_EXIT = (
+        "REOPEN_UNPRESENTED_CANDIDATE_FOR_DELTA_EXIT"
+    )
     HIL_APPROVE = "HIL_APPROVE"
     HIL_APPROVE_WITH_DELTA = "HIL_APPROVE_WITH_DELTA"
     HIL_MORE_RESEARCH = "HIL_MORE_RESEARCH"
@@ -58,6 +62,9 @@ TRANSITION_LAW = MappingProxyType(
     {
         LifecycleEvent.FLASH_VERIFIED: frozenset(
             {(SessionState.SESSION_BOOT_FLASH, SessionState.BOOTED)}
+        ),
+        LifecycleEvent.BOOTSTRAP_PV0: frozenset(
+            {(SessionState.BOOTED, SessionState.PVN_ACCEPTED)}
         ),
         LifecycleEvent.BUILD_INITIAL: frozenset(
             {(SessionState.BOOTED, SessionState.PV1_CANDIDATE)}
@@ -97,6 +104,9 @@ TRANSITION_LAW = MappingProxyType(
         ),
         LifecycleEvent.SEAL_INITIAL_RETRY: frozenset(
             {(SessionState.EXIT_BUILDING, SessionState.PV1_CANDIDATE)}
+        ),
+        LifecycleEvent.REOPEN_UNPRESENTED_CANDIDATE_FOR_DELTA_EXIT: _pairs(
+            _CANDIDATE, {SessionState.TASK_CLASSIFIED}
         ),
         LifecycleEvent.HIL_APPROVE: _pairs(_CANDIDATE, _ACCEPTED),
         LifecycleEvent.HIL_APPROVE_WITH_DELTA: _pairs(

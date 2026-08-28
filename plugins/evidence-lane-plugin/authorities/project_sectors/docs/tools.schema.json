@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Docs lane tools",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "lane_id",
+    "builder",
+    "reader",
+    "query_traversal",
+    "retrieval_modes",
+    "canonical_shared_modules"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-lane-tooling.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "lane_id": {
+      "const": "docs"
+    },
+    "builder": {
+      "const": "builder.py:build_lane_sources"
+    },
+    "reader": {
+      "const": "reader.py:LaneReader"
+    },
+    "query_traversal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval_modes": {
+      "const": [
+        "hybrid",
+        "fts5",
+        "bm25",
+        "tfidf"
+      ]
+    },
+    "canonical_shared_modules": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "E62D793C7D3D83E1FE410CE9E3B30F8DD372188DA2C12BF246FE639C348C9BFA"
+}

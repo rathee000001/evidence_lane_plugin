@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "artifacts DOT_TRAVERSAL_MAP artifact receipt",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "artifact_path",
+    "artifact_role",
+    "syntax",
+    "bytes",
+    "sha256",
+    "validator",
+    "status"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "artifacts"
+    },
+    "artifact_path": {
+      "const": "artifacts.dot"
+    },
+    "artifact_role": {
+      "const": "DOT_TRAVERSAL_MAP"
+    },
+    "syntax": {
+      "const": "GRAPHVIZ_DOT"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "validator": {
+      "const": "topology_reconciliation.validate_dot"
+    },
+    "status": {
+      "const": "PASS"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "BC37B85C89CA0A69788F6B79FF5E0F210DC8A2DB252E5A10852F82DEAE313604"
+}

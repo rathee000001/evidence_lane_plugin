@@ -1,0 +1,290 @@
+{
+  "schema": "evidence-lane.installed-authority-surface.v1",
+  "status": "PASS",
+  "authority_id": "project_memory",
+  "database": "memory.sqlite",
+  "database_sha256": "F9A37C841CF8766F9BB2AFD8ECB65998E4EAE08634682464D5E12EF4191BA754",
+  "database_integrity": "ok",
+  "schema_sha256": "DAA252937D08B259F359A80A4580A17B4A903297A605B3A6A7D838B61E0AB4F8",
+  "table_count": 22,
+  "fts5_tables": [
+    "authority_index_fts",
+    "memory_locator_fts"
+  ],
+  "members": [
+    {
+      "path": "authorities/project_memory/build-refresh-contract.schema.json",
+      "bytes": 565,
+      "sha256": "B5A9FF5CA1D3D23E14462390A636191DFC6ED369D304E8D258A7B95FD13F03EF"
+    },
+    {
+      "path": "authorities/project_memory/builder.py",
+      "bytes": 315,
+      "sha256": "28D8D65BC2FA2A71D1A3E06E3B4CD7E489DF89B358CB26B1B0F837D955E8FEC2"
+    },
+    {
+      "path": "authorities/project_memory/dot-artifact.schema.json",
+      "bytes": 962,
+      "sha256": "BA5DBF17F0771B0C68E2F3643FB678C2C129BD3A1B048E14B372713ADA6A299C"
+    },
+    {
+      "path": "authorities/project_memory/manifest.schema.json",
+      "bytes": 1034,
+      "sha256": "1CCCB20E5E83249196F0ABB2A7DD513F0F2E2EDBAD64918BAEC8810B9F5F3D13"
+    },
+    {
+      "path": "authorities/project_memory/memory.dot",
+      "bytes": 40582,
+      "sha256": "D9D44D6F0371377E057FF75E968D7D99757FBF884B9085C77BC6269EC353DE3C"
+    },
+    {
+      "path": "authorities/project_memory/memory.mmd",
+      "bytes": 30436,
+      "sha256": "9EDE48A40DFA6EF4BA1C4D59EF983B1E22D182661498F703370216256AA72A16"
+    },
+    {
+      "path": "authorities/project_memory/memory.sqlite",
+      "bytes": 176128,
+      "sha256": "F9A37C841CF8766F9BB2AFD8ECB65998E4EAE08634682464D5E12EF4191BA754"
+    },
+    {
+      "path": "authorities/project_memory/memory.tools.json",
+      "bytes": 13172,
+      "sha256": "A6CAB2B45792820AB2F1EEE5DBFC6B4D69D03C55BB53420170CE88821222DCD1"
+    },
+    {
+      "path": "authorities/project_memory/mmd-artifact.schema.json",
+      "bytes": 975,
+      "sha256": "383B9CAC86DA9D5D6F35BBC6B1F2437EE967ECA7AEEDAC2CAD6C8726D960D2A4"
+    },
+    {
+      "path": "authorities/project_memory/pointer-contract.schema.json",
+      "bytes": 548,
+      "sha256": "A1DD5E8C744D6177E8A3216F9D9A1B5CB701279D8528B5BE6BA540FFF6EBDE79"
+    },
+    {
+      "path": "authorities/project_memory/pointer-contract.v1.json",
+      "bytes": 403,
+      "sha256": "45BFD64AE037950DC539595ACECFCE1DB94EDC69D229807A09B7EF1F7B8D894F"
+    },
+    {
+      "path": "authorities/project_memory/reader-contract.schema.json",
+      "bytes": 767,
+      "sha256": "EDC92364B182733BCB6899BD9EE589523DA73FC6E71B1FD86B06E6106CF1303B"
+    },
+    {
+      "path": "authorities/project_memory/reader.py",
+      "bytes": 319,
+      "sha256": "6E4D1A37095CE46669219596FB68550189542660E4A9C40F983B35F941E885DE"
+    },
+    {
+      "path": "authorities/project_memory/README.md",
+      "bytes": 351,
+      "sha256": "E497FB2A40B4FAEE1CB603D33038DE54118C3EFC8769B725559A96EFD7ECCD89"
+    },
+    {
+      "path": "authorities/project_memory/refresh-receipt.schema.json",
+      "bytes": 886,
+      "sha256": "822C61CA6BA1D9BC6809CFED7CC916FFE0E92C8C5C50D52FE4C234324940DF07"
+    },
+    {
+      "path": "authorities/project_memory/runtime-binding.schema.json",
+      "bytes": 596,
+      "sha256": "4AA59177845431F5B368B722D8EEE45A01E7D89F327E38062755DD306E9F8305"
+    },
+    {
+      "path": "authorities/project_memory/runtime.py",
+      "bytes": 331,
+      "sha256": "2E63A5CAAA4F466B9393085152FF8DFEDE6ED6E1E2B232D11F17C67CA2398353"
+    },
+    {
+      "path": "authorities/project_memory/schema.sql",
+      "bytes": 5352,
+      "sha256": "68F24FC1B517AD4304659DE4C52C8779604B4C4299E2016AF698CCEB82F35092"
+    },
+    {
+      "path": "authorities/project_memory/sqlite-artifact.schema.json",
+      "bytes": 953,
+      "sha256": "0AF6A81A19939BFF82B2D99E1D99B84BA721591502F8A883344DC54FE57269F9"
+    },
+    {
+      "path": "authorities/project_memory/sqlite-schema.v1.json",
+      "bytes": 33834,
+      "sha256": "66D3C9DFD84A5D25B88D41EEF1A0EA8A0B420807EDF61A8E5EE0312897305DE9"
+    },
+    {
+      "path": "authorities/project_memory/tools.schema.json",
+      "bytes": 530,
+      "sha256": "7918E6B46795B30EB36A65BC127D7B2ED6D85322B5BD6C816D110392F3EEEE71"
+    }
+  ],
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/project_memory.py": "D6FF65563453A74324114AAFB9E901F14BD03E689BC61ECAB658BD87BE32FF13",
+    "src/evidence_lane_plugin/conversation_memory.py": "875D1CF54192647A75124A4AD43090AA37F52CA2CF68A124B9DD36316216B886",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "project_memory",
+    "source_count": 1,
+    "node_count": 1,
+    "indexed_table_count": 1,
+    "indexed_tables": [
+      "memory_schema_metadata"
+    ],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:51.143839Z",
+    "receipt_sha256": "EEFCC9D162051CBA7E32E0C6B237A6D7E91BEF8BD43693731FFC485E27BA527E"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "project_memory_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 151,
+    "edge_count": 156,
+    "group_count": 1,
+    "semantic_topology_sha256": "6EFF48B4C6650CC6F7D2AABB4558A93119106F0F8EAACF04E2EC691E6F088EFD",
+    "mmd_sha256": "9EDE48A40DFA6EF4BA1C4D59EF983B1E22D182661498F703370216256AA72A16",
+    "dot_sha256": "D9D44D6F0371377E057FF75E968D7D99757FBF884B9085C77BC6269EC353DE3C",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "410F3F7A71A9B7B4FAF085CC8855BAD60154BEAA2C9E478F46A5D55BB9DD1FEF",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 151,
+      "edge_count": 156,
+      "weak_component_count": 1,
+      "strong_component_count": 151,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 22
+        },
+        {
+          "node_id": "support_table_memory_authority_head",
+          "in_degree": 3,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_memory_locator",
+          "in_degree": 3,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_memory_compaction_checkpoint",
+          "in_degree": 2,
+          "out_degree": 11
+        },
+        {
+          "node_id": "support_table_memory_edge",
+          "in_degree": 1,
+          "out_degree": 11
+        },
+        {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_memory_rehydration_receipt",
+          "in_degree": 1,
+          "out_degree": 8
+        },
+        {
+          "node_id": "support_table_memory_locator_fts_content",
+          "in_degree": 1,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_authority_index_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_memory_locator_fts",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_memory_migration_receipt",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_memory_schema_metadata",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_authority_index_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_memory_locator_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_authority_index_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "4B4DE3C87411995132CE2F091CCF4314059053B093ADFF5EAE879BB30B1DA3A0",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "554D9369D8E7203FB91A4FBF3FFBE1B1404E187AC1FC289C76DC1F69EC956233"
+  },
+  "live_project_bytes_in_template": false,
+  "authority_merged_with_sector_or_peer": false,
+  "receipt_sha256": "A8E4A514769158942B989518FB63AB51D88677794A6A045868DDE03791582DA8"
+}

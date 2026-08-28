@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.semantic_retrieval",
+  "source_path": "src/evidence_lane_plugin/semantic_retrieval.py",
+  "source_sha256": "842FB741878E56813E86D2841BB3123F37F5A4B2691FF421B0F32F912541773E",
+  "source_bytes": 8859,
+  "role": "AI_TOOLCHAIN_EXECUTION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "5C63F6B005DDF112455A81C7AFE054B96F7B7C93BCDD710D671C4F4293BC2C83"
+}

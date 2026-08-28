@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "mode_classify",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-mode",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "mode_classify"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-mode",
+        "workflow": "classify-mode",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-plan",
+        "workflow": "classify-plan-mode",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "4E85D82EC4364F65F640B8347FA7E01BF611FA8A80A4427868261A155BCB3F39",
+  "sdk_action_binding": "sdk/actions/mode_classify.action.v1.json",
+  "mcp_action_binding": "mcp/actions/mode_classify.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "6B9E5B285936A067CCB4C814101392C13C763A77935BDB37C44BE187654D4462"
+}

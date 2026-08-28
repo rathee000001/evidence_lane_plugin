@@ -24,10 +24,10 @@ FIXED_PUBLIC_PATHS = (
     "LICENSE.md",
     "docs/COPYRIGHT.md",
     "docs/CREDITS_AND_CONTRIBUTIONS.md",
-    "docs/DEPENDENCY_LICENSE_AUDIT.md",
+    "docs/THIRD_PARTY_LICENSES.md",
     "docs/HOOKS.md",
     "docs/MCP.md",
-    "docs/PUBLIC_SITE_SOURCE_MAP.md",
+    "docs/REPOSITORY_MAP.md",
     "docs/SKILLS.md",
     "docs/UPSTREAM_REFERENCE_PROVENANCE.md",
 )
@@ -98,7 +98,7 @@ def _prepare_frozen_fixture(repo: Path) -> Path:
     }
     frozen_path = repo.parent / "frozen-studio-index.json"
     frozen_path.write_text(json.dumps(frozen), encoding="utf-8")
-    (repo / "plugins/evidence-lane-plugin/remote_adapter/app/_data").mkdir(
+    (repo / "apps/evidence-lane-remote-adapter/app/_data").mkdir(
         parents=True,
         exist_ok=True,
     )
@@ -135,7 +135,7 @@ def test_frozen_history_regeneration_never_invokes_git(
     browser = json.loads(
         (
             repo
-            / "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-rag-index.json"
+            / "apps/evidence-lane-remote-adapter/app/_data/studio-rag-index.json"
         ).read_text(encoding="utf-8")
     )
     assert browser["history_mode"] == "FROZEN_SEALED_INDEX_NO_GIT"

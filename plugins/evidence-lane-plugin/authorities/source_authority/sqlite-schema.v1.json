@@ -1,0 +1,4465 @@
+{
+  "schema": "evidence-lane.sqlite-authority-schema-snapshot.v1",
+  "database_sha256": "ECB2F8728B74F5F65BCED30F07F253520643BC7D767F18492BED7C1A124F7453",
+  "objects": [
+    {
+      "type": "index",
+      "name": "authority_index_node_source_idx",
+      "tbl_name": "authority_index_node",
+      "sql": "CREATE INDEX authority_index_node_source_idx\n        ON authority_index_node(source_id, ordinal)"
+    },
+    {
+      "type": "index",
+      "name": "authority_index_source_table_idx",
+      "tbl_name": "authority_index_source",
+      "sql": "CREATE INDEX authority_index_source_table_idx\n        ON authority_index_source(authority_id, source_table, source_identity)"
+    },
+    {
+      "type": "index",
+      "name": "source_git_change_path_idx",
+      "tbl_name": "source_git_file_change",
+      "sql": "CREATE INDEX source_git_change_path_idx ON source_git_file_change(snapshot_id, member_path, commit_sha)"
+    },
+    {
+      "type": "index",
+      "name": "source_git_prior_path_idx",
+      "tbl_name": "source_git_file_change",
+      "sql": "CREATE INDEX source_git_prior_path_idx ON source_git_file_change(snapshot_id, prior_path, commit_sha)"
+    },
+    {
+      "type": "index",
+      "name": "source_git_tree_path_idx",
+      "tbl_name": "source_git_tree_entry",
+      "sql": "CREATE INDEX source_git_tree_path_idx ON source_git_tree_entry(snapshot_id, member_path, commit_sha)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts",
+      "tbl_name": "authority_index_fts",
+      "sql": "CREATE VIRTUAL TABLE authority_index_fts USING fts5(\n            node_id UNINDEXED,\n            authority_id UNINDEXED,\n            source_table,\n            source_identity,\n            text_content,\n            tokenize='unicode61'\n        )"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_config",
+      "tbl_name": "authority_index_fts_config",
+      "sql": "CREATE TABLE 'authority_index_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_content",
+      "tbl_name": "authority_index_fts_content",
+      "sql": "CREATE TABLE 'authority_index_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_data",
+      "tbl_name": "authority_index_fts_data",
+      "sql": "CREATE TABLE 'authority_index_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_docsize",
+      "tbl_name": "authority_index_fts_docsize",
+      "sql": "CREATE TABLE 'authority_index_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_idx",
+      "tbl_name": "authority_index_fts_idx",
+      "sql": "CREATE TABLE 'authority_index_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_node",
+      "tbl_name": "authority_index_node",
+      "sql": "CREATE TABLE authority_index_node(\n            node_id TEXT PRIMARY KEY,\n            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)\n                ON DELETE CASCADE,\n            ordinal INTEGER NOT NULL,\n            char_start INTEGER NOT NULL,\n            char_end INTEGER NOT NULL,\n            text_content TEXT NOT NULL,\n            text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            UNIQUE(source_id, ordinal)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_refresh_receipt",
+      "tbl_name": "authority_index_refresh_receipt",
+      "sql": "CREATE TABLE authority_index_refresh_receipt(\n            sequence INTEGER PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_count INTEGER NOT NULL,\n            node_count INTEGER NOT NULL,\n            indexed_table_count INTEGER NOT NULL,\n            llama_index_core_version TEXT NOT NULL,\n            chunk_size_tokens INTEGER NOT NULL,\n            chunk_overlap_tokens INTEGER NOT NULL,\n            prior_receipt_sha256 TEXT,\n            recorded_at TEXT NOT NULL,\n            receipt_sha256 TEXT NOT NULL UNIQUE,\n            receipt_json TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_source",
+      "tbl_name": "authority_index_source",
+      "sql": "CREATE TABLE authority_index_source(\n            source_id TEXT PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_table TEXT NOT NULL,\n            source_identity TEXT NOT NULL,\n            source_text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            recorded_at TEXT NOT NULL,\n            UNIQUE(authority_id, source_table, source_identity)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "intake_batch",
+      "tbl_name": "intake_batch",
+      "sql": "CREATE TABLE intake_batch(\n                batch_id TEXT PRIMARY KEY,\n                batch_sha256 TEXT NOT NULL UNIQUE,\n                source_count INTEGER NOT NULL,\n                directory_count INTEGER NOT NULL,\n                file_count INTEGER NOT NULL,\n                zip_count INTEGER NOT NULL,\n                exact_extracted_zip_relations INTEGER NOT NULL,\n                unique_zip_count INTEGER NOT NULL,\n                created_at TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "registry_event",
+      "tbl_name": "registry_event",
+      "sql": "CREATE TABLE registry_event(\n                event_id TEXT PRIMARY KEY,\n                batch_id TEXT,\n                event_type TEXT NOT NULL,\n                event_json TEXT NOT NULL,\n                event_sha256 TEXT NOT NULL,\n                occurred_at TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "registry_meta",
+      "tbl_name": "registry_meta",
+      "sql": "CREATE TABLE registry_meta(\n                key TEXT PRIMARY KEY,\n                value TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_archive_receipt",
+      "tbl_name": "source_archive_receipt",
+      "sql": "CREATE TABLE source_archive_receipt(\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                archive_object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                intake_status TEXT NOT NULL,\n                skip_status TEXT NOT NULL,\n                counterpart_object_id TEXT REFERENCES source_object(object_id),\n                counterpart_scope TEXT,\n                matched_prefix TEXT,\n                unsafe_member_count INTEGER NOT NULL,\n                policy_excluded_member_count INTEGER NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL,\n                created_at TEXT NOT NULL,\n                PRIMARY KEY(batch_id, archive_object_id)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_assertion_set",
+      "tbl_name": "source_assertion_set",
+      "sql": "CREATE TABLE source_assertion_set(\n                assertion_set_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                crosswalk_sha256 TEXT NOT NULL,\n                source_count INTEGER NOT NULL,\n                claim_count INTEGER NOT NULL,\n                created_at TEXT NOT NULL,\n                UNIQUE(batch_id, crosswalk_sha256)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_authority_fts",
+      "tbl_name": "source_authority_fts",
+      "sql": "CREATE VIRTUAL TABLE source_authority_fts USING fts5(object_id UNINDEXED, source_pointer, member_path)"
+    },
+    {
+      "type": "table",
+      "name": "source_authority_fts_config",
+      "tbl_name": "source_authority_fts_config",
+      "sql": "CREATE TABLE 'source_authority_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "source_authority_fts_content",
+      "tbl_name": "source_authority_fts_content",
+      "sql": "CREATE TABLE 'source_authority_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2)"
+    },
+    {
+      "type": "table",
+      "name": "source_authority_fts_data",
+      "tbl_name": "source_authority_fts_data",
+      "sql": "CREATE TABLE 'source_authority_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "source_authority_fts_docsize",
+      "tbl_name": "source_authority_fts_docsize",
+      "sql": "CREATE TABLE 'source_authority_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "source_authority_fts_idx",
+      "tbl_name": "source_authority_fts_idx",
+      "sql": "CREATE TABLE 'source_authority_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "source_custom_schema",
+      "tbl_name": "source_custom_schema",
+      "sql": "CREATE TABLE source_custom_schema(\n                schema_id TEXT NOT NULL,\n                schema_version INTEGER NOT NULL,\n                schema_sha256 TEXT NOT NULL UNIQUE,\n                target_lane_id TEXT NOT NULL,\n                compiler_version TEXT NOT NULL,\n                definition_json TEXT NOT NULL,\n                compiled_json TEXT NOT NULL,\n                created_at TEXT NOT NULL,\n                PRIMARY KEY(schema_id, schema_version)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_custom_schema_mapping",
+      "tbl_name": "source_custom_schema_mapping",
+      "sql": "CREATE TABLE source_custom_schema_mapping(\n                mapping_id TEXT PRIMARY KEY,\n                schema_sha256 TEXT NOT NULL REFERENCES source_custom_schema(schema_sha256),\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                occurrence_ordinal INTEGER NOT NULL,\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                member_path TEXT NOT NULL,\n                selector_id TEXT NOT NULL,\n                target_lane_id TEXT NOT NULL,\n                mapped_json TEXT NOT NULL,\n                mapping_sha256 TEXT NOT NULL,\n                mapping_state TEXT NOT NULL,\n                UNIQUE(schema_sha256, batch_id, occurrence_ordinal, member_path, selector_id)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_custom_schema_receipt",
+      "tbl_name": "source_custom_schema_receipt",
+      "sql": "CREATE TABLE source_custom_schema_receipt(\n                receipt_id TEXT PRIMARY KEY,\n                schema_sha256 TEXT NOT NULL REFERENCES source_custom_schema(schema_sha256),\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                matched_occurrence_count INTEGER NOT NULL,\n                mapping_count INTEGER NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL,\n                UNIQUE(schema_sha256, batch_id)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_changed_line",
+      "tbl_name": "source_git_changed_line",
+      "sql": "CREATE TABLE source_git_changed_line(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                change_ordinal INTEGER NOT NULL,\n                hunk_ordinal INTEGER NOT NULL,\n                line_ordinal INTEGER NOT NULL,\n                line_kind TEXT NOT NULL,\n                old_line_number INTEGER,\n                new_line_number INTEGER,\n                content_size_bytes INTEGER NOT NULL,\n                content_sha256 TEXT NOT NULL,\n                no_newline INTEGER NOT NULL CHECK(no_newline IN (0, 1)),\n                line_sha256 TEXT NOT NULL,\n                PRIMARY KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal,\n                    line_ordinal\n                ),\n                FOREIGN KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal\n                ) REFERENCES source_git_hunk(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal\n                )\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_commit",
+      "tbl_name": "source_git_commit",
+      "sql": "CREATE TABLE source_git_commit(\n                snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),\n                commit_sha TEXT NOT NULL,\n                ordinal INTEGER NOT NULL,\n                tree_sha TEXT NOT NULL,\n                authored_at TEXT NOT NULL,\n                committed_at TEXT NOT NULL,\n                author_sha256 TEXT NOT NULL,\n                committer_sha256 TEXT NOT NULL,\n                message_redacted TEXT NOT NULL,\n                message_sha256 TEXT NOT NULL,\n                object_content_sha256 TEXT NOT NULL,\n                parent_count INTEGER NOT NULL,\n                commit_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, commit_sha),\n                UNIQUE(snapshot_id, ordinal)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_file_change",
+      "tbl_name": "source_git_file_change",
+      "sql": "CREATE TABLE source_git_file_change(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                comparison_base_sha TEXT NOT NULL,\n                change_ordinal INTEGER NOT NULL,\n                status_code TEXT NOT NULL,\n                similarity_score INTEGER,\n                prior_path TEXT,\n                member_path TEXT NOT NULL,\n                old_mode TEXT NOT NULL,\n                new_mode TEXT NOT NULL,\n                old_object_sha TEXT NOT NULL,\n                new_object_sha TEXT NOT NULL,\n                additions INTEGER,\n                deletions INTEGER,\n                binary INTEGER NOT NULL CHECK(binary IN (0, 1)),\n                change_sha256 TEXT NOT NULL,\n                PRIMARY KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                ),\n                FOREIGN KEY(snapshot_id, commit_sha)\n                    REFERENCES source_git_commit(snapshot_id, commit_sha)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_hunk",
+      "tbl_name": "source_git_hunk",
+      "sql": "CREATE TABLE source_git_hunk(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                change_ordinal INTEGER NOT NULL,\n                hunk_ordinal INTEGER NOT NULL,\n                old_start INTEGER NOT NULL,\n                old_count INTEGER NOT NULL,\n                new_start INTEGER NOT NULL,\n                new_count INTEGER NOT NULL,\n                header_sha256 TEXT NOT NULL,\n                hunk_sha256 TEXT NOT NULL,\n                PRIMARY KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal\n                ),\n                FOREIGN KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                ) REFERENCES source_git_file_change(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                )\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_impact",
+      "tbl_name": "source_git_impact",
+      "sql": "CREATE TABLE source_git_impact(\n                impact_id TEXT PRIMARY KEY,\n                snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),\n                graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                mapped_path_count INTEGER NOT NULL,\n                unmapped_path_count INTEGER NOT NULL,\n                seed_nodes_json TEXT NOT NULL,\n                projection_json TEXT NOT NULL,\n                projection_sha256 TEXT NOT NULL,\n                graph_impact_id TEXT,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_object",
+      "tbl_name": "source_git_object",
+      "sql": "CREATE TABLE source_git_object(\n                snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),\n                object_sha TEXT NOT NULL,\n                object_type TEXT NOT NULL,\n                size_bytes INTEGER NOT NULL,\n                content_sha256 TEXT NOT NULL,\n                object_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, object_sha)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_object_path",
+      "tbl_name": "source_git_object_path",
+      "sql": "CREATE TABLE source_git_object_path(\n                snapshot_id TEXT NOT NULL,\n                object_sha TEXT NOT NULL,\n                path_ordinal INTEGER NOT NULL,\n                observed_path TEXT NOT NULL,\n                path_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, object_sha, path_ordinal),\n                FOREIGN KEY(snapshot_id, object_sha)\n                    REFERENCES source_git_object(snapshot_id, object_sha)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_parent",
+      "tbl_name": "source_git_parent",
+      "sql": "CREATE TABLE source_git_parent(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                parent_sha TEXT NOT NULL,\n                parent_edge_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, commit_sha, parent_ordinal),\n                FOREIGN KEY(snapshot_id, commit_sha)\n                    REFERENCES source_git_commit(snapshot_id, commit_sha)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_ref",
+      "tbl_name": "source_git_ref",
+      "sql": "CREATE TABLE source_git_ref(\n                snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),\n                ref_name TEXT NOT NULL,\n                object_sha TEXT NOT NULL,\n                object_type TEXT NOT NULL,\n                peeled_sha TEXT,\n                peeled_type TEXT,\n                ref_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, ref_name)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_rename",
+      "tbl_name": "source_git_rename",
+      "sql": "CREATE TABLE source_git_rename(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                change_ordinal INTEGER NOT NULL,\n                prior_path TEXT NOT NULL,\n                member_path TEXT NOT NULL,\n                similarity_score INTEGER NOT NULL,\n                rename_sha256 TEXT NOT NULL,\n                PRIMARY KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                ),\n                FOREIGN KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                ) REFERENCES source_git_file_change(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                )\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_snapshot",
+      "tbl_name": "source_git_snapshot",
+      "sql": "CREATE TABLE source_git_snapshot(\n                snapshot_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                occurrence_ordinal INTEGER NOT NULL,\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                repository_identity_sha256 TEXT NOT NULL,\n                head_commit_sha TEXT NOT NULL,\n                head_tree_sha TEXT NOT NULL,\n                branch TEXT NOT NULL,\n                worktree_clean INTEGER NOT NULL CHECK(worktree_clean IN (0, 1)),\n                worktree_status_sha256 TEXT NOT NULL,\n                history_signature_sha256 TEXT NOT NULL,\n                configuration_json TEXT NOT NULL,\n                ref_count INTEGER NOT NULL,\n                commit_count INTEGER NOT NULL,\n                parent_edge_count INTEGER NOT NULL,\n                object_count INTEGER NOT NULL,\n                tree_entry_count INTEGER NOT NULL,\n                file_change_count INTEGER NOT NULL,\n                rename_count INTEGER NOT NULL,\n                hunk_count INTEGER NOT NULL,\n                changed_line_count INTEGER NOT NULL,\n                refs_root_sha256 TEXT NOT NULL,\n                commits_root_sha256 TEXT NOT NULL,\n                objects_root_sha256 TEXT NOT NULL,\n                trees_root_sha256 TEXT NOT NULL,\n                changes_root_sha256 TEXT NOT NULL,\n                hunks_root_sha256 TEXT NOT NULL,\n                lines_root_sha256 TEXT NOT NULL,\n                history_root_sha256 TEXT NOT NULL,\n                status TEXT NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL,\n                UNIQUE(\n                    batch_id,\n                    occurrence_ordinal,\n                    history_signature_sha256,\n                    worktree_status_sha256,\n                    repository_identity_sha256\n                )\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_git_tree_entry",
+      "tbl_name": "source_git_tree_entry",
+      "sql": "CREATE TABLE source_git_tree_entry(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                entry_ordinal INTEGER NOT NULL,\n                member_path TEXT NOT NULL,\n                mode TEXT NOT NULL,\n                object_type TEXT NOT NULL,\n                object_sha TEXT NOT NULL,\n                entry_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, commit_sha, entry_ordinal),\n                FOREIGN KEY(snapshot_id, commit_sha)\n                    REFERENCES source_git_commit(snapshot_id, commit_sha)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_graph_diff",
+      "tbl_name": "source_graph_diff",
+      "sql": "CREATE TABLE source_graph_diff(\n                diff_id TEXT PRIMARY KEY,\n                from_graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                to_graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                added_node_count INTEGER NOT NULL,\n                removed_node_count INTEGER NOT NULL,\n                changed_node_count INTEGER NOT NULL,\n                added_edge_count INTEGER NOT NULL,\n                removed_edge_count INTEGER NOT NULL,\n                changed_edge_count INTEGER NOT NULL,\n                projection_json TEXT NOT NULL,\n                projection_sha256 TEXT NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL,\n                UNIQUE(from_graph_id, to_graph_id)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_graph_edge",
+      "tbl_name": "source_graph_edge",
+      "sql": "CREATE TABLE source_graph_edge(\n                graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                edge_id TEXT NOT NULL,\n                source_node_id TEXT NOT NULL,\n                target_node_id TEXT NOT NULL,\n                relation TEXT NOT NULL,\n                confidence TEXT NOT NULL,\n                source_scope_id TEXT NOT NULL,\n                object_id TEXT NOT NULL,\n                member_path TEXT NOT NULL,\n                line_number INTEGER,\n                parser_id TEXT NOT NULL,\n                evidence_json TEXT NOT NULL,\n                evidence_sha256 TEXT NOT NULL,\n                edge_sha256 TEXT NOT NULL,\n                PRIMARY KEY(graph_id, edge_id),\n                FOREIGN KEY(graph_id, source_node_id)\n                    REFERENCES source_graph_node(graph_id, node_id),\n                FOREIGN KEY(graph_id, target_node_id)\n                    REFERENCES source_graph_node(graph_id, node_id)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_graph_file_coverage",
+      "tbl_name": "source_graph_file_coverage",
+      "sql": "CREATE TABLE source_graph_file_coverage(\n                graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                object_id TEXT NOT NULL,\n                member_path TEXT NOT NULL,\n                language TEXT NOT NULL,\n                file_state TEXT NOT NULL,\n                parser_id TEXT NOT NULL,\n                size_bytes INTEGER,\n                byte_sha256 TEXT,\n                symbol_count INTEGER NOT NULL,\n                import_count INTEGER NOT NULL,\n                call_count INTEGER NOT NULL,\n                node_count INTEGER NOT NULL,\n                edge_count INTEGER NOT NULL,\n                reason TEXT NOT NULL,\n                PRIMARY KEY(graph_id, object_id, member_path)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_graph_impact",
+      "tbl_name": "source_graph_impact",
+      "sql": "CREATE TABLE source_graph_impact(\n                impact_id TEXT PRIMARY KEY,\n                graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                seed_nodes_json TEXT NOT NULL,\n                relations_json TEXT NOT NULL,\n                direction TEXT NOT NULL,\n                max_depth INTEGER NOT NULL,\n                max_nodes INTEGER NOT NULL,\n                projection_json TEXT NOT NULL,\n                projection_sha256 TEXT NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_graph_node",
+      "tbl_name": "source_graph_node",
+      "sql": "CREATE TABLE source_graph_node(\n                graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                node_id TEXT NOT NULL,\n                source_scope_id TEXT NOT NULL,\n                object_id TEXT NOT NULL,\n                member_path TEXT NOT NULL,\n                node_kind TEXT NOT NULL,\n                language TEXT NOT NULL,\n                label TEXT NOT NULL,\n                qualified_name TEXT NOT NULL,\n                start_line INTEGER,\n                end_line INTEGER,\n                extraction_authority TEXT NOT NULL,\n                parser_id TEXT NOT NULL,\n                identity_json TEXT NOT NULL,\n                identity_sha256 TEXT NOT NULL,\n                content_sha256 TEXT NOT NULL,\n                node_sha256 TEXT NOT NULL,\n                PRIMARY KEY(graph_id, node_id)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_graph_snapshot",
+      "tbl_name": "source_graph_snapshot",
+      "sql": "CREATE TABLE source_graph_snapshot(\n                graph_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                extractor_version TEXT NOT NULL,\n                configuration_json TEXT NOT NULL,\n                selection_sha256 TEXT NOT NULL,\n                source_count INTEGER NOT NULL,\n                file_count INTEGER NOT NULL,\n                parsed_file_count INTEGER NOT NULL,\n                node_count INTEGER NOT NULL,\n                edge_count INTEGER NOT NULL,\n                coverage_sha256 TEXT NOT NULL,\n                graph_root_sha256 TEXT NOT NULL,\n                status TEXT NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_identity_assertion",
+      "tbl_name": "source_identity_assertion",
+      "sql": "CREATE TABLE source_identity_assertion(\n                assertion_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                identity_axis TEXT NOT NULL,\n                value_json TEXT NOT NULL,\n                authority TEXT NOT NULL,\n                evidence_ref TEXT NOT NULL,\n                claim_state TEXT NOT NULL,\n                assertion_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_identity_entity",
+      "tbl_name": "source_identity_entity",
+      "sql": "CREATE TABLE source_identity_entity(\n                entity_id TEXT PRIMARY KEY,\n                entity_kind TEXT NOT NULL,\n                label TEXT NOT NULL,\n                version_label TEXT NOT NULL,\n                authority TEXT NOT NULL,\n                evidence_ref TEXT NOT NULL,\n                entity_json TEXT NOT NULL,\n                entity_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_identity_receipt",
+      "tbl_name": "source_identity_receipt",
+      "sql": "CREATE TABLE source_identity_receipt(\n                receipt_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                matrix_sha256 TEXT NOT NULL UNIQUE,\n                source_profile_count INTEGER NOT NULL,\n                entity_count INTEGER NOT NULL,\n                assertion_count INTEGER NOT NULL,\n                relation_count INTEGER NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_identity_relation",
+      "tbl_name": "source_identity_relation",
+      "sql": "CREATE TABLE source_identity_relation(\n                relation_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                subject_type TEXT NOT NULL,\n                subject_id TEXT NOT NULL,\n                relation_type TEXT NOT NULL,\n                object_type TEXT NOT NULL,\n                object_id TEXT NOT NULL,\n                authority TEXT NOT NULL,\n                evidence_ref TEXT NOT NULL,\n                relation_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_member",
+      "tbl_name": "source_member",
+      "sql": "CREATE TABLE source_member(\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                member_path TEXT NOT NULL,\n                member_kind TEXT NOT NULL,\n                size_bytes INTEGER,\n                sha256 TEXT,\n                policy_state TEXT NOT NULL,\n                policy_reason TEXT NOT NULL,\n                PRIMARY KEY(object_id, member_path)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_object",
+      "tbl_name": "source_object",
+      "sql": "CREATE TABLE source_object(\n                object_id TEXT PRIMARY KEY,\n                source_pointer TEXT NOT NULL,\n                resolved_pointer TEXT NOT NULL,\n                kind TEXT NOT NULL,\n                lane_id TEXT NOT NULL,\n                identity_sha256 TEXT NOT NULL,\n                byte_sha256 TEXT,\n                size_bytes INTEGER,\n                member_count INTEGER NOT NULL,\n                included_member_count INTEGER NOT NULL,\n                excluded_member_count INTEGER NOT NULL,\n                member_path_size_sha256 TEXT,\n                content_merkle_sha256 TEXT\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_occurrence",
+      "tbl_name": "source_occurrence",
+      "sql": "CREATE TABLE source_occurrence(\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                ordinal INTEGER NOT NULL,\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                supplied_pointer TEXT NOT NULL,\n                lane_id TEXT NOT NULL,\n                PRIMARY KEY(batch_id, ordinal)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_policy_receipt",
+      "tbl_name": "source_policy_receipt",
+      "sql": "CREATE TABLE source_policy_receipt(\n                object_id TEXT PRIMARY KEY REFERENCES source_object(object_id),\n                included_member_count INTEGER NOT NULL,\n                excluded_member_count INTEGER NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_provenance",
+      "tbl_name": "source_provenance",
+      "sql": "CREATE TABLE source_provenance(\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                claim_key TEXT NOT NULL,\n                claim_json TEXT NOT NULL,\n                authority TEXT NOT NULL,\n                PRIMARY KEY(batch_id, object_id, claim_key)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_relation",
+      "tbl_name": "source_relation",
+      "sql": "CREATE TABLE source_relation(\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                left_object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                relation_type TEXT NOT NULL,\n                right_object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                receipt_sha256 TEXT NOT NULL,\n                PRIMARY KEY(batch_id, left_object_id, relation_type, right_object_id)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_sqlite_asset",
+      "tbl_name": "source_sqlite_asset",
+      "sql": "CREATE TABLE source_sqlite_asset(\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                member_path TEXT NOT NULL,\n                inspection_state TEXT NOT NULL,\n                schema_sha256 TEXT, \"byte_sha256\" TEXT, \"size_bytes\" INTEGER, \"canonical_asset_id\" TEXT, \"inspection_receipt_sha256\" TEXT,\n                PRIMARY KEY(object_id, member_path)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_sqlite_foreign_key",
+      "tbl_name": "source_sqlite_foreign_key",
+      "sql": "CREATE TABLE source_sqlite_foreign_key(\n                canonical_asset_id TEXT NOT NULL REFERENCES source_sqlite_receipt(canonical_asset_id),\n                from_table TEXT NOT NULL,\n                foreign_key_id INTEGER NOT NULL,\n                sequence_id INTEGER NOT NULL,\n                to_table TEXT,\n                from_column TEXT,\n                to_column TEXT,\n                on_update TEXT,\n                on_delete TEXT,\n                match_rule TEXT,\n                PRIMARY KEY(canonical_asset_id, from_table, foreign_key_id, sequence_id)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_sqlite_receipt",
+      "tbl_name": "source_sqlite_receipt",
+      "sql": "CREATE TABLE source_sqlite_receipt(\n                canonical_asset_id TEXT PRIMARY KEY,\n                byte_sha256 TEXT NOT NULL,\n                size_bytes INTEGER NOT NULL,\n                inspection_mode TEXT NOT NULL,\n                status TEXT NOT NULL,\n                integrity_json TEXT NOT NULL,\n                foreign_key_error_count INTEGER NOT NULL,\n                user_version INTEGER,\n                page_count INTEGER,\n                page_size INTEGER,\n                schema_sha256 TEXT,\n                schema_object_count INTEGER NOT NULL,\n                table_count INTEGER NOT NULL,\n                fts_table_count INTEGER NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL,\n                created_at TEXT NOT NULL\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_sqlite_schema_object",
+      "tbl_name": "source_sqlite_schema_object",
+      "sql": "CREATE TABLE source_sqlite_schema_object(\n                object_id TEXT NOT NULL,\n                member_path TEXT NOT NULL,\n                object_type TEXT NOT NULL,\n                object_name TEXT NOT NULL,\n                sql_sha256 TEXT,\n                PRIMARY KEY(object_id, member_path, object_type, object_name)\n            )"
+    },
+    {
+      "type": "table",
+      "name": "source_sqlite_table_stat",
+      "tbl_name": "source_sqlite_table_stat",
+      "sql": "CREATE TABLE source_sqlite_table_stat(\n                object_id TEXT NOT NULL,\n                member_path TEXT NOT NULL,\n                table_name TEXT NOT NULL,\n                row_count INTEGER,\n                count_state TEXT NOT NULL,\n                PRIMARY KEY(object_id, member_path, table_name)\n            )"
+    }
+  ],
+  "tables": [
+    {
+      "name": "authority_index_fts",
+      "virtual_fts5": true,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "node_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_table",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_identity",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_config",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_content",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "c4",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_data",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_docsize",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_idx",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_node",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "char_start",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "char_end",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "text_content",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "text_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "metadata_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "source_id",
+          "table": "authority_index_source",
+          "to": "source_id"
+        }
+      ]
+    },
+    {
+      "name": "authority_index_refresh_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "indexed_table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "llama_index_core_version",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "chunk_size_tokens",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "chunk_overlap_tokens",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "prior_receipt_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_source",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_table",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_identity",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "source_text_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "metadata_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "intake_batch",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "batch_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "directory_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "file_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "zip_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "exact_extracted_zip_relations",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "unique_zip_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "registry_event",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "event_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "event_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "event_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "occurred_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "registry_meta",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "key",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "value",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_archive_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "archive_object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "intake_status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "skip_status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "counterpart_object_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "counterpart_scope",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "matched_prefix",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "unsafe_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "policy_excluded_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "counterpart_object_id",
+          "table": "source_object",
+          "to": "object_id"
+        },
+        {
+          "from": "archive_object_id",
+          "table": "source_object",
+          "to": "object_id"
+        },
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        }
+      ]
+    },
+    {
+      "name": "source_assertion_set",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "assertion_set_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "crosswalk_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "claim_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        }
+      ]
+    },
+    {
+      "name": "source_authority_fts",
+      "virtual_fts5": true,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "object_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 1,
+          "name": "source_pointer",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "member_path",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_authority_fts_config",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_authority_fts_content",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_authority_fts_data",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_authority_fts_docsize",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_authority_fts_idx",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_custom_schema",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "schema_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "schema_version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "target_lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "compiler_version",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "definition_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "compiled_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_custom_schema_mapping",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "mapping_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "occurrence_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "selector_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "target_lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "mapped_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "mapping_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "mapping_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "object_id",
+          "table": "source_object",
+          "to": "object_id"
+        },
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        },
+        {
+          "from": "schema_sha256",
+          "table": "source_custom_schema",
+          "to": "schema_sha256"
+        }
+      ]
+    },
+    {
+      "name": "source_custom_schema_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "receipt_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "matched_occurrence_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "mapping_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        },
+        {
+          "from": "schema_sha256",
+          "table": "source_custom_schema",
+          "to": "schema_sha256"
+        }
+      ]
+    },
+    {
+      "name": "source_git_changed_line",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "change_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "cid": 4,
+          "name": "hunk_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 5
+        },
+        {
+          "cid": 5,
+          "name": "line_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 6
+        },
+        {
+          "cid": 6,
+          "name": "line_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "old_line_number",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "new_line_number",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "content_size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "content_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "no_newline",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "line_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "snapshot_id",
+          "table": "source_git_hunk",
+          "to": "snapshot_id"
+        },
+        {
+          "from": "commit_sha",
+          "table": "source_git_hunk",
+          "to": "commit_sha"
+        },
+        {
+          "from": "parent_ordinal",
+          "table": "source_git_hunk",
+          "to": "parent_ordinal"
+        },
+        {
+          "from": "change_ordinal",
+          "table": "source_git_hunk",
+          "to": "change_ordinal"
+        },
+        {
+          "from": "hunk_ordinal",
+          "table": "source_git_hunk",
+          "to": "hunk_ordinal"
+        }
+      ]
+    },
+    {
+      "name": "source_git_commit",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "tree_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "authored_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "committed_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "author_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "committer_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "message_redacted",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "message_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "object_content_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "parent_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "commit_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "snapshot_id",
+          "table": "source_git_snapshot",
+          "to": "snapshot_id"
+        }
+      ]
+    },
+    {
+      "name": "source_git_file_change",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "comparison_base_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "change_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "cid": 5,
+          "name": "status_code",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "similarity_score",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "prior_path",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "old_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "new_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "old_object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "new_object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "additions",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 14,
+          "name": "deletions",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 15,
+          "name": "binary",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 16,
+          "name": "change_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "snapshot_id",
+          "table": "source_git_commit",
+          "to": "snapshot_id"
+        },
+        {
+          "from": "commit_sha",
+          "table": "source_git_commit",
+          "to": "commit_sha"
+        }
+      ]
+    },
+    {
+      "name": "source_git_hunk",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "change_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "cid": 4,
+          "name": "hunk_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 5
+        },
+        {
+          "cid": 5,
+          "name": "old_start",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "old_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "new_start",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "new_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "header_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "hunk_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "snapshot_id",
+          "table": "source_git_file_change",
+          "to": "snapshot_id"
+        },
+        {
+          "from": "commit_sha",
+          "table": "source_git_file_change",
+          "to": "commit_sha"
+        },
+        {
+          "from": "parent_ordinal",
+          "table": "source_git_file_change",
+          "to": "parent_ordinal"
+        },
+        {
+          "from": "change_ordinal",
+          "table": "source_git_file_change",
+          "to": "change_ordinal"
+        }
+      ]
+    },
+    {
+      "name": "source_git_impact",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "impact_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "mapped_path_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "unmapped_path_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "seed_nodes_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "projection_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "projection_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "graph_impact_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "graph_id",
+          "table": "source_graph_snapshot",
+          "to": "graph_id"
+        },
+        {
+          "from": "snapshot_id",
+          "table": "source_git_snapshot",
+          "to": "snapshot_id"
+        }
+      ]
+    },
+    {
+      "name": "source_git_object",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "content_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "object_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "snapshot_id",
+          "table": "source_git_snapshot",
+          "to": "snapshot_id"
+        }
+      ]
+    },
+    {
+      "name": "source_git_object_path",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "path_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "observed_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "path_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "snapshot_id",
+          "table": "source_git_object",
+          "to": "snapshot_id"
+        },
+        {
+          "from": "object_sha",
+          "table": "source_git_object",
+          "to": "object_sha"
+        }
+      ]
+    },
+    {
+      "name": "source_git_parent",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "parent_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "parent_edge_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "snapshot_id",
+          "table": "source_git_commit",
+          "to": "snapshot_id"
+        },
+        {
+          "from": "commit_sha",
+          "table": "source_git_commit",
+          "to": "commit_sha"
+        }
+      ]
+    },
+    {
+      "name": "source_git_ref",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "ref_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "peeled_sha",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "peeled_type",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "ref_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "snapshot_id",
+          "table": "source_git_snapshot",
+          "to": "snapshot_id"
+        }
+      ]
+    },
+    {
+      "name": "source_git_rename",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "change_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "cid": 4,
+          "name": "prior_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "similarity_score",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "rename_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "snapshot_id",
+          "table": "source_git_file_change",
+          "to": "snapshot_id"
+        },
+        {
+          "from": "commit_sha",
+          "table": "source_git_file_change",
+          "to": "commit_sha"
+        },
+        {
+          "from": "parent_ordinal",
+          "table": "source_git_file_change",
+          "to": "parent_ordinal"
+        },
+        {
+          "from": "change_ordinal",
+          "table": "source_git_file_change",
+          "to": "change_ordinal"
+        }
+      ]
+    },
+    {
+      "name": "source_git_snapshot",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "occurrence_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "repository_identity_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "head_commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "head_tree_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "branch",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "worktree_clean",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "worktree_status_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "history_signature_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "configuration_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "ref_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "commit_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 14,
+          "name": "parent_edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 15,
+          "name": "object_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 16,
+          "name": "tree_entry_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 17,
+          "name": "file_change_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 18,
+          "name": "rename_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 19,
+          "name": "hunk_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 20,
+          "name": "changed_line_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 21,
+          "name": "refs_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 22,
+          "name": "commits_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 23,
+          "name": "objects_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 24,
+          "name": "trees_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 25,
+          "name": "changes_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 26,
+          "name": "hunks_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 27,
+          "name": "lines_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 28,
+          "name": "history_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 29,
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 30,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 31,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 32,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "object_id",
+          "table": "source_object",
+          "to": "object_id"
+        },
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        }
+      ]
+    },
+    {
+      "name": "source_git_tree_entry",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "entry_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "entry_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "snapshot_id",
+          "table": "source_git_commit",
+          "to": "snapshot_id"
+        },
+        {
+          "from": "commit_sha",
+          "table": "source_git_commit",
+          "to": "commit_sha"
+        }
+      ]
+    },
+    {
+      "name": "source_graph_diff",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "diff_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "from_graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "to_graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "added_node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "removed_node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "changed_node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "added_edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "removed_edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "changed_edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "projection_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "projection_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "to_graph_id",
+          "table": "source_graph_snapshot",
+          "to": "graph_id"
+        },
+        {
+          "from": "from_graph_id",
+          "table": "source_graph_snapshot",
+          "to": "graph_id"
+        }
+      ]
+    },
+    {
+      "name": "source_graph_edge",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "edge_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "source_node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "target_node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "relation",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "confidence",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "source_scope_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "line_number",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "parser_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "evidence_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "evidence_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "edge_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "graph_id",
+          "table": "source_graph_node",
+          "to": "graph_id"
+        },
+        {
+          "from": "target_node_id",
+          "table": "source_graph_node",
+          "to": "node_id"
+        },
+        {
+          "from": "graph_id",
+          "table": "source_graph_node",
+          "to": "graph_id"
+        },
+        {
+          "from": "source_node_id",
+          "table": "source_graph_node",
+          "to": "node_id"
+        },
+        {
+          "from": "graph_id",
+          "table": "source_graph_snapshot",
+          "to": "graph_id"
+        }
+      ]
+    },
+    {
+      "name": "source_graph_file_coverage",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "language",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "file_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "parser_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "byte_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "symbol_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "import_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "call_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "reason",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "graph_id",
+          "table": "source_graph_snapshot",
+          "to": "graph_id"
+        }
+      ]
+    },
+    {
+      "name": "source_graph_impact",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "impact_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "seed_nodes_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "relations_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "direction",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "max_depth",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "max_nodes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "projection_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "projection_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "graph_id",
+          "table": "source_graph_snapshot",
+          "to": "graph_id"
+        }
+      ]
+    },
+    {
+      "name": "source_graph_node",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "source_scope_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "node_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "language",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "label",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "qualified_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "start_line",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "end_line",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "extraction_authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "parser_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "identity_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 14,
+          "name": "identity_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 15,
+          "name": "content_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 16,
+          "name": "node_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "graph_id",
+          "table": "source_graph_snapshot",
+          "to": "graph_id"
+        }
+      ]
+    },
+    {
+      "name": "source_graph_snapshot",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "extractor_version",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "configuration_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "selection_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "file_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "parsed_file_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "coverage_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "graph_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 14,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 15,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        }
+      ]
+    },
+    {
+      "name": "source_identity_assertion",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "assertion_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "identity_axis",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "value_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "evidence_ref",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "claim_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "assertion_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "object_id",
+          "table": "source_object",
+          "to": "object_id"
+        },
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        }
+      ]
+    },
+    {
+      "name": "source_identity_entity",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "entity_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "entity_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "label",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "version_label",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "evidence_ref",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "entity_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "entity_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_identity_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "receipt_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "matrix_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_profile_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "entity_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "assertion_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "relation_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        }
+      ]
+    },
+    {
+      "name": "source_identity_relation",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "relation_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "subject_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "subject_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "relation_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "evidence_ref",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "relation_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        }
+      ]
+    },
+    {
+      "name": "source_member",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "member_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "policy_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "policy_reason",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "object_id",
+          "table": "source_object",
+          "to": "object_id"
+        }
+      ]
+    },
+    {
+      "name": "source_object",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "source_pointer",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "resolved_pointer",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "identity_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "byte_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "included_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "excluded_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "member_path_size_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "content_merkle_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_occurrence",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "supplied_pointer",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "object_id",
+          "table": "source_object",
+          "to": "object_id"
+        },
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        }
+      ]
+    },
+    {
+      "name": "source_policy_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "included_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "excluded_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "object_id",
+          "table": "source_object",
+          "to": "object_id"
+        }
+      ]
+    },
+    {
+      "name": "source_provenance",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "claim_key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "claim_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "object_id",
+          "table": "source_object",
+          "to": "object_id"
+        },
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        }
+      ]
+    },
+    {
+      "name": "source_relation",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "left_object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "relation_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "right_object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "cid": 4,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "right_object_id",
+          "table": "source_object",
+          "to": "object_id"
+        },
+        {
+          "from": "left_object_id",
+          "table": "source_object",
+          "to": "object_id"
+        },
+        {
+          "from": "batch_id",
+          "table": "intake_batch",
+          "to": "batch_id"
+        }
+      ]
+    },
+    {
+      "name": "source_sqlite_asset",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "inspection_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "byte_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "canonical_asset_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "inspection_receipt_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "object_id",
+          "table": "source_object",
+          "to": "object_id"
+        }
+      ]
+    },
+    {
+      "name": "source_sqlite_foreign_key",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "canonical_asset_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "from_table",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "foreign_key_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "sequence_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "cid": 4,
+          "name": "to_table",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "from_column",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "to_column",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "on_update",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "on_delete",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "match_rule",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "canonical_asset_id",
+          "table": "source_sqlite_receipt",
+          "to": "canonical_asset_id"
+        }
+      ]
+    },
+    {
+      "name": "source_sqlite_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "canonical_asset_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "byte_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "inspection_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "integrity_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "foreign_key_error_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "user_version",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "page_count",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "page_size",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "schema_object_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "fts_table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 14,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 15,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 16,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_sqlite_schema_object",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "cid": 4,
+          "name": "sql_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "source_sqlite_table_stat",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "table_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "cid": 3,
+          "name": "row_count",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "count_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    }
+  ],
+  "table_count": 56,
+  "fts5_tables": [
+    "authority_index_fts",
+    "source_authority_fts"
+  ],
+  "schema_sha256": "BD059145422ECF8FDA5B52DCFA336D923CC9C27C5AE97053943CFC7F73F5DAFB",
+  "receipt_sha256": "960B0050E59C53A7A32CF35C38D20741C7CE0E1B3748AF46161A661AC1AFFC0E"
+}

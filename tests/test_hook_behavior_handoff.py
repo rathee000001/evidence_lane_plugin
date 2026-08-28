@@ -369,7 +369,7 @@ def test_prompt_adapter_attaches_handoff_after_consumer_returns(
     tmp_path: Path,
 ) -> None:
     adapter = _adapter("prompt_submit.py")
-    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(tmp_path))
+    monkeypatch.setenv("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", str(tmp_path))
     for name in (
         "EVIDENCE_LANE_HOOK_EVENT_CORRELATION_ID",
         "EVIDENCE_LANE_HOOK_EVENT_OWNER_SHA256",

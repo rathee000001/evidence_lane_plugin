@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin.constants import (
+    NATIVE_READ_TOOL_COUNT,
+    NATIVE_TOOL_COUNT,
+    NATIVE_WRITE_TOOL_COUNT,
+)
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import sha256_bytes
 from evidence_lane_plugin.mcp_server import create_mcp_server
@@ -113,7 +118,7 @@ def _apply(service, tasks: list[dict], transition: dict) -> dict:
     )
 
 
-def test_plan_normalization_is_exact_idempotent_and_state_travel_uses_current_goal(
+def test_plan_normalization_is_exact_idempotent_and_rebinds_current_goal(
     service,
 ) -> None:
     session_id, tasks, transition = _prepared_normalization(service)
@@ -167,47 +172,6 @@ def test_plan_normalization_is_exact_idempotent_and_state_travel_uses_current_go
         row for row in lineage if row["event_type"] == "plan.normalization.rebound"
     ]
     assert len(rebound) == 1
-
-    profile = {
-        "model": "gpt-5.6-sol",
-        "submodel": "sol",
-        "reasoning_effort": "ultra",
-        "reasoning_speed": "standard",
-    }
-    handoff = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={"execution_profile": profile},
-    )["state_travel"]
-    prepared = handoff["resume_contract"]
-    assert len(prepared["task_list"]) == 4
-    assert [row["task_id"] for row in prepared["task_list"]] == [
-        "normalization-review",
-        "normalized-active",
-        "normalized-queued",
-        "normalized-final-hil",
-    ]
-    assert [row["status"] for row in prepared["task_list"]] == [
-        "COMPLETED",
-        "IN_PROGRESS",
-        "PENDING",
-        "PENDING",
-    ]
-    assert [row["canonical_plan_sequence"] for row in prepared["task_list"]] == [
-        3,
-        4,
-        5,
-        6,
-    ]
-    assert prepared["resume_step"] == 2
-    assert prepared["task_list"][-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
-    assert handoff["plan_snapshot"]["task_count"] == 6
-    assert handoff["plan_snapshot"]["executable_task_count"] == 4
-    assert handoff["plan_snapshot"]["history_task_count"] == 2
-    assert handoff["plan_snapshot"]["history_projection_sha256"] == normalized[
-        "history_projection"
-    ]["projection_sha256"]
-
 
 def test_plan_normalization_recovers_after_plan_append_crash(
     service,
@@ -391,24 +355,6 @@ def test_plan_normalization_correction_restores_active_and_dynamic_rows(
     assert replayed["normalization_transition"]["idempotent_replay"] is True
     assert replayed["event_count"] == event_count
 
-    profile = {
-        "model": "gpt-5.6-sol",
-        "submodel": "sol",
-        "reasoning_effort": "ultra",
-        "reasoning_speed": "standard",
-    }
-    handoff = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={"execution_profile": profile},
-    )["state_travel"]
-    prepared = handoff["resume_contract"]
-    assert [row["number"] for row in prepared["task_list"]] == [81, 82, 83, 84]
-    assert prepared["resume_step"] == 81
-    assert prepared["panel_reactivation"]["visible_row_start"] == 81
-    assert prepared["panel_reactivation"]["visible_row_end"] == 84
-
-
 def test_current_execution_row_numbers_shift_on_insert_and_drop(service) -> None:
     _apply_normalization_correction(service)
     inserted = _task("inserted-current-delta", "Verify one inserted current Delta.")
@@ -572,8 +518,8 @@ def test_plan_normalization_preserves_current_public_catalog(
 ) -> None:
     server = create_mcp_server(service=service)
     tools = asyncio.run(server.list_tools())
-    assert len(tools) == 87
-    assert sum(tool.annotations.readOnlyHint is True for tool in tools) == 27
-    assert sum(tool.annotations.readOnlyHint is False for tool in tools) == 60
+    assert len(tools) == NATIVE_TOOL_COUNT
+    assert sum(tool.annotations.readOnlyHint is True for tool in tools) == NATIVE_READ_TOOL_COUNT
+    assert sum(tool.annotations.readOnlyHint is False for tool in tools) == NATIVE_WRITE_TOOL_COUNT
     plan_tool = next(tool for tool in tools if tool.name == "pv_plan_tasks")
     assert "normalization_transition" in plan_tool.inputSchema["properties"]

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Analysis lane tools",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "lane_id",
+    "builder",
+    "reader",
+    "query_traversal",
+    "retrieval_modes",
+    "canonical_shared_modules"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-lane-tooling.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "lane_id": {
+      "const": "analysis"
+    },
+    "builder": {
+      "const": "builder.py:build_lane_sources"
+    },
+    "reader": {
+      "const": "reader.py:LaneReader"
+    },
+    "query_traversal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval_modes": {
+      "const": [
+        "hybrid",
+        "fts5",
+        "bm25",
+        "tfidf"
+      ]
+    },
+    "canonical_shared_modules": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "B43F44E8AECBBC77E7EB05E9A5FC357CB52A4D75FA160D0C27887A4BB9AA42B5"
+}

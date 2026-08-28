@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "brain_scaling_select",
+  "title": "Select bounded brain slice",
+  "description": "Select one deterministic hash-addressed indexed slice inside explicit token and item budgets without model training, raw payload copying, or authority merge.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "authority_id": {
+        "title": "Authority Id",
+        "type": "string"
+      },
+      "slices": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Slices",
+        "type": "array"
+      },
+      "token_budget": {
+        "title": "Token Budget",
+        "type": "integer"
+      },
+      "max_slices": {
+        "title": "Max Slices",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "authority_id",
+      "slices",
+      "token_budget",
+      "max_slices"
+    ],
+    "title": "brain_scaling_selectArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "brain_scaling_selectDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-brain-scaling",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "brain_scaling_select"
+    },
+    "internal_sdk": {
+      "module_id": "first_class_workflows",
+      "operation": "brain_scaling_select",
+      "read_only": true
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-brain-scaling",
+        "workflow": "deterministic-indexed-brain-slice-selection",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "8309AA1CA8FF688BB1BF5CD203F7B0F10690555BE00400525A137FA4E73F93DA",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "7EA4B13063B13C27A9ACFBFA5E3442B3368A04B977ACA87C1B747F3648913821"
+}

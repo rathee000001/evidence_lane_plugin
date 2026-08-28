@@ -1,0 +1,67 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "prompt_index_status",
+  "title": "Read prompt-entry rollback index",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "limit": {
+        "default": 20,
+        "title": "Limit",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id"
+    ],
+    "title": "prompt_index_statusArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "prompt_index_statusDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "7168DD8E69E353ABAAAFD021D9E5C7BA4190FB56C1C88C840864A861AAEE5B36",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "prompt_index_status"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "bounded-source-retrieval",
+        "order": 13
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/prompt_index_status.action.v1.json",
+  "sdk_action_binding_sha256": "CFA7475E867B2BA8404136FA0B9129162D4D378E6E96E4F0FC259A7BA4FD9993",
+  "public_action_schema": "schemas/actions/prompt_index_status.schema.json",
+  "public_action_schema_sha256": "A1939E61057242A569C9400767F8ACCF2DBC9218D7706093850599A2BB0F6ADE",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "966FEA85A061A783D23E2797D594A8CE54B33043D5DEBC49F9D2C60A2653E35A"
+}

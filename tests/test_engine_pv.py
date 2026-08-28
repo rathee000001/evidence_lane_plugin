@@ -14,10 +14,124 @@ from evidence_lane_plugin.hashing import (
     sha256_file,
 )
 from evidence_lane_plugin.pv_package import validate_pv_package
+from evidence_lane_plugin.service import EvidenceLaneService
 from evidence_lane_plugin.source_policy import known_environment_secrets
 from evidence_lane_plugin.topology import _renderer_environment
 
 from .conftest import boot_local
+
+
+def test_live_root_initial_build_bootstraps_pv0_without_hil_or_candidate(
+    tmp_path: Path,
+    source_repository: Path,
+) -> None:
+    project_root = tmp_path / "live-projects" / "live-root-project"
+    application = EvidenceLaneService(data_root=tmp_path / "store-current")
+    registered = application.register_project(
+        project_id="live-root-project",
+        display_name="Live Root Project",
+        repository_path=str(source_repository),
+        expected_owner="example",
+        expected_name="book-faires",
+        allowed_branches=["main"],
+        sensitivity="PRIVATE",
+        project_authority_root=str(project_root),
+    )
+    assert registered["status"] == "PASS"
+    application.plan_tasks(
+        "live-root-project",
+        tasks=[
+            {
+                "task_id": "initial-source-intake-pv0",
+                "task_class": "verify_result",
+                "requested_outcome": (
+                    "Materialize Source Intake and establish the no-HIL PV0 baseline."
+                ),
+                "permitted_paths": [],
+                "permitted_tools": ["repository_read"],
+                "acceptance_checks": ["PV0 exists at generation zero without HIL."],
+                "stop_condition": "Continue the accepted initial Plan after PV0.",
+            }
+        ],
+        planned_by="human-test",
+        plan_id="initial-evi-plan",
+    )
+    boot = application.boot_session(
+        project_id="live-root-project",
+        user_id="user-test",
+        workspace_id="workspace-test",
+        host="CODEX_DESKTOP",
+        agent_id="codex-single-agent",
+        sandbox_id="sandbox-local",
+        ephemeral=False,
+        runtime_context={"permission_mode": "test"},
+        host_session_id="host-session-pv0-test",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+
+    result = application.build_initial(
+        "live-root-project", boot["session"]["session_id"]
+    )
+
+    assert result["status"] == "PASS"
+    assert result["pointer"]["accepted_pv"] == "PV0"
+    assert result["pointer"]["generation"] == 0
+    assert result["candidate"] is None
+    assert result["candidate_created"] is False
+    assert result["human_hil_required"] is False
+    assert result["hil_choices"] == []
+    assert result["next_action"] == "CONTINUE_ACTIVE_GOAL_AND_STEP_TASK_LIST"
+    assert result["next_action_contract"]["evi_plan_completed_before_pv0"] is True
+    assert result["source_intake"]["working_authority_refresh"]["status"] == "PASS"
+    assert (
+        result["source_intake"]["working_authority_refresh"][
+            "pv0_bootstrap_pending"
+        ]
+        is True
+    )
+    assert (project_root / "sectors" / "manifest.json").is_file()
+    assert not (project_root / "candidates").exists()
+    assert result["accepted_archive_opened"] is False
+    assert result["accepted_archive_queried"] is False
+
+
+def test_live_root_initial_build_requires_evi_plan_before_source_work(
+    tmp_path: Path,
+    source_repository: Path,
+) -> None:
+    project_root = tmp_path / "live-projects" / "plan-first-project"
+    application = EvidenceLaneService(data_root=tmp_path / "hidden-control")
+    application.register_project(
+        project_id="plan-first-project",
+        display_name="Plan First Project",
+        repository_path=str(source_repository),
+        expected_owner="example",
+        expected_name="book-faires",
+        allowed_branches=["main"],
+        project_authority_root=str(project_root),
+    )
+    boot = application.boot_session(
+        project_id="plan-first-project",
+        user_id="user-test",
+        workspace_id=str(source_repository),
+        host="CODEX_DESKTOP",
+        agent_id="codex-single-agent",
+        sandbox_id="sandbox-local",
+        ephemeral=False,
+        runtime_context={"permission_mode": "test"},
+        host_session_id="host-session-plan-first",
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+    )
+
+    with pytest.raises(EvidenceLaneError) as blocked:
+        application.build_initial(
+            "plan-first-project",
+            boot["session"]["session_id"],
+        )
+    assert blocked.value.code == "PV0_INITIAL_PLAN_REQUIRED"
+    assert not (project_root / "sectors").exists()
 
 
 def test_mermaid_renderer_uses_explicit_installed_browser(
@@ -57,6 +171,7 @@ def test_initial_pv_captures_svelte_exact_bytes_and_fts(
     assert result["next_action"] == "PRESENT_SIX_WAY_HIL"
     assert result["suggested_next_prompt"].startswith("/evi-build ")
     assert result["next_action_contract"] == result["candidate"]["next_action"]
+    assert not (service.store.project_root("book-faires") / ".build").exists()
     candidate = Path(result["candidate"]["stored_path"])
     validation = validate_pv_package(candidate)
     assert validation["status"] == "PASS"

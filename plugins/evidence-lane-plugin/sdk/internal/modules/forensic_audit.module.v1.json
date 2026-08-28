@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.forensic_audit",
+  "source_path": "src/evidence_lane_plugin/forensic_audit.py",
+  "source_sha256": "7B5739369F0830C9B66B0B5955CB856191435EE7E45056230E3DBD660E134071",
+  "source_bytes": 22583,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "6303EF40D24ED1AC4A7DE9CAAB749E9DC6CD0B2DC81821A2E90877113B34E20B"
+}

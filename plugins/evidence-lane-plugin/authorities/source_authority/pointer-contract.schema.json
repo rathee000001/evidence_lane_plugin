@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "source_authority pointer-contract.v1.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-pointer-contract.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "source_authority"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "0914B3B5C9D844B36E0EA713D63117764E63B33C1BFEFA4041ADAC39F12F0668"
+}

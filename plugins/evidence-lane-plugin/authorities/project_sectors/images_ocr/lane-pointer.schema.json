@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Images / OCR lane pointer",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "parent_pv",
+    "proposed_pv",
+    "pointer_generation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.lane-pointer-evidence.v1"
+    },
+    "lane_id": {
+      "const": "images_ocr"
+    },
+    "parent_pv": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "proposed_pv": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pointer_generation": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "F4F73502EE8A596811AED8E4D9AA98F36C1C9F454EA62056F9ADBD2AAA87724F"
+}

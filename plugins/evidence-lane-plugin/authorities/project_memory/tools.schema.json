@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_memory memory.tools.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-tools.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "project_memory"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "9839AE4832F224DA9954E3A7D61868AB47CC48701A8554B619DF716D93913688"
+}

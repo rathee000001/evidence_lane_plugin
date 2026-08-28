@@ -1,7 +1,7 @@
 interface:
   display_name: "Evidence Lane Refresh"
-  short_description: "Seal changed source as a candidate"
-  default_prompt: "Use $evi-refresh to confirm the final source boundary and seal one unaccepted Refresh candidate."
+  short_description: "Route three distinct refresh workflows"
+  default_prompt: "Use $evi-refresh to classify and run exactly one current refresh path: Source Intake steer refresh, adaptive Delta-exit append refresh, or full-PV-HIL Project Overlay refresh."
 dependencies:
   tools:
     - type: "mcp"

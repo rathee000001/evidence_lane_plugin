@@ -79,8 +79,9 @@ def test_all_eighteen_lanes_have_truthful_dispositions_without_placeholders(
         "fts5_bm25",
         "tfidf",
         "mermaid_source",
-        "dot_source",
-    }
+            "dot_source",
+            "pydantic_tool_contracts",
+        }
     assert docs["retrieval_contract"]["fts_matches_chunk_count"] is True
     assert docs["authority_contract"]["ordered_members"] == [
         LANE_REGISTRY["docs"].sqlite_filename,

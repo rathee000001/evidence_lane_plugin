@@ -1,0 +1,107 @@
+{
+  "schema": "evidence-lane.installed-lane-surface.v1",
+  "status": "PASS",
+  "lane_id": "sqlite_brain",
+  "sqlite_filename": "sqlite_brain_sector_v001.sqlite",
+  "sqlite_integrity": "ok",
+  "sqlite_table_count": 41,
+  "schema_contract_table_count": 31,
+  "members": [
+    {
+      "path": "authorities/project_sectors/sqlite_brain/builder-contract.schema.json",
+      "bytes": 620,
+      "sha256": "2871CD1145B5236314601AFA0DF41E3450BBB6B2A8FCF77BDB0018C57D0BC089"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/builder.py",
+      "bytes": 580,
+      "sha256": "DDC500DB8D325519894CDF4F1E8E3A380C42719FC0F8CF8E2B62339CCEEE9BFD"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/dot-artifact.schema.json",
+      "bytes": 956,
+      "sha256": "CEDBD7C0D03E5342C55A855F8F704D00A67F72636C70B012358CE73A027F6CEA"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/lane-contract.v1.json",
+      "bytes": 8325,
+      "sha256": "CABBAB5704EF194DAEE73736E29EB0CD41FC828A8BB2FCCE79D381C276DFAC37"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/lane-pointer.schema.json",
+      "bytes": 745,
+      "sha256": "B7A5D21931C783DC6F2336948F5F85E5EB1021E23D31536F6FF7474187BDD8B0"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/manifest.schema.json",
+      "bytes": 986,
+      "sha256": "2C6CA5FE9EFE0CE81E56B2EA3892B124F5BCEFE1855F92325673C808E4BF3814"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/mmd-artifact.schema.json",
+      "bytes": 973,
+      "sha256": "FD000A65315BF3B7F5120EF463237250B09B1EF802A44C9EDF169115B9BA6819"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/reader-contract.schema.json",
+      "bytes": 770,
+      "sha256": "3E0C122A0D5792278E4F13E43BA34251852928EBFD14128379E975B1B1CA1D14"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/reader.py",
+      "bytes": 442,
+      "sha256": "35D0902A1CC4D8A99FEE3693EBF7C6BC8B4E11551C10097E603319DFD5BE9CA2"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/README.md",
+      "bytes": 368,
+      "sha256": "69A4B7ECDEE3A8D774BB09929F2C1859B4B66B15E460E5F95BAF8FDC15566019"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/refresh-receipt.schema.json",
+      "bytes": 540,
+      "sha256": "BDFE724A86848050D3CD981956B3A5D5F528F3D5D2CBAB82CE8C27C09168EDBB"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/schema.sql",
+      "bytes": 10680,
+      "sha256": "E7BE8D287905BD1713D9244C3E3473B7586357038DF0E859C127D85D0F39426D"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/sqlite-artifact.schema.json",
+      "bytes": 975,
+      "sha256": "45B63ECE7A0B8A9B90FDD16B43474FA6F23D060D4C4E0795F73D0872EB4A7CDC"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/sqlite_brain.dot",
+      "bytes": 20931,
+      "sha256": "90873B11BF8CEFA8F45B737D1EBCDD4C4BFF63B5719DD239F28808DA408FDF99"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/sqlite_brain.mmd",
+      "bytes": 16729,
+      "sha256": "62819580221BD3FCEB520BEEFC74515E74D603F5471122B6B478EAEA13000556"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/sqlite_brain_sector_v001.sqlite",
+      "bytes": 262144,
+      "sha256": "EE33D895618AAF02CA1276C6595663FB4979F1E73786CFA8E968103AC91901ED"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/tools.json",
+      "bytes": 1154,
+      "sha256": "3BEE6FC83B4F75F952ECCD235E331BC585EA6FDEC95BAE6866A6F87D5541F6DE"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/tools.schema.json",
+      "bytes": 1009,
+      "sha256": "F024D8847EE281AA66EC90292F13AB5E3B2FECED358007061E673663AD29BFC3"
+    }
+  ],
+  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_template": false,
+  "template_contains_identity_metadata_only": true,
+  "receipt_sha256": "0E3C1B9676FD217925E4C526562CA563EF80D34B734A89E28DE5CB0F403D27A4"
+}

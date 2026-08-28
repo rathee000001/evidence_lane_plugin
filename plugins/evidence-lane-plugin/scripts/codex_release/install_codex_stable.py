@@ -37,33 +37,7 @@ MARKETPLACE_NAME = "evidence-lane-github"
 MARKETPLACE_DISPLAY_NAME = "Main Git Plugin Version"
 LOCAL_TESTING_MARKETPLACE_NAME = "evidence-lane-v300-testing-new"
 LOCAL_TESTING_MARKETPLACE_DISPLAY_NAME = "Local Testing Slot"
-LOCAL_RECOVERY_MARKETPLACE_NAME = "evidence-lane-v300-stable-recovery"
-LOCAL_RECOVERY_MARKETPLACE_DISPLAY_NAME = "Branch Commit Git Recovery"
-LOCAL_RECOVERY_SELECTOR = f"evidence-lane-plugin@{LOCAL_RECOVERY_MARKETPLACE_NAME}"
-CODEX_GENERATED_MIGRATED_COMMAND_ROOT = ".codex-plugin/migrated-command-skills"
-LOCAL_RECOVERY_REGISTRY_SCHEMA = "evidence-lane.codex-local-v300-recovery-registry.v1"
-BRANCH_CHECKPOINT_INSTALL_SCHEMA = (
-    "evidence-lane.codex-branch-checkpoint-recovery-install.v1"
-)
-BRANCH_CHECKPOINT_CONFIRMATION = "EXPLICIT_GOVERNED_BRANCH_COMMIT_RECOVERY"
-LOCAL_SUCCESSOR_MARKETPLACE_NAME = "evidence-lane-v300-local-successor"
-LOCAL_SUCCESSOR_MARKETPLACE_DISPLAY_NAME = "Local 3.0 Verified Successor"
-LOCAL_SUCCESSOR_SELECTOR = f"evidence-lane-plugin@{LOCAL_SUCCESSOR_MARKETPLACE_NAME}"
-LOCAL_SUCCESSOR_STAGE_SCHEMA = "evidence-lane.codex-local-successor-stage.v1"
-LOCAL_TEST_STAGE_SCHEMA = "evidence-lane.codex-local-test-cas-transaction.v1"
-LOCAL_TEST_HOST_PROOF_SCHEMA = "evidence-lane.codex-local-test-host-proof.v1"
-LOCAL_TEST_COMMIT_SCHEMA = "evidence-lane.codex-local-test-cas-commit.v1"
-LOCAL_TEST_RECOVERY_SCHEMA = "evidence-lane.codex-local-test-self-rollback.v1"
-LOCAL_TEST_RECOVERY_STATE_SCHEMA = (
-    "evidence-lane.codex-local-test-self-rollback-state.v1"
-)
-LOCAL_TEST_RECOVERY_MAX_ATTEMPTS = 1
-LOCAL_TEST_DISABLED_HOOK_RECOVERY_SCHEMA = (
-    "evidence-lane.codex-local-test-disabled-hook-recovery.v1"
-)
-LOCAL_TEST_DISABLED_HOOK_RECOVERY_CONFIRMATION = (
-    "EXPLICIT_DISABLED_LOCAL_3_0_HOOK_RECOVERY"
-)
+RETIRED_COMMAND_ROOTS = ("commands", ".codex-plugin/migrated-command-skills")
 PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW = "PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW"
 PLUGIN_CREATOR_LOCAL_CACHE_RESTART_STATE = (
     "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED"
@@ -71,13 +45,9 @@ PLUGIN_CREATOR_LOCAL_CACHE_RESTART_STATE = (
 PLUGIN_CREATOR_LOCAL_CACHE_RESTART_CONFIRMATION = (
     "EXPLICIT_PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART"
 )
-LOCAL_TEST_DISABLED_BASELINE_CONFIRMATION = "EXPLICIT_LIVE_DISABLED_LOCAL_3_0_BASELINE"
 NPM_CODEX_CLI_RELATIVE_PATH = Path(
     "npm/node_modules/@openai/codex/node_modules/@openai/"
     "codex-win32-x64/vendor/x86_64-pc-windows-msvc/bin/codex.exe"
-)
-INSTALL_CORRECTION_GENERATION_SCHEMA = (
-    "evidence-lane.codex-install-correction-generation.v1"
 )
 MARKETPLACE_SOURCE = "rathee000001/evidence_lane_plugin"
 PLUGIN_NAME = "evidence-lane-plugin"
@@ -87,15 +57,19 @@ TWO_SLOT_SELECTORS = {
     "stable-git-main": PLUGIN_SELECTOR,
     "versioned-local-testing": (f"{PLUGIN_NAME}@{LOCAL_TESTING_MARKETPLACE_NAME}"),
 }
-# Compatibility names remain readable only for migration receipts. They do not
-# describe live installation authority.
-THREE_SLOT_REGISTRY_SCHEMA = TWO_SLOT_REGISTRY_SCHEMA
-THREE_SLOT_SELECTORS = TWO_SLOT_SELECTORS
-OBSOLETE_LIVE_SELECTORS = {
-    LOCAL_RECOVERY_SELECTOR,
-    f"{PLUGIN_NAME}@{LOCAL_SUCCESSOR_MARKETPLACE_NAME}",
-    f"{PLUGIN_NAME}@evidence-lane-pv11-fallback",
-}
+
+
+def _require_hidden_runtime_control_root(path: Path) -> Path:
+    resolved = path.expanduser().resolve()
+    expected = (
+        Path.home() / ".codex" / "plugins" / "runtime" / "evidence-lane-plugin"
+    ).resolve()
+    if resolved != expected:
+        raise InstallationError(
+            "Codex installation and runtime control must use the exact hidden "
+            "~/.codex/plugins/runtime/evidence-lane-plugin root."
+        )
+    return resolved
 
 
 def _derive_public_surface(plugin_root: Path) -> dict[str, Any]:
@@ -161,7 +135,7 @@ EXPECTED_WORKFLOW_SCOPE = {
             "write_actions": EXPECTED_SURFACE_COUNTS["write"],
             "governed_skills": EXPECTED_SURFACE_COUNTS["skills"],
             "hook_events": EXPECTED_SURFACE_COUNTS["hook_events"],
-            "migrated_command_skills": EXPECTED_SURFACE_COUNTS["commands"],
+            "separate_command_layer_present": False,
         },
         "installed_ui_readback_required_before_pv13_hil": True,
         "main_git_release_slot_mutation_allowed": True,
@@ -188,19 +162,34 @@ EXPECTED_GOAL_COMPLETION_POLICY = {
     "completion_implies_hil_approval_fuse_or_pointer_move": False,
     "completion_implies_git_install_merge_or_deploy": False,
     "completion_display": {
-        "authoritative_current_route": (
-            "build_rich_goal_completion_metrics_receipt"
-        ),
+        "authoritative_current_route": ("build_rich_goal_completion_metrics_receipt"),
         "receipt_schema": "evidence-lane.rich-goal-completion-metrics.v1",
-        "legacy_route": "build_goal_usage_receipt",
-        "legacy_route_executable": False,
-        "legacy_fallback_allowed": False,
+        "compatibility_collector_present": False,
         "display_route_has_completion_authority": False,
         "already_complete_reuses_persisted_receipt": True,
         "incomplete_telemetry_returns_structured_missing_fields": True,
         "reasoning_output_is_subset_of_output": True,
         "host_accounted_tokens_kept_separate_from_raw_model_traffic": True,
         "unknown_host_conversion_formula_must_remain_unknown": True,
+        "reset_aware_positive_delta_epoch_accounting": True,
+        "native_turn_and_compaction_reconciliation": True,
+        "daily_timezone_reconciliation": True,
+        "first_native_complete_goal_receipt_required": True,
+        "aborted_turns_from_native_turn_aborted_only": True,
+        "duration_authorities_separate": [
+            "USER_CONFIRMED_ACTIVE_UI_RUNTIME",
+            "HOST_COMPLETED_TIME_USED",
+            "GOAL_CALENDAR_SPAN",
+            "NATIVE_COMPLETED_TURN_OVERLAP",
+        ],
+        "preferred_duration_formula": (
+            "COALESCE(USER_CONFIRMED_ACTIVE_UI_RUNTIME,HOST_COMPLETED_TIME_USED)"
+        ),
+        "active_ui_timer_class": "CLIENT_EXTRAPOLATED_PRESENTATION",
+        "duration_authority_alias_or_sum_allowed": False,
+        "full_option_2_projection_required": True,
+        "correction_supersedes_without_goal_recompletion": True,
+        "superseded_and_quarantined_excluded_from_consolidated_formula": True,
     },
 }
 EXPECTED_HELPER_DISTRIBUTION_POLICY = {
@@ -216,73 +205,59 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
         "one_active_tunnel_count": 1,
         "failed_windowsapps_cli_probe_allowed": False,
         "npm_native_codex_cli_required": True,
-        "exact_task_reopen_count": 1,
+        "exact_task_reopen_count": 0,
         "black_terminal_popup_allowed": False,
     },
     "maintainer_release_helper": {
-        "script": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+        "script": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
         "audience": "EVIDENCE_LANE_MAINTAINER_ONLY",
         "used_in_governed_development_build": True,
         "public_marketplace_user_surface": False,
         "release_bound": True,
         "supported_update_modes": [
-            "RestartInstalledMainGit",
-            "RestartInstalledLocalTesting",
+            "PrepareRestartInstalledMainGit",
+            "PrepareRestartInstalledLocalTesting",
         ],
         "install_completed_before_helper": True,
         "helper_installs_plugin": False,
         "same_local_testing_marketplace_new_version_required": True,
-        "single_flight": True,
-        "exact_app_stop_count": 1,
-        "exact_task_reopen_count": 1,
+        "single_flight": False,
+        "exact_app_stop_count": 0,
+        "exact_task_reopen_count": 0,
         "fixed_delay_allowed": False,
-        "condition_driven_readiness_polling": True,
-        "version_matched_tunnel_starts_before_host": True,
-        "maximized_full_window_required": True,
+        "condition_driven_readiness_polling": False,
+        "version_matched_tunnel_starts_before_host": False,
+        "maximized_full_window_required": False,
         "combined_post_stop_installer_retired": True,
         "plugin_creator_local_update_route": {
             "route_law": PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW,
+            "plugin_creator_packing_required_every_local_build": True,
+            "fresh_cachebuster_before_each_pack_required": True,
+            "direct_cache_edit_allowed": False,
+            "standalone_fallback_install_route_allowed": False,
             "source_sync": "IN_PLACE_EXISTING_LOCAL_MARKETPLACE",
             "cache_materialization": "CODEX_PLUGIN_ADD",
-            "loaded_old_cache_boundary": (
-                PLUGIN_CREATOR_LOCAL_CACHE_RESTART_STATE
-            ),
+            "loaded_old_cache_boundary": (PLUGIN_CREATOR_LOCAL_CACHE_RESTART_STATE),
             "restart_authority_mode": (
                 "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART"
             ),
             "windows_marketplace_root_rotation_allowed": False,
-            "exact_same_task_hidden_restart_required": True,
-            "helper_scope": "DUMB_EXACT_TASK_CLOSE_REOPEN_ONLY",
+            "exact_same_task_hidden_restart_required": False,
+            "terminal_response_required_before_user_restart": True,
+            "manual_exact_channel_restart_required": True,
+            "helper_scope": "PREPARE_ONLY_NO_PROCESS_CONTROL",
+            "separate_exact_task_turn_drain_required_before_helper": False,
             "helper_installs_plugin": False,
-            "child_lease_acknowledgement_before_app_stop_required": True,
-            "child_launch_shape": (
-                "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK"
-            ),
+            "child_lease_acknowledgement_before_app_stop_required": False,
+            "child_launch_shape": "ABSENT",
             "redirected_parent_pipe_handles_allowed": False,
-            "terminal_success_or_failure_receipt_required": True,
+            "terminal_success_or_failure_receipt_required": False,
+            "preparation_receipt_required": True,
+            "post_restart_native_readback_required": True,
             "windows_ui_control_allowed": False,
             "cross_task_rehydration_allowed": False,
             "tunnel_start_allowed": False,
         },
-    },
-    "user_goal_recovery_helper": {
-        "script": "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1",
-        "audience": "GOVERNED_CODEX_USER",
-        "public_marketplace_user_surface": True,
-        "release": BASE_RELEASE,
-        "release_token": "v300",
-        "scheduled_task_name": "Evidence Lane Codex Goal Recovery v300",
-        "at_logon": True,
-        "persistent_or_hidden_no_transient_console": True,
-        "prior_versions_retained": True,
-        "prior_versions_disabled": True,
-        "prior_versions_deleted": False,
-        "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
-        "binding_registry": "MUTABLE_EXACT_TASK_ROWS",
-        "each_invocation_reopens_its_exact_calling_task": True,
-        "release_registry_origin_identity_is_task_authority": False,
-        "installer_helper_is_separate": True,
-        "tunnel_is_separate": True,
     },
     "user_stable_tunnel": {
         "script": "scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1",
@@ -293,16 +268,15 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
         "runtime_root_suffix": "tunnel-runtime-v300-stable-build",
         "scheduled_task_name": "EvidenceLane-Tunnel-v300-stable-build",
         "at_logon": True,
+        "scheduled_task_transport_allowed": True,
+        "host_wide_project_neutral": True,
+        "multi_project_and_task_routing": (
+            "EXPLICIT_PLUGIN_PROJECT_ID_AND_TASK_BINDINGS"
+        ),
         "persistent_or_hidden_no_transient_console": True,
         "one_active_version": True,
-        "prior_versions_retained": True,
-        "prior_versions_deleted": False,
-    },
-    "retired_branch_recovery_transport": {
-        "state": "PURGED",
-        "restart_or_reattach_allowed": False,
-        "installation_allowed": False,
-        "public_marketplace_user_surface": False,
+        "prior_versions_retained": False,
+        "prior_versions_deleted": True,
     },
     "post_hil_release_rotation": {
         "schema": "evidence-lane.plugin-slot-helper-tunnel-rotation.v1",
@@ -322,9 +296,9 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
         ],
         "stable_git_main_must_equal_exact_merged_release": True,
         "helper_and_tunnel_release_must_match_owning_slot": True,
-        "prior_versioned_helpers_and_tunnels_retained": True,
-        "prior_versioned_helpers_and_tunnels_disabled": True,
-        "prior_versioned_helpers_and_tunnels_deleted": False,
+        "prior_versioned_helpers_and_tunnels_retained": False,
+        "prior_versioned_helpers_and_tunnels_disabled": False,
+        "prior_versioned_helpers_and_tunnels_deleted": True,
         "repeat_for_each_later_plugin_release_cycle": True,
         "current_row_may_execute_rotation": False,
     },
@@ -343,6 +317,7 @@ EXPECTED_BEHAVIOR_OWNERSHIP = {
         "pv_status",
         "pv_task_backlog",
         "pv_query",
+        "search",
     ],
     "query_must_use_native_mcp_route": True,
     "internal_hook_lookup_satisfies_native_query": False,
@@ -354,6 +329,8 @@ EXPECTED_BEHAVIOR_OWNERSHIP = {
     "plan_steer_requires_executable_goal_contract_change": True,
     "plan_steer_refreshes_full_panel_and_current_change_once": True,
     "fail_closed_when_behavior_route_unavailable": True,
+    "chat_only_execution_change_allowed": False,
+    "source_intake_may_dispatch_one_stable_idempotent_linked_steer": True,
 }
 EXPECTED_STABLE_ACTIVATION_GATE = {
     "local_rehearsal_stage_only": True,
@@ -368,11 +345,12 @@ EXPECTED_STABLE_ACTIVATION_GATE = {
         "scripts/codex_release/seal_external_release_receipts.py"
     ),
     "stable_install_command": "scripts/codex_release/install_codex_stable.py",
-    "stable_update_helper": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+    "stable_update_helper": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
     "install_completed_before_restart_helper": True,
     "restart_helper_installs_plugin": False,
-    "stable_update_reopens_same_bound_host_app": True,
-    "stable_update_rebinds_general_goal_recovery": True,
+    "stable_update_reopens_same_bound_host_app": False,
+    "stable_update_requires_user_restart_after_terminal_response": True,
+    "stable_update_rebinds_exact_task_via_native_binding": True,
     "release_authority_schema": "evidence-lane.codex-git-ci-vercel-release-authority.v2",
     "exact_clean_commit_required": True,
     "governed_native_remote_push_required": True,
@@ -448,6 +426,17 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
         "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "host_profile": "CODEX_DESKTOP",
+        "desktop_app_variants": {
+            "stable": "OpenAI.Codex_2p2nqsd0c76g0!App",
+            "beta": "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+            "shared_plugin_contract": True,
+            "shared_host_wide_tunnel": True,
+            "per_app_tunnel_allowed": False,
+            "per_project_or_task_tunnel_allowed": False,
+            "helper_requires_exact_requested_app_id": True,
+            "cross_app_fallback_allowed": False,
+        },
         "native_mcp_available": {
             "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
             "tunnel_setup_frequency": "NONE",
@@ -498,19 +487,20 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
 }
 INSTALL_SCHEMA = "evidence-lane.codex-stable-installation.v2"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
-EXPECTED_CODEX_HOST_HOOK_EVENTS = {
+EXPECTED_CODEX_HOST_HOOK_EVENT_ORDER = (
+    "sessionStart",
+    "subagentStart",
+    "userPromptSubmit",
+    "preToolUse",
     "permissionRequest",
-    "postCompact",
     "postToolUse",
     "preCompact",
-    "preToolUse",
-    "sessionEnd",
-    "sessionStart",
-    "stop",
-    "subagentStart",
+    "postCompact",
     "subagentStop",
-    "userPromptSubmit",
-}
+    "stop",
+    "sessionEnd",
+)
+EXPECTED_CODEX_HOST_HOOK_EVENTS = set(EXPECTED_CODEX_HOST_HOOK_EVENT_ORDER)
 EXPECTED_PACKAGE_HOOK_EVENTS = {
     "PermissionRequest",
     "PostCompact",
@@ -552,21 +542,21 @@ def _source_inventory(root: Path) -> dict[str, Any]:
     embeds the absolute cache root, so two otherwise byte-identical selector
     installations necessarily produce different ``.pyc`` bytes.
 
-    Codex also derives migrated command skills inside its generated plugin cache.
-    Those files are verified separately against the marketplace commands and are
-    not package-source authority.
+    The retired command and migrated-command surfaces are never source authority
+    and are rejected rather than ignored.
     """
 
     rows = []
     ignored_python_runtime_artifacts = 0
-    ignored_codex_generated_migration_artifacts = 0
     for path in sorted(row for row in root.rglob("*") if row.is_file()):
         relative = path.relative_to(root).as_posix()
         if relative.startswith("_evidence_lane_rehearsal/"):
             continue
-        if relative.startswith(f"{CODEX_GENERATED_MIGRATED_COMMAND_ROOT}/"):
-            ignored_codex_generated_migration_artifacts += 1
-            continue
+        if any(
+            relative == retired or relative.startswith(f"{retired}/")
+            for retired in RETIRED_COMMAND_ROOTS
+        ):
+            raise InstallationError("The package contains the retired command layer.")
         if "__pycache__" in relative.split("/") or path.suffix.lower() in {
             ".pyc",
             ".pyo",
@@ -586,125 +576,36 @@ def _source_inventory(root: Path) -> dict[str, Any]:
         "files": rows,
         "ignored_python_runtime_artifact_count": ignored_python_runtime_artifacts,
         "python_runtime_artifacts_are_source_authority": False,
-        "ignored_codex_generated_migration_artifact_count": (
-            ignored_codex_generated_migration_artifacts
-        ),
-        "codex_generated_migrations_are_source_authority": False,
+        "retired_command_surface_count": 0,
     }
 
 
-def _expected_codex_generated_command_skills(
-    marketplace_plugin: Path,
-) -> dict[str, bytes]:
-    """Derive the exact command-to-skill files Codex generates on install."""
-
-    expected: dict[str, bytes] = {}
-    commands = marketplace_plugin / "commands"
-    if not commands.is_dir():
-        return expected
-    for command in sorted(commands.glob("*.md"), key=lambda item: item.name):
-        text = command.read_text(encoding="utf-8")
-        match = re.fullmatch(
-            r"---\r?\n(?P<frontmatter>.*?)\r?\n---\r?\n(?P<body>.*)",
-            text,
-            flags=re.DOTALL,
-        )
-        if match is None:
-            raise InstallationError(f"{command.name} has no exact command frontmatter.")
-        description_match = re.search(
-            r"(?m)^description:\s*(?P<description>.+?)\s*$",
-            match.group("frontmatter"),
-        )
-        if description_match is None:
-            raise InstallationError(f"{command.name} has no command description.")
-        description = description_match.group("description").strip()
-        if description.startswith('"'):
-            try:
-                description = str(json.loads(description))
-            except json.JSONDecodeError as exc:
-                raise InstallationError(
-                    f"{command.name} has an invalid quoted description."
-                ) from exc
-        elif description.startswith("'") and description.endswith("'"):
-            description = description[1:-1].replace("''", "'")
-        if not description or "\n" in description or "\r" in description:
-            raise InstallationError(f"{command.name} has an invalid description.")
-        command_name = command.stem
-        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", command_name):
-            raise InstallationError(
-                f"{command.name} cannot form a migrated skill name."
-            )
-        skill_name = f"source-command-{command_name}"
-        body = match.group("body").lstrip("\r\n").rstrip()
-        generated = (
-            "---\n"
-            f"name: {json.dumps(skill_name, ensure_ascii=False)}\n"
-            f"description: {json.dumps(description, ensure_ascii=False)}\n"
-            "---\n\n"
-            f"# {skill_name}\n\n"
-            "Use this skill when the user asks to run the migrated source command "
-            f"`{command_name}`.\n\n"
-            "## Command Template\n\n"
-            f"{body}\n"
-        ).encode()
-        relative = f"{CODEX_GENERATED_MIGRATED_COMMAND_ROOT}/{skill_name}/SKILL.md"
-        expected[relative] = generated
-    return expected
-
-
-def _verify_codex_generated_command_skills(
-    *,
-    installed_cache: Path,
-    marketplace_plugin: Path,
-) -> dict[str, Any]:
-    """Verify that cache-only migrated skills are the exact Codex derivation."""
-
-    marketplace_generated_root = (
-        marketplace_plugin / CODEX_GENERATED_MIGRATED_COMMAND_ROOT
-    )
-    if marketplace_generated_root.exists() and any(
-        path.is_file() for path in marketplace_generated_root.rglob("*")
-    ):
+def _require_no_plugin_cache_artifacts(root: Path) -> dict[str, Any]:
+    forbidden: list[str] = []
+    for path in sorted(root.rglob("*")):
+        relative = path.relative_to(root).as_posix()
+        if any(
+            relative == retired or relative.startswith(f"{retired}/")
+            for retired in RETIRED_COMMAND_ROOTS
+        ):
+            forbidden.append(relative)
+            continue
+        if any(part in {"__pycache__", ".pytest_cache"} for part in path.parts) or (
+            path.is_file() and path.suffix.casefold() in {".pyc", ".pyo"}
+        ):
+            forbidden.append(relative)
+    if forbidden:
         raise InstallationError(
-            "The marketplace must not prebuild host-generated command skills."
-        )
-    expected = _expected_codex_generated_command_skills(marketplace_plugin)
-    installed_generated_root = installed_cache / CODEX_GENERATED_MIGRATED_COMMAND_ROOT
-    actual_paths = (
-        {
-            path.relative_to(installed_cache).as_posix(): path
-            for path in installed_generated_root.rglob("*")
-            if path.is_file()
-        }
-        if installed_generated_root.is_dir()
-        else {}
-    )
-    if not set(actual_paths).issubset(expected):
-        raise InstallationError(
-            "The installed cache contains a command skill that is not derivable "
-            "from the packaged commands."
-        )
-    records: list[dict[str, Any]] = []
-    for relative, actual in sorted(actual_paths.items()):
-        expected_bytes = expected[relative]
-        if actual.read_bytes() != expected_bytes:
-            raise InstallationError(
-                "A Codex-generated command skill differs from its exact derivation."
-            )
-        records.append(
-            {
-                "skill_name": Path(relative).parent.name,
-                "bytes": len(expected_bytes),
-                "sha256": hashlib.sha256(expected_bytes).hexdigest().upper(),
-            }
+            "The generated plugin cache contains forbidden Python/pytest artifacts: "
+            + json.dumps(forbidden[:25])
         )
     return {
         "status": "PASS",
-        "source_authority": False,
-        "derivable_skill_count": len(expected),
-        "generated_skill_count": len(records),
-        "generated_skills": records,
-        "host_selected_derivable_subset": True,
+        "root": str(root.resolve()),
+        "forbidden_cache_artifact_count": 0,
+        "python_bytecode_write_disabled": True,
+        "pytest_cache_provider_disabled_for_installed_verification": True,
+        "retired_command_surface_count": 0,
     }
 
 
@@ -764,14 +665,48 @@ def _assert_exact_git_marketplace_source(
     }
 
 
-def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
+def _surface_inventory(
+    plugin_root: Path,
+    *,
+    version: str,
+    allow_pre_logical_action_upgrade_baseline: bool = False,
+) -> dict[str, Any]:
     hook_paths = [
         plugin_root / "hooks" / "hooks.json",
+        *(
+            [plugin_root / "hooks" / "logical-actions.json"]
+            if (plugin_root / "hooks" / "logical-actions.json").is_file()
+            else []
+        ),
         *sorted((plugin_root / "hooks").glob("*.exe")),
         *sorted((plugin_root / "hooks").glob("*.py")),
         *sorted((plugin_root / "hooks").glob("*.ps1")),
     ]
     skill_paths = sorted((plugin_root / "skills").glob("*/SKILL.md"))
+    release_channel_path = plugin_root / "scripts" / "codex-release-channel.json"
+    try:
+        release_channel = json.loads(release_channel_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise InstallationError(
+            "The Codex release-channel contract is missing."
+        ) from exc
+    surface_catalog = dict(EXPECTED_CATALOG)
+    if allow_pre_logical_action_upgrade_baseline:
+        prior_stable = dict(release_channel.get("stable") or {})
+        prior_catalog = {
+            "tools": prior_stable.get("native_tool_count"),
+            "read": prior_stable.get("native_read_tool_count"),
+            "write": prior_stable.get("native_write_tool_count"),
+            "skills": prior_stable.get("skill_count"),
+        }
+        if not all(
+            isinstance(value, int) and not isinstance(value, bool) and value > 0
+            for value in prior_catalog.values()
+        ):
+            raise InstallationError(
+                "The prior package does not declare one exact public catalog."
+            )
+        surface_catalog = prior_catalog
     if not all(path.is_file() for path in hook_paths):
         raise InstallationError("The persistent hook inventory is incomplete.")
     hook_names = {path.name for path in hook_paths}
@@ -830,6 +765,27 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
                 "invoke_hook.ps1",
                 "invoke_hook.py",
                 "lifecycle_boundary.py",
+                "optional_event_observer.py",
+                "permission_request.py",
+                "post_tool_use.py",
+                "pre_tool_use.py",
+                "prompt_submit.py",
+                "session_start.py",
+                "stop_response.py",
+                "subagent_start.py",
+                "subagent_stop.py",
+            }
+        ),
+        frozenset(
+            {
+                "behavior_handoff.py",
+                "event_isolation.py",
+                "EvidenceLaneHookHost.exe",
+                "hooks.json",
+                "logical-actions.json",
+                "invoke_hook.ps1",
+                "invoke_hook.py",
+                "lifecycle_boundary.py",
                 "post_tool_use.py",
                 "pre_tool_use.py",
                 "prompt_submit.py",
@@ -843,6 +799,7 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
                 "event_isolation.py",
                 "EvidenceLaneHookHost.exe",
                 "hooks.json",
+                "logical-actions.json",
                 "invoke_hook.ps1",
                 "invoke_hook.py",
                 "lifecycle_boundary.py",
@@ -857,9 +814,35 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
                 "subagent_stop.py",
             }
         ),
+        frozenset(
+            {
+                "behavior_handoff.py",
+                "event_isolation.py",
+                "EvidenceLaneHookHost.exe",
+                "hooks.json",
+                "logical-actions.json",
+                "invoke_hook.ps1",
+                "invoke_hook.py",
+                "lifecycle_boundary.py",
+                "optional_event_observer.py",
+                "permission_request.py",
+                "post_tool_use.py",
+                "pre_tool_use.py",
+                "prompt_submit.py",
+                "session_start.py",
+                "stop_response.py",
+                "subagent_start.py",
+                "subagent_stop.py",
+                "subhook_emit.py",
+                "subhook_pipeline.py",
+                "subhook_seal.py",
+                "subhook_transport.py",
+                "subhook_validate.py",
+            }
+        ),
     }:
         raise InstallationError("The persistent hook inventory is not exact.")
-    if len(skill_paths) != EXPECTED_CATALOG["skills"]:
+    if len(skill_paths) != surface_catalog["skills"]:
         raise InstallationError("The governed skill inventory is not exact.")
 
     def inventory(paths: list[Path], *, skill: bool) -> dict[str, Any]:
@@ -884,19 +867,126 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
     )
     hook_events = dict(hook_configuration.get("hooks") or {})
     registered_events = sorted(hook_events)
-    handler_count = sum(
-        len(group.get("hooks") or [])
-        for groups in hook_events.values()
-        if isinstance(groups, list)
-        for group in groups
-        if isinstance(group, dict)
-    )
+    event_order = list(hook_events)
+    logical_action_path = plugin_root / "hooks" / "logical-actions.json"
+    if logical_action_path.is_file():
+        logical_action_configuration = json.loads(
+            logical_action_path.read_text(encoding="utf-8")
+        )
+        declared_logical_actions = logical_action_configuration.get("logicalActions")
+        if (
+            set(hook_configuration) != {"description", "hooks"}
+            or logical_action_configuration.get("schema")
+            != "evidence-lane.hook-logical-action-registry.v1"
+        ):
+            raise InstallationError("The host and internal hook registries overlap.")
+    else:
+        declared_logical_actions = hook_configuration.get("logicalActions")
+    logical_action_registry_state = "CURRENT_NUMBERED_LOGICAL_ACTION_REGISTRY"
+    if declared_logical_actions is None and allow_pre_logical_action_upgrade_baseline:
+        declared_logical_actions = {
+            name: ["LEGACY_PRE_LOGICAL_ACTION_REGISTRY"] for name in event_order
+        }
+        logical_action_registry_state = "LEGACY_ABSENT_UPGRADE_BASELINE"
+    if (
+        not isinstance(declared_logical_actions, dict)
+        or not set(event_order).issubset(declared_logical_actions)
+        or any(
+            not isinstance(declared_logical_actions.get(name), list)
+            or not declared_logical_actions[name]
+            for name in event_order
+        )
+    ):
+        raise InstallationError("The hook logical-action registry is invalid.")
+    event_action_inventory: list[dict[str, Any]] = []
+    for event_ordinal, event_name in enumerate(event_order, start=1):
+        actions: list[dict[str, Any]] = []
+        groups = hook_events[event_name]
+        if not isinstance(groups, list) or not groups:
+            raise InstallationError("A hook event has no handler group.")
+        for group_ordinal, group in enumerate(groups, start=1):
+            handlers = group.get("hooks") if isinstance(group, dict) else None
+            if not isinstance(handlers, list) or not handlers:
+                raise InstallationError("A hook event group has no handler action.")
+            for group_action_ordinal, handler in enumerate(handlers, start=1):
+                if not isinstance(handler, dict):
+                    raise InstallationError("A hook handler action is invalid.")
+                action_ordinal = len(actions) + 1
+                command_identity = str(
+                    handler.get("commandWindows") or handler.get("command") or ""
+                )
+                actions.append(
+                    {
+                        "action_number": f"{event_ordinal}.{action_ordinal}",
+                        "event_action_ordinal": action_ordinal,
+                        "group_ordinal": group_ordinal,
+                        "group_action_ordinal": group_action_ordinal,
+                        "type": handler.get("type"),
+                        "command_sha256": hashlib.sha256(
+                            command_identity.encode("utf-8")
+                        )
+                        .hexdigest()
+                        .upper(),
+                        "raw_command_returned": False,
+                    }
+                )
+        event_action_inventory.append(
+            {
+                "hook_number": event_ordinal,
+                "event_name": event_name,
+                "display_number": f"Hook {event_ordinal}",
+                "action_count": len(actions),
+                "actions": actions,
+            }
+        )
+    handler_count = sum(int(row["action_count"]) for row in event_action_inventory)
+    logical_action_inventory = [
+        {
+            "hook_number": event_ordinal,
+            "event_name": event_name,
+            "display_number": f"Hook {event_ordinal}",
+            "logical_action_count": len(declared_logical_actions[event_name]),
+            "logical_actions": [
+                {
+                    "logical_action_number": f"{event_ordinal}.L{action_ordinal}",
+                    "event_logical_action_ordinal": action_ordinal,
+                    "action": action,
+                    "project_plan_goal_hil_effect": "NONE",
+                }
+                for action_ordinal, action in enumerate(
+                    declared_logical_actions[event_name], start=1
+                )
+            ],
+        }
+        for event_ordinal, event_name in enumerate(event_order, start=1)
+    ]
     hook_inventory = {
         "count": len(registered_events),
         "count_semantics": "REGISTERED_EVENT_COUNT",
         "registered_event_count": len(registered_events),
         "registered_events": registered_events,
         "handler_count": handler_count,
+        "handler_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
+        "event_order": event_order,
+        "event_action_inventory": event_action_inventory,
+        "event_action_inventory_sha256": hashlib.sha256(
+            _json_bytes(event_action_inventory)
+        )
+        .hexdigest()
+        .upper(),
+        "logical_action_count": sum(
+            int(row["logical_action_count"]) for row in logical_action_inventory
+        ),
+        "logical_action_count_semantics": (
+            "NUMBERED_SERIAL_TRANSPORT_STEPS_INSIDE_HANDLER_ACTIONS"
+        ),
+        "logical_action_registry_state": logical_action_registry_state,
+        "logical_action_inventory": logical_action_inventory,
+        "logical_action_inventory_sha256": hashlib.sha256(
+            _json_bytes(logical_action_inventory)
+        )
+        .hexdigest()
+        .upper(),
         "hook_file_count": hook_files["count"],
         "records": hook_files["records"],
         "file_inventory_sha256": hook_files["inventory_sha256"],
@@ -907,13 +997,6 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
     hook_inventory["inventory_sha256"] = (
         hashlib.sha256(_json_bytes(hook_inventory)).hexdigest().upper()
     )
-    release_channel_path = plugin_root / "scripts" / "codex-release-channel.json"
-    try:
-        release_channel = json.loads(release_channel_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise InstallationError(
-            "The Codex release-channel contract is missing."
-        ) from exc
     search_contract = dict(
         (release_channel.get("dependency_toolchains") or {}).get("search_v1") or {}
     )
@@ -941,7 +1024,7 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
         "hooks": hook_inventory,
         "skills": inventory(skill_paths, skill=True),
         "search_toolchain": search_toolchain,
-        "catalog": dict(EXPECTED_CATALOG),
+        "catalog": surface_catalog,
         "raw_paths_included": False,
     }
     core["surface_inventory_sha256"] = (
@@ -1186,6 +1269,34 @@ def _surface_change_display(
                     "registered_event_count": current[kind]["registered_event_count"],
                     "registered_events": current[kind]["registered_events"],
                     "handler_count": current[kind]["handler_count"],
+                    "handler_count_semantics": current[kind].get(
+                        "handler_count_semantics",
+                        "TOTAL_NESTED_HANDLER_ACTION_COUNT",
+                    ),
+                    "event_order": current[kind].get(
+                        "event_order", current[kind]["registered_events"]
+                    ),
+                    "event_action_inventory": current[kind].get(
+                        "event_action_inventory", []
+                    ),
+                    "event_action_inventory_sha256": current[kind].get(
+                        "event_action_inventory_sha256",
+                        hashlib.sha256(_json_bytes([])).hexdigest().upper(),
+                    ),
+                    "logical_action_count": current[kind].get(
+                        "logical_action_count", 0
+                    ),
+                    "logical_action_count_semantics": current[kind].get(
+                        "logical_action_count_semantics",
+                        "UNAVAILABLE_LEGACY_SURFACE",
+                    ),
+                    "logical_action_inventory": current[kind].get(
+                        "logical_action_inventory", []
+                    ),
+                    "logical_action_inventory_sha256": current[kind].get(
+                        "logical_action_inventory_sha256",
+                        hashlib.sha256(_json_bytes([])).hexdigest().upper(),
+                    ),
                     "hook_file_count": current[kind]["hook_file_count"],
                     "added_events": sorted(current_events - previous_events),
                     "removed_events": sorted(previous_events - current_events),
@@ -1282,6 +1393,20 @@ def _verified_staged_surface_change_display(
         != current["hooks"]["registered_event_count"]
         or hooks.get("registered_events") != current["hooks"]["registered_events"]
         or hooks.get("handler_count") != current["hooks"]["handler_count"]
+        or hooks.get("handler_count_semantics")
+        != current["hooks"]["handler_count_semantics"]
+        or hooks.get("event_order") != current["hooks"]["event_order"]
+        or hooks.get("event_action_inventory")
+        != current["hooks"]["event_action_inventory"]
+        or hooks.get("event_action_inventory_sha256")
+        != current["hooks"]["event_action_inventory_sha256"]
+        or hooks.get("logical_action_count") != current["hooks"]["logical_action_count"]
+        or hooks.get("logical_action_count_semantics")
+        != current["hooks"]["logical_action_count_semantics"]
+        or hooks.get("logical_action_inventory")
+        != current["hooks"]["logical_action_inventory"]
+        or hooks.get("logical_action_inventory_sha256")
+        != current["hooks"]["logical_action_inventory_sha256"]
         or hooks.get("hook_file_count") != current["hooks"]["hook_file_count"]
         or hooks.get("inventory_sha256") != current["hooks"]["inventory_sha256"]
         or skills.get("count") != current["skills"]["count"]
@@ -1395,6 +1520,40 @@ def _load_receipt(
             "for the requested staging/activation boundary."
         )
     return receipt
+
+
+def _require_local_systemwide_route_audit(receipt: dict[str, Any]) -> dict[str, Any]:
+    audit = receipt.get("systemwide_route_audit")
+    if (
+        not isinstance(audit, dict)
+        or audit.get("schema") != "evidence-lane.systemwide-route-audit.v1"
+        or audit.get("status") != "PASS"
+        or audit.get("public_tool_count") != EXPECTED_CATALOG["tools"]
+        or audit.get("consumer_parity_status") != "PASS"
+        or audit.get("obsolete_route_purge_status") != "PASS"
+        or audit.get("systemwide_regression_status") != "PASS"
+        or audit.get("skill_current_route_audit_status") != "PASS"
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(audit.get("skill_current_route_audit_sha256") or ""),
+        )
+        is None
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(audit.get("systemwide_regression_file_sha256") or ""),
+        )
+        is None
+        or audit.get("accepted_archive_queried") is not False
+        or audit.get("candidate_created_or_cleared") is not False
+        or audit.get("pointer_moved") is not False
+        or re.fullmatch(r"[A-F0-9]{64}", str(audit.get("receipt_sha256") or "")) is None
+        or re.fullmatch(r"[A-F0-9]{64}", str(audit.get("file_sha256") or "")) is None
+    ):
+        raise InstallationError(
+            "The configured local slot requires the passing system-wide "
+            "Plan-history/current-route audit sealed by the package receipt."
+        )
+    return dict(audit)
 
 
 def _load_release_authority(
@@ -1548,7 +1707,11 @@ def _enrich_legacy_hook_surface(
             raise InstallationError(
                 "The archived legacy marketplace version does not match its receipt."
             )
-        enriched = _surface_inventory(plugin_root, version=version)
+        enriched = _surface_inventory(
+            plugin_root,
+            version=version,
+            allow_pre_logical_action_upgrade_baseline=True,
+        )
         expected_hook_files = {
             "count": enriched["hooks"]["hook_file_count"],
             "records": enriched["hooks"]["records"],
@@ -1655,6 +1818,7 @@ def _safe_extract(archive_path: Path, target: Path) -> None:
                 relative.is_absolute()
                 or ".." in relative.parts
                 or "\\" in info.filename
+                or (relative.parts and relative.parts[0] == "_evidence_lane_rehearsal")
             ):
                 raise InstallationError(f"Unsafe archive member: {info.filename}")
             destination = (target / relative).resolve()
@@ -1670,6 +1834,55 @@ def _safe_extract(archive_path: Path, target: Path) -> None:
                 shutil.copyfileobj(source, output)
 
 
+def _validate_package_proof_manifests(plugin_root: Path) -> dict[str, Any]:
+    root = plugin_root / "manifests" / "package"
+    expected = {
+        "source-manifest.json": (
+            "evidence-lane.non-lifecycle-local-package-rehearsal.v1.source-manifest"
+        ),
+        "skill-inventory.json": (
+            "evidence-lane.non-lifecycle-local-package-rehearsal.v1.skill-inventory"
+        ),
+        "package-surface-coherence.json": (
+            "evidence-lane.package-surface-coherence.v1"
+        ),
+        "systemwide-route-audit.json": "evidence-lane.systemwide-route-audit.v1",
+        "exit-slip.json": (
+            "evidence-lane.non-lifecycle-local-package-rehearsal.v1.exit-slip"
+        ),
+    }
+    records: list[dict[str, Any]] = []
+    for name, schema in expected.items():
+        path = root / name
+        if not path.is_file():
+            raise InstallationError(f"Required package proof is missing: {name}")
+        value = json.loads(path.read_text(encoding="utf-8"))
+        if value.get("schema") != schema:
+            raise InstallationError(f"Required package proof drifted: {name}")
+        if (
+            name
+            in {
+                "package-surface-coherence.json",
+                "systemwide-route-audit.json",
+            }
+            and value.get("status") != "PASS"
+        ):
+            raise InstallationError(f"Required package proof did not pass: {name}")
+        records.append(
+            {
+                "path": path.relative_to(plugin_root).as_posix(),
+                "bytes": path.stat().st_size,
+                "sha256": _sha256(path),
+            }
+        )
+    return {
+        "status": "PASS",
+        "proof_count": len(records),
+        "records": records,
+        "rehearsal_root_present": (plugin_root / "_evidence_lane_rehearsal").exists(),
+    }
+
+
 def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     manifest_path = plugin_root / ".codex-plugin" / "plugin.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -1680,11 +1893,8 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         )
     )
     stable = contract.get("stable") or {}
-    retired_branch_recovery = contract.get("retired_branch_recovery") or {}
     local_testing = contract.get("local_testing") or {}
     live_slots = contract.get("live_slot_policy") or {}
-    failover = contract.get("failover_operator") or {}
-    goal_recovery = contract.get("goal_recovery") or {}
     workflow_scope = contract.get("workflow_scope") or {}
     goal_completion_policy = contract.get("goal_completion_policy") or {}
     helper_distribution = contract.get("helper_distribution_policy") or {}
@@ -1706,6 +1916,7 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     catalog = _catalog(plugin_root)
     interface = dict(manifest.get("interface") or {})
     brand_icon = plugin_root / str(brand_identity.get("icon_path") or "")
+    package_proofs = _validate_package_proof_manifests(plugin_root)
     release_helpers = (
         plugin_root / "scripts" / "codex_release" / "install_codex_stable.py",
         plugin_root
@@ -1724,13 +1935,7 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         plugin_root
         / "scripts"
         / "codex_release"
-        / "Update-EvidenceLaneCodexStableAndResume.ps1",
-        plugin_root / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1",
-        plugin_root
-        / "scripts"
-        / "codex_release"
-        / "Manage-EvidenceLaneCodexGoalRecovery.ps1",
-        plugin_root / "scripts" / "codex_release" / "Switch-EvidenceLaneCodexSlot.ps1",
+        / "Prepare-EvidenceLaneCodexRestart.ps1",
         plugin_root / "scripts" / "codex_release" / "accept_codex_stable.py",
     )
     if (
@@ -1762,15 +1967,6 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or project.get("project", {}).get("version") != BASE_RELEASE
         or engine_match is None
         or engine_match.group("version") != BASE_RELEASE
-        or retired_branch_recovery
-        != {
-            "slot_role": "RETIRED_PURGE_ONLY",
-            "plugin_selector": LOCAL_RECOVERY_SELECTOR,
-            "installation_allowed": False,
-            "migration_read_allowed": True,
-            "removal_via_supported_codex_api_required": True,
-            "direct_cache_deletion_allowed": False,
-        }
         or local_testing.get("release_line") != BASE_RELEASE
         or local_testing.get("slot_role") != "versioned-local-testing"
         or local_testing.get("codex_marketplace_slot") != LOCAL_TESTING_MARKETPLACE_NAME
@@ -1801,52 +1997,8 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or live_slots.get("max_active_tunnel_count") != 1
         or live_slots.get("inactive_slot_remains_installed") is not True
         or live_slots.get("manual_loaded_cache_deletion_allowed") is not False
-        or live_slots.get("forbidden_obsolete_marketplaces")
-        != [
-            LOCAL_SUCCESSOR_MARKETPLACE_NAME,
-            LOCAL_RECOVERY_MARKETPLACE_NAME,
-            "evidence-lane-pv11-fallback",
-        ]
-        or failover.get("script")
-        != "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
-        or failover.get("registry_schema") != TWO_SLOT_REGISTRY_SCHEMA
-        or failover.get("failure_target_slot") != "stable-git-main"
-        or failover.get("versioned_local_failure_targets_verified_main_only")
+        or live_slots.get("obsolete_marketplace_registrations_must_be_absent")
         is not True
-        or failover.get("single_transient_error_switch_allowed") is not False
-        or failover.get("stop_source_tunnel_before_start_target") is not True
-        or failover.get("target_tunnel_ready_before_plugin_switch") is not True
-        or failover.get("controlled_exact_task_restart_required") is not True
-        or failover.get("switch_failure_restores_source_slot") is not True
-        or goal_recovery.get("script")
-        != "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1"
-        or goal_recovery.get("scope")
-        != "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER"
-        or goal_recovery.get("trigger") != "AT_LOGON_CURRENT_WINDOWS_USER"
-        or goal_recovery.get("exact_task_uuid_required") is not True
-        or goal_recovery.get("exact_host_app_binding_required") is not True
-        or goal_recovery.get("supported_host_app_ids")
-        != [
-            "OpenAI.Codex_2p2nqsd0c76g0!App",
-            "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
-        ]
-        or goal_recovery.get("persisted_goal_read_route")
-        != "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
-        or goal_recovery.get("thread_resume_writer_allowed") is not False
-        or goal_recovery.get("synthetic_prompt_allowed") is not False
-        or goal_recovery.get("turn_start_allowed") is not False
-        or goal_recovery.get("state_travel_allowed") is not False
-        or goal_recovery.get("candidate_hil_pointer_or_git_mutation_allowed")
-        is not False
-        or goal_recovery.get("requires_exactly_one_enabled_allowed_two_slot_selector")
-        is not True
-        or goal_recovery.get("allowed_runtime_selectors")
-        != [
-            PLUGIN_SELECTOR,
-            f"{PLUGIN_NAME}@{LOCAL_TESTING_MARKETPLACE_NAME}",
-        ]
-        or goal_recovery.get("stable_selector_growth_allowed") is not False
-        or goal_recovery.get("raw_goal_objective_stored") is not False
         or workflow_scope != EXPECTED_WORKFLOW_SCOPE
         or goal_completion_policy != EXPECTED_GOAL_COMPLETION_POLICY
         or helper_distribution != EXPECTED_HELPER_DISTRIBUTION_POLICY
@@ -1873,6 +2025,8 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or promotion.get("ci_cd_law") != "CONTROLLED_REQUIRED"
         or promotion.get("explicit_six_way_hil_required") is not True
         or not all(path.is_file() for path in release_helpers)
+        or package_proofs["proof_count"] != 5
+        or package_proofs["rehearsal_root_present"] is not False
     ):
         raise InstallationError("The extracted v2 plugin or release contract drifted.")
     native = json.loads((plugin_root / ".mcp.json").read_text(encoding="utf-8"))
@@ -1894,6 +2048,12 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         )
     hooks = json.loads((plugin_root / "hooks" / "hooks.json").read_text("utf-8"))
     hook_events = dict(hooks.get("hooks") or {})
+    logical_action_path = plugin_root / "hooks" / "logical-actions.json"
+    logical_actions = (
+        json.loads(logical_action_path.read_text("utf-8")).get("logicalActions")
+        if logical_action_path.is_file()
+        else hooks.get("logicalActions")
+    )
     handler_count = sum(
         len(group.get("hooks") or [])
         for groups in hook_events.values()
@@ -1905,7 +2065,25 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     post_matcher = str(post_groups[0].get("matcher") or "") if post_groups else ""
     if (
         set(hook_events) != EXPECTED_PACKAGE_HOOK_EVENTS
-        or handler_count != len(EXPECTED_PACKAGE_HOOK_EVENTS)
+        or (logical_action_path.is_file() and set(hooks) != {"description", "hooks"})
+        or not isinstance(logical_actions, dict)
+        or list(logical_actions) != list(hook_events)
+        or any(
+            not isinstance(logical_actions.get(name), list) or not logical_actions[name]
+            for name in hook_events
+        )
+        or handler_count < len(EXPECTED_PACKAGE_HOOK_EVENTS)
+        or any(
+            not isinstance(groups, list)
+            or not groups
+            or any(
+                not isinstance(group, dict)
+                or not isinstance(group.get("hooks"), list)
+                or not group["hooks"]
+                for group in groups
+            )
+            for groups in hook_events.values()
+        )
         or post_matcher
     ):
         raise InstallationError("The persistent hook event set drifted.")
@@ -1931,13 +2109,13 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         "manifest_sha256": _sha256(manifest_path),
         "catalog": catalog,
         "surface_inventory": _surface_inventory(plugin_root, version=version),
+        "package_proofs": package_proofs,
     }
 
 
 def _marketplace_bytes(marketplace_name: str) -> bytes:
     display_name = {
         LOCAL_TESTING_MARKETPLACE_NAME: LOCAL_TESTING_MARKETPLACE_DISPLAY_NAME,
-        LOCAL_RECOVERY_MARKETPLACE_NAME: LOCAL_RECOVERY_MARKETPLACE_DISPLAY_NAME,
     }.get(marketplace_name, MARKETPLACE_DISPLAY_NAME)
     return _json_bytes(
         {
@@ -2039,17 +2217,14 @@ def _stage_marketplace(
         previous_surface = _surface_inventory(
             prior_plugin,
             version=str(prior_manifest.get("version") or "UNVERIFIED"),
+            allow_pre_logical_action_upgrade_baseline=True,
         )
     surface_change = _surface_change_display(
         previous=previous_surface,
         current=identity["surface_inventory"],
     )
     try:
-        shutil.copytree(
-            extracted,
-            staging_plugin,
-            ignore=shutil.ignore_patterns("_evidence_lane_rehearsal"),
-        )
+        shutil.copytree(extracted, staging_plugin)
         marketplace_path = staging / ".agents" / "plugins" / "marketplace.json"
         _write_atomic(marketplace_path, _marketplace_bytes(marketplace_name))
         prepared = {
@@ -2060,9 +2235,6 @@ def _stage_marketplace(
                 {
                     LOCAL_TESTING_MARKETPLACE_NAME: (
                         LOCAL_TESTING_MARKETPLACE_DISPLAY_NAME
-                    ),
-                    LOCAL_RECOVERY_MARKETPLACE_NAME: (
-                        LOCAL_RECOVERY_MARKETPLACE_DISPLAY_NAME
                     ),
                 }.get(marketplace_name, MARKETPLACE_DISPLAY_NAME)
             ),
@@ -2348,7 +2520,12 @@ def _run_plugin_creator_local_cache_materialization(
     }
 
 
-def _disabled_hook_state(*, codex_home: Path, selector: str) -> dict[str, Any]:
+def _disabled_hook_state(
+    *,
+    codex_home: Path,
+    selector: str,
+    expected_hooks: dict[str, Any],
+) -> dict[str, Any]:
     """Prove the configured selector's complete hook set remains OFF."""
 
     config_path = codex_home / "config.toml"
@@ -2362,8 +2539,20 @@ def _disabled_hook_state(*, codex_home: Path, selector: str) -> dict[str, Any]:
         for key, value in sorted(states.items())
         if str(key).startswith(prefix)
     ]
+    expected_event_tokens = {
+        re.sub(r"(?<!^)(?=[A-Z])", "_", event).lower()
+        for event in EXPECTED_PACKAGE_HOOK_EVENTS
+    }
+    observed_event_tokens = {
+        str(key)[len(prefix) :].split(":", 1)[0] for key, _value in rows
+    }
+    expected_event_count = int(expected_hooks.get("count") or 0)
+    expected_handler_count = int(expected_hooks.get("handler_count") or 0)
     if (
-        len(rows) != len(EXPECTED_PACKAGE_HOOK_EVENTS)
+        expected_event_count != len(EXPECTED_PACKAGE_HOOK_EVENTS)
+        or expected_handler_count < expected_event_count
+        or len(rows) != expected_handler_count
+        or observed_event_tokens != expected_event_tokens
         or any(value.get("enabled") is not False for _, value in rows)
     ):
         raise InstallationError(
@@ -2372,60 +2561,14 @@ def _disabled_hook_state(*, codex_home: Path, selector: str) -> dict[str, Any]:
     return {
         "status": "PASS",
         "selector": selector,
-        "hook_count": len(rows),
+        "hook_count": expected_event_count,
+        "hook_handler_count": len(rows),
+        "hook_count_semantics": "REGISTERED_EVENT_COUNT",
+        "hook_handler_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
+        "registered_event_tokens": sorted(observed_event_tokens),
         "all_enabled": False,
         "hooks_enabled_by_update": False,
         "config_sha256": _sha256(config_path),
-    }
-
-
-def _local_test_runtime_readiness(
-    *,
-    installed: bool,
-    restart_or_reload_completed: bool,
-    hooks_trusted: bool,
-    exact_identity_verified: bool,
-    exact_catalog_verified: bool,
-    prompt_capture_verified: bool,
-    smoke_probes_passed: bool,
-    active: bool,
-) -> dict[str, Any]:
-    """Return one explicit local-test lifecycle state without inferring ready."""
-
-    gates = {
-        "installed": installed,
-        "restart_or_reload_completed": restart_or_reload_completed,
-        "hooks_trusted": hooks_trusted,
-        "exact_identity_verified": exact_identity_verified,
-        "exact_catalog_verified": exact_catalog_verified,
-        "prompt_capture_verified": prompt_capture_verified,
-        "smoke_probes_passed": smoke_probes_passed,
-        "active": active,
-    }
-    ready = all(gates.values())
-    if not installed:
-        state = "NOT_INSTALLED"
-    elif not restart_or_reload_completed:
-        state = "INSTALLED_RESTART_OR_RELOAD_REQUIRED"
-    elif not hooks_trusted:
-        state = "INSTALLED_UNTRUSTED"
-    elif not active:
-        state = "TRUSTED_INACTIVE"
-    elif not (exact_identity_verified and exact_catalog_verified):
-        state = "ACTIVE_IDENTITY_OR_CATALOG_UNVERIFIED"
-    elif not prompt_capture_verified:
-        state = "ACTIVE_PROMPT_CAPTURE_UNVERIFIED"
-    elif not smoke_probes_passed:
-        state = "ACTIVE_SMOKE_PROBES_UNVERIFIED"
-    else:
-        state = "READY"
-    return {
-        "schema": "evidence-lane.codex-local-test-runtime-readiness.v1",
-        "state": state,
-        "gates": gates,
-        "ready": ready,
-        "runtime_ready_before_task_reopen": ready,
-        "readiness_inferred_from_install_or_prewarm": False,
     }
 
 
@@ -2463,688 +2606,57 @@ def _load_self_sealed_json(
     return receipt, resolved, expected
 
 
-def _load_local_test_stage_authority(
-    *,
-    stage_receipt_path: Path,
-    stage_receipt_sha256: str,
-    data_root: Path,
-) -> dict[str, Any]:
-    """Load exactly one uncommitted rollback-capable local-test stage."""
-
-    authority_root = data_root.resolve() / "installations" / "codex-v200"
-    stage, resolved_stage, stage_file_sha256 = _load_self_sealed_json(
-        path=stage_receipt_path,
-        expected_file_sha256=stage_receipt_sha256,
-        authority_root=authority_root,
-        label="local-test stage receipt",
-    )
-    activation = dict(stage.get("activation") or {})
-    transaction = dict(activation.get("transaction") or {})
-    candidate_selector = str(transaction.get("candidate_selector") or "")
-    last_known_good_selector = str(transaction.get("last_known_good_selector") or "")
-    rollback_backup = Path(
-        str(transaction.get("rollback_config_backup") or "")
-    ).resolve()
-    rollback_backup_sha256 = str(
-        transaction.get("rollback_config_backup_sha256") or ""
-    ).upper()
-    if (
-        stage.get("schema") != INSTALL_SCHEMA
-        or stage.get("status") != "PASS"
-        or activation.get("state") != "CANDIDATE_STAGED_DISABLED_RESTART_TRUST_REQUIRED"
-        or transaction.get("schema") != LOCAL_TEST_STAGE_SCHEMA
-        or transaction.get("state") != "CANDIDATE_STAGED_DISABLED"
-        or transaction.get("compare_and_swap") is not True
-        or transaction.get("rollback_capable") is not True
-        or transaction.get("candidate_enabled") is not False
-        or transaction.get("switch_count") != 0
-        or candidate_selector != f"{PLUGIN_NAME}@{LOCAL_TESTING_MARKETPLACE_NAME}"
-        or not last_known_good_selector.startswith(f"{PLUGIN_NAME}@")
-        or last_known_good_selector == candidate_selector
-        or not rollback_backup.is_file()
-        or not _inside(rollback_backup, authority_root)
-        or re.fullmatch(r"[A-F0-9]{64}", rollback_backup_sha256) is None
-        or _sha256(rollback_backup) != rollback_backup_sha256
-        or stage.get("candidate_created_or_accepted") is not False
-        or stage.get("pointer_moved") is not False
-        or stage.get("hil_inferred") is not False
-    ):
-        raise InstallationError(
-            "The local-test stage receipt is not an uncommitted rollback-capable "
-            "candidate authority."
-        )
-    return {
-        "stage": stage,
-        "stage_path": resolved_stage,
-        "stage_file_sha256": stage_file_sha256,
-        "transaction": transaction,
-        "candidate_selector": candidate_selector,
-        "last_known_good_selector": last_known_good_selector,
-        "last_known_good_config_sha256": str(
-            transaction.get("last_known_good_config_sha256") or ""
-        ).upper(),
-        "prepared_rollback_config_backup": rollback_backup,
-    }
-
-
-def _load_local_test_commit_authority(
-    *,
-    stage_receipt_path: Path,
-    stage_receipt_sha256: str,
-    host_proof_path: Path,
-    host_proof_sha256: str,
-    data_root: Path,
-) -> dict[str, Any]:
-    """Join one staged candidate to one fresh task-independent host proof."""
-
-    stage_authority = _load_local_test_stage_authority(
-        stage_receipt_path=stage_receipt_path,
-        stage_receipt_sha256=stage_receipt_sha256,
-        data_root=data_root,
-    )
-    authority_root = data_root.resolve() / "installations" / "codex-v200"
-    transaction = stage_authority["transaction"]
-    candidate_selector = stage_authority["candidate_selector"]
-    last_known_good_selector = stage_authority["last_known_good_selector"]
-
-    proof, resolved_proof, proof_file_sha256 = _load_self_sealed_json(
-        path=host_proof_path,
-        expected_file_sha256=host_proof_sha256,
-        authority_root=authority_root,
-        label="local-test host proof",
-    )
-    gates = dict(proof.get("gates") or {})
-    commit_baseline_config_sha256 = str(
-        proof.get("commit_baseline_config_sha256") or ""
-    ).upper()
-    if (
-        proof.get("schema") != LOCAL_TEST_HOST_PROOF_SCHEMA
-        or proof.get("status") != "PASS"
-        or proof.get("transaction_id") != transaction.get("transaction_id")
-        or proof.get("stage_installation_receipt_sha256")
-        != stage_authority["stage_file_sha256"]
-        or proof.get("candidate_selector") != candidate_selector
-        or proof.get("last_known_good_selector") != last_known_good_selector
-        or re.fullmatch(r"[A-F0-9]{64}", commit_baseline_config_sha256) is None
-        or gates.get("human_hook_trust_completed") is not True
-        or gates.get("host_restart_or_reload_completed") is not True
-        or gates.get("exact_plugin_identity_verified") is not True
-        or gates.get("exact_native_catalog_verified") is not True
-        or dict(proof.get("catalog") or {}) != EXPECTED_CATALOG
-        or proof.get("task_binding_used_for_authorization") is not False
-        or proof.get("goal_recovery_invoked") is not False
-        or proof.get("installer_helper_is_separate") is not True
-        or proof.get("tunnel_invoked") is not False
-        or proof.get("candidate_created_or_accepted") is not False
-        or proof.get("pointer_moved") is not False
-        or proof.get("hil_inferred") is not False
-    ):
-        raise InstallationError(
-            "The local-test host proof does not authorize one exact CAS commit."
-        )
-    return {
-        **stage_authority,
-        "host_proof": proof,
-        "host_proof_path": resolved_proof,
-        "host_proof_file_sha256": proof_file_sha256,
-        "commit_baseline_config_sha256": commit_baseline_config_sha256,
-    }
-
-
-def _materialize_two_slot_registry(
-    *,
+def _plugin_creator_active_local_slot_update(
     plugin_list: dict[str, Any],
-    codex_home: Path,
-    data_root: Path,
-    active_slot: str,
-    config_sha256: str,
-) -> dict[str, Any]:
-    """Seal exact Git-main/local-testing authority after obsolete-slot purge."""
+    *,
+    plugin_selector: str,
+    target_version: str,
+) -> dict[str, Any] | None:
+    """Detect the supported one-enabled-local, Main-disabled update boundary."""
 
     installed = plugin_list.get("installed")
     if not isinstance(installed, list):
-        raise InstallationError(
-            "Codex plugin list did not expose installed plugins for two-slot sealing."
-        )
+        raise InstallationError("Codex plugin list did not expose installed plugins.")
     evidence_rows = [
         dict(row)
         for row in installed
         if isinstance(row, dict)
         and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
     ]
-    by_selector = {str(row.get("pluginId") or ""): row for row in evidence_rows}
-    expected_selectors = set(TWO_SLOT_SELECTORS.values())
-    if (
-        len(evidence_rows) != len(TWO_SLOT_SELECTORS)
-        or set(by_selector) != expected_selectors
-        or set(by_selector).intersection(OBSOLETE_LIVE_SELECTORS)
-        or active_slot not in TWO_SLOT_SELECTORS
-    ):
-        raise InstallationError(
-            "The installed Evidence Lane inventory is not the exact Git-main/local-testing two-slot boundary."
-        )
-    active_selector = TWO_SLOT_SELECTORS[active_slot]
-    enabled_selectors = {
-        selector for selector, row in by_selector.items() if row.get("enabled") is True
-    }
-    if enabled_selectors != {active_selector}:
-        raise InstallationError(
-            "The exact two-slot registry requires one matching enabled selector."
-        )
-
-    slots: dict[str, Any] = {}
-    for role, selector in TWO_SLOT_SELECTORS.items():
-        row = by_selector[selector]
-        version = str(row.get("version") or "")
-        source = dict(row.get("source") or {})
-        installed_path = Path(str(source.get("path") or "")).resolve()
-        if (
-            re.fullmatch(r"\d+\.\d+\.\d+\+codex\.[0-9A-Za-z.-]+", version) is None
-            or not installed_path.is_dir()
-        ):
-            raise InstallationError(
-                f"The {role} slot has no exact installed version/path identity."
-            )
-        marketplace_source = dict(row.get("marketplaceSource") or {})
-        slots[role] = {
-            "slot_role": role,
-            "plugin_selector": selector,
-            "plugin_version": version,
-            "marketplace_name": str(row.get("marketplaceName") or ""),
-            "installed_path_sha256": hashlib.sha256(
-                os.path.normcase(str(installed_path)).encode("utf-8")
-            )
-            .hexdigest()
-            .upper(),
-            "marketplace_source_type": str(
-                marketplace_source.get("sourceType") or "unknown"
-            ),
-            "enabled": selector == active_selector,
-            "native_mcp_enabled": selector == active_selector,
-            "byte_frozen": role == "stable-git-main",
-            "update_gate": {
-                "stable-git-main": "GOVERNED_VERIFIED_MAIN_MERGE",
-                "versioned-local-testing": "FRESH_VERSIONED_LOCAL_PACKAGE",
-            }[role],
-        }
-    body: dict[str, Any] = {
-        "schema": TWO_SLOT_REGISTRY_SCHEMA,
-        "status": "PASS",
-        "active_slot": active_slot,
-        "active_selector": active_selector,
-        "exact_live_slot_count": 2,
-        "max_enabled_plugin_count": 1,
-        "max_active_native_mcp_count": 1,
-        "failure_target_slot": "stable-git-main",
-        "local_failure_targets_verified_main_only": True,
-        "branch_recovery_selector_retired": True,
-        "branch_recovery_selector": LOCAL_RECOVERY_SELECTOR,
-        "branch_recovery_install_allowed": False,
-        "pre_3_0_fallback_allowed": False,
-        "obsolete_live_selectors_allowed": False,
-        "config_sha256": config_sha256,
-        "codex_home_sha256": hashlib.sha256(
-            os.path.normcase(str(codex_home.resolve())).encode("utf-8")
-        )
-        .hexdigest()
-        .upper(),
-        "slots": slots,
-        "candidate_created_or_accepted": False,
-        "pointer_moved": False,
-        "hil_inferred": False,
-    }
-    body["receipt_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
-    registry_path = (
-        data_root
-        / "installations"
-        / "codex-v300"
-        / "two-slot-main-local"
-        / "CODEX_TWO_SLOT_MAIN_LOCAL_REGISTRY.json"
-    )
-    _write_atomic(registry_path, _json_bytes(body))
-    return {
-        **body,
-        "registry_path": str(registry_path),
-        "registry_file_sha256": _sha256(registry_path),
-    }
-
-
-def _materialize_three_slot_registry(**_: Any) -> dict[str, Any]:
-    """Fail closed for callers that still attempt the deleted three-slot route."""
-
-    raise InstallationError(
-        "The three-slot/branch-recovery registry is retired; use the exact "
-        "Git-main/local-testing two-slot registry."
-    )
-
-
-def _purge_retired_branch_recovery(
-    *, executable: Path, codex_home: Path
-) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Remove the retired third selector through supported Codex APIs only."""
-
-    before = _run_codex(executable, codex_home, ["plugin", "list", "--json"])
-    installed = before.get("installed")
-    if not isinstance(installed, list):
-        raise InstallationError("Codex did not expose the installed plugin inventory.")
-    selectors = {
-        str(row.get("pluginId") or "") for row in installed if isinstance(row, dict)
-    }
-    removed_selector = False
-    if LOCAL_RECOVERY_SELECTOR in selectors:
-        _run_codex(
-            executable,
-            codex_home,
-            ["plugin", "remove", LOCAL_RECOVERY_SELECTOR, "--json"],
-        )
-        removed_selector = True
-
-    listed = _run_codex(
-        executable, codex_home, ["plugin", "marketplace", "list", "--json"]
-    )
-    marketplaces = listed.get("marketplaces")
-    if not isinstance(marketplaces, list):
-        raise InstallationError("Codex marketplace list has an invalid shape.")
-    removed_marketplace = False
-    if any(
-        isinstance(row, dict) and row.get("name") == LOCAL_RECOVERY_MARKETPLACE_NAME
-        for row in marketplaces
-    ):
-        _run_codex(
-            executable,
-            codex_home,
-            [
-                "plugin",
-                "marketplace",
-                "remove",
-                LOCAL_RECOVERY_MARKETPLACE_NAME,
-                "--json",
-            ],
-        )
-        removed_marketplace = True
-
-    after = _run_codex(executable, codex_home, ["plugin", "list", "--json"])
-    after_rows = after.get("installed")
-    if not isinstance(after_rows, list) or any(
-        isinstance(row, dict) and row.get("pluginId") == LOCAL_RECOVERY_SELECTOR
-        for row in after_rows
-    ):
-        raise InstallationError("The retired branch-recovery selector survived purge.")
-    receipt = {
-        "schema": "evidence-lane.codex-retired-third-slot-purge.v1",
-        "status": "PASS",
-        "retired_selector": LOCAL_RECOVERY_SELECTOR,
-        "retired_marketplace": LOCAL_RECOVERY_MARKETPLACE_NAME,
-        "selector_removed": removed_selector,
-        "marketplace_removed": removed_marketplace,
-        "supported_codex_apis_only": True,
-        "generated_cache_deleted_directly": False,
-        "candidate_created_or_accepted": False,
-        "pointer_moved": False,
-        "hil_inferred": False,
-    }
-    receipt["receipt_sha256"] = hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-    return receipt, after
-
-
-def _prepare_local_test_reinstall(
-    *,
-    executable: Path,
-    codex_home: Path,
-    data_root: Path,
-    plugin_selector: str,
-    marketplace_name: str,
-    marketplace_root: Path,
-    disabled_hook_recovery_commit: Path | None = None,
-    disabled_hook_recovery_commit_sha256: str | None = None,
-) -> dict[str, Any]:
-    """Refresh only the explicit maintainer test selector through Codex APIs.
-
-    The accepted stable/fallback registry is deliberately outside this route.  An
-    already installed test selector is updated directly with ``plugin add``
-    after its cachebuster changes.  The loaded versioned cache is never removed
-    in-place; Codex owns retirement after restart.  The one enabled
-    last-known-good route and exact pre-transaction config are retained for
-    compare-and-swap recovery.
-    """
-
-    if (disabled_hook_recovery_commit is None) != (
-        disabled_hook_recovery_commit_sha256 is None
-    ):
-        raise InstallationError(
-            "Disabled-local hook recovery requires both the prior commit receipt "
-            "and its file SHA-256."
-        )
-    disabled_hook_recovery = disabled_hook_recovery_commit is not None
-    recovery_authority = (
-        _load_local_test_recovery_authority(
-            commit_receipt_path=Path(disabled_hook_recovery_commit),
-            commit_receipt_sha256=str(disabled_hook_recovery_commit_sha256),
-            data_root=data_root,
-        )
-        if disabled_hook_recovery
-        else None
-    )
-    if (
-        recovery_authority is not None
-        and recovery_authority["candidate_selector"] != plugin_selector
-    ):
-        raise InstallationError(
-            "The prior local-test commit does not bind this exact recovery selector."
-        )
-
-    before_plugins = _run_codex(executable, codex_home, ["plugin", "list", "--json"])
-    installed = before_plugins.get("installed")
-    if not isinstance(installed, list):
-        raise InstallationError("Codex plugin list did not expose installed plugins.")
-    evidence_plugins = [
-        dict(row)
-        for row in installed
-        if isinstance(row, dict)
-        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
-    ]
     target_rows = [
-        row for row in evidence_plugins if row.get("pluginId") == plugin_selector
+        row for row in evidence_rows if row.get("pluginId") == plugin_selector
     ]
-    enabled_rows = [row for row in evidence_plugins if row.get("enabled") is True]
-    if len(target_rows) > 1:
-        raise InstallationError("Codex exposed duplicate local-test plugin identities.")
-    plugin_list_post_add_transient = (
-        disabled_hook_recovery
+    enabled_rows = [row for row in evidence_rows if row.get("enabled") is True]
+    if (
+        len(target_rows) == 1
         and len(enabled_rows) == 1
         and enabled_rows[0].get("pluginId") == plugin_selector
-    )
-    if disabled_hook_recovery:
-        if len(target_rows) != 1 or (
-            enabled_rows and not plugin_list_post_add_transient
-        ):
-            raise InstallationError(
-                "Disabled-local hook recovery requires the installed local selector "
-                "and either every selector disabled or the exact local post-add "
-                "transient."
-            )
-        last_known_good_selector = str(
-            dict(recovery_authority or {}).get("last_known_good_selector") or ""
+        and str(target_rows[0].get("version") or "") != target_version
+        and all(
+            row.get("enabled") is False
+            for row in evidence_rows
+            if row.get("pluginId") != plugin_selector
         )
-        last_known_good_rows = [
-            row
-            for row in evidence_plugins
-            if row.get("pluginId") == last_known_good_selector
-        ]
-        if (
-            len(last_known_good_rows) != 1
-            or last_known_good_rows[0].get("enabled") is not False
-        ):
-            raise InstallationError(
-                "The sealed prior stable selector is not installed and disabled."
-            )
-        last_known_good_version = str(last_known_good_rows[0].get("version") or "")
-    else:
-        if len(enabled_rows) != 1 or enabled_rows[0].get("pluginId") == plugin_selector:
-            raise InstallationError(
-                "Local-test preparation requires one different enabled last-known-good "
-                "Evidence Lane selector."
-            )
-        last_known_good_selector = str(enabled_rows[0].get("pluginId") or "")
-        last_known_good_version = str(enabled_rows[0].get("version") or "")
-    target_was_installed = bool(target_rows)
-    target_was_enabled = bool(target_rows and target_rows[0].get("enabled") is True)
-    if target_was_enabled and not plugin_list_post_add_transient:
-        raise InstallationError(
-            "The local-test candidate is already enabled; use the bounded recovery "
-            "controller instead of overwriting its state."
-        )
-
-    config_path = codex_home / "config.toml"
-    config_bytes = config_path.read_bytes()
-    config_raw = config_bytes.decode("utf-8")
-    config_sha256 = hashlib.sha256(config_bytes).hexdigest().upper()
-    plugin_config = dict(tomllib.loads(config_raw).get("plugins") or {})
-    config_archive = data_root / "installations" / "codex-v200" / "config-archives"
-    pre_normalization_backup = config_archive / f"config-{config_sha256}.toml"
-    if not pre_normalization_backup.exists():
-        _write_atomic(pre_normalization_backup, config_bytes)
-    if _sha256(pre_normalization_backup) != config_sha256:
-        raise InstallationError(
-            "The pre-recovery config archive does not match its sealed snapshot."
-        )
-    disabled_mcp_boundary_normalization: dict[str, Any] | None = None
-    try:
-        activation_states = _evidence_plugin_activation_states(plugin_config)
-    except InstallationError:
-        if not disabled_hook_recovery:
-            raise
-        try:
-            normalized_plugins = _normalize_disabled_local_mcp_boundary(
-                plugin_config,
-                plugin_selector=plugin_selector,
-            )
-            normalization_mode = "STALE_LOCAL_MCP_AFTER_UI_DISABLE"
-            plugin_enabled_before = False
-            mcp_enabled_before = True
-        except InstallationError:
-            normalized_plugins = _normalize_local_post_add_boundary(
-                plugin_config,
-                plugin_selector=plugin_selector,
-            )
-            normalization_mode = "LOCAL_PLUGIN_ADD_TRANSIENT"
-            plugin_enabled_before = True
-            mcp_enabled_before = False
-        if plugin_list_post_add_transient is not (
-            normalization_mode == "LOCAL_PLUGIN_ADD_TRANSIENT"
-        ):
-            raise InstallationError(
-                "The plugin list and config disagree on the local recovery transient."
-            )
-        normalization_write = _batch_write_recovery_plugins(
-            executable=executable,
-            codex_home=codex_home,
-            expected_before_sha256=config_sha256,
-            plugins=normalized_plugins,
-        )
-        normalized_bytes = config_path.read_bytes()
-        normalized_raw = normalized_bytes.decode("utf-8")
-        normalized_sha256 = hashlib.sha256(normalized_bytes).hexdigest().upper()
-        plugin_config = dict(tomllib.loads(normalized_raw).get("plugins") or {})
-        activation_states = _evidence_plugin_activation_states(plugin_config)
-        if any(activation_states.values()):
-            raise InstallationError(
-                "The local MCP recovery boundary did not leave every selector disabled."
-            )
-        disabled_mcp_boundary_normalization = {
-            "schema": "evidence-lane.codex-disabled-local-mcp-normalization.v1",
+    ):
+        return {
             "status": "PASS",
+            "route": "PLUGIN_CREATOR_ACTIVE_LOCAL_SLOT_UPDATE",
             "selector": plugin_selector,
-            "normalization_mode": normalization_mode,
-            "plugin_enabled_before": plugin_enabled_before,
-            "mcp_enabled_before": mcp_enabled_before,
-            "plugin_enabled_after": False,
-            "mcp_enabled_after": False,
-            "all_evidence_lane_selectors_disabled_after": True,
-            "supported_codex_api": "config/batchWrite",
-            "before_sha256": config_sha256,
-            "after_sha256": normalized_sha256,
-            "pre_normalization_backup": str(pre_normalization_backup),
-            "pre_normalization_backup_sha256": _sha256(pre_normalization_backup),
-            "config_write": normalization_write,
-            "unrelated_selector_mutated": False,
+            "old_active_version": str(target_rows[0].get("version") or ""),
+            "target_version": target_version,
+            "enabled_evidence_lane_count": 1,
+            "main_selector_enabled": False,
+            "standalone_plugin_add_invoked": False,
+            "cache_materialization_deferred_to_staged_receipt_route": True,
         }
-        config_bytes = normalized_bytes
-        config_raw = normalized_raw
-        config_sha256 = normalized_sha256
-    if disabled_hook_recovery and [
-        selector for selector, enabled in activation_states.items() if enabled
-    ] == [plugin_selector]:
-        normalized_plugins = _normalize_active_local_reinstall_boundary(
-            plugin_config,
-            plugin_selector=plugin_selector,
-        )
-        normalization_write = _batch_write_recovery_plugins(
-            executable=executable,
-            codex_home=codex_home,
-            expected_before_sha256=config_sha256,
-            plugins=normalized_plugins,
-        )
-        normalized_bytes = config_path.read_bytes()
-        normalized_raw = normalized_bytes.decode("utf-8")
-        normalized_sha256 = hashlib.sha256(normalized_bytes).hexdigest().upper()
-        plugin_config = dict(tomllib.loads(normalized_raw).get("plugins") or {})
-        activation_states = _evidence_plugin_activation_states(plugin_config)
-        if any(activation_states.values()):
-            raise InstallationError(
-                "The active local reinstall boundary did not leave every selector disabled."
-            )
-        disabled_mcp_boundary_normalization = {
-            "schema": "evidence-lane.codex-disabled-local-mcp-normalization.v1",
-            "status": "PASS",
-            "selector": plugin_selector,
-            "normalization_mode": "ACTIVE_LOCAL_SELECTOR_REINSTALL_BOUNDARY",
-            "plugin_enabled_before": True,
-            "mcp_enabled_before": True,
-            "plugin_enabled_after": False,
-            "mcp_enabled_after": False,
-            "all_evidence_lane_selectors_disabled_after": True,
-            "supported_codex_api": "config/batchWrite",
-            "before_sha256": config_sha256,
-            "after_sha256": normalized_sha256,
-            "pre_normalization_backup": str(pre_normalization_backup),
-            "pre_normalization_backup_sha256": _sha256(pre_normalization_backup),
-            "config_write": normalization_write,
-            "unrelated_selector_mutated": False,
-        }
-        config_bytes = normalized_bytes
-        config_raw = normalized_raw
-        config_sha256 = normalized_sha256
-    configured_enabled = [
-        selector for selector, enabled in activation_states.items() if enabled
-    ]
-    if disabled_hook_recovery:
-        if (
-            plugin_selector not in activation_states
-            or last_known_good_selector not in activation_states
-            or configured_enabled
-        ):
-            raise InstallationError(
-                "The Codex config is not the exact all-disabled recovery boundary."
-            )
-    elif configured_enabled != [last_known_good_selector]:
-        raise InstallationError(
-            "The Codex config does not match the one enabled last-known-good selector."
-        )
-    config_backup = config_archive / f"config-{config_sha256}.toml"
-    if not config_backup.exists():
-        _write_atomic(config_backup, config_bytes)
-    if _sha256(config_backup) != config_sha256:
-        raise InstallationError(
-            "The last-known-good rollback config does not match its sealed snapshot."
-        )
-    marketplace_list = _run_codex(
-        executable,
-        codex_home,
-        ["plugin", "marketplace", "list", "--json"],
-    )
-    marketplaces = marketplace_list.get("marketplaces")
-    if not isinstance(marketplaces, list):
-        raise InstallationError("Codex marketplace list has an invalid shape.")
-    exact_rows = [
-        dict(row)
-        for row in marketplaces
-        if isinstance(row, dict) and row.get("name") == marketplace_name
-    ]
-    if len(exact_rows) > 1:
-        raise InstallationError("Codex exposed duplicate local-test marketplaces.")
-    marketplace_preexisting = bool(exact_rows)
-    if marketplace_preexisting:
-        configured_root = Path(str(exact_rows[0].get("root") or "")).resolve()
-        if configured_root != marketplace_root.resolve():
-            raise InstallationError(
-                "The configured local-test marketplace root does not match the "
-                "sealed staging root."
-            )
-
-    receipt = {
-        "schema": "evidence-lane.codex-local-test-reinstall.v1",
-        "status": "PASS",
-        "plugin_selector": plugin_selector,
-        "marketplace_name": marketplace_name,
-        "marketplace_root": str(marketplace_root.resolve()),
-        "target_was_installed": target_was_installed,
-        "target_was_enabled": target_was_enabled,
-        "plugin_list_post_add_transient": plugin_list_post_add_transient,
-        "target_removed_for_exact_reinstall": False,
-        "same_selector_update_via_plugin_add": target_was_installed,
-        "loaded_version_cache_cleanup_deferred_until_restart": target_was_installed,
-        "known_failed_plugin_remove_route_invoked": False,
-        "supported_update_route": "CODEX_PLUGIN_ADD_CACHEBUSTER",
-        "marketplace_preexisting": marketplace_preexisting,
-        "marketplace_root_verified": marketplace_preexisting,
-        "marketplace_add_required": not marketplace_preexisting,
-        "accepted_two_slot_registry_mutated": False,
-        "stable_or_fallback_selector_removed": False,
-        "transaction_mode": (
-            "DISABLED_LOCAL_HOOK_RECOVERY"
-            if disabled_hook_recovery
-            else "COMPARE_AND_SWAP"
-        ),
-        "last_known_good_selector": last_known_good_selector,
-        "last_known_good_version": last_known_good_version,
-        "last_known_good_config_sha256": config_sha256,
-        "rollback_config_backup": str(config_backup),
-        "rollback_config_backup_sha256": _sha256(config_backup),
-        "candidate_must_remain_disabled_until_commit": not disabled_hook_recovery,
-        "all_evidence_lane_selectors_disabled_before_reinstall": (
-            disabled_hook_recovery
-        ),
-        "recovery_switch_target": (plugin_selector if disabled_hook_recovery else None),
-        "recovery_rollback_state": (
-            "ALL_EVIDENCE_LANE_SELECTORS_DISABLED" if disabled_hook_recovery else None
-        ),
-        "disabled_mcp_boundary_normalization": (disabled_mcp_boundary_normalization),
-        "prior_commit_authority": (
-            {
-                "path": str(recovery_authority["commit_path"]),
-                "file_sha256": recovery_authority["commit_file_sha256"],
-                "transaction_id": recovery_authority["transaction_id"],
-                "failed_candidate_config_sha256": recovery_authority[
-                    "failed_candidate_config_sha256"
-                ],
-            }
-            if recovery_authority is not None
-            else None
-        ),
-        "switch_count": 0,
-    }
-    transaction_prefix = (
-        "local_hook_recovery_" if disabled_hook_recovery else "local_test_tx_"
-    )
-    receipt["transaction_id"] = (
-        transaction_prefix
-        + hashlib.sha256(
-            _json_bytes(
-                {
-                    "candidate_selector": plugin_selector,
-                    "last_known_good_config_sha256": config_sha256,
-                    "last_known_good_selector": last_known_good_selector,
-                    "marketplace_root": str(marketplace_root.resolve()),
-                    "prior_commit_file_sha256": (
-                        recovery_authority["commit_file_sha256"]
-                        if recovery_authority is not None
-                        else None
-                    ),
-                }
-            )
-        )
-        .hexdigest()[:40]
-        .lower()
-    )
-    receipt["receipt_sha256"] = hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-    return receipt
+    return None
 
 
 def _prewarm_installed_runtime(
     plugin_root: Path,
     *,
     data_root: Path,
+    expected_plugin_version: str,
 ) -> dict[str, Any]:
     """Build and probe the installed cache before any task can be reopened."""
 
@@ -3159,66 +2671,96 @@ def _prewarm_installed_runtime(
         raise InstallationError(
             "The installed Evidence Lane icon is missing or changed before prewarm."
         )
+    cache_hygiene_before = _require_no_plugin_cache_artifacts(plugin_root)
     started = time.monotonic()
-    bootstrap_attempts: list[dict[str, Any]] = []
     prewarm_environment = os.environ.copy()
-    prewarm_environment["EVIDENCE_LANE_DATA_ROOT"] = str(data_root.resolve())
-    boot: subprocess.CompletedProcess[bytes] | None = None
-    for attempt in range(1, 3):
-        try:
-            boot = subprocess.run(
-                [sys.executable, str(runner), "--prewarm-only"],
-                check=False,
-                cwd=plugin_root,
-                stdin=subprocess.DEVNULL,
-                capture_output=True,
-                timeout=900,
-                env=prewarm_environment,
-                creationflags=_windows_hidden_creationflags(),
-            )
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            raise InstallationError(
-                "The installed runtime bootstrap did not complete before task reopen."
-            ) from exc
-        bootstrap_attempts.append(
-            {
-                "attempt": attempt,
-                "returncode": int(boot.returncode),
-                "stdout_sha256": hashlib.sha256(boot.stdout).hexdigest().upper(),
-                "stderr_sha256": hashlib.sha256(boot.stderr).hexdigest().upper(),
-            }
+    prewarm_environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    prewarm_environment["PYTEST_ADDOPTS"] = "-p no:cacheprovider"
+    runtime_control_root = str(data_root.resolve())
+    prewarm_environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = runtime_control_root
+    try:
+        bootstrap_process = subprocess.run(
+            [sys.executable, str(runner), "--bootstrap-only"],
+            check=False,
+            cwd=plugin_root,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            timeout=900,
+            env=prewarm_environment,
+            creationflags=_windows_hidden_creationflags(),
         )
-        if boot.returncode == 0:
-            break
-    if boot is None or boot.returncode != 0:
+    except (OSError, subprocess.TimeoutExpired) as exc:
         raise InstallationError(
-            "The installed runtime bootstrap failed twice on the same sealed bytes "
+            "The installed runtime bootstrap did not complete before task reopen."
+        ) from exc
+    bootstrap_attempts = [
+        {
+            "attempt": 1,
+            "returncode": int(bootstrap_process.returncode),
+            "stdout_sha256": hashlib.sha256(bootstrap_process.stdout)
+            .hexdigest()
+            .upper(),
+            "stderr_sha256": hashlib.sha256(bootstrap_process.stderr)
+            .hexdigest()
+            .upper(),
+        }
+    ]
+    if bootstrap_process.returncode != 0:
+        raise InstallationError(
+            "The installed runtime bootstrap failed on the sealed package bytes "
             f"before task reopen (attempts={bootstrap_attempts})."
         )
     try:
-        prewarm_lines = [
-            line for line in boot.stdout.decode("utf-8").splitlines() if line.strip()
+        bootstrap_lines = [
+            line
+            for line in bootstrap_process.stdout.decode("utf-8").splitlines()
+            if line.strip()
         ]
-        prewarm_result = json.loads(prewarm_lines[-1])
+        bootstrap_result = json.loads(bootstrap_lines[-1])
     except (IndexError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise InstallationError(
-            "The installed runtime prewarm returned no exact JSON receipt."
+            "The installed runtime bootstrap returned no exact JSON receipt."
         ) from exc
     if (
-        prewarm_result.get("schema") != "evidence-lane.codex-native-runtime-prewarm.v1"
-        or prewarm_result.get("status") != "PASS"
+        bootstrap_result.get("schema") != "evidence-lane.codex-runtime-bootstrap.v1"
+        or bootstrap_result.get("status") != "PASS"
+        or bootstrap_result.get("toolchain_inspected") is not False
+        or bootstrap_result.get("native_toolchain_required") is not False
     ):
-        raise InstallationError("The installed runtime prewarm identity drifted.")
-    runtime_python = Path(str(prewarm_result.get("runtime_python") or "")).resolve()
+        raise InstallationError("The installed runtime bootstrap identity drifted.")
+    runtime_authority = dict(bootstrap_result.get("runtime_authority") or {})
+    if (
+        runtime_authority.get("schema")
+        != "evidence-lane.codex-installed-runtime-authority-prewarm.v1"
+        or runtime_authority.get("status") != "PASS"
+        or runtime_authority.get("flash_plugin_version") != expected_plugin_version
+        or runtime_authority.get("flash_action")
+        not in {"CREATED", "REUSED", "BUILD_IDENTITY_MIGRATED"}
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(runtime_authority.get("flash_receipt_sha256") or ""),
+        )
+        is None
+        or runtime_authority.get("project_state_mutated") is not False
+        or runtime_authority.get("candidate_mutated") is not False
+        or runtime_authority.get("pointer_moved") is not False
+    ):
+        raise InstallationError(
+            "The installed runtime did not activate the exact package Flash authority before task reopen."
+        )
+    runtime_python = Path(str(bootstrap_result.get("runtime_python") or "")).resolve()
     runtime_projection_root = Path(
-        str(prewarm_result.get("runtime_projection_root") or "")
+        str(bootstrap_result.get("runtime_projection_root") or "")
     ).resolve()
     runtime_environment = Path(
-        str(prewarm_result.get("runtime_environment") or "")
+        str(bootstrap_result.get("runtime_environment") or "")
     ).resolve()
-    runtime_identity = dict(prewarm_result.get("runtime_identity") or {})
+    runtime_identity = dict(bootstrap_result.get("runtime_identity") or {})
     expected_runtime_parent = (data_root / "runtime" / "codex").resolve()
     expected_lock_sha256 = _sha256(plugin_root / "requirements.lock.txt")
+    expected_toolchain_lock_sha256 = _sha256(
+        plugin_root / "requirements.toolchain.lock.txt"
+    )
     if not runtime_python.is_file():
         raise InstallationError("The governed bootstrap did not create its runtime.")
     if (
@@ -3227,25 +2769,295 @@ def _prewarm_installed_runtime(
         or not _inside(runtime_python, runtime_environment)
         or runtime_identity.get("schema") != "evidence-lane.codex-native-runtime.v1"
         or runtime_identity.get("requirements_lock_sha256") != expected_lock_sha256
+        or runtime_identity.get("requirements_toolchain_lock_sha256")
+        != expected_toolchain_lock_sha256
         or re.fullmatch(r"[A-F0-9]{64}", str(runtime_identity.get("runtime_key") or ""))
         is None
     ):
         raise InstallationError(
             "The derived runtime is outside its sealed durable authority."
         )
+    tool_license_inventory_path = (
+        plugin_root / "toolchains" / "tool-license-inventory.v1.json"
+    )
+    expected_tool_license_inventory_sha256 = _sha256(tool_license_inventory_path)
+    expected_tool_license_entry_count = int(
+        json.loads(tool_license_inventory_path.read_text(encoding="utf-8"))[
+            "tool_requirement_count"
+        ]
+    )
+    license_script = plugin_root / "scripts" / "generate_runtime_license_bundle.py"
+    runtime_key = str(runtime_identity["runtime_key"])
+    license_output = (data_root / "runtime" / "licenses" / runtime_key).resolve()
+    if not license_script.is_file() or not _inside(license_output, data_root.resolve()):
+        raise InstallationError(
+            "The installed runtime license-bundle route is missing or escaped."
+        )
+    license_manifest_path = license_output / "manifest.v1.json"
+    reuse_existing_license_bundle = False
+    stale_runtime_license_bundle_purged = False
+    if license_manifest_path.is_file():
+        existing_runtime_licenses = json.loads(
+            license_manifest_path.read_text(encoding="utf-8")
+        )
+        reuse_existing_license_bundle = (
+            existing_runtime_licenses.get("schema")
+            == "evidence-lane.installed-runtime-license-bundle.v1"
+            and existing_runtime_licenses.get("status") == "PASS"
+            and existing_runtime_licenses.get("requirements_lock_sha256")
+            == expected_lock_sha256
+            and existing_runtime_licenses.get("requirements_toolchain_lock_sha256")
+            == expected_toolchain_lock_sha256
+            and existing_runtime_licenses.get("tool_license_inventory_sha256")
+            == expected_tool_license_inventory_sha256
+            and int(existing_runtime_licenses.get("tool_license_entry_count") or 0)
+            == expected_tool_license_entry_count
+            and existing_runtime_licenses.get(
+                "all_tool_requirements_have_physical_license_records"
+            )
+            is True
+            and int(
+                existing_runtime_licenses.get("tool_requirement_license_record_count")
+                or 0
+            )
+            == expected_tool_license_entry_count
+        )
+        if reuse_existing_license_bundle:
+            runtime_licenses = existing_runtime_licenses
+            runtime_licenses["output"] = str(license_output)
+            runtime_licenses["manifest_sha256"] = _sha256(license_manifest_path)
+            runtime_licenses["reused"] = True
+            runtime_licenses["stale_runtime_license_bundle_purged"] = False
+        else:
+            if not _inside(
+                license_output, (data_root / "runtime" / "licenses").resolve()
+            ):
+                raise InstallationError(
+                    "The stale runtime license bundle escaped its exact derived root."
+                )
+            shutil.rmtree(license_output)
+            stale_runtime_license_bundle_purged = True
+    if not reuse_existing_license_bundle:
+        license_output.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            license_process = subprocess.run(
+                [
+                    str(runtime_python),
+                    str(license_script),
+                    "--output",
+                    str(license_output),
+                    "--plugin-root",
+                    str(plugin_root),
+                ],
+                check=False,
+                cwd=plugin_root,
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                timeout=300,
+                env=prewarm_environment,
+                creationflags=_windows_hidden_creationflags(),
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise InstallationError(
+                "The installed runtime license bundle did not complete."
+            ) from exc
+        if license_process.returncode != 0:
+            raise InstallationError(
+                "The installed runtime license bundle failed before task reopen."
+            )
+        try:
+            license_lines = [
+                line
+                for line in license_process.stdout.decode("utf-8").splitlines()
+                if line.strip()
+            ]
+            runtime_licenses = json.loads(license_lines[-1])
+        except (IndexError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise InstallationError(
+                "The installed runtime license bundle returned no exact receipt."
+            ) from exc
+        runtime_licenses["reused"] = False
+        runtime_licenses["stale_runtime_license_bundle_purged"] = (
+            stale_runtime_license_bundle_purged
+        )
+    if (
+        runtime_licenses.get("schema")
+        != "evidence-lane.installed-runtime-license-bundle.v1"
+        or runtime_licenses.get("status") != "PASS"
+        or runtime_licenses.get("requirements_lock_sha256") != expected_lock_sha256
+        or runtime_licenses.get("requirements_toolchain_lock_sha256")
+        != expected_toolchain_lock_sha256
+        or runtime_licenses.get("tool_license_inventory_sha256")
+        != expected_tool_license_inventory_sha256
+        or int(runtime_licenses.get("tool_license_entry_count") or 0)
+        != expected_tool_license_entry_count
+        or runtime_licenses.get("all_tool_requirements_license_classified") is not True
+        or runtime_licenses.get("all_tool_requirements_have_physical_license_records")
+        is not True
+        or int(runtime_licenses.get("tool_requirement_license_record_count") or 0)
+        != expected_tool_license_entry_count
+        or runtime_licenses.get("mcp_inventory_separate") is not True
+        or int(runtime_licenses.get("distribution_count") or 0) < 1
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(runtime_licenses.get("receipt_sha256") or ""),
+        )
+        is None
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(runtime_licenses.get("manifest_sha256") or ""),
+        )
+        is None
+    ):
+        raise InstallationError(
+            "The installed runtime license bundle failed exact validation."
+        )
+    native_script = (
+        plugin_root / "scripts" / "codex_release" / "install_native_toolchain.py"
+    )
+    native_manifest = plugin_root / "toolchains" / "native-tools.v1.json"
+    native_output = (
+        data_root
+        / "runtime"
+        / "native-toolchain"
+        / runtime_key
+        / "install-receipt.json"
+    ).resolve()
+    if (
+        not native_script.is_file()
+        or not native_manifest.is_file()
+        or not _inside(native_output, data_root.resolve())
+    ):
+        raise InstallationError(
+            "The installed native-toolchain route is missing or escaped."
+        )
+    native_output.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        native_process = subprocess.run(
+            [
+                str(runtime_python),
+                str(native_script),
+                "--plugin-root",
+                str(plugin_root),
+                "--runtime-root",
+                str(data_root),
+                "--manifest",
+                str(native_manifest),
+                "--allow-network",
+                "--output",
+                str(native_output),
+            ],
+            check=False,
+            cwd=plugin_root,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            timeout=900,
+            env=prewarm_environment,
+            creationflags=_windows_hidden_creationflags(),
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise InstallationError(
+            "The hidden native-toolchain install did not complete."
+        ) from exc
+    if native_process.returncode != 0 or not native_output.is_file():
+        raise InstallationError(
+            "The hidden native-toolchain install failed before task reopen."
+        )
+    native_toolchain = json.loads(native_output.read_text(encoding="utf-8"))
+    native_rows = list(native_toolchain.get("tools") or [])
+    if (
+        native_toolchain.get("schema") != "evidence-lane.installed-native-toolchain.v1"
+        or native_toolchain.get("status") != "PASS"
+        or native_toolchain.get("hidden_runtime_only") is not True
+        or native_toolchain.get("workspace_install_used") is not False
+        or native_toolchain.get("path_mutated") is not False
+        or sum(row.get("status") == "PASS" for row in native_rows) < 7
+        or not any(
+            row.get("tool_id") == "ghostscript"
+            and row.get("status") == "SKIPPED_LICENSE_GRANT_REQUIRED"
+            for row in native_rows
+        )
+    ):
+        raise InstallationError(
+            "The hidden native-toolchain receipt failed exact validation."
+        )
+    try:
+        prewarm_process = subprocess.run(
+            [sys.executable, str(runner), "--prewarm-only"],
+            check=False,
+            cwd=plugin_root,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            timeout=900,
+            env=prewarm_environment,
+            creationflags=_windows_hidden_creationflags(),
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise InstallationError(
+            "The installed runtime toolchain prewarm did not complete after the "
+            "native toolchain was installed."
+        ) from exc
+    if prewarm_process.returncode != 0:
+        raise InstallationError(
+            "The installed runtime toolchain prewarm failed after native-toolchain "
+            "installation."
+        )
+    try:
+        prewarm_lines = [
+            line
+            for line in prewarm_process.stdout.decode("utf-8").splitlines()
+            if line.strip()
+        ]
+        prewarm_result = json.loads(prewarm_lines[-1])
+    except (IndexError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise InstallationError(
+            "The installed runtime toolchain prewarm returned no exact JSON receipt."
+        ) from exc
+    prewarm_toolchain = dict(prewarm_result.get("runtime_toolchain") or {})
+    tool_matrix = plugin_root / "toolchains" / "tool-requirement-matrix.v1.json"
+    if (
+        prewarm_result.get("schema") != "evidence-lane.codex-native-runtime-prewarm.v1"
+        or prewarm_result.get("status") != "PASS"
+        or dict(prewarm_result.get("runtime_identity") or {}) != runtime_identity
+        or Path(str(prewarm_result.get("runtime_projection_root") or "")).resolve()
+        != runtime_projection_root
+        or Path(str(prewarm_result.get("runtime_environment") or "")).resolve()
+        != runtime_environment
+        or Path(str(prewarm_result.get("runtime_python") or "")).resolve()
+        != runtime_python
+        or prewarm_toolchain.get("schema")
+        != "evidence-lane.runtime-toolchain-prewarm.v1"
+        or prewarm_toolchain.get("status") != "PASS"
+        or prewarm_toolchain.get("matrix_sha256") != _sha256(tool_matrix)
+        or int(prewarm_toolchain.get("requirement_count") or 0) < 50
+        or prewarm_toolchain.get("failure_count") != 0
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(prewarm_toolchain.get("receipt_sha256") or ""),
+        )
+        is None
+    ):
+        raise InstallationError(
+            "The installed runtime toolchain prewarm failed exact post-install "
+            "validation."
+        )
     environment = os.environ.copy()
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    environment["PYTEST_ADDOPTS"] = "-p no:cacheprovider"
     source = str((plugin_root / "src").resolve())
     existing_pythonpath = environment.get("PYTHONPATH", "")
     environment["PYTHONPATH"] = os.pathsep.join(
         part for part in (source, existing_pythonpath) if part
     )
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(data_root.resolve())
+    environment["EVIDENCE_LANE_HOST_PROFILE"] = "CODEX_DESKTOP"
     probe_source = (
         "import json; "
         "from evidence_lane_plugin.constants import ENGINE_VERSION; "
-        "from evidence_lane_plugin.lane_engine import prewarm_native_dependencies; "
         "from evidence_lane_plugin.mcp_server import "
         "CODEX_READ_TOOL_NAMES,NATIVE_MCP_SERVER_IDENTITY,create_mcp_server; "
-        "prewarm_native_dependencies(); "
+        "from evidence_lane_plugin.runtime_toolchain import inspect_runtime_toolchain; "
+        "toolchain=inspect_runtime_toolchain(prewarm_native=True); "
         "server=create_mcp_server(); "
         "route=server._evidence_lane_native_route_receipt; "
         "print(json.dumps({"
@@ -3256,7 +3068,8 @@ def _prewarm_installed_runtime(
         "'tool_catalog_sha256':route['tool_catalog_sha256'],"
         "'route_status':route['status'],"
         "'resource_uri':route['mcp_apps_resource_uri'],"
-        "'native_dependency_prewarm_completed':True"
+        "'native_dependency_prewarm_completed':True,"
+        "'runtime_toolchain':toolchain"
         "},sort_keys=True))"
     )
     try:
@@ -3299,10 +3112,157 @@ def _prewarm_installed_runtime(
     }
     result_without_catalog_seal = dict(result)
     catalog_seal = result_without_catalog_seal.pop("tool_catalog_sha256", None)
+    runtime_toolchain = dict(
+        result_without_catalog_seal.pop("runtime_toolchain", None) or {}
+    )
     if result_without_catalog_seal != expected_result:
         raise InstallationError("The installed native runtime identity drifted.")
     if re.fullmatch(r"[A-F0-9]{64}", str(catalog_seal)) is None:
         raise InstallationError("The installed native catalog seal is missing.")
+    tool_matrix = plugin_root / "toolchains" / "tool-requirement-matrix.v1.json"
+    if (
+        runtime_toolchain.get("schema") != "evidence-lane.runtime-toolchain-prewarm.v1"
+        or runtime_toolchain.get("status") != "PASS"
+        or runtime_toolchain.get("matrix_sha256") != _sha256(tool_matrix)
+        or int(runtime_toolchain.get("requirement_count") or 0) < 50
+        or runtime_toolchain.get("failure_count") != 0
+        or re.fullmatch(
+            r"[A-F0-9]{64}",
+            str(runtime_toolchain.get("receipt_sha256") or ""),
+        )
+        is None
+    ):
+        raise InstallationError(
+            "The installed non-MCP runtime/toolchain prewarm failed parity."
+        )
+    mcp_messages = [
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {
+                    "name": "evidence_lane_installed_mcp_readiness",
+                    "version": BASE_RELEASE,
+                },
+            },
+        },
+        {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized",
+            "params": {},
+        },
+        {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/list",
+            "params": {},
+        },
+    ]
+    mcp_input = "".join(
+        json.dumps(message, sort_keys=True, separators=(",", ":")) + "\n"
+        for message in mcp_messages
+    ).encode("utf-8")
+    mcp_started = time.monotonic()
+    try:
+        mcp_process = subprocess.run(
+            [sys.executable, str(runner), "--transport", "stdio"],
+            input=mcp_input,
+            check=False,
+            cwd=plugin_root,
+            capture_output=True,
+            timeout=120,
+            env=prewarm_environment,
+            creationflags=_windows_hidden_creationflags(),
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise InstallationError(
+            "The installed MCP stdio initialize/tools-list readiness proof did "
+            "not complete before same-task restart."
+        ) from exc
+    if mcp_process.returncode != 0:
+        raise InstallationError(
+            "The installed MCP stdio readiness process failed before same-task "
+            f"restart (exit {mcp_process.returncode})."
+        )
+    try:
+        mcp_responses = [
+            json.loads(line)
+            for line in mcp_process.stdout.decode("utf-8").splitlines()
+            if line.strip()
+        ]
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise InstallationError(
+            "The installed MCP stdio readiness proof returned invalid JSONL."
+        ) from exc
+    initialize_response = next(
+        (row for row in mcp_responses if row.get("id") == 1), None
+    )
+    tools_response = next(
+        (row for row in mcp_responses if row.get("id") == 2), None
+    )
+    initialize_result = (
+        dict(initialize_response.get("result") or {})
+        if isinstance(initialize_response, dict)
+        else {}
+    )
+    server_info = dict(initialize_result.get("serverInfo") or {})
+    listed_tools = (
+        list((tools_response.get("result") or {}).get("tools") or [])
+        if isinstance(tools_response, dict)
+        else []
+    )
+    listed_tool_names = [str(row.get("name") or "") for row in listed_tools]
+    public_schema = json.loads(
+        (plugin_root / "schemas" / "public-action-schemas.v001.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    expected_tool_names = [
+        str(row.get("name") or "") for row in public_schema.get("tools") or []
+    ]
+    if (
+        initialize_response is None
+        or initialize_response.get("error") is not None
+        or tools_response is None
+        or tools_response.get("error") is not None
+        or server_info.get("name") != "Evidence Lane"
+        or server_info.get("version") != BASE_RELEASE
+        or len(set(listed_tool_names)) != len(listed_tool_names)
+        or set(listed_tool_names) != set(expected_tool_names)
+        or len(listed_tool_names) != EXPECTED_CATALOG["tools"]
+        or "runtime_doctor" not in listed_tool_names
+    ):
+        raise InstallationError(
+            "The installed package did not expose its exact native MCP catalog "
+            "through a real stdio initialize/tools-list exchange before "
+            "same-task restart."
+        )
+    mcp_stdio_readiness = {
+        "schema": "evidence-lane.codex-installed-mcp-stdio-readiness.v1",
+        "status": "PASS",
+        "initialize_completed": True,
+        "tools_list_completed": True,
+        "server_name": server_info["name"],
+        "server_version": server_info["version"],
+        "tool_count": len(listed_tool_names),
+        "tool_names_sha256": hashlib.sha256(
+            _json_bytes(sorted(listed_tool_names))
+        ).hexdigest().upper(),
+        "runtime_doctor_present": True,
+        "process_returncode": int(mcp_process.returncode),
+        "stdout_sha256": hashlib.sha256(mcp_process.stdout).hexdigest().upper(),
+        "stderr_sha256": hashlib.sha256(mcp_process.stderr).hexdigest().upper(),
+        "duration_ms": int((time.monotonic() - mcp_started) * 1000),
+        "same_task_restart_eligible": True,
+        "new_task_required": False,
+    }
+    mcp_stdio_readiness["receipt_sha256"] = hashlib.sha256(
+        _json_bytes(mcp_stdio_readiness)
+    ).hexdigest().upper()
+    cache_hygiene_after = _require_no_plugin_cache_artifacts(plugin_root)
     core = {
         "schema": "evidence-lane.codex-installed-runtime-prewarm.v1",
         "status": "PASS",
@@ -3315,8 +3275,21 @@ def _prewarm_installed_runtime(
         "runtime_identity": runtime_identity,
         "bootstrap_attempt_count": len(bootstrap_attempts),
         "bootstrap_attempts": bootstrap_attempts,
-        "bootstrap_stdout_sha256": hashlib.sha256(boot.stdout).hexdigest().upper(),
-        "bootstrap_stderr_sha256": hashlib.sha256(boot.stderr).hexdigest().upper(),
+        "bootstrap_stdout_sha256": hashlib.sha256(bootstrap_process.stdout)
+        .hexdigest()
+        .upper(),
+        "bootstrap_stderr_sha256": hashlib.sha256(bootstrap_process.stderr)
+        .hexdigest()
+        .upper(),
+        "runtime_authority": runtime_authority,
+        "toolchain_prewarm_after_native_install": True,
+        "prewarm_stdout_sha256": hashlib.sha256(prewarm_process.stdout)
+        .hexdigest()
+        .upper(),
+        "prewarm_stderr_sha256": hashlib.sha256(prewarm_process.stderr)
+        .hexdigest()
+        .upper(),
+        "prewarm_toolchain_receipt_sha256": prewarm_toolchain["receipt_sha256"],
         "probe_stdout_sha256": hashlib.sha256(probe.stdout).hexdigest().upper(),
         "probe_stderr_sha256": hashlib.sha256(probe.stderr).hexdigest().upper(),
         "engine_version": result["engine_version"],
@@ -3327,6 +3300,18 @@ def _prewarm_installed_runtime(
         "brand_icon_sha256": _sha256(brand_icon),
         "catalog_expected": dict(EXPECTED_CATALOG),
         "native_dependency_prewarm_completed": True,
+        "mcp_stdio_ready_before_task_reopen": True,
+        "mcp_stdio_readiness": mcp_stdio_readiness,
+        "same_task_restart_eligible": True,
+        "new_task_required": False,
+        "runtime_toolchain": runtime_toolchain,
+        "runtime_toolchain_receipt_sha256": runtime_toolchain["receipt_sha256"],
+        "runtime_licenses": runtime_licenses,
+        "runtime_license_manifest_sha256": runtime_licenses["manifest_sha256"],
+        "native_toolchain": native_toolchain,
+        "native_toolchain_receipt_sha256": native_toolchain["receipt_sha256"],
+        "cache_hygiene_before": cache_hygiene_before,
+        "cache_hygiene_after": cache_hygiene_after,
         "duration_ms": int((time.monotonic() - started) * 1000),
         "task_reopened": False,
     }
@@ -3358,7 +3343,9 @@ def _initialize_installed_hook_event_isolation(
             "The installed hook-event isolation runtime could not be loaded."
         )
     module = importlib.util.module_from_spec(spec)
+    prior_dont_write_bytecode = sys.dont_write_bytecode
     try:
+        sys.dont_write_bytecode = True
         spec.loader.exec_module(module)
         initialized = module.initialize_inactive_kill_switch(
             data_root.resolve(),
@@ -3368,6 +3355,8 @@ def _initialize_installed_hook_event_isolation(
         raise InstallationError(
             "The persistent hook kill switch could not be initialized safely."
         ) from exc
+    finally:
+        sys.dont_write_bytecode = prior_dont_write_bytecode
 
     receipt_path = Path(str(initialized.get("path") or "")).resolve()
     expected_path = data_root.resolve() / "hook-event-isolation" / "KILL_SWITCH.json"
@@ -3469,13 +3458,17 @@ def _verify_recovery_copy_hook_event_isolation(
     before_bytes = receipt_path.read_bytes()
     before_sha256 = hashlib.sha256(before_bytes).hexdigest().upper()
     policy_sha256 = _sha256(policy_path)
+    prior_dont_write_bytecode = sys.dont_write_bytecode
     try:
+        sys.dont_write_bytecode = True
         spec.loader.exec_module(module)
         _body, payload = module._read_kill_switch(receipt_path)
     except Exception as exc:
         raise InstallationError(
             "The recovery bytes could not verify the primary hook kill switch."
         ) from exc
+    finally:
+        sys.dont_write_bytecode = prior_dont_write_bytecode
     after_bytes = receipt_path.read_bytes()
     after_sha256 = hashlib.sha256(after_bytes).hexdigest().upper()
 
@@ -3686,8 +3679,7 @@ def _prepare_in_place_stable_reinstall(
         "target_marketplace_source_verified": target_marketplace_source_verified,
         "local_testing_selector": local_testing_selector,
         "local_testing_removed": False,
-        "branch_recovery_selector_retired": True,
-        "branch_recovery_install_allowed": False,
+        "obsolete_selector_present": False,
         "removed_obsolete_selectors": [],
         "removed_obsolete_marketplaces": [],
         "obsolete_cleanup_deferred_until_new_route_proof": True,
@@ -3928,6 +3920,335 @@ def _batch_write_with_one_config_refresh(
     )
 
 
+def _set_native_hook_event_states(
+    *,
+    executable: Path,
+    codex_home: Path,
+    data_root: Path,
+    hook_cwd: Path,
+    plugin_selector: str,
+    desired_event_states: dict[str, bool],
+    verified_event_receipts: dict[str, str],
+    changed_by: str,
+) -> dict[str, Any]:
+    """CAS-update only exact installed hook events through Codex native APIs."""
+
+    exact_events = set(desired_event_states)
+    if (
+        not exact_events
+        or not exact_events.issubset(EXPECTED_CODEX_HOST_HOOK_EVENTS)
+        or any(not isinstance(value, bool) for value in desired_event_states.values())
+        or not str(changed_by or "").strip()
+    ):
+        raise InstallationError("Native hook event control input is invalid.")
+    enabled_events = {
+        event for event, enabled in desired_event_states.items() if enabled
+    }
+    if set(verified_event_receipts) != enabled_events or any(
+        re.fullmatch(r"[A-F0-9]{64}", str(value or "").upper()) is None
+        for value in verified_event_receipts.values()
+    ):
+        raise InstallationError(
+            "Every hook enabled by native control requires one exact installed-event proof."
+        )
+    exact_codex_home = codex_home.resolve()
+    exact_data_root = data_root.resolve()
+    resolved_cwd = hook_cwd.resolve()
+    if not resolved_cwd.is_dir() or "@" not in plugin_selector:
+        raise InstallationError("Native hook event control binding is invalid.")
+
+    environment = os.environ.copy()
+    environment["CODEX_HOME"] = str(exact_codex_home)
+    process = subprocess.Popen(
+        [str(executable.resolve()), "app-server", "--stdio"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        bufsize=1,
+        env=environment,
+        creationflags=_windows_hidden_creationflags(),
+    )
+    stdin = process.stdin
+    stdout = process.stdout
+    stderr = process.stderr
+    if stdin is None or stdout is None or stderr is None:
+        process.kill()
+        raise InstallationError("Codex app-server stdio was not available.")
+    responses: queue.Queue[dict[str, Any]] = queue.Queue()
+    stderr_lines: list[str] = []
+
+    def read_stdout() -> None:
+        for line in stdout:
+            try:
+                payload = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(payload, dict):
+                responses.put(payload)
+
+    def read_stderr() -> None:
+        for line in stderr:
+            stderr_lines.append(line.rstrip())
+
+    threading.Thread(target=read_stdout, daemon=True).start()
+    threading.Thread(target=read_stderr, daemon=True).start()
+
+    def send(payload: dict[str, Any]) -> None:
+        try:
+            stdin.write(json.dumps(payload, separators=(",", ":")) + "\n")
+            stdin.flush()
+        except (BrokenPipeError, OSError) as exc:
+            raise InstallationError("Codex app-server closed unexpectedly.") from exc
+
+    def wait_for(
+        request_id: int,
+        *,
+        timeout: float = 20.0,
+        allow_error: bool = False,
+    ) -> dict[str, Any]:
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            try:
+                payload = responses.get(timeout=min(0.5, remaining))
+            except queue.Empty:
+                if process.poll() is not None:
+                    break
+                continue
+            if payload.get("id") == request_id:
+                if "error" in payload and not allow_error:
+                    raise InstallationError(
+                        "Codex app-server request failed: "
+                        + json.dumps(payload["error"], sort_keys=True)
+                    )
+                return payload
+        detail = " | ".join(stderr_lines[-3:])
+        raise InstallationError(
+            "Codex app-server did not return the native hook control receipt"
+            + (f": {detail}" if detail else ".")
+        )
+
+    def read_inventory(request_id: int) -> list[dict[str, Any]]:
+        send(
+            {
+                "method": "hooks/list",
+                "id": request_id,
+                "params": {"cwds": [str(resolved_cwd)]},
+            }
+        )
+        data = dict(wait_for(request_id).get("result") or {}).get("data")
+        if not isinstance(data, list):
+            raise InstallationError("Codex hooks/list returned an invalid shape.")
+        entries = [
+            dict(row)
+            for row in data
+            if isinstance(row, dict)
+            and os.path.normcase(str(Path(str(row.get("cwd") or "")).resolve()))
+            == os.path.normcase(str(resolved_cwd))
+        ]
+        if len(entries) != 1 or entries[0].get("errors"):
+            raise InstallationError("Codex did not return one clean hook workspace.")
+        hooks = [
+            dict(row)
+            for row in entries[0].get("hooks") or []
+            if isinstance(row, dict) and row.get("pluginId") == plugin_selector
+        ]
+        event_names = {str(row.get("eventName") or "") for row in hooks}
+        if (
+            len(hooks) < len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
+            or event_names != EXPECTED_CODEX_HOST_HOOK_EVENTS
+            or len({str(row.get("key") or "") for row in hooks}) != len(hooks)
+            or any(
+                re.fullmatch(r"sha256:[0-9a-f]{64}", str(row.get("currentHash") or ""))
+                is None
+                or not str(row.get("key") or "").startswith(f"{plugin_selector}:")
+                for row in hooks
+            )
+        ):
+            raise InstallationError("The installed hook inventory drifted.")
+        event_order = {
+            event_name: ordinal
+            for ordinal, event_name in enumerate(
+                EXPECTED_CODEX_HOST_HOOK_EVENT_ORDER, start=1
+            )
+        }
+        return sorted(
+            hooks,
+            key=lambda row: (
+                event_order[str(row["eventName"])],
+                str(row["key"]),
+            ),
+        )
+
+    def event_states(rows: list[dict[str, Any]]) -> dict[str, bool]:
+        grouped: dict[str, set[bool]] = {
+            event_name: set() for event_name in EXPECTED_CODEX_HOST_HOOK_EVENT_ORDER
+        }
+        for row in rows:
+            grouped[str(row["eventName"])].add(bool(row.get("enabled")))
+        if any(len(values) != 1 for values in grouped.values()):
+            raise InstallationError(
+                "All handler actions under one hook event must share its enabled state."
+            )
+        return {event: next(iter(values)) for event, values in grouped.items()}
+
+    try:
+        send(
+            {
+                "method": "initialize",
+                "id": 1000,
+                "params": {
+                    "clientInfo": {
+                        "name": "evidence_lane_native_hook_control",
+                        "title": "Evidence Lane Native Hook Control",
+                        "version": BASE_RELEASE,
+                    }
+                },
+            }
+        )
+        wait_for(1000)
+        send({"method": "initialized", "params": {}})
+        before = read_inventory(1001)
+        before_states = event_states(before)
+        trust_value: dict[str, dict[str, Any]] = {}
+        for row in before:
+            event_name = str(row["eventName"])
+            desired = desired_event_states.get(event_name, before_states[event_name])
+            trust_value[str(row["key"])] = {
+                "trusted_hash": str(row["currentHash"]),
+                "enabled": desired,
+            }
+        config_path = exact_codex_home / "config.toml"
+        before_config_sha256 = _sha256(config_path)
+        write = _batch_write_with_one_config_refresh(
+            send=send,
+            wait_for=wait_for,
+            config_path=config_path,
+            expected_raw_sha256=before_config_sha256,
+            edits=[
+                {
+                    "keyPath": "hooks.state",
+                    "value": trust_value,
+                    "mergeStrategy": "upsert",
+                }
+            ],
+            request_ids=((1010, 1011), (1012, 1013)),
+        )
+        after = read_inventory(1020)
+        after_states = event_states(after)
+        expected_after = {
+            event: desired_event_states.get(event, before_states[event])
+            for event in EXPECTED_CODEX_HOST_HOOK_EVENTS
+        }
+        if after_states != expected_after or any(
+            str(row.get("trustStatus") or "") != "trusted" for row in after
+        ):
+            raise InstallationError(
+                "The native hook event state or trust readback did not persist."
+            )
+        body = {
+            "schema": "evidence-lane.native-hook-event-control.v1",
+            "status": "PASS",
+            "plugin_selector": plugin_selector,
+            "workspace_sha256": hashlib.sha256(
+                os.path.normcase(str(resolved_cwd)).encode("utf-8")
+            )
+            .hexdigest()
+            .upper(),
+            "before_states": before_states,
+            "requested_states": dict(sorted(desired_event_states.items())),
+            "after_states": after_states,
+            "registered_event_count": len(EXPECTED_CODEX_HOST_HOOK_EVENT_ORDER),
+            "handler_action_count": len(after),
+            "hook_count_semantics": "REGISTERED_EVENT_TYPE_COUNT",
+            "handler_action_count_semantics": ("TOTAL_NESTED_HANDLER_ACTION_COUNT"),
+            "event_action_inventory": [
+                {
+                    "hook_number": event_ordinal,
+                    "event_name": event_name,
+                    "display_number": f"Hook {event_ordinal}",
+                    "action_count": len(
+                        [row for row in after if row["eventName"] == event_name]
+                    ),
+                    "actions": [
+                        {
+                            "action_number": f"{event_ordinal}.{action_ordinal}",
+                            "event_action_ordinal": action_ordinal,
+                            "hook_key_sha256": hashlib.sha256(
+                                str(row["key"]).encode("utf-8")
+                            )
+                            .hexdigest()
+                            .upper(),
+                            "current_hash": row["currentHash"],
+                        }
+                        for action_ordinal, row in enumerate(
+                            [row for row in after if row["eventName"] == event_name],
+                            start=1,
+                        )
+                    ],
+                }
+                for event_ordinal, event_name in enumerate(
+                    EXPECTED_CODEX_HOST_HOOK_EVENT_ORDER, start=1
+                )
+            ],
+            "verified_event_receipts": {
+                key: str(value).upper()
+                for key, value in sorted(verified_event_receipts.items())
+            },
+            "changed_by": str(changed_by).strip(),
+            "supported_codex_api": [
+                "hooks/list",
+                "config/read",
+                "config/batchWrite",
+            ],
+            "config_version": write["config_version"],
+            "config_conflict_retry_count": write["config_conflict_retry_count"],
+            "direct_config_file_write": False,
+            "windows_ui_control_used": False,
+            "unrelated_plugin_state_mutated": False,
+            "candidate_created": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+        body["event_action_inventory_sha256"] = (
+            hashlib.sha256(_json_bytes(body["event_action_inventory"]))
+            .hexdigest()
+            .upper()
+        )
+        receipt = {
+            **body,
+            "receipt_sha256": hashlib.sha256(_json_bytes(body)).hexdigest().upper(),
+        }
+        receipt_path = (
+            exact_data_root
+            / "installations"
+            / "codex-v200"
+            / "hook-event-control"
+            / f"HOOK_EVENT_CONTROL_{receipt['receipt_sha256'][:16]}.json"
+        )
+        _write_atomic(receipt_path, _json_bytes(receipt))
+        return {
+            **receipt,
+            "receipt_path": str(receipt_path),
+            "receipt_file_sha256": _sha256(receipt_path),
+        }
+    finally:
+        try:
+            stdin.close()
+        except OSError:
+            pass
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+
+
 def _read_codex_plugin_hook_inventory(
     *,
     send: Any,
@@ -3980,7 +4301,7 @@ def _read_codex_plugin_hook_inventory(
     events = {str(row.get("eventName") or "") for row in hooks}
     keys = [str(row.get("key") or "") for row in hooks]
     if (
-        len(hooks) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
+        len(hooks) < len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
         or events != EXPECTED_CODEX_HOST_HOOK_EVENTS
         or len(keys) != len(set(keys))
         or any(not key.startswith(f"{plugin_selector}:") for key in keys)
@@ -3989,3759 +4310,16 @@ def _read_codex_plugin_hook_inventory(
     return sorted(hooks, key=lambda row: str(row["eventName"]))
 
 
-def _trusted_disabled_hook_records(
-    *,
-    parsed_config: dict[str, Any],
-    plugin_selector: str,
-    hook_inventory: list[dict[str, str]],
-) -> list[dict[str, Any]]:
-    """Bind native UI trust state to one sealed disabled-plugin inventory."""
-
-    hooks_table = dict(parsed_config.get("hooks") or {})
-    trust_state = dict(hooks_table.get("state") or {})
-    expected_keys = {str(row["key"]) for row in hook_inventory}
-    selector_keys = {
-        str(key) for key in trust_state if str(key).startswith(f"{plugin_selector}:")
-    }
-    if selector_keys != expected_keys:
-        raise InstallationError(
-            "The disabled candidate does not have exact native UI hook trust."
-        )
-    records: list[dict[str, Any]] = []
-    for row in hook_inventory:
-        key = str(row["key"])
-        trusted_hash = str(dict(trust_state.get(key) or {}).get("trusted_hash") or "")
-        if re.fullmatch(r"sha256:[0-9a-f]{64}", trusted_hash) is None:
-            raise InstallationError(
-                "The disabled candidate hook trust hash is absent or invalid."
-            )
-        records.append(
-            {
-                "event_name": str(row["eventName"]),
-                "hook_key": key,
-                "current_hash": trusted_hash,
-                "enabled": False,
-                "trust_status": "trusted",
-            }
-        )
-    return records
-
-
-def _trust_sealed_plugin_hooks(
-    *,
-    executable: Path,
-    codex_home: Path,
-    data_root: Path,
-    hook_cwd: Path,
-    plugin_selector: str,
-    defer_hook_trust_to_user: bool = False,
-    activation_mode: str = "SWITCH_EXCLUSIVE",
-    last_known_good_selector: str | None = None,
-    last_known_good_config_sha256: str | None = None,
-    rollback_config_backup: str | None = None,
-    expected_commit_config_sha256: str | None = None,
-    keep_hooks_disabled_after_trust: bool = False,
-) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Write one CAS activation state and optionally trust exact hook hashes.
-
-    Codex intentionally treats each cache-busted plugin selector as a new hook
-    authority.  Merely installing and enabling the plugin therefore does not
-    make its unmanaged hooks runnable.  This helper uses the same supported
-    app-server ``plugin/read``, ``hooks/list``, and ``config/batchWrite`` routes
-    used by Codex's plugin and hook review UI. It never edits ``config.toml``
-    directly and never trusts a hook outside the exact selector supplied by the
-    caller. Local-test preparation reads the disabled candidate through
-    ``plugin/read``, keeps the last-known-good selector active, and never treats
-    installation or isolated prewarm as host readiness.
-    """
-
-    if activation_mode not in {
-        "SWITCH_EXCLUSIVE",
-        "STAGE_CANDIDATE_DISABLED",
-        "VERIFY_STAGED_CANDIDATE",
-        "COMMIT_CANDIDATE",
-        "RECOVER_DISABLED_LOCAL",
-        "PREPARE_RECOVERY_DISABLED",
-        "VERIFY_DISABLED_SUCCESSOR_FROM_SEALED_PRIMARY",
-    }:
-        raise InstallationError("The plugin activation transaction mode is invalid.")
-    transactional_local_test = activation_mode in {
-        "STAGE_CANDIDATE_DISABLED",
-        "VERIFY_STAGED_CANDIDATE",
-        "COMMIT_CANDIDATE",
-    }
-    disabled_local_recovery = activation_mode == "RECOVER_DISABLED_LOCAL"
-    disabled_recovery_copy = activation_mode == "PREPARE_RECOVERY_DISABLED"
-    disabled_successor_verification = (
-        activation_mode == "VERIFY_DISABLED_SUCCESSOR_FROM_SEALED_PRIMARY"
-    )
-    if keep_hooks_disabled_after_trust and not disabled_local_recovery:
-        raise InstallationError(
-            "Only disabled-local recovery may preserve trusted hooks as disabled."
-        )
-    if transactional_local_test and (
-        not last_known_good_selector
-        or last_known_good_selector == plugin_selector
-        or not last_known_good_config_sha256
-        or re.fullmatch(r"[A-F0-9]{64}", last_known_good_config_sha256) is None
-        or not rollback_config_backup
-    ):
-        raise InstallationError(
-            "Candidate staging requires one sealed last-known-good activation."
-        )
-    if activation_mode in {"VERIFY_STAGED_CANDIDATE", "COMMIT_CANDIDATE"} and (
-        defer_hook_trust_to_user
-        or re.fullmatch(
-            r"[A-F0-9]{64}", str(expected_commit_config_sha256 or "").upper()
-        )
-        is None
-    ):
-        raise InstallationError(
-            "Candidate commit requires one fresh exact config baseline and "
-            "pre-existing visible hook trust."
-        )
-    if disabled_local_recovery and (
-        defer_hook_trust_to_user
-        or not last_known_good_selector
-        or last_known_good_selector == plugin_selector
-        or re.fullmatch(
-            r"[A-F0-9]{64}", str(last_known_good_config_sha256 or "").upper()
-        )
-        is None
-        or not rollback_config_backup
-        or re.fullmatch(
-            r"[A-F0-9]{64}", str(expected_commit_config_sha256 or "").upper()
-        )
-        is None
-    ):
-        raise InstallationError(
-            "Disabled-local hook recovery requires one sealed all-disabled "
-            "compare-and-swap baseline."
-        )
-    if disabled_recovery_copy and (
-        defer_hook_trust_to_user
-        or not last_known_good_selector
-        or last_known_good_selector == plugin_selector
-        or re.fullmatch(
-            r"[A-F0-9]{64}", str(last_known_good_config_sha256 or "").upper()
-        )
-        is None
-        or not rollback_config_backup
-    ):
-        raise InstallationError(
-            "A disabled recovery copy requires one sealed primary-local baseline."
-        )
-    if transactional_local_test or disabled_local_recovery or disabled_recovery_copy:
-        exact_backup = Path(str(rollback_config_backup)).resolve()
-        if (
-            not exact_backup.is_file()
-            or not _inside(exact_backup, data_root.resolve())
-            or _sha256(exact_backup) != last_known_good_config_sha256
-        ):
-            raise InstallationError(
-                "The compare-and-swap rollback config is absent, outside authority, "
-                "or hash-mismatched."
-            )
-
-    resolved_cwd = hook_cwd.resolve()
-    if not resolved_cwd.is_dir():
-        raise InstallationError("The exact hook workspace is unavailable.")
-    environment = os.environ.copy()
-    environment["CODEX_HOME"] = str(codex_home)
-    process = subprocess.Popen(
-        [str(executable), "app-server", "--stdio"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        encoding="utf-8",
-        bufsize=1,
-        env=environment,
-        creationflags=_windows_hidden_creationflags(),
-    )
-    stdin = process.stdin
-    stdout = process.stdout
-    stderr = process.stderr
-    if stdin is None or stdout is None or stderr is None:
-        process.kill()
-        raise InstallationError("Codex app-server stdio was not available.")
-
-    responses: queue.Queue[dict[str, Any]] = queue.Queue()
-    stderr_lines: list[str] = []
-
-    def read_stdout() -> None:
-        for line in stdout:
-            try:
-                payload = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if isinstance(payload, dict):
-                responses.put(payload)
-
-    def read_stderr() -> None:
-        for line in stderr:
-            stderr_lines.append(line.rstrip())
-
-    stdout_reader = threading.Thread(target=read_stdout, daemon=True)
-    stderr_reader = threading.Thread(target=read_stderr, daemon=True)
-    stdout_reader.start()
-    stderr_reader.start()
-
-    def send(payload: dict[str, Any]) -> None:
-        try:
-            stdin.write(json.dumps(payload, separators=(",", ":")) + "\n")
-            stdin.flush()
-        except (BrokenPipeError, OSError) as exc:
-            raise InstallationError("Codex app-server closed unexpectedly.") from exc
-
-    def wait_for(
-        request_id: int,
-        *,
-        timeout: float = 20.0,
-        allow_error: bool = False,
-    ) -> dict[str, Any]:
-        deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                break
-            try:
-                payload = responses.get(timeout=min(0.5, remaining))
-            except queue.Empty:
-                if process.poll() is not None:
-                    break
-                continue
-            if payload.get("id") == request_id:
-                if "error" in payload and not allow_error:
-                    raise InstallationError(
-                        "Codex app-server request failed: "
-                        + json.dumps(payload["error"], sort_keys=True)
-                    )
-                return payload
-        detail = " | ".join(stderr_lines[-3:])
-        raise InstallationError(
-            "Codex app-server did not return the required hook receipt"
-            + (f": {detail}" if detail else ".")
-        )
-
-    def selector_hooks(
-        reply: dict[str, Any],
-        expected_selector: str = plugin_selector,
-        expected_enabled: bool | None = True,
-    ) -> list[dict[str, Any]]:
-        data = dict(reply.get("result") or {}).get("data")
-        if not isinstance(data, list):
-            raise InstallationError("Codex hooks/list returned an invalid shape.")
-        resolved_key = os.path.normcase(str(resolved_cwd))
-        entries = [
-            row
-            for row in data
-            if isinstance(row, dict)
-            and os.path.normcase(str(Path(str(row.get("cwd") or "")).resolve()))
-            == resolved_key
-        ]
-        if len(entries) != 1:
-            raise InstallationError("Codex did not return one clean hook workspace.")
-        marketplace_name = expected_selector.split("@", 1)[-1].lower()
-
-        def relevant_diagnostics(values: Any) -> list[str]:
-            diagnostics = [str(value) for value in values or []]
-            return [
-                value
-                for value in diagnostics
-                if marketplace_name in value.lower()
-                or "evidence-lane-" not in value.lower()
-            ]
-
-        if relevant_diagnostics(entries[0].get("errors")):
-            raise InstallationError("Codex returned an installed-hook error.")
-        if relevant_diagnostics(entries[0].get("warnings")):
-            raise InstallationError(
-                "Codex returned an installed-hook warning; installation cannot pass."
-            )
-        hooks = [
-            dict(row)
-            for row in entries[0].get("hooks") or []
-            if isinstance(row, dict) and row.get("pluginId") == expected_selector
-        ]
-        events = {str(row.get("eventName") or "") for row in hooks}
-        keys = [str(row.get("key") or "") for row in hooks]
-        if (
-            len(hooks) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
-            or events != EXPECTED_CODEX_HOST_HOOK_EVENTS
-            or len(keys) != len(set(keys))
-            or any(
-                row.get("source") != "plugin"
-                or row.get("isManaged") is not False
-                or (
-                    expected_enabled is not None
-                    and row.get("enabled") is not expected_enabled
-                )
-                or not str(row.get("key") or "").startswith(f"{expected_selector}:")
-                or re.fullmatch(
-                    r"sha256:[0-9a-f]{64}",
-                    str(row.get("currentHash") or ""),
-                )
-                is None
-                for row in hooks
-            )
-        ):
-            raise InstallationError(
-                "The exact installed selector's complete hook authority drifted."
-            )
-        return sorted(hooks, key=lambda row: str(row["eventName"]))
-
-    commit_mode = activation_mode == "COMMIT_CANDIDATE"
-    verify_mode = activation_mode == "VERIFY_STAGED_CANDIDATE"
-    atomic_switch_applied = False
-    commit_pre_switch_plugins: dict[str, Any] | None = None
-    commit_pre_switch_hooks: dict[str, Any] | None = None
-    commit_pre_switch_config_sha256: str | None = None
-    pre_switch_trusted_records: list[dict[str, Any]] | None = None
-    plugin_add_transient_detected = False
-
-    try:
-        send(
-            {
-                "method": "initialize",
-                "id": 1000,
-                "params": {
-                    "clientInfo": {
-                        "name": "evidence_lane_installer",
-                        "title": "Evidence Lane Installer",
-                        "version": BASE_RELEASE,
-                    }
-                },
-            }
-        )
-        wait_for(1000)
-        send({"method": "initialized", "params": {}})
-        config_path = codex_home / "config.toml"
-        config_bytes = config_path.read_bytes()
-        config_raw = config_bytes.decode("utf-8")
-        parsed_config = tomllib.loads(config_raw)
-        plugins = dict(parsed_config.get("plugins") or {})
-        before_config_sha256 = hashlib.sha256(config_bytes).hexdigest().upper()
-        if (
-            commit_mode or verify_mode or disabled_local_recovery
-        ) and before_config_sha256 != str(expected_commit_config_sha256 or "").upper():
-            raise InstallationError(
-                "The local-test commit config changed after its host proof."
-            )
-        if plugin_selector not in plugins:
-            raise InstallationError("Codex did not persist the v2 plugin selector.")
-        enabled_selector = (
-            str(last_known_good_selector)
-            if activation_mode
-            in {
-                "STAGE_CANDIDATE_DISABLED",
-                "VERIFY_STAGED_CANDIDATE",
-                "PREPARE_RECOVERY_DISABLED",
-                "VERIFY_DISABLED_SUCCESSOR_FROM_SEALED_PRIMARY",
-            }
-            else plugin_selector
-        )
-        if enabled_selector not in plugins:
-            raise InstallationError(
-                "The compare-and-swap activation target is absent from Codex config."
-            )
-        if commit_mode or verify_mode or disabled_local_recovery:
-            evidence_states: dict[str, bool] = {}
-            evidence_mcp_states: dict[str, bool] = {}
-            for selector, raw_settings in plugins.items():
-                if not selector.startswith(f"{PLUGIN_NAME}@"):
-                    continue
-                settings = dict(raw_settings or {})
-                evidence_server = dict(
-                    dict(settings.get("mcp_servers") or {}).get("evidence-lane") or {}
-                )
-                plugin_enabled = bool(settings.get("enabled"))
-                mcp_enabled = bool(evidence_server.get("enabled"))
-                exact_plugin_add_transient = (
-                    disabled_local_recovery
-                    and selector == plugin_selector
-                    and plugin_enabled is True
-                    and mcp_enabled is False
-                )
-                if plugin_enabled is not mcp_enabled and not exact_plugin_add_transient:
-                    raise InstallationError(
-                        "The staged plugin and MCP activation states diverged."
-                    )
-                evidence_states[selector] = plugin_enabled
-                evidence_mcp_states[selector] = mcp_enabled
-                plugin_add_transient_detected = (
-                    plugin_add_transient_detected or exact_plugin_add_transient
-                )
-            if disabled_local_recovery:
-                if (
-                    plugin_selector not in evidence_states
-                    or str(last_known_good_selector) not in evidence_states
-                    or evidence_mcp_states.get(plugin_selector) is not False
-                    or any(evidence_mcp_states.values())
-                    or any(
-                        enabled
-                        for selector, enabled in evidence_states.items()
-                        if selector != plugin_selector
-                    )
-                ):
-                    raise InstallationError(
-                        "Disabled-local hook recovery did not preserve the exact "
-                        "all-disabled or plugin-add transient boundary."
-                    )
-            elif (
-                evidence_states.get(plugin_selector) is not False
-                or evidence_states.get(str(last_known_good_selector)) is not True
-                or sum(evidence_states.values()) != 1
-            ):
-                raise InstallationError(
-                    "The candidate is not disabled beside exactly one last-known-good "
-                    "activation."
-                )
-            if disabled_local_recovery:
-                rollback_config = tomllib.loads(
-                    exact_backup.read_text(encoding="utf-8")
-                )
-                rollback_plugins = dict(rollback_config.get("plugins") or {})
-                rollback_states = _evidence_plugin_activation_states(rollback_plugins)
-                if (
-                    rollback_states.get(plugin_selector) is not False
-                    or rollback_states.get(str(last_known_good_selector)) is not False
-                    or any(rollback_states.values())
-                ):
-                    raise InstallationError(
-                        "The disabled-local rollback archive is not all-disabled."
-                    )
-                commit_pre_switch_plugins = json.loads(json.dumps(rollback_plugins))
-                commit_pre_switch_hooks = json.loads(
-                    json.dumps(dict(rollback_config.get("hooks") or {}))
-                )
-                commit_pre_switch_config_sha256 = str(
-                    last_known_good_config_sha256
-                ).upper()
-            else:
-                commit_pre_switch_plugins = json.loads(json.dumps(plugins))
-                commit_pre_switch_hooks = json.loads(
-                    json.dumps(dict(parsed_config.get("hooks") or {}))
-                )
-                commit_pre_switch_config_sha256 = before_config_sha256
-            if not disabled_local_recovery:
-                disabled_inventory = _read_codex_plugin_hook_inventory(
-                    send=send,
-                    wait_for=wait_for,
-                    codex_home=codex_home,
-                    plugin_selector=plugin_selector,
-                    expected_enabled=False,
-                    request_id=1010,
-                )
-                pre_switch_trusted_records = _trusted_disabled_hook_records(
-                    parsed_config=parsed_config,
-                    plugin_selector=plugin_selector,
-                    hook_inventory=disabled_inventory,
-                )
-            if verify_mode:
-                receipt = {
-                    "schema": HOOK_TRUST_SCHEMA,
-                    "status": "PASS",
-                    "plugin_selector": plugin_selector,
-                    "hook_count": len(pre_switch_trusted_records),
-                    "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
-                    "records": pre_switch_trusted_records,
-                    "before_trust_statuses": ["trusted"],
-                    "after_trust_statuses": ["trusted"],
-                    "supported_codex_api": ["plugin/read"],
-                    "hook_trust_config_mutated": False,
-                    "exclusive_channel_config_mutated": False,
-                    "activation_mode": activation_mode,
-                    "candidate_enabled": False,
-                    "last_known_good_selector": last_known_good_selector,
-                    "runtime_ready": False,
-                    "workspace_sha256": hashlib.sha256(
-                        os.path.normcase(str(resolved_cwd)).encode("utf-8")
-                    )
-                    .hexdigest()
-                    .upper(),
-                    "raw_workspace_path_included": False,
-                    "hook_commands_included": False,
-                    "source_paths_included": False,
-                    "unrelated_hook_state_mutated": False,
-                }
-                receipt["receipt_sha256"] = (
-                    hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-                )
-                return receipt, {
-                    "before_sha256": before_config_sha256,
-                    "after_sha256": before_config_sha256,
-                    "supported_codex_api": "plugin/read",
-                    "compare_and_swap": False,
-                    "config_mutated": False,
-                    "activation_mode": activation_mode,
-                    "candidate_selector": plugin_selector,
-                    "candidate_enabled_after_read": False,
-                    "last_known_good_selector": last_known_good_selector,
-                    "last_known_good_enabled_after_read": True,
-                    "switch_count": 0,
-                }
-        elif disabled_recovery_copy:
-            evidence_states: dict[str, bool] = {}
-            evidence_mcp_states: dict[str, bool] = {}
-            for selector, raw_settings in plugins.items():
-                if not selector.startswith(f"{PLUGIN_NAME}@"):
-                    continue
-                settings = dict(raw_settings or {})
-                evidence_server = dict(
-                    dict(settings.get("mcp_servers") or {}).get("evidence-lane") or {}
-                )
-                plugin_enabled = bool(settings.get("enabled"))
-                mcp_enabled = bool(evidence_server.get("enabled"))
-                exact_plugin_add_transient = (
-                    selector == plugin_selector
-                    and plugin_enabled is True
-                    and mcp_enabled is False
-                )
-                if plugin_enabled is not mcp_enabled and not exact_plugin_add_transient:
-                    raise InstallationError(
-                        "The recovery-copy plugin and MCP activation states diverged."
-                    )
-                evidence_states[selector] = plugin_enabled
-                evidence_mcp_states[selector] = mcp_enabled
-                plugin_add_transient_detected = (
-                    plugin_add_transient_detected or exact_plugin_add_transient
-                )
-            if (
-                plugin_selector not in evidence_states
-                or str(last_known_good_selector) not in evidence_states
-                or evidence_states.get(str(last_known_good_selector)) is not True
-                or evidence_mcp_states.get(str(last_known_good_selector)) is not True
-                or any(
-                    enabled
-                    for selector, enabled in evidence_states.items()
-                    if selector not in {plugin_selector, str(last_known_good_selector)}
-                )
-            ):
-                raise InstallationError(
-                    "The recovery copy is not staged beside exactly one active "
-                    "primary local selector."
-                )
-        changed_selectors: list[str] = []
-        for selector, raw_settings in list(plugins.items()):
-            if not selector.startswith(f"{PLUGIN_NAME}@"):
-                continue
-            settings = dict(raw_settings or {})
-            desired = selector == enabled_selector
-            servers = dict(settings.get("mcp_servers") or {})
-            evidence_server = dict(servers.get("evidence-lane") or {})
-            if (
-                bool(settings.get("enabled")) is not desired
-                or bool(evidence_server.get("enabled")) is not desired
-            ):
-                changed_selectors.append(selector)
-            settings["enabled"] = desired
-            evidence_server["enabled"] = desired
-            servers["evidence-lane"] = evidence_server
-            settings["mcp_servers"] = servers
-            plugins[selector] = settings
-        config_archive = data_root / "installations" / "codex-v200" / "config-archives"
-        config_backup = config_archive / f"config-{before_config_sha256}.toml"
-        if not config_backup.exists():
-            _write_atomic(config_backup, config_bytes)
-        channel_write = _batch_write_with_one_config_refresh(
-            send=send,
-            wait_for=wait_for,
-            config_path=config_path,
-            expected_raw_sha256=before_config_sha256,
-            edits=[
-                {
-                    "keyPath": "plugins",
-                    "value": plugins,
-                    "mergeStrategy": (
-                        "replace"
-                        if commit_mode or disabled_local_recovery
-                        else "upsert"
-                    ),
-                }
-            ],
-            request_ids=((1090, 1091), (1092, 1093)),
-        )
-        channel_config_version = str(channel_write["config_version"])
-        expected_config_version = str(channel_write["cas_expected_version"])
-        atomic_switch_applied = commit_mode or disabled_local_recovery
-        verified_plugins = dict(
-            tomllib.loads(config_path.read_text(encoding="utf-8")).get("plugins") or {}
-        )
-        for selector, settings in verified_plugins.items():
-            if not selector.startswith(f"{PLUGIN_NAME}@"):
-                continue
-            desired = selector == enabled_selector
-            mcp = dict(settings.get("mcp_servers") or {}).get("evidence-lane")
-            if (
-                bool(settings.get("enabled")) is not desired
-                or not isinstance(mcp, dict)
-                or bool(mcp.get("enabled")) is not desired
-            ):
-                raise InstallationError(
-                    "The supported exclusive Evidence Lane channel write did not persist."
-                )
-        config_receipt = {
-            "before_sha256": before_config_sha256,
-            "after_sha256": _sha256(config_path),
-            "backup": str(config_backup),
-            "changed_selectors": sorted(set(changed_selectors)),
-            "supported_codex_api": "config/batchWrite",
-            "config_version": channel_config_version,
-            "compare_and_swap": True,
-            "activation_mode": activation_mode,
-            "cas_expected_version": expected_config_version,
-            "config_read_count": channel_write["config_read_count"],
-            "config_write_attempt_count": channel_write["config_write_attempt_count"],
-            "config_conflict_retry_count": channel_write["config_conflict_retry_count"],
-            "candidate_selector": plugin_selector,
-            "candidate_enabled_after_write": (enabled_selector == plugin_selector),
-            "last_known_good_selector": last_known_good_selector,
-            "last_known_good_enabled_after_write": (
-                bool(last_known_good_selector)
-                and enabled_selector == last_known_good_selector
-            ),
-            "last_known_good_config_sha256": last_known_good_config_sha256,
-            "prepared_rollback_config_backup": rollback_config_backup,
-            "rollback_config_backup": str(config_backup),
-            "rollback_config_backup_sha256": _sha256(config_backup),
-            "commit_baseline_config_sha256": (
-                before_config_sha256 if commit_mode or disabled_local_recovery else None
-            ),
-            "plugin_add_transient_detected": (plugin_add_transient_detected),
-            "switch_count": (
-                0
-                if activation_mode
-                in {
-                    "STAGE_CANDIDATE_DISABLED",
-                    "PREPARE_RECOVERY_DISABLED",
-                    "VERIFY_DISABLED_SUCCESSOR_FROM_SEALED_PRIMARY",
-                }
-                else 1
-            ),
-            "previous_release_cache_deleted": False,
-        }
-        hook_inventory_bootstrap: dict[str, Any] | None = None
-        # RECOVER_DISABLED_LOCAL deliberately discovers the newly installed
-        # selector through hooks/list before it writes trust.  Requiring stale
-        # hooks.state rows here creates a deadlock when the user has disabled
-        # the old hooks (or when plugin/add correctly starts with no trust
-        # rows).  hooks/list is the native currentHash authority; the single
-        # trust write below seals and enables exactly the complete discovered
-        # hashes, and the post-write hooks/list read proves the result.
-        if activation_mode == "STAGE_CANDIDATE_DISABLED":
-            staged_inventory = _read_codex_plugin_hook_inventory(
-                send=send,
-                wait_for=wait_for,
-                codex_home=codex_home,
-                plugin_selector=plugin_selector,
-                expected_enabled=False,
-                request_id=1002,
-            )
-            records = [
-                {
-                    "event_name": str(row["eventName"]),
-                    "hook_key": str(row["key"]),
-                    "current_hash": None,
-                    "enabled": False,
-                    "trust_status": "pending_native_ui_review",
-                }
-                for row in staged_inventory
-            ]
-            receipt = {
-                "schema": "evidence-lane.codex-local-test-hook-trust.v1",
-                "status": "USER_TRUST_PENDING",
-                "decision_owner": "HUMAN_CODEX_UI",
-                "plugin_selector": plugin_selector,
-                "hook_count": len(records),
-                "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
-                "records": records,
-                "before_trust_statuses": ["not_read_for_disabled_candidate"],
-                "after_trust_statuses": ["pending_native_ui_review"],
-                "supported_codex_api": ["plugin/read", "config/batchWrite"],
-                "hook_trust_config_mutated": False,
-                "exclusive_channel_config_mutated": True,
-                "activation_mode": activation_mode,
-                "candidate_enabled": False,
-                "last_known_good_selector": last_known_good_selector,
-                "runtime_ready": False,
-                "workspace_sha256": hashlib.sha256(
-                    os.path.normcase(str(resolved_cwd)).encode("utf-8")
-                )
-                .hexdigest()
-                .upper(),
-                "raw_workspace_path_included": False,
-                "hook_commands_included": False,
-                "source_paths_included": False,
-                "unrelated_hook_state_mutated": False,
-                "hook_inventory_bootstrap": hook_inventory_bootstrap,
-            }
-            receipt["receipt_sha256"] = (
-                hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-            )
-            return receipt, config_receipt
-        if disabled_successor_verification:
-            disabled_inventory = _read_codex_plugin_hook_inventory(
-                send=send,
-                wait_for=wait_for,
-                codex_home=codex_home,
-                plugin_selector=plugin_selector,
-                expected_enabled=False,
-                request_id=1002,
-            )
-            primary_selector = str(last_known_good_selector or "")
-            if "@" not in primary_selector:
-                raise InstallationError(
-                    "The disabled successor has no sealed primary hook authority."
-                )
-            primary_marketplace = primary_selector.split("@", 1)[1]
-            successor_marketplace = plugin_selector.split("@", 1)[1]
-            primary_hooks_file = (
-                codex_home
-                / "local-marketplaces"
-                / primary_marketplace
-                / "plugins"
-                / PLUGIN_NAME
-                / "hooks"
-                / "hooks.json"
-            )
-            successor_hooks_file = (
-                codex_home
-                / "local-marketplaces"
-                / successor_marketplace
-                / "plugins"
-                / PLUGIN_NAME
-                / "hooks"
-                / "hooks.json"
-            )
-            if (
-                not primary_hooks_file.is_file()
-                or not successor_hooks_file.is_file()
-                or _sha256(primary_hooks_file) != _sha256(successor_hooks_file)
-            ):
-                raise InstallationError(
-                    "The loaded primary and disabled successor hook declarations "
-                    "are not byte-identical."
-                )
-            current_config = tomllib.loads(config_path.read_text(encoding="utf-8"))
-            current_states = dict(
-                dict(current_config.get("hooks") or {}).get("state") or {}
-            )
-            primary_prefix = f"{primary_selector}:"
-            primary_states = {
-                str(key): dict(value or {})
-                for key, value in current_states.items()
-                if str(key).startswith(primary_prefix)
-            }
-            primary_by_suffix = {
-                key[len(primary_selector) :]: value
-                for key, value in primary_states.items()
-            }
-            if len(primary_states) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS) or any(
-                re.fullmatch(
-                    r"sha256:[0-9a-f]{64}",
-                    str(value.get("trusted_hash") or ""),
-                )
-                is None
-                for value in primary_states.values()
-            ):
-                raise InstallationError(
-                    "The loaded primary does not expose the complete sealed hook hashes."
-                )
-            trust_value: dict[str, dict[str, Any]] = {}
-            for key, value in primary_states.items():
-                preserved = dict(value)
-                preserved["enabled"] = False
-                trust_value[key] = preserved
-            records: list[dict[str, Any]] = []
-            for row in disabled_inventory:
-                key = str(row.get("key") or "")
-                suffix = key[len(plugin_selector) :]
-                primary_state = dict(primary_by_suffix.get(suffix) or {})
-                trusted_hash = str(primary_state.get("trusted_hash") or "")
-                if re.fullmatch(r"sha256:[0-9a-f]{64}", trusted_hash) is None:
-                    raise InstallationError(
-                        "The disabled successor hook cannot bind its primary hash."
-                    )
-                trust_value[key] = {
-                    "trusted_hash": trusted_hash,
-                    "enabled": False,
-                }
-                records.append(
-                    {
-                        "event_name": str(row.get("eventName") or ""),
-                        "hook_key": key,
-                        "current_hash": trusted_hash,
-                        "enabled": False,
-                        "trust_status": "trusted",
-                    }
-                )
-            trust_before_sha256 = _sha256(config_path)
-            trust_write = _batch_write_with_one_config_refresh(
-                send=send,
-                wait_for=wait_for,
-                config_path=config_path,
-                expected_raw_sha256=trust_before_sha256,
-                edits=[
-                    {
-                        "keyPath": "hooks.state",
-                        "value": trust_value,
-                        "mergeStrategy": "upsert",
-                    }
-                ],
-                request_ids=((1190, 1191), (1192, 1193)),
-            )
-            verified_config = tomllib.loads(config_path.read_text(encoding="utf-8"))
-            verified_states = dict(
-                dict(verified_config.get("hooks") or {}).get("state") or {}
-            )
-            if any(
-                str(dict(verified_states.get(key) or {}).get("trusted_hash") or "")
-                != str(value.get("trusted_hash") or "")
-                or dict(verified_states.get(key) or {}).get("enabled") is not False
-                for key, value in trust_value.items()
-            ):
-                raise InstallationError(
-                    "The disabled successor trust or all-disabled hook boundary "
-                    "did not persist."
-                )
-            receipt = {
-                "schema": HOOK_TRUST_SCHEMA,
-                "status": "PASS",
-                "plugin_selector": plugin_selector,
-                "hook_count": len(records),
-                "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
-                "records": sorted(records, key=lambda row: row["event_name"]),
-                "before_trust_statuses": ["sealed_primary_hash_authority"],
-                "after_trust_statuses": ["trusted"],
-                "supported_codex_api": ["plugin/read", "config/batchWrite"],
-                "hash_authority_selector": primary_selector,
-                "byte_identical_hook_declarations": True,
-                "hook_declaration_sha256": _sha256(primary_hooks_file),
-                "hash_identity_excludes_plugin_selector_and_root": True,
-                "config_version": str(trust_write["config_version"]),
-                "hook_trust_config_mutated": True,
-                "exclusive_channel_config_mutated": True,
-                "activation_mode": activation_mode,
-                "candidate_enabled": False,
-                "last_known_good_selector": last_known_good_selector,
-                "loaded_primary_hook_count": len(primary_states),
-                "loaded_primary_hooks_all_disabled": True,
-                "successor_hooks_all_disabled": True,
-                "runtime_ready": False,
-                "workspace_sha256": hashlib.sha256(
-                    os.path.normcase(str(resolved_cwd)).encode("utf-8")
-                )
-                .hexdigest()
-                .upper(),
-                "raw_workspace_path_included": False,
-                "hook_commands_included": False,
-                "source_paths_included": False,
-                "unrelated_hook_state_mutated": False,
-                "hook_inventory_bootstrap": None,
-            }
-            receipt["receipt_sha256"] = (
-                hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-            )
-            return receipt, config_receipt
-        if disabled_recovery_copy:
-            disabled_inventory = _read_codex_plugin_hook_inventory(
-                send=send,
-                wait_for=wait_for,
-                codex_home=codex_home,
-                plugin_selector=plugin_selector,
-                expected_enabled=False,
-                request_id=1002,
-            )
-            primary_selector = str(last_known_good_selector or "")
-            if "@" not in primary_selector:
-                raise InstallationError(
-                    "The disabled recovery copy has no exact primary hook authority."
-                )
-            primary_marketplace = primary_selector.split("@", 1)[1]
-            recovery_marketplace = plugin_selector.split("@", 1)[1]
-            primary_hooks_file = (
-                codex_home
-                / "local-marketplaces"
-                / primary_marketplace
-                / "plugins"
-                / PLUGIN_NAME
-                / "hooks"
-                / "hooks.json"
-            )
-            recovery_hooks_file = (
-                codex_home
-                / "local-marketplaces"
-                / recovery_marketplace
-                / "plugins"
-                / PLUGIN_NAME
-                / "hooks"
-                / "hooks.json"
-            )
-            if (
-                not primary_hooks_file.is_file()
-                or not recovery_hooks_file.is_file()
-                or _sha256(primary_hooks_file) != _sha256(recovery_hooks_file)
-            ):
-                raise InstallationError(
-                    "The primary and disabled recovery hook declarations are not byte-identical."
-                )
-            # Codex hashes the normalized declaration before substituting plugin-root
-            # environment values.  Therefore a byte-identical declaration has the
-            # same native currentHash under both selector keys.  plugin/read exposes
-            # only the disabled selector's lightweight keys; hooks/list remains the
-            # native hash authority for the active primary selector.
-            send(
-                {
-                    "method": "hooks/list",
-                    "id": 1003,
-                    "params": {"cwds": [str(resolved_cwd)]},
-                }
-            )
-            primary_inventory = selector_hooks(
-                wait_for(1003),
-                expected_selector=primary_selector,
-                expected_enabled=None,
-            )
-            if {str(row.get("trustStatus") or "") for row in primary_inventory} != {
-                "trusted"
-            }:
-                raise InstallationError(
-                    "The active primary hook hash authority is not trusted."
-                )
-            primary_hashes = {
-                str(row.get("eventName") or ""): str(row.get("currentHash") or "")
-                for row in primary_inventory
-            }
-            trust_value: dict[str, dict[str, Any]] = {}
-            records: list[dict[str, Any]] = []
-            for row in disabled_inventory:
-                event_name = str(row.get("eventName") or "")
-                current_hash = primary_hashes.get(event_name, "")
-                key = str(row.get("key") or "")
-                if re.fullmatch(
-                    r"sha256:[0-9a-f]{64}", current_hash
-                ) is None or not key.startswith(f"{plugin_selector}:"):
-                    raise InstallationError(
-                        "The disabled recovery hook inventory is not sealable."
-                    )
-                trust_value[key] = {
-                    "trusted_hash": current_hash,
-                    "enabled": False,
-                }
-                records.append(
-                    {
-                        "event_name": event_name,
-                        "hook_key": key,
-                        "current_hash": current_hash,
-                        "enabled": False,
-                        "trust_status": "trusted",
-                    }
-                )
-            trust_before_sha256 = _sha256(config_path)
-            trust_write = _batch_write_with_one_config_refresh(
-                send=send,
-                wait_for=wait_for,
-                config_path=config_path,
-                expected_raw_sha256=trust_before_sha256,
-                edits=[
-                    {
-                        "keyPath": "hooks.state",
-                        "value": trust_value,
-                        "mergeStrategy": "upsert",
-                    }
-                ],
-                request_ids=((1190, 1191), (1192, 1193)),
-            )
-            verified_config = tomllib.loads(config_path.read_text(encoding="utf-8"))
-            verified_plugins = dict(verified_config.get("plugins") or {})
-            verified_hooks = dict(
-                dict(verified_config.get("hooks") or {}).get("state") or {}
-            )
-            for selector, settings in verified_plugins.items():
-                if not selector.startswith(f"{PLUGIN_NAME}@"):
-                    continue
-                desired = selector == str(last_known_good_selector)
-                server = dict(
-                    dict(dict(settings or {}).get("mcp_servers") or {}).get(
-                        "evidence-lane"
-                    )
-                    or {}
-                )
-                if (
-                    bool(dict(settings or {}).get("enabled")) is not desired
-                    or bool(server.get("enabled")) is not desired
-                ):
-                    raise InstallationError(
-                        "The disabled recovery-copy channel state did not persist."
-                    )
-            if any(
-                str(dict(verified_hooks.get(key) or {}).get("trusted_hash") or "")
-                != value["trusted_hash"]
-                or bool(dict(verified_hooks.get(key) or {}).get("enabled")) is not False
-                for key, value in trust_value.items()
-            ):
-                raise InstallationError(
-                    "The disabled recovery-copy hook trust did not persist."
-                )
-            receipt = {
-                "schema": HOOK_TRUST_SCHEMA,
-                "status": "PASS",
-                "plugin_selector": plugin_selector,
-                "hook_count": len(records),
-                "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
-                "records": sorted(records, key=lambda row: row["event_name"]),
-                "before_trust_statuses": ["disabled_inventory_read"],
-                "after_trust_statuses": ["trusted"],
-                "supported_codex_api": [
-                    "plugin/read",
-                    "hooks/list",
-                    "config/batchWrite",
-                ],
-                "hash_authority_selector": primary_selector,
-                "byte_identical_hook_declarations": True,
-                "hook_declaration_sha256": _sha256(primary_hooks_file),
-                "hash_identity_excludes_plugin_selector_and_root": True,
-                "config_version": str(trust_write["config_version"]),
-                "hook_trust_config_mutated": True,
-                "exclusive_channel_config_mutated": True,
-                "activation_mode": activation_mode,
-                "candidate_enabled": False,
-                "last_known_good_selector": last_known_good_selector,
-                "runtime_ready": False,
-                "workspace_sha256": hashlib.sha256(
-                    os.path.normcase(str(resolved_cwd)).encode("utf-8")
-                )
-                .hexdigest()
-                .upper(),
-                "raw_workspace_path_included": False,
-                "hook_commands_included": False,
-                "source_paths_included": False,
-                "unrelated_hook_state_mutated": False,
-                "hook_inventory_bootstrap": hook_inventory_bootstrap,
-            }
-            receipt["receipt_sha256"] = (
-                hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-            )
-            return receipt, config_receipt
-        send(
-            {
-                "method": "hooks/list",
-                "id": 1002,
-                "params": {"cwds": [str(resolved_cwd)]},
-            }
-        )
-        before = selector_hooks(
-            wait_for(1002),
-            expected_enabled=(None if disabled_local_recovery else True),
-        )
-        before_statuses = sorted(
-            {str(row.get("trustStatus") or "unknown") for row in before}
-        )
-        before_enabled_states = sorted({bool(row.get("enabled")) for row in before})
-        if commit_mode:
-            if before_statuses != ["trusted"]:
-                raise InstallationError(
-                    "The candidate hook trust changed during the CAS switch."
-                )
-            records = [
-                {
-                    "event_name": str(row["eventName"]),
-                    "hook_key": str(row["key"]),
-                    "current_hash": str(row["currentHash"]),
-                    "enabled": True,
-                    "trust_status": "trusted",
-                }
-                for row in before
-            ]
-            receipt = {
-                "schema": HOOK_TRUST_SCHEMA,
-                "status": "PASS",
-                "plugin_selector": plugin_selector,
-                "hook_count": len(records),
-                "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
-                "records": records,
-                "before_trust_statuses": ["trusted"],
-                "after_trust_statuses": ["trusted"],
-                "supported_codex_api": ["hooks/list", "config/batchWrite"],
-                "config_version": channel_config_version,
-                "hook_trust_config_mutated": False,
-                "exclusive_channel_config_mutated": True,
-                "activation_mode": activation_mode,
-                "candidate_enabled": True,
-                "last_known_good_selector": last_known_good_selector,
-                "runtime_ready": False,
-                "workspace_sha256": hashlib.sha256(
-                    os.path.normcase(str(resolved_cwd)).encode("utf-8")
-                )
-                .hexdigest()
-                .upper(),
-                "raw_workspace_path_included": False,
-                "hook_commands_included": False,
-                "source_paths_included": False,
-                "unrelated_hook_state_mutated": False,
-            }
-            receipt["receipt_sha256"] = (
-                hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-            )
-            return receipt, config_receipt
-        if defer_hook_trust_to_user:
-            records = [
-                {
-                    "event_name": str(row["eventName"]),
-                    "hook_key": str(row["key"]),
-                    "current_hash": str(row["currentHash"]),
-                    "enabled": True,
-                    "trust_status": str(row.get("trustStatus") or "unknown"),
-                }
-                for row in before
-            ]
-            receipt = {
-                "schema": "evidence-lane.codex-local-test-hook-trust.v1",
-                "status": "USER_TRUST_PENDING",
-                "decision_owner": "HUMAN_CODEX_UI",
-                "plugin_selector": plugin_selector,
-                "hook_count": len(records),
-                "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
-                "records": records,
-                "before_trust_statuses": before_statuses,
-                "after_trust_statuses": before_statuses,
-                "supported_codex_api": ["hooks/list", "config/batchWrite"],
-                "config_version": channel_config_version,
-                "hook_trust_config_mutated": False,
-                "exclusive_channel_config_mutated": True,
-                "activation_mode": activation_mode,
-                "candidate_enabled": enabled_selector == plugin_selector,
-                "last_known_good_selector": last_known_good_selector,
-                "runtime_ready": False,
-                "workspace_sha256": hashlib.sha256(
-                    os.path.normcase(str(resolved_cwd)).encode("utf-8")
-                )
-                .hexdigest()
-                .upper(),
-                "raw_workspace_path_included": False,
-                "hook_commands_included": False,
-                "source_paths_included": False,
-                "unrelated_hook_state_mutated": False,
-            }
-            receipt["receipt_sha256"] = (
-                hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-            )
-            return receipt, config_receipt
-        hooks_enabled_after_trust = not keep_hooks_disabled_after_trust
-        trust_value = {
-            str(row["key"]): {
-                "trusted_hash": str(row["currentHash"]),
-                "enabled": hooks_enabled_after_trust,
-            }
-            for row in before
-        }
-        trust_before_sha256 = _sha256(config_path)
-        trust_write = _batch_write_with_one_config_refresh(
-            send=send,
-            wait_for=wait_for,
-            config_path=config_path,
-            expected_raw_sha256=trust_before_sha256,
-            edits=[
-                {
-                    "keyPath": "hooks.state",
-                    "value": trust_value,
-                    "mergeStrategy": "upsert",
-                }
-            ],
-            request_ids=((1190, 1191), (1192, 1193)),
-        )
-        config_version = str(trust_write["config_version"])
-        send(
-            {
-                "method": "hooks/list",
-                "id": 1004,
-                "params": {"cwds": [str(resolved_cwd)]},
-            }
-        )
-        after = selector_hooks(
-            wait_for(1004),
-            expected_enabled=hooks_enabled_after_trust,
-        )
-        if any(
-            row.get("trustStatus") != "trusted"
-            or bool(row.get("enabled")) is not hooks_enabled_after_trust
-            for row in after
-        ):
-            raise InstallationError(
-                "The exact installed hook trust or enabled-state boundary did not persist."
-            )
-        records = [
-            {
-                "event_name": str(row["eventName"]),
-                "hook_key": str(row["key"]),
-                "current_hash": str(row["currentHash"]),
-                "enabled": hooks_enabled_after_trust,
-                "trust_status": "trusted",
-            }
-            for row in after
-        ]
-        receipt = {
-            "schema": HOOK_TRUST_SCHEMA,
-            "status": "PASS",
-            "plugin_selector": plugin_selector,
-            "hook_count": len(records),
-            "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
-            "records": records,
-            "before_trust_statuses": before_statuses,
-            "before_enabled_states": before_enabled_states,
-            "after_trust_statuses": ["trusted"],
-            "after_enabled_states": [hooks_enabled_after_trust],
-            "hooks_enabled_after_verification": hooks_enabled_after_trust,
-            "supported_codex_api": ["hooks/list", "config/batchWrite"],
-            "config_version": config_version,
-            "workspace_sha256": hashlib.sha256(
-                os.path.normcase(str(resolved_cwd)).encode("utf-8")
-            )
-            .hexdigest()
-            .upper(),
-            "raw_workspace_path_included": False,
-            "hook_commands_included": False,
-            "source_paths_included": False,
-            "unrelated_hook_state_mutated": False,
-            "activation_mode": activation_mode,
-            "candidate_enabled": enabled_selector == plugin_selector,
-            "last_known_good_selector": last_known_good_selector,
-            "disabled_local_recovery": disabled_local_recovery,
-            "plugin_add_transient_detected": (plugin_add_transient_detected),
-            "hook_inventory_bootstrap": hook_inventory_bootstrap,
-        }
-        receipt["receipt_sha256"] = (
-            hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-        )
-        return receipt, config_receipt
-    except Exception as exc:
-        if (
-            atomic_switch_applied
-            and commit_pre_switch_plugins is not None
-            and commit_pre_switch_config_sha256 is not None
-        ):
-            try:
-                current_sha256 = _sha256(codex_home / "config.toml")
-                rollback_write = _batch_write_with_one_config_refresh(
-                    send=send,
-                    wait_for=wait_for,
-                    config_path=codex_home / "config.toml",
-                    expected_raw_sha256=current_sha256,
-                    edits=[
-                        {
-                            "keyPath": "plugins",
-                            "value": commit_pre_switch_plugins,
-                            "mergeStrategy": "replace",
-                        },
-                        *(
-                            [
-                                {
-                                    "keyPath": "hooks",
-                                    "value": commit_pre_switch_hooks or {},
-                                    "mergeStrategy": "replace",
-                                }
-                            ]
-                            if disabled_local_recovery
-                            else []
-                        ),
-                    ],
-                    request_ids=((1290, 1291), (1292, 1293)),
-                )
-                restored_config = tomllib.loads(
-                    (codex_home / "config.toml").read_text(encoding="utf-8")
-                )
-                exact_restore = dict(
-                    restored_config.get("plugins") or {}
-                ) == commit_pre_switch_plugins and (
-                    not disabled_local_recovery
-                    or dict(restored_config.get("hooks") or {})
-                    == (commit_pre_switch_hooks or {})
-                )
-                if rollback_write["result"].get("status") != "ok" or not exact_restore:
-                    raise InstallationError(
-                        "Codex did not restore the exact pre-switch plugin/hook authority."
-                    )
-                if (
-                    not disabled_local_recovery
-                    and _sha256(codex_home / "config.toml")
-                    != commit_pre_switch_config_sha256
-                ):
-                    raise InstallationError(
-                        "Codex did not restore the exact pre-switch config."
-                    )
-            except Exception as rollback_exc:
-                raise InstallationError(
-                    "The local-test commit failed after switching and its supported "
-                    "atomic rollback also failed closed."
-                ) from rollback_exc
-            boundary = (
-                "disabled-local hook recovery"
-                if disabled_local_recovery
-                else "local-test commit"
-            )
-            raise InstallationError(
-                f"The {boundary} failed after switching; Codex restored the "
-                "exact pre-switch authority atomically."
-            ) from exc
-        raise
-    finally:
-        if process.poll() is None:
-            process.terminate()
-            try:
-                process.wait(timeout=3)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait(timeout=3)
-
-
-def _seal_local_test_host_proof(
-    *,
-    stage_receipt_path: Path,
-    stage_receipt_sha256: str,
-    executable: Path,
-    codex_home: Path,
-    data_root: Path,
-    hook_cwd: Path,
-) -> dict[str, Any]:
-    """Prove a disabled candidate is trusted and exact without switching it."""
-
-    exact_executable = executable.resolve()
-    exact_codex_home = codex_home.resolve()
-    exact_data_root = data_root.resolve()
-    config_path = exact_codex_home / "config.toml"
-    if not exact_executable.is_file() or not config_path.is_file():
-        raise InstallationError(
-            "Local-test host proof requires the exact Codex executable and config."
-        )
-    authority = _load_local_test_stage_authority(
-        stage_receipt_path=stage_receipt_path,
-        stage_receipt_sha256=stage_receipt_sha256,
-        data_root=exact_data_root,
-    )
-    candidate_selector = authority["candidate_selector"]
-    last_known_good_selector = authority["last_known_good_selector"]
-    baseline_sha256 = _sha256(config_path)
-    hook_trust, config_read = _trust_sealed_plugin_hooks(
-        executable=exact_executable,
-        codex_home=exact_codex_home,
-        data_root=exact_data_root,
-        hook_cwd=hook_cwd,
-        plugin_selector=candidate_selector,
-        defer_hook_trust_to_user=False,
-        activation_mode="VERIFY_STAGED_CANDIDATE",
-        last_known_good_selector=last_known_good_selector,
-        last_known_good_config_sha256=authority["last_known_good_config_sha256"],
-        rollback_config_backup=str(authority["prepared_rollback_config_backup"]),
-        expected_commit_config_sha256=baseline_sha256,
-    )
-    plugin_list = _run_codex(
-        exact_executable,
-        exact_codex_home,
-        ["plugin", "list", "--json"],
-    )
-    installed_rows = plugin_list.get("installed")
-    if not isinstance(installed_rows, list):
-        raise InstallationError("Codex did not expose installed local-test identity.")
-    evidence_rows = [
-        dict(row)
-        for row in installed_rows
-        if isinstance(row, dict)
-        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
-    ]
-    candidate_rows = [
-        row for row in evidence_rows if row.get("pluginId") == candidate_selector
-    ]
-    enabled_rows = [row for row in evidence_rows if row.get("enabled") is True]
-    if (
-        len(candidate_rows) != 1
-        or candidate_rows[0].get("enabled") is not False
-        or len(enabled_rows) != 1
-        or enabled_rows[0].get("pluginId") != last_known_good_selector
-    ):
-        raise InstallationError(
-            "Host proof requires one disabled candidate beside one enabled "
-            "last-known-good selector."
-        )
-    stage = authority["stage"]
-    expected_version = str(dict(stage.get("plugin") or {}).get("version") or "")
-    installed_path_value = str(candidate_rows[0].get("installedPath") or "")
-    if not installed_path_value:
-        installed_path_value = str(
-            dict(dict(stage.get("activation") or {}).get("plugin_add") or {}).get(
-                "installedPath"
-            )
-            or ""
-        )
-    installed_path = Path(installed_path_value).resolve()
-    expected_cache = (
-        exact_codex_home
-        / "plugins"
-        / "cache"
-        / LOCAL_TESTING_MARKETPLACE_NAME
-        / PLUGIN_NAME
-    )
-    if (
-        not installed_path.is_dir()
-        or not _inside(installed_path, expected_cache)
-        or candidate_rows[0].get("version") != expected_version
-    ):
-        raise InstallationError("The staged candidate cache identity drifted.")
-    runtime_prewarm = _prewarm_installed_runtime(
-        installed_path,
-        data_root=exact_data_root,
-    )
-    if (
-        runtime_prewarm.get("status") != "PASS"
-        or runtime_prewarm.get("tool_count") != EXPECTED_CATALOG["tools"]
-        or dict(runtime_prewarm.get("catalog_expected") or {}) != EXPECTED_CATALOG
-    ):
-        raise InstallationError("The staged candidate native catalog proof drifted.")
-    readiness = _local_test_runtime_readiness(
-        installed=True,
-        restart_or_reload_completed=True,
-        hooks_trusted=True,
-        exact_identity_verified=True,
-        exact_catalog_verified=True,
-        prompt_capture_verified=False,
-        smoke_probes_passed=False,
-        active=False,
-    )
-    proof = {
-        "schema": LOCAL_TEST_HOST_PROOF_SCHEMA,
-        "status": "PASS",
-        "transaction_id": authority["transaction"]["transaction_id"],
-        "stage_installation_receipt_sha256": authority["stage_file_sha256"],
-        "candidate_selector": candidate_selector,
-        "last_known_good_selector": last_known_good_selector,
-        "commit_baseline_config_sha256": baseline_sha256,
-        "gates": {
-            "human_hook_trust_completed": True,
-            "host_restart_or_reload_completed": True,
-            "exact_plugin_identity_verified": True,
-            "exact_native_catalog_verified": True,
-        },
-        "host_reload_evidence": ("FRESH_APP_SERVER_PROCESS_LOADED_CURRENT_USER_CONFIG"),
-        "catalog": dict(EXPECTED_CATALOG),
-        "hook_trust": hook_trust,
-        "config_read": config_read,
-        "runtime_prewarm": runtime_prewarm,
-        "readiness": readiness,
-        "runtime_ready_before_task_reopen": False,
-        "prompt_capture_verified": False,
-        "bounded_smoke_probes_passed": False,
-        "task_binding_used_for_authorization": False,
-        "goal_recovery_invoked": False,
-        "installer_helper_is_separate": True,
-        "tunnel_invoked": False,
-        "candidate_created_or_accepted": False,
-        "pointer_moved": False,
-        "hil_inferred": False,
-    }
-    proof["receipt_sha256"] = hashlib.sha256(_json_bytes(proof)).hexdigest().upper()
-    proof_root = (
-        exact_data_root / "installations" / "codex-v200" / "local-test-transactions"
-    )
-    proof_path = proof_root / (
-        "HOST_PROOF_"
-        + str(authority["transaction"]["transaction_id"])
-        + "_"
-        + uuid.uuid4().hex
-        + ".json"
-    )
-    _write_atomic(proof_path, _json_bytes(proof))
-    return {
-        **proof,
-        "receipt_path": str(proof_path),
-        "receipt_file_sha256": _sha256(proof_path),
-    }
-
-
-def _commit_local_test_transaction(
-    *,
-    stage_receipt_path: Path,
-    stage_receipt_sha256: str,
-    host_proof_path: Path,
-    host_proof_sha256: str,
-    executable: Path,
-    codex_home: Path,
-    data_root: Path,
-    hook_cwd: Path,
-) -> dict[str, Any]:
-    """Commit one staged local candidate without borrowing Goal/tunnel identity."""
-
-    exact_executable = executable.resolve()
-    exact_codex_home = codex_home.resolve()
-    exact_data_root = data_root.resolve()
-    config_path = exact_codex_home / "config.toml"
-    if not exact_executable.is_file() or not config_path.is_file():
-        raise InstallationError(
-            "The local-test commit requires the exact Codex executable and config."
-        )
-    authority = _load_local_test_commit_authority(
-        stage_receipt_path=stage_receipt_path,
-        stage_receipt_sha256=stage_receipt_sha256,
-        host_proof_path=host_proof_path,
-        host_proof_sha256=host_proof_sha256,
-        data_root=exact_data_root,
-    )
-    baseline_sha256 = _sha256(config_path)
-    if baseline_sha256 != authority["commit_baseline_config_sha256"]:
-        raise InstallationError(
-            "The config changed after the sealed local-test host proof."
-        )
-    transaction = authority["transaction"]
-    transaction_id = str(transaction.get("transaction_id") or "")
-    if re.fullmatch(r"local_test_tx_[0-9a-f]{40}", transaction_id) is None:
-        raise InstallationError("The local-test transaction identity is invalid.")
-
-    transaction_root = (
-        exact_data_root / "installations" / "codex-v200" / "local-test-transactions"
-    )
-    rollback_root = exact_data_root / "installations" / "codex-v200" / "config-archives"
-    rollback_backup = rollback_root / f"config-{baseline_sha256}.toml"
-    if rollback_backup.exists():
-        if _sha256(rollback_backup) != baseline_sha256:
-            raise InstallationError("The local-test commit rollback archive drifted.")
-    else:
-        _write_atomic(rollback_backup, config_path.read_bytes())
-    final_path = transaction_root / f"COMMIT_{transaction_id}.json"
-    if final_path.exists():
-        raise InstallationError(
-            "The local-test transaction already has a commit receipt; replay is forbidden."
-        )
-    intent = {
-        "schema": "evidence-lane.codex-local-test-cas-commit-intent.v1",
-        "status": "PREPARED",
-        "transaction_id": transaction_id,
-        "stage_installation_receipt_sha256": authority["stage_file_sha256"],
-        "host_proof_sha256": authority["host_proof_file_sha256"],
-        "candidate_selector": authority["candidate_selector"],
-        "last_known_good_selector": authority["last_known_good_selector"],
-        "expected_config_sha256": baseline_sha256,
-        "rollback_config_backup": str(rollback_backup),
-        "rollback_config_backup_sha256": _sha256(rollback_backup),
-        "switch_count_before": 0,
-        "compare_and_swap": True,
-        "task_binding_used_for_authorization": False,
-        "goal_recovery_invoked": False,
-        "installer_helper_is_separate": True,
-        "tunnel_invoked": False,
-        "candidate_created_or_accepted": False,
-        "pointer_moved": False,
-        "hil_inferred": False,
-    }
-    intent["receipt_sha256"] = hashlib.sha256(_json_bytes(intent)).hexdigest().upper()
-    intent_path = transaction_root / f"INTENT_{transaction_id}.json"
-    if intent_path.exists():
-        existing_intent = json.loads(intent_path.read_text(encoding="utf-8"))
-        if existing_intent != intent:
-            raise InstallationError("The local-test commit intent drifted.")
-    else:
-        _write_atomic(intent_path, _json_bytes(intent))
-
-    hook_trust, config_receipt = _trust_sealed_plugin_hooks(
-        executable=exact_executable,
-        codex_home=exact_codex_home,
-        data_root=exact_data_root,
-        hook_cwd=hook_cwd,
-        plugin_selector=authority["candidate_selector"],
-        defer_hook_trust_to_user=False,
-        activation_mode="COMMIT_CANDIDATE",
-        last_known_good_selector=authority["last_known_good_selector"],
-        last_known_good_config_sha256=authority["last_known_good_config_sha256"],
-        rollback_config_backup=str(authority["prepared_rollback_config_backup"]),
-        expected_commit_config_sha256=baseline_sha256,
-    )
-    plugin_list = _run_codex(
-        exact_executable,
-        exact_codex_home,
-        ["plugin", "list", "--json"],
-    )
-    installed_rows = plugin_list.get("installed")
-    if not isinstance(installed_rows, list):
-        raise InstallationError("Codex did not expose installed plugins after commit.")
-    evidence_rows = [
-        dict(row)
-        for row in installed_rows
-        if isinstance(row, dict)
-        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
-    ]
-    enabled_rows = [row for row in evidence_rows if row.get("enabled") is True]
-    if (
-        len(enabled_rows) != 1
-        or enabled_rows[0].get("pluginId") != authority["candidate_selector"]
-    ):
-        raise InstallationError(
-            "The local-test commit did not leave exactly the candidate enabled."
-        )
-    readiness = _local_test_runtime_readiness(
-        installed=True,
-        restart_or_reload_completed=False,
-        hooks_trusted=True,
-        exact_identity_verified=True,
-        exact_catalog_verified=True,
-        prompt_capture_verified=False,
-        smoke_probes_passed=False,
-        active=False,
-    )
-    receipt = {
-        "schema": LOCAL_TEST_COMMIT_SCHEMA,
-        "status": "PASS",
-        "state": "CANDIDATE_SWITCHED_ONCE_RESTART_OR_RELOAD_REQUIRED",
-        "transaction_id": transaction_id,
-        "candidate_selector": authority["candidate_selector"],
-        "last_known_good_selector": authority["last_known_good_selector"],
-        "stage_installation_receipt_sha256": authority["stage_file_sha256"],
-        "host_proof_sha256": authority["host_proof_file_sha256"],
-        "commit_intent_sha256": _sha256(intent_path),
-        "compare_and_swap": True,
-        "switch_count": 1,
-        "candidate_enabled": True,
-        "last_known_good_enabled": False,
-        "config": config_receipt,
-        "hook_trust": hook_trust,
-        "rollback_capable": True,
-        "rollback_config_backup": str(rollback_backup),
-        "rollback_config_backup_sha256": _sha256(rollback_backup),
-        "readiness": readiness,
-        "runtime_ready_before_task_reopen": False,
-        "next_required_proof": [
-            "POST_SWITCH_HOST_RESTART_OR_RELOAD",
-            "EXACT_ACTIVE_PLUGIN_AND_NATIVE_CATALOG",
-            "PROMPT_CAPTURE",
-            "BOUNDED_SMOKE_PROBES",
-        ],
-        "accepted_two_slot_registry_mutated": False,
-        "task_binding_used_for_authorization": False,
-        "goal_recovery_invoked": False,
-        "installer_helper_is_separate": True,
-        "tunnel_invoked": False,
-        "candidate_created_or_accepted": False,
-        "pointer_moved": False,
-        "hil_inferred": False,
-    }
-    receipt["receipt_sha256"] = hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-    _write_atomic(final_path, _json_bytes(receipt))
-    return {
-        **receipt,
-        "receipt_path": str(final_path),
-        "receipt_file_sha256": _sha256(final_path),
-    }
-
-
-def _load_local_test_recovery_authority(
-    *,
-    commit_receipt_path: Path,
-    commit_receipt_sha256: str,
-    data_root: Path,
-) -> dict[str, Any]:
-    """Load one committed local-test switch as self-rollback authority."""
-
-    authority_root = data_root.resolve() / "installations" / "codex-v200"
-    commit, resolved_commit, commit_file_sha256 = _load_self_sealed_json(
-        path=commit_receipt_path,
-        expected_file_sha256=commit_receipt_sha256,
-        authority_root=authority_root,
-        label="local-test commit receipt",
-    )
-    config = dict(commit.get("config") or {})
-    readiness = dict(commit.get("readiness") or {})
-    transaction_id = str(commit.get("transaction_id") or "")
-    candidate_selector = str(commit.get("candidate_selector") or "")
-    last_known_good_selector = str(commit.get("last_known_good_selector") or "")
-    rollback_backup = Path(str(commit.get("rollback_config_backup") or "")).resolve()
-    rollback_sha256 = str(commit.get("rollback_config_backup_sha256") or "").upper()
-    failed_candidate_config_sha256 = str(config.get("after_sha256") or "").upper()
-    if (
-        commit.get("schema") != LOCAL_TEST_COMMIT_SCHEMA
-        or commit.get("status") != "PASS"
-        or commit.get("state") != "CANDIDATE_SWITCHED_ONCE_RESTART_OR_RELOAD_REQUIRED"
-        or re.fullmatch(r"local_test_tx_[0-9a-f]{40}", transaction_id) is None
-        or candidate_selector != f"{PLUGIN_NAME}@{LOCAL_TESTING_MARKETPLACE_NAME}"
-        or not last_known_good_selector.startswith(f"{PLUGIN_NAME}@")
-        or last_known_good_selector == candidate_selector
-        or commit.get("compare_and_swap") is not True
-        or commit.get("switch_count") != 1
-        or commit.get("candidate_enabled") is not True
-        or commit.get("last_known_good_enabled") is not False
-        or commit.get("rollback_capable") is not True
-        or not rollback_backup.is_file()
-        or not _inside(rollback_backup, authority_root)
-        or re.fullmatch(r"[A-F0-9]{64}", rollback_sha256) is None
-        or _sha256(rollback_backup) != rollback_sha256
-        or re.fullmatch(r"[A-F0-9]{64}", failed_candidate_config_sha256) is None
-        or readiness.get("ready") is not False
-        or commit.get("runtime_ready_before_task_reopen") is not False
-        or commit.get("candidate_created_or_accepted") is not False
-        or commit.get("pointer_moved") is not False
-        or commit.get("hil_inferred") is not False
-    ):
-        raise InstallationError(
-            "The local-test commit receipt is not exact self-rollback authority."
-        )
-    return {
-        "commit": commit,
-        "commit_path": resolved_commit,
-        "commit_file_sha256": commit_file_sha256,
-        "transaction_id": transaction_id,
-        "candidate_selector": candidate_selector,
-        "last_known_good_selector": last_known_good_selector,
-        "rollback_config_backup": rollback_backup,
-        "rollback_config_backup_sha256": rollback_sha256,
-        "failed_candidate_config_sha256": failed_candidate_config_sha256,
-    }
-
-
-def _evidence_plugin_activation_states(
-    plugins: dict[str, Any],
-) -> dict[str, bool]:
-    """Return exact Evidence Lane plugin/MCP states or fail on divergence.
-
-    Current Codex normalizes an explicitly disabled plugin by omitting its
-    materialized ``mcp_servers`` block.  That absence is an exact disabled MCP
-    state, not split-brain evidence.  It is accepted only while the plugin's
-    own ``enabled`` value is explicitly ``False``; an enabled selector must
-    always retain its native Evidence Lane MCP entry.
-    """
-
-    states: dict[str, bool] = {}
-    for selector, raw_settings in plugins.items():
-        if not selector.startswith(f"{PLUGIN_NAME}@"):
-            continue
-        settings = dict(raw_settings or {})
-        servers = dict(settings.get("mcp_servers") or {})
-        evidence_server = servers.get("evidence-lane")
-        if evidence_server is None and settings.get("enabled") is False:
-            states[selector] = False
-            continue
-        if not isinstance(evidence_server, dict):
-            raise InstallationError(
-                "An Evidence Lane selector has no matching native MCP state."
-            )
-        plugin_enabled = bool(settings.get("enabled"))
-        mcp_enabled = bool(evidence_server.get("enabled"))
-        if plugin_enabled is not mcp_enabled:
-            raise InstallationError(
-                "An Evidence Lane plugin/MCP activation pair is inconsistent."
-            )
-        states[selector] = plugin_enabled
-    if not states:
-        raise InstallationError("Codex config has no Evidence Lane selectors.")
-    return states
-
-
-def _normalize_disabled_local_mcp_boundary(
-    plugins: dict[str, Any],
-    *,
-    plugin_selector: str,
-) -> dict[str, Any]:
-    """Normalize only Codex's exact stale local-MCP disabled-plugin split.
-
-    A host restart may leave the local MCP bit true after the user disables the
-    plugin selector.  Recovery may clear that one bit only when every Evidence
-    Lane plugin bit is already explicitly false and every other materialized
-    MCP bit is false.  The returned table is written through Codex's supported
-    config API; this helper never writes configuration itself.
-    """
-
-    normalized = json.loads(json.dumps(plugins))
-    evidence_selectors = [
-        selector for selector in normalized if selector.startswith(f"{PLUGIN_NAME}@")
-    ]
-    if plugin_selector not in evidence_selectors:
-        raise InstallationError(
-            "The disabled local MCP normalization target is absent."
-        )
-    changed: list[str] = []
-    for selector in evidence_selectors:
-        settings = dict(normalized.get(selector) or {})
-        if settings.get("enabled") is not False:
-            raise InstallationError(
-                "Disabled local MCP normalization requires every plugin disabled."
-            )
-        servers = dict(settings.get("mcp_servers") or {})
-        evidence_server = servers.get("evidence-lane")
-        if evidence_server is None:
-            continue
-        if not isinstance(evidence_server, dict):
-            raise InstallationError(
-                "Disabled local MCP normalization found an invalid MCP state."
-            )
-        mcp_enabled = evidence_server.get("enabled")
-        if mcp_enabled is True:
-            if selector != plugin_selector:
-                raise InstallationError(
-                    "Disabled local MCP normalization found a non-local live MCP."
-                )
-            evidence_server = dict(evidence_server)
-            evidence_server["enabled"] = False
-            servers["evidence-lane"] = evidence_server
-            settings["mcp_servers"] = servers
-            normalized[selector] = settings
-            changed.append(selector)
-        elif mcp_enabled is not False:
-            raise InstallationError(
-                "Disabled local MCP normalization found an ambiguous MCP bit."
-            )
-    if changed != [plugin_selector]:
-        raise InstallationError(
-            "Disabled local MCP normalization requires exactly one stale local MCP."
-        )
-    states = _evidence_plugin_activation_states(normalized)
-    if any(states.values()):
-        raise InstallationError(
-            "Disabled local MCP normalization did not produce all-disabled state."
-        )
-    return normalized
-
-
-def _normalize_local_post_add_boundary(
-    plugins: dict[str, Any],
-    *,
-    plugin_selector: str,
-) -> dict[str, Any]:
-    """Clear only Codex's exact enabled-plugin/no-MCP post-add transient."""
-
-    normalized = json.loads(json.dumps(plugins))
-    evidence_selectors = [
-        selector for selector in normalized if selector.startswith(f"{PLUGIN_NAME}@")
-    ]
-    if plugin_selector not in evidence_selectors:
-        raise InstallationError("The local post-add normalization target is absent.")
-    for selector in evidence_selectors:
-        settings = dict(normalized.get(selector) or {})
-        servers = dict(settings.get("mcp_servers") or {})
-        evidence_server = servers.get("evidence-lane")
-        plugin_enabled = settings.get("enabled")
-        if selector == plugin_selector:
-            if plugin_enabled is not True:
-                raise InstallationError(
-                    "Local post-add normalization requires its plugin bit enabled."
-                )
-            if evidence_server is not None and (
-                not isinstance(evidence_server, dict)
-                or evidence_server.get("enabled") is not False
-            ):
-                raise InstallationError(
-                    "Local post-add normalization requires its MCP absent or disabled."
-                )
-            settings["enabled"] = False
-            exact_server = dict(evidence_server or {})
-            exact_server["enabled"] = False
-            servers["evidence-lane"] = exact_server
-            settings["mcp_servers"] = servers
-            normalized[selector] = settings
-            continue
-        if plugin_enabled is not False:
-            raise InstallationError(
-                "Local post-add normalization found another enabled plugin."
-            )
-        if evidence_server is not None and (
-            not isinstance(evidence_server, dict)
-            or evidence_server.get("enabled") is not False
-        ):
-            raise InstallationError(
-                "Local post-add normalization found another live MCP."
-            )
-    states = _evidence_plugin_activation_states(normalized)
-    if any(states.values()):
-        raise InstallationError(
-            "Local post-add normalization did not produce all-disabled state."
-        )
-    return normalized
-
-
-def _normalize_active_local_reinstall_boundary(
-    plugins: dict[str, Any],
-    *,
-    plugin_selector: str,
-) -> dict[str, Any]:
-    """Move one aligned active local selector to an exact all-disabled boundary."""
-
-    normalized = json.loads(json.dumps(plugins))
-    states = _evidence_plugin_activation_states(normalized)
-    enabled = [selector for selector, active in states.items() if active]
-    if enabled != [plugin_selector]:
-        raise InstallationError(
-            "Active local reinstall normalization requires only its exact selector enabled."
-        )
-    settings = dict(normalized.get(plugin_selector) or {})
-    servers = dict(settings.get("mcp_servers") or {})
-    evidence_server = dict(servers.get("evidence-lane") or {})
-    if (
-        settings.get("enabled") is not True
-        or evidence_server.get("enabled") is not True
-    ):
-        raise InstallationError(
-            "Active local reinstall normalization requires an aligned plugin/MCP pair."
-        )
-    settings["enabled"] = False
-    evidence_server["enabled"] = False
-    servers["evidence-lane"] = evidence_server
-    settings["mcp_servers"] = servers
-    normalized[plugin_selector] = settings
-    final_states = _evidence_plugin_activation_states(normalized)
-    if any(final_states.values()):
-        raise InstallationError(
-            "Active local reinstall normalization did not produce all-disabled state."
-        )
-    return normalized
-
-
-def _batch_write_recovery_plugins(
-    *,
-    executable: Path,
-    codex_home: Path,
-    expected_before_sha256: str,
-    plugins: dict[str, Any],
-    hooks: dict[str, Any] | None = None,
-    exact_after_sha256: str | None = None,
-) -> dict[str, Any]:
-    """CAS-replace governed config sections through Codex's supported app server."""
-
-    config_path = codex_home.resolve() / "config.toml"
-    expected_before = str(expected_before_sha256 or "").upper()
-    expected_after = str(exact_after_sha256 or "").upper() or None
-    if (
-        not executable.resolve().is_file()
-        or not config_path.is_file()
-        or re.fullmatch(r"[A-F0-9]{64}", expected_before) is None
-        or _sha256(config_path) != expected_before
-        or (
-            expected_after is not None
-            and re.fullmatch(r"[A-F0-9]{64}", expected_after) is None
-        )
-    ):
-        raise InstallationError(
-            "The recovery config compare-and-swap baseline is absent or drifted."
-        )
-    _evidence_plugin_activation_states(plugins)
-    environment = os.environ.copy()
-    environment["CODEX_HOME"] = str(codex_home.resolve())
-    process = subprocess.Popen(
-        [str(executable.resolve()), "app-server", "--stdio"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        encoding="utf-8",
-        bufsize=1,
-        env=environment,
-        creationflags=_windows_hidden_creationflags(),
-    )
-    stdin = process.stdin
-    stdout = process.stdout
-    stderr = process.stderr
-    if stdin is None or stdout is None or stderr is None:
-        process.kill()
-        raise InstallationError("Codex recovery app-server stdio was unavailable.")
-
-    responses: queue.Queue[dict[str, Any]] = queue.Queue()
-    stderr_lines: list[str] = []
-
-    def read_stdout() -> None:
-        for line in stdout:
-            try:
-                payload = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if isinstance(payload, dict):
-                responses.put(payload)
-
-    def read_stderr() -> None:
-        for line in stderr:
-            stderr_lines.append(line.rstrip())
-
-    threading.Thread(target=read_stdout, daemon=True).start()
-    threading.Thread(target=read_stderr, daemon=True).start()
-
-    def send(payload: dict[str, Any]) -> None:
-        try:
-            stdin.write(json.dumps(payload, separators=(",", ":")) + "\n")
-            stdin.flush()
-        except (BrokenPipeError, OSError) as exc:
-            raise InstallationError(
-                "Codex recovery app-server closed unexpectedly."
-            ) from exc
-
-    def wait_for(
-        request_id: int,
-        *,
-        timeout: float = 20.0,
-        allow_error: bool = False,
-    ) -> dict[str, Any]:
-        deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                break
-            try:
-                payload = responses.get(timeout=min(0.5, remaining))
-            except queue.Empty:
-                if process.poll() is not None:
-                    break
-                continue
-            if payload.get("id") == request_id:
-                if "error" in payload and not allow_error:
-                    raise InstallationError(
-                        "Codex recovery request failed: "
-                        + json.dumps(payload["error"], sort_keys=True)
-                    )
-                return payload
-        detail = " | ".join(stderr_lines[-3:])
-        raise InstallationError(
-            "Codex did not return the required recovery receipt"
-            + (f": {detail}" if detail else ".")
-        )
-
-    try:
-        send(
-            {
-                "method": "initialize",
-                "id": 2000,
-                "params": {
-                    "clientInfo": {
-                        "name": "evidence_lane_recovery",
-                        "title": "Evidence Lane Candidate Self Rollback",
-                        "version": BASE_RELEASE,
-                    }
-                },
-            }
-        )
-        wait_for(2000)
-        send({"method": "initialized", "params": {}})
-        recovery_write = _batch_write_with_one_config_refresh(
-            send=send,
-            wait_for=wait_for,
-            config_path=config_path,
-            expected_raw_sha256=expected_before,
-            edits=[
-                {
-                    "keyPath": "plugins",
-                    "value": plugins,
-                    "mergeStrategy": "replace",
-                },
-                *(
-                    [
-                        {
-                            "keyPath": "hooks",
-                            "value": hooks,
-                            "mergeStrategy": "replace",
-                        }
-                    ]
-                    if hooks is not None
-                    else []
-                ),
-            ],
-            request_ids=((2090, 2091), (2092, 2093)),
-        )
-        version = str(recovery_write["config_version"])
-        after_sha256 = _sha256(config_path)
-        if expected_after is not None and after_sha256 != expected_after:
-            raise InstallationError(
-                "Codex did not restore the exact prior config bytes."
-            )
-        persisted_plugins = dict(
-            tomllib.loads(config_path.read_text(encoding="utf-8")).get("plugins") or {}
-        )
-        if persisted_plugins != plugins:
-            raise InstallationError(
-                "Codex did not persist the exact recovery plugin table."
-            )
-        if hooks is not None:
-            persisted_hooks = dict(
-                tomllib.loads(config_path.read_text(encoding="utf-8")).get("hooks")
-                or {}
-            )
-            if persisted_hooks != hooks:
-                raise InstallationError(
-                    "Codex did not persist the exact recovery hook table."
-                )
-        return {
-            "schema": "evidence-lane.codex-config-recovery-write.v1",
-            "status": "PASS",
-            "supported_codex_api": "config/batchWrite",
-            "merge_strategy": "replace",
-            "compare_and_swap": True,
-            "before_sha256": expected_before,
-            "after_sha256": after_sha256,
-            "exact_after_sha256_required": expected_after,
-            "config_version": version,
-            "plugin_table_write_count": 1,
-            "hook_table_write_count": 1 if hooks is not None else 0,
-            "config_read_count": recovery_write["config_read_count"],
-            "config_write_attempt_count": recovery_write["config_write_attempt_count"],
-            "config_conflict_retry_count": recovery_write[
-                "config_conflict_retry_count"
-            ],
-            "reload_user_config": True,
-            "host_restart_requested": False,
-            "unrelated_config_key_mutated": False,
-        }
-    finally:
-        if process.poll() is None:
-            process.terminate()
-            try:
-                process.wait(timeout=3)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait(timeout=3)
-
-
-def _seal_disabled_local_test_baseline(
-    *,
-    executable: Path,
-    codex_home: Path,
-    data_root: Path,
-    hook_cwd: Path,
-) -> dict[str, Any]:
-    """Seal the already-live 3.0 local slot as one disabled-hook CAS baseline.
-
-    Early 3.0 local installs predated the committed-local receipt required by the
-    disabled-hook reinstall route.  This bounded bootstrap does not infer that
-    missing history.  It verifies the exact live two-slot inventory, moves the
-    active local selector through one all-disabled Codex config/batchWrite
-    boundary, and activates the same installed bytes again with the complete hooks
-    still trusted but disabled.  The stable Git-main selector remains the sole
-    last-known-good target; no branch recovery selector may participate.  The
-    resulting receipt is therefore fresh
-    compare-and-swap evidence that can be consumed exactly once by a later local
-    package replacement.
-    """
-
-    exact_executable = executable.resolve()
-    exact_codex_home = codex_home.resolve()
-    exact_data_root = data_root.resolve()
-    exact_hook_cwd = hook_cwd.resolve()
-    config_path = exact_codex_home / "config.toml"
-    candidate_selector = TWO_SLOT_SELECTORS["versioned-local-testing"]
-    stable_selector = TWO_SLOT_SELECTORS["stable-git-main"]
-    expected_selectors = set(TWO_SLOT_SELECTORS.values())
-    if (
-        not exact_executable.is_file()
-        or not config_path.is_file()
-        or not exact_hook_cwd.is_dir()
-    ):
-        raise InstallationError(
-            "The disabled-local baseline requires the exact Codex binary, config, "
-            "and hook workspace."
-        )
-
-    plugin_list = _run_codex(
-        exact_executable,
-        exact_codex_home,
-        ["plugin", "list", "--json"],
-    )
-    installed = plugin_list.get("installed")
-    if not isinstance(installed, list):
-        raise InstallationError("Codex did not expose the installed plugin inventory.")
-    evidence_rows = {
-        str(row.get("pluginId") or ""): dict(row)
-        for row in installed
-        if isinstance(row, dict)
-        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
-    }
-    if set(evidence_rows) != expected_selectors:
-        raise InstallationError(
-            "The disabled-local baseline requires exactly the governed two slots."
-        )
-    enabled_rows = [
-        selector
-        for selector, row in evidence_rows.items()
-        if row.get("enabled") is True
-    ]
-    candidate_version = str(evidence_rows[candidate_selector].get("version") or "")
-    stable_version = str(evidence_rows[stable_selector].get("version") or "")
-    if (
-        enabled_rows != [candidate_selector]
-        or not candidate_version.startswith(f"{BASE_RELEASE}+")
-        or not stable_version.startswith(f"{BASE_RELEASE}+")
-    ):
-        raise InstallationError(
-            "The live local and stable Git-main slots are not governed 3.0 builds."
-        )
-
-    original_bytes = config_path.read_bytes()
-    original_sha256 = hashlib.sha256(original_bytes).hexdigest().upper()
-    original_config = tomllib.loads(original_bytes.decode("utf-8"))
-    original_plugins = dict(original_config.get("plugins") or {})
-    original_states = _evidence_plugin_activation_states(original_plugins)
-    if (
-        set(original_states) != expected_selectors
-        or original_states.get(candidate_selector) is not True
-        or any(
-            enabled
-            for selector, enabled in original_states.items()
-            if selector != candidate_selector
-        )
-    ):
-        raise InstallationError(
-            "The live config is not the exact testing-active two-slot boundary."
-        )
-
-    archive_root = exact_data_root / "installations" / "codex-v200" / "config-archives"
-    original_backup = archive_root / f"config-{original_sha256}.toml"
-    if not original_backup.exists():
-        _write_atomic(original_backup, original_bytes)
-    if _sha256(original_backup) != original_sha256:
-        raise InstallationError("The live config archive drifted before bootstrap.")
-
-    normalized_plugins = _normalize_active_local_reinstall_boundary(
-        original_plugins,
-        plugin_selector=candidate_selector,
-    )
-    normalization = _batch_write_recovery_plugins(
-        executable=exact_executable,
-        codex_home=exact_codex_home,
-        expected_before_sha256=original_sha256,
-        plugins=normalized_plugins,
-    )
-    all_disabled_bytes = config_path.read_bytes()
-    all_disabled_sha256 = hashlib.sha256(all_disabled_bytes).hexdigest().upper()
-    all_disabled_config = tomllib.loads(all_disabled_bytes.decode("utf-8"))
-    if any(
-        _evidence_plugin_activation_states(
-            dict(all_disabled_config.get("plugins") or {})
-        ).values()
-    ):
-        raise InstallationError(
-            "The disabled-local bootstrap did not reach an all-disabled boundary."
-        )
-    rollback_backup = archive_root / f"config-{all_disabled_sha256}.toml"
-    if not rollback_backup.exists():
-        _write_atomic(rollback_backup, all_disabled_bytes)
-    if _sha256(rollback_backup) != all_disabled_sha256:
-        raise InstallationError("The all-disabled rollback archive drifted.")
-
-    completed = False
-    try:
-        stable_hook_trust, stable_config_receipt = _trust_sealed_plugin_hooks(
-            executable=exact_executable,
-            codex_home=exact_codex_home,
-            data_root=exact_data_root,
-            hook_cwd=exact_hook_cwd,
-            plugin_selector=stable_selector,
-            activation_mode="RECOVER_DISABLED_LOCAL",
-            last_known_good_selector=candidate_selector,
-            last_known_good_config_sha256=all_disabled_sha256,
-            rollback_config_backup=str(rollback_backup),
-            expected_commit_config_sha256=all_disabled_sha256,
-            keep_hooks_disabled_after_trust=True,
-        )
-        stable_records = [
-            dict(row)
-            for row in stable_hook_trust.get("records") or []
-            if isinstance(row, dict)
-        ]
-        if (
-            stable_hook_trust.get("status") != "PASS"
-            or len(stable_records) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
-            or any(row.get("enabled") is not False for row in stable_records)
-            or stable_hook_trust.get("unrelated_hook_state_mutated") is not False
-        ):
-            raise InstallationError(
-                "The Git-main bootstrap did not preserve the complete hook set off."
-            )
-
-        stable_active_bytes = config_path.read_bytes()
-        stable_active_sha256 = hashlib.sha256(stable_active_bytes).hexdigest().upper()
-        stable_active_config = tomllib.loads(stable_active_bytes.decode("utf-8"))
-        stable_disabled_plugins = _normalize_active_local_reinstall_boundary(
-            dict(stable_active_config.get("plugins") or {}),
-            plugin_selector=stable_selector,
-        )
-        stable_normalization = _batch_write_recovery_plugins(
-            executable=exact_executable,
-            codex_home=exact_codex_home,
-            expected_before_sha256=stable_active_sha256,
-            plugins=stable_disabled_plugins,
-        )
-        sealed_disabled_bytes = config_path.read_bytes()
-        sealed_disabled_sha256 = (
-            hashlib.sha256(sealed_disabled_bytes).hexdigest().upper()
-        )
-        sealed_rollback_backup = archive_root / (
-            f"config-{sealed_disabled_sha256}.toml"
-        )
-        if not sealed_rollback_backup.exists():
-            _write_atomic(sealed_rollback_backup, sealed_disabled_bytes)
-        if _sha256(sealed_rollback_backup) != sealed_disabled_sha256:
-            raise InstallationError(
-                "The two-slot trusted-disabled rollback archive drifted."
-            )
-
-        hook_trust, config_receipt = _trust_sealed_plugin_hooks(
-            executable=exact_executable,
-            codex_home=exact_codex_home,
-            data_root=exact_data_root,
-            hook_cwd=exact_hook_cwd,
-            plugin_selector=candidate_selector,
-            activation_mode="RECOVER_DISABLED_LOCAL",
-            last_known_good_selector=stable_selector,
-            last_known_good_config_sha256=sealed_disabled_sha256,
-            rollback_config_backup=str(sealed_rollback_backup),
-            expected_commit_config_sha256=sealed_disabled_sha256,
-            keep_hooks_disabled_after_trust=True,
-        )
-        records = [
-            dict(row)
-            for row in hook_trust.get("records") or []
-            if isinstance(row, dict)
-        ]
-        if (
-            hook_trust.get("status") != "PASS"
-            or len(records) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
-            or any(row.get("enabled") is not False for row in records)
-            or hook_trust.get("unrelated_hook_state_mutated") is not False
-        ):
-            raise InstallationError(
-                "The disabled-local bootstrap did not preserve the complete hook set off."
-            )
-
-        final_bytes = config_path.read_bytes()
-        final_sha256 = hashlib.sha256(final_bytes).hexdigest().upper()
-        final_config = tomllib.loads(final_bytes.decode("utf-8"))
-        final_states = _evidence_plugin_activation_states(
-            dict(final_config.get("plugins") or {})
-        )
-        if final_states.get(candidate_selector) is not True or any(
-            enabled
-            for selector, enabled in final_states.items()
-            if selector != candidate_selector
-        ):
-            raise InstallationError(
-                "The disabled-local bootstrap did not restore the testing selector."
-            )
-        hooks_state = dict(dict(final_config.get("hooks") or {}).get("state") or {})
-        for selector in (candidate_selector, stable_selector):
-            selector_states = {
-                str(key): dict(value or {})
-                for key, value in hooks_state.items()
-                if str(key).startswith(f"{selector}:")
-            }
-            if (
-                len(selector_states) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
-                or any(
-                    value.get("enabled") is not False
-                    for value in selector_states.values()
-                )
-                or any(
-                    re.fullmatch(
-                        r"sha256:[0-9a-f]{64}",
-                        str(value.get("trusted_hash") or ""),
-                    )
-                    is None
-                    for value in selector_states.values()
-                )
-            ):
-                raise InstallationError(
-                    "A governed 3.0 slot does not retain the complete trusted "
-                    "disabled hooks."
-                )
-
-        post_list = _run_codex(
-            exact_executable,
-            exact_codex_home,
-            ["plugin", "list", "--json"],
-        )
-        post_rows = {
-            str(row.get("pluginId") or ""): dict(row)
-            for row in post_list.get("installed") or []
-            if isinstance(row, dict)
-            and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
-        }
-        if (
-            set(post_rows) != expected_selectors
-            or post_rows[candidate_selector].get("enabled") is not True
-            or any(
-                row.get("enabled") is True
-                for selector, row in post_rows.items()
-                if selector != candidate_selector
-            )
-        ):
-            raise InstallationError(
-                "Codex plugin inventory drifted after the disabled-local bootstrap."
-            )
-
-        transaction_seed = (
-            f"{candidate_selector}|{stable_selector}|{candidate_version}|"
-            f"{stable_version}|"
-            f"{sealed_disabled_sha256}|{final_sha256}"
-        ).encode()
-        transaction_id = (
-            "local_test_tx_"
-            + hashlib.sha1(
-                transaction_seed,
-                usedforsecurity=False,
-            ).hexdigest()
-        )
-        readiness = _local_test_runtime_readiness(
-            installed=True,
-            restart_or_reload_completed=False,
-            hooks_trusted=True,
-            exact_identity_verified=True,
-            exact_catalog_verified=True,
-            prompt_capture_verified=False,
-            smoke_probes_passed=False,
-            active=False,
-        )
-        receipt = {
-            "schema": LOCAL_TEST_COMMIT_SCHEMA,
-            "status": "PASS",
-            "state": "CANDIDATE_SWITCHED_ONCE_RESTART_OR_RELOAD_REQUIRED",
-            "transaction_id": transaction_id,
-            "candidate_selector": candidate_selector,
-            "last_known_good_selector": stable_selector,
-            "compare_and_swap": True,
-            "switch_count": 1,
-            "candidate_enabled": True,
-            "last_known_good_enabled": False,
-            "config": config_receipt,
-            "hook_trust": hook_trust,
-            "stable_git_main_hook_trust": stable_hook_trust,
-            "stable_git_main_config": stable_config_receipt,
-            "rollback_capable": True,
-            "rollback_config_backup": str(sealed_rollback_backup),
-            "rollback_config_backup_sha256": sealed_disabled_sha256,
-            "readiness": readiness,
-            "runtime_ready_before_task_reopen": False,
-            "live_disabled_hook_bootstrap": {
-                "status": "PASS",
-                "source_config_sha256": original_sha256,
-                "all_disabled_config_sha256": all_disabled_sha256,
-                "stable_active_config_sha256": stable_active_sha256,
-                "two_slot_trusted_disabled_config_sha256": sealed_disabled_sha256,
-                "final_config_sha256": final_sha256,
-                "candidate_version": candidate_version,
-                "stable_git_main_version": stable_version,
-                "normalization": normalization,
-                "stable_normalization": stable_normalization,
-                "hook_count_per_governed_slot": len(EXPECTED_CODEX_HOST_HOOK_EVENTS),
-                "total_governed_hook_state_records": (
-                    2 * len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
-                ),
-                "all_hooks_enabled": False,
-                "historical_switch_inferred": False,
-                "fresh_switch_recorded": True,
-            },
-            "task_binding_used_for_authorization": False,
-            "goal_recovery_invoked": False,
-            "installer_helper_is_separate": True,
-            "tunnel_invoked": False,
-            "candidate_created_or_accepted": False,
-            "pointer_moved": False,
-            "hil_inferred": False,
-        }
-        receipt["receipt_sha256"] = (
-            hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-        )
-        transaction_root = (
-            exact_data_root / "installations" / "codex-v200" / "local-test-transactions"
-        )
-        receipt_path = transaction_root / f"COMMIT_{transaction_id}.json"
-        if receipt_path.exists():
-            existing = json.loads(receipt_path.read_text(encoding="utf-8"))
-            if existing != receipt:
-                raise InstallationError(
-                    "The deterministic disabled-local baseline receipt drifted."
-                )
-        else:
-            _write_atomic(receipt_path, _json_bytes(receipt))
-        completed = True
-        return {
-            **receipt,
-            "receipt_path": str(receipt_path),
-            "receipt_file_sha256": _sha256(receipt_path),
-        }
-    finally:
-        if not completed and config_path.is_file():
-            current_sha256 = _sha256(config_path)
-            if current_sha256 != original_sha256:
-                _batch_write_recovery_plugins(
-                    executable=exact_executable,
-                    codex_home=exact_codex_home,
-                    expected_before_sha256=current_sha256,
-                    plugins=original_plugins,
-                    hooks=dict(original_config.get("hooks") or {}),
-                    exact_after_sha256=original_sha256,
-                )
-
-
-def _restore_exact_prior_local_test_config(
-    *,
-    authority: dict[str, Any],
-    executable: Path,
-    codex_home: Path,
-) -> dict[str, Any]:
-    """Disable the failed candidate and restore exact pre-switch config bytes."""
-
-    config_path = codex_home.resolve() / "config.toml"
-    backup = Path(authority["rollback_config_backup"]).resolve()
-    backup_sha256 = str(authority["rollback_config_backup_sha256"])
-    backup_plugins = dict(
-        tomllib.loads(backup.read_text(encoding="utf-8")).get("plugins") or {}
-    )
-    states = _evidence_plugin_activation_states(backup_plugins)
-    candidate_selector = str(authority["candidate_selector"])
-    last_known_good_selector = str(authority["last_known_good_selector"])
-    if (
-        states.get(candidate_selector) is not False
-        or states.get(last_known_good_selector) is not True
-        or sum(states.values()) != 1
-    ):
-        raise InstallationError(
-            "The rollback archive does not select exactly the last-known-good route."
-        )
-    current_sha256 = _sha256(config_path)
-    if current_sha256 == backup_sha256:
-        config_write = {
-            "schema": "evidence-lane.codex-config-recovery-write.v1",
-            "status": "PASS",
-            "supported_codex_api": "NO_WRITE_ALREADY_EXACT",
-            "compare_and_swap": True,
-            "before_sha256": current_sha256,
-            "after_sha256": current_sha256,
-            "exact_after_sha256_required": backup_sha256,
-            "plugin_table_write_count": 0,
-            "reload_user_config": False,
-            "host_restart_requested": False,
-            "unrelated_config_key_mutated": False,
-        }
-    else:
-        if current_sha256 != authority["failed_candidate_config_sha256"]:
-            raise InstallationError(
-                "The failed candidate config drifted before exact rollback."
-            )
-        config_write = _batch_write_recovery_plugins(
-            executable=executable,
-            codex_home=codex_home,
-            expected_before_sha256=current_sha256,
-            plugins=backup_plugins,
-            exact_after_sha256=backup_sha256,
-        )
-    restored_plugins = dict(
-        tomllib.loads(config_path.read_text(encoding="utf-8")).get("plugins") or {}
-    )
-    restored_states = _evidence_plugin_activation_states(restored_plugins)
-    if (
-        _sha256(config_path) != backup_sha256
-        or restored_states.get(candidate_selector) is not False
-        or restored_states.get(last_known_good_selector) is not True
-        or sum(restored_states.values()) != 1
-    ):
-        raise InstallationError(
-            "The exact prior config was not restored with the candidate disabled."
-        )
-    return {
-        "status": "PASS",
-        "candidate_selector": candidate_selector,
-        "candidate_disabled": True,
-        "restored_selector": last_known_good_selector,
-        "restored_selector_enabled": True,
-        "exact_prior_config_restored": True,
-        "prior_config_sha256": backup_sha256,
-        "config": config_write,
-    }
-
-
-def _probe_recovered_selector_health(
-    *,
-    executable: Path,
-    codex_home: Path,
-    data_root: Path,
-    selected_selector: str,
-    candidate_selector: str,
-    expected_version: str | None = None,
-) -> dict[str, Any]:
-    """Probe one restored selector's installed identity and native catalog."""
-
-    plugin_list = _run_codex(
-        executable.resolve(),
-        codex_home.resolve(),
-        ["plugin", "list", "--json"],
-    )
-    installed = plugin_list.get("installed")
-    if not isinstance(installed, list):
-        raise InstallationError("Codex recovery health has no plugin list.")
-    evidence_rows = [
-        dict(row)
-        for row in installed
-        if isinstance(row, dict)
-        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
-    ]
-    selectors = [str(row.get("pluginId") or "") for row in evidence_rows]
-    selected_rows = [
-        row for row in evidence_rows if row.get("pluginId") == selected_selector
-    ]
-    enabled_rows = [row for row in evidence_rows if row.get("enabled") is True]
-    candidate_rows = [
-        row for row in evidence_rows if row.get("pluginId") == candidate_selector
-    ]
-    if (
-        len(selectors) != len(set(selectors))
-        or len(selected_rows) != 1
-        or len(enabled_rows) != 1
-        or enabled_rows[0].get("pluginId") != selected_selector
-        or len(candidate_rows) != 1
-        or candidate_rows[0].get("enabled") is not False
-        or (
-            expected_version is not None
-            and selected_rows[0].get("version") != expected_version
-        )
-    ):
-        raise InstallationError(
-            "The recovered selector is not the sole exact active Evidence Lane route."
-        )
-    installed_path = Path(str(selected_rows[0].get("installedPath") or "")).resolve()
-    if not installed_path.is_dir():
-        raise InstallationError(
-            "The recovered selector has no exact installed cache identity."
-        )
-    prewarm = _prewarm_installed_runtime(installed_path, data_root=data_root.resolve())
-    if (
-        prewarm.get("status") != "PASS"
-        or prewarm.get("tool_count") != EXPECTED_CATALOG["tools"]
-        or dict(prewarm.get("catalog_expected") or {}) != EXPECTED_CATALOG
-    ):
-        raise InstallationError(
-            "The recovered selector failed its exact native catalog health probe."
-        )
-    return {
-        "schema": "evidence-lane.codex-recovered-selector-health.v1",
-        "status": "PASS",
-        "selected_selector": selected_selector,
-        "selected_version": str(selected_rows[0].get("version") or ""),
-        "candidate_selector": candidate_selector,
-        "candidate_disabled": True,
-        "sole_enabled_evidence_lane_selector": True,
-        "installed_path_sha256": hashlib.sha256(
-            os.path.normcase(str(installed_path)).encode("utf-8")
-        )
-        .hexdigest()
-        .upper(),
-        "runtime_prewarm_receipt_sha256": str(prewarm.get("receipt_sha256") or ""),
-        "native_catalog": dict(EXPECTED_CATALOG),
-        "host_restart_requested": False,
-        "task_reopened": False,
-    }
-
-
-def _recovery_attempt_correlation_id(
-    *, transaction_id: str, commit_file_sha256: str, ordinal: int, target: str
-) -> str:
-    body = {
-        "transaction_id": transaction_id,
-        "commit_file_sha256": commit_file_sha256,
-        "ordinal": ordinal,
-        "target": target,
-    }
-    return "local_test_recovery_" + hashlib.sha256(_json_bytes(body)).hexdigest()[:40]
-
-
 def _write_self_sealed_json(path: Path, value: dict[str, Any]) -> dict[str, Any]:
-    sealed = {key: item for key, item in value.items() if key != "receipt_sha256"}
-    sealed["receipt_sha256"] = hashlib.sha256(_json_bytes(sealed)).hexdigest().upper()
+    """Write one canonical self-sealed current-route receipt."""
+
+    body = {key: item for key, item in value.items() if key != "receipt_sha256"}
+    sealed = {
+        **body,
+        "receipt_sha256": hashlib.sha256(_json_bytes(body)).hexdigest().upper(),
+    }
     _write_atomic(path, _json_bytes(sealed))
     return sealed
-
-
-def _load_or_create_local_test_recovery_state(
-    *, authority: dict[str, Any], state_path: Path
-) -> dict[str, Any]:
-    if state_path.exists():
-        state, _, _ = _load_self_sealed_json(
-            path=state_path,
-            expected_file_sha256=_sha256(state_path),
-            authority_root=state_path.parent,
-            label="local-test recovery state",
-        )
-        if (
-            state.get("schema") != LOCAL_TEST_RECOVERY_STATE_SCHEMA
-            or state.get("transaction_id") != authority["transaction_id"]
-            or state.get("commit_receipt_sha256") != authority["commit_file_sha256"]
-            or state.get("max_attempts") != LOCAL_TEST_RECOVERY_MAX_ATTEMPTS
-            or not isinstance(state.get("attempts"), list)
-            or len(state["attempts"]) > LOCAL_TEST_RECOVERY_MAX_ATTEMPTS
-        ):
-            raise InstallationError("The local-test recovery state drifted.")
-        return state
-    return _write_self_sealed_json(
-        state_path,
-        {
-            "schema": LOCAL_TEST_RECOVERY_STATE_SCHEMA,
-            "status": "ACTIVE",
-            "transaction_id": authority["transaction_id"],
-            "commit_receipt_sha256": authority["commit_file_sha256"],
-            "max_attempts": LOCAL_TEST_RECOVERY_MAX_ATTEMPTS,
-            "attempts": [],
-            "terminal_receipt_written": False,
-            "restart_loop_started": False,
-            "task_reopened": False,
-        },
-    )
-
-
-def _record_local_test_recovery_attempt(
-    *,
-    state: dict[str, Any],
-    state_path: Path,
-    ordinal: int,
-    target_kind: str,
-    target_selector: str,
-    correlation_id: str,
-) -> tuple[dict[str, Any], dict[str, Any]]:
-    attempts = [dict(row) for row in state.get("attempts") or []]
-    matches = [row for row in attempts if row.get("ordinal") == ordinal]
-    if len(matches) > 1:
-        raise InstallationError("A recovery attempt ordinal was duplicated.")
-    if matches:
-        attempt = matches[0]
-        if (
-            attempt.get("target_kind") != target_kind
-            or attempt.get("target_selector") != target_selector
-            or attempt.get("correlation_id") != correlation_id
-        ):
-            raise InstallationError("A recovery attempt identity drifted.")
-        return state, attempt
-    if len(attempts) >= LOCAL_TEST_RECOVERY_MAX_ATTEMPTS:
-        raise InstallationError("The local-test recovery attempt bound is exhausted.")
-    attempt = {
-        "ordinal": ordinal,
-        "correlation_id": correlation_id,
-        "target_kind": target_kind,
-        "target_selector": target_selector,
-        "status": "STARTED",
-        "host_restart_requested": False,
-        "task_reopened": False,
-    }
-    attempts.append(attempt)
-    state["attempts"] = attempts
-    state = _write_self_sealed_json(state_path, state)
-    return state, attempt
-
-
-def _finish_local_test_recovery_attempt(
-    *,
-    state: dict[str, Any],
-    state_path: Path,
-    ordinal: int,
-    status: str,
-    evidence: dict[str, Any],
-) -> dict[str, Any]:
-    attempts = [dict(row) for row in state.get("attempts") or []]
-    matches = [
-        index for index, row in enumerate(attempts) if row.get("ordinal") == ordinal
-    ]
-    if len(matches) != 1:
-        raise InstallationError(
-            "The recovery attempt cannot be finalized exactly once."
-        )
-    index = matches[0]
-    current = attempts[index]
-    if current.get("status") == "PASS":
-        return state
-    current["status"] = status
-    current["evidence"] = evidence
-    attempts[index] = current
-    state["attempts"] = attempts
-    return _write_self_sealed_json(state_path, state)
-
-
-def _terminal_local_test_recovery_receipt(
-    *,
-    authority: dict[str, Any],
-    state: dict[str, Any],
-    terminal_path: Path,
-) -> dict[str, Any]:
-    attempts = [dict(row) for row in state.get("attempts") or []]
-    passed = [row for row in attempts if row.get("status") == "PASS"]
-    selected = passed[-1] if passed else None
-    exact_prior_restored = any(
-        dict(dict(row.get("evidence") or {}).get("restore") or {}).get(
-            "exact_prior_config_restored"
-        )
-        is True
-        for row in attempts
-    )
-    candidate_disabled = any(
-        dict(row.get("evidence") or {}).get("candidate_disabled") is True
-        for row in attempts
-    )
-    status = "PASS" if selected is not None else "FAIL_CLOSED"
-    final_state = (
-        "RECOVERED_EXACT_VERIFIED_STABLE_MAIN"
-        if status == "PASS"
-        else "TERMINAL_RECOVERY_EXHAUSTED_FAIL_CLOSED"
-    )
-    terminal = {
-        "schema": LOCAL_TEST_RECOVERY_SCHEMA,
-        "status": status,
-        "state": final_state,
-        "transaction_id": authority["transaction_id"],
-        "commit_receipt_sha256": authority["commit_file_sha256"],
-        "candidate_selector": authority["candidate_selector"],
-        "last_known_good_selector": authority["last_known_good_selector"],
-        "selected_selector": (
-            str(selected.get("target_selector")) if selected is not None else None
-        ),
-        "controller_idempotent": True,
-        "max_attempts": LOCAL_TEST_RECOVERY_MAX_ATTEMPTS,
-        "attempt_count": len(attempts),
-        "attempts": attempts,
-        "all_attempts_have_unique_correlation_ids": len(
-            {str(row.get("correlation_id")) for row in attempts}
-        )
-        == len(attempts),
-        "candidate_disabled": candidate_disabled,
-        "exact_prior_config_restored": exact_prior_restored,
-        "stable_main_recovery_only": True,
-        "branch_recovery_selector_retired": True,
-        "branch_recovery_install_allowed": False,
-        "one_terminal_receipt": True,
-        "restart_loop_started": False,
-        "restart_or_reload_requests": 0,
-        "task_reopened": False,
-        "install_correction_generation_required": status == "PASS",
-        "current_installation_updated": False,
-        "runtime_ready_before_correction_generation": False,
-        "accepted_two_slot_registry_mutated": False,
-        "task_binding_used_for_authorization": False,
-        "goal_recovery_invoked": False,
-        "installer_helper_is_separate": True,
-        "tunnel_invoked": False,
-        "candidate_created_or_accepted": False,
-        "pointer_moved": False,
-        "hil_inferred": False,
-    }
-    sealed = _write_self_sealed_json(terminal_path, terminal)
-    state["status"] = "TERMINAL"
-    state["terminal_receipt_written"] = True
-    state["terminal_receipt_sha256"] = _sha256(terminal_path)
-    _write_self_sealed_json(
-        terminal_path.parent / f"STATE_{authority['transaction_id']}.json",
-        state,
-    )
-    return {
-        **sealed,
-        "receipt_path": str(terminal_path),
-        "receipt_file_sha256": _sha256(terminal_path),
-        "replayed": False,
-    }
-
-
-def _recover_local_test_candidate_failure(
-    *,
-    commit_receipt_path: Path,
-    commit_receipt_sha256: str,
-    executable: Path,
-    codex_home: Path,
-    data_root: Path,
-) -> dict[str, Any]:
-    """Run one idempotent bounded candidate self-rollback controller."""
-
-    exact_executable = executable.resolve()
-    exact_codex_home = codex_home.resolve()
-    exact_data_root = data_root.resolve()
-    config_path = exact_codex_home / "config.toml"
-    if not exact_executable.is_file() or not config_path.is_file():
-        raise InstallationError(
-            "Candidate self-rollback requires the exact Codex executable and config."
-        )
-    authority = _load_local_test_recovery_authority(
-        commit_receipt_path=commit_receipt_path,
-        commit_receipt_sha256=commit_receipt_sha256,
-        data_root=exact_data_root,
-    )
-    transaction_root = (
-        exact_data_root / "installations" / "codex-v200" / "local-test-transactions"
-    )
-    terminal_path = transaction_root / f"RECOVERY_{authority['transaction_id']}.json"
-    if terminal_path.exists():
-        terminal, _, terminal_file_sha256 = _load_self_sealed_json(
-            path=terminal_path,
-            expected_file_sha256=_sha256(terminal_path),
-            authority_root=transaction_root,
-            label="terminal local-test recovery receipt",
-        )
-        if (
-            terminal.get("schema") != LOCAL_TEST_RECOVERY_SCHEMA
-            or terminal.get("transaction_id") != authority["transaction_id"]
-            or terminal.get("commit_receipt_sha256") != authority["commit_file_sha256"]
-            or terminal.get("one_terminal_receipt") is not True
-        ):
-            raise InstallationError("The terminal local-test recovery receipt drifted.")
-        return {
-            **terminal,
-            "receipt_path": str(terminal_path),
-            "receipt_file_sha256": terminal_file_sha256,
-            "replayed": True,
-        }
-
-    state_path = transaction_root / f"STATE_{authority['transaction_id']}.json"
-    state = _load_or_create_local_test_recovery_state(
-        authority=authority,
-        state_path=state_path,
-    )
-    stable_correlation = _recovery_attempt_correlation_id(
-        transaction_id=authority["transaction_id"],
-        commit_file_sha256=authority["commit_file_sha256"],
-        ordinal=1,
-        target=authority["last_known_good_selector"],
-    )
-    state, stable_attempt = _record_local_test_recovery_attempt(
-        state=state,
-        state_path=state_path,
-        ordinal=1,
-        target_kind="EXACT_LAST_KNOWN_GOOD",
-        target_selector=authority["last_known_good_selector"],
-        correlation_id=stable_correlation,
-    )
-    if stable_attempt.get("status") == "STARTED":
-        restore: dict[str, Any] | None = None
-        try:
-            restore = _restore_exact_prior_local_test_config(
-                authority=authority,
-                executable=exact_executable,
-                codex_home=exact_codex_home,
-            )
-            health = _probe_recovered_selector_health(
-                executable=exact_executable,
-                codex_home=exact_codex_home,
-                data_root=exact_data_root,
-                selected_selector=authority["last_known_good_selector"],
-                candidate_selector=authority["candidate_selector"],
-            )
-            state = _finish_local_test_recovery_attempt(
-                state=state,
-                state_path=state_path,
-                ordinal=1,
-                status="PASS",
-                evidence={
-                    "candidate_disabled": True,
-                    "restore": restore,
-                    "health": health,
-                },
-            )
-        except InstallationError as exc:
-            state = _finish_local_test_recovery_attempt(
-                state=state,
-                state_path=state_path,
-                ordinal=1,
-                status="FAILED",
-                evidence={
-                    "candidate_disabled": bool(
-                        restore and restore.get("candidate_disabled") is True
-                    ),
-                    "restore": restore,
-                    "error_class": type(exc).__name__,
-                    "error_sha256": hashlib.sha256(str(exc).encode("utf-8"))
-                    .hexdigest()
-                    .upper(),
-                },
-            )
-
-    if any(row.get("status") == "PASS" for row in state["attempts"]):
-        return _terminal_local_test_recovery_receipt(
-            authority=authority,
-            state=state,
-            terminal_path=terminal_path,
-        )
-
-    return _terminal_local_test_recovery_receipt(
-        authority=authority,
-        state=state,
-        terminal_path=terminal_path,
-    )
-
-
-def _probe_selector_hook_trust(
-    *,
-    executable: Path,
-    codex_home: Path,
-    hook_cwd: Path,
-    plugin_selector: str,
-) -> dict[str, Any]:
-    """Read one selector's exact trusted complete hook-host authority."""
-
-    resolved_cwd = hook_cwd.resolve()
-    if not executable.resolve().is_file() or not resolved_cwd.is_dir():
-        raise InstallationError(
-            "Install correction hook proof requires exact executable and workspace."
-        )
-    environment = os.environ.copy()
-    environment["CODEX_HOME"] = str(codex_home.resolve())
-    process = subprocess.Popen(
-        [str(executable.resolve()), "app-server", "--stdio"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        encoding="utf-8",
-        bufsize=1,
-        env=environment,
-        creationflags=_windows_hidden_creationflags(),
-    )
-    stdin = process.stdin
-    stdout = process.stdout
-    stderr = process.stderr
-    if stdin is None or stdout is None or stderr is None:
-        process.kill()
-        raise InstallationError("Codex hook-proof app-server stdio was unavailable.")
-    responses: queue.Queue[dict[str, Any]] = queue.Queue()
-    stderr_lines: list[str] = []
-
-    def read_stdout() -> None:
-        for line in stdout:
-            try:
-                payload = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if isinstance(payload, dict):
-                responses.put(payload)
-
-    def read_stderr() -> None:
-        for line in stderr:
-            stderr_lines.append(line.rstrip())
-
-    threading.Thread(target=read_stdout, daemon=True).start()
-    threading.Thread(target=read_stderr, daemon=True).start()
-
-    def send(payload: dict[str, Any]) -> None:
-        try:
-            stdin.write(json.dumps(payload, separators=(",", ":")) + "\n")
-            stdin.flush()
-        except (BrokenPipeError, OSError) as exc:
-            raise InstallationError(
-                "Codex hook-proof app-server closed unexpectedly."
-            ) from exc
-
-    def wait_for(request_id: int, *, timeout: float = 20.0) -> dict[str, Any]:
-        deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                break
-            try:
-                payload = responses.get(timeout=min(0.5, remaining))
-            except queue.Empty:
-                if process.poll() is not None:
-                    break
-                continue
-            if payload.get("id") == request_id:
-                if "error" in payload:
-                    raise InstallationError(
-                        "Codex hook-proof request failed: "
-                        + json.dumps(payload["error"], sort_keys=True)
-                    )
-                return payload
-        detail = " | ".join(stderr_lines[-3:])
-        raise InstallationError(
-            "Codex did not return the correction hook proof"
-            + (f": {detail}" if detail else ".")
-        )
-
-    try:
-        send(
-            {
-                "method": "initialize",
-                "id": 3000,
-                "params": {
-                    "clientInfo": {
-                        "name": "evidence_lane_correction",
-                        "title": "Evidence Lane Install Correction",
-                        "version": BASE_RELEASE,
-                    }
-                },
-            }
-        )
-        wait_for(3000)
-        send({"method": "initialized", "params": {}})
-        send(
-            {
-                "method": "hooks/list",
-                "id": 3001,
-                "params": {"cwds": [str(resolved_cwd)]},
-            }
-        )
-        data = dict(wait_for(3001).get("result") or {}).get("data")
-        if not isinstance(data, list):
-            raise InstallationError("Codex correction hooks/list shape is invalid.")
-        resolved_key = os.path.normcase(str(resolved_cwd))
-        workspaces = [
-            row
-            for row in data
-            if isinstance(row, dict)
-            and os.path.normcase(str(Path(str(row.get("cwd") or "")).resolve()))
-            == resolved_key
-        ]
-        if (
-            len(workspaces) != 1
-            or workspaces[0].get("errors")
-            or workspaces[0].get("warnings")
-        ):
-            raise InstallationError(
-                "Codex did not expose one clean correction hook workspace."
-            )
-        hooks = [
-            dict(row)
-            for row in workspaces[0].get("hooks") or []
-            if isinstance(row, dict) and row.get("pluginId") == plugin_selector
-        ]
-        events = {str(row.get("eventName") or "") for row in hooks}
-        keys = [str(row.get("key") or "") for row in hooks]
-        if (
-            len(hooks) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
-            or events != EXPECTED_CODEX_HOST_HOOK_EVENTS
-            or len(keys) != len(set(keys))
-            or any(
-                row.get("source") != "plugin"
-                or row.get("isManaged") is not False
-                or row.get("enabled") is not True
-                or row.get("trustStatus") != "trusted"
-                or not str(row.get("key") or "").startswith(f"{plugin_selector}:")
-                or re.fullmatch(
-                    r"sha256:[0-9a-f]{64}",
-                    str(row.get("currentHash") or ""),
-                )
-                is None
-                for row in hooks
-            )
-        ):
-            raise InstallationError(
-                "The correction selector's exact trusted hook authority drifted."
-            )
-        receipt = {
-            "schema": HOOK_TRUST_SCHEMA,
-            "status": "PASS",
-            "plugin_selector": plugin_selector,
-            "hook_count": len(hooks),
-            "registered_events": sorted(events),
-            "records": [
-                {
-                    "event_name": str(row["eventName"]),
-                    "hook_key": str(row["key"]),
-                    "current_hash": str(row["currentHash"]),
-                    "enabled": True,
-                    "trust_status": "trusted",
-                }
-                for row in sorted(hooks, key=lambda item: str(item["eventName"]))
-            ],
-            "before_trust_statuses": ["trusted"],
-            "after_trust_statuses": ["trusted"],
-            "supported_codex_api": ["hooks/list"],
-            "hook_trust_config_mutated": False,
-            "workspace_sha256": hashlib.sha256(resolved_key.encode("utf-8"))
-            .hexdigest()
-            .upper(),
-            "raw_workspace_path_included": False,
-            "unrelated_hook_state_mutated": False,
-        }
-        receipt["receipt_sha256"] = (
-            hashlib.sha256(_json_bytes(receipt)).hexdigest().upper()
-        )
-        return receipt
-    finally:
-        if process.poll() is None:
-            process.terminate()
-            try:
-                process.wait(timeout=3)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait(timeout=3)
-
-
-def _task_binding_inventory(data_root: Path) -> dict[str, Any]:
-    """Seal installer and Goal-recovery task rows without mutating either registry."""
-
-    installation_root = data_root.resolve() / "installations" / "codex-v200"
-    registries = {
-        "INSTALLER_TASK_BINDING": installation_root / "task-bindings",
-        "GOAL_RECOVERY_BINDING": installation_root / "goal-recovery" / "bindings",
-    }
-    records: list[dict[str, Any]] = []
-    for registry_kind, root in registries.items():
-        if not root.exists():
-            continue
-        if not root.is_dir() or not _inside(root, installation_root):
-            raise InstallationError("A correction task-binding registry is invalid.")
-        for path in sorted(root.glob("*.json"), key=lambda item: item.name.lower()):
-            try:
-                raw = json.loads(path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError) as exc:
-                raise InstallationError(
-                    "A correction task-binding row is unreadable."
-                ) from exc
-            if not isinstance(raw, dict):
-                raise InstallationError(
-                    "A correction task-binding row has an invalid shape."
-                )
-            payload = raw
-            payload_sha256: str | None = None
-            if registry_kind == "GOAL_RECOVERY_BINDING":
-                payload = dict(raw.get("payload") or {})
-                payload_sha256 = str(raw.get("payload_sha256") or "").upper()
-                if (
-                    raw.get("schema") != "evidence-lane.codex-goal-recovery-binding.v1"
-                    or re.fullmatch(r"[A-F0-9]{64}", payload_sha256) is None
-                    or _ordered_json_sha256(payload) != payload_sha256
-                ):
-                    raise InstallationError(
-                        "A Goal-recovery task binding has a drifted payload seal."
-                    )
-            elif raw.get("schema") != "evidence-lane.codex-task-binding.v1":
-                raise InstallationError(
-                    "An installer task binding has an unexpected schema."
-                )
-            task_id = str(payload.get("task_id") or "")
-            if not task_id or path.stem.lower() != task_id.lower():
-                raise InstallationError(
-                    "A correction task-binding filename does not match its task."
-                )
-            records.append(
-                {
-                    "registry": registry_kind,
-                    "task_id": task_id,
-                    "project_id": str(payload.get("project_id") or ""),
-                    "evidence_session_id": str(
-                        payload.get("evidence_session_id") or ""
-                    ),
-                    "state": str(payload.get("state") or ""),
-                    "plugin_version": str(payload.get("plugin_version") or ""),
-                    "task_uri_sha256": str(payload.get("task_uri_sha256") or ""),
-                    "install_receipt_sha256": str(
-                        payload.get("install_receipt_sha256") or ""
-                    ),
-                    "payload_sha256": payload_sha256,
-                    "file_sha256": _sha256(path),
-                    "relative_locator": path.relative_to(installation_root).as_posix(),
-                }
-            )
-    inventory = {
-        "schema": "evidence-lane.codex-task-binding-inventory.v1",
-        "status": "PASS",
-        "record_count": len(records),
-        "records": records,
-        "registry_bytes_mutated": False,
-        "exact_task_refresh_required_before_task_reopen": True,
-    }
-    inventory["inventory_sha256"] = (
-        hashlib.sha256(_json_bytes(inventory)).hexdigest().upper()
-    )
-    return inventory
-
-
-def _recovery_config_lineage(recovery: dict[str, Any]) -> dict[str, Any]:
-    """Project the sealed before/after hashes of every recovery config action."""
-
-    attempts = [dict(row) for row in recovery.get("attempts") or []]
-    selected = [row for row in attempts if row.get("status") == "PASS"]
-    if len(selected) != 1:
-        raise InstallationError(
-            "The successful recovery does not select one exact correction attempt."
-        )
-    actions: list[dict[str, Any]] = []
-    for attempt in attempts:
-        evidence = dict(attempt.get("evidence") or {})
-        restore = dict(evidence.get("restore") or {})
-        restore_config = dict(restore.get("config") or {})
-        if restore_config:
-            actions.append(
-                {
-                    "ordinal": len(actions) + 1,
-                    "correlation_id": attempt.get("correlation_id"),
-                    "kind": "EXACT_PRIOR_CONFIG_RESTORE",
-                    "before_sha256": str(
-                        restore_config.get("before_sha256") or ""
-                    ).upper(),
-                    "after_sha256": str(
-                        restore_config.get("after_sha256") or ""
-                    ).upper(),
-                    "supported_codex_api": restore_config.get("supported_codex_api"),
-                    "write_count": int(
-                        restore_config.get("plugin_table_write_count") or 0
-                    ),
-                }
-            )
-        fallback = dict(evidence.get("fallback_activation") or {})
-        fallback_config = dict(fallback.get("config") or {})
-        if fallback_config:
-            actions.append(
-                {
-                    "ordinal": len(actions) + 1,
-                    "correlation_id": attempt.get("correlation_id"),
-                    "kind": "BYTE_FROZEN_FALLBACK_SELECTION",
-                    "before_sha256": str(
-                        fallback_config.get("before_sha256") or ""
-                    ).upper(),
-                    "after_sha256": str(
-                        fallback_config.get("after_sha256") or ""
-                    ).upper(),
-                    "supported_codex_api": fallback_config.get("supported_codex_api"),
-                    "write_count": int(
-                        fallback_config.get("plugin_table_write_count") or 0
-                    ),
-                }
-            )
-    if not actions:
-        raise InstallationError("The recovery has no sealed config correction action.")
-    for index, action in enumerate(actions):
-        if (
-            re.fullmatch(r"[A-F0-9]{64}", action["before_sha256"]) is None
-            or re.fullmatch(r"[A-F0-9]{64}", action["after_sha256"]) is None
-            or action["supported_codex_api"]
-            not in {"config/batchWrite", "NO_WRITE_ALREADY_EXACT"}
-            or action["write_count"] not in {0, 1}
-            or (
-                action["supported_codex_api"] == "config/batchWrite"
-                and action["write_count"] != 1
-            )
-            or (
-                index > 0
-                and actions[index - 1]["after_sha256"] != action["before_sha256"]
-            )
-        ):
-            raise InstallationError(
-                "A recovery config correction action is unsealed or discontinuous."
-            )
-    return {
-        "schema": "evidence-lane.codex-correction-config-lineage.v1",
-        "status": "PASS",
-        "action_count": len(actions),
-        "actions": actions,
-        "before_sha256": actions[0]["before_sha256"],
-        "after_sha256": actions[-1]["after_sha256"],
-        "all_actions_compare_and_swap": True,
-        "direct_config_write_used": False,
-    }
-
-
-def _load_install_correction_authority(
-    *,
-    recovery_receipt_path: Path,
-    recovery_receipt_sha256: str,
-    base_installation_path: Path,
-    base_installation_sha256: str,
-    data_root: Path,
-) -> dict[str, Any]:
-    """Join one successful rollback to one exact selected installation base."""
-
-    installation_root = data_root.resolve() / "installations" / "codex-v200"
-    recovery, resolved_recovery, recovery_file_sha256 = _load_self_sealed_json(
-        path=recovery_receipt_path,
-        expected_file_sha256=recovery_receipt_sha256,
-        authority_root=installation_root,
-        label="successful local-test recovery receipt",
-    )
-    base, resolved_base, base_file_sha256 = _load_self_sealed_json(
-        path=base_installation_path,
-        expected_file_sha256=base_installation_sha256,
-        authority_root=installation_root,
-        label="corrected installation base receipt",
-    )
-    selected_selector = str(recovery.get("selected_selector") or "")
-    candidate_selector = str(recovery.get("candidate_selector") or "")
-    base_activation = dict(base.get("activation") or {})
-    base_plugin_add = dict(base_activation.get("plugin_add") or {})
-    if (
-        recovery.get("schema") != LOCAL_TEST_RECOVERY_SCHEMA
-        or recovery.get("status") != "PASS"
-        or recovery.get("one_terminal_receipt") is not True
-        or recovery.get("candidate_disabled") is not True
-        or recovery.get("exact_prior_config_restored") is not True
-        or recovery.get("install_correction_generation_required") is not True
-        or recovery.get("current_installation_updated") is not False
-        or not selected_selector.startswith(f"{PLUGIN_NAME}@")
-        or candidate_selector != f"{PLUGIN_NAME}@{LOCAL_TESTING_MARKETPLACE_NAME}"
-        or selected_selector == candidate_selector
-        or base.get("schema") != INSTALL_SCHEMA
-        or base.get("status") != "PASS"
-        or base_plugin_add.get("pluginId") != selected_selector
-        or not str(dict(base.get("plugin") or {}).get("version") or "")
-    ):
-        raise InstallationError(
-            "The recovery and installation base do not authorize a correction generation."
-        )
-    return {
-        "recovery": recovery,
-        "recovery_path": resolved_recovery,
-        "recovery_file_sha256": recovery_file_sha256,
-        "base": base,
-        "base_path": resolved_base,
-        "base_file_sha256": base_file_sha256,
-        "selected_selector": selected_selector,
-        "candidate_selector": candidate_selector,
-        "config_lineage": _recovery_config_lineage(recovery),
-    }
-
-
-def _probe_install_correction_host_state(
-    *,
-    authority: dict[str, Any],
-    executable: Path,
-    codex_home: Path,
-    data_root: Path,
-    hook_cwd: Path,
-) -> dict[str, Any]:
-    """Freshly prove config, selector, cache, hooks, and native runtime."""
-
-    config_path = codex_home.resolve() / "config.toml"
-    config_sha256 = _sha256(config_path)
-    if config_sha256 != authority["config_lineage"]["after_sha256"]:
-        raise InstallationError(
-            "The live config does not equal the correction lineage's final hash."
-        )
-    plugins = dict(
-        tomllib.loads(config_path.read_text(encoding="utf-8")).get("plugins") or {}
-    )
-    states = _evidence_plugin_activation_states(plugins)
-    selected_selector = str(authority["selected_selector"])
-    candidate_selector = str(authority["candidate_selector"])
-    if (
-        states.get(selected_selector) is not True
-        or states.get(candidate_selector) is not False
-        or sum(states.values()) != 1
-    ):
-        raise InstallationError(
-            "The correction config does not select exactly the recovered route."
-        )
-    plugin_list = _run_codex(
-        executable.resolve(),
-        codex_home.resolve(),
-        ["plugin", "list", "--json"],
-    )
-    installed = plugin_list.get("installed")
-    if not isinstance(installed, list):
-        raise InstallationError("Codex correction proof has no installed plugin list.")
-    evidence_rows = [
-        dict(row)
-        for row in installed
-        if isinstance(row, dict)
-        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
-    ]
-    selected_rows = [
-        row for row in evidence_rows if row.get("pluginId") == selected_selector
-    ]
-    candidate_rows = [
-        row for row in evidence_rows if row.get("pluginId") == candidate_selector
-    ]
-    enabled_rows = [row for row in evidence_rows if row.get("enabled") is True]
-    if (
-        len({str(row.get("pluginId") or "") for row in evidence_rows})
-        != len(evidence_rows)
-        or len(selected_rows) != 1
-        or len(candidate_rows) != 1
-        or candidate_rows[0].get("enabled") is not False
-        or len(enabled_rows) != 1
-        or enabled_rows[0].get("pluginId") != selected_selector
-    ):
-        raise InstallationError(
-            "The correction host does not expose one recovered selector."
-        )
-    selected = selected_rows[0]
-    installed_path = Path(str(selected.get("installedPath") or "")).resolve()
-    plugin_version = str(selected.get("version") or "")
-    base_version = str(dict(authority["base"].get("plugin") or {}).get("version") or "")
-    manifest_path = installed_path / ".codex-plugin" / "plugin.json"
-    if (
-        not installed_path.is_dir()
-        or not manifest_path.is_file()
-        or plugin_version != base_version
-    ):
-        raise InstallationError(
-            "The correction cache/plugin identity does not match its sealed base."
-        )
-    hook_trust = _probe_selector_hook_trust(
-        executable=executable,
-        codex_home=codex_home,
-        hook_cwd=hook_cwd,
-        plugin_selector=selected_selector,
-    )
-    runtime = _prewarm_installed_runtime(
-        installed_path,
-        data_root=data_root.resolve(),
-    )
-    if (
-        runtime.get("status") != "PASS"
-        or runtime.get("tool_count") != EXPECTED_CATALOG["tools"]
-        or dict(runtime.get("catalog_expected") or {}) != EXPECTED_CATALOG
-    ):
-        raise InstallationError(
-            "The correction native runtime proof does not match the exact catalog."
-        )
-    proof = {
-        "schema": "evidence-lane.codex-install-correction-host-proof.v1",
-        "status": "PASS",
-        "config_sha256": config_sha256,
-        "selected_selector": selected_selector,
-        "candidate_selector": candidate_selector,
-        "candidate_disabled": True,
-        "sole_enabled_evidence_lane_selector": True,
-        "plugin_identity": {
-            "plugin_id": PLUGIN_NAME,
-            "plugin_selector": selected_selector,
-            "version": plugin_version,
-            "plugin_manifest_sha256": _sha256(manifest_path),
-        },
-        "cache_identity": {
-            "installed_path": str(installed_path),
-            "installed_path_sha256": hashlib.sha256(
-                os.path.normcase(str(installed_path)).encode("utf-8")
-            )
-            .hexdigest()
-            .upper(),
-            "generated_cache_written_directly": False,
-        },
-        "hook_trust": hook_trust,
-        "native_runtime": {
-            "receipt_sha256": runtime.get("receipt_sha256"),
-            "runtime_identity": runtime.get("runtime_identity"),
-            "tool_catalog_sha256": runtime.get("tool_catalog_sha256"),
-            "catalog": dict(EXPECTED_CATALOG),
-            "task_reopened": False,
-        },
-        "fresh_app_server_hook_read": True,
-        "host_restart_requested": False,
-        "task_reopened": False,
-    }
-    proof["receipt_sha256"] = hashlib.sha256(_json_bytes(proof)).hexdigest().upper()
-    return proof
-
-
-def _seal_install_correction_generation(
-    *,
-    recovery_receipt_path: Path,
-    recovery_receipt_sha256: str,
-    base_installation_path: Path,
-    base_installation_sha256: str,
-    executable: Path,
-    codex_home: Path,
-    data_root: Path,
-    hook_cwd: Path,
-) -> dict[str, Any]:
-    """Seal one corrected installation generation and atomically repoint CURRENT."""
-
-    exact_data_root = data_root.resolve()
-    installation_root = exact_data_root / "installations" / "codex-v200"
-    current_path = installation_root / "CURRENT_INSTALLATION.json"
-    if not executable.resolve().is_file() or not current_path.is_file():
-        raise InstallationError(
-            "Install correction requires the exact Codex executable and CURRENT receipt."
-        )
-    authority = _load_install_correction_authority(
-        recovery_receipt_path=recovery_receipt_path,
-        recovery_receipt_sha256=recovery_receipt_sha256,
-        base_installation_path=base_installation_path,
-        base_installation_sha256=base_installation_sha256,
-        data_root=exact_data_root,
-    )
-    current_before, _, current_before_sha256 = _load_self_sealed_json(
-        path=current_path,
-        expected_file_sha256=_sha256(current_path),
-        authority_root=installation_root,
-        label="current installation before correction",
-    )
-    if (
-        current_before.get("schema") != INSTALL_SCHEMA
-        or current_before.get("status") != "PASS"
-    ):
-        raise InstallationError(
-            "The current installation before correction is not a sealed generation."
-        )
-    existing_generation = dict(current_before.get("correction_generation") or {})
-    if (
-        existing_generation.get("recovery_receipt_sha256")
-        == authority["recovery_file_sha256"]
-    ):
-        if (
-            existing_generation.get("schema") != INSTALL_CORRECTION_GENERATION_SCHEMA
-            or existing_generation.get("status") != "PASS"
-            or existing_generation.get("current_installation_pointer_committed")
-            is not True
-        ):
-            raise InstallationError("The existing correction generation drifted.")
-        return {
-            "schema": INSTALL_CORRECTION_GENERATION_SCHEMA,
-            "status": "PASS",
-            "generation_id": existing_generation.get("generation_id"),
-            "correction_installation_path": str(current_path),
-            "correction_installation_file_sha256": current_before_sha256,
-            "current_installation_path": str(current_path),
-            "current_installation_file_sha256": current_before_sha256,
-            "current_installation_points_to_correction_generation": True,
-            "replayed": True,
-        }
-
-    host_proof = _probe_install_correction_host_state(
-        authority=authority,
-        executable=executable,
-        codex_home=codex_home,
-        data_root=exact_data_root,
-        hook_cwd=hook_cwd,
-    )
-    bindings_before = _task_binding_inventory(exact_data_root)
-    generation_material = {
-        "recovery_receipt_sha256": authority["recovery_file_sha256"],
-        "base_installation_sha256": authority["base_file_sha256"],
-        "current_installation_before_sha256": current_before_sha256,
-        "config_after_sha256": authority["config_lineage"]["after_sha256"],
-        "host_proof_sha256": host_proof["receipt_sha256"],
-        "task_binding_inventory_sha256": bindings_before["inventory_sha256"],
-    }
-    generation_id = (
-        "install_correction_"
-        + hashlib.sha256(_json_bytes(generation_material)).hexdigest()[:40].lower()
-    )
-    generation_root = installation_root / "correction-generations"
-    generation_path = generation_root / f"INSTALL_CORRECTION_{generation_id}.json"
-    intent_path = generation_root / f"INTENT_{generation_id}.json"
-    pointer_receipt_path = generation_root / f"POINTER_{generation_id}.json"
-    history_path = (
-        installation_root
-        / "correction-history"
-        / f"CURRENT_INSTALLATION.before-{generation_id}-{current_before_sha256}.json"
-    )
-    intent = {
-        "schema": "evidence-lane.codex-install-correction-intent.v1",
-        "status": "PREPARED",
-        "generation_id": generation_id,
-        **generation_material,
-        "current_installation_path_sha256": hashlib.sha256(
-            os.path.normcase(str(current_path)).encode("utf-8")
-        )
-        .hexdigest()
-        .upper(),
-        "pointer_write_atomic": True,
-        "task_binding_registry_mutation_allowed": False,
-        "task_reopened": False,
-    }
-    intent = _write_self_sealed_json(intent_path, intent)
-    if history_path.exists():
-        if _sha256(history_path) != current_before_sha256:
-            raise InstallationError("The correction history snapshot drifted.")
-    else:
-        _write_atomic(history_path, current_path.read_bytes())
-
-    corrected = deepcopy(authority["base"])
-    corrected.pop("receipt_sha256", None)
-    corrected_activation = dict(corrected.get("activation") or {})
-    selected_plugin = host_proof["plugin_identity"]
-    base_plugin_add = dict(corrected_activation.get("plugin_add") or {})
-    base_plugin_add["pluginId"] = authority["selected_selector"]
-    base_plugin_add["version"] = selected_plugin["version"]
-    base_plugin_add["installedPath"] = host_proof["cache_identity"]["installed_path"]
-    corrected_activation["plugin_add"] = base_plugin_add
-    corrected_activation["hook_trust"] = host_proof["hook_trust"]
-    corrected_activation["runtime_prewarm"] = host_proof["native_runtime"]
-    corrected_activation["state"] = "CORRECTION_GENERATION_RESTART_OR_RELOAD_REQUIRED"
-    corrected_activation["runtime_ready_before_task_reopen"] = False
-    corrected["activation"] = corrected_activation
-    corrected["restart_required"] = True
-    corrected["runtime_ready_before_task_reopen"] = False
-    corrected["correction_generation"] = {
-        "schema": INSTALL_CORRECTION_GENERATION_SCHEMA,
-        "status": "PASS",
-        "generation_id": generation_id,
-        "recovery_receipt_sha256": authority["recovery_file_sha256"],
-        "base_installation_sha256": authority["base_file_sha256"],
-        "current_installation_before_sha256": current_before_sha256,
-        "config_lineage": authority["config_lineage"],
-        "selectors": {
-            "failed_candidate": authority["candidate_selector"],
-            "corrected_selected": authority["selected_selector"],
-            "candidate_disabled": True,
-            "sole_enabled_evidence_lane_selector": True,
-        },
-        "plugin_identity": host_proof["plugin_identity"],
-        "cache_identity": host_proof["cache_identity"],
-        "hook_trust_receipt_sha256": host_proof["hook_trust"]["receipt_sha256"],
-        "native_runtime": host_proof["native_runtime"],
-        "host_proof_sha256": host_proof["receipt_sha256"],
-        "task_bindings_before": bindings_before,
-        "task_bindings_after": {
-            **bindings_before,
-            "registry_bytes_mutated": False,
-            "exact_task_refresh_required_before_task_reopen": True,
-        },
-        "task_binding_registry_bytes_mutated": False,
-        "goal_recovery_manager_must_refresh_exact_calling_task": True,
-        "installer_helper_is_separate": True,
-        "tunnel_invoked": False,
-        "current_installation_pointer_target": generation_path.name,
-        "current_installation_pointer_committed": True,
-        "pointer_write_atomic": True,
-        "intent_receipt_sha256": _sha256(intent_path),
-        "history_snapshot_sha256": _sha256(history_path),
-        "runtime_ready_before_task_reopen": False,
-        "candidate_created_or_accepted": False,
-        "pointer_moved": False,
-        "hil_inferred": False,
-    }
-    corrected["candidate_created_or_accepted"] = False
-    corrected["pointer_moved"] = False
-    corrected["hil_inferred"] = False
-    corrected["receipt_sha256"] = (
-        hashlib.sha256(_json_bytes(corrected)).hexdigest().upper()
-    )
-    corrected_bytes = _json_bytes(corrected)
-    if generation_path.exists():
-        if generation_path.read_bytes() != corrected_bytes:
-            raise InstallationError("The correction generation file drifted.")
-    else:
-        _write_atomic(generation_path, corrected_bytes)
-    _write_atomic(current_path, corrected_bytes)
-    generation_file_sha256 = _sha256(generation_path)
-    current_after_sha256 = _sha256(current_path)
-    if current_after_sha256 != generation_file_sha256:
-        raise InstallationError(
-            "CURRENT_INSTALLATION does not point to the correction generation."
-        )
-    bindings_after = _task_binding_inventory(exact_data_root)
-    if bindings_after != bindings_before:
-        raise InstallationError(
-            "The install correction unexpectedly mutated task-binding registry bytes."
-        )
-    pointer_receipt = _write_self_sealed_json(
-        pointer_receipt_path,
-        {
-            "schema": "evidence-lane.codex-install-correction-pointer.v1",
-            "status": "PASS",
-            "generation_id": generation_id,
-            "current_installation_before_sha256": current_before_sha256,
-            "correction_installation_file_sha256": generation_file_sha256,
-            "current_installation_after_sha256": current_after_sha256,
-            "current_equals_correction_generation": True,
-            "task_bindings_before_sha256": bindings_before["inventory_sha256"],
-            "task_bindings_after_sha256": bindings_after["inventory_sha256"],
-            "task_binding_registry_bytes_mutated": False,
-            "exact_task_refresh_required_before_task_reopen": True,
-            "runtime_ready_before_task_reopen": False,
-            "candidate_created_or_accepted": False,
-            "pointer_moved": False,
-            "hil_inferred": False,
-        },
-    )
-    return {
-        "schema": INSTALL_CORRECTION_GENERATION_SCHEMA,
-        "status": "PASS",
-        "generation_id": generation_id,
-        "correction_installation_path": str(generation_path),
-        "correction_installation_file_sha256": generation_file_sha256,
-        "current_installation_path": str(current_path),
-        "current_installation_file_sha256": current_after_sha256,
-        "current_installation_points_to_correction_generation": True,
-        "pointer_receipt_path": str(pointer_receipt_path),
-        "pointer_receipt_file_sha256": _sha256(pointer_receipt_path),
-        "pointer_receipt_sha256": pointer_receipt["receipt_sha256"],
-        "task_binding_inventory_sha256": bindings_after["inventory_sha256"],
-        "task_binding_registry_bytes_mutated": False,
-        "exact_task_refresh_required_before_task_reopen": True,
-        "runtime_ready_before_task_reopen": False,
-        "candidate_created_or_accepted": False,
-        "pointer_moved": False,
-        "hil_inferred": False,
-        "replayed": False,
-    }
 
 
 def _ordered_json_sha256(value: Any) -> str:
@@ -7811,8 +4389,7 @@ def _load_two_slot_update_authority(
         or registry.get("active_slot") != enabled_slots[0]
         or registry.get("failure_target_slot") != "stable-git-main"
         or registry.get("local_failure_targets_verified_main_only") is not True
-        or registry.get("branch_recovery_selector_retired") is not True
-        or registry.get("branch_recovery_install_allowed") is not False
+        or registry.get("obsolete_selector_present") is not False
         or registry.get("pre_3_0_fallback_allowed") is not False
         or receipt_sha256
         != hashlib.sha256(_json_bytes(registry_core)).hexdigest().upper()
@@ -7962,6 +4539,7 @@ def _advance_two_slot_stable_registry(
     registry["active_selector"] = plugin_selector
     registry["live_registered_selectors"] = sorted(by_selector)
     registry["exact_live_slot_count"] = 2
+    registry["obsolete_selector_present"] = False
     registry["config_sha256"] = _sha256(config_path)
     registry["activation_proof"] = {
         "command": "codex plugin list --json",
@@ -8021,8 +4599,7 @@ def _advance_two_slot_stable_registry(
         "local_testing_selector": local_testing_selector,
         "local_testing_identity_sha256": local_testing_identity_sha256,
         "local_testing_enabled": False,
-        "branch_recovery_selector_retired": True,
-        "branch_recovery_install_allowed": False,
+        "obsolete_selector_present": False,
         "enabled_plugin_count": 1,
         "registered_plugin_count": 2,
         "active_tunnel_count": 0,
@@ -8115,10 +4692,15 @@ def _seal_plugin_creator_local_cache_restart(
         / PLUGIN_NAME
         / target_version
     )
-    if target_cache.exists():
+    recovery_receipt_path = authority_root / (
+        f"INSTALL_{str(stage.get('archive_sha256') or '')[:16]}_"
+        "PLUGIN_CREATOR_LOCAL_RESTART.json"
+    )
+    recovering_materialized_cache = target_cache.is_dir()
+    if recovering_materialized_cache and recovery_receipt_path.exists():
         raise InstallationError(
-            "The target local cache already exists; the one-shot materialization route "
-            "cannot be replayed."
+            "The target local cache and its sealed restart receipt already exist; "
+            "the completed materialization route cannot be replayed."
         )
     before_list = _run_codex(
         executable,
@@ -8133,23 +4715,75 @@ def _seal_plugin_creator_local_cache_restart(
     ]
     local_before = [row for row in before_rows if row.get("pluginId") == selector]
     enabled_before = [row for row in before_rows if row.get("enabled") is True]
-    if (
-        len(local_before) != 1
-        or len(enabled_before) != 1
-        or enabled_before[0].get("pluginId") != selector
-        or local_before[0].get("version") == target_version
-    ):
-        raise InstallationError(
-            "Local cache materialization requires one older active local selector."
+    if recovering_materialized_cache:
+        if (
+            len(local_before) != 1
+            or len(enabled_before) != 1
+            or enabled_before[0].get("pluginId") != selector
+            or local_before[0].get("version") != target_version
+            or any(
+                row.get("enabled") is not False
+                for row in before_rows
+                if row.get("pluginId") != selector
+            )
+        ):
+            raise InstallationError(
+                "Materialized-cache recovery requires the exact target selector to "
+                "be the sole enabled Evidence Lane plugin."
+            )
+        old_active_version = str(
+            dict(marketplace.get("surface_change_display") or {}).get(
+                "previous_plugin_version"
+            )
+            or target_version
         )
-    old_active_version = str(local_before[0].get("version") or "")
-    materialization = _run_plugin_creator_local_cache_materialization(
-        executable=executable,
-        codex_home=exact_codex_home,
-        plugin_selector=selector,
-        target_version=target_version,
-        old_active_version=old_active_version,
-    )
+        current_dispatch = {
+            "status": "PASS",
+            "route": "PLUGIN_CREATOR_ACTIVE_LOCAL_SLOT_UPDATE_RECOVERY",
+            "selector": selector,
+            "old_active_version": old_active_version,
+            "target_version": target_version,
+            "enabled_evidence_lane_count": 1,
+            "main_selector_enabled": False,
+            "standalone_plugin_add_invoked": False,
+            "target_cache_already_materialized": True,
+            "completed_restart_receipt_preexisted": False,
+        }
+        materialization = {
+            "status": "PASS",
+            "route": "CODEX_PLUGIN_ADD_RECOVERY_READBACK",
+            "invocation_count": 0,
+            "prior_materialization_invocation_count": 1,
+            "outcome": "TARGET_SELECTED_HOST_RESTART_REQUIRED",
+            "returncode": 0,
+            "stdout_sha256": None,
+            "stderr_sha256": None,
+            "plugin_add": None,
+            "recovered_after_prior_materialization_failure": True,
+            "plugin_add_replayed": False,
+        }
+    else:
+        current_dispatch = _plugin_creator_active_local_slot_update(
+            before_list,
+            plugin_selector=selector,
+            target_version=target_version,
+        )
+        if (
+            current_dispatch is None
+            or len(local_before) != 1
+            or len(enabled_before) != 1
+        ):
+            raise InstallationError(
+                "Local cache materialization requires one older active local selector."
+            )
+        old_active_version = str(local_before[0].get("version") or "")
+        materialization = _run_plugin_creator_local_cache_materialization(
+            executable=executable,
+            codex_home=exact_codex_home,
+            plugin_selector=selector,
+            target_version=target_version,
+            old_active_version=old_active_version,
+        )
     if not target_cache.is_dir():
         raise InstallationError(
             "Codex plugin add did not materialize the exact fresh cache."
@@ -8163,6 +4797,27 @@ def _seal_plugin_creator_local_cache_restart(
         raise InstallationError(
             "The materialized cache does not reproduce the configured local source."
         )
+
+    # The Plugin Creator route must seal the derived runtime and hook-isolation
+    # authority before the desktop can reopen the target cache.  Older local
+    # materialization receipts omitted these records, so the Windows hook host
+    # could not bind the newly active plugin root and failed every event with
+    # SEALED_RUNTIME_INTERPRETER_NOT_FOUND.  This is package preparation, not
+    # host activation: hooks remain disabled and exact-task reattachment is
+    # still required after the dumb restart helper runs.
+    runtime_prewarm = _prewarm_installed_runtime(
+        target_cache,
+        data_root=exact_data_root,
+        expected_plugin_version=target_version,
+    )
+    hook_event_isolation = _initialize_installed_hook_event_isolation(
+        target_cache,
+        data_root=exact_data_root,
+        installation_id=(
+            "plugin_creator_local_"
+            + str(stage.get("archive_sha256") or "")[:40].lower()
+        ),
+    )
 
     after_list = _run_codex(
         executable,
@@ -8194,17 +4849,19 @@ def _seal_plugin_creator_local_cache_restart(
     hook_state = _disabled_hook_state(
         codex_home=exact_codex_home,
         selector=selector,
+        expected_hooks=dict(
+            dict(source_identity.get("surface_inventory") or {}).get("hooks") or {}
+        ),
     )
 
     receipt = deepcopy(stage)
     receipt.pop("receipt_sha256", None)
     receipt["activation_authority"] = {
         "status": "PASS",
-        "boundary": (
-            "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART"
-        ),
+        "boundary": ("PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART"),
         "selector": selector,
         "route_law": PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW,
+        "current_route_dispatch": current_dispatch,
         "staging_receipt": str(exact_stage),
         "staging_receipt_sha256": exact_stage_sha256,
         "accepted_two_slot_registry_mutated": False,
@@ -8226,6 +4883,8 @@ def _seal_plugin_creator_local_cache_restart(
         },
         "plugin_creator_local_update": materialization,
         "hook_state": hook_state,
+        "runtime_prewarm": runtime_prewarm,
+        "hook_event_isolation": hook_event_isolation,
         "runtime_ready_before_task_reopen": False,
     }
     receipt["restart_required"] = True
@@ -8239,10 +4898,7 @@ def _seal_plugin_creator_local_cache_restart(
     receipt["task_reopened"] = False
     receipt["state_travel_invoked"] = False
     receipt["accepted_two_slot_registry_mutated"] = False
-    receipt_path = authority_root / (
-        f"INSTALL_{str(stage.get('archive_sha256') or '')[:16]}_"
-        "PLUGIN_CREATOR_LOCAL_RESTART.json"
-    )
+    receipt_path = recovery_receipt_path
     sealed = _write_self_sealed_json(receipt_path, receipt)
     _write_atomic(authority_root / "CURRENT_INSTALLATION.json", _json_bytes(sealed))
     return {
@@ -8265,67 +4921,6 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
     requested_marketplace_name = str(
         getattr(args, "marketplace_name", MARKETPLACE_NAME)
     )
-    activate_local_test = bool(getattr(args, "activate_local_test", False))
-    disabled_hook_recovery_commit = getattr(
-        args, "recover_disabled_local_hooks_from", None
-    )
-    disabled_hook_recovery_commit_sha256 = getattr(
-        args, "recover_disabled_local_hooks_from_sha256", None
-    )
-    if (disabled_hook_recovery_commit is None) != (
-        disabled_hook_recovery_commit_sha256 is None
-    ):
-        raise InstallationError(
-            "Disabled-local hook recovery requires the prior commit receipt and "
-            "its exact file SHA-256."
-        )
-    disabled_local_hook_recovery = disabled_hook_recovery_commit is not None
-    activation_requested = bool(args.activate) or activate_local_test
-    if bool(args.activate) and activate_local_test:
-        raise InstallationError(
-            "Git-stable activation and local-test activation are mutually exclusive."
-        )
-    trust_sealed_hooks = bool(getattr(args, "trust_sealed_hooks", False))
-    defer_hook_trust = bool(getattr(args, "defer_hook_trust_to_user", False))
-    if bool(args.activate) != trust_sealed_hooks:
-        raise InstallationError(
-            "Activation and explicit sealed-hook trust must be requested together."
-        )
-    if activate_local_test:
-        if disabled_local_hook_recovery:
-            if trust_sealed_hooks or defer_hook_trust:
-                raise InstallationError(
-                    "Disabled-local hook recovery owns one exact supported hook-trust "
-                    "write and cannot mix another trust mode."
-                )
-            if (
-                str(getattr(args, "confirm_local_test_rotation", ""))
-                != LOCAL_TEST_DISABLED_HOOK_RECOVERY_CONFIRMATION
-            ):
-                raise InstallationError(
-                    "Disabled-local hook recovery requires its exact confirmation token."
-                )
-        else:
-            if trust_sealed_hooks or not defer_hook_trust:
-                raise InstallationError(
-                    "Local-test activation must defer every hook trust decision "
-                    "to the visible Codex UI."
-                )
-            if (
-                str(getattr(args, "confirm_local_test_rotation", ""))
-                != "EXPLICIT_ONE_TIME_LOCAL_TEST_ROTATION"
-            ):
-                raise InstallationError(
-                    "Local-test activation requires the exact one-time rotation token."
-                )
-    elif disabled_local_hook_recovery:
-        raise InstallationError(
-            "Disabled-local hook recovery is valid only with --activate-local-test."
-        )
-    elif defer_hook_trust:
-        raise InstallationError(
-            "Deferred hook trust is allowed only for explicit local-test activation."
-        )
     if _inside(archive, codex_home / "plugins" / "cache"):
         raise InstallationError(
             "A generated cache package cannot be installation input."
@@ -8334,7 +4929,7 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         receipt_path,
         archive,
         activation=bool(args.activate),
-        local_test_activation=activate_local_test,
+        local_test_activation=False,
     )
     release_authority_path = getattr(args, "release_authority_receipt", None)
     release_authority_file_sha256 = getattr(
@@ -8390,18 +4985,14 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             raise InstallationError(
                 "The local testing selector cannot use the Git-stable activation route."
             )
-        if activate_local_test is False and defer_hook_trust:
-            raise InstallationError("A staged local package cannot defer hook trust.")
         marketplace_name = LOCAL_TESTING_MARKETPLACE_NAME
+        systemwide_route_audit = _require_local_systemwide_route_audit(rehearsal)
     else:
-        if activate_local_test:
-            raise InstallationError(
-                "Explicit local-test activation is fixed to the versioned testing selector."
-            )
         marketplace_name = _resolve_stable_marketplace_name(
             requested_name=requested_marketplace_name,
             two_slot_authority=two_slot_authority,
         )
+        systemwide_route_audit = None
     plugin_selector = f"{PLUGIN_NAME}@{marketplace_name}"
     marketplace_root = codex_home / "local-marketplaces" / marketplace_name
     extracted_inventory: dict[str, Any]
@@ -8443,17 +5034,6 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
                 comparison_surface=comparison_surface,
                 comparison_baseline=comparison_baseline,
             )
-    if activate_local_test and (
-        stage.get("route_law") != PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW
-        or stage.get("marketplace_rotation_mode")
-        != "PLUGIN_CREATOR_LOCAL_SOURCE_UPDATE"
-        or stage.get("windows_root_rotation_attempted") is not False
-    ):
-        raise InstallationError(
-            "Local activation is forbidden outside the plugin-creator cachebuster "
-            "and exact-source-update route. The historical Windows whole-marketplace "
-            "rotation route must never be attempted or selected as a fallback."
-        )
     activation: dict[str, Any] = {
         "state": "STAGED_RESTART_NOT_YET_REQUIRED",
         "plugin_add_invoked": False,
@@ -8467,294 +5047,7 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
     post_proof_cleanup: dict[str, Any] | None = None
     hook_event_isolation: dict[str, Any] | None = None
     two_slot_main_local_registry: dict[str, Any] | None = None
-    retired_third_slot_purge: dict[str, Any] | None = None
-    if activate_local_test:
-        executable = _resolve_codex_cli_executable(
-            getattr(args, "codex_executable", None),
-            verify_version=False,
-        )
-        local_test_reinstall = _prepare_local_test_reinstall(
-            executable=executable,
-            codex_home=codex_home,
-            data_root=data_root,
-            plugin_selector=plugin_selector,
-            marketplace_name=marketplace_name,
-            marketplace_root=marketplace_root,
-            disabled_hook_recovery_commit=(
-                Path(disabled_hook_recovery_commit)
-                if disabled_local_hook_recovery
-                else None
-            ),
-            disabled_hook_recovery_commit_sha256=(
-                str(disabled_hook_recovery_commit_sha256)
-                if disabled_local_hook_recovery
-                else None
-            ),
-        )
-        marketplace_add = (
-            _run_codex(
-                executable,
-                codex_home,
-                ["plugin", "marketplace", "add", str(marketplace_root), "--json"],
-            )
-            if local_test_reinstall["marketplace_add_required"]
-            else {
-                "status": "REUSED_EXACT_LOCAL_MARKETPLACE",
-                "name": marketplace_name,
-                "root": str(marketplace_root.resolve()),
-            }
-        )
-        plugin_add = _run_codex(
-            executable,
-            codex_home,
-            ["plugin", "add", plugin_selector, "--json"],
-        )
-        installed_path = Path(str(plugin_add.get("installedPath") or "")).resolve()
-        expected_cache = (
-            codex_home / "plugins" / "cache" / marketplace_name / PLUGIN_NAME
-        )
-        if (
-            plugin_add.get("pluginId") != plugin_selector
-            or plugin_add.get("version") != identity["version"]
-            or not _inside(installed_path, expected_cache)
-        ):
-            raise InstallationError(
-                "Codex installed a mismatched local-test cache identity."
-            )
-        runtime_prewarm = _prewarm_installed_runtime(
-            installed_path,
-            data_root=data_root,
-        )
-        hook_event_isolation = _initialize_installed_hook_event_isolation(
-            installed_path,
-            data_root=data_root,
-            installation_id=str(local_test_reinstall["transaction_id"]),
-        )
-        hook_trust, config_receipt = _trust_sealed_plugin_hooks(
-            executable=executable,
-            codex_home=codex_home,
-            data_root=data_root,
-            hook_cwd=Path(getattr(args, "hook_cwd", Path.cwd())),
-            plugin_selector=plugin_selector,
-            defer_hook_trust_to_user=not disabled_local_hook_recovery,
-            keep_hooks_disabled_after_trust=bool(
-                getattr(args, "keep_recovered_hooks_disabled", False)
-            ),
-            activation_mode=(
-                "RECOVER_DISABLED_LOCAL"
-                if disabled_local_hook_recovery
-                else "STAGE_CANDIDATE_DISABLED"
-            ),
-            last_known_good_selector=local_test_reinstall["last_known_good_selector"],
-            last_known_good_config_sha256=local_test_reinstall[
-                "last_known_good_config_sha256"
-            ],
-            rollback_config_backup=local_test_reinstall["rollback_config_backup"],
-            expected_commit_config_sha256=(
-                _sha256(codex_home / "config.toml")
-                if disabled_local_hook_recovery
-                else None
-            ),
-        )
-        plugin_list = _run_codex(
-            executable,
-            codex_home,
-            ["plugin", "list", "--json"],
-        )
-        installed_rows = plugin_list.get("installed")
-        if not isinstance(installed_rows, list):
-            raise InstallationError(
-                "Codex plugin list did not expose installed plugins."
-            )
-        evidence_rows = [
-            dict(row)
-            for row in installed_rows
-            if isinstance(row, dict)
-            and str(row.get("pluginId") or "").startswith("evidence-lane-plugin@")
-        ]
-        exact_installed = [
-            row for row in evidence_rows if row.get("pluginId") == plugin_selector
-        ]
-        enabled_evidence = [row for row in evidence_rows if row.get("enabled") is True]
-        if disabled_local_hook_recovery:
-            if (
-                len(exact_installed) != 1
-                or exact_installed[0].get("enabled") is not True
-                or len(enabled_evidence) != 1
-                or enabled_evidence[0].get("pluginId") != plugin_selector
-            ):
-                raise InstallationError(
-                    "Disabled-local hook recovery did not enable only the local "
-                    "3.0 selector."
-                )
-        elif (
-            len(exact_installed) != 1
-            or exact_installed[0].get("enabled") is not False
-            or len(enabled_evidence) != 1
-            or enabled_evidence[0].get("pluginId")
-            != local_test_reinstall["last_known_good_selector"]
-        ):
-            raise InstallationError(
-                "The candidate was not staged disabled beside the one enabled "
-                "last-known-good Evidence Lane selector."
-            )
-        if disabled_local_hook_recovery:
-            retired_third_slot_purge, plugin_list = _purge_retired_branch_recovery(
-                executable=executable,
-                codex_home=codex_home,
-            )
-            two_slot_main_local_registry = _materialize_two_slot_registry(
-                plugin_list=plugin_list,
-                codex_home=codex_home,
-                data_root=data_root,
-                active_slot="versioned-local-testing",
-                config_sha256=_sha256(codex_home / "config.toml"),
-            )
-        readiness = _local_test_runtime_readiness(
-            installed=True,
-            restart_or_reload_completed=False,
-            hooks_trusted=disabled_local_hook_recovery,
-            exact_identity_verified=True,
-            exact_catalog_verified=(
-                runtime_prewarm.get("status") == "PASS"
-                and runtime_prewarm.get("tool_count") == EXPECTED_CATALOG["tools"]
-            ),
-            prompt_capture_verified=False,
-            smoke_probes_passed=False,
-            active=False,
-        )
-        if disabled_local_hook_recovery:
-            activation = {
-                "state": "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED",
-                "plugin_add_invoked": True,
-                "marketplace_add": marketplace_add,
-                "plugin_add": plugin_add,
-                "local_test_reinstall": local_test_reinstall,
-                "exclusive_channel": {
-                    "status": "LOCAL_SELECTOR_SWITCHED_ONCE",
-                    "enabled_selector": plugin_selector,
-                    "enabled_evidence_lane_count": 1,
-                    "candidate_selector": plugin_selector,
-                    "candidate_enabled": True,
-                    "stable_main_enabled": False,
-                    "branch_recovery_selector_present": False,
-                    "switch_count": 1,
-                    "accepted_two_slot_registry_mutated": False,
-                    "config_receipt": config_receipt,
-                },
-                "hook_trust": hook_trust,
-                "hook_event_isolation": hook_event_isolation,
-                "runtime_prewarm": runtime_prewarm,
-                "local_test_marketplace_source": {
-                    "status": "PASS",
-                    "source_type": "local",
-                    "marketplace_name": marketplace_name,
-                    "marketplace_root_sha256": _sha256(
-                        marketplace_root / ".agents" / "plugins" / "marketplace.json"
-                    ),
-                },
-                "transaction": {
-                    "schema": LOCAL_TEST_DISABLED_HOOK_RECOVERY_SCHEMA,
-                    "transaction_id": local_test_reinstall["transaction_id"],
-                    "state": "LOCAL_SELECTOR_SWITCHED_ONCE",
-                    "prior_commit_authority": local_test_reinstall[
-                        "prior_commit_authority"
-                    ],
-                    "candidate_selector": plugin_selector,
-                    "candidate_enabled": True,
-                    "stable_main_enabled": False,
-                    "branch_recovery_selector_present": False,
-                    "switch_count": 1,
-                    "compare_and_swap": True,
-                    "rollback_capable": True,
-                    "rollback_state": "ALL_EVIDENCE_LANE_SELECTORS_DISABLED",
-                    "rollback_config_backup": local_test_reinstall[
-                        "rollback_config_backup"
-                    ],
-                    "rollback_config_backup_sha256": local_test_reinstall[
-                        "rollback_config_backup_sha256"
-                    ],
-                    "hook_event_isolation_verified_before_activation": True,
-                    "complete_hook_set_hashes_trusted": True,
-                    "complete_hook_set_enabled": not bool(
-                        getattr(args, "keep_recovered_hooks_disabled", False)
-                    ),
-                    "restart_or_reload_required": True,
-                    "candidate_created_or_accepted": False,
-                    "pointer_moved": False,
-                    "hil_inferred": False,
-                },
-                "readiness": readiness,
-                "runtime_ready_before_task_reopen": False,
-                "prompt_capture_runnable_after_restart": True,
-                "hot_reload_claimed": False,
-            }
-        else:
-            activation = {
-                "state": "CANDIDATE_STAGED_DISABLED_RESTART_TRUST_REQUIRED",
-                "plugin_add_invoked": True,
-                "marketplace_add": marketplace_add,
-                "plugin_add": plugin_add,
-                "local_test_reinstall": local_test_reinstall,
-                "exclusive_channel": {
-                    "status": "CANDIDATE_NOT_SWITCHED",
-                    "enabled_selector": local_test_reinstall[
-                        "last_known_good_selector"
-                    ],
-                    "enabled_evidence_lane_count": 1,
-                    "candidate_selector": plugin_selector,
-                    "candidate_enabled": False,
-                    "switch_count": 0,
-                    "accepted_two_slot_registry_mutated": False,
-                    "config_receipt": config_receipt,
-                },
-                "hook_trust": hook_trust,
-                "hook_event_isolation": hook_event_isolation,
-                "runtime_prewarm": runtime_prewarm,
-                "local_test_marketplace_source": {
-                    "status": "PASS",
-                    "source_type": "local",
-                    "marketplace_name": marketplace_name,
-                    "marketplace_root_sha256": _sha256(
-                        marketplace_root / ".agents" / "plugins" / "marketplace.json"
-                    ),
-                },
-                "transaction": {
-                    "schema": LOCAL_TEST_STAGE_SCHEMA,
-                    "transaction_id": local_test_reinstall["transaction_id"],
-                    "state": "CANDIDATE_STAGED_DISABLED",
-                    "last_known_good_selector": local_test_reinstall[
-                        "last_known_good_selector"
-                    ],
-                    "last_known_good_config_sha256": local_test_reinstall[
-                        "last_known_good_config_sha256"
-                    ],
-                    "candidate_selector": plugin_selector,
-                    "candidate_enabled": False,
-                    "switch_count": 0,
-                    "compare_and_swap": True,
-                    "rollback_capable": True,
-                    "rollback_config_backup": local_test_reinstall[
-                        "rollback_config_backup"
-                    ],
-                    "rollback_config_backup_sha256": local_test_reinstall[
-                        "rollback_config_backup_sha256"
-                    ],
-                    "commit_requires": [
-                        "HUMAN_HOOK_TRUST",
-                        "HOST_RESTART_OR_RELOAD",
-                        "EXACT_PLUGIN_AND_CATALOG_IDENTITY",
-                        "PROMPT_CAPTURE_PROOF",
-                        "BOUNDED_SMOKE_PROBES",
-                        "UNCHANGED_CAS_BASELINE",
-                    ],
-                },
-                "readiness": readiness,
-                "runtime_ready_before_task_reopen": False,
-                "prompt_capture_runnable_after_user_hook_trust": False,
-                "hot_reload_claimed": False,
-            }
-    elif args.activate:
+    if args.activate:
         executable = _resolve_codex_cli_executable(
             getattr(args, "codex_executable", None),
             verify_version=False,
@@ -8854,19 +5147,27 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         runtime_prewarm = _prewarm_installed_runtime(
             installed_path,
             data_root=data_root,
+            expected_plugin_version=str(identity["version"]),
         )
         hook_event_isolation = _initialize_installed_hook_event_isolation(
             installed_path,
             data_root=data_root,
             installation_id=("stable_install_" + str(_sha256(archive))[:40].lower()),
         )
-        hook_trust, config_receipt = _trust_sealed_plugin_hooks(
-            executable=executable,
-            codex_home=codex_home,
-            data_root=data_root,
-            hook_cwd=Path(getattr(args, "hook_cwd", Path.cwd())),
-            plugin_selector=plugin_selector,
-        )
+        hook_trust = {
+            "schema": HOOK_TRUST_SCHEMA,
+            "status": "PENDING_NATIVE_POST_RESTART_VERIFICATION",
+            "plugin_selector": plugin_selector,
+            "hook_count": len(EXPECTED_CODEX_HOST_HOOK_EVENTS),
+            "records": [],
+            "all_enabled": False,
+            "hooks_enabled_by_update": False,
+            "native_post_restart_verification_required": True,
+        }
+        config_receipt = {
+            "status": "NOT_MUTATED_BY_INSTALLER",
+            "native_post_restart_hook_control_required": True,
+        }
         plugin_list = _run_codex(
             executable,
             codex_home,
@@ -8921,6 +5222,7 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         "plugin": identity,
         "catalog_expected": dict(EXPECTED_CATALOG),
         "package_receipt_sha256": _sha256(receipt_path),
+        "systemwide_route_audit": systemwide_route_audit,
         "activation_authority": (
             {
                 "status": release_authority["status"],
@@ -8940,26 +5242,6 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
             }
             if release_authority is not None
             else {
-                "status": "PASS",
-                "boundary": (
-                    LOCAL_TEST_DISABLED_HOOK_RECOVERY_CONFIRMATION
-                    if disabled_local_hook_recovery
-                    else "EXPLICIT_ONE_TIME_LOCAL_TEST_ROTATION"
-                ),
-                "selector": plugin_selector,
-                "package_receipt_sha256": _sha256(receipt_path),
-                "git_write_invoked": False,
-                "github_ci_required": False,
-                "vercel_preview_required": False,
-                "accepted_two_slot_registry_mutated": False,
-                "hook_trust": (
-                    "SEALED_COMPLETE_HOOK_SET_TRUSTED"
-                    if disabled_local_hook_recovery
-                    else "USER_TRUST_PENDING"
-                ),
-            }
-            if activate_local_test
-            else {
                 "status": "NOT_APPLICABLE",
                 "reason": "STAGING_ONLY_LOCAL_REHEARSAL",
             }
@@ -8974,21 +5256,15 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         "comparison_baseline": stage.get("comparison_baseline"),
         "activation": activation,
         "two_slot_main_local_registry": two_slot_main_local_registry,
-        "retired_third_slot_purge": retired_third_slot_purge,
         "live_slot_contract": {
             "schema": TWO_SLOT_REGISTRY_SCHEMA,
-            "status": (
-                "PASS"
-                if args.activate or disabled_local_hook_recovery
-                else "NOT_APPLICABLE"
-            ),
+            "status": ("PASS" if args.activate else "NOT_APPLICABLE"),
             "exact_live_slot_count": 2,
             "stable_slot": "stable-git-main",
             "stable_selector": TWO_SLOT_SELECTORS["stable-git-main"],
             "local_slot": "versioned-local-testing",
             "local_testing_selector": TWO_SLOT_SELECTORS["versioned-local-testing"],
-            "branch_recovery_selector_retired": True,
-            "branch_recovery_install_allowed": False,
+            "obsolete_selector_present": False,
             "pre_3_0_fallback_allowed": False,
         },
         "previous_release_cache_deleted": False,
@@ -9002,15 +5278,13 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         ),
         "obsolete_cleanup_used_supported_codex_apis": bool(args.activate),
         "stable_main_identity_location": "SEALED_INSTALL_RECEIPT_NOT_SELECTOR",
-        "new_stable_selector_created": (
-            activate_local_test and not disabled_local_hook_recovery
-        ),
+        "new_stable_selector_created": False,
         "generated_cache_written_directly": False,
         "credential_requested_or_stored": False,
         "candidate_created_or_accepted": False,
         "pointer_moved": False,
         "hil_inferred": False,
-        "restart_required": activation_requested,
+        "restart_required": bool(args.activate),
         "runtime_ready_before_task_reopen": bool(
             activation.get("runtime_ready_before_task_reopen") is True
         ),
@@ -9039,397 +5313,13 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         if args.activate and installed_path is not None and plugin_list is not None
         else {
             "status": "NOT_APPLICABLE",
-            "reason": (
-                "LOCAL_TEST_ROTATION_PRESERVES_ACCEPTED_TWO_SLOT_AUTHORITY"
-                if activate_local_test
-                else "STAGING_PASS_ONLY"
-            ),
+            "reason": "STAGING_PASS_ONLY",
         }
     )
     return {
         **body,
         "receipt_path": str(install_receipt),
         "two_slot_registry_update": two_slot_update,
-    }
-
-
-def _stage_loaded_local_successor(args: argparse.Namespace) -> dict[str, Any]:
-    """Install and verify one inactive successor before the bound host stops.
-
-    The active desktop may retain the primary selector's cache.  This route uses
-    a fixed, reusable successor selector with its own cache, verifies the exact
-    package/runtime/complete-hook surface while the desktop remains open, and keeps
-    the successor disabled.  A separately sealed post-stop helper may then rotate
-    those proved bytes into the primary and recovery slots before reopening the
-    exact task.
-    """
-
-    if (
-        args.confirm_local_successor_stage
-        != "EXPLICIT_INSTALL_DISABLED_LOCAL_SUCCESSOR_BEFORE_RESTART"
-    ):
-        raise InstallationError(
-            "Loaded-local successor staging requires its exact confirmation token."
-        )
-    if (
-        args.archive is None
-        or (args.package_receipt is None and args.rehearsal_receipt is None)
-        or args.primary_installation_receipt is None
-        or not args.primary_installation_receipt_sha256
-        or args.codex_executable is None
-    ):
-        raise InstallationError(
-            "Loaded-local successor staging requires the package, primary receipt "
-            "and seal, and Codex executable."
-        )
-    if (
-        args.activate
-        or args.activate_local_test
-        or args.trust_sealed_hooks
-        or args.defer_hook_trust_to_user
-        or args.recover_disabled_local_hooks_from is not None
-        or args.materialize_local_recovery_copy
-    ):
-        raise InstallationError(
-            "Loaded-local successor staging cannot be mixed with another activation "
-            "or recovery operation."
-        )
-
-    archive = args.archive.resolve()
-    package_receipt_path = Path(
-        args.package_receipt or args.rehearsal_receipt
-    ).resolve()
-    codex_home = args.codex_home.resolve()
-    data_root = args.data_root.resolve()
-    executable = args.codex_executable.resolve()
-    hook_cwd = Path(args.hook_cwd).resolve()
-    if not executable.is_file() or not hook_cwd.is_dir():
-        raise InstallationError(
-            "The exact Codex executable or governed hook workspace is unavailable."
-        )
-    package = _load_receipt(
-        package_receipt_path,
-        archive,
-        activation=False,
-        local_test_activation=True,
-    )
-    primary_receipt_path = args.primary_installation_receipt.resolve()
-    primary_receipt_sha256 = _sha256(primary_receipt_path)
-    if primary_receipt_sha256 != str(
-        args.primary_installation_receipt_sha256
-    ).upper() or not _inside(
-        primary_receipt_path,
-        data_root / "installations" / "codex-v200",
-    ):
-        raise InstallationError(
-            "The primary local installation receipt is outside authority or drifted."
-        )
-    primary_receipt = json.loads(primary_receipt_path.read_text(encoding="utf-8"))
-    primary_activation = dict(primary_receipt.get("activation") or {})
-    primary_plugin_add = dict(primary_activation.get("plugin_add") or {})
-    primary_selector = str(primary_plugin_add.get("pluginId") or "")
-    primary_cache = Path(str(primary_plugin_add.get("installedPath") or "")).resolve()
-    if (
-        primary_receipt.get("schema") != INSTALL_SCHEMA
-        or primary_receipt.get("status") != "PASS"
-        or primary_selector != f"{PLUGIN_NAME}@{LOCAL_TESTING_MARKETPLACE_NAME}"
-        or not primary_cache.is_dir()
-        or not _inside(
-            primary_cache,
-            codex_home
-            / "plugins"
-            / "cache"
-            / LOCAL_TESTING_MARKETPLACE_NAME
-            / PLUGIN_NAME,
-        )
-        or primary_receipt.get("candidate_created_or_accepted") is not False
-        or primary_receipt.get("pointer_moved") is not False
-        or primary_receipt.get("hil_inferred") is not False
-    ):
-        raise InstallationError(
-            "The supplied primary local installation is not successor-stage eligible."
-        )
-
-    two_slot_path = (
-        data_root
-        / "installations"
-        / "codex-v200"
-        / "two-slot"
-        / "CODEX_TWO_SLOT_REGISTRY.json"
-    )
-    two_slot_before = _sha256(two_slot_path) if two_slot_path.is_file() else None
-    before_plugin_list = _run_codex(
-        executable, codex_home, ["plugin", "list", "--json"]
-    )
-    before_rows = [
-        dict(row)
-        for row in before_plugin_list.get("installed") or []
-        if isinstance(row, dict)
-        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
-    ]
-    primary_rows = [
-        row for row in before_rows if row.get("pluginId") == primary_selector
-    ]
-    successor_rows = [
-        row for row in before_rows if row.get("pluginId") == LOCAL_SUCCESSOR_SELECTOR
-    ]
-    enabled_before = [row for row in before_rows if row.get("enabled") is True]
-    if (
-        len(primary_rows) != 1
-        or len(successor_rows) > 1
-        or any(row.get("enabled") is True for row in successor_rows)
-        or any(row.get("pluginId") != primary_selector for row in enabled_before)
-    ):
-        raise InstallationError(
-            "Successor staging requires one installed primary and no other active "
-            "Evidence Lane selector."
-        )
-    if successor_rows:
-        _run_codex(
-            executable,
-            codex_home,
-            ["plugin", "remove", LOCAL_SUCCESSOR_SELECTOR, "--json"],
-        )
-
-    successor_root = (
-        codex_home / "local-marketplaces" / LOCAL_SUCCESSOR_MARKETPLACE_NAME
-    )
-    with tempfile.TemporaryDirectory(prefix="evidence-lane-v300-successor-") as raw:
-        extracted = Path(raw) / "plugin"
-        extracted.mkdir()
-        _safe_extract(archive, extracted)
-        identity = _validate_plugin(extracted)
-        extracted_inventory = _source_inventory(extracted)
-        stage = _stage_marketplace(
-            extracted=extracted,
-            marketplace_root=successor_root,
-            data_root=data_root,
-            identity=identity,
-            archive_sha256=_sha256(archive),
-            marketplace_name=LOCAL_SUCCESSOR_MARKETPLACE_NAME,
-            comparison_surface=identity["surface_inventory"],
-            comparison_baseline={
-                "primary_installation_receipt_sha256": primary_receipt_sha256,
-                "primary_selector": primary_selector,
-                "purpose": "PRE_STOP_LOADED_LOCAL_SUCCESSOR",
-            },
-        )
-
-    marketplaces = _run_codex(
-        executable, codex_home, ["plugin", "marketplace", "list", "--json"]
-    )
-    exact_marketplaces = [
-        dict(row)
-        for row in marketplaces.get("marketplaces") or []
-        if isinstance(row, dict) and row.get("name") == LOCAL_SUCCESSOR_MARKETPLACE_NAME
-    ]
-    if len(exact_marketplaces) > 1:
-        raise InstallationError("Codex exposed duplicate local successor marketplaces.")
-    if exact_marketplaces:
-        if (
-            Path(str(exact_marketplaces[0].get("root") or "")).resolve()
-            != successor_root.resolve()
-        ):
-            raise InstallationError(
-                "The configured successor marketplace root does not match staging."
-            )
-        marketplace_add: dict[str, Any] = {
-            "status": "REUSED_EXACT_LOCAL_MARKETPLACE",
-            "name": LOCAL_SUCCESSOR_MARKETPLACE_NAME,
-            "root": str(successor_root.resolve()),
-        }
-    else:
-        marketplace_add = _run_codex(
-            executable,
-            codex_home,
-            ["plugin", "marketplace", "add", str(successor_root), "--json"],
-        )
-
-    try:
-        plugin_add = _run_codex(
-            executable,
-            codex_home,
-            ["plugin", "add", LOCAL_SUCCESSOR_SELECTOR, "--json"],
-        )
-        successor_cache = Path(str(plugin_add.get("installedPath") or "")).resolve()
-        expected_cache = (
-            codex_home
-            / "plugins"
-            / "cache"
-            / LOCAL_SUCCESSOR_MARKETPLACE_NAME
-            / PLUGIN_NAME
-        )
-        if (
-            plugin_add.get("pluginId") != LOCAL_SUCCESSOR_SELECTOR
-            or plugin_add.get("version") != identity["version"]
-            or not successor_cache.is_dir()
-            or not _inside(successor_cache, expected_cache)
-        ):
-            raise InstallationError(
-                "Codex installed a mismatched local successor cache identity."
-            )
-
-        config_path = codex_home / "config.toml"
-        before_config_sha256 = _sha256(config_path)
-        parsed = tomllib.loads(config_path.read_text(encoding="utf-8"))
-        plugins = json.loads(json.dumps(dict(parsed.get("plugins") or {})))
-        if primary_selector not in plugins or LOCAL_SUCCESSOR_SELECTOR not in plugins:
-            raise InstallationError(
-                "The primary or successor selector is absent from Codex config."
-            )
-        for selector, raw_settings in list(plugins.items()):
-            if not selector.startswith(f"{PLUGIN_NAME}@"):
-                continue
-            desired = selector == primary_selector
-            settings = dict(raw_settings or {})
-            servers = dict(settings.get("mcp_servers") or {})
-            evidence_server = dict(servers.get("evidence-lane") or {})
-            settings["enabled"] = desired
-            evidence_server["enabled"] = desired
-            servers["evidence-lane"] = evidence_server
-            settings["mcp_servers"] = servers
-            plugins[selector] = settings
-        primary_write = _batch_write_recovery_plugins(
-            executable=executable,
-            codex_home=codex_home,
-            expected_before_sha256=before_config_sha256,
-            plugins=plugins,
-        )
-        primary_config_sha256 = _sha256(config_path)
-        config_archive = data_root / "installations" / "codex-v200" / "config-archives"
-        primary_config_backup = config_archive / f"config-{primary_config_sha256}.toml"
-        if not primary_config_backup.exists():
-            _write_atomic(primary_config_backup, config_path.read_bytes())
-        if _sha256(primary_config_backup) != primary_config_sha256:
-            raise InstallationError(
-                "The normalized primary config backup seal does not match."
-            )
-        runtime_prewarm = _prewarm_installed_runtime(
-            successor_cache,
-            data_root=data_root,
-        )
-        hook_trust, hook_config_receipt = _trust_sealed_plugin_hooks(
-            executable=executable,
-            codex_home=codex_home,
-            data_root=data_root,
-            hook_cwd=hook_cwd,
-            plugin_selector=LOCAL_SUCCESSOR_SELECTOR,
-            activation_mode="VERIFY_DISABLED_SUCCESSOR_FROM_SEALED_PRIMARY",
-            last_known_good_selector=primary_selector,
-            last_known_good_config_sha256=primary_config_sha256,
-            rollback_config_backup=str(primary_config_backup),
-        )
-    except Exception:
-        try:
-            _run_codex(
-                executable,
-                codex_home,
-                ["plugin", "remove", LOCAL_SUCCESSOR_SELECTOR, "--json"],
-            )
-        except InstallationError:
-            pass
-        raise
-
-    final_plugin_list = _run_codex(executable, codex_home, ["plugin", "list", "--json"])
-    final_rows = [
-        dict(row)
-        for row in final_plugin_list.get("installed") or []
-        if isinstance(row, dict)
-        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
-    ]
-    final_by_selector = {str(row.get("pluginId") or ""): row for row in final_rows}
-    enabled_final = [row for row in final_rows if row.get("enabled") is True]
-    hook_records = list(hook_trust.get("records") or [])
-    if (
-        primary_selector not in final_by_selector
-        or LOCAL_SUCCESSOR_SELECTOR not in final_by_selector
-        or final_by_selector[primary_selector].get("enabled") is not True
-        or final_by_selector[LOCAL_SUCCESSOR_SELECTOR].get("enabled") is not False
-        or len(enabled_final) != 1
-        or enabled_final[0].get("pluginId") != primary_selector
-        or hook_trust.get("status") != "PASS"
-        or hook_trust.get("hook_count") != len(EXPECTED_PACKAGE_HOOK_EVENTS)
-        or len(hook_records) != len(EXPECTED_PACKAGE_HOOK_EVENTS)
-        or any(
-            row.get("enabled") is not False or row.get("trust_status") != "trusted"
-            for row in hook_records
-        )
-        or runtime_prewarm.get("status") != "PASS"
-        or runtime_prewarm.get("tool_count") != EXPECTED_CATALOG["tools"]
-    ):
-        raise InstallationError(
-            "The installed local successor did not remain disabled with complete "
-            "verified hooks beside the sole active primary."
-        )
-    if two_slot_before is not None and _sha256(two_slot_path) != two_slot_before:
-        raise InstallationError(
-            "The accepted stable/fallback registry changed during successor staging."
-        )
-    successor_inventory = _source_inventory(successor_cache)
-    if (
-        successor_inventory["manifest_sha256"] != extracted_inventory["manifest_sha256"]
-        or successor_inventory["file_count"] != extracted_inventory["file_count"]
-    ):
-        raise InstallationError(
-            "The installed successor bytes do not match the sealed package."
-        )
-
-    body: dict[str, Any] = {
-        "schema": LOCAL_SUCCESSOR_STAGE_SCHEMA,
-        "status": "PASS",
-        "state": "SUCCESSOR_INSTALLED_DISABLED_ELEVEN_HOOKS_VERIFIED_HOST_STILL_OPEN",
-        "package": {
-            "archive_sha256": _sha256(archive),
-            "package_receipt_sha256": _sha256(package_receipt_path),
-            "plugin_version": identity["version"],
-            "source_manifest_sha256": successor_inventory["manifest_sha256"],
-            "source_file_count": successor_inventory["file_count"],
-            "package_receipt_schema": package.get("schema"),
-        },
-        "primary": {
-            "selector": primary_selector,
-            "enabled": True,
-            "installation_receipt": str(primary_receipt_path),
-            "installation_receipt_sha256": primary_receipt_sha256,
-        },
-        "successor": {
-            "selector": LOCAL_SUCCESSOR_SELECTOR,
-            "enabled": False,
-            "marketplace_root": str(successor_root),
-            "marketplace_stage": stage,
-            "marketplace_add": marketplace_add,
-            "plugin_add": plugin_add,
-            "cache_root": str(successor_cache),
-            "cache_manifest_sha256": successor_inventory["manifest_sha256"],
-            "hook_trust": hook_trust,
-            "runtime_prewarm": runtime_prewarm,
-            "primary_activation_write": primary_write,
-            "hook_config_receipt": hook_config_receipt,
-        },
-        "restart_gate": {
-            "helper_may_be_scheduled": True,
-            "exact_host_stop_occurred": False,
-            "task_reopened": False,
-            "successor_must_be_revalidated_after_host_stop": True,
-        },
-        "accepted_two_slot_registry": {
-            "path": str(two_slot_path) if two_slot_path.is_file() else None,
-            "sha256": two_slot_before,
-            "mutated": False,
-        },
-        "candidate_created_or_accepted": False,
-        "pointer_moved": False,
-        "hil_inferred": False,
-        "git_invoked": False,
-    }
-    body["receipt_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
-    stage_root = data_root / "installations" / "codex-v200" / "local-successor-stages"
-    receipt_path = stage_root / f"STAGE_{_sha256(archive)[:16]}.json"
-    _write_atomic(receipt_path, _json_bytes(body))
-    return {
-        **body,
-        "receipt_path": str(receipt_path),
-        "receipt_file_sha256": _sha256(receipt_path),
     }
 
 
@@ -9506,18 +5396,6 @@ def _load_exact_commit_package_receipt(
     }
 
 
-def _materialize_local_recovery_copy(args: argparse.Namespace) -> dict[str, Any]:
-    """Reject the retired third-slot recovery materialization route."""
-
-    raise InstallationError(
-        "The local/branch recovery copy route is retired. Evidence Lane has "
-        "exactly two live slots: stable Git main and versioned local testing."
-    )
-
-    # Keep this callable tombstone only to fail closed for older automation
-    # imports.  The recovery implementation and all of its side effects are gone.
-
-
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", type=Path)
@@ -9557,7 +5435,12 @@ def _parser() -> argparse.ArgumentParser:
         "--data-root",
         type=Path,
         default=Path(
-            os.environ.get("EVIDENCE_LANE_DATA_ROOT") or Path.home() / "EvidenceLanePV"
+            os.environ.get("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT")
+            or Path.home() / ".codex" / "plugins" / "runtime" / "evidence-lane-plugin"
+        ),
+        help=(
+            "Hidden plugin runtime-control root. Project/PV authority is bound "
+            "separately by project_register and must not be stored here."
         ),
     )
     parser.add_argument(
@@ -9569,107 +5452,7 @@ def _parser() -> argparse.ArgumentParser:
             "are rejected before mutation."
         ),
     )
-    parser.add_argument(
-        "--materialize-local-recovery-copy",
-        action="store_true",
-        help="Retired compatibility flag; always fails closed.",
-    )
-    parser.add_argument(
-        "--materialize-branch-checkpoint",
-        action="store_true",
-        help="Retired compatibility flag; branch installs always fail closed.",
-    )
-    parser.add_argument(
-        "--stage-loaded-local-successor",
-        action="store_true",
-        help=(
-            "Install one inactive fixed local-successor slot and verify its "
-            "runtime and complete hook registry before the loaded desktop is stopped."
-        ),
-    )
-    parser.add_argument("--primary-installation-receipt", type=Path)
-    parser.add_argument("--primary-installation-receipt-sha256")
-    parser.add_argument("--confirm-local-recovery-copy")
-    parser.add_argument("--confirm-branch-checkpoint")
-    parser.add_argument("--exact-commit-package-receipt", type=Path)
-    parser.add_argument("--exact-commit-package-receipt-sha256")
-    parser.add_argument("--confirm-local-successor-stage")
     parser.add_argument("--activate", action="store_true")
-    parser.add_argument(
-        "--activate-local-test",
-        action="store_true",
-        help=(
-            "Activate only evidence-lane-v300-testing-new from a sealed local "
-            "rehearsal without changing verified stable-main authority."
-        ),
-    )
-    parser.add_argument("--confirm-local-test-rotation")
-    parser.add_argument(
-        "--recover-disabled-local-hooks-from",
-        type=Path,
-        help=(
-            "Reinstall and reactivate only the disabled local 3.0 selector from "
-            "one exact prior committed-local receipt after hook correction."
-        ),
-    )
-    parser.add_argument("--recover-disabled-local-hooks-from-sha256")
-    parser.add_argument(
-        "--seal-disabled-local-test-baseline",
-        action="store_true",
-        help=(
-            "Seal one fresh live 3.0 CAS checkpoint when both byte-identical "
-            "local slots predate the committed-local receipt contract."
-        ),
-    )
-    parser.add_argument("--confirm-disabled-local-test-baseline")
-    parser.add_argument(
-        "--keep-recovered-hooks-disabled",
-        action="store_true",
-        help=(
-            "Verify and seal every recovered hook hash but keep every hook "
-            "disabled while enabling the exact local 3.0 plugin and MCP selector."
-        ),
-    )
-    parser.add_argument(
-        "--seal-local-test-host-proof",
-        type=Path,
-        help=(
-            "Read one staged receipt, prove its disabled candidate through fresh "
-            "hooks/plugin/catalog reads, and emit the commit authority."
-        ),
-    )
-    parser.add_argument("--seal-local-test-host-proof-sha256")
-    parser.add_argument(
-        "--commit-local-test-transaction",
-        type=Path,
-        help=(
-            "Commit one sealed disabled local-test candidate after visible hook "
-            "trust and exact host proof; this is separate from Goal recovery."
-        ),
-    )
-    parser.add_argument("--commit-local-test-transaction-sha256")
-    parser.add_argument("--local-test-host-proof", type=Path)
-    parser.add_argument("--local-test-host-proof-sha256")
-    parser.add_argument(
-        "--recover-local-test-transaction",
-        type=Path,
-        help=(
-            "Recover one failed committed local-test candidate through the "
-            "idempotent bounded self-rollback controller."
-        ),
-    )
-    parser.add_argument("--recover-local-test-transaction-sha256")
-    parser.add_argument(
-        "--seal-install-correction",
-        type=Path,
-        help=(
-            "Consume one successful candidate self-rollback and atomically point "
-            "CURRENT_INSTALLATION at its fully proven correction generation."
-        ),
-    )
-    parser.add_argument("--seal-install-correction-sha256")
-    parser.add_argument("--corrected-installation-base", type=Path)
-    parser.add_argument("--corrected-installation-base-sha256")
     parser.add_argument(
         "--seal-plugin-creator-local-cache-restart",
         type=Path,
@@ -9681,19 +5464,6 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--seal-plugin-creator-local-cache-restart-sha256")
     parser.add_argument("--confirm-plugin-creator-local-cache-restart")
     parser.add_argument(
-        "--defer-hook-trust-to-user",
-        action="store_true",
-        help="Leave the complete hook-set trust decisions for the visible Codex UI.",
-    )
-    parser.add_argument(
-        "--trust-sealed-hooks",
-        action="store_true",
-        help=(
-            "Trust exactly the installed selector's complete current hook hashes "
-            "through Codex hooks/list plus config/batchWrite. Required with --activate."
-        ),
-    )
-    parser.add_argument(
         "--hook-cwd",
         type=Path,
         default=Path.cwd(),
@@ -9704,68 +5474,10 @@ def _parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = _parser().parse_args()
-    if args.stage_loaded_local_successor:
-        raise InstallationError(
-            "The local-successor marketplace is retired. Reinstall a fresh package "
-            "version into evidence-lane-v300-testing-new before the restart-only helper."
-        )
-    if args.materialize_local_recovery_copy or args.materialize_branch_checkpoint:
-        raise InstallationError(
-            "Branch/local recovery slot creation is retired. Stable installation "
-            "authority is exact verified main and the only alternate slot is "
-            "versioned local testing."
-        )
-    if (
-        args.primary_installation_receipt is not None
-        or args.primary_installation_receipt_sha256 is not None
-        or args.confirm_local_recovery_copy is not None
-        or args.confirm_branch_checkpoint is not None
-        or args.exact_commit_package_receipt is not None
-        or args.exact_commit_package_receipt_sha256 is not None
-        or args.confirm_local_successor_stage is not None
-    ):
-        raise InstallationError(
-            "Local recovery inputs require their exact operation flag; the successor "
-            "route is retired."
-        )
-    proof_requested = args.seal_local_test_host_proof is not None
-    commit_requested = args.commit_local_test_transaction is not None
-    recovery_requested = args.recover_local_test_transaction is not None
-    correction_requested = args.seal_install_correction is not None
+    args.data_root = _require_hidden_runtime_control_root(args.data_root)
     plugin_creator_restart_requested = (
         args.seal_plugin_creator_local_cache_restart is not None
     )
-    disabled_baseline_requested = bool(args.seal_disabled_local_test_baseline)
-    disabled_hook_recovery_requested = (
-        args.recover_disabled_local_hooks_from is not None
-    )
-    codex_cli_required = bool(
-        args.activate
-        or args.activate_local_test
-        or disabled_baseline_requested
-        or proof_requested
-        or commit_requested
-        or recovery_requested
-        or correction_requested
-        or plugin_creator_restart_requested
-    )
-    if codex_cli_required:
-        args.codex_executable = _resolve_codex_cli_executable(
-            args.codex_executable,
-            verify_version=True,
-        )
-    if args.keep_recovered_hooks_disabled and not disabled_hook_recovery_requested:
-        raise InstallationError(
-            "Keeping recovered hooks disabled requires the exact disabled-local "
-            "recovery route."
-        )
-    if (args.recover_disabled_local_hooks_from is None) != (
-        args.recover_disabled_local_hooks_from_sha256 is None
-    ):
-        raise InstallationError(
-            "Disabled-local hook recovery requires the exact prior commit path "
-            "and file SHA-256."
-        )
     if (args.seal_plugin_creator_local_cache_restart is None) != (
         args.seal_plugin_creator_local_cache_restart_sha256 is None
     ):
@@ -9773,42 +5485,14 @@ def main() -> int:
             "Plugin Creator local cache materialization requires its staging "
             "receipt path and file SHA-256 together."
         )
-    if disabled_hook_recovery_requested and any(
-        [
-            proof_requested,
-            commit_requested,
-            recovery_requested,
-            correction_requested,
-            plugin_creator_restart_requested,
-            disabled_baseline_requested,
-        ]
-    ):
-        raise InstallationError(
-            "Disabled-local hook recovery cannot be mixed with another local-test "
-            "proof, commit, rollback, or correction operation."
-        )
-    if (
-        sum(
-            [
-                proof_requested,
-                commit_requested,
-                recovery_requested,
-                correction_requested,
-                plugin_creator_restart_requested,
-                disabled_baseline_requested,
-            ]
-        )
-        > 1
-    ):
-        raise InstallationError(
-            "Host proof, candidate commit, self-rollback, correction sealing, and "
-            "Plugin Creator cache materialization are separate operations."
+    if args.activate or plugin_creator_restart_requested:
+        args.codex_executable = _resolve_codex_cli_executable(
+            args.codex_executable,
+            verify_version=True,
         )
     if plugin_creator_restart_requested:
         if (
-            args.seal_plugin_creator_local_cache_restart_sha256 is None
-            or args.codex_executable is None
-            or args.confirm_plugin_creator_local_cache_restart
+            args.confirm_plugin_creator_local_cache_restart
             != PLUGIN_CREATOR_LOCAL_CACHE_RESTART_CONFIRMATION
         ):
             raise InstallationError(
@@ -9820,191 +5504,17 @@ def main() -> int:
             or args.package_receipt is not None
             or args.rehearsal_receipt is not None
             or args.activate
-            or args.activate_local_test
-            or args.trust_sealed_hooks
-            or args.defer_hook_trust_to_user
         ):
             raise InstallationError(
                 "Plugin Creator cache materialization is a separate current-route "
-                "operation and cannot be mixed with staging or legacy activation."
+                "operation and cannot be mixed with staging or stable activation."
             )
         result = _seal_plugin_creator_local_cache_restart(
             stage_receipt_path=args.seal_plugin_creator_local_cache_restart,
-            stage_receipt_sha256=(
-                args.seal_plugin_creator_local_cache_restart_sha256
-            ),
+            stage_receipt_sha256=(args.seal_plugin_creator_local_cache_restart_sha256),
             executable=args.codex_executable,
             codex_home=args.codex_home,
             data_root=args.data_root,
-        )
-        print(json.dumps(result, indent=2, sort_keys=True))
-        return 0
-    if disabled_baseline_requested:
-        if (
-            args.codex_executable is None
-            or args.confirm_disabled_local_test_baseline
-            != LOCAL_TEST_DISABLED_BASELINE_CONFIRMATION
-        ):
-            raise InstallationError(
-                "The live disabled-local baseline requires the exact Codex binary "
-                "and confirmation token."
-            )
-        if (
-            args.archive is not None
-            or args.package_receipt is not None
-            or args.rehearsal_receipt is not None
-            or args.activate
-            or args.activate_local_test
-            or args.trust_sealed_hooks
-            or args.defer_hook_trust_to_user
-        ):
-            raise InstallationError(
-                "The live disabled-local baseline is a separate CAS operation."
-            )
-        result = _seal_disabled_local_test_baseline(
-            executable=args.codex_executable,
-            codex_home=args.codex_home,
-            data_root=args.data_root,
-            hook_cwd=args.hook_cwd,
-        )
-        print(json.dumps(result, indent=2, sort_keys=True))
-        return 0
-    if proof_requested:
-        if (
-            args.seal_local_test_host_proof_sha256 is None
-            or args.codex_executable is None
-        ):
-            raise InstallationError(
-                "Local-test host proof requires the staged receipt file seal and "
-                "--codex-executable."
-            )
-        if (
-            args.archive is not None
-            or args.package_receipt is not None
-            or args.rehearsal_receipt is not None
-            or args.activate
-            or args.activate_local_test
-            or args.trust_sealed_hooks
-            or args.defer_hook_trust_to_user
-        ):
-            raise InstallationError(
-                "Local-test host proof is read/probe-only and cannot be mixed with "
-                "staging, installation, or Goal-recovery controls."
-            )
-        result = _seal_local_test_host_proof(
-            stage_receipt_path=args.seal_local_test_host_proof,
-            stage_receipt_sha256=args.seal_local_test_host_proof_sha256,
-            executable=args.codex_executable,
-            codex_home=args.codex_home,
-            data_root=args.data_root,
-            hook_cwd=args.hook_cwd,
-        )
-        print(json.dumps(result, indent=2, sort_keys=True))
-        return 0
-    if commit_requested:
-        if (
-            args.commit_local_test_transaction_sha256 is None
-            or args.local_test_host_proof is None
-            or args.local_test_host_proof_sha256 is None
-            or args.codex_executable is None
-        ):
-            raise InstallationError(
-                "Local-test commit requires the exact staged receipt and host-proof "
-                "paths, both file seals, and --codex-executable."
-            )
-        if (
-            args.archive is not None
-            or args.package_receipt is not None
-            or args.rehearsal_receipt is not None
-            or args.activate
-            or args.activate_local_test
-            or args.trust_sealed_hooks
-            or args.defer_hook_trust_to_user
-        ):
-            raise InstallationError(
-                "Local-test commit is a separate CAS operation and cannot be mixed "
-                "with staging, installation, or Goal-recovery controls."
-            )
-        result = _commit_local_test_transaction(
-            stage_receipt_path=args.commit_local_test_transaction,
-            stage_receipt_sha256=args.commit_local_test_transaction_sha256,
-            host_proof_path=args.local_test_host_proof,
-            host_proof_sha256=args.local_test_host_proof_sha256,
-            executable=args.codex_executable,
-            codex_home=args.codex_home,
-            data_root=args.data_root,
-            hook_cwd=args.hook_cwd,
-        )
-        print(json.dumps(result, indent=2, sort_keys=True))
-        return 0
-    if recovery_requested:
-        if (
-            args.recover_local_test_transaction_sha256 is None
-            or args.codex_executable is None
-        ):
-            raise InstallationError(
-                "Local-test recovery requires the exact commit receipt file seal "
-                "and --codex-executable."
-            )
-        if (
-            args.archive is not None
-            or args.package_receipt is not None
-            or args.rehearsal_receipt is not None
-            or args.activate
-            or args.activate_local_test
-            or args.trust_sealed_hooks
-            or args.defer_hook_trust_to_user
-            or args.local_test_host_proof is not None
-            or args.local_test_host_proof_sha256 is not None
-        ):
-            raise InstallationError(
-                "Candidate self-rollback cannot be mixed with staging, install, "
-                "hook trust, host proof, or Goal-recovery controls."
-            )
-        result = _recover_local_test_candidate_failure(
-            commit_receipt_path=args.recover_local_test_transaction,
-            commit_receipt_sha256=(args.recover_local_test_transaction_sha256),
-            executable=args.codex_executable,
-            codex_home=args.codex_home,
-            data_root=args.data_root,
-        )
-        print(json.dumps(result, indent=2, sort_keys=True))
-        return 0 if result.get("status") == "PASS" else 2
-    if correction_requested:
-        if (
-            args.seal_install_correction_sha256 is None
-            or args.corrected_installation_base is None
-            or args.corrected_installation_base_sha256 is None
-            or args.codex_executable is None
-        ):
-            raise InstallationError(
-                "Install correction sealing requires the recovery and base receipt "
-                "paths, both file seals, and --codex-executable."
-            )
-        if (
-            args.archive is not None
-            or args.package_receipt is not None
-            or args.rehearsal_receipt is not None
-            or args.activate
-            or args.activate_local_test
-            or args.trust_sealed_hooks
-            or args.defer_hook_trust_to_user
-            or args.local_test_host_proof is not None
-            or args.local_test_host_proof_sha256 is not None
-        ):
-            raise InstallationError(
-                "Install correction sealing cannot be mixed with staging, install, "
-                "hook trust, host proof, or Goal controls."
-            )
-        result = _seal_install_correction_generation(
-            recovery_receipt_path=args.seal_install_correction,
-            recovery_receipt_sha256=args.seal_install_correction_sha256,
-            base_installation_path=args.corrected_installation_base,
-            base_installation_sha256=args.corrected_installation_base_sha256,
-            executable=args.codex_executable,
-            codex_home=args.codex_home,
-            data_root=args.data_root,
-            hook_cwd=args.hook_cwd,
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
@@ -10014,12 +5524,8 @@ def main() -> int:
         raise InstallationError(
             "Staging or activation requires --archive and exactly one package receipt."
         )
-    if (args.activate or args.activate_local_test) and args.codex_executable is None:
+    if args.activate and args.codex_executable is None:
         raise InstallationError("Activation requires --codex-executable.")
-    if args.activate != args.trust_sealed_hooks:
-        raise InstallationError(
-            "--activate and --trust-sealed-hooks must be supplied together."
-        )
     if args.activate and (
         args.release_authority_receipt is None
         or args.release_authority_receipt_sha256 is None
@@ -10027,33 +5533,6 @@ def main() -> int:
         raise InstallationError(
             "--activate requires the governed Git/CI/Vercel release-authority receipt "
             "and its file SHA-256."
-        )
-    if args.activate_local_test:
-        if args.marketplace_name != LOCAL_TESTING_MARKETPLACE_NAME:
-            raise InstallationError(
-                "Local-test activation requires the fixed local testing selector."
-            )
-        if disabled_hook_recovery_requested:
-            if (
-                args.confirm_local_test_rotation
-                != LOCAL_TEST_DISABLED_HOOK_RECOVERY_CONFIRMATION
-                or args.defer_hook_trust_to_user
-            ):
-                raise InstallationError(
-                    "Disabled-local hook recovery requires its exact token and "
-                    "installer-owned sealed hook trust."
-                )
-        elif (
-            args.confirm_local_test_rotation != "EXPLICIT_ONE_TIME_LOCAL_TEST_ROTATION"
-            or not args.defer_hook_trust_to_user
-        ):
-            raise InstallationError(
-                "Local-test activation requires the fixed selector, exact confirmation "
-                "token, and visible user hook-trust boundary."
-            )
-    elif disabled_hook_recovery_requested:
-        raise InstallationError(
-            "Disabled-local hook recovery requires --activate-local-test."
         )
     print(json.dumps(install(args), indent=2, sort_keys=True))
     return 0

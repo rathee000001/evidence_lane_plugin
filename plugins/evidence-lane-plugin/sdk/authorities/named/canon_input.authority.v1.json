@@ -1,0 +1,12 @@
+{
+  "schema": "evidence-lane.sdk-named-authority-binding.v1",
+  "status": "PASS",
+  "authority_id": "canon_input",
+  "authority_root": "authorities/canon_input",
+  "authority_manifest_sha256": "8DF1F5AD209F70B2D4283BDB6034A0CB2E130226AE483CD6FA8DF560CC61E164",
+  "schema_surface": "schemas/authorities/canon_input/schema-surface.v1.json",
+  "persistent_sqlite_authority": true,
+  "linked_public_action_count": 19,
+  "merged_with_project_sector_or_peer": false,
+  "receipt_sha256": "2E5FB2A06101FF73225F56E9E648D655B7A722ED6CC3C0A279B4CA307E031234"
+}

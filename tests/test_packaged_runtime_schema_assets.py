@@ -6,7 +6,8 @@ from evidence_lane_plugin import canon_task_graph, lanes
 
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_SCHEMAS = ROOT / "plugins" / "evidence-lane-plugin" / "schemas"
-PACKAGE_SCHEMAS = Path(lanes.__file__).resolve().parent / "schemas"
+PACKAGE_SCHEMAS = REPOSITORY_SCHEMAS
+OBSOLETE_DUPLICATE_SCHEMA_ROOT = Path(lanes.__file__).resolve().parent / "schemas"
 
 RUNTIME_SCHEMA_ASSETS = (
     Path("lane-schema-registry.v001.json"),
@@ -31,6 +32,9 @@ def test_runtime_schema_authorities_are_package_owned() -> None:
         PACKAGE_SCHEMAS / "lane-artifact-contract.v001.json"
     )
     assert canon_task_graph._CANON_SCHEMA_ROOT == PACKAGE_SCHEMAS / "canon"
+    assert not any(
+        path.is_file() for path in OBSOLETE_DUPLICATE_SCHEMA_ROOT.rglob("*")
+    )
 
 
 def test_repository_schema_projection_matches_packaged_runtime_bytes() -> None:
@@ -40,6 +44,3 @@ def test_repository_schema_projection_matches_packaged_runtime_bytes() -> None:
 
         assert repository_asset.is_file(), relative_path.as_posix()
         assert package_asset.is_file(), relative_path.as_posix()
-        assert package_asset.read_bytes() == repository_asset.read_bytes(), (
-            relative_path.as_posix()
-        )

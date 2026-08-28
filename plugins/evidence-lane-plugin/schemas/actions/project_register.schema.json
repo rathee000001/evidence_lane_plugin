@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "project_register",
+  "title": "Register one Git project",
+  "description": "Register one explicitly authorized local Git repository and branch set against one user-selected external Project/PV authority root. The workspace and authority root are distinct. This route is used only by the initial workflow for an unregistered project; State Travel reuses the existing registration. Idempotent only when all authority fields match. Relocation requires exact migration confirmation and pointer preconditions. Registration never creates a candidate, infers HIL, or moves the accepted pointer.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "display_name": {
+        "title": "Display Name",
+        "type": "string"
+      },
+      "repository_path": {
+        "title": "Repository Path",
+        "type": "string"
+      },
+      "expected_owner": {
+        "title": "Expected Owner",
+        "type": "string"
+      },
+      "expected_name": {
+        "title": "Expected Name",
+        "type": "string"
+      },
+      "allowed_branches": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Allowed Branches",
+        "type": "array"
+      },
+      "project_authority_root": {
+        "title": "Project Authority Root",
+        "type": "string"
+      },
+      "sensitivity": {
+        "default": "PRIVATE",
+        "title": "Sensitivity",
+        "type": "string"
+      },
+      "capture_route": {
+        "default": "GOVERNED_PROJECT_FULL",
+        "title": "Capture Route",
+        "type": "string"
+      },
+      "project_authority_migration_confirmation": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Project Authority Migration Confirmation"
+      },
+      "expected_accepted_pv": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Accepted Pv"
+      },
+      "expected_pointer_generation": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Pointer Generation"
+      },
+      "selected_by": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Selected By"
+      }
+    },
+    "required": [
+      "project_id",
+      "display_name",
+      "repository_path",
+      "expected_owner",
+      "expected_name",
+      "allowed_branches",
+      "project_authority_root"
+    ],
+    "title": "project_registerArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "project_registerDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-boot",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "project_register"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-boot",
+        "workflow": "project-enrollment",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "E0CE5FCA519A5D6ED268E6045FDC22A0F133E7E7DD1742C6B929ED7FCEE9F616",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "03AA47235849A2E9EADC94714198753D39AA655330F51E559EE7445588F3D6D8"
+}

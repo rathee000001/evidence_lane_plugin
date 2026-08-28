@@ -66,7 +66,12 @@ def main() -> None:
         )
     elif args.project_id:
         data_root = args.data_root or Path(
-            os.environ.get("EVIDENCE_LANE_DATA_ROOT") or Path.home() / "EvidenceLanePV"
+            os.environ.get("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT")
+            or Path.home()
+            / ".codex"
+            / "plugins"
+            / "runtime"
+            / "evidence-lane-plugin"
         )
         generated = build_website_plan_projection(
             ProjectStore(data_root).backlog_status(args.project_id)

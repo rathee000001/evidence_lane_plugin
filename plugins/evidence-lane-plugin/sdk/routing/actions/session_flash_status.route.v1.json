@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "session_flash_status",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-boot",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "session_flash_status"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-boot",
+        "workflow": "boot-or-resume",
+        "order": 4
+      },
+      {
+        "owner_skill": "evi-state-travel",
+        "workflow": "direct-destination-locked-flash",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "6659AD225FAC02FD58ED334CCB48BBF8DB2B5FBF493C00054D8AB4813E044062",
+  "sdk_action_binding": "sdk/actions/session_flash_status.action.v1.json",
+  "mcp_action_binding": "mcp/actions/session_flash_status.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "644D030F52E054B5D75D9132C45DBF1D014C9BA70CEA7D93198ADDEFD7E2B119"
+}

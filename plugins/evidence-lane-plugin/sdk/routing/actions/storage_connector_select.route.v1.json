@@ -1,0 +1,30 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "storage_connector_select",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-storage",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "storage_connector_select"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-storage",
+        "workflow": "select-storage",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "6CA1E5660914849488AA0F5B7DC6FDBF88782AE0CFDE05C4C0C287A9BF225DBF",
+  "sdk_action_binding": "sdk/actions/storage_connector_select.action.v1.json",
+  "mcp_action_binding": "mcp/actions/storage_connector_select.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "2D37A39968A174F39D4305EC9C42B4AF808B8AEEBC19F116B3D91A5BD938DA92"
+}

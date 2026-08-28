@@ -1,0 +1,29 @@
+{
+  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "status": "PASS",
+  "ordinal": 38,
+  "tool": "Ghostscript",
+  "requirement": "OPTIONAL_EXTERNAL_LICENSE_GATED",
+  "classification": "NATIVE_RUNTIME_ASSET",
+  "install_mode": "silent_installer",
+  "license_expression_or_terms": "AGPL-3.0-or-later OR LicenseRef-Artifex-Commercial",
+  "license_evidence": "toolchains/native-tools.v1.json plus the installed native-tool license receipt",
+  "evidence_paths": [
+    "toolchains/native-tools.v1.json"
+  ],
+  "redistributed_by_source_package": false,
+  "source_package_copied_license_text_present": false,
+  "source_package_copied_license_texts": [],
+  "native_license_acquisition": {
+    "url": "https://raw.githubusercontent.com/ArtifexSoftware/ghostpdl/master/LICENSE",
+    "bytes": 1976,
+    "sha256": "8CE064F423B7C24A011B6EBF9431B8BF9861A5255E47C84BFB23FC526D030A8B",
+    "copied_to_hidden_runtime_before_use": true
+  },
+  "runtime_distribution_license_required": false,
+  "runtime_distribution_license_manifest": null,
+  "runtime_distribution_license_files_must_be_copied_before_use": false,
+  "metadata_without_a_license_file_is_labeled_metadata_only": true,
+  "mcp_inventory_separate": true,
+  "receipt_sha256": "14457B2587E31364D7C4B393D89632E02FB1653312965F34B67A49CA1878231B"
+}

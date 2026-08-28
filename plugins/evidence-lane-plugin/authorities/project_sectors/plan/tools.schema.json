@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Plan lane tools",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "lane_id",
+    "builder",
+    "reader",
+    "query_traversal",
+    "retrieval_modes",
+    "canonical_shared_modules"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-lane-tooling.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "lane_id": {
+      "const": "plan"
+    },
+    "builder": {
+      "const": "builder.py:build_lane_sources"
+    },
+    "reader": {
+      "const": "reader.py:LaneReader"
+    },
+    "query_traversal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval_modes": {
+      "const": [
+        "hybrid",
+        "fts5",
+        "bm25",
+        "tfidf"
+      ]
+    },
+    "canonical_shared_modules": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "28EB30224D7DF66878BBD2E16B70F3DC08CA0FBB309CCF4806459468FE8354E8"
+}

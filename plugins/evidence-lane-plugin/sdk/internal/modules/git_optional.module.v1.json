@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.git_optional",
+  "source_path": "src/evidence_lane_plugin/git_optional.py",
+  "source_sha256": "A898286AF547A61304BC6D499C0EDCFA219863515167CE678C960BD095E30275",
+  "source_bytes": 7868,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "43F4ADDE8FEE9498175A3399A35A4BCC4A29A3A20EF49AB0DF6CB80F51DE5DE0"
+}

@@ -118,8 +118,6 @@ def test_manifest_json_schema_matches_runtime_contract() -> None:
             REPO_ROOT
             / "plugins"
             / "evidence-lane-plugin"
-            / "src"
-            / "evidence_lane_plugin"
             / "schemas"
             / "github-app-manifest.schema.json"
         ).read_text(encoding="utf-8")

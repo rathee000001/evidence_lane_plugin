@@ -1,0 +1,10 @@
+{
+  "schema": "evidence-lane.installed-authority-pointer-contract.v1",
+  "status": "PASS",
+  "authority_id": "project_universe",
+  "project_relative_path": "universe/project_universe_pointer.json",
+  "pointer_role": "DERIVED_UNIVERSE_SOURCE_FINGERPRINT",
+  "project_truth_pointer_owner": false,
+  "pointer_movement_in_template": false,
+  "receipt_sha256": "77B47E6E4554AA438DC74B3F3864CFD810CF6CF2CCD4DC582A88D13664A7D9AD"
+}

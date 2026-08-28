@@ -1,0 +1,20 @@
+{
+  "schema": "evidence-lane.sdk-rollback-mode-binding.v1",
+  "status": "PASS",
+  "mode": "HARD_ACCEPTED_ZIP_RESTORE",
+  "required_fields": [
+    "archive_path",
+    "expected_archive_sha256",
+    "restore_root",
+    "target_plan_task_id",
+    "confirmation"
+  ],
+  "source_or_pointer_mutation": true,
+  "fresh_plan_required": true,
+  "public_action": "pv_rollback",
+  "public_action_binding": "sdk/actions/pv_rollback.action.v1.json",
+  "canonical_handler": "evidence_lane_plugin.session.SessionManager",
+  "new_public_action_created": false,
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "8C672D817DFEDEC8830DD9B9315380932573413DFC51432F27B21267820BDA35"
+}

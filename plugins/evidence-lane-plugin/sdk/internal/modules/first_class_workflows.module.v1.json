@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.first_class_workflows",
+  "source_path": "src/evidence_lane_plugin/first_class_workflows.py",
+  "source_sha256": "502A1FE9EC27E8ECA9BD9A794716B7FAC7228DB59BDAD5F2A9C90C4CE2FB11CC",
+  "source_bytes": 10356,
+  "role": "FIRST_CLASS_WORKFLOWS",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "E653128EA277ED2BACF5B4D9F6DA97F0859B9763E0C596333CB5F44F90A98A47"
+}

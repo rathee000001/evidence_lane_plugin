@@ -1,0 +1,242 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-boot",
+  "skill_sha256": "5664F2588A75E4BEC8FBB6396AEE6BF4F3FA556F12ECEC23A3D6B2CA3A6F0ADC",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "project_register"
+      ],
+      "workflow": "project-enrollment"
+    },
+    {
+      "order": 2,
+      "tools": [
+        "pv_enroll_project"
+      ],
+      "workflow": "project-enrollment"
+    },
+    {
+      "order": 3,
+      "tools": [
+        "runtime_doctor"
+      ],
+      "workflow": "boot-or-resume"
+    },
+    {
+      "order": 4,
+      "tools": [
+        "session_flash_status"
+      ],
+      "workflow": "boot-or-resume"
+    },
+    {
+      "order": 5,
+      "tools": [
+        "session_boot",
+        "session_resume"
+      ],
+      "workflow": "boot-or-resume"
+    },
+    {
+      "order": 6,
+      "tools": [
+        "runtime_activation_status"
+      ],
+      "workflow": "boot-or-resume"
+    }
+  ],
+  "action_count": 7,
+  "actions": [
+    {
+      "name": "project_register",
+      "schema_sha256": "E0CE5FCA519A5D6ED268E6045FDC22A0F133E7E7DD1742C6B929ED7FCEE9F616",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-boot",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "project_register"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-boot",
+            "workflow": "project-enrollment",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_enroll_project",
+      "schema_sha256": "7C715CFCAAA52CF14C9EEEB7E335A8B46FE28A06C0504528550C2893762D08BF",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-boot",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_enroll_project"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-boot",
+            "workflow": "project-enrollment",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "runtime_doctor",
+      "schema_sha256": "F364133F51E5A271CABD8480B1B81ED1C36BC66628D231B27CB2D0984810D9C4",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-boot",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "runtime_doctor"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-boot",
+            "workflow": "boot-or-resume",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "direct-destination-runtime-doctor",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "session_flash_status",
+      "schema_sha256": "6659AD225FAC02FD58ED334CCB48BBF8DB2B5FBF493C00054D8AB4813E044062",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-boot",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "session_flash_status"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-boot",
+            "workflow": "boot-or-resume",
+            "order": 4
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "direct-destination-locked-flash",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "session_boot",
+      "schema_sha256": "549CE2AD9EE2953AE3D17C3A0AAAD4DCF8F4C6A2ED19DFCE4E04EEACFF20CEBC",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-boot",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "session_boot"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-boot",
+            "workflow": "boot-or-resume",
+            "order": 5
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "boot-or-resume",
+            "order": 6
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "session_resume",
+      "schema_sha256": "AB2927F0B1828FCF6BF3526C7ED8E6212DB3A6C873193284092B89A72D2FC407",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-boot",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "session_resume"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-boot",
+            "workflow": "boot-or-resume",
+            "order": 5
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "direct-destination-existing-session-attachment",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "boot-or-resume",
+            "order": 6
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "runtime_activation_status",
+      "schema_sha256": "5FF6B44A6294F618144C8E6A8B230F03435BB35F8D9C9BBF286B267FC6EA1445",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-boot",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "runtime_activation_status"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-boot",
+            "workflow": "boot-or-resume",
+            "order": 6
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "direct-destination-activation-verification",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "94C34CF433142D666004B9BB30E5B39C650C4AB1D9875011D4DE44C68CAE6F93"
+}

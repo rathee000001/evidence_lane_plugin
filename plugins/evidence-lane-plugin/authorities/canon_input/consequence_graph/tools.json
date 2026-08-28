@@ -1,0 +1,176 @@
+{
+  "schema": "evidence-lane.installed-canon-consequence-tools.v1",
+  "status": "PASS",
+  "authority_id": "canon_consequence_graph",
+  "parent_authority_id": "canon_input",
+  "database": "canon-consequence-graph.sqlite",
+  "query_order": [
+    "canon-consequence-graph.mmd",
+    "canon-consequence-graph.dot",
+    "canon-consequence-graph.sqlite"
+  ],
+  "sqlite_query_mode": "READ_ONLY_IMMUTABLE_BOUNDED_FTS5_BM25",
+  "json_role": "BUILD_REFRESH_POINTER_AND_RECEIPT_TOOLING",
+  "runtime_binding": "runtime.py",
+  "canonical_source": "src/evidence_lane_plugin/canon_consequence_graph.py",
+  "canonical_source_sha256": "AF1112AE18285A93A2308CF9E31B683EFF1D16FA5199726195CD31F25649B7F2",
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "canon_consequence_graph",
+    "source_count": 0,
+    "node_count": 0,
+    "indexed_table_count": 0,
+    "indexed_tables": [],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:50.926222Z",
+    "receipt_sha256": "A008DB934DF94912DBD2716EA6F68C575BA515148D6FB2EFA1EDB7CC15220865"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "canon_consequence_graph_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 100,
+    "edge_count": 102,
+    "group_count": 1,
+    "semantic_topology_sha256": "8485E40944113FC0A85D0874CFF5196E2F604367EC408843E449FA4ED6F560CD",
+    "mmd_sha256": "B3F27ED1F8B8193E70F9553E384238EF52AD01AFC552E41E5AFF1388261D863A",
+    "dot_sha256": "C4B75AE14F8415506ED1213E1792F22B04913F882673D47F9DC228C7532D7E2B",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "1DBC786BE1A9542045A107699E07D23D35D157B3930A20C9156FF30E7CF6A5D1",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 100,
+      "edge_count": 102,
+      "weak_component_count": 1,
+      "strong_component_count": 100,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 18
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_consequence_edge",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_consequence_node",
+          "in_degree": 3,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_authority_index_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_consequence_graph_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_consequence_graph_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_authority_index_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_consequence_graph_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_authority_index_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_consequence_graph_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_consequence_graph_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_consequence_graph_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_graph_metadata",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_column_authority_id",
+          "in_degree": 1,
+          "out_degree": 0
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "9274498BFC1ED16530566FA6B01192C1B0EA6198251C2E48DD3060E7587731BA",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "085C47ECFDF2C88680F5329570EE9DDC37BCEB7DC38644625667CCEEB57DE86B"
+  },
+  "receipt_sha256": "C365DB179A686080287EF0683E5081C48B597292554011136C38822C44B86555"
+}

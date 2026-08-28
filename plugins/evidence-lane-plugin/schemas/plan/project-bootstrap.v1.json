@@ -1,0 +1,45 @@
+{
+  "schema": "evidence-lane.project-bootstrap-plan.v1",
+  "status": "PASS",
+  "project_bootstrap": {
+    "route": "REGISTER__EVI_PLAN__GOAL_STEP__SOURCE_INTAKE_BUILD_PV0_NO_HIL",
+    "baseline_pv": "PV0",
+    "pointer_generation": 0,
+    "sector_lanes_materialized": true,
+    "candidate_created": false,
+    "human_hil_required": false,
+    "project_overlay_refreshed": false,
+    "accepted_artifact_created": false,
+    "initial_pv1_candidate_compatibility_route_present": false,
+    "pre_pv0_order": [
+      "COLLECT_USER_BRIEF",
+      "ENTER_NATIVE_PLAN_MODE",
+      "RUN_EVI_PLAN_ON_FINISHED_PLAN",
+      "EXPLICIT_HOST_PLAN_ACCEPTANCE",
+      "START_OR_BIND_GOAL",
+      "BIND_FIXED_STEP_TASK_LIST"
+    ],
+    "post_pv0_order": [
+      "CONTINUE_ACTIVE_GOAL_PLAN_ROW"
+    ],
+    "state_travel_reuses_registration": true,
+    "state_travel_creates_project_or_pv0": false
+  },
+  "prompt_and_steer_dispatch": {
+    "source_intake_first": true,
+    "env_uop_governed": true,
+    "chat_lineage_always_appended": true,
+    "execution_change_fields": [
+      "OUTCOME",
+      "DEPENDENCY",
+      "ACCEPTANCE",
+      "STOP_CONDITION",
+      "RELEASE_ROUTE",
+      "HIL_PATH"
+    ],
+    "execution_changing_action": "pv_plan_steer_delta",
+    "stable_idempotent_id_required": true,
+    "questions_create_plan_steer": false
+  },
+  "receipt_sha256": "1232BB69C32CC7FC61D2E5E38C5D5B095771C7D4A625EFEF8917381F90594B90"
+}

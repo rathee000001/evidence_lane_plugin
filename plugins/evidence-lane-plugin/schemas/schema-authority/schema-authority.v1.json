@@ -1,0 +1,11 @@
+{
+  "schema": "evidence-lane.schema-authority.v1",
+  "status": "PASS",
+  "schema_authority": {
+    "canonical_path": "schemas/public-action-schemas.v001.json",
+    "independent_runtime_duplicate_allowed": false,
+    "remote_projection_path": "apps/evidence-lane-remote-adapter/app/_data/public-action-registry.json",
+    "remote_projection_is_execution_authority": false
+  },
+  "receipt_sha256": "127A04F133F25DE11242364DA504B3DA7AEFA1C96A763242301C44741A0B732C"
+}

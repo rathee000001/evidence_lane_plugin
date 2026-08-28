@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "bigger_universe_register",
+  "title": "Register Bigger Universe project",
+  "description": "Register hash-only current project mini-brain references and atomically advance only changed lane heads without replacing the per-project Universe or merging Project Truth.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "project_root_identity_sha256": {
+        "title": "Project Root Identity Sha256",
+        "type": "string"
+      },
+      "universe_head_sha256": {
+        "title": "Universe Head Sha256",
+        "type": "string"
+      },
+      "pointer_generation": {
+        "title": "Pointer Generation",
+        "type": "integer"
+      },
+      "mini_brains": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Mini Brains",
+        "type": "array"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "project_root_identity_sha256",
+      "universe_head_sha256",
+      "pointer_generation",
+      "mini_brains"
+    ],
+    "title": "bigger_universe_registerArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "bigger_universe_registerDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-bigger-universe",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "bigger_universe_register"
+    },
+    "internal_sdk": {
+      "module_id": "first_class_workflows",
+      "operation": "bigger_universe_register",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-bigger-universe",
+        "workflow": "register-changed-project-mini-brain-heads",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "FB6C13BBFFB8D634E53AC33FFB2E4E210D5ED918E7505E842E7FA373D2CDF8C2",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "002F5A7941A37988475916BC64C6E9F44832EF692ACC9F252CCEA1D5BBCF1A1C"
+}

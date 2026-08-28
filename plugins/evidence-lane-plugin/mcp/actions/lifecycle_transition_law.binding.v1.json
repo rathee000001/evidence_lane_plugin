@@ -1,0 +1,49 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "lifecycle_transition_law",
+  "title": "Read the canonical lifecycle law",
+  "input_schema": {
+    "properties": {},
+    "title": "lifecycle_transition_lawArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "lifecycle_transition_lawDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "DC8F592786038F171CBBFC65A1A884DD7E5E670D57313DD5F1AA026891F28BA3",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "lifecycle_transition_law"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "governance-read",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/lifecycle_transition_law.action.v1.json",
+  "sdk_action_binding_sha256": "4EC9EE9AEBEE9A194ABDB3705FB107FE6450BBD5FFF90D2E760F67B67BD22989",
+  "public_action_schema": "schemas/actions/lifecycle_transition_law.schema.json",
+  "public_action_schema_sha256": "F3D23888328A6592B370D9BE5712DB1BC7CC43D0E6D90DC56CBA7E59DC6A55AA",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "DA961C4C84B8B55CF2DD2FBCC3D30570E72D1EAAA5DA3FACFBF22D6C40C9446E"
+}

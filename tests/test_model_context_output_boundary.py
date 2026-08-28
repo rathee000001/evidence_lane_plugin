@@ -367,26 +367,20 @@ def test_live_fastmcp_call_returns_compact_text_and_structured_receipt(service) 
 
 def test_bounded_reader_query_does_not_reapply_the_promotion_gate(
     service,
-    monkeypatch,
+    source_repository,
 ) -> None:
     build_and_approve_pv1(service)
-    original_validate = reader_module.validate_pv_package
-    observed_promotability_flags: list[bool] = []
+    from .test_lifecycle import _materialize_live_root_sectors
 
-    def validate_for_read(directory, *, require_promotable=True):
-        observed_promotability_flags.append(require_promotable)
-        return original_validate(directory, require_promotable=False)
-
-    monkeypatch.setattr(
-        reader_module,
-        "validate_pv_package",
-        validate_for_read,
-    )
+    _materialize_live_root_sectors(service, source_repository)
+    assert not hasattr(reader_module, "validate_pv_package")
 
     result = service.reader.query("book-faires", "imports", value="flask", limit=1)
 
     assert result["status"] == "PASS"
-    assert observed_promotability_flags == [False]
+    assert result["accepted_archive_opened"] is False
+    assert result["accepted_archive_queried"] is False
+    assert result["retrieval_authority"] == "LIVE_ROOT_SECTORS_LOCAL_CODE"
 
 
 def test_cli_emits_the_shared_bounded_envelope(service, capsys) -> None:

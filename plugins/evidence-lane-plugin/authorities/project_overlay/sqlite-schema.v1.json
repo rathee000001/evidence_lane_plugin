@@ -1,0 +1,1530 @@
+{
+  "schema": "evidence-lane.sqlite-authority-schema-snapshot.v1",
+  "database_sha256": "F043D4F31EA6CC9F904BCD581FE0D1A51C8A0E3BD4FA95D98B60E7C2887BECBE",
+  "objects": [
+    {
+      "type": "index",
+      "name": "authority_index_node_source_idx",
+      "tbl_name": "authority_index_node",
+      "sql": "CREATE INDEX authority_index_node_source_idx\n        ON authority_index_node(source_id, ordinal)"
+    },
+    {
+      "type": "index",
+      "name": "authority_index_source_table_idx",
+      "tbl_name": "authority_index_source",
+      "sql": "CREATE INDEX authority_index_source_table_idx\n        ON authority_index_source(authority_id, source_table, source_identity)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts",
+      "tbl_name": "authority_index_fts",
+      "sql": "CREATE VIRTUAL TABLE authority_index_fts USING fts5(\n            node_id UNINDEXED,\n            authority_id UNINDEXED,\n            source_table,\n            source_identity,\n            text_content,\n            tokenize='unicode61'\n        )"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_config",
+      "tbl_name": "authority_index_fts_config",
+      "sql": "CREATE TABLE 'authority_index_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_content",
+      "tbl_name": "authority_index_fts_content",
+      "sql": "CREATE TABLE 'authority_index_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_data",
+      "tbl_name": "authority_index_fts_data",
+      "sql": "CREATE TABLE 'authority_index_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_docsize",
+      "tbl_name": "authority_index_fts_docsize",
+      "sql": "CREATE TABLE 'authority_index_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_idx",
+      "tbl_name": "authority_index_fts_idx",
+      "sql": "CREATE TABLE 'authority_index_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_node",
+      "tbl_name": "authority_index_node",
+      "sql": "CREATE TABLE authority_index_node(\n            node_id TEXT PRIMARY KEY,\n            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)\n                ON DELETE CASCADE,\n            ordinal INTEGER NOT NULL,\n            char_start INTEGER NOT NULL,\n            char_end INTEGER NOT NULL,\n            text_content TEXT NOT NULL,\n            text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            UNIQUE(source_id, ordinal)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_refresh_receipt",
+      "tbl_name": "authority_index_refresh_receipt",
+      "sql": "CREATE TABLE authority_index_refresh_receipt(\n            sequence INTEGER PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_count INTEGER NOT NULL,\n            node_count INTEGER NOT NULL,\n            indexed_table_count INTEGER NOT NULL,\n            llama_index_core_version TEXT NOT NULL,\n            chunk_size_tokens INTEGER NOT NULL,\n            chunk_overlap_tokens INTEGER NOT NULL,\n            prior_receipt_sha256 TEXT,\n            recorded_at TEXT NOT NULL,\n            receipt_sha256 TEXT NOT NULL UNIQUE,\n            receipt_json TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_source",
+      "tbl_name": "authority_index_source",
+      "sql": "CREATE TABLE authority_index_source(\n            source_id TEXT PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_table TEXT NOT NULL,\n            source_identity TEXT NOT NULL,\n            source_text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            recorded_at TEXT NOT NULL,\n            UNIQUE(authority_id, source_table, source_identity)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "chat_lineage_event",
+      "tbl_name": "chat_lineage_event",
+      "sql": "CREATE TABLE chat_lineage_event(\n            event_id TEXT PRIMARY KEY,\n            lineage_index INTEGER NOT NULL,\n            event_type TEXT NOT NULL,\n            occurred_at TEXT NOT NULL,\n            actor_type TEXT NOT NULL,\n            model TEXT,\n            submodel TEXT,\n            token_metrics_json TEXT NOT NULL,\n            visible_payload_json TEXT NOT NULL,\n            visible_payload_sha256 TEXT NOT NULL,\n            event_sha256 TEXT NOT NULL,\n            previous_event_sha256 TEXT,\n            accepted_sector_truth INTEGER NOT NULL CHECK(accepted_sector_truth=0)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "chat_lineage_sector_fanout",
+      "tbl_name": "chat_lineage_sector_fanout",
+      "sql": "CREATE TABLE chat_lineage_sector_fanout(\n            event_id TEXT NOT NULL REFERENCES chat_lineage_event(event_id) ON DELETE CASCADE,\n            sector_id TEXT NOT NULL REFERENCES project_sector_registry(sector_id),\n            routing_reason TEXT NOT NULL,\n            candidate_only INTEGER NOT NULL CHECK(candidate_only=1),\n            PRIMARY KEY(event_id, sector_id)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "fusion_receipt",
+      "tbl_name": "fusion_receipt",
+      "sql": "CREATE TABLE fusion_receipt(\n            receipt_id INTEGER PRIMARY KEY CHECK(receipt_id=1),\n            state TEXT NOT NULL CHECK(state='AWAITING_EXACT_APPROVE'),\n            parent_accepted_pv TEXT,\n            pointer_generation INTEGER NOT NULL,\n            candidate_id TEXT NOT NULL,\n            accepted_truth_written INTEGER NOT NULL CHECK(accepted_truth_written=0),\n            fallback TEXT NOT NULL,\n            rollback_semantics TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "hil_transition_receipt",
+      "tbl_name": "hil_transition_receipt",
+      "sql": "CREATE TABLE hil_transition_receipt(\n            transition_id TEXT PRIMARY KEY REFERENCES pv_hil_transition(transition_id) ON DELETE CASCADE,\n            state TEXT NOT NULL CHECK(state='AWAITING_EXACT_APPROVE'),\n            parent_pv TEXT,\n            proposed_pv TEXT NOT NULL,\n            pointer_generation INTEGER NOT NULL,\n            accepted_truth_written INTEGER NOT NULL CHECK(accepted_truth_written=0),\n            baseline_authority TEXT NOT NULL,\n            rollback_semantics TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "output_link",
+      "tbl_name": "output_link",
+      "sql": "CREATE TABLE output_link(\n            link_id INTEGER PRIMARY KEY,\n            event_id TEXT NOT NULL REFERENCES chat_lineage_event(event_id) ON DELETE CASCADE,\n            link TEXT NOT NULL,\n            link_sha256 TEXT NOT NULL,\n            UNIQUE(event_id, link_sha256)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "overlay_fts",
+      "tbl_name": "overlay_fts",
+      "sql": "CREATE VIRTUAL TABLE overlay_fts USING fts5(\n            event_id UNINDEXED,\n            event_type,\n            actor_type,\n            visible_text,\n            tokenize='unicode61'\n        )"
+    },
+    {
+      "type": "table",
+      "name": "overlay_fts_config",
+      "tbl_name": "overlay_fts_config",
+      "sql": "CREATE TABLE 'overlay_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "overlay_fts_content",
+      "tbl_name": "overlay_fts_content",
+      "sql": "CREATE TABLE 'overlay_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3)"
+    },
+    {
+      "type": "table",
+      "name": "overlay_fts_data",
+      "tbl_name": "overlay_fts_data",
+      "sql": "CREATE TABLE 'overlay_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "overlay_fts_docsize",
+      "tbl_name": "overlay_fts_docsize",
+      "sql": "CREATE TABLE 'overlay_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "overlay_fts_idx",
+      "tbl_name": "overlay_fts_idx",
+      "sql": "CREATE TABLE 'overlay_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "overlay_history_baseline",
+      "tbl_name": "overlay_history_baseline",
+      "sql": "CREATE TABLE overlay_history_baseline(\n            baseline_id INTEGER PRIMARY KEY CHECK(baseline_id=1),\n            baseline_pv TEXT,\n            baseline_candidate_id TEXT,\n            baseline_created_at TEXT,\n            source_schema TEXT NOT NULL,\n            source_database_sha256 TEXT,\n            baseline_snapshot_sha256 TEXT NOT NULL,\n            history_before_baseline TEXT NOT NULL,\n            accepted_archive_opened INTEGER NOT NULL CHECK(accepted_archive_opened=0),\n            accepted_archive_queried INTEGER NOT NULL CHECK(accepted_archive_queried=0)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "overlay_meta",
+      "tbl_name": "overlay_meta",
+      "sql": "CREATE TABLE overlay_meta(\n            key TEXT PRIMARY KEY,\n            value TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "project_sector_registry",
+      "tbl_name": "project_sector_registry",
+      "sql": "CREATE TABLE project_sector_registry(\n            sector_id TEXT PRIMARY KEY,\n            display_label TEXT NOT NULL,\n            ordinal INTEGER NOT NULL UNIQUE,\n            mutation_policy TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "pv_hil_transition",
+      "tbl_name": "pv_hil_transition",
+      "sql": "CREATE TABLE pv_hil_transition(\n            transition_id TEXT PRIMARY KEY,\n            sequence INTEGER NOT NULL UNIQUE CHECK(sequence>0),\n            parent_pv TEXT,\n            proposed_pv TEXT NOT NULL,\n            pointer_generation INTEGER NOT NULL,\n            created_at TEXT NOT NULL,\n            truth_state TEXT NOT NULL CHECK(truth_state='HIL_PROPOSAL_ONLY'),\n            prior_transition_sha256 TEXT,\n            baseline_snapshot_sha256 TEXT NOT NULL,\n            transition_payload_json TEXT NOT NULL,\n            transition_sha256 TEXT NOT NULL UNIQUE,\n            accepted_archive_opened INTEGER NOT NULL CHECK(accepted_archive_opened=0),\n            accepted_archive_queried INTEGER NOT NULL CHECK(accepted_archive_queried=0)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "sector_candidate_snapshot",
+      "tbl_name": "sector_candidate_snapshot",
+      "sql": "CREATE TABLE sector_candidate_snapshot(\n            sector_id TEXT PRIMARY KEY REFERENCES project_sector_registry(sector_id),\n            lane_database_sha256 TEXT,\n            source_count INTEGER NOT NULL,\n            chunk_count INTEGER NOT NULL,\n            fact_count INTEGER NOT NULL,\n            truth_state TEXT NOT NULL CHECK(truth_state='CANDIDATE_ONLY'),\n            candidate_id TEXT NOT NULL,\n            proposed_pv TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "sector_hil_baseline_snapshot",
+      "tbl_name": "sector_hil_baseline_snapshot",
+      "sql": "CREATE TABLE sector_hil_baseline_snapshot(\n            sector_id TEXT PRIMARY KEY,\n            lane_database_sha256 TEXT,\n            source_count INTEGER NOT NULL,\n            chunk_count INTEGER NOT NULL,\n            fact_count INTEGER NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "sector_hil_delta",
+      "tbl_name": "sector_hil_delta",
+      "sql": "CREATE TABLE sector_hil_delta(\n            transition_id TEXT NOT NULL REFERENCES pv_hil_transition(transition_id) ON DELETE CASCADE,\n            sector_id TEXT NOT NULL,\n            change_kind TEXT NOT NULL CHECK(change_kind IN ('ADDED','MODIFIED','REMOVED','UNCHANGED')),\n            before_json TEXT,\n            after_json TEXT,\n            PRIMARY KEY(transition_id,sector_id)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "sector_hil_snapshot",
+      "tbl_name": "sector_hil_snapshot",
+      "sql": "CREATE TABLE sector_hil_snapshot(\n            transition_id TEXT NOT NULL REFERENCES pv_hil_transition(transition_id) ON DELETE CASCADE,\n            sector_id TEXT NOT NULL,\n            ordinal INTEGER NOT NULL,\n            lane_database_sha256 TEXT,\n            source_count INTEGER NOT NULL,\n            chunk_count INTEGER NOT NULL,\n            fact_count INTEGER NOT NULL,\n            PRIMARY KEY(transition_id,sector_id),\n            UNIQUE(transition_id,ordinal)\n        ) STRICT"
+    }
+  ],
+  "tables": [
+    {
+      "name": "authority_index_fts",
+      "virtual_fts5": true,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "node_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_table",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_identity",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_config",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_content",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "c4",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_data",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_docsize",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_idx",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_node",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "char_start",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "char_end",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "text_content",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "text_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "metadata_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "source_id",
+          "table": "authority_index_source",
+          "to": "source_id"
+        }
+      ]
+    },
+    {
+      "name": "authority_index_refresh_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "indexed_table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "llama_index_core_version",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "chunk_size_tokens",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "chunk_overlap_tokens",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "prior_receipt_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_source",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_table",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_identity",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "source_text_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "metadata_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "chat_lineage_event",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "lineage_index",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "event_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "occurred_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "actor_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "model",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "submodel",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "token_metrics_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "visible_payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "visible_payload_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "event_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "previous_event_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "accepted_sector_truth",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "chat_lineage_sector_fanout",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sector_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "routing_reason",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "candidate_only",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "sector_id",
+          "table": "project_sector_registry",
+          "to": "sector_id"
+        },
+        {
+          "from": "event_id",
+          "table": "chat_lineage_event",
+          "to": "event_id"
+        }
+      ]
+    },
+    {
+      "name": "fusion_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "receipt_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "parent_accepted_pv",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "pointer_generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "candidate_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "accepted_truth_written",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "fallback",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "rollback_semantics",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "hil_transition_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "transition_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "parent_pv",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "proposed_pv",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "pointer_generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "accepted_truth_written",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "baseline_authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "rollback_semantics",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "transition_id",
+          "table": "pv_hil_transition",
+          "to": "transition_id"
+        }
+      ]
+    },
+    {
+      "name": "output_link",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "link_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "link",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "link_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "event_id",
+          "table": "chat_lineage_event",
+          "to": "event_id"
+        }
+      ]
+    },
+    {
+      "name": "overlay_fts",
+      "virtual_fts5": true,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "event_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 1,
+          "name": "event_type",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "actor_type",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "visible_text",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "overlay_fts_config",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "overlay_fts_content",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "overlay_fts_data",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "overlay_fts_docsize",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "overlay_fts_idx",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "overlay_history_baseline",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "baseline_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "baseline_pv",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "baseline_candidate_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "baseline_created_at",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "source_schema",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "source_database_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "baseline_snapshot_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "history_before_baseline",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "accepted_archive_opened",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "accepted_archive_queried",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "overlay_meta",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "value",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_sector_registry",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sector_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "display_label",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "mutation_policy",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "pv_hil_transition",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "transition_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "parent_pv",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "proposed_pv",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "pointer_generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "truth_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "prior_transition_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "baseline_snapshot_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "transition_payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "transition_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "accepted_archive_opened",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "accepted_archive_queried",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "sector_candidate_snapshot",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sector_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "lane_database_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "chunk_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "fact_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "truth_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "candidate_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "proposed_pv",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "sector_id",
+          "table": "project_sector_registry",
+          "to": "sector_id"
+        }
+      ]
+    },
+    {
+      "name": "sector_hil_baseline_snapshot",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sector_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "lane_database_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "chunk_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "fact_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "sector_hil_delta",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "transition_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sector_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "change_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "before_json",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "after_json",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "transition_id",
+          "table": "pv_hil_transition",
+          "to": "transition_id"
+        }
+      ]
+    },
+    {
+      "name": "sector_hil_snapshot",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "transition_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sector_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "lane_database_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "chunk_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "fact_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "transition_id",
+          "table": "pv_hil_transition",
+          "to": "transition_id"
+        }
+      ]
+    }
+  ],
+  "table_count": 28,
+  "fts5_tables": [
+    "authority_index_fts",
+    "overlay_fts"
+  ],
+  "schema_sha256": "54DA6A2C86A1FE64F29256C2D226E9FC171BD187303BA3821BD47CE1A53C29A4",
+  "receipt_sha256": "8E8F27089F1953AD8A23D2149859B46E2C9618FD8E9E08D5CB2CB67138927E96"
+}

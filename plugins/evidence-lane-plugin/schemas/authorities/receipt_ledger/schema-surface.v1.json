@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.named-authority-schema-surface.v1",
+  "status": "PASS",
+  "authority_id": "receipt_ledger",
+  "authority_root": "authorities/receipt_ledger",
+  "authority_manifest_sha256": "EBD4460F11959BB172C48B2A3B3C1050D236170316C0D74D1304230BA935BCD1",
+  "persistent_sqlite_authority": true,
+  "schema_file_count": 11,
+  "schema_files": [
+    {
+      "path": "authorities/receipt_ledger/build-refresh-contract.schema.json",
+      "bytes": 565,
+      "sha256": "C8BE432562E34B023E940336B7B7D47A6030E26F0CE71A403A4B8B9A9547C392"
+    },
+    {
+      "path": "authorities/receipt_ledger/dot-artifact.schema.json",
+      "bytes": 970,
+      "sha256": "1D59AAD87A61E094BE1C71D5230BD74AF880EB592203A81702EFD9D65B05FB83"
+    },
+    {
+      "path": "authorities/receipt_ledger/manifest.schema.json",
+      "bytes": 1042,
+      "sha256": "5838A684A4BE72DF5DC23910AE5120280473549CC77A49FFA42CA5426DAF4F32"
+    },
+    {
+      "path": "authorities/receipt_ledger/mmd-artifact.schema.json",
+      "bytes": 983,
+      "sha256": "EE8E506D6134ABFE5EF47487E506333BC1F772E6A460BE1D230B36D7F4137ABE"
+    },
+    {
+      "path": "authorities/receipt_ledger/pointer-contract.schema.json",
+      "bytes": 548,
+      "sha256": "BF563BFEABD901332E7799298385CAEEC21DF2564500A4B1DF6F530812D46CC9"
+    },
+    {
+      "path": "authorities/receipt_ledger/reader-contract.schema.json",
+      "bytes": 767,
+      "sha256": "15D3DA06A14097826A9E31F042F784110154A14A3FE5A460651E231E8DA3FEB3"
+    },
+    {
+      "path": "authorities/receipt_ledger/refresh-receipt.schema.json",
+      "bytes": 886,
+      "sha256": "C169E8B840423F70F0CA870E610B39991A452F40B555AC22BDA367A81AF7268D"
+    },
+    {
+      "path": "authorities/receipt_ledger/runtime-binding.schema.json",
+      "bytes": 596,
+      "sha256": "050B75528E9D1BEC380D97E60EF11E0DA2FBB94EE7DB56D1186216C6B7DAC58E"
+    },
+    {
+      "path": "authorities/receipt_ledger/schema.sql",
+      "bytes": 4809,
+      "sha256": "6D93DCF0B5F972F0DE591D5275CC05F4FE475CFD2841185DD83F15F185B65529"
+    },
+    {
+      "path": "authorities/receipt_ledger/sqlite-artifact.schema.json",
+      "bytes": 961,
+      "sha256": "0D3CC971F68A701E03939AE17DEEABDDF6400A4EC7A9C2E0025E66F48CF5DCC4"
+    },
+    {
+      "path": "authorities/receipt_ledger/tools.schema.json",
+      "bytes": 538,
+      "sha256": "40651F96DD5AF842FF1AB63417392ED88E49CB9B126EE427424778F1AB428014"
+    }
+  ],
+  "schema_bytes_duplicated_here": false,
+  "receipt_sha256": "FF0B115EE61D415D066643789D75A692B6812655476EF265572DBE6C28658D04"
+}

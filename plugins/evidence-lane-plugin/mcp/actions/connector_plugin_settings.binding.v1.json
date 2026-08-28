@@ -1,0 +1,63 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "connector_plugin_settings",
+  "title": "Open the eight-slot connector settings surface",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "host_profile": {
+        "const": "CODEX",
+        "title": "Host Profile",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "host_profile"
+    ],
+    "title": "connector_plugin_settingsArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "connector_plugin_settingsDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "8573EC7D81C530D9DEE2D0478B910647A6DF9823C6C6CB382D1CB34A905B4AEE",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-plugin",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "connector_plugin_settings"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-plugin",
+        "workflow": "inspect-connectors",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/connector_plugin_settings.action.v1.json",
+  "sdk_action_binding_sha256": "88B6B2AE8D044031986038F74CF490515A2D91BCF9716113496790AC97EF25EA",
+  "public_action_schema": "schemas/actions/connector_plugin_settings.schema.json",
+  "public_action_schema_sha256": "1016A27B618B27F802C5229628BA888F1ACE0B6B5334780139FD3BEBB348A63C",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "FCBEB6E7E86898E17C01D8AA78E198F347620214D5C02E3770F6257AC1D582DF"
+}

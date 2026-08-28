@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_overlay pointer-contract.v1.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-pointer-contract.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "project_overlay"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "DF351FF867AEC7EEF10DCE6FA93CBD021352D463A3D6A6DC8B001138432417EA"
+}

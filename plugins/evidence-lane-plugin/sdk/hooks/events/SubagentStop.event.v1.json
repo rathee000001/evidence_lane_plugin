@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 9,
+  "event": "SubagentStop",
+  "handler_count": 4,
+  "event_binding": "hooks/events/SubagentStop/event.v1.json",
+  "event_binding_sha256": "715350F30CB9C88A650D686FFA8286F2DFF76BB6064867E8B1244AEA1204BDB6",
+  "handlers": [
+    {
+      "display_id": "9.1",
+      "path": "hooks/events/SubagentStop/handler-9.1.v1.json",
+      "sha256": "766A8B9FCAF058DFD3DE023C5D01AE1D535D0A32CB7E628AF31240BBE9442E51"
+    },
+    {
+      "display_id": "9.2",
+      "path": "hooks/events/SubagentStop/handler-9.2.v1.json",
+      "sha256": "37A7A7C213A2C64D128E128D5D52881C3A9C212F6FF05673ED7612905CF19F31"
+    },
+    {
+      "display_id": "9.3",
+      "path": "hooks/events/SubagentStop/handler-9.3.v1.json",
+      "sha256": "5C24F45630CCD643A5DA5CCCCE12E1D29B16458A93D47F57A4FE9731A9370BC9"
+    },
+    {
+      "display_id": "9.4",
+      "path": "hooks/events/SubagentStop/handler-9.4.v1.json",
+      "sha256": "6CF4A0F1E701459D5DF58F30B8431839839CDA421A947C7736654341E868EDB5"
+    }
+  ],
+  "canonical_hook_manifest": "hooks/hooks.json",
+  "canonical_logical_actions": "hooks/logical-actions.json",
+  "enabled_only_after_installed_event_pass": true,
+  "receipt_sha256": "625A83DA7EE062DF3E5DA4DD0FB73A2BB911B5DCBD720CE4BEE6EF61538B530E"
+}

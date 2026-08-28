@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_universe pointer-contract.v1.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-pointer-contract.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "project_universe"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "8FCE7A5282467158695CFA8729D850A1BF5E06BF8D90F2E777D255F029228086"
+}

@@ -382,7 +382,13 @@ def _read_blobs(root: Path, blob_shas: list[str]) -> dict[str, bytes]:
             values[expected_sha] = data
     finally:
         stdin.close()
-        process.wait(timeout=30)
+        try:
+            process.wait(timeout=30)
+        finally:
+            if process.stdout is not None:
+                process.stdout.close()
+            if process.stderr is not None:
+                process.stderr.close()
     require(
         process.returncode == 0,
         "GIT_CAT_FILE_FAILED",

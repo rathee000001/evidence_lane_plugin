@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Local Code bounded reader request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "lane_id",
+    "query",
+    "retrieval",
+    "limit"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lane_id": {
+      "const": "local_code"
+    },
+    "query": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval": {
+      "enum": [
+        "hybrid",
+        "fts5",
+        "bm25",
+        "tfidf"
+      ]
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "9B17918B9D6E599D313967D68D421262CDDA22F4BD66E6E15A35C28135608936"
+}

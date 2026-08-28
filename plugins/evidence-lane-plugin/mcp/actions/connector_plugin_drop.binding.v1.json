@@ -1,0 +1,77 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "connector_plugin_drop",
+  "title": "Drop one governed persistent plugin",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "plugin_id": {
+        "title": "Plugin Id",
+        "type": "string"
+      },
+      "confirmation": {
+        "title": "Confirmation",
+        "type": "string"
+      },
+      "dropped_by": {
+        "title": "Dropped By",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "plugin_id",
+      "confirmation",
+      "dropped_by"
+    ],
+    "title": "connector_plugin_dropArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "connector_plugin_dropDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "98F2DF9E5424ECD9A1FF29FED02140D78A0F886E7B0F07D3B0CE8D6B9CCC6DE8",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-drop-additional-plugin",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "connector_plugin_drop"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-drop-additional-plugin",
+        "workflow": "drop-connector",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-plugin",
+        "workflow": "change-connector-registration",
+        "order": 3
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/connector_plugin_drop.action.v1.json",
+  "sdk_action_binding_sha256": "65CFCC0F02391064E7C13D549713D9CCB2B030D8F96BA736CF898F5BD35A006E",
+  "public_action_schema": "schemas/actions/connector_plugin_drop.schema.json",
+  "public_action_schema_sha256": "12E170FF44D509BF962E8B74BBE8EAF0AB8F43BD89B20DBF2F1E62F9C45334B3",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "9F1099DC0DB460599F855163DA5F2553A46844A309F8FE03F50FFC1994FC9A80"
+}

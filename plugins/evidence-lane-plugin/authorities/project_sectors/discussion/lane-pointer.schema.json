@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Discussion lane pointer",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "parent_pv",
+    "proposed_pv",
+    "pointer_generation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.lane-pointer-evidence.v1"
+    },
+    "lane_id": {
+      "const": "discussion"
+    },
+    "parent_pv": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "proposed_pv": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pointer_generation": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "9203BD4B3E461FF806E812FBCF16DA017E4FDEFF296AFCE8E00FCA0355134C7D"
+}

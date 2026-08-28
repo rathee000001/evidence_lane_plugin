@@ -1,0 +1,10 @@
+{
+  "schema": "evidence-lane.installed-authority-pointer-contract.v1",
+  "status": "PASS",
+  "authority_id": "source_authority",
+  "project_relative_path": "sources/source_authority.manifest.json",
+  "pointer_role": "SOURCE_REGISTRY_HEAD_NOT_PROJECT_TRUTH_POINTER",
+  "project_truth_pointer_owner": false,
+  "pointer_movement_in_template": false,
+  "receipt_sha256": "6E0D25A55D04BFBFEDA3B698C2F1704EEDC15D865C2BE71CBB7B47EF640B54C7"
+}

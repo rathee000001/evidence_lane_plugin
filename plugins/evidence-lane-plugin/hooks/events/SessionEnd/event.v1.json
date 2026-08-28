@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 11,
+  "event": "SessionEnd",
+  "matcher_groups": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_validate.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_validate.py",
+          "timeout": 3,
+          "statusMessage": "Validating and bounding Evidence Lane hook signal"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_seal.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_seal.py",
+          "timeout": 3,
+          "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_transport.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_transport.py",
+          "timeout": 3,
+          "statusMessage": "Flushing Evidence Lane lifecycle boundary"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_emit.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_emit.py",
+          "timeout": 3,
+          "statusMessage": "Verifying and emitting Evidence Lane hook result"
+        }
+      ]
+    }
+  ],
+  "handler_count": 4,
+  "handlers": [
+    {
+      "display_id": "11.1",
+      "path": "hooks/events/SessionEnd/handler-11.1.v1.json",
+      "sha256": "FEC39A90157C2FD2335177FEE6836A66B300E9CC18928B0493E7AE13D816125B"
+    },
+    {
+      "display_id": "11.2",
+      "path": "hooks/events/SessionEnd/handler-11.2.v1.json",
+      "sha256": "FACF3F26EB6F4467626AE597CB8B5A7DB6A3B6847C1A41AB1168E1203405104B"
+    },
+    {
+      "display_id": "11.3",
+      "path": "hooks/events/SessionEnd/handler-11.3.v1.json",
+      "sha256": "7883750762731CE9F18B6837DF10FBB351484F89148BDAED5D96E58638C6EFF4"
+    },
+    {
+      "display_id": "11.4",
+      "path": "hooks/events/SessionEnd/handler-11.4.v1.json",
+      "sha256": "E3B33DEBB4A9C2159A080AE5178CED34C05D54D2A055BA4126D6498097B91DD2"
+    }
+  ],
+  "adapter": "hooks/lifecycle_boundary.py",
+  "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
+  "precompact_seals_before_compaction": true,
+  "postcompact_rehydrates_after_compaction": true,
+  "receipt_sha256": "76875B017A25529EE33BCE11AC518850704B608601C92B1F70A17EFDD210F8DD"
+}

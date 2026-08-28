@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "canon_input support refresh request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "project_root",
+    "authority_id"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_id": {
+      "const": "canon_input"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "3CC391C59E9A6C417BF2DDD89B2BA7D107025C9A9DB1F300D329CDC1342EA97B"
+}

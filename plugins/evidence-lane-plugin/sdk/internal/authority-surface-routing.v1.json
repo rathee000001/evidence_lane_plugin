@@ -1,0 +1,16 @@
+{
+  "schema": "evidence-lane.sdk-authority-surface-routing.v1",
+  "status": "PASS",
+  "sector_lane_count": 18,
+  "sector_lane_registry": "authorities/project_sectors/lane-surface-registry.v1.json",
+  "sector_lane_registry_sha256": "55C9DE00C6F39DBCB574A7FD6F0073B88DE42DBD9AE9C9363BA7C747CB9A1FB2",
+  "non_sector_authority_count": 11,
+  "non_sector_authority_registry": "authorities/authority-surface-registry.v1.json",
+  "non_sector_authority_registry_sha256": "DADFB18BF01001DB8528F344E72ABF462CAFBDE81FF8413481B515F6D49A5528",
+  "env_uop_action_plane": "sdk/env_uop/action-plane.v1.json",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_routing_registry": "sdk/routing/current-route-registry.v1.json",
+  "sector_and_named_authorities_merged": false,
+  "instructions_merged_with_project_memory": false,
+  "receipt_sha256": "1201E14FF0334F3A88CE2902C691145EE6D305CAE79D94E56B5C56FECE1205FB"
+}

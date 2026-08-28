@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence Lane instruction source-chain locator",
+  "type": "object",
+  "required": [
+    "source_kind",
+    "path",
+    "sha256",
+    "authority_role"
+  ],
+  "properties": {
+    "source_kind": {
+      "enum": [
+        "AGENTS_MD",
+        "HOST_MEMORY_MD"
+      ]
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    },
+    "authority_role": {
+      "enum": [
+        "SCOPED_INSTRUCTION_AUTHORITY",
+        "NONAUTHORITATIVE_HELPFUL_RECALL_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "18D8E146DDAD0439A4062FFA8FAFBA928A1CAA99A97D47CF4C9EDA173AC52BC2"
+}

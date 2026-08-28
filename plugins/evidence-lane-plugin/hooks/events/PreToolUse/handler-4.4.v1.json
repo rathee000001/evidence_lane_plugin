@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 4,
+  "handler_number": 4,
+  "display_id": "4.4",
+  "event": "PreToolUse",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_emit.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_emit.py",
+    "timeout": 10,
+    "statusMessage": "Verifying and emitting Evidence Lane hook result"
+  },
+  "logical_action": "VERIFY_AND_EMIT_EVENT_RESULT",
+  "stage": "hooks/subhook_emit.py",
+  "stage_sha256": "58483422B501DA08226BF4292310A9328F438EB1D8F0AC127178264844D816D0",
+  "adapter": "hooks/pre_tool_use.py",
+  "adapter_sha256": "1D5EE052FD282B7DB09B56EA534762E4ABF49E5DC52A2F7D97B8B82EE97E746C",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "9CCF06A7BA8EB6E9378B4FB4271D7823EE763C42BB3ED423FD555824826A152C"
+}

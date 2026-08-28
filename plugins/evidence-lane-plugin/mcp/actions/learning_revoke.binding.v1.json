@@ -1,0 +1,86 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "learning_revoke",
+  "title": "Revoke accepted Agent Learning",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "candidate_id": {
+        "title": "Candidate Id",
+        "type": "string"
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string"
+      },
+      "revoked_at": {
+        "title": "Revoked At",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "candidate_id",
+      "reason",
+      "revoked_at"
+    ],
+    "title": "learning_revokeArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "learning_revokeDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "39BC006F5A3216FEC507633CEAE8645FEE6FF16E2C656867B2971DD55D5A2635",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-learning",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "learning_revoke"
+    },
+    "internal_sdk": {
+      "module_id": "agent_learning",
+      "operation": "revoke",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-revoke",
+        "order": 8
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/learning_revoke.action.v1.json",
+  "sdk_action_binding_sha256": "DAA9F0C77F353537FE7D3AD4A8296B827CD9F8DF3D30E8640CE27C7518050CA5",
+  "public_action_schema": "schemas/actions/learning_revoke.schema.json",
+  "public_action_schema_sha256": "4BEB37F6D8AA83DECB715558CE9964ACB3D4420D538B3CA71BB4BB4C858936B9",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "10981C9077DD62C135E3A7FB6478CCC82301F096602EB687343AC3056C37DE24"
+}

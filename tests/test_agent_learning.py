@@ -89,6 +89,13 @@ def _bootstrap_plan_projection(root: Path) -> Path:
             event_sha256 TEXT NOT NULL,
             details_json TEXT NOT NULL
         );
+        CREATE TABLE sub_pv_acceptance(
+            task_id TEXT PRIMARY KEY,
+            sub_pv_id TEXT NOT NULL,
+            state TEXT NOT NULL,
+            receipt_sha256 TEXT NOT NULL,
+            learning_acceptance_inherited_from_sub_pv INTEGER NOT NULL
+        );
         """
     )
     rows = [
@@ -192,6 +199,21 @@ def _bootstrap_plan_projection(root: Path) -> Path:
                 json.dumps({"generic_pass": True}),
             ),
         ],
+    )
+    connection.execute(
+        """
+        INSERT INTO sub_pv_acceptance(
+            task_id,sub_pv_id,state,receipt_sha256,
+            learning_acceptance_inherited_from_sub_pv
+        ) VALUES(?,?,?,?,?)
+        """,
+        (
+            "verified-forward-task",
+            "PV12.239.1",
+            "AUTO_ACCEPTED_DELTA_ROW_WORK",
+            _hash("verified-forward-sub-pv"),
+            1,
+        ),
     )
     connection.commit()
     connection.close()
@@ -337,16 +359,103 @@ def test_verified_history_bootstrap_is_bounded_idempotent_and_pointer_neutral(
     )
     assert not (root / "ai_learning" / "active_pointer.json").exists()
     inspected = inspect_learning_authority(root, project_id=PROJECT_ID)
-    assert inspected["candidate_count"] == 2
-    assert inspected["event_count"] == 2
-    assert set(inspected["candidate_states"].values()) == {
+    assert inspected["candidate_count"] == 3
+    assert inspected["event_count"] == 5
+    assert list(inspected["candidate_states"].values()).count(
+        "AUTO_ACCEPTED_DELTA_LEARNING"
+    ) == 2
+    assert list(inspected["candidate_states"].values()).count(
         "PENDING_LEARNING_HIL"
-    }
+    ) == 1
+    assert inspected["auto_accepted_delta_count"] == 2
+    assert inspected["pending_weave_count"] == 1
+    assert inspected["learning_weaves"] == [
+        {
+            "accepted_project_pv": "PV12",
+            "target_project_pv": "PV13",
+            "member_count": 2,
+            "member_set_sha256": first["weave_receipt"]["member_set_sha256"],
+            "weave_candidate_id": first["weave_candidate"]["candidate_id"],
+            "weave_candidate_sha256": first["weave_candidate"][
+                "candidate_sha256"
+            ],
+            "weave_candidate_state": "PENDING_LEARNING_HIL",
+            "receipt_sha256": first["weave_receipt"]["receipt_sha256"],
+            "acceptance_decision_receipt_sha256": None,
+            "acceptance_decided_at": None,
+            "full_member_payload_returned": False,
+        }
+    ]
     assert first["project_candidate_created"] is False
     assert first["project_hil_invoked"] is False
     assert first["learning_hil_invoked"] is False
-    assert first["automatic_learning_acceptance"] is False
+    assert first["automatic_learning_acceptance"] is True
+    assert first["auto_accepted_delta_count"] == 2
+    assert first["weave_candidate_state"] == "PENDING_LEARNING_HIL"
+    assert first["weave_receipt"]["member_count"] == 2
+    assert second["weave_candidate"] == first["weave_candidate"]
+    assert second["auto_acceptance_reuse_count"] == 2
     assert first["full_plan_loaded_into_model_context"] is False
+
+
+def test_only_woven_learning_candidate_is_human_decidable(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    _bootstrap_plan_projection(root)
+    bootstrapped = bootstrap_verified_learning_history(
+        root,
+        project_id=PROJECT_ID,
+        accepted_pv="PV12",
+        max_candidates=8,
+    )
+    member_id = bootstrapped["candidate_ids"][0]
+    member = json.loads(
+        (root / "ai_learning" / "candidates" / f"{member_id}.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    with pytest.raises(EvidenceLaneError) as blocked:
+        decide_learning_candidate(
+            root,
+            project_id=PROJECT_ID,
+            candidate_id=member_id,
+            expected_candidate_sha256=member["candidate_sha256"],
+            decision_token="APPROVE",
+            actor_id="fixture-user",
+            decided_at=T3,
+            expected_project_truth_pointer_sha256=project_truth_pointer_sha256(
+                root, project_id=PROJECT_ID
+            ),
+        )
+    assert blocked.value.code == "LEARNING_CANDIDATE_NOT_DECIDABLE"
+
+    weave = bootstrapped["weave_candidate"]
+    accepted = decide_learning_candidate(
+        root,
+        project_id=PROJECT_ID,
+        candidate_id=weave["candidate_id"],
+        expected_candidate_sha256=weave["candidate_sha256"],
+        decision_token="APPROVE",
+        actor_id="fixture-user",
+        decided_at=T3,
+        expected_project_truth_pointer_sha256=project_truth_pointer_sha256(
+            root, project_id=PROJECT_ID
+        ),
+    )
+    assert accepted["receipt"]["learning_pointer_moved"] is True
+    inspected = inspect_learning_authority(root, project_id=PROJECT_ID)
+    assert inspected["current_pointer"]["generation"] == 1
+    assert inspected["current_pointer"]["accepted_candidate_id"] == weave[
+        "candidate_id"
+    ]
+    assert inspected["learning_weaves"][0][
+        "acceptance_decision_receipt_sha256"
+    ] == accepted["receipt"]["receipt_sha256"]
+    assert inspected["learning_weaves"][0]["acceptance_decided_at"] == accepted[
+        "receipt"
+    ]["decided_at"]
+    assert inspected["candidate_states"][member_id] == (
+        "AUTO_ACCEPTED_DELTA_LEARNING"
+    )
 
 
 def test_verified_history_bootstrap_prevalidates_before_any_learning_write(
@@ -575,14 +684,12 @@ def test_cross_project_secret_and_tamper_guards_fail_closed(tmp_path: Path) -> N
     assert tampered.value.code == "LEARNING_CANDIDATE_FILE_LEDGER_MISMATCH"
 
 
-def test_runtime_contract_has_eight_routes_and_explicit_memory_boundary() -> None:
+def test_runtime_contract_has_six_learning_routes_and_first_class_memory_boundary() -> None:
     contract = learning_runtime_contract()
 
     assert contract["public_actions"] == [
         "learning_inspect",
         "learning_retrieve",
-        "learning_memory_query",
-        "learning_memory_record_link",
         "learning_record_host_memory_import",
         "learning_seal_candidate",
         "learning_decide_candidate",
@@ -593,13 +700,27 @@ def test_runtime_contract_has_eight_routes_and_explicit_memory_boundary() -> Non
         "INDEPENDENT_PROJECT_MEMORY_AUTHORITY"
     )
     assert contract["memory_graph"]["sdk_module"] == "project_memory"
-    assert contract["memory_graph"]["compatibility_action_names"] == [
+    assert contract["memory_graph"]["current_action_names"] == [
+        "project_memory_query",
+        "project_memory_record_link",
+    ]
+    assert contract["memory_graph"]["owner_skill"] == "evi-memory"
+    assert contract["memory_graph"]["obsolete_compatibility_action_names"] == [
         "learning_memory_query",
         "learning_memory_record_link",
     ]
+    assert contract["memory_graph"]["obsolete_compatibility_actions_executable"] is False
     assert contract["memory_graph"]["legacy_learning_tables"] == (
         "IMMUTABLE_MIGRATION_SOURCE_ONLY"
     )
+    assert contract["delta_learning"] == {
+        "intermediate_acceptance": "AUTO_ACCEPTED_AT_VERIFIED_DELTA_EXIT",
+        "project_pointer_effect": "NONE",
+        "learning_pointer_effect": "NONE",
+        "full_pv_hil_input": "ONE_DETERMINISTIC_WOVEN_CANDIDATE",
+        "individual_member_hil_allowed": False,
+        "weave_decision_pointer_moves": 1,
+    }
     assert set(contract["memory_graph"]["sectors"]) == set(
         MEMORY_SECTOR_LOCATOR_PREFIXES
     )
@@ -608,7 +729,7 @@ def test_runtime_contract_has_eight_routes_and_explicit_memory_boundary() -> Non
     assert contract["memory_graph"]["project_truth_effect"] == "NONE"
     assert contract["memory_graph"]["candidate_effect"] == "NONE"
     assert contract["memory_graph"]["hil_effect"] == "NONE"
-    assert contract["public_action_count"] == 8
+    assert contract["public_action_count"] == 6
     assert contract["search"]["engine"] == "SQLITE_FTS5"
     assert contract["search"]["full_ledger_loaded_into_model_context"] is False
     assert contract["expiry"]["event_materialization_owner"] == (
@@ -624,16 +745,19 @@ def test_runtime_contract_has_eight_routes_and_explicit_memory_boundary() -> Non
         if name in contract["public_actions"]
     }
     assert set(routing) == set(contract["public_actions"])
-    assert routing["learning_memory_query"] == ("project_memory", "query")
-    assert routing["learning_memory_record_link"] == (
+    memory_routing = {
+        name: (module, operation)
+        for name, _title, _description, module, operation, _read_only in (
+            SDK_NATIVE_ACTIONS
+        )
+        if name in contract["memory_graph"]["current_action_names"]
+    }
+    assert memory_routing["project_memory_query"] == ("project_memory", "query")
+    assert memory_routing["project_memory_record_link"] == (
         "project_memory",
         "record_link",
     )
-    assert all(
-        module == "agent_learning"
-        for name, (module, _operation) in routing.items()
-        if name not in contract["memory_graph"]["compatibility_action_names"]
-    )
+    assert all(module == "agent_learning" for module, _operation in routing.values())
 
 
 def test_memory_graph_is_bounded_revisioned_and_idempotent(tmp_path: Path) -> None:

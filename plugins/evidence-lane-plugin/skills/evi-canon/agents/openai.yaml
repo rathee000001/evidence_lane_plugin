@@ -1,7 +1,7 @@
 interface:
   display_name: "Evidence Lane Canon"
-  short_description: "Govern linked Canon task exchanges"
-  default_prompt: "Use $evi-canon to govern a linked Canon task exchange."
+  short_description: "Launch and govern linked Canon work"
+  default_prompt: "Use $evi-canon to launch or bind one governed top-level task or authorized subagent, exchange typed upstream/downstream messages, return results, and route any bounded backfire through the receiver-owned three-way Canon HIL."
 dependencies:
   tools:
     - type: "mcp"

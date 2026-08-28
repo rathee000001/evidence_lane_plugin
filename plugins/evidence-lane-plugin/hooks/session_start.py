@@ -32,6 +32,17 @@ _EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
         "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "host_profile": "CODEX_DESKTOP",
+        "desktop_app_variants": {
+            "stable": "OpenAI.Codex_2p2nqsd0c76g0!App",
+            "beta": "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+            "shared_plugin_contract": True,
+            "shared_host_wide_tunnel": True,
+            "per_app_tunnel_allowed": False,
+            "per_project_or_task_tunnel_allowed": False,
+            "helper_requires_exact_requested_app_id": True,
+            "cross_app_fallback_allowed": False,
+        },
         "native_mcp_available": {
             "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
             "tunnel_setup_frequency": "NONE",
@@ -177,12 +188,8 @@ def _plugin_version_context() -> dict[str, object]:
         )
         remote_git_policy = dict(release_contract.get("remote_git_policy") or {})
         stable = dict(release_contract.get("stable") or {})
-        retired_branch_recovery = dict(
-            release_contract.get("retired_branch_recovery") or {}
-        )
         local_testing = dict(release_contract.get("local_testing") or {})
         live_slots = dict(release_contract.get("live_slot_policy") or {})
-        failover = dict(release_contract.get("failover_operator") or {})
         promotion = dict(release_contract.get("promotion_gate") or {})
         policy_valid = (
             release_contract.get("schema")
@@ -210,17 +217,6 @@ def _plugin_version_context() -> dict[str, object]:
             and stable.get("stable_selector_is_persistent") is True
             and stable.get("stable_updates_reinstall_in_place") is True
             and stable.get("build_identity_is_receipt_not_selector") is True
-            and retired_branch_recovery.get("slot_role") == "RETIRED_PURGE_ONLY"
-            and retired_branch_recovery.get("plugin_selector")
-            == "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
-            and retired_branch_recovery.get("installation_allowed") is False
-            and retired_branch_recovery.get("migration_read_allowed") is True
-            and retired_branch_recovery.get(
-                "removal_via_supported_codex_api_required"
-            )
-            is True
-            and retired_branch_recovery.get("direct_cache_deletion_allowed")
-            is False
             and local_testing.get("release_line") == runtime_version
             and local_testing.get("slot_role") == "versioned-local-testing"
             and local_testing.get("codex_marketplace_slot")
@@ -242,15 +238,8 @@ def _plugin_version_context() -> dict[str, object]:
             and live_slots.get("stable_selector_growth_allowed") is False
             and live_slots.get("max_active_native_mcp_count") == 1
             and live_slots.get("max_active_tunnel_count") == 1
-            and failover.get("registry_schema")
-            == "evidence-lane.codex-two-slot-main-local-registry.v1"
-            and failover.get("failure_target_slot") == "stable-git-main"
-            and failover.get("versioned_local_failure_targets_verified_main_only")
+            and live_slots.get("obsolete_marketplace_registrations_must_be_absent")
             is True
-            and failover.get("script")
-            == "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
-            and failover.get("single_transient_error_switch_allowed")
-            is False
             and release_contract.get("host_storage_tunnel_matrix")
             == _EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
             and remote_git_policy.get("effective_release") == runtime_version
@@ -463,35 +452,25 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
         if configured_slot:
             if configured_slot not in {
                 "main-git-release",
-                "branch-commit-recovery",
-                "mutable-local-testing",
+                "versioned-local-testing",
             }:
                 raise ValueError("configured Codex slot role is unsupported")
             slot_role = configured_slot
         else:
             plugin_path = str(_plugin_root()).replace("\\", "/").lower()
-            branch_marketplace = str(
-                (release_contract.get("branch_recovery") or {}).get(
-                    "codex_marketplace_slot"
-                )
-                or ""
-            ).lower()
             local_marketplace = str(
                 (release_contract.get("local_testing") or {}).get(
                     "codex_marketplace_slot"
                 )
                 or ""
             ).lower()
-            if branch_marketplace and branch_marketplace in plugin_path:
-                slot_role = "branch-commit-recovery"
-            elif local_marketplace and local_marketplace in plugin_path:
-                slot_role = "mutable-local-testing"
+            if local_marketplace and local_marketplace in plugin_path:
+                slot_role = "versioned-local-testing"
             else:
                 slot_role = "main-git-release"
         slot_contract_key = {
             "main-git-release": "stable",
-            "branch-commit-recovery": "branch_recovery",
-            "mutable-local-testing": "local_testing",
+            "versioned-local-testing": "local_testing",
         }[slot_role]
         slot_contract = dict(release_contract.get(slot_contract_key) or {})
         version = str(
@@ -514,7 +493,10 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
             if configured_runtime_root
             else (
                 Path.home()
-                / "EvidenceLanePV"
+                / ".codex"
+                / "plugins"
+                / "runtime"
+                / "evidence-lane-plugin"
                 / f"tunnel-runtime-{token}-{slot_role}"
                 if expected_ephemeral
                 else _store_root() / f"tunnel-runtime-{token}-{slot_role}"
@@ -581,7 +563,7 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
         marker = json.loads(marker_path.read_text(encoding="utf-8"))
         valid = (
             marker.get("schema")
-            == "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
+            == "evidence-lane.versioned-secure-mcp-tunnel-installation.v2"
             and marker.get("release") == version
             and marker.get("slot_role") == slot_role
             and marker.get("legacy_version_manager_authoritative") is False
@@ -589,6 +571,9 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
             and marker.get("host_tool_transport") == "HOST_TOOL_GAP"
             and marker.get("host_lifetime") == expected_lifetime
             and marker.get("runtime_key_plaintext_written") is False
+            and marker.get("host_wide_project_neutral") is True
+            and marker.get("per_project_or_task_tunnel_allowed") is False
+            and marker.get("scheduled_task_transport_used") is False
             and marker.get("vm_instance_id_sha256")
             == (
                 vm_instance_id_sha256
@@ -635,10 +620,7 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
 def _flash_context() -> str:
     prompt_path = (
         _plugin_root()
-        / "src"
-        / "evidence_lane_plugin"
-        / "session_flash"
-        / "env15"
+        / "env"
         / "UNIVERSAL_FLASH_PROMPT.md"
     )
     if not prompt_path.is_file():

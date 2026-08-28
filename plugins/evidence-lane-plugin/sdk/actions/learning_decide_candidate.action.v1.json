@@ -1,0 +1,106 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "learning_decide_candidate",
+  "title": "Decide Agent Learning candidate",
+  "description": "Record one exact Learning six-way HIL decision against the Learning pointer only; Project Truth and the Project six-way HIL remain untouched.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "candidate_id": {
+        "title": "Candidate Id",
+        "type": "string"
+      },
+      "expected_candidate_sha256": {
+        "title": "Expected Candidate Sha256",
+        "type": "string"
+      },
+      "decision_token": {
+        "title": "Decision Token",
+        "type": "string"
+      },
+      "actor_id": {
+        "title": "Actor Id",
+        "type": "string"
+      },
+      "decided_at": {
+        "title": "Decided At",
+        "type": "string"
+      },
+      "expected_project_truth_pointer_sha256": {
+        "title": "Expected Project Truth Pointer Sha256",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "candidate_id",
+      "expected_candidate_sha256",
+      "decision_token",
+      "actor_id",
+      "decided_at",
+      "expected_project_truth_pointer_sha256"
+    ],
+    "title": "learning_decide_candidateArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "learning_decide_candidateDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "991154FE28FF2E4108C4587D2CFF30E29772E1F299B7573D5C0FDCF49D652A60",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-learning",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "learning_decide_candidate"
+    },
+    "internal_sdk": {
+      "module_id": "agent_learning",
+      "operation": "decide_candidate",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-candidate",
+        "order": 7
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [
+    "FULL_PV_DUAL_HIL"
+  ],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/learning_decide_candidate.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "143857A6A2415EAD7A34EE120F80C5E3FCB498F4318B3CF0C642556DC4D03065"
+}

@@ -1,0 +1,62 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "pv_build_initial",
+  "title": "Build initial PV0 live authority",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id"
+    ],
+    "title": "pv_build_initialArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_build_initialDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "3395F9793BC824F85BE443C375478EE009546D77291E61F1597F7F6EFB7E5836",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-build",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_build_initial"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-build",
+        "workflow": "source-intake-backed-pv0-bootstrap",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/pv_build_initial.action.v1.json",
+  "sdk_action_binding_sha256": "7987D3E56C275CAFFE6614D3EADE3BCA534DBCD0420B45DBA04B699BEE14F9A8",
+  "public_action_schema": "schemas/actions/pv_build_initial.schema.json",
+  "public_action_schema_sha256": "8A5C94EA9ED83F7458ADA656B47F16C54B9708938216C4350C2DA0F44163E9CF",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "19B7D9FEF90E02FFD7FE3C088771BC35B95B1BF00A909C3B4CBC6E02A39AC0D7"
+}

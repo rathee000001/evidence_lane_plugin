@@ -9,7 +9,7 @@ from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-ADAPTER = ROOT / "plugins" / "evidence-lane-plugin" / "remote_adapter"
+ADAPTER = ROOT / "apps" / "evidence-lane-remote-adapter"
 PUBLIC_ROOT = ADAPTER / "public" / "dummy-lane-packages"
 INDEX_PATH = ADAPTER / "app" / "_data" / "dummy-lane-artifacts.json"
 

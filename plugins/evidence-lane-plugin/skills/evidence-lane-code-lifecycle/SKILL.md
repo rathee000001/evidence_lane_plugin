@@ -1,33 +1,62 @@
 ---
 name: evidence-lane-code-lifecycle
-description: Govern one universal Evidence Lane project across user-timed fresh-host State Travel, atomic Boot and locked ENV/UOP Flash, six public controls, eighteen lanes, bounded linear work, unaccepted candidates, exact-APPROVE Fuse, pointer-only Rollback, and explicit Exit Boot.
+description: Govern one universal Evidence Lane project across user-timed fresh-host State Travel, atomic Boot and locked ENV/UOP Flash, six public controls, eighteen lanes, bounded linear work, unaccepted candidates, exact-APPROVE Fuse, Plan-stamped logical Rollback, and explicit Exit Boot.
 ---
 
 # Evidence Lane universal lifecycle
 
 Use one linear state machine. Runtime context is never accepted evidence.
 
+`ALL_PLUGIN_BEHAVIOR_INTERNAL_SDK_GOVERNED` is permanent. The internal SDK
+owns the complete derived public-action registry and every authority/workflow
+contract. MCP schemas, skills, hook event classes/sub-actions,
+installer, helper, tunnel, remote adapter, and host UI are routing or transport
+adapters only; they may not duplicate business logic or reason about lifecycle
+state. Prompt/steer entry, six-way ENV/UOP work, Delta entry, in-Delta query,
+Delta-exit append refresh, HIL Overlay, State Travel, and Step Task List relock
+must resolve through the runtime workflow SDK registry. Explicit actions work
+with hooks off. Codex skill auto-selection is the host prompt trigger; the SDK
+never fabricates pre-reasoning interception when the host did not invoke it.
+
 ## Plugin-creator local update route law
 
 `PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW` is permanent. Updating the existing
 configured local Evidence Lane development slot uses the plugin-creator
 validator and one cachebuster, the existing local marketplace source, and
-`codex plugin add`, followed by exact same-task hidden restart/rehydration.
+one sealed staging receipt. The dedicated
+`--seal-plugin-creator-local-cache-restart` materializer may invoke
+`codex plugin add` exactly once only after that receipt proves the one older
+enabled local selector, disabled Main selector, new cachebuster identity, and
+unchanged hook state. It is followed by exact same-task hidden
+restart/rehydration after the current response reaches a native terminal event.
 Never select, retry, or fall back to the historical Windows whole-marketplace
 root rename/rotation route. Git-main activation remains a separate governed
 release boundary.
+
+The installed package contains no two-selector/last-known-good or standalone
+direct-add compatibility executor. The only local route is Plugin Creator
+validate/package, one cachebuster, configured local-source staging, the sealed
+local-cache materializer, terminal-safe restart preparation, persisted response
+completion, user-controlled exact-channel close/reopen, and post-restart native
+task readback. No turn-drain utility, scheduled restart child, process-stop
+helper, or machine-wide protocol handler is part of the route. Never execute an
+obsolete route first as discovery, preflight, or fallback.
 
 When `codex plugin add` materializes the fresh cache but the loaded desktop
 keeps the prior cache active, seal
 `PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED` from the exact
 staging receipt, current selector, old active version, and new cache bytes.
-Only `Restart-EvidenceLaneCodex.ps1` may consume that state, and it must reopen
-the exact invoking task hidden in the same Codex app. The helper never installs
-or rotates plugin bytes. For this Plugin Creator local-update branch it is a
-dumb exact-task restart helper: after exact preflight it stops the bound app
-once and reopens the same task once. It does not focus or maximize windows,
-start the tunnel, rehydrate other tasks, replay State Travel, or mutate
-Goal/Plan/PV/HIL authority.
+Only `Prepare-EvidenceLaneCodexRestart.ps1` may consume that state. It validates
+the exact install, task, stable-or-Beta channel, and root process, then writes a
+sealed preparation and task-binding receipt. It never lists or interrupts
+turns, stops a process, schedules a child, activates an app or protocol, starts
+the tunnel, rehydrates another task, replays State Travel, or mutates
+Goal/Plan/PV/HIL authority. The active assistant response must finish normally.
+Only after the native turn is terminal may the user close and reopen the exact
+selected app channel. Reattachment is proven afterward by native task, package,
+project, session, Plan, Goal, and workspace readback. A stale `inProgress` turn
+or hidden overlay is a host fault to expose and correct; it is never repaired
+by rewriting rollout JSONL, SQLite, prompt chronology, or turn timestamps.
 
 ## Codex hook and skill ownership
 
@@ -52,11 +81,17 @@ Goal/Plan/PV/HIL authority.
   retest that event, then re-enable it on PASS. Restart, reattachment, and
   upgrade preserve the verified state and never use Windows UI or process
   control as a hook-management route.
-- Every hook binds the same user-owned durable authority: an explicit
-  `EVIDENCE_LANE_DATA_ROOT`, otherwise `~/EvidenceLanePV`. Codex-injected
-  `PLUGIN_DATA` is selector-scoped installation storage and must never become
-  project, session, PV, PromptIndex, ChatLineage, Plan, or Delta authority. Do
-  not create or consult a shadow authority under a stable or fallback slot.
+- Every hook binds hidden plugin control state through
+  `EVIDENCE_LANE_RUNTIME_CONTROL_ROOT`, defaulting to
+  `~/.codex/plugins/runtime/evidence-lane-plugin`. Codex-injected `PLUGIN_DATA`
+  is selector-scoped installation storage and must never become project,
+  session, PV, PromptIndex, ChatLineage, Plan, or Delta authority. Each project
+  binds its user-selected external project/PV root through `project_register`.
+  Ask for or create that mapping only in the initial workflow when the project
+  is unregistered. Every later task and every State Travel destination reuses
+  the existing project registration; it must not ask for, infer, or create a
+  new Project/PV root. The current Codex route has no compatibility data-root
+  fallback.
 - For every visible user prompt, correction, or mid-Goal steer, require the
   sealed `UserPromptSubmit` transport envelope and its skill-owned PREPARE
   receipt. Automatic Goal continuation is a separate non-prompt route because
@@ -268,8 +303,9 @@ rehydration request. It must not perform native reads or call host
 ## Non-negotiable gates
 
 - `/evi-state-travel` may run only after an explicit user request or genuine
-  host-context exhaustion and in a genuinely fresh destination Codex task. A
-  prepared handoff is eligibility evidence, not an automatic instruction. By
+  host-context exhaustion and in a genuinely fresh destination Codex task. It
+  uses native `session_resume` followed by the six-field direct route;
+  compatibility prepare/resume executors are absent. By
   default preserve the exact unfinished state, task/pending correction,
   candidate, pointer base, live source, Plan Lane, additive Deltas, resume row,
   and host execution profile. Resume that row after verification. Use accepted
@@ -282,7 +318,7 @@ rehydration request. It must not perform native reads or call host
   host-result UUID/deep-link proof before native resume. Any mismatch is
   `STATE_TRAVEL_HOST_CONTINUITY_FAILURE`: fail before consumption, do not retry,
   preserve bytes, and require explicit correction.
-- State Travel and panel recovery must use the bounded sealed handoff plus
+- State Travel and panel recovery must use the bounded server-derived direct receipt plus
   canonical Plan authority, never a full `thread/read` history hydration.
   Require zero unbounded-history and collaboration-overlay hydration events
   during the critical section; a React-root rerender or hydration overflow is
@@ -296,12 +332,17 @@ rehydration request. It must not perform native reads or call host
   `EXPLICIT_USER_CONTINUATION`. Preserve the handoff receipt in history, record
   non-consumption supersession, and leave the pointer unchanged. A changed host
   remains blocked until verified State Travel.
-- Never call a candidate accepted. Exact case-sensitive `APPROVE` supplied to
-  `pv_fuse` is the only promotion authority. The five non-promotion HIL choices
-  may record correction, research, rollback, rejection, or failure state.
-- `ROLLBACK` moves only the accepted pointer to immutable accepted history. It
-  never promotes a candidate, rewrites source, deletes history, or resets the
-  monotonic PV ordinal.
+- Never call a candidate accepted. The separate `evi-fuse` skill owns every
+  Project/Learning HIL decision and `pv_fuse`; Build owns no decision. Exact
+  case-sensitive dual approval is the only promotion authority. The five
+  non-promotion choices may record correction, research, rollback, rejection,
+  or failure state.
+- `ROLLBACK` selects only a Plan-stamped logical state: full PV via dual-HIL
+  acceptance plus Project Overlay, or sub-PV via its auto-accepted Delta row.
+  It preserves accepted pointer, candidate, task, Goal, source, history, and
+  the monotonic PV ordinal and never queries the rotating accepted folder.
+  Hard restore is a separate explicit user-selected matching full-PV ZIP
+  transaction and is unavailable for sub-PVs.
 - Record visible operational evidence only. Redact secrets and never store
   hidden chain-of-thought or private model reasoning.
 - Remote Git writes require a separately prepared exact action. Version 2 may
@@ -337,7 +378,7 @@ stop boundary. Host Plan activation, reactivation, status synchronization, and
 window advancement are separate host actions and must never call or alias
 `/evi-refresh`.
 
-Skills, commands, receipts, and saved contracts use only the canonical bare MCP
+Skills, receipts, and saved contracts use only the canonical bare MCP
 tool names advertised by the exact active server. Host-generated connector
 namespaces are display and transport metadata, not lifecycle identity. The
 stdio compatibility boundary may normalize one only when the remaining name is
@@ -359,7 +400,7 @@ locked mode namespace plus explicit custom mode schemas. It always includes
 Mode and Chat Lineage, appends a visible receipt, and returns to the prior
 lifecycle position without creating a candidate or moving a pointer.
 
-`/evi-plan` is a Codex-only Planning sidecar outside the six controls. If native
+`$evi-plan` is a Codex-only Planning skill sidecar outside the six controls. If native
 Plan mode is not active, return the `/pl` reminder without persisting a plan.
 After planning, persist the canonical Plan Lane and return the short prompt the
 user copies into the host-owned Goal. Linked steers append to an existing row;
@@ -401,13 +442,14 @@ pointer movement, Git, install, merge, or deployment authority.
 The sole Goal-completion display route is
 `build_rich_goal_completion_metrics_receipt`. Feed it exact native
 host-accounted Goal telemetry and the exact persisted project/session/task/host
-binding. Its receipt preserves exact counts plus K/M/B projections, treats
+binding. Its receipt sums positive cumulative deltas across every counter-reset
+epoch, reconciles native turns/compactions/stale inProgress evidence, preserves
+daily totals plus correction/supersession semantics, preserves exact counts plus K/M/B projections, treats
 reasoning output as a subset of output, and keeps host-accounted Goal tokens
 separate from raw model traffic. Unknown host conversion rules stay unknown;
 missing rich fields stay in the structured missing-field list. A completed Goal
 reuses its validated persisted rich receipt without another completion call.
-`build_goal_usage_receipt` remains only a non-executing `OBSOLETE_ROUTE`
-tombstone and is never a fallback.
+No compact or single-epoch compatibility collector is installed.
 
 ## Brain and sector law
 
@@ -434,11 +476,34 @@ limited to eight additional active plugins; drop requires its exact token.
 
 ## Task, Refresh, and HIL
 
+0. For an unregistered project in the initial workflow, register the exact
+   user-selected workspace and separate external Project/PV root, persist the
+   first canonical Plan through EVI Plan, wait for explicit host Plan
+   acceptance, and bind the Goal plus fixed Step Task List through hooks. Then
+   Source Intake plus `pv_build_initial` materializes the canonical sector
+   projection and establishes `PV0` at generation `0`. PV0 is the no-HIL
+   starting authority: no candidate, Project Overlay, accepted artifact,
+   Learning decision, or State Travel is created. State Travel never executes
+   this registration/PV0 path and always reuses the carried project identity.
+   The first executable row then enters through the same adaptive Delta-entry
+   route as every later row.
 1. Append requested Deltas with `pv_plan_tasks`; never delete, reorder, or
    silently complete backlog history. Record each steer through
    `pv_plan_steer_delta`, linking it to an existing row or inserting a new row
    before the next governed HIL.
 2. Classify exactly one bounded task and record visible activities.
+   Every successful `task_classify` automatically fires the first-class
+   adaptive Delta-entry behavior before source work. It binds the exact sole
+   ACTIVE Plan row and all linked steers, reconciles or reuses the immediately
+   prior verified auto-accepted sub-PV, and consumes bounded results from all
+   eighteen live-root sector lanes, Agent Learning, Canon, Project Memory,
+   Project Universe, connector brain, the resolved AGENTS.md chain, and host
+   MEMORY.md under ENV/UOP. A stale/no-hit arm uses the live-sector fallback,
+   refreshes Learning, Canon, Memory, and Universe once, and refires once. It
+   persists exactly one ENTRY_FORMULA for a new row; re-entry reuses it, while
+   a closed historical row receives an audit receipt without appending after
+   EXIT_FORMULA. The accepted ZIP is never queried and source work remains
+   unauthorized until the entry receipt passes.
    Close an ordinary executable row only from one current-run, exact-task,
    exact-acceptance checkpoint receipt. The successor must be the first queued
    canonical row, and the advance must preserve an absent candidate/HIL and an
@@ -461,11 +526,29 @@ limited to eight additional active plugins; drop requires its exact token.
    targeted PASS receipts, source-scope hash, every current hook-registry event
    exactly once, and one install disposition. A grouped install may be deferred
    only to an exact later queued batch boundary that covers the active row; the
-   exit may not pretend an install occurred. The route refreshes Learning,
-   Canon, Memory, and Universe in that order, computes the current host-window
+   exit may not pretend an install occurred. The route refreshes changed
+   project sector lanes, Learning, Canon, Memory, Universe, and the
+   connector-brain authority in that order, computes the current host-window
    fingerprint, appends one terminal `EXIT_FORMULA`, and proves that Git,
-   candidate, HIL, pointer, and Plan-row state did not move. Only its PASS
-   receipt may enter the row's exact-acceptance checkpoint.
+   candidate, HIL, pointer, and Plan-row state did not move. A normal non-HIL
+   Delta never refreshes Project Overlay. A HIL Delta binds Project Overlay
+   refresh to the subsequent HIL candidate-build step so its cumulative blast
+   radius is sealed exactly once. Only the exit's PASS receipt may enter the
+   row's exact-acceptance checkpoint.
+   Every verified ordinary Delta checkpoint also seals one auto-accepted
+   `PV(n-1).x.y` sub-PV receipt for its successor without moving the full
+   Project pointer or invoking HIL. Its eligible Learning output is
+   automatically admitted as Delta Learning; the full-PV HIL later decides one
+   deterministic weave of all admitted members, never the members one by one.
+   While the row is open, the immutable full-PV pointer remains PV(n-1), but
+   the progressive live-root sectors already include every completed Delta
+   through the predecessor's auto-accepted sub-PV. Its Delta Learning is a
+   separate accepted procedural input. Only the current ACTIVE Delta's dirty
+   changes are not yet in the sectors. Bounded source tests are source evidence
+   only. Delta exit advances the live sector/intelligence watermark, and
+   installed public-route PASS requires the new local package plus exact-task
+   reattachment and installed-host schema/action receipts. Never substitute a
+   source test for installed behavior.
 3. Use accepted evidence as entry truth and live repository evidence for
    source changed after entry.
 4. Confirm final Codex source state with
@@ -477,12 +560,20 @@ limited to eight additional active plugins; drop requires its exact token.
    call may recover only when no candidate was sealed. Recovery is
    receipt-backed, remains in `EXIT_BUILDING` until sealing succeeds, and
    cannot move the accepted pointer or infer HIL.
-6. Present exactly: `APPROVE`, `APPROVE_WITH_DELTA`, `MORE_RESEARCH`,
-   `ROLLBACK`, `REJECT`, or `FAIL`. Stop for the human decision.
+6. Every full-PV HIL is dual: present separate Project and consolidated
+   Learning surfaces, each with exactly `APPROVE`, `APPROVE_WITH_DELTA`,
+   `MORE_RESEARCH`, `ROLLBACK`, `REJECT`, or `FAIL`. Stop for both human
+   decisions. On dual approval, accept the one woven Learning candidate first;
+   Project Fuse then verifies that exact accepted weave targets the same PV
+   before appending one dual acceptance stamp to the exact Plan HIL row,
+   creating the single accepted root ZIP, and moving the Project pointer. The
+   Plan stamp is the acceptance authority; the ZIP is snapshot storage only
+   and is never an entry, query, Learning, or State Travel source.
 7. Natural-language continuation or acceptance intent may be classified and
-   appended to Chat Lineage, but classification never promotes. Only an exact
-   first `/evi-build` argument of `APPROVE` may route to `pv_fuse`.
-8. Only an exact sealed handoff plus an explicit user or genuine
+   appended to Chat Lineage, but classification never promotes. Build stops at
+   presentation. Only the separate `evi-fuse` route may record decisions, and
+   only exact Learning then Project `APPROVE` may reach `pv_fuse`.
+8. Only the current server-derived direct contract plus an explicit user or genuine
    context-exhaustion trigger can authorize `/evi-state-travel` in a fresh
    destination host. Acceptance is not a prerequisite for unfinished-work
    continuity.

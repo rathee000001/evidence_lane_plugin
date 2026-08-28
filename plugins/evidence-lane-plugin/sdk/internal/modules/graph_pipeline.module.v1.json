@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.graph_pipeline",
+  "source_path": "src/evidence_lane_plugin/graph_pipeline.py",
+  "source_sha256": "ED88599E4F3B64C9FCBA0768825ABF14B41F17CA7455D401A8D9FBF859ADF160",
+  "source_bytes": 27712,
+  "role": "AI_TOOLCHAIN_EXECUTION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "04FCFB2D7B53AC2765851FF6CCCDEAB647F0EA74E54DF32C928AB0EE97C32C39"
+}

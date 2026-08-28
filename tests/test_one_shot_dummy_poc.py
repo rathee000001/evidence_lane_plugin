@@ -5,9 +5,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = ROOT / "plugins" / "evidence-lane-plugin" / "scripts"
-if str(SCRIPTS) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS))
+POC_TOOLS = ROOT / "tests" / "tools"
+if str(POC_TOOLS) not in sys.path:
+    sys.path.insert(0, str(POC_TOOLS))
 
 from build_one_shot_dummy_poc import build_one_shot_dummy_poc
 

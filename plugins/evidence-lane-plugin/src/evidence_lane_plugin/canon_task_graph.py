@@ -93,7 +93,7 @@ _AUTHORITY_EFFECTS_NONE = {
     "chat_lineage": "NONE",
     "host_entry_continuity": "NONE",
 }
-_CANON_SCHEMA_ROOT = Path(__file__).resolve().parent / "schemas" / "canon"
+_CANON_SCHEMA_ROOT = Path(__file__).resolve().parents[2] / "schemas" / "canon"
 _CANON_RECEIPT_SCHEMAS = {
     CANON_DECISION_RECEIPT_SCHEMA,
     CANON_DISPATCH_RECEIPT_SCHEMA,
@@ -2644,8 +2644,9 @@ def dispatch_linked_canon_task(
     expected_return_contract_sha256: str,
     expires_at: str | None,
     requested_at: str,
+    host_creation_receipt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Use one supported host seam, then bind the returned exact destination."""
+    """Use an injected host seam or a caller-mediated native two-phase launch."""
 
     root = _project_root(project_root, project_id=project_id)
     before = _authority_snapshot(root)
@@ -2750,17 +2751,6 @@ def dispatch_linked_canon_task(
             }
     finally:
         connection.close()
-    require(
-        dispatcher is not None
-        and callable(getattr(dispatcher, "create_linked_task", None))
-        and getattr(dispatcher, "host_kind", None) == "CODEX"
-        and getattr(dispatcher, "capability", None)
-        == CODEX_HOST_CREATE_CAPABILITY,
-        "HOST_CAPABILITY_UNAVAILABLE",
-        "The host does not expose the supported idempotent Codex task-create operation.",
-        status="UNAVAILABLE",
-    )
-    exact_dispatcher = cast(CanonTaskDispatcher, dispatcher)
     host_request = {
         "schema": "evidence-lane.codex-host-linked-task-create-request.v1",
         "host_kind": "CODEX",
@@ -2771,7 +2761,54 @@ def dispatch_linked_canon_task(
         "required_receipt_schema": CODEX_HOST_CREATE_RECEIPT_SCHEMA,
         "canon_request": request_body,
     }
-    response = exact_dispatcher.create_linked_task(host_request)
+    dispatcher_available = (
+        dispatcher is not None
+        and callable(getattr(dispatcher, "create_linked_task", None))
+        and getattr(dispatcher, "host_kind", None) == "CODEX"
+        and getattr(dispatcher, "capability", None)
+        == CODEX_HOST_CREATE_CAPABILITY
+    )
+    if host_creation_receipt is None and not dispatcher_available:
+        after = _require_authorities_unchanged(
+            root, before, operation="dispatch_host_action_required"
+        )
+        return {
+            "status": "HOST_ACTION_REQUIRED",
+            "state": "WAITING_FOR_CALLER_MEDIATED_NATIVE_TASK_CREATE",
+            "dispatch_id": dispatch_id,
+            "request_sha256": request_sha256,
+            "host_request": host_request,
+            "allowed_native_host_routes": [
+                "CODEX_NATIVE_CREATE_THREAD",
+                "CODEX_NATIVE_SPAWN_SUBAGENT",
+            ],
+            "required_followup": (
+                "RECALL_CANON_DISPATCH_LINKED_TASK_WITH_EXACT_HOST_CREATION_RECEIPT"
+            ),
+            "created_or_bound": False,
+            "automatic_retry_allowed": False,
+            "authority_before": before,
+            "authority_after": after,
+            "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
+        }
+    if host_creation_receipt is not None:
+        supplied_receipt = dict(host_creation_receipt)
+        validate_canon_receipt(supplied_receipt)
+        destination_value = supplied_receipt.get("destination")
+        require(
+            isinstance(destination_value, Mapping),
+            "CANON_CODEX_HOST_RECEIPT_DESTINATION_REQUIRED",
+            "The caller-mediated host receipt does not contain one exact destination.",
+            status="MISMATCH",
+        )
+        response: Mapping[str, Any] = {
+            **dict(cast(Mapping[str, Any], destination_value)),
+            "created_once": True,
+            "host_creation_receipt": supplied_receipt,
+        }
+    else:
+        exact_dispatcher = cast(CanonTaskDispatcher, dispatcher)
+        response = exact_dispatcher.create_linked_task(host_request)
     require(
         isinstance(response, Mapping),
         "CANON_DISPATCH_RESPONSE_INVALID",
@@ -2779,21 +2816,21 @@ def dispatch_linked_canon_task(
         status="FAIL",
     )
     destination = _endpoint(response, field="destination")
-    host_creation_receipt = response.get("host_creation_receipt")
+    exact_host_creation_receipt = response.get("host_creation_receipt")
     require(
         response.get("created_once") is True
-        and isinstance(host_creation_receipt, Mapping),
+        and isinstance(exact_host_creation_receipt, Mapping),
         "CANON_DISPATCH_EXACT_ONCE_UNPROVEN",
         "The host did not return one exact idempotent destination receipt.",
         status="FAIL",
     )
-    host_creation_receipt = cast(Mapping[str, Any], host_creation_receipt)
-    validate_canon_receipt(host_creation_receipt)
+    exact_host_creation_receipt = cast(Mapping[str, Any], exact_host_creation_receipt)
+    validate_canon_receipt(exact_host_creation_receipt)
     require(
-        host_creation_receipt.get("schema") == CODEX_HOST_CREATE_RECEIPT_SCHEMA
-        and host_creation_receipt.get("idempotency_key") == dispatch_id
-        and host_creation_receipt.get("request_sha256") == request_sha256
-        and host_creation_receipt.get("destination") == destination,
+        exact_host_creation_receipt.get("schema") == CODEX_HOST_CREATE_RECEIPT_SCHEMA
+        and exact_host_creation_receipt.get("idempotency_key") == dispatch_id
+        and exact_host_creation_receipt.get("request_sha256") == request_sha256
+        and exact_host_creation_receipt.get("destination") == destination,
         "CANON_CODEX_HOST_RECEIPT_BINDING_MISMATCH",
         "The Codex host receipt does not bind the exact destination and request.",
         status="MISMATCH",
@@ -2860,7 +2897,7 @@ def dispatch_linked_canon_task(
         "task_mode": mode,
         "scope_class": scope,
         "created_once": True,
-        "host_creation_receipt": dict(host_creation_receipt),
+        "host_creation_receipt": dict(exact_host_creation_receipt),
         "edge": registered["edge"],
         "approval_propagated": False,
         "pointer_propagated": False,

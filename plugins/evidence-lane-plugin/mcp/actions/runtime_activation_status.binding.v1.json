@@ -1,0 +1,54 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "runtime_activation_status",
+  "title": "Inspect Evidence Lane runtime attachment",
+  "input_schema": {
+    "properties": {},
+    "title": "runtime_activation_statusArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "runtime_activation_statusDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "5FF6B44A6294F618144C8E6A8B230F03435BB35F8D9C9BBF286B267FC6EA1445",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-boot",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "runtime_activation_status"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-boot",
+        "workflow": "boot-or-resume",
+        "order": 6
+      },
+      {
+        "owner_skill": "evi-state-travel",
+        "workflow": "direct-destination-activation-verification",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/runtime_activation_status.action.v1.json",
+  "sdk_action_binding_sha256": "C81D4AA6375CCBA827FE49A4F72761C21A3CA43B1F02F1F69F4F038563535978",
+  "public_action_schema": "schemas/actions/runtime_activation_status.schema.json",
+  "public_action_schema_sha256": "ED2DB0B6A2285B68321DCF9E00089830A8A366B20B65C6B20A0EE85B74B8497F",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "EEBA1A0118AC55405830C1D32989344AAA1CC29E35FBA2DCC5319F7C108F1E1C"
+}

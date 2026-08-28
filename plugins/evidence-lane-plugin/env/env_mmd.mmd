@@ -1,0 +1,611 @@
+flowchart TD
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=3633B9EFE6BB13E5718AAFB46860698BAA9AAB987ED4B3499AD81611AA3E3F06
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  START["User prompt enters chat display window"]:::root
+  ENTRY["ENTRY SLIP: read package pointers first"]:::semantic
+  DOTENV[".uepc_env / env HEAD"]:::semantic
+  DOTPROJECT[".uepc_project / project HEAD template"]:::semantic
+  DOTUOP[".uepc_profile / UOP PROFILE HEAD"]:::semantic
+  MODE_ROUTER["MODE_ROUTER"]:::default
+  SOURCE_INTAKE["SOURCE_INTAKE"]:::default
+  AUTHORITY["AUTHORITY"]:::default
+  PCM_MBA["PCM_MBA"]:::default
+  UOP_SECTOR["UOP_SECTOR"]:::default
+  PROJECT_TEMPLATE["PROJECT_TEMPLATE"]:::default
+  PB_BUILDER["PB_BUILDER"]:::default
+  TURN_WRITEBACK["TURN_WRITEBACK"]:::default
+  ENV_MMD_EXIT["ENV_MMD_EXIT"]:::default
+  ENV12_BREAKER["ENV12_BREAKER"]:::default
+  ENV14_AUTHORITY["ENV14_AUTHORITY"]:::default
+  ENV14_DEEPRESEARCH["ENV14_DEEPRESEARCH"]:::default
+  ENV14_MMD_SVG["ENV14_MMD_SVG"]:::default
+  ENV14_PROJECT_EXPANSION["ENV14_PROJECT_EXPANSION"]:::default
+  ENV14_CLEAN_PACKAGE["ENV14_CLEAN_PACKAGE"]:::default
+  ENV15_IMMUTABLE_BASE["ENV15_IMMUTABLE_BASE"]:::default
+  ENV15_STATE_TRAVEL["ENV15_STATE_TRAVEL"]:::default
+  ENV15_LEGACY["ENV15_LEGACY"]:::default
+  ENV15_PROJECT_SECTORS["ENV15_PROJECT_SECTORS"]:::default
+  ENV15_CODE_INDEX["ENV15_CODE_INDEX"]:::default
+  ENV15_RESEARCH_LEDGER["ENV15_RESEARCH_LEDGER"]:::default
+  ENV15_RENDER_LOCK["ENV15_RENDER_LOCK"]:::default
+  ENV15_CLEAN_PACKAGE["ENV15_CLEAN_PACKAGE"]:::default
+  ENV15_CODEX_HANDOFF["ENV15_CODEX_HANDOFF"]:::default
+  subgraph ENV_HEAD["ENV HEAD / LOCKED GOVERNANCE ROOT"]
+    direction TB
+    ENVSQL["env/env_sqlite.sqlite"]:::semantic
+    ENVROOT["env_governance_root_v12"]:::semantic
+    LOCK["env_write_lock_policy / env core locked"]:::semantic
+    FLASHQ["mode == flash_env?"]:::warn
+    ENV_MUTATE["env_flash_approval_log_v11 / env mutation allowed only this run"]:::semantic
+    ENV_RO["READ ONLY env law/schema/MMD"]:::semantic
+    ENVTRUST["env_trust_state_v11"]:::semantic
+    ROOTKEY["root_key_policy_v11 / public verification, private root key external"]:::semantic
+    SIG["env_signature_manifest_v11 / official seal"]:::semantic
+    TRUSTFAIL["OFFICIAL_SIGNATURE_FAILED / UNTRUSTED_FORK_MODE / PROJECT_DATA_SAFE"]:::semantic
+    NOCI["no_autonomous_cicd_gate / human route control"]:::semantic
+    SAFE["safe tamper response / read-only quarantine + recovery export"]:::semantic
+  end
+  subgraph SOURCE_INTAKE["SOURCE INTAKE + LOSSLESS CHUNKING"]
+    direction TB
+    UPLOADS["Uploaded source files / zips / brains / docs / images"]:::semantic
+    CLASS["source_classifier_registry_v12"]:::semantic
+    TYPEQ["source type?"]:::warn
+    DOCS["DOCX/PDF/MD/TXT/HTML/JSON parse once"]:::semantic
+    SHEETS["CSV/XLSX sheet/table/formula chunks"]:::semantic
+    CODE["Raw code repo / .git / symbol/import/API chunks"]:::semantic
+    SQLBRAIN["SQLite brain ZIP / schema + table import"]:::semantic
+    IMAGE["Image/video metadata, OCR only if needed"]:::semantic
+    ZIPROUTE["ZIP vertical route / nested package audit"]:::semantic
+    RAWREG["artifact_raw_registry"]:::semantic
+    BYTE["artifact_byte_range_index"]:::semantic
+    PARSE["artifact_parse_event"]:::semantic
+    CHUNK["artifact_chunk_index"]:::semantic
+    UINDEX["universal_index_registry"]:::semantic
+    FTS["source_chunk_fts / artifact_chunk_fts"]:::semantic
+    COVER["artifact_coverage_audit"]:::semantic
+    STATUS["REGISTERED / PARSED / CHUNKED / METADATA_ONLY / BLOCKED / REVIEW_REQUIRED"]:::semantic
+  end
+  subgraph AUTHORITY["AUTHORITY, PRECEDENCE, QUARANTINE"]
+    direction TB
+    PRECEDENCE["source_precedence_matrix_v12"]:::semantic
+    AUTHSTACK["sparse_active_source_stack / top source IDs only"]:::semantic
+    ACTIVE["active_source_stack / lane-specific evidence pull"]:::semantic
+    QUAR["source_instruction_quarantine_v12"]:::semantic
+    PROMO["promoted by user as route law?"]:::warn
+    EVIDENCE_ONLY["uploaded text is evidence only"]:::semantic
+    ROUTE_LAW["accepted delta / route law candidate"]:::semantic
+    DELTA["delta_ledger"]:::semantic
+  end
+  subgraph MODE_ROUTER["MODE + LANE ROUTER"]
+    direction TB
+    MODENS["mode_namespace_registry"]:::semantic
+    COMBO["combined_mode_namespace_rule"]:::semantic
+    HINDEX["hierarchical_index_registry"]:::semantic
+    D["D discussion"]:::semantic
+    AL["AL analysis"]:::semantic
+    PL["PL planning"]:::semantic
+    CD["CD code"]:::semantic
+    OP["OP output"]:::semantic
+    VAL["VAL validation"]:::semantic
+    RS["RS research"]:::semantic
+    JD["JD job/JD"]:::semantic
+    XL["XL Excel"]:::semantic
+    PPT["PPT presentation"]:::semantic
+    DOC["DOC document"]:::semantic
+    PB["PB project brain builder"]:::semantic
+    ENG["ENG project engulf"]:::semantic
+    CE["CE clean exit"]:::semantic
+    RCV["RCV recovery"]:::semantic
+    X["X custom user-defined mode"]:::semantic
+    CDREC["lane_recursive_policy: scan discussion -&gt; planning -&gt; code -&gt; validation -&gt; error/open deltas"]:::semantic
+    XLREC["sheet/formula/pivot dependency lane"]:::semantic
+    PPTREC["slide/story/source-state lane"]:::semantic
+    DOCREC["section/render-QA lane"]:::semantic
+    PBLANE["project_brain_builder_lane_v11"]:::semantic
+  end
+  subgraph PCM_MBA["PCM + MBA OPERATOR ENGINE / FIRED ONLY WHEN NEEDED"]
+    direction TB
+    PCM["pcm_mba_operator"]:::semantic
+    MATH["Math: sets, relations, matrices, graph, indexing, hashes"]:::semantic
+    PHYS["Physics: state, entropy, continuity, signal/noise"]:::semantic
+    CHEM["Chemistry: redox, quarantine, irreversible fusion risk"]:::semantic
+    MBA["MBA/Ops: audit, risk, supply chain, rollback, human control"]:::semantic
+    FORMULA["formula_component / task formula receipt"]:::semantic
+  end
+  subgraph UOP_SECTOR["UOP GOVERNANCE SECTOR / MANDATORY BUT SEPARATE"]
+    direction TB
+    UOPROOT["uop_governance_root_v12"]:::semantic
+    UOPSLOT["UOP slot exists in clean env / no private payload in env core"]:::semantic
+    UOPPKG["uop/uop_sqlite.sqlite / clean governance sector"]:::semantic
+    UOPSQL["uop/uop_sqlite.sqlite"]:::semantic
+    UOPSRC["uop_source_registry / governance extraction only"]:::semantic
+    UOPCHUNK["uop_spatial_operator + uop_knowledge_compression_operator"]:::semantic
+    UOPPRIV["uop_privacy_boundary"]:::semantic
+    UOPRULE["UOP guides profile/operator context only"]:::semantic
+    NOOVERRIDE["UOP cannot override env law or project truth"]:::semantic
+    UOPMMD["UOP governance MMD / own topology"]:::semantic
+    FLASHUOP["mode == flash_uop?"]:::warn
+    UOPUPDATE["scoped UOP update allowed"]:::semantic
+    UOPLOCK["UOP sector locked/read-only"]:::semantic
+  end
+  subgraph PROJECT_TEMPLATE["UNPOPULATED PROJECT SECTOR / TEMPLATE ONLY"]
+    direction TB
+    PROOT["project_growth_root_v12"]:::semantic
+    PSECTION["project_section template / no project payload"]:::semantic
+    PPACKET["project_packet_section template"]:::semantic
+    PTURN["project_turn_packet template"]:::semantic
+    PSRC["project source registry placeholder"]:::semantic
+    PCHUNK["prompt_chunk / source_chunk / visible_reasoning_chunk / response_chunk"]:::semantic
+    PART["artifact_registry + artifact_link_state"]:::semantic
+    PCONSIST["project_pointer_consistency_check_v12"]:::semantic
+    PASSQ[".uepc_project + project_section + packet + MMD agree?"]:::warn
+    PREADY["project template ready"]:::semantic
+    PBLOCK["BLOCKED_POINTER_MISMATCH"]:::semantic
+    PMMD["project_mmd_generation_event_v12"]:::semantic
+    PMMDT["project topology MMD grows from project section"]:::semantic
+    PNGOPT["project PNG/SVG optional unless requested"]:::semantic
+  end
+  subgraph PB_BUILDER["PROJECT BRAIN BUILDER LANES / EMPTY UNTIL PROJECT ENGULF"]
+    direction TB
+    PB_CODE["PB_CODE_REPO: raw code + .git"]:::semantic
+    PB_SQL["PB_SQLITE_IMPORT: project brain sqlite"]:::semantic
+    PB_DOC["PB_DOC_CORPUS: reports/docs"]:::semantic
+    PB_CSV["PB_CSV_FACT: master fact CSV"]:::semantic
+    PB_MIXED["PB_MIXED_PROJECT_ZIP"]:::semantic
+    FUTUREPROJECT["future project section population"]:::semantic
+  end
+  subgraph TURN_WRITEBACK["PROMPT / RESPONSE / ARTIFACT WRITEBACK"]
+    direction TB
+    PTURNLOG["prompt_turn"]:::semantic
+    PCHUNKS["prompt_chunk indexed by mode namespace"]:::semantic
+    ERECEIPT["env_receipt ENTRY"]:::semantic
+    MODELOG["mode_classification_run + operator_activation_run"]:::semantic
+    GATERUN["gate_evaluation_run"]:::semantic
+    VREASON["visible_reasoning_chunk only / no hidden chain-of-thought"]:::semantic
+    RESPONSE["response_chunk"]:::semantic
+    GENART["generated_artifact_link_state"]:::semantic
+    ARTREG["artifact_registry / output_artifact"]:::semantic
+    WRITE["env_sqlite_write_receipt"]:::semantic
+    STATEHASH["state_hash_chain"]:::semantic
+  end
+  subgraph ENV_MMD_EXIT["ENV MMD LOCK + CLEAN EXIT"]
+    direction TB
+    ENVMMDLOCK["env_mmd_lock_state / env MMD changes only in flash_env"]:::semantic
+    ENVMMD["env topology MMD generated after env SQLite migration"]:::semantic
+    CHECKSUM["diagram_checksum_registry / MMD_STALE_WARN"]:::semantic
+    EXIT["EXIT SLIP"]:::semantic
+    MANIFEST["external hash manifest + artifact manifest + availability ledger"]:::semantic
+    CLEANEXIT["clean_exit_protocol_v12"]:::semantic
+    PACKAGE["one-upload continuation package"]:::semantic
+    NEXT["Next prompt / next chat re-entry"]:::root
+    RECOVERY["recovery_command_registry_v12"]:::semantic
+  end
+  subgraph ENV12_BREAKER["ENV12 INVALID-ANSWER BREAKER GATES"]
+    direction TB
+    PREINDEX["Prompt indexed first"]:::semantic
+    RAWCOVER["Raw artifact byte coverage"]:::semantic
+    INDEXGATE["No reasoning before index gate"]:::semantic
+    RELOCK1["RELOCK_GATE_FILE_NOT_INDEXED_BEFORE_REASONING"]:::semantic
+    CHATBLOCK["CHAT_WINDOW_LOOKUP_VIOLATION if package exists"]:::semantic
+    ENVCONT["ENV_CONTINUITY_DROP_DETECTED if any law drops"]:::semantic
+    MMDREPACK["MMD_REPACK_NO_MUTATION_GATE"]:::semantic
+  end
+  subgraph ENV14_AUTHORITY["ENV14 ROOT AUTHORITY + PROMPT OVERRIDE CONTROL"]
+    direction TB
+    ENV14ROOT["env_governance_root_v14"]:::semantic
+    E14AUTH["ROOT_AUTHORITY_LADDER"]:::semantic
+    E14PROMPTBLOCK["PROMPT_CANNOT_OVERRIDE_ENV"]:::semantic
+    E14LOCALDISPLAY["LOCAL_DISPLAY_ONLY_ALLOWED"]:::semantic
+    E14TELEMETRY["VISIBLE_TELEMETRY_MINIMUM"]:::semantic
+    E14RELOCK["RELOCK_ON_PARTIAL_COMPLIANCE"]:::semantic
+    E14NOEXCUSE["NO_NARRATIVE_EXCUSE_FOR_GATE_FAILURE"]:::semantic
+    E14VISDROP["VISIBLE_TELEMETRY_LAYER_DROPPED"]:::semantic
+    E14DETECT["PROMPT_OVERRIDE_ATTEMPT_DETECTED"]:::semantic
+    E14LEDGER["SUPERSEDE_LEDGER_REQUIRED"]:::semantic
+    E14FLASHREQ["FLASH_MODE_REQUIRED_FOR_MUTATION"]:::semantic
+  end
+  subgraph ENV14_DEEPRESEARCH["ENV14 DEEP RESEARCH ACCESS + AUDIT SIDECAR"]
+    direction TB
+    E14DRROOT["deep_research_access_triage_v14"]:::semantic
+    E14READLOCK["READ_LOCK_MUST_NOT_BLOCK_AUDIT"]:::semantic
+    E14WRITELOCK["WRITE_LOCK_IS_NOT_READ_LOCK"]:::semantic
+    E14NOPASS["PASSWORD_NEVER_REQUIRED_FOR_READ_ONLY_AUDIT"]:::semantic
+    E14SIDECAR["DEEP_RESEARCH_AUDIT_SIDECAR_REQUIRED"]:::semantic
+    E14ZIPBLOCK["ZIP_BLOCKED_USE_HASHED_SIDECAR"]:::semantic
+    E14MIRROR["research/UEPC_ENV14_DEEPRESEARCH_AUDIT_MIRROR.md"]:::semantic
+    E14LINKAGE["research/SIDECAR_HASH_LINKAGE.json"]:::semantic
+    E14TRIAGE["research/DEEP_RESEARCH_ACCESS_TRIAGE.md"]:::semantic
+  end
+  subgraph ENV14_MMD_SVG["ENV14 MMD SOURCE + SVG RENDER LOCK"]
+    direction TB
+    E14MMDROOT["locked_mmd_hash_registry_v14"]:::semantic
+    E14ENVMMD["env/env_mmd.mmd full source"]:::semantic
+    E14ENVSVG["env/env_mmd.svg exact render"]:::semantic
+    E14UOPMMD["uop/uop_mmd.mmd full source"]:::semantic
+    E14UOPSVG["uop/uop_mmd.svg exact render"]:::semantic
+    E14PROJMMD["project/project_topology_template.mmd full source"]:::semantic
+    E14PROJSVG["project/project_topology_template.svg exact render"]:::semantic
+    E14NOSHRINK["MMD_SIZE_OR_NODE_DROP_FAIL_BUILD"]:::semantic
+    E14RENDERQA["validation/RENDER_QA_REPORT.md"]:::semantic
+  end
+  subgraph ENV14_PROJECT_EXPANSION["ENV14 PROJECT TEMPLATE EXPANSION CONTROL"]
+    direction TB
+    E14PROJEXP["project_template_expansion_audit_v14"]:::semantic
+    E14LEGACY["legacy unpopulated count 14"]:::semantic
+    E14CURRENT["current framework count 41"]:::semantic
+    E14PAYLOADZERO["PROJECT_PAYLOAD_ROWS=0"]:::semantic
+    E14SUPERPASS["SUPERSEDED_PASS not population failure"]:::semantic
+    E14FOOTPRINT["manifests/PROJECT_TEMPLATE_FOOTPRINT_AUDIT.json"]:::semantic
+  end
+  subgraph ENV14_CLEAN_PACKAGE["ENV14 CLEAN PACKAGE / NO BASELINE ZIP COPY"]
+    direction TB
+    E14PKGCLASS["PACKAGE_CLASS=CLEAN_ENV14_SUPERSEDE"]:::semantic
+    E14NOBASE["NO baseline/ folder"]:::semantic
+    E14BASEHASH["manifests/BASELINE_HASH_REFERENCE.txt"]:::semantic
+    E14DIFF["manifests/BASELINE_DIFF_MANIFEST.json"]:::semantic
+    E14OBJ["manifests/BASELINE_OBJECT_COUNT_COMPARISON.json"]:::semantic
+    E14V10REF["V10 packaging discipline reference only"]:::semantic
+    E14FINALZIP["UEPC_ENV14_CLEAN_SUPERSEDE_ONE_UPLOAD.zip"]:::semantic
+  end
+  subgraph ENV15_IMMUTABLE_BASE["ENV15 IMMUTABLE BASE + MUTABLE OVERLAY"]
+    direction TB
+    E15BASE["Env + UOP + project base open mode=ro&amp;immutable=1"]:::semantic
+    E15AUTOWRITE["chat_lineage is only automatic append-write lane"]:::semantic
+    E15OTHER["all other 13 project sectors preserved read-only by default"]:::semantic
+    E15GRANT["explicit user-named one-turn mutation grant"]:::semantic
+    E15RELOCK["mutation receipt + immediate sector relock"]:::semantic
+    E15ROAUDIT["WRITEBACK_POLICY=DISABLED_READ_ONLY_AUDIT"]:::semantic
+    E15SKIP["WRITEBACK_SKIPPED_BY_USER_READ_ONLY_GATE"]:::semantic
+  end
+  subgraph ENV15_STATE_TRAVEL["ENV15 EXACT TURN STATE TRAVEL"]
+    direction TB
+    E15PREP["PREPARE exact raw prompt + attachments + entry slip"]:::semantic
+    E15PREPCOMMIT["commit PREPARED"]:::semantic
+    E15TASK["mode/lane/gate/operator execution"]:::semantic
+    E15VISIBLE["exact visible response + visible reasoning summary"]:::semantic
+    E15COMMIT["COMMIT response + links + exit receipt"]:::semantic
+    E15CHAIN["previous/current state hash chain"]:::semantic
+    E15HEAD["canonical lineage_head"]:::semantic
+    E15NEXT["next expected index"]:::semantic
+    E15FAIL["PREPARED_NOT_COMMITTED recovery state"]:::semantic
+  end
+  subgraph ENV15_LEGACY["ENV15 LEGACY PROJECT CARRY-FORWARD"]
+    direction TB
+    E15SCAN["scan older Env .uepc_project active write sector"]:::semantic
+    E15COPY["copy without mutating older package"]:::semantic
+    E15MIRROR["chat_lineage/legacy_project_carry_forward mirror"]:::semantic
+    E15LABEL["PROJECT_HISTORY_SOURCE / NOT_ENV_LAW / NOT_UOP_TRUTH"]:::semantic
+  end
+  subgraph ENV15_PROJECT_SECTORS["ENV15 ALL 14 UNIVERSAL PROJECT SECTORS"]
+    direction TB
+    E15SECTORS["project_sector_registry_v15 / 14 sectors"]:::semantic
+    E15CHAT["chat_lineage auto append"]:::semantic
+    E15GH["github_code"]:::semantic
+    E15LOCAL["local_code"]:::semantic
+    E15SQL["sqlite_brain"]:::semantic
+    E15DOCS["docs"]:::semantic
+    E15DATA["data_excel"]:::semantic
+    E15PDF["pdf_ocr"]:::semantic
+    E15PPT["ppt"]:::semantic
+    E15IMG["images_ocr"]:::semantic
+    E15ART["artifacts"]:::semantic
+    E15CUSTOM["custom schema-first"]:::semantic
+    E15LOADER["brain_loader"]:::semantic
+    E15RESEARCH["research"]:::semantic
+    E15ENGULF["project_engulf"]:::semantic
+  end
+  subgraph ENV15_CODE_INDEX["ENV15 CODE SNAPSHOT + GIT LINEAGE INDEX"]
+    direction TB
+    E15CODESRC["GitHub / Local Code source"]:::semantic
+    E15SNAP["Code Snapshot Layer"]:::semantic
+    E15GIT["Git Lineage Layer"]:::semantic
+    E15FILE["file chunks"]:::semantic
+    E15SYMBOL["function/class/symbol"]:::semantic
+    E15IMPORT["import/dependency"]:::semantic
+    E15API["route/API boundary"]:::semantic
+    E15CONFIG["config/build/test"]:::semantic
+    E15COMMITS["commit/file-change/diff chunks"]:::semantic
+    E15STRUCT["structured text artifacts"]:::semantic
+    E15BINARY["binary/image/video/GLB metadata-only"]:::semantic
+  end
+  subgraph ENV15_RESEARCH_LEDGER["ENV15 CREDIT TOKEN ESTIMATE RESEARCH LEDGER"]
+    direction TB
+    E15TOKENPOL["credit_token_estimate_policy_v15"]:::semantic
+    E15TOKENMD["credit_token_estimate_comparison.md"]:::semantic
+    E15FORMULA["naive vs SQLite token + iteration estimate formulas"]:::semantic
+    E15RQ["5 constant research questions per prompt"]:::semantic
+    E15PROF["professor-facing estimate with assumptions/confidence"]:::semantic
+  end
+  subgraph ENV15_RENDER_LOCK["ENV15 FULL MMD + SVG + PNG LOCK"]
+    direction TB
+    E15MMDLAW["Env14 exact MMD base required"]:::semantic
+    E15ADD["append Env15 delta only"]:::semantic
+    E15SVGP["render exact packaged MMD to SVG + PNG"]:::semantic
+    E15PNGSTORE["PNG stored ZIP_STORED"]:::semantic
+    E15NOSHRINK["MMD_BASE_TEXT_MISSING or shrink = FAIL"]:::semantic
+  end
+  subgraph ENV15_CODEX_HANDOFF["ENV15 CODEX PUBLIC SECTION HANDOFF"]
+    direction TB
+    E15CODEXPKG["Env15 public package"]:::semantic
+    E15CODEXPROMPT["Codex locked-section update handoff"]:::semantic
+    E15PATCH["patch Env/UOP/project + all sectors only"]:::semantic
+    E15KEEPUI["preserve T020 visual/backend authority"]:::semantic
+    E15TESTS["CI/CD tests + receipts + no unrelated changes"]:::semantic
+  end
+  START --> ENTRY
+  ENTRY --> DOTENV
+  ENTRY --> DOTPROJECT
+  ENTRY --> DOTUOP
+  DOTENV --> ENVSQL
+  ENVSQL --> ENVROOT
+  ENVROOT --> LOCK
+  LOCK --> FLASHQ
+  FLASHQ -->|"Yes"| ENV_MUTATE
+  FLASHQ -->|"No"| ENV_RO
+  ENVROOT --> ENVTRUST
+  ENVTRUST --> ROOTKEY
+  ROOTKEY --> SIG
+  SIG --> TRUSTFAIL
+  ENVROOT --> NOCI
+  ENVROOT --> SAFE
+  UPLOADS --> CLASS
+  CLASS --> TYPEQ
+  TYPEQ --> DOCS
+  TYPEQ --> SHEETS
+  TYPEQ --> CODE
+  TYPEQ --> SQLBRAIN
+  TYPEQ --> IMAGE
+  TYPEQ --> ZIPROUTE
+  DOCS --> RAWREG
+  SHEETS --> RAWREG
+  CODE --> RAWREG
+  SQLBRAIN --> RAWREG
+  IMAGE --> RAWREG
+  ZIPROUTE --> RAWREG
+  RAWREG --> BYTE
+  RAWREG --> PARSE
+  PARSE --> CHUNK
+  CHUNK --> UINDEX
+  CHUNK --> FTS
+  RAWREG --> COVER
+  COVER --> STATUS
+  ENVROOT --> PRECEDENCE
+  PRECEDENCE --> AUTHSTACK
+  AUTHSTACK --> ACTIVE
+  PRECEDENCE --> QUAR
+  QUAR --> PROMO
+  PROMO -->|"No"| EVIDENCE_ONLY
+  PROMO -->|"Yes"| ROUTE_LAW
+  ROUTE_LAW --> DELTA
+  ENVROOT --> MODENS
+  ENVROOT --> COMBO
+  ENVROOT --> HINDEX
+  MODENS --> D
+  MODENS --> AL
+  MODENS --> PL
+  MODENS --> CD
+  MODENS --> OP
+  MODENS --> VAL
+  MODENS --> RS
+  MODENS --> JD
+  MODENS --> XL
+  MODENS --> PPT
+  MODENS --> DOC
+  MODENS --> PB
+  MODENS --> ENG
+  MODENS --> CE
+  MODENS --> RCV
+  MODENS --> X
+  CD --> CDREC
+  XL --> XLREC
+  PPT --> PPTREC
+  DOC --> DOCREC
+  PB --> PBLANE
+  ENVROOT --> PCM
+  PCM --> MATH
+  PCM --> PHYS
+  PCM --> CHEM
+  PCM --> MBA
+  PCM --> FORMULA
+  DOTUOP --> UOPROOT
+  UOPROOT --> UOPSLOT
+  UOPSLOT --> UOPPKG
+  UOPPKG --> UOPSQL
+  UOPSQL --> UOPSRC
+  UOPSQL --> UOPCHUNK
+  UOPSQL --> UOPPRIV
+  UOPPRIV --> UOPRULE
+  UOPRULE --> NOOVERRIDE
+  UOPSQL --> UOPMMD
+  UOPROOT --> FLASHUOP
+  FLASHUOP -->|"Yes"| UOPUPDATE
+  FLASHUOP -->|"No"| UOPLOCK
+  DOTPROJECT --> PROOT
+  PROOT --> PSECTION
+  PROOT --> PPACKET
+  PROOT --> PTURN
+  PROOT --> PSRC
+  PROOT --> PCHUNK
+  PROOT --> PART
+  PROOT --> PCONSIST
+  PCONSIST --> PASSQ
+  PASSQ -->|"Yes"| PREADY
+  PASSQ -->|"No"| PBLOCK
+  PROOT --> PMMD
+  PMMD --> PMMDT
+  PMMDT --> PNGOPT
+  PBLANE --> PB_CODE
+  PBLANE --> PB_SQL
+  PBLANE --> PB_DOC
+  PBLANE --> PB_CSV
+  PBLANE --> PB_MIXED
+  PB_CODE --> FUTUREPROJECT
+  PB_SQL --> FUTUREPROJECT
+  PB_DOC --> FUTUREPROJECT
+  PB_CSV --> FUTUREPROJECT
+  PB_MIXED --> FUTUREPROJECT
+  FUTUREPROJECT --> PMMD
+  START --> PTURNLOG
+  PTURNLOG --> PCHUNKS
+  ENTRY --> ERECEIPT
+  MODE_ROUTER --> MODELOG
+  MODELOG --> GATERUN
+  GATERUN --> VREASON
+  VREASON --> RESPONSE
+  RESPONSE --> GENART
+  GENART --> ARTREG
+  ARTREG --> WRITE
+  WRITE --> STATEHASH
+  ENVROOT --> ENVMMDLOCK
+  ENVMMDLOCK --> ENVMMD
+  ENVMMD --> CHECKSUM
+  STATEHASH --> EXIT
+  EXIT --> MANIFEST
+  MANIFEST --> CLEANEXIT
+  CLEANEXIT --> PACKAGE
+  PACKAGE --> NEXT
+  CLEANEXIT --> RECOVERY
+  ENVROOT --> SOURCE_INTAKE
+  ENVROOT --> AUTHORITY
+  ENVROOT --> MODE_ROUTER
+  ENVROOT --> PCM_MBA
+  ENVROOT --> UOP_SECTOR
+  ENVROOT --> PROJECT_TEMPLATE
+  PROJECT_TEMPLATE --> PB_BUILDER
+  AUTHORITY --> MODE_ROUTER
+  MODE_ROUTER --> TURN_WRITEBACK
+  PROJECT_TEMPLATE --> TURN_WRITEBACK
+  UOP_SECTOR --> TURN_WRITEBACK
+  TURN_WRITEBACK --> ENV_MMD_EXIT
+  PREINDEX --> RAWCOVER
+  RAWCOVER --> INDEXGATE
+  INDEXGATE --> RELOCK1
+  DOTENV --> CHATBLOCK
+  DOTENV --> ENVCONT
+  ENVMMDLOCK --> MMDREPACK
+  ENVROOT --> ENV12_BREAKER
+  ENV14ROOT --> E14AUTH
+  E14AUTH --> E14PROMPTBLOCK
+  E14PROMPTBLOCK --> E14LOCALDISPLAY
+  E14LOCALDISPLAY --> E14TELEMETRY
+  E14TELEMETRY --> E14RELOCK
+  E14PROMPTBLOCK --> E14NOEXCUSE
+  E14TELEMETRY --> E14VISDROP
+  E14PROMPTBLOCK --> E14DETECT
+  E14DETECT --> E14LEDGER
+  E14LEDGER --> E14FLASHREQ
+  E14DRROOT --> E14READLOCK
+  E14READLOCK --> E14WRITELOCK
+  E14WRITELOCK --> E14NOPASS
+  E14DRROOT --> E14SIDECAR
+  E14SIDECAR --> E14ZIPBLOCK
+  E14ZIPBLOCK --> E14MIRROR
+  E14MIRROR --> E14LINKAGE
+  E14DRROOT --> E14TRIAGE
+  E14MMDROOT --> E14ENVMMD
+  E14ENVMMD --> E14ENVSVG
+  E14MMDROOT --> E14UOPMMD
+  E14UOPMMD --> E14UOPSVG
+  E14MMDROOT --> E14PROJMMD
+  E14PROJMMD --> E14PROJSVG
+  E14MMDROOT --> E14NOSHRINK
+  E14NOSHRINK --> E14RENDERQA
+  E14PROJEXP --> E14LEGACY
+  E14PROJEXP --> E14CURRENT
+  E14CURRENT --> E14PAYLOADZERO
+  E14PAYLOADZERO --> E14SUPERPASS
+  E14SUPERPASS --> E14FOOTPRINT
+  E14PKGCLASS --> E14NOBASE
+  E14NOBASE --> E14BASEHASH
+  E14BASEHASH --> E14DIFF
+  E14DIFF --> E14OBJ
+  E14PKGCLASS --> E14V10REF
+  E14V10REF --> E14FINALZIP
+  ENVROOT --> ENV14_AUTHORITY
+  ENVROOT --> ENV14_DEEPRESEARCH
+  ENVROOT --> ENV14_MMD_SVG
+  ENVROOT --> ENV14_PROJECT_EXPANSION
+  ENVROOT --> ENV14_CLEAN_PACKAGE
+  E14AUTH --> MODE_ROUTER
+  E14SIDECAR --> MANIFEST
+  E14PROJEXP --> PROJECT_TEMPLATE
+  E14MMDROOT --> ENV_MMD_EXIT
+  E14FINALZIP --> NEXT
+  E15BASE --> E15AUTOWRITE
+  E15AUTOWRITE --> E15OTHER
+  E15OTHER --> E15GRANT
+  E15GRANT --> E15RELOCK
+  E15BASE --> E15ROAUDIT
+  E15ROAUDIT --> E15SKIP
+  E15PREP --> E15PREPCOMMIT
+  E15PREPCOMMIT --> E15TASK
+  E15TASK --> E15VISIBLE
+  E15VISIBLE --> E15COMMIT
+  E15COMMIT --> E15CHAIN
+  E15CHAIN --> E15HEAD
+  E15HEAD --> E15NEXT
+  E15PREPCOMMIT --> E15FAIL
+  E15SCAN --> E15COPY
+  E15COPY --> E15MIRROR
+  E15MIRROR --> E15LABEL
+  E15SECTORS --> E15CHAT
+  E15SECTORS --> E15GH
+  E15SECTORS --> E15LOCAL
+  E15SECTORS --> E15SQL
+  E15SECTORS --> E15DOCS
+  E15SECTORS --> E15DATA
+  E15SECTORS --> E15PDF
+  E15SECTORS --> E15PPT
+  E15SECTORS --> E15IMG
+  E15SECTORS --> E15ART
+  E15SECTORS --> E15CUSTOM
+  E15SECTORS --> E15LOADER
+  E15SECTORS --> E15RESEARCH
+  E15SECTORS --> E15ENGULF
+  E15CODESRC --> E15SNAP
+  E15CODESRC --> E15GIT
+  E15SNAP --> E15FILE
+  E15FILE --> E15SYMBOL
+  E15FILE --> E15IMPORT
+  E15FILE --> E15API
+  E15FILE --> E15CONFIG
+  E15GIT --> E15COMMITS
+  E15SNAP --> E15STRUCT
+  E15SNAP --> E15BINARY
+  E15TOKENPOL --> E15TOKENMD
+  E15TOKENMD --> E15FORMULA
+  E15FORMULA --> E15RQ
+  E15RQ --> E15PROF
+  E15MMDLAW --> E15ADD
+  E15ADD --> E15SVGP
+  E15SVGP --> E15PNGSTORE
+  E15MMDLAW --> E15NOSHRINK
+  E15CODEXPKG --> E15CODEXPROMPT
+  E15CODEXPROMPT --> E15PATCH
+  E15PATCH --> E15KEEPUI
+  E15PATCH --> E15TESTS
+  ENVROOT --> ENV15_IMMUTABLE_BASE
+  TURN_WRITEBACK --> ENV15_STATE_TRAVEL
+  PROJECT_TEMPLATE --> ENV15_LEGACY
+  PROJECT_TEMPLATE --> ENV15_PROJECT_SECTORS
+  PB_BUILDER --> ENV15_CODE_INDEX
+  TURN_WRITEBACK --> ENV15_RESEARCH_LEDGER
+  ENV_MMD_EXIT --> ENV15_RENDER_LOCK
+  ENV15_CLEAN_PACKAGE --> ENV15_CODEX_HANDOFF
+  E15AUTOWRITE --> E15PREP
+  E15MIRROR --> E15PREP
+  E15CHAT --> E15PREP
+  E15OTHER --> E15GRANT
+  E15HEAD --> EXIT

@@ -1,0 +1,34 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "canon_seal_continuity",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_seal_continuity"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "seal_continuity",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-state-travel-continuity",
+        "order": 15
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "741DF6DFD4B0CE16E2C48BF18DDE493C403C2D00B4C5827004CE9EF283825369",
+  "sdk_action_binding": "sdk/actions/canon_seal_continuity.action.v1.json",
+  "mcp_action_binding": "mcp/actions/canon_seal_continuity.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "973FFFC1DD490CEC18A90F5BD7B70BF221EABFFC457466157F2403D33F194FB8"
+}

@@ -1,0 +1,75 @@
+{
+  "schema": "evidence-lane.github-app-connection.v1",
+  "status": "CURRENT_BACKEND_CONTRACT",
+  "app_name": "Evidence Lane",
+  "app_slug": "evidence-lane",
+  "description": "Evidence Lane keeps long Codex projects connected to the exact reviewed branch in GitHub while preserving project and HIL authority; a person decides whether it should merge.",
+  "homepage_url": "https://evidencelane.org",
+  "post_authorization_redirect_url": "https://evidencelane.org/connect",
+  "testing_url": "https://evidencelane.org/api/github-app/testing",
+  "primary_profile": {
+    "profile_id": "OAUTH_ON_INSTALL",
+    "callback_urls": [
+      "https://evidencelane.org/api/github-app/oauth/callback"
+    ],
+    "request_oauth_on_install": true,
+    "device_flow_enabled": true,
+    "setup_url": null,
+    "setup_on_update": false,
+    "github_mutual_exclusion": "GitHub permits OAuth-on-install or a Setup URL profile, not both simultaneously for one active GitHub App configuration."
+  },
+  "alternate_profile": {
+    "profile_id": "SETUP_REDIRECT_ON_UPDATE",
+    "callback_urls": [
+      "https://evidencelane.org/api/github-app/oauth/callback"
+    ],
+    "request_oauth_on_install": false,
+    "device_flow_enabled": true,
+    "setup_url": "https://evidencelane.org/api/github-app/setup",
+    "setup_on_update": true,
+    "github_mutual_exclusion": "GitHub permits OAuth-on-install or a Setup URL profile, not both simultaneously for one active GitHub App configuration."
+  },
+  "oauth_security": {
+    "authorization_code_state_required": true,
+    "pkce_method": "S256",
+    "callback_identity_revalidated": true,
+    "access_token_cookie_encryption": "AES-256-GCM",
+    "access_token_returned_to_browser": false
+  },
+  "device_flow_security": {
+    "intended_surface": "CODEX_CLI_OR_HEADLESS_HOST",
+    "provider_poll_interval_enforced": true,
+    "raw_device_code_returned_to_browser": false,
+    "opaque_poll_token_encryption": "AES-256-GCM",
+    "provider_expiry_enforced": true
+  },
+  "webhook": {
+    "active": true,
+    "url": "https://evidencelane.org/api/github-app/webhook",
+    "content_type": "json",
+    "tls_verification_required": true,
+    "signature_header": "X-Hub-Signature-256",
+    "delivery_header": "X-GitHub-Delivery",
+    "event_header": "X-GitHub-Event",
+    "events": [
+      "check_run",
+      "check_suite",
+      "installation",
+      "installation_repositories",
+      "push",
+      "workflow_run"
+    ]
+  },
+  "secret_references": {
+    "client_id": "EVIDENCE_LANE_GITHUB_APP_CLIENT_ID",
+    "client_secret": "EVIDENCE_LANE_GITHUB_APP_CLIENT_SECRET",
+    "webhook_secret": "EVIDENCE_LANE_GITHUB_APP_WEBHOOK_SECRET",
+    "session_secret": "EVIDENCE_LANE_GITHUB_APP_SESSION_SECRET"
+  },
+  "secret_values_in_source": false,
+  "project_pv_secret_storage_allowed": false,
+  "workspace_secret_storage_allowed": false,
+  "live_settings_write_gate": "EXPLICIT_POST_BRANCH_MAIN_MERGE_AND_GITHUB_APP_UPGRADE_APPROVAL",
+  "mcp_inventory_separate": true,
+  "receipt_sha256": "91F359F8A899137BF746F5F3C4ADA11FAF1C6CD9B6565676F92EA9050043C2D6"
+}

@@ -1,0 +1,84 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "source_sqlite_inspect",
+  "title": "Inspect registered SQLite brain authorities",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "batch_id": {
+        "title": "Batch Id",
+        "type": "string"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      },
+      "max_embedded_member_bytes": {
+        "default": 805306368,
+        "title": "Max Embedded Member Bytes",
+        "type": "integer"
+      },
+      "exact_count_max_database_bytes": {
+        "default": 33554432,
+        "title": "Exact Count Max Database Bytes",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "batch_id"
+    ],
+    "title": "source_sqlite_inspectArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "source_sqlite_inspectDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "FC8B4242F2AA3AD6A8C969274C3264C29204307204D8C89F2B567EA01CD5AEE9",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "source_sqlite_inspect"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "sqlite-source-intake",
+        "order": 3
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/source_sqlite_inspect.action.v1.json",
+  "sdk_action_binding_sha256": "CB6EAE8EAC92D743B8BD77690A14D888B67A8B45ECEA47B1833AE4AD2F68C255",
+  "public_action_schema": "schemas/actions/source_sqlite_inspect.schema.json",
+  "public_action_schema_sha256": "24A35A5E03D087628D1F096F369739797424D28C6A997AA59EA47B97B97557C4",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "CB6FD02AF641B09789A11631B1678969EE7A6775CD201AD0CD5B165BD043D5A1"
+}

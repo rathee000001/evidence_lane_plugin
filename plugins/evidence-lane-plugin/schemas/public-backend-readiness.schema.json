@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidencelane.org/schemas/public-backend-readiness.schema.json",
+  "title": "Evidence Lane public backend readiness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "public_origin", "surfaces", "runtime_routing_boundary", "presentation_deferrals", "secret_values_exposed", "project_authority_mutation", "candidate_or_hil_authority", "receipt_sha256"],
+  "properties": {
+    "schema": {"const": "evidence-lane.public-backend-readiness.v1"},
+    "status": {"const": "R265_BACKEND_LINKS_READY_PRESENTATION_DEFERRED"},
+    "public_origin": {"type": "string", "format": "uri", "pattern": "^https://"},
+    "surfaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["connect", "prompt_studio", "proof", "git_ci"],
+      "properties": {
+        "connect": {"$ref": "#/$defs/connect"},
+        "prompt_studio": {"$ref": "#/$defs/promptStudio"},
+        "proof": {"$ref": "#/$defs/proof"},
+        "git_ci": {"$ref": "#/$defs/gitCi"}
+      }
+    },
+    "runtime_routing_boundary": {"type": "object", "additionalProperties": false, "required": ["remote_adapter_role", "internal_sdk_role", "native_mcp_role", "tunnel_role", "env_uop_role", "toolchain_route", "project_sector_http_api_exposed", "toolchain_http_api_exposed", "allowed_http_route_prefixes"], "properties": {"remote_adapter_role": {"const": "PUBLIC_SAFE_TRANSPORT_ONLY"}, "internal_sdk_role": {"const": "ALL_PLUGIN_BEHAVIOR_OWNER"}, "native_mcp_role": {"const": "PUBLIC_ACTION_TRANSPORT"}, "tunnel_role": {"const": "CONDITIONAL_HOST_TOOL_GAP_TRANSPORT"}, "env_uop_role": {"const": "EXECUTABLE_AI_ACTION_PLANE_SEPARATE_AUTHORITIES"}, "toolchain_route": {"const": "ai_toolchain_route"}, "project_sector_http_api_exposed": {"const": false}, "toolchain_http_api_exposed": {"const": false}, "allowed_http_route_prefixes": {"type": "array", "minItems": 3, "maxItems": 3, "uniqueItems": true, "items": {"enum": ["/api/backend-readiness", "/api/github-app", "/api/studio-query"]}}}},
+    "presentation_deferrals": {"type": "object", "additionalProperties": false, "required": ["vercel_page_redesign", "prompt_studio_redesign", "prompt_studio_rag_regeneration", "real_poc_publication", "devpost_publication"], "properties": {"vercel_page_redesign": {"const": true}, "prompt_studio_redesign": {"const": true}, "prompt_studio_rag_regeneration": {"const": true}, "real_poc_publication": {"const": true}, "devpost_publication": {"const": true}}},
+    "secret_values_exposed": {"const": false},
+    "project_authority_mutation": {"const": false},
+    "candidate_or_hil_authority": {"const": false},
+    "receipt_sha256": {"type": "string", "pattern": "^[A-F0-9]{64}$"}
+  },
+  "$defs": {
+    "routePath": {"type": "string", "pattern": "^/"},
+    "connect": {"type": "object", "additionalProperties": false, "required": ["status", "user_entry_path", "oauth_callback_path", "alternate_setup_path", "device_flow_path", "testing_path", "webhook_path", "authentication", "live_profile_gate"], "properties": {"status": {"const": "BACKEND_READY"}, "user_entry_path": {"$ref": "#/$defs/routePath"}, "oauth_callback_path": {"$ref": "#/$defs/routePath"}, "alternate_setup_path": {"$ref": "#/$defs/routePath"}, "device_flow_path": {"$ref": "#/$defs/routePath"}, "testing_path": {"$ref": "#/$defs/routePath"}, "webhook_path": {"$ref": "#/$defs/routePath"}, "authentication": {"const": "GITHUB_USER_OAUTH_OR_DEVICE_FLOW_WITH_SERVER_SIDE_SECRETS"}, "live_profile_gate": {"const": "EXPLICIT_POST_BRANCH_MAIN_MERGE_AND_GITHUB_APP_UPGRADE_APPROVAL"}}},
+    "promptStudio": {"type": "object", "additionalProperties": false, "required": ["status", "query_path", "health_method", "query_method", "project_retrieval_authentication", "optional_general_provider_key_reference", "optional_general_provider_enable_reference", "generated_rag_refresh"], "properties": {"status": {"const": "EXISTING_BACKEND_READY_PAGE_REFRESH_DEFERRED"}, "query_path": {"$ref": "#/$defs/routePath"}, "health_method": {"const": "GET"}, "query_method": {"const": "POST"}, "project_retrieval_authentication": {"const": "PUBLIC_SAFE_COMMITTED_CORPUS_NO_USER_CREDENTIAL"}, "optional_general_provider_key_reference": {"const": "OPENROUTER_API_KEY"}, "optional_general_provider_enable_reference": {"const": "EVIDENCE_LANE_GENERAL_AI_ENABLED"}, "generated_rag_refresh": {"const": "DEFERRED_TO_LATER_PROMPT_STUDIO_ROW"}}},
+    "proof": {"type": "object", "additionalProperties": false, "required": ["status", "public_path", "docs_binding_source", "lane_fixture_source", "real_poc_publication"], "properties": {"status": {"const": "BACKEND_DATA_BOUND_PAGE_REFRESH_DEFERRED"}, "public_path": {"$ref": "#/$defs/routePath"}, "docs_binding_source": {"const": "app/_data/public-docs-backend-binding.json"}, "lane_fixture_source": {"const": "app/_data/dummy-lane-artifacts.json"}, "real_poc_publication": {"const": "DEFERRED_TO_LATER_PROOF_ROW"}}},
+    "gitCi": {"type": "object", "additionalProperties": false, "required": ["status", "public_path", "github_app_contract", "main_merge_authority"], "properties": {"status": {"const": "BACKEND_READY_PAGE_REFRESH_DEFERRED"}, "public_path": {"$ref": "#/$defs/routePath"}, "github_app_contract": {"const": "sdk/host/github-app-connection.v1.json"}, "main_merge_authority": {"const": "EXPLICIT_USER_APPROVAL_ONLY"}}}
+  }
+}

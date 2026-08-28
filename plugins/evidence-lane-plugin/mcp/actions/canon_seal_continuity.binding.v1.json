@@ -1,0 +1,101 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "canon_seal_continuity",
+  "title": "Seal Canon State Travel continuity",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "source_task_uuid": {
+        "title": "Source Task Uuid",
+        "type": "string"
+      },
+      "source_task_deep_link": {
+        "title": "Source Task Deep Link",
+        "type": "string"
+      },
+      "handoff_id": {
+        "title": "Handoff Id",
+        "type": "string"
+      },
+      "accepted_pv": {
+        "title": "Accepted Pv",
+        "type": "string"
+      },
+      "pointer_generation": {
+        "title": "Pointer Generation",
+        "type": "integer"
+      },
+      "created_at": {
+        "title": "Created At",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "source_task_uuid",
+      "source_task_deep_link",
+      "handoff_id",
+      "accepted_pv",
+      "pointer_generation",
+      "created_at"
+    ],
+    "title": "canon_seal_continuityArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "canon_seal_continuityDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "741DF6DFD4B0CE16E2C48BF18DDE493C403C2D00B4C5827004CE9EF283825369",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_seal_continuity"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "seal_continuity",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-state-travel-continuity",
+        "order": 15
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/canon_seal_continuity.action.v1.json",
+  "sdk_action_binding_sha256": "8151B43FA031E848FC88E37F9C3244FA90ED97F47A3B18191CE5F8FFE4E69A39",
+  "public_action_schema": "schemas/actions/canon_seal_continuity.schema.json",
+  "public_action_schema_sha256": "7B4990CB0B61972EAFE1553260FE4EF0A312913F1C550CE9EC63DDC4F094B666",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "AF947495FDA8E7181AE69939E33C33D28CBCACA7A5AAFC93064E6DB2283FE633"
+}

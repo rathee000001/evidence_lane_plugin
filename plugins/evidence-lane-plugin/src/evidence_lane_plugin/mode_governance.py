@@ -7,20 +7,26 @@ semantics and never treats mode selection as HIL approval or lifecycle mutation.
 
 from __future__ import annotations
 
+import json
 import re
+import sqlite3
 from collections.abc import Mapping
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, cast
 
 from .errors import require
-from .hashing import canonical_json_bytes, sha256_bytes
+from .flash_authority import ENV_MMD_SHA256, UOP_MMD_SHA256
+from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
+from .lanes import CANONICAL_LANE_IDS
 from .next_actions import HIL_CHOICES
 from .redaction import contains_secret
 
 ENV15_ENV_SQLITE_SHA256 = (
-    "78EEC5EFF7BA82DF38DF62ED65F2E8A4B8E1F3A593B8387779EAD7EA45E03810"
+    "2E771E34EEEA89CCC44A8B5607B1AE3287E9721389AC53A87BF5FA42347D44EB"
 )
 ENV15_UOP_SQLITE_SHA256 = (
-    "DB2539AAC36BE38D89C74D052C4764ECD28E4CFA29EFBF4EB6B0E4234CB1377F"
+    "62D6DEB337B387E06DA40DD054941355ECBD80548F2D1C9728E6A9C4EDDC0480"
 )
 ENV15_MODE_POLICY_PROJECTION_SHA256 = (
     "F66B383EFF37DE7550D24A00821F7F34257E26152FAD4C4A6B09166A8EB67AF1"
@@ -60,6 +66,252 @@ _ENV_UOP_SECRET_KEY_RE = re.compile(
     r"refresh[_-]?token|password|private[_-]?key|client[_-]?secret|"
     r"secret[_-]?value|credential[_-]?value)(?:$|[_-])"
 )
+
+_ENV_UOP_ASSET_ROOT = Path(__file__).resolve().parents[2]
+_ENV_SQLITE_PATH = _ENV_UOP_ASSET_ROOT / "env" / "env_sqlite.sqlite"
+_UOP_SQLITE_PATH = _ENV_UOP_ASSET_ROOT / "uop" / "uop_sqlite.sqlite"
+_ENV_MMD_PATH = _ENV_UOP_ASSET_ROOT / "env" / "env_mmd.mmd"
+_UOP_MMD_PATH = _ENV_UOP_ASSET_ROOT / "uop" / "uop_mmd.mmd"
+
+
+def _read_locked_sqlite_rows(
+    path: Path,
+    *,
+    tables: tuple[str, ...],
+) -> dict[str, list[dict[str, Any]]]:
+    """Read one immutable ENV/UOP authority without creating SQLite sidecars."""
+
+    require(
+        path.is_file(),
+        "ENV_UOP_SQLITE_AUTHORITY_MISSING",
+        "The locked ENV/UOP SQLite authority is missing.",
+        status="MISMATCH",
+        path=str(path),
+    )
+    connection = sqlite3.connect(
+        f"file:{path.as_posix()}?mode=ro&immutable=1",
+        uri=True,
+    )
+    connection.row_factory = sqlite3.Row
+    try:
+        integrity = [str(row[0]) for row in connection.execute("PRAGMA integrity_check")]
+        require(
+            integrity == ["ok"],
+            "ENV_UOP_SQLITE_INTEGRITY_FAILED",
+            "The locked ENV/UOP SQLite authority failed integrity validation.",
+            status="FAIL",
+            path=str(path),
+            integrity=integrity,
+        )
+        available = {
+            str(row[0])
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
+        }
+        missing = sorted(set(tables) - available)
+        require(
+            not missing,
+            "ENV_UOP_RUNTIME_TABLE_MISSING",
+            "The locked ENV/UOP runtime is missing an executable table.",
+            status="MISMATCH",
+            path=str(path),
+            missing_tables=missing,
+        )
+        return {
+            table: [dict(row) for row in connection.execute(f'SELECT * FROM "{table}"')]
+            for table in tables
+        }
+    finally:
+        connection.close()
+
+
+@lru_cache(maxsize=1)
+def load_env_uop_runtime_authority() -> dict[str, Any]:
+    """Load the executable ENV/UOP control plane from locked SQLite and MMD."""
+
+    env_sha256 = sha256_file(_ENV_SQLITE_PATH)
+    uop_sha256 = sha256_file(_UOP_SQLITE_PATH)
+    env_mmd_sha256 = sha256_file(_ENV_MMD_PATH)
+    uop_mmd_sha256 = sha256_file(_UOP_MMD_PATH)
+    require(
+        env_sha256 == ENV15_ENV_SQLITE_SHA256
+        and uop_sha256 == ENV15_UOP_SQLITE_SHA256
+        and env_mmd_sha256 == ENV_MMD_SHA256
+        and uop_mmd_sha256 == UOP_MMD_SHA256,
+        "ENV_UOP_RUNTIME_AUTHORITY_HASH_MISMATCH",
+        "The executable ENV/UOP SQLite or MMD authority no longer matches its lock.",
+        status="MISMATCH",
+        env_sqlite_sha256=env_sha256,
+        uop_sqlite_sha256=uop_sha256,
+        env_mmd_sha256=env_mmd_sha256,
+        uop_mmd_sha256=uop_mmd_sha256,
+    )
+    env = _read_locked_sqlite_rows(
+        _ENV_SQLITE_PATH,
+        tables=(
+            "env_governance_root_v15",
+            "mode_namespace_registry",
+            "lane_activation_rule",
+            "lane_recursive_policy_v7",
+            "lane_formula_execution_registry_v12",
+            "formula_component",
+            "pcm_mba_operator",
+            "operator_activation_rule",
+            "ai_toolchain_registry_v16",
+            "ai_toolchain_action_binding_v16",
+            "ai_toolchain_lane_binding_v16",
+            "ai_toolchain_host_binding_v16",
+            "ai_toolchain_sync_receipt_v16",
+            "semantic_graph_render_receipt_v16",
+            "no_autonomous_cicd_gate",
+        ),
+    )
+    uop = _read_locked_sqlite_rows(
+        _UOP_SQLITE_PATH,
+        tables=(
+            "uop_governance_root_v15",
+            "uop_mode_cluster_operator",
+            "uop_public_operator_registry_v15",
+            "uop_spatial_operator",
+            "uop_human_gate_operator",
+            "uop_disclosure_boundary_operator",
+            "uop_toolchain_policy_v16",
+            "uop_toolchain_host_policy_v16",
+            "semantic_graph_render_receipt_v16",
+        ),
+    )
+    env_root = env["env_governance_root_v15"]
+    uop_root = uop["uop_governance_root_v15"]
+    operators = env["pcm_mba_operator"]
+    activation = env["operator_activation_rule"]
+    public_uop = uop["uop_public_operator_registry_v15"]
+    mode_rows = env["mode_namespace_registry"]
+    formula_components = env["formula_component"]
+    toolchain_registry = env["ai_toolchain_registry_v16"]
+    toolchain_actions = env["ai_toolchain_action_binding_v16"]
+    toolchain_lanes = env["ai_toolchain_lane_binding_v16"]
+    toolchain_hosts = env["ai_toolchain_host_binding_v16"]
+    toolchain_receipts = env["ai_toolchain_sync_receipt_v16"]
+    public_catalog = json.loads(
+        (
+            _ENV_UOP_ASSET_ROOT
+            / "schemas"
+            / "public-action-schemas.v001.json"
+        ).read_text(encoding="utf-8")
+    )
+    require(
+        len(env_root) == 1
+        and env_root[0].get("env_write_lock") == 1
+        and env_root[0].get("uop_required") == 1
+        and str(env_root[0].get("env_default_open_mode")) == "mode=ro&immutable=1"
+        and len(uop_root) == 1
+        and uop_root[0].get("governance_only") == 1
+        and uop_root[0].get("private_payload_present") == 0
+        and uop_root[0].get("can_override_env") == 0
+        and uop_root[0].get("can_override_project") == 0
+        and str(uop_root[0].get("status")) == "ACTIVE"
+        and len(mode_rows) == 17
+        and len(formula_components) == 6
+        and len(operators) == 110
+        and len(activation) == 110
+        and {int(row["operator_id"]) for row in operators} == set(range(1, 111))
+        and {int(row["operator_id"]) for row in activation} == set(range(1, 111))
+        and len(public_uop) == 9
+        and len(toolchain_registry) > 0
+        and len(toolchain_actions) == int(public_catalog["tool_count"])
+        and len(toolchain_lanes) == len(CANONICAL_LANE_IDS)
+        and {
+            str(row["host_profile"])
+            for row in toolchain_hosts
+            if int(row["execution_allowed"]) == 1
+        }
+        == {"CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"}
+        and all(
+            int(row["workspace_install_allowed"]) == 0
+            for row in toolchain_hosts
+        )
+        and len(toolchain_receipts) >= 1
+        and len(uop["uop_toolchain_policy_v16"]) >= 1
+        and {
+            str(row["host_profile"])
+            for row in uop["uop_toolchain_host_policy_v16"]
+            if int(row["execution_allowed"]) == 1
+        }
+        == {"CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"}
+        and all(str(row.get("status")) == "ACTIVE" for row in public_uop),
+        "ENV_UOP_EXECUTABLE_CONTROL_PLANE_INVALID",
+        "ENV/UOP runtime rows do not satisfy the locked executable control-plane contract.",
+        status="MISMATCH",
+    )
+    runtime_core = {
+        "schema": "evidence-lane.env-uop-runtime-authority.v1",
+        "status": "PASS",
+        "authority_mode": "READ_ONLY_IMMUTABLE_SQLITE_PLUS_MMD_TRAVERSAL",
+        "env_sqlite_sha256": env_sha256,
+        "uop_sqlite_sha256": uop_sha256,
+        "env_mmd_sha256": env_mmd_sha256,
+        "uop_mmd_sha256": uop_mmd_sha256,
+        "env_root": env_root[0],
+        "uop_root": uop_root[0],
+        "mode_namespace": {
+            str(row["mode_prefix"]): row for row in mode_rows
+        },
+        "lane_activation_rules": env["lane_activation_rule"],
+        "recursive_policies": {
+            str(row["lane_id"]): row for row in env["lane_recursive_policy_v7"]
+        },
+        "formula_registry": {
+            str(row["lane_id"]): row
+            for row in env["lane_formula_execution_registry_v12"]
+        },
+        "formula_components": {
+            str(row["symbol"]): row for row in formula_components
+        },
+        "operators": {
+            str(row["operator_id"]): row for row in operators
+        },
+        "operator_activation": {
+            str(row["operator_id"]): row for row in activation
+        },
+        "no_autonomous_cicd_gate": env["no_autonomous_cicd_gate"][0],
+        "uop_mode_routes": uop["uop_mode_cluster_operator"],
+        "uop_public_operators": public_uop,
+        "uop_spatial_operators": uop["uop_spatial_operator"],
+        "uop_human_gates": uop["uop_human_gate_operator"],
+        "uop_disclosure_boundaries": uop["uop_disclosure_boundary_operator"],
+        "ai_toolchain_registry": {
+            str(row["tool_id"]): row for row in toolchain_registry
+        },
+        "ai_toolchain_action_bindings": {
+            str(row["action_name"]): row for row in toolchain_actions
+        },
+        "ai_toolchain_lane_bindings": {
+            str(row["lane_id"]): row for row in toolchain_lanes
+        },
+        "ai_toolchain_host_bindings": {
+            str(row["host_profile"]): row for row in toolchain_hosts
+        },
+        "ai_toolchain_sync_receipt": toolchain_receipts[-1],
+        "uop_toolchain_policies": {
+            str(row["action_class"]): row
+            for row in uop["uop_toolchain_policy_v16"]
+        },
+        "uop_toolchain_host_policies": {
+            str(row["host_profile"]): row
+            for row in uop["uop_toolchain_host_policy_v16"]
+        },
+        "chatgpt_toolchain_plane_mixed": False,
+        "env_semantic_graph_receipt": env["semantic_graph_render_receipt_v16"][-1],
+        "uop_semantic_graph_receipt": uop["semantic_graph_render_receipt_v16"][-1],
+        "sqlite_runtime_behavior": True,
+        "mmd_traversal_behavior": True,
+        "python_projection_is_authority": False,
+    }
+    return {
+        **runtime_core,
+        "runtime_authority_sha256": sha256_bytes(canonical_json_bytes(runtime_core)),
+    }
 
 
 def env_uop_authority_boundary() -> dict[str, Any]:
@@ -174,11 +426,23 @@ def bind_env_uop_operator_effect(
 ) -> dict[str, Any]:
     """Bind one operator to its declared effect without executing the effect."""
 
+    runtime = load_env_uop_runtime_authority()
     operator = _OPERATORS.get(operator_id)
+    sqlite_operator = cast(
+        dict[str, Any] | None,
+        cast(dict[str, Any], runtime["operators"]).get(str(operator_id)),
+    )
     require(
-        operator is not None,
+        operator is not None
+        and sqlite_operator is not None
+        and str(sqlite_operator.get("engine_group"))
+        == str(cast(dict[str, Any], operator).get("family"))
+        and str(sqlite_operator.get("chapter"))
+        == str(cast(dict[str, Any], operator).get("chapter"))
+        and str(sqlite_operator.get("activation_state"))
+        == "BASELINE_REGISTERED",
         "ENV_UOP_OPERATOR_UNKNOWN",
-        "The requested ENV/UOP operator is not registered.",
+        "The requested ENV/UOP operator is absent or differs from locked SQLite.",
         status="BLOCKED",
         operator_id=operator_id,
     )
@@ -205,6 +469,14 @@ def bind_env_uop_operator_effect(
         "operator_family": cast(dict[str, Any], operator)["family"],
         "declared_effect": declared_effect,
         "declared_effect_sha256": sha256_bytes(declared_effect.encode("utf-8")),
+        "sqlite_runtime": {
+            "chapter": sqlite_operator["chapter"],
+            "route_function": sqlite_operator["route_function"],
+            "fire_trigger": sqlite_operator["fire_trigger"],
+            "output_effect": sqlite_operator["output_effect"],
+            "activation_state": sqlite_operator["activation_state"],
+            "runtime_authority_sha256": runtime["runtime_authority_sha256"],
+        },
         "authority_boundary_sha256": boundary["boundary_sha256"],
         "credential_receipt": credential_receipt,
         "effect_executed": False,
@@ -383,6 +655,7 @@ def compile_env_uop_formula(
                     "declared_effect_sha256": str(
                         operator["declared_effect_sha256"]
                     ),
+                    "sqlite_runtime": dict(operator["sqlite_runtime"]),
                     "effect_receipt_sha256": effect_receipt["receipt_sha256"],
                 }
             )
@@ -409,6 +682,7 @@ def compile_env_uop_formula(
         "combined_operator_receipt_sha256": selection[
             "combined_operator_receipt_sha256"
         ],
+        "runtime_authority": selection["runtime_authority"],
         "env_uop_authority_boundary": env_uop_authority_boundary(),
         "canonical_lanes": canonical_lanes,
         "execution_budget": budget,
@@ -430,6 +704,7 @@ def _validate_compiled_env_uop_formula(
     *,
     sdk_binding_sha256: str,
 ) -> dict[str, Any]:
+    runtime = load_env_uop_runtime_authority()
     compiled = dict(value)
     expected = str(compiled.pop("compiled_formula_sha256", ""))
     require(
@@ -438,6 +713,9 @@ def _validate_compiled_env_uop_formula(
         and compiled.get("sdk_binding_sha256") == sdk_binding_sha256
         and compiled.get("env_uop_authority_boundary")
         == env_uop_authority_boundary()
+        and isinstance(compiled.get("runtime_authority"), dict)
+        and compiled["runtime_authority"].get("runtime_authority_sha256")
+        == runtime["runtime_authority_sha256"]
         and bool(_ENV_UOP_SHA256_RE.fullmatch(expected))
         and sha256_bytes(canonical_json_bytes(compiled)) == expected,
         "ENV_UOP_COMPILED_FORMULA_INVALID",
@@ -1045,6 +1323,72 @@ _MODE_OPERATORS: dict[str, tuple[int, ...]] = {
     "RCV": (6, 13, 62, 106),
 }
 
+_MODE_RECURSIVE_POLICY_ROWS: dict[str, str] = {
+    "D": "LANE_DISCUSSION",
+    "AL": "LANE_ANALYSIS",
+    "PL": "LANE_PLANNING",
+    "CD": "LANE_CODE",
+    "XL": "LANE_EXCEL",
+    "PPT": "LANE_PPT",
+    "DOC": "LANE_DOCX",
+    "JD": "LANE_JD",
+    "PB": "LANE_SQLITE",
+    "RS": "LANE_RESEARCH",
+    "X": "LANE_CUSTOM",
+}
+
+
+def _runtime_policy(
+    mode_id: str,
+    runtime: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Overlay the compatibility projection with exact locked SQLite rows."""
+
+    mode_namespace = cast(dict[str, Any], runtime["mode_namespace"])
+    require(
+        mode_id in mode_namespace,
+        "ENV_UOP_MODE_NAMESPACE_MISSING",
+        "The selected mode is absent from the locked ENV mode namespace.",
+        status="MISMATCH",
+        mode_id=mode_id,
+    )
+    policy = dict(_POLICIES.get(mode_id) or _EXTRA_POLICIES[mode_id])
+    recursive_id = _MODE_RECURSIVE_POLICY_ROWS.get(mode_id)
+    recursive = (
+        cast(dict[str, Any], runtime["recursive_policies"]).get(recursive_id)
+        if recursive_id
+        else None
+    )
+    if isinstance(recursive, dict):
+        policy.update(
+            {
+                "authority": f"lane_recursive_policy_v7:{recursive_id}",
+                "scan_order": json.loads(str(recursive["scan_order_json"])),
+                "unit_of_work": str(recursive["unit_of_work"]),
+                "recursive_loop": str(recursive["recursive_loop"]),
+                "validation_gate": str(recursive["validation_gate"]),
+                "exit_write_target": str(recursive["exit_write_target"]),
+                "operator_law": str(recursive["chemistry_or_math_law"]),
+            }
+        )
+    formula = cast(dict[str, Any], runtime["formula_registry"]).get(
+        f"LANE_{mode_id}"
+    )
+    if isinstance(formula, dict):
+        policy.update(
+            {
+                "formula_rule": str(formula["formula_rule"]),
+                "formula_authority": (
+                    f"lane_formula_execution_registry_v12:LANE_{mode_id}"
+                ),
+                "ci_cd_required": bool(formula["ci_cd_applicable"]),
+                "validation_loop": str(formula["validation_loop"]),
+            }
+        )
+    policy["mode_namespace_row"] = mode_namespace[mode_id]
+    policy["runtime_authority_sha256"] = runtime["runtime_authority_sha256"]
+    return policy
+
 
 def _hil_contract(mode_id: str, policy: Mapping[str, Any]) -> dict[str, Any]:
     accepted_object = str(policy["accepted_object"])
@@ -1152,28 +1496,56 @@ def govern_mode_selection(
 ) -> dict[str, Any]:
     """Return visible formulas, operator receipts, and lane-specific HIL semantics."""
 
+    runtime = load_env_uop_runtime_authority()
     request_sha256 = sha256_bytes(request.encode("utf-8"))
     contracts: list[dict[str, Any]] = []
     for selected in selected_modes:
         full_mode_id = str(selected["id"])
         mode_id = "X" if full_mode_id.startswith("X:") else full_mode_id
-        policy = dict(_POLICIES.get(mode_id) or _EXTRA_POLICIES[mode_id])
+        policy = _runtime_policy(mode_id, runtime)
         dependency_policy = None
         if mode_id == "X":
             dependency_policy = _compile_custom_dependency_policy(selected)
             policy["accepted_object"] = (
                 f"custom deliverable '{selected['name']}' under its dependency policy"
             )
-        operators = [
-            {
-                "operator_id": operator_id,
-                **_OPERATORS[operator_id],
-                "declared_effect_sha256": sha256_bytes(
-                    str(_OPERATORS[operator_id]["effect"]).encode("utf-8")
-                ),
-            }
-            for operator_id in _MODE_OPERATORS[mode_id]
-        ]
+        runtime_operators = cast(dict[str, Any], runtime["operators"])
+        runtime_activation = cast(dict[str, Any], runtime["operator_activation"])
+        operators = []
+        for operator_id in _MODE_OPERATORS[mode_id]:
+            projected = _OPERATORS[operator_id]
+            sqlite_operator = cast(
+                dict[str, Any], runtime_operators[str(operator_id)]
+            )
+            activation = cast(
+                dict[str, Any], runtime_activation[str(operator_id)]
+            )
+            require(
+                str(sqlite_operator["engine_group"]) == str(projected["family"])
+                and str(sqlite_operator["chapter"]) == str(projected["chapter"])
+                and str(activation["activation_state"]) == "FORMULA_ACTIVE",
+                "ENV_UOP_OPERATOR_PROJECTION_MISMATCH",
+                "The selected operator differs from its locked SQLite runtime row.",
+                status="MISMATCH",
+                operator_id=operator_id,
+                mode_id=mode_id,
+            )
+            operators.append(
+                {
+                    "operator_id": operator_id,
+                    **projected,
+                    "declared_effect_sha256": sha256_bytes(
+                        str(projected["effect"]).encode("utf-8")
+                    ),
+                    "sqlite_runtime": {
+                        "route_function": sqlite_operator["route_function"],
+                        "fire_trigger": sqlite_operator["fire_trigger"],
+                        "output_effect": sqlite_operator["output_effect"],
+                        "formula_depth": activation["formula_depth"],
+                        "activation_state": activation["activation_state"],
+                    },
+                }
+            )
         operator_families = list(dict.fromkeys(str(row["family"]) for row in operators))
         operator_groups: list[str] = []
         if {"PHYSICS", "CHEMISTRY", "MATHS"} <= set(operator_families):
@@ -1200,6 +1572,21 @@ def govern_mode_selection(
                 else "MODE_SPECIFIC_VALIDATION_NOT_GENERIC_CI_CD"
             ),
         }
+        lane_toolchains: list[dict[str, Any]] = []
+        runtime_lane_toolchains = cast(
+            dict[str, Any], runtime["ai_toolchain_lane_bindings"]
+        )
+        for lane_id in selected["canonical_lanes"]:
+            binding = cast(dict[str, Any], runtime_lane_toolchains[str(lane_id)])
+            lane_toolchains.append(
+                {
+                    "lane_id": lane_id,
+                    "action_classes": json.loads(binding["action_classes_json"]),
+                    "ordered_tools": json.loads(binding["ordered_tools_json"]),
+                    "binding_sha256": binding["binding_sha256"],
+                    "selection": "RUN_ONLY_WHEN_ACTIVE_ACTION_REQUIRES_TOOL",
+                }
+            )
         contract_core = {
             "schema": "evidence-lane.mode-governance-contract.v1",
             "mode_id": full_mode_id,
@@ -1210,8 +1597,12 @@ def govern_mode_selection(
             "env_authority": {
                 "env_sqlite_sha256": ENV15_ENV_SQLITE_SHA256,
                 "uop_sqlite_sha256": ENV15_UOP_SQLITE_SHA256,
+                "env_mmd_sha256": ENV_MMD_SHA256,
+                "uop_mmd_sha256": UOP_MMD_SHA256,
                 "mode_policy_projection_sha256": ENV15_MODE_POLICY_PROJECTION_SHA256,
                 "policy_row": policy["authority"],
+                "mode_namespace_row": policy["mode_namespace_row"],
+                "runtime_authority_sha256": runtime["runtime_authority_sha256"],
             },
             "env_uop_authority_boundary": env_uop_authority_boundary(),
             "scan_order": policy["scan_order"],
@@ -1223,6 +1614,7 @@ def govern_mode_selection(
             "formula": {
                 "rule": policy["formula_rule"],
                 "authority": policy["formula_authority"],
+                "components": runtime["formula_components"],
                 "visible_in_response": True,
             },
             "operators": operators,
@@ -1230,6 +1622,26 @@ def govern_mode_selection(
             "operator_groups": operator_groups,
             "ci_cd": ci_cd,
             "dependency_policy": dependency_policy,
+            "conditional_toolchain": {
+                "authority": "ai_toolchain_lane_binding_v16",
+                "lane_bindings": lane_toolchains,
+                "all_tools_run_each_turn": False,
+                "missing_required_primary_behavior": (
+                    "TRY_DECLARED_SAME_CLASS_FALLBACK_ELSE_FAIL_CLOSED"
+                ),
+                "cross_class_silent_fallback_allowed": False,
+            },
+            "uop_runtime": {
+                "public_operator_count": len(runtime["uop_public_operators"]),
+                "mode_routes": runtime["uop_mode_routes"],
+                "no_override_env": runtime["uop_root"]["can_override_env"] == 0,
+                "no_override_project": (
+                    runtime["uop_root"]["can_override_project"] == 0
+                ),
+                "no_autonomous_cicd_gate": runtime[
+                    "no_autonomous_cicd_gate"
+                ],
+            },
             "hil": _hil_contract(mode_id, policy),
             "lifecycle_effect": "NONE",
             "candidate_created": False,
@@ -1271,6 +1683,20 @@ def govern_mode_selection(
         "six_way_token_vocabulary_preserved": list(HIL_CHOICES),
         "mode_selection_is_not_hil_approval": True,
         "selected_governance_binds_next_task_execution": True,
+        "runtime_authority": {
+            key: runtime[key]
+            for key in (
+                "authority_mode",
+                "env_sqlite_sha256",
+                "uop_sqlite_sha256",
+                "env_mmd_sha256",
+                "uop_mmd_sha256",
+                "runtime_authority_sha256",
+                "sqlite_runtime_behavior",
+                "mmd_traversal_behavior",
+                "python_projection_is_authority",
+            )
+        },
         "lifecycle_effect": "NONE",
         "candidate_created": False,
         "pointer_moved": False,
@@ -1280,11 +1706,32 @@ def govern_mode_selection(
 def validate_mode_governance_selection(value: dict[str, Any]) -> dict[str, Any]:
     """Validate one selected-mode contract before execution or HIL rendering."""
 
+    runtime = load_env_uop_runtime_authority()
     require(
         value.get("schema") == "evidence-lane.mode-governance-selection.v1"
         and value.get("status") == "PASS",
         "MODE_GOVERNANCE_SELECTION_INVALID",
         "The selected mode governance envelope is not executable.",
+        status="MISMATCH",
+    )
+    runtime_selection = value.get("runtime_authority")
+    require(
+        isinstance(runtime_selection, dict)
+        and runtime_selection.get("runtime_authority_sha256")
+        == runtime["runtime_authority_sha256"]
+        and runtime_selection.get("env_sqlite_sha256")
+        == runtime["env_sqlite_sha256"]
+        and runtime_selection.get("uop_sqlite_sha256")
+        == runtime["uop_sqlite_sha256"]
+        and runtime_selection.get("env_mmd_sha256")
+        == runtime["env_mmd_sha256"]
+        and runtime_selection.get("uop_mmd_sha256")
+        == runtime["uop_mmd_sha256"]
+        and runtime_selection.get("sqlite_runtime_behavior") is True
+        and runtime_selection.get("mmd_traversal_behavior") is True
+        and runtime_selection.get("python_projection_is_authority") is False,
+        "ENV_UOP_RUNTIME_SELECTION_MISMATCH",
+        "Mode governance is not bound to the current locked SQLite/MMD runtime.",
         status="MISMATCH",
     )
     raw_contracts = value.get("contracts")
@@ -1304,11 +1751,22 @@ def validate_mode_governance_selection(value: dict[str, Any]) -> dict[str, Any]:
             status="MISMATCH",
         )
         contract = cast(dict[str, Any], raw_contract)
+        env_authority = cast(dict[str, Any], contract.get("env_authority") or {})
         require(
             contract.get("env_uop_authority_boundary")
             == env_uop_authority_boundary(),
             "ENV_UOP_AUTHORITY_BOUNDARY_MISMATCH",
             "The selected mode does not retain the exact ENV/UOP ownership boundary.",
+            status="MISMATCH",
+            mode_id=contract.get("mode_id"),
+        )
+        require(
+            env_authority.get("runtime_authority_sha256")
+            == runtime["runtime_authority_sha256"]
+            and env_authority.get("env_mmd_sha256") == runtime["env_mmd_sha256"]
+            and env_authority.get("uop_mmd_sha256") == runtime["uop_mmd_sha256"],
+            "ENV_UOP_RUNTIME_CONTRACT_MISMATCH",
+            "A selected mode contract is detached from locked SQLite/MMD runtime.",
             status="MISMATCH",
             mode_id=contract.get("mode_id"),
         )

@@ -1,0 +1,117 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-refresh",
+  "skill_sha256": "F32DA2CDFEB8F3810233BCD3AD8621024635283559720C81375BCBE6BB189511",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "source_intake_classify"
+      ],
+      "workflow": "steer-prompt-source-intake-refresh-working-sectors"
+    },
+    {
+      "order": 2,
+      "tools": [
+        "adaptive_delta_exit"
+      ],
+      "workflow": "adaptive-delta-exit-append-refresh"
+    },
+    {
+      "order": 3,
+      "tools": [
+        "task_complete_and_refresh"
+      ],
+      "workflow": "hil-live-root-project-overlay-proposal"
+    }
+  ],
+  "action_count": 3,
+  "actions": [
+    {
+      "name": "source_intake_classify",
+      "schema_sha256": "CBE89FF15C6A4AD750C1D4D17C6F987420D6A3946573FA2ABB4E2FD1715E0F8A",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_intake_classify"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-refresh",
+            "workflow": "steer-prompt-source-intake-refresh-working-sectors",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "classify-source-intake",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "adaptive_delta_exit",
+      "schema_sha256": "BA332F64F8A745141FBA77F0F795E8DCC644152C18C9C4725E01D99101A113EB",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "adaptive_delta_exit"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-refresh",
+            "workflow": "adaptive-delta-exit-append-refresh",
+            "order": 2
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "task-execution",
+            "order": 13
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "task_complete_and_refresh",
+      "schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-refresh",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "task_complete_and_refresh"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-refresh",
+            "workflow": "hil-live-root-project-overlay-proposal",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "task-execution",
+            "order": 15
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "C98779B72631712CEAB2CF5920C355DA95B9166EF8C33DBB56DC54A001323222"
+}

@@ -10,16 +10,22 @@ from evidence_lane_plugin import project_authority
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS
+from evidence_lane_plugin.models import SessionState
+from evidence_lane_plugin.plan_runtime import write_plan_runtime_projection
 from evidence_lane_plugin.project_authority import (
     PROJECT_AUTHORITY_CONFIRMATION,
     migrate_working_project_sectors,
-    nest_accepted_lane_history_in_current_sectors,
     query_working_project_sectors,
+)
+from evidence_lane_plugin.project_overlay import (
+    build_project_overlay,
+    validate_project_overlay,
 )
 from evidence_lane_plugin.project_pv_storage import (
     validate_project_pv_archive,
     working_overlay_manifest,
 )
+from evidence_lane_plugin.reader import PVReader
 
 from .conftest import build_and_approve_pv1, git
 
@@ -125,6 +131,70 @@ def test_accepted_lane_schema_binding_compatibility_is_narrow() -> None:
     assert rejected["invalid_lane_ids"] == ["analysis"]
 
 
+def test_working_sector_source_rebuild_recognizes_only_lane_sqlite_seal_drift() -> None:
+    lane_reports = {lane_id: {"valid": True} for lane_id in CANONICAL_LANE_IDS}
+    lane_errors = {}
+    for lane_id in CANONICAL_LANE_IDS:
+        sqlite_name = project_authority.LANE_REGISTRY[lane_id].sqlite_filename
+        lane_errors[lane_id] = {
+            "schema": "evidence-lane.lane-manifest.v3",
+            "lane_id": lane_id,
+            "declared_stable_artifacts": {sqlite_name: "A" * 64},
+            "actual_stable_artifacts": {sqlite_name: "B" * 64},
+            "declared_evidence_artifacts": {sqlite_name: "A" * 64},
+            "actual_evidence_artifacts": {sqlite_name: "B" * 64},
+            "missing_required_artifacts": [],
+            "mmd_valid": True,
+            "dot_valid": True,
+            "topology_reconciliation": {"status": "PASS"},
+            "four_file_contract": {
+                "missing": [],
+                "tools_json_valid": True,
+                "computed_tool_identity_sha256": "C" * 64,
+                "declared_tool_identity_sha256": "C" * 64,
+            },
+            "artifact_role_contract": {
+                "extensions": [],
+                "undeclared_extension_files": [],
+                "required_roles": [{"exists": True}],
+            },
+        }
+    validation = {
+        "lane_manifest_errors": lane_errors,
+        "lanes": lane_reports,
+        "checksum_mismatches": {
+            "chat_lineage/.chat-lineage-writer.lock": {
+                "declared": None,
+                "actual": "D" * 64,
+            }
+        },
+        "lane_emission_contract_valid": True,
+        "lane_directory_set_valid": True,
+        "parallel_execution_valid": True,
+        "topology_valid": True,
+        "source_routes_valid": True,
+        "lane_disposition_contract": {"valid": True},
+    }
+
+    assert project_authority._working_sector_source_rebuild_required(validation)
+
+    wrong_artifact = json.loads(json.dumps(validation))
+    wrong_artifact["lane_manifest_errors"]["local_code"][
+        "actual_stable_artifacts"
+    ]["local_code.mmd"] = "E" * 64
+    assert not project_authority._working_sector_source_rebuild_required(
+        wrong_artifact
+    )
+
+    non_operational_wrapper = json.loads(json.dumps(validation))
+    non_operational_wrapper["checksum_mismatches"] = {
+        "local_code/local_code.mmd": {"declared": "A" * 64, "actual": "B" * 64}
+    }
+    assert not project_authority._working_sector_source_rebuild_required(
+        non_operational_wrapper
+    )
+
+
 def _relocate(service, source_repository: Path, target: Path) -> dict:
     return service.register_project(
         project_id="book-faires",
@@ -139,6 +209,41 @@ def _relocate(service, source_repository: Path, target: Path) -> dict:
         expected_accepted_pv="PV1",
         expected_pointer_generation=1,
         selected_by="human-test",
+    )
+
+
+def _materialize_working_sectors_for_external_test(
+    target: Path, source_repository: Path
+) -> dict:
+    backlog = {
+        "schema": "evidence-lane.linear-task-backlog.v1",
+        "project_id": "book-faires",
+        "plans": [],
+        "tasks": [],
+    }
+    write_plan_runtime_projection(
+        target / "plan_runtime_projection.sqlite", backlog
+    )
+    (target / "task_backlog.json").write_text(
+        json.dumps(backlog), encoding="utf-8"
+    )
+    lineage = target / "lineage"
+    lineage.mkdir(exist_ok=True)
+    head = lineage / "chat_lineage_head.json"
+    if not head.is_file():
+        head.write_text('{"revision":1}\n', encoding="utf-8")
+    control_path = lineage / "chat_lineage.sqlite"
+    if not control_path.is_file():
+        control = sqlite3.connect(control_path)
+        control.execute("CREATE TABLE event(sequence INTEGER PRIMARY KEY, value TEXT)")
+        control.commit()
+        control.close()
+    return migrate_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
     )
 
 
@@ -210,7 +315,9 @@ def test_project_register_relocates_active_authority_without_shadow_payload(
     assert (target / "active_pointer.json").read_bytes() == pointer_before
     assert not (target / "candidates").exists()
     assert (legacy / "accepted" / "PV0" / "history.txt").is_file()
-    assert not (legacy / "accepted" / "PV1").exists()
+    assert (legacy / "accepted" / "PV1").exists()
+    assert (target / "accepted").is_dir()
+    assert not any((target / "accepted").iterdir())
     legacy_marker = json.loads(
         (legacy / "NON_AUTHORITATIVE_LEGACY_HISTORY.json").read_text(
             encoding="utf-8"
@@ -303,8 +410,9 @@ def test_external_empty_accepted_directory_uses_exact_continuity_reference(
     target = tmp_path / "user-projects" / "book-faires"
     _relocate(service, source_repository, target)
 
-    # First seal a continuity receipt against the migrated external authority
-    # while the immutable accepted artifact is still available.
+    # First seal a continuity receipt against the migrated external authority.
+    # Relocation never copies or opens accepted storage; this empty directory is
+    # only the explicit external storage shape under test.
     service.resume_session(
         project_id="book-faires",
         host="CODEX_CLI",
@@ -314,8 +422,6 @@ def test_external_empty_accepted_directory_uses_exact_continuity_reference(
         server_has_durable_filesystem=True,
     )
     pointer_before = service.store.pointer("book-faires").as_dict()
-    shutil.rmtree(target / "accepted" / "PV1")
-
     status = service.status_window("book-faires")
     current = status["accepted_summary"]["current"]
     assert status["accepted_summary"]["count"] == 1
@@ -355,6 +461,91 @@ def test_external_empty_accepted_directory_uses_exact_continuity_reference(
     )
 
 
+def _write_legacy_task_binding(
+    target: Path,
+    *,
+    package_sha256: str,
+    suffix: str,
+) -> Path:
+    pointer = json.loads((target / "active_pointer.json").read_text(encoding="utf-8"))
+    payload = {
+        "schema": "evidence-lane.codex-exact-task-project-session-binding.v1",
+        "status": "PASS",
+        "project_id": "book-faires",
+        "accepted_pointer": {
+            "accepted_pv": pointer["accepted_pv"],
+            "generation": pointer["generation"],
+            "manifest_sha256": pointer["accepted_manifest_sha256"],
+            "package_sha256": package_sha256,
+        },
+    }
+    path = target / "receipts" / "codex-task-bindings" / f"legacy-{suffix}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+    return path
+
+
+def test_external_legacy_v1_pointer_continuity_uses_root_receipts_only(
+    service, source_repository: Path, tmp_path: Path, monkeypatch
+) -> None:
+    build_and_approve_pv1(service)
+    package_sha256 = service.store.validate_accepted(
+        "book-faires", "PV1", require_promotable=False
+    )["package_sha256"]
+    target = tmp_path / "user-projects" / "book-faires"
+    _relocate(service, source_repository, target)
+    _write_legacy_task_binding(
+        target,
+        package_sha256=package_sha256,
+        suffix="one",
+    )
+
+    def forbidden_accepted_path(*_args, **_kwargs):
+        raise AssertionError("legacy continuity opened accepted storage")
+
+    monkeypatch.setattr(service.store, "accepted_path", forbidden_accepted_path)
+    continuity = service.store.live_root_pointer_continuity("book-faires", "PV1")
+
+    assert continuity["status"] == "PASS"
+    assert continuity["continuity_mode"] == "LEGACY_V1_PROMOTION_POINTER_BOUND"
+    assert continuity["validation_scope"] == (
+        "LIVE_ROOT_LEGACY_PROMOTION_AND_TASK_BINDINGS"
+    )
+    assert continuity["package_sha256"] == package_sha256
+    assert continuity["swap_journal_sha256"] is None
+    assert continuity["archive_verification"] == "UNAVAILABLE_LEGACY_BASELINE"
+    assert continuity["migration_required_at_next_promotion"] is True
+    assert continuity["accepted_archive_opened"] is False
+    assert continuity["accepted_archive_queried"] is False
+
+
+def test_external_legacy_v1_pointer_continuity_rejects_package_hash_conflict(
+    service, source_repository: Path, tmp_path: Path
+) -> None:
+    build_and_approve_pv1(service)
+    package_sha256 = service.store.validate_accepted(
+        "book-faires", "PV1", require_promotable=False
+    )["package_sha256"]
+    target = tmp_path / "user-projects" / "book-faires"
+    _relocate(service, source_repository, target)
+    _write_legacy_task_binding(
+        target,
+        package_sha256=package_sha256,
+        suffix="one",
+    )
+    _write_legacy_task_binding(
+        target,
+        package_sha256="F" * 64,
+        suffix="conflict",
+    )
+
+    with pytest.raises(EvidenceLaneError) as raised:
+        service.store.live_root_pointer_continuity("book-faires", "PV1")
+
+    assert raised.value.code == "LIVE_ROOT_POINTER_CONTINUITY_RECEIPT_MISMATCH"
+    assert raised.value.details["legacy_package_hash_count"] == 2
+
+
 def test_external_status_never_opens_present_accepted_artifact(
     service, source_repository: Path, tmp_path: Path, monkeypatch
 ) -> None:
@@ -384,167 +575,125 @@ def test_external_status_never_opens_present_accepted_artifact(
     }
 
 
-def test_external_project_authority_uses_live_overlay_and_one_verified_archive(
+def test_project_overlay_appends_progressive_live_root_hil_history(
     service, source_repository: Path, tmp_path: Path
 ) -> None:
-    session_id, _ = build_and_approve_pv1(service)
+    build_and_approve_pv1(service)
     target = tmp_path / "user-projects" / "book-faires"
     _relocate(service, source_repository, target)
-    legacy_accepted = target / "accepted" / "PV1"
-    legacy_identity = service.store.validate_accepted(
-        "book-faires", "PV1", require_promotable=False
-    )["manifest_sha256"]
+    _materialize_working_sectors_for_external_test(target, source_repository)
 
-    service.sessions.classify(
-        "book-faires",
-        session_id,
-        task_class="verify_result",
-        requested_outcome="Seal the external project root without copied candidates.",
-        permitted_paths=[],
-        permitted_tools=["repository_read"],
-        acceptance_checks=["One verified accepted archive exists."],
-        stop_condition="Stop at the explicit test HIL.",
+    baseline_number = 12
+    baseline_pv = f"PV{baseline_number}"
+    parent_pv = f"PV{baseline_number - 1}"
+    next_pv = f"PV{baseline_number + 1}"
+    following_pv = f"PV{baseline_number + 2}"
+
+    baseline = tmp_path / f"overlay-{baseline_pv.lower()}"
+    baseline_result = build_project_overlay(
+        baseline,
+        lane_bundle_path=target / "sectors",
+        lineage_source=None,
+        candidate_id=f"{baseline_pv}_LEGACY_BASELINE__TEST",
+        proposed_pv=baseline_pv,
+        parent_accepted_pv=parent_pv,
+        pointer_generation=baseline_number,
+        code_mode="local_code",
+        created_at="2026-08-23T23:00:00Z",
     )
-    service.sessions.confirm_source_update(
-        "book-faires",
-        session_id,
-        confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
+    assert baseline_result["valid"] is True
+
+    first = tmp_path / f"overlay-{next_pv.lower()}"
+    first_result = build_project_overlay(
+        first,
+        lane_bundle_path=target / "sectors",
+        lineage_source=None,
+        candidate_id=f"{next_pv}_HIL_PROPOSAL__TEST",
+        proposed_pv=next_pv,
+        parent_accepted_pv=baseline_pv,
+        pointer_generation=baseline_number,
+        code_mode="local_code",
+        created_at="2026-08-24T00:00:00Z",
+        truth_state="HIL_PROPOSAL_ONLY",
+        accepted_parent_access="LIVE_ROOT_BASELINE_ONLY_ACCEPTED_ARCHIVE_UNOPENED",
+        prior_overlay_path=baseline,
     )
-    candidate = service.refresh("book-faires", session_id)["candidate"]
-    candidate_id = candidate["candidate_id"]
-    overlay_receipt = json.loads(
-        (
-            target
-            / "receipts"
-            / "candidate-overlays"
-            / f"{candidate_id}.json"
-        ).read_text(encoding="utf-8")
+    assert first_result["valid"] is True
+    assert first_result["transition_count"] == 1
+
+    local_code = project_authority.LANE_REGISTRY["local_code"]
+    local_code_database = (
+        target / "sectors" / "local_code" / local_code.sqlite_filename
     )
-    expected_rows = {row["path"]: row for row in overlay_receipt["working_members"]}
-    current_rows = {
-        row["path"]: row
-        for row in working_overlay_manifest(target, project_id="book-faires")["members"]
+    connection = sqlite3.connect(local_code_database)
+    connection.execute("PRAGMA user_version=266")
+    connection.commit()
+    connection.close()
+
+    first_connection = sqlite3.connect(first / "project_overlay.sqlite")
+    first_local_code_row = first_connection.execute(
+        """
+        SELECT snapshot.lane_database_sha256,snapshot.source_count,
+               snapshot.chunk_count,snapshot.fact_count
+        FROM sector_hil_snapshot AS snapshot
+        JOIN pv_hil_transition AS transition
+          ON transition.transition_id=snapshot.transition_id
+        WHERE transition.proposed_pv=? AND snapshot.sector_id='local_code'
+        """,
+        (next_pv,),
+    ).fetchone()
+    first_connection.close()
+    assert first_local_code_row is not None
+    first_local_code = {
+        "lane_database_sha256": first_local_code_row[0],
+        "source_count": first_local_code_row[1],
+        "chunk_count": first_local_code_row[2],
+        "fact_count": first_local_code_row[3],
     }
-    assert expected_rows == current_rows, {
-        "added": sorted(current_rows.keys() - expected_rows.keys()),
-        "removed": sorted(expected_rows.keys() - current_rows.keys()),
-        "changed": sorted(
-            path
-            for path in expected_rows.keys() & current_rows.keys()
-            if expected_rows[path] != current_rows[path]
-        ),
-    }
-    overlay = service.store.candidate_validation("book-faires", candidate_id)
 
-    assert overlay["storage_kind"] == "LIVE_PROJECT_ROOT_CANDIDATE_OVERLAY"
-    assert overlay["candidate_directory_created"] is False
-    assert not (target / "candidates").exists()
-    assert service.store.candidate_runtime_path("book-faires", candidate_id) == target
-    assert legacy_accepted.is_dir()
-    assert service.store.pointer("book-faires").accepted_pv == "PV1"
-
-    approved = service.decide(
-        "book-faires",
-        session_id,
-        decision="APPROVE",
-        decided_by="human-test",
-        decision_id="decision_external_pv2",
+    second = tmp_path / f"overlay-{following_pv.lower()}"
+    second_result = build_project_overlay(
+        second,
+        lane_bundle_path=target / "sectors",
+        lineage_source=None,
+        candidate_id=f"{following_pv}_HIL_PROPOSAL__TEST",
+        proposed_pv=following_pv,
+        parent_accepted_pv=next_pv,
+        pointer_generation=baseline_number + 1,
+        code_mode="local_code",
+        created_at="2026-08-24T01:00:00Z",
+        truth_state="HIL_PROPOSAL_ONLY",
+        accepted_parent_access="LIVE_ROOT_BASELINE_ONLY_ACCEPTED_ARCHIVE_UNOPENED",
+        prior_overlay_path=first,
     )
-
-    assert approved["pointer"]["accepted_pv"] == "PV2"
-    assert approved["pointer"]["generation"] == 2
-    artifacts = list((target / "accepted").iterdir())
-    assert len(artifacts) == 1
-    assert artifacts[0].is_file() and artifacts[0].name.startswith("PV2__")
-    validation = validate_project_pv_archive(artifacts[0])
-    assert validation["status"] == "PASS"
-    assert validation["retention"]["accepted_lineage"] == [
-        {"pv_id": "PV1", "manifest_sha256": legacy_identity}
-    ]
-    assert validation["retention"]["prior_accepted_bytes_in_live_history_inferred"] is False
-    assert (target / "project_authority.json").is_file()
-    assert not (target / "candidates").exists()
-
-
-def test_external_project_archive_requires_exact_postseal_receipt(
-    service, source_repository: Path, tmp_path: Path
-) -> None:
-    session_id, _ = build_and_approve_pv1(service)
-    target = tmp_path / "user-projects" / "book-faires"
-    _relocate(service, source_repository, target)
-    declaration = "AC12 executable: validate the external-root candidate."
-    manifest = source_repository / "evidence" / "acceptance" / "commands.json"
-    manifest.parent.mkdir(parents=True)
-    manifest.write_text(
-        json.dumps(
-            {
-                "schema": "evidence-lane.acceptance-command-manifest.v1",
-                "commands": {
-                    declaration: {
-                        "argv": [
-                            "$RUNTIME_PYTHON",
-                            "-c",
-                            (
-                                "import os,sys,pathlib; p=pathlib.Path("
-                                "os.environ.get('EVIDENCE_LANE_CANDIDATE_PATH','')); "
-                                "sys.exit(0 if p.is_dir() else 9)"
-                            ),
-                        ],
-                        "phase": "POSTSEAL",
-                        "timeout_seconds": 30,
-                    }
-                },
-            },
-            indent=2,
-            sort_keys=True,
-        )
-        + "\n",
-        encoding="utf-8",
+    validation = validate_project_overlay(second)
+    assert second_result["valid"] is True
+    assert validation["valid"] is True
+    assert validation["transition_count"] == 2
+    assert validation["transition_chain_errors"] == []
+    modified = second_result["project_overlay_delta"]["modified"]
+    assert len(modified) == 1
+    assert modified[0]["sector_id"] == "local_code"
+    assert modified[0]["before"] == first_local_code
+    assert (
+        modified[0]["after"]["lane_database_sha256"]
+        != modified[0]["before"]["lane_database_sha256"]
     )
-    git(source_repository, "add", ".")
-    git(source_repository, "commit", "-m", "Add external postseal check")
-    service.sessions.classify(
-        "book-faires",
-        session_id,
-        task_class="verify_result",
-        requested_outcome="Prove external-root post-seal promotion gating.",
-        permitted_paths=["evidence/acceptance/commands.json"],
-        permitted_tools=["repository_read", "test"],
-        acceptance_checks=[declaration],
-        stop_condition="Stop at the explicit test HIL.",
-    )
-    service.sessions.confirm_source_update(
-        "book-faires",
-        session_id,
-        confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
-    )
-    candidate = service.refresh("book-faires", session_id)["candidate"]
-    receipt_path = Path(candidate["postseal_acceptance_receipt"])
-    receipt_bytes = receipt_path.read_bytes()
-    receipt_path.unlink()
+    assert second_result["accepted_archive_opened"] is False
+    assert second_result["accepted_archive_queried"] is False
 
-    with pytest.raises(EvidenceLaneError) as missing:
-        service.store.promote(
-            "book-faires",
-            candidate["candidate_id"],
-            expected_pointer_generation=1,
-            decided_by="human-test",
-            decision_id="decision_external_missing_postseal",
-        )
-
-    assert missing.value.code == "POSTSEAL_ACCEPTANCE_RECEIPT_REQUIRED"
-    assert service.store.pointer("book-faires").accepted_pv == "PV1"
-    assert (target / "accepted" / "PV1").is_dir()
-    receipt_path.write_bytes(receipt_bytes)
-    promoted = service.store.promote(
-        "book-faires",
-        candidate["candidate_id"],
-        expected_pointer_generation=1,
-        decided_by="human-test",
-        decision_id="decision_external_valid_postseal",
+    shutil.copytree(second, target / "project_overlay", dirs_exist_ok=True)
+    comparison = PVReader(service.store).diff(
+        "book-faires", next_pv, following_pv
     )
-    assert promoted["pointer"]["accepted_pv"] == "PV2"
-    assert promoted["receipt"]["postseal_acceptance"]["status"] == "PASS"
+    assert comparison["status"] == "PASS"
+    assert comparison["progressive_history"] is True
+    assert [
+        row["sector_id"]
+        for row in comparison["project_overlay_delta"]["modified"]
+    ] == ["local_code"]
+    assert comparison["accepted_archive_opened"] is False
+    assert comparison["accepted_archive_queried"] is False
 
 
 def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
@@ -599,13 +748,6 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
         + "\nTURN_ENTRY_WORKING_SECTOR_MARKER = True\n",
         encoding="utf-8",
     )
-    universe_before = {
-        path.relative_to(target / "universe").as_posix(): path.read_bytes()
-        for path in (target / "universe").rglob("*")
-        if path.is_file()
-    }
-    assert universe_before
-
     result = migrate_working_project_sectors(
         target,
         repository_root=source_repository,
@@ -616,6 +758,11 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
 
     assert result["status"] == "PASS"
     assert result["state"] == "WORKING_SECTOR_AUTHORITY_COMMITTED"
+    universe_before = {
+        path.relative_to(target / "universe").as_posix(): path.read_bytes()
+        for path in (target / "universe").rglob("*")
+        if path.is_file()
+    }
     assert (target / "active_pointer.json").read_bytes() == pointer_before
     assert {
         path.name for path in (target / "sectors").iterdir() if path.is_dir()
@@ -624,6 +771,24 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
         (target / "sectors" / lane_id / "study_brain.json").is_file()
         for lane_id in CANONICAL_LANE_IDS
     )
+    local_study = json.loads(
+        (target / "sectors" / "local_code" / "study_brain.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert local_study["additional_sources_remain_lane_scoped"] is True
+    assert local_study["source_registry_authority"].endswith(
+        "/local_code_sector_v001.sqlite"
+    )
+    assert {
+        "local_code_sector_v001.sqlite",
+        "local_code.mmd",
+        "local_code.dot",
+        "tools.json",
+        "lane_pointer.json",
+        "lane_manifest.json",
+        "study_brain.json",
+    } == set(local_study["lane_owned_artifacts"])
     assert (target / "sectors" / "plan" / "task_backlog.json").is_file()
     assert (
         target / "sectors" / "plan" / "plan_runtime_projection.sqlite"
@@ -668,6 +833,46 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
     assert (direct_lineage / "chat_lineage.sqlite").is_file()
     assert (direct_lineage / "chat_lineage_head.json").is_file()
     assert (direct_lineage / "session_test.jsonl").is_file()
+    assert project_authority.validate_lane_bundle(target / "sectors")["valid"]
+
+    # A Source Intake implementation can be interrupted after replacing one
+    # derived lane database but before resealing that lane's manifest.  Keep
+    # the database structurally valid, make only its declared database hashes
+    # stale, and prove the explicit working-sector route rebuilds from the
+    # governed repository source rather than accepting those derived bytes.
+    local_code_manifest_path = (
+        target / "sectors" / "local_code" / "lane_manifest.json"
+    )
+    local_code_manifest = json.loads(
+        local_code_manifest_path.read_text(encoding="utf-8")
+    )
+    local_code_sqlite_name = project_authority.LANE_REGISTRY[
+        "local_code"
+    ].sqlite_filename
+    local_code_manifest["stable_artifacts"][local_code_sqlite_name] = "A" * 64
+    local_code_manifest["evidence_artifacts"][local_code_sqlite_name] = "A" * 64
+    local_code_manifest_path.write_text(
+        json.dumps(local_code_manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    project_authority._refresh_lane_bundle_checksums(target / "sectors")
+    stale_seal_validation = project_authority.validate_lane_bundle(
+        target / "sectors"
+    )
+    assert stale_seal_validation["valid"] is False
+    assert set(stale_seal_validation["lane_manifest_errors"]) == {"local_code"}
+    recovered = migrate_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+    )
+    assert recovered["status"] == "PASS"
+    assert recovered["state"] == "WORKING_SECTOR_AUTHORITY_REFRESHED"
+    assert recovered["build_parent_kind"] == (
+        "CURRENT_WORKING_SECTORS_SOURCE_REBUILD_REQUIRED"
+    )
     assert project_authority.validate_lane_bundle(target / "sectors")["valid"]
     assert not (target / "task_backlog.json").exists()
     assert not (target / "plan_runtime_projection.sqlite").exists()
@@ -730,6 +935,21 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
     assert lock_query["project_integrity_receipt"][
         "operational_checksum_drift_paths"
     ] == ["chat_lineage/.chat-lineage-writer.lock"]
+    lane_status = service.lane_status("book-faires", "local_code")
+    assert lane_status["status"] in {"PASS", "STALE"}
+    assert lane_status["bundle"]["operational_checksum_drift_ignored"] is True
+    assert lane_status["bundle"]["operational_checksum_drift_paths"] == [
+        "chat_lineage/.chat-lineage-writer.lock"
+    ]
+    lane_search = service.lane_search(
+        "book-faires",
+        "local_code",
+        "TURN_ENTRY_WORKING_SECTOR_MARKER",
+        limit=5,
+        retrieval="fts5",
+    )
+    assert lane_search["status"] in {"PASS", "STALE"}
+    assert lane_search["results"]
     selected_lineage_query = query_working_project_sectors(
         target,
         repository_root=source_repository,
@@ -749,29 +969,6 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
         "operational_checksum_drift_paths"
     ] == ["chat_lineage/.chat-lineage-writer.lock"]
     writer_lock.unlink()
-    nested_history = nest_accepted_lane_history_in_current_sectors(
-        target,
-        project_id="book-faires",
-        accepted_pv="PV1",
-        pointer_generation=1,
-    )
-    assert nested_history["status"] == "PASS"
-    assert nested_history["working_receipt_rebound"] is True
-    assert nested_history["committed_working_receipt_sha256"]
-    rebound_query = query_working_project_sectors(
-        target,
-        repository_root=source_repository,
-        project_id="book-faires",
-        accepted_pv="PV1",
-        pointer_generation=1,
-        query="TURN_ENTRY_WORKING_SECTOR_MARKER",
-        lane_ids=["local_code"],
-        limit=5,
-    )
-    assert rebound_query["status"] == "PASS"
-    assert rebound_query["project_integrity_receipt"][
-        "accepted_schema_binding_compatibility"
-    ]["status"] == "PASS"
     operational_head = (
         target / "sectors" / "chat_lineage" / "chat_lineage_head.json"
     )

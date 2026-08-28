@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 6,
+  "event": "PostToolUse",
+  "handler_count": 4,
+  "event_binding": "hooks/events/PostToolUse/event.v1.json",
+  "event_binding_sha256": "5BFD1A7236350145B5E19D11D9FD073D1151D716692CD420FE6895A2F03A195F",
+  "handlers": [
+    {
+      "display_id": "6.1",
+      "path": "hooks/events/PostToolUse/handler-6.1.v1.json",
+      "sha256": "1938EB86C903D5B1CB8405142CC4FDBFB61C8DA27E025984299687BFEE1E86E8"
+    },
+    {
+      "display_id": "6.2",
+      "path": "hooks/events/PostToolUse/handler-6.2.v1.json",
+      "sha256": "BF89DC78B758D62C4D741A3DDFF2A24091335DC58312808391A3632887D4ADE9"
+    },
+    {
+      "display_id": "6.3",
+      "path": "hooks/events/PostToolUse/handler-6.3.v1.json",
+      "sha256": "5BEF3DA64F22346DB3A3C2C7EBC50340FC653A509D9071DF2479588AB88C8745"
+    },
+    {
+      "display_id": "6.4",
+      "path": "hooks/events/PostToolUse/handler-6.4.v1.json",
+      "sha256": "0FE6BDC067BD0AE14FA16F59487BC77A617235D85392D51C5E6F00946FC77BE2"
+    }
+  ],
+  "canonical_hook_manifest": "hooks/hooks.json",
+  "canonical_logical_actions": "hooks/logical-actions.json",
+  "enabled_only_after_installed_event_pass": true,
+  "receipt_sha256": "3EC63FADF0EA3E94EE9B12E78E5D8D675E5C1DC7D5C6DE3E82CFDAFF8279F020"
+}

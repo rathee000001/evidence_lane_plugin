@@ -1,0 +1,129 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "source_graph_build",
+  "title": "Build a bounded provenance-first source graph",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "batch_id": {
+        "title": "Batch Id",
+        "type": "string"
+      },
+      "occurrence_ordinals": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Occurrence Ordinals"
+      },
+      "member_path_prefixes": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Member Path Prefixes"
+      },
+      "max_files": {
+        "default": 25000,
+        "title": "Max Files",
+        "type": "integer"
+      },
+      "max_total_bytes": {
+        "default": 1073741824,
+        "title": "Max Total Bytes",
+        "type": "integer"
+      },
+      "max_file_bytes": {
+        "default": 8388608,
+        "title": "Max File Bytes",
+        "type": "integer"
+      },
+      "max_nodes": {
+        "default": 500000,
+        "title": "Max Nodes",
+        "type": "integer"
+      },
+      "max_edges": {
+        "default": 1000000,
+        "title": "Max Edges",
+        "type": "integer"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "batch_id"
+    ],
+    "title": "source_graph_buildArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "source_graph_buildDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "F71727B9AEAF773C8185207FF223360AB2387BEEBB1AD7A8A601C684318A1D7D",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "source_graph_build"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "source-graph-intake",
+        "order": 7
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/source_graph_build.action.v1.json",
+  "sdk_action_binding_sha256": "DF11F7F1D517015F2D14153BBC8C8779C71376CA0605F3B5546F0930DB7F724C",
+  "public_action_schema": "schemas/actions/source_graph_build.schema.json",
+  "public_action_schema_sha256": "A1873D925B7BDA997E1F7EDA77EE19B1BC41D795518FDA8AEB1E3A7104B395CD",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "9CC8D4552CA0E58E78F4A691729D80374D6E4E2116F7C59AE8BE502EC6E6C1F7"
+}

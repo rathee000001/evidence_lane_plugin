@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Artifacts refresh receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "classification",
+    "recorded_at"
+  ],
+  "properties": {
+    "lane_id": {
+      "const": "artifacts"
+    },
+    "classification": {
+      "type": "object"
+    },
+    "recorded_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "DB7B01E3F834117137A0C048A7E1C94613052C8349D5C28B83797D75E606EDF0"
+}

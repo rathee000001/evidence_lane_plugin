@@ -1,0 +1,19 @@
+{
+  "schema": "evidence-lane.sdk-rollback-mode-binding.v1",
+  "status": "PASS",
+  "mode": "LOGICAL_LIVE_ROOT_STATE",
+  "required_fields": [
+    "project_id",
+    "session_id",
+    "decided_by",
+    "rollback_to"
+  ],
+  "source_or_pointer_mutation": false,
+  "fresh_plan_required": false,
+  "public_action": "pv_rollback",
+  "public_action_binding": "sdk/actions/pv_rollback.action.v1.json",
+  "canonical_handler": "evidence_lane_plugin.session.SessionManager",
+  "new_public_action_created": false,
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "11CB970A7392F2147879C641AF29B8D45A0DC011B183AED9E51C92F5968CAA02"
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_universe runtime binding",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "module",
+    "source_sha256"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "project_universe"
+    },
+    "module": {
+      "const": "evidence_lane_plugin.project_universe"
+    },
+    "source_sha256": {
+      "const": "C54666A1ABA1850A46F5BF654FF009FFA387CEA8AC9CB0EEAA99CDCCF45A9649"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "E95D60D440CF941580918CB2FF06F07732EB753639E18CA6B28AB8857223DF49"
+}

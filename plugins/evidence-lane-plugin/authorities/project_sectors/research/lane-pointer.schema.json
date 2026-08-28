@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Research lane pointer",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "parent_pv",
+    "proposed_pv",
+    "pointer_generation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.lane-pointer-evidence.v1"
+    },
+    "lane_id": {
+      "const": "research"
+    },
+    "parent_pv": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "proposed_pv": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pointer_generation": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "47677177DBACD40E89ACC3603F2530E1C53C5BE24BDF4FC7840E0BC4E10481CF"
+}

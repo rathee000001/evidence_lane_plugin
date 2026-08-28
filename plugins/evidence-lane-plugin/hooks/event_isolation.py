@@ -560,8 +560,18 @@ def validate_output(event_name: str, output: Mapping[str, Any]) -> None:
 
 
 def _data_root() -> Path:
-    configured = os.environ.get("EVIDENCE_LANE_DATA_ROOT", "").strip()
-    return Path(configured).resolve() if configured else (Path.home() / "EvidenceLanePV")
+    configured = os.environ.get("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", "").strip()
+    return (
+        Path(configured).expanduser().resolve()
+        if configured
+        else (
+            Path.home()
+            / ".codex"
+            / "plugins"
+            / "runtime"
+            / "evidence-lane-plugin"
+        ).resolve()
+    )
 
 
 def _control_root() -> Path:
@@ -782,8 +792,8 @@ def verify_inactive_kill_switch() -> dict[str, Any]:
 
 
 class _OwnerLock(AbstractContextManager["_OwnerLock"]):
-    def __init__(self, owner_sha256: str) -> None:
-        self._path = _control_root() / "locks" / f"{owner_sha256}.lock"
+    def __init__(self, occurrence_sha256: str) -> None:
+        self._path = _control_root() / "locks" / f"{occurrence_sha256}.lock"
         self._handle: Any = None
 
     def __enter__(self) -> Self:
@@ -883,6 +893,7 @@ def _identity(
     event_name: str,
     payload: Mapping[str, Any],
     occurrence_input_sha256: str,
+    subhook_handler: str,
 ) -> tuple[str, str]:
     owner_sha256 = _sha256(
         f"{payload.get('session_id', '')}|{payload.get('cwd', '')}"
@@ -891,6 +902,7 @@ def _identity(
         "|".join(
             (
                 event_name,
+                subhook_handler,
                 owner_sha256,
                 str(payload.get("turn_id") or ""),
                 str(payload.get("tool_use_id") or ""),
@@ -1097,8 +1109,13 @@ def execute_isolated_hook(
         event_name,
         payload,
         occurrence_input_sha256,
+        handler.name,
     )
-    with _OwnerLock(owner_sha256), _database() as connection:
+    # Four distinct native handler processes are launched for each event.  The
+    # subhook pipeline orders those stages; the isolation lock must reject only
+    # a duplicate execution of the same handler occurrence, not the other
+    # legitimate handlers owned by the same session/workspace.
+    with _OwnerLock(correlation_id), _database() as connection:
         replay = _claim(
             connection,
             event_name=event_name,

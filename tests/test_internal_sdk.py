@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin.constants import NATIVE_TOOL_COUNT
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import sha256_bytes
 from evidence_lane_plugin.internal_sdk import (
@@ -13,6 +14,9 @@ from evidence_lane_plugin.internal_sdk import (
     SDKBinding,
     SDKCancellationToken,
     build_local_service_adapter,
+    internal_support_binding_registry,
+    runtime_workflow_sdk_registry,
+    whole_plugin_sdk_governance_registry,
 )
 
 PROJECT_ID = "sdk-fixture"
@@ -67,6 +71,31 @@ def _effects(**changes: str) -> dict[str, str]:
     return result
 
 
+def test_sdk_binding_accepts_model_only_without_inventing_optional_selectors() -> None:
+    values = _binding().as_dict()
+    for field in ("submodel", "reasoning_effort", "reasoning_speed"):
+        values.pop(field)
+
+    binding = SDKBinding.from_dict(values)
+
+    assert binding.model == "gpt-5.6-sol"
+    assert binding.submodel is None
+    assert binding.reasoning_effort is None
+    assert binding.reasoning_speed is None
+    assert set(binding.as_dict()).isdisjoint(
+        {"submodel", "reasoning_effort", "reasoning_speed"}
+    )
+
+
+@pytest.mark.parametrize("field", ["submodel", "reasoning_effort", "reasoning_speed"])
+def test_sdk_binding_rejects_blank_supplied_optional_selector(field: str) -> None:
+    values = _binding().as_dict()
+    values[field] = ""
+
+    with pytest.raises(EvidenceLaneError):
+        SDKBinding.from_dict(values)
+
+
 def _root(tmp_path: Path, project_id: str = PROJECT_ID) -> Path:
     root = tmp_path / project_id
     root.mkdir()
@@ -109,6 +138,7 @@ def test_sdk_catalog_covers_every_independent_governed_arm() -> None:
         "storage_connectors",
         "hil_candidate_pointer",
         "provider_host_adapters",
+        "first_class_workflows",
     }
     assert len({row["namespace"] for row in modules.values()}) == len(modules)
     assert all(row["independent_replay_ledger"] for row in modules.values())
@@ -118,6 +148,64 @@ def test_sdk_catalog_covers_every_independent_governed_arm() -> None:
         "query",
         "refresh",
     }
+
+
+def test_internal_support_modules_are_bound_to_exact_sdk_owners() -> None:
+    receipt = internal_support_binding_registry()
+    rows = {row["component"]: row for row in receipt["components"]}
+
+    assert receipt["status"] == "PASS"
+    assert set(rows) == {
+        "env_uop_graph",
+        "github_toolchain",
+        "live_root_normalization",
+        "runtime_api",
+    }
+    assert rows["env_uop_graph"]["owner_module"] == "env_uop_operator_runtime"
+    assert rows["github_toolchain"]["owner_module"] == "first_class_workflows"
+    assert rows["live_root_normalization"]["owner_module"] == "storage_connectors"
+    assert rows["runtime_api"]["owner_module"] == "provider_host_adapters"
+    assert receipt["support_components_inflate_public_action_count"] is False
+
+
+def test_whole_plugin_behavior_is_internal_sdk_governed() -> None:
+    receipt = whole_plugin_sdk_governance_registry()
+
+    assert receipt["status"] == "PASS"
+    assert receipt["law"] == "ALL_PLUGIN_BEHAVIOR_INTERNAL_SDK_GOVERNED"
+    assert receipt["public_action_count"] == NATIVE_TOOL_COUNT
+    assert receipt["missing_adapter_capabilities"] == []
+    assert receipt["missing_sdk_governance"] == []
+    assert receipt["outer_logic_violations"] == []
+    assert receipt["helper_tunnel_hooks_are_sdk_governed_thin_adapters"] is True
+    assert receipt["helper_or_tunnel_lifecycle_reasoning_allowed"] is False
+    assert receipt["counts_are_derived_not_fixed"] is True
+
+
+def test_runtime_workflows_bind_prompt_delta_relock_and_hooks_to_sdk() -> None:
+    receipt = runtime_workflow_sdk_registry()
+    by_name = {row["workflow"]: row for row in receipt["workflows"]}
+
+    assert receipt["status"] == "PASS"
+    assert receipt["internal_sdk_public_action_count"] == NATIVE_TOOL_COUNT
+    assert receipt["missing_public_actions"] == []
+    assert receipt["missing_sdk_modules"] == []
+    assert receipt["all_explicit_actions_work_with_hooks_off"] is True
+    assert receipt["sdk_claims_pre_reasoning_prompt_interception"] is False
+    assert by_name["PROMPT_OR_STEER_ENTRY"]["hooks_required"] is False
+    assert by_name["DELTA_ENTRY_AND_SIX_WAY_QUERY"][
+        "accepted_archive_query_allowed"
+    ] is False
+    assert by_name["DELTA_EXIT_APPEND_REFRESH"][
+        "ordinary_project_overlay_allowed"
+    ] is False
+    assert by_name["STEP_TASK_LIST_RELOCK"][
+        "identical_fingerprint_reattachment_required"
+    ] is True
+    assert by_name["STEP_TASK_LIST_RELOCK"][
+        "plan_mutation_allowed_for_panel_drop_or_restart"
+    ] is False
+    assert by_name["HOOK_EVENT_TRANSPORT"]["logical_sub_actions"] == 44
 
 
 def test_canon_sdk_arm_exposes_full_engine_with_fail_closed_host_dispatch() -> None:
@@ -240,9 +328,7 @@ def test_separate_retrieval_never_fuses_truth_and_learning(tmp_path: Path) -> No
     assert result["host_entry_slice"] is None
     assert result["project_truth_slice"]["authority"] == "PROJECT_TRUTH"
     assert result["agent_learning_slice"]["authority"] == "AGENT_LEARNING"
-    ledgers = sorted(
-        (sdk.project_root / "receipts" / "sdk-replay").glob("*.sqlite")
-    )
+    ledgers = sorted((sdk.project_root / "receipts" / "sdk-replay").glob("*.sqlite"))
     assert [path.name for path in ledgers] == [
         "sdk.agent-learning.v1.sqlite",
         "sdk.project-truth.v1.sqlite",
@@ -627,10 +713,7 @@ def test_cancellation_and_timeout_do_not_create_replay_receipts(tmp_path: Path) 
     assert timed_out.value.code == "SDK_INVOCATION_TIMEOUT"
     time.sleep(0.03)
     ledger = (
-        sdk.project_root
-        / "receipts"
-        / "sdk-replay"
-        / "sdk.project-truth.v1.sqlite"
+        sdk.project_root / "receipts" / "sdk-replay" / "sdk.project-truth.v1.sqlite"
     )
     assert ledger.is_file()
     import sqlite3

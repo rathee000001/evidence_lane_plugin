@@ -9,6 +9,7 @@ from .constants import ENGINE_VERSION
 from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes
 from .models import HostKind, normalize_host_kind
+from .model_compatibility import classify_model_compatibility
 from .state_travel_contract import execution_profile_from_context
 
 RUNTIME_HOST_CLASSIFIER_SCHEMA = "evidence-lane.runtime-host-classifier.v1"
@@ -47,6 +48,7 @@ _NATIVE_CAPABILITY_KEYS = {
     "host_plan",
     "host_session_identity",
     "local_filesystem",
+    "model_tooling",
     "native_mcp",
     "tunnel_control",
 }
@@ -281,7 +283,6 @@ def classify_runtime_host(
     execution_profile = execution_profile_from_context(context)
     required_profile_fields = {
         "model",
-        "submodel",
         "reasoning_effort",
         "reasoning_speed",
     }
@@ -369,6 +370,14 @@ def classify_runtime_host(
         "durability_evidence": durability_evidence,
         "execution_profile": execution_profile,
         "execution_profile_status": profile_status,
+        "model_compatibility": classify_model_compatibility(
+            execution_profile,
+            installed_host_tooling_proven=(
+                capabilities.get("native_mcp") is True
+                and capabilities.get("model_tooling") is True
+                and capabilities.get("host_session_identity") is True
+            ),
+        ),
         "account_route": account_route,
         "account_tier_affects_routing": False,
         "api_billing_affects_routing": False,

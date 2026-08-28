@@ -32,7 +32,7 @@ from .project_overlay import build_project_overlay, validate_project_overlay
 from .redaction import contains_secret
 from .topology import (
     RENDER_RECEIPT_SCHEMA,
-    build_mermaid,
+    build_topology,
     render_mermaid,
     validate_render_receipt,
 )
@@ -119,16 +119,11 @@ def build_pv_package(
         }
     else:
         with database.connect(output / "code.sqlite", readonly=True) as connection:
-            topology_receipt = build_mermaid(
-                connection, output / "project_master_topology.mmd"
+            topology_receipt = build_topology(
+                connection,
+                output / "project_master_topology.mmd",
+                output / "project_master_topology.dot",
             )
-        atomic_write_bytes(
-            output / "project_master_topology.dot",
-            (
-                b'digraph evidence_lane { root [label="Legacy code topology; '
-                b'see project_master_topology.mmd"]; }\n'
-            ),
-        )
         lane_validation = None
     render_receipt = render_mermaid(
         output / "project_master_topology.mmd",
@@ -171,9 +166,12 @@ def build_pv_package(
         )
     connector_validation = None
     if connector_brain_path and Path(connector_brain_path).is_file():
-        _copy_exact(connector_brain_path, output / "connector_brain.sqlite")
+        _copy_exact(
+            connector_brain_path,
+            output / "connector_brain" / "connector-brain.sqlite",
+        )
         connector_validation = validate_connector_brain(
-            output / "connector_brain.sqlite"
+            output / "connector_brain" / "connector-brain.sqlite"
         )
         require(
             connector_validation["valid"],
@@ -208,8 +206,8 @@ def build_pv_package(
             for path in sorted((output / "project_overlay").rglob("*"))
             if path.is_file()
         )
-    if (output / "connector_brain.sqlite").is_file():
-        payload_names.append("connector_brain.sqlite")
+    if (output / "connector_brain" / "connector-brain.sqlite").is_file():
+        payload_names.append("connector_brain/connector-brain.sqlite")
     manifest = {
         "schema": PV_MANIFEST_SCHEMA,
         "package_kind": "UNIVERSAL_EVIDENCE_LANE_PROJECT_VERSION",
@@ -519,8 +517,10 @@ def validate_pv_package(
                 overlay_report=overlay_report,
             )
     connector_report = None
-    if (root / "connector_brain.sqlite").is_file():
-        connector_report = validate_connector_brain(root / "connector_brain.sqlite")
+    if (root / "connector_brain" / "connector-brain.sqlite").is_file():
+        connector_report = validate_connector_brain(
+            root / "connector_brain" / "connector-brain.sqlite"
+        )
         if require_promotable:
             require(
                 connector_report["valid"],

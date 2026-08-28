@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "hil_return_to_accepted",
+  "title": "Return a rejected or failed run to accepted state",
+  "description": "After REJECT or FAIL, verify that an accepted PV exists, the accepted pointer did not move, and the live repository was restored to that exact accepted source. Then clear only the bounded run state and append a visible return receipt. This never moves the accepted pointer.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "reason"
+    ],
+    "title": "hil_return_to_acceptedArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "hil_return_to_acceptedDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-fuse",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "hil_return_to_accepted"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-fuse",
+        "workflow": "dual-hil-non-promotion-decision",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "DA91B7141620F0B01C1247056C23B49B5546F67040C5C74F1292D400A4D1575C",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "9E4CCF752B0C81F9804161CC1FEF2AD92D6EE1EB721F5A538EE709C59CC3A747"
+}

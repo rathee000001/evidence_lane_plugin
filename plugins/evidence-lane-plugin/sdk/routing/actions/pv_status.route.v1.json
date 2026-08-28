@@ -1,0 +1,70 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "pv_status",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_status"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "live-root-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-instructions",
+        "workflow": "agents-and-host-memory-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-memory",
+        "workflow": "project-memory-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-plan",
+        "workflow": "live-plan-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-state-travel",
+        "workflow": "post-entry-plan-authority-read",
+        "order": 6
+      },
+      {
+        "owner_skill": "evi-universe",
+        "workflow": "project-universe-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "live-root-authority-read",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA",
+  "sdk_action_binding": "sdk/actions/pv_status.action.v1.json",
+  "mcp_action_binding": "mcp/actions/pv_status.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "3EE6BEAA072C7EB8698FA99D532F3F423DE54EE208DEEB5ABEADB1EDF50A11BB"
+}

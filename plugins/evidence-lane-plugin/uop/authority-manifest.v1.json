@@ -1,0 +1,43 @@
+{
+  "schema": "evidence-lane.uop-packaged-authority.v1",
+  "status": "PASS",
+  "authority": "UOP",
+  "canonical_root": "uop",
+  "published_root": "uop",
+  "member_count": 5,
+  "members": [
+    {
+      "path": "uop/locked_mmd_hash.txt",
+      "canonical_path": "uop/locked_mmd_hash.txt",
+      "bytes": 622,
+      "sha256": "B8E3ADE058099516009D68A7B8C3719DABCDEA80C6AC1A80005149B3813190A9"
+    },
+    {
+      "path": "uop/uop_law.md",
+      "canonical_path": "uop/uop_law.md",
+      "bytes": 1619,
+      "sha256": "C4CB11039D3ECF1861FAE04654897CF25962905A8F5A8ACBC99439D3ED0B03CF"
+    },
+    {
+      "path": "uop/uop_mmd.dot",
+      "canonical_path": "uop/uop_mmd.dot",
+      "bytes": 10567,
+      "sha256": "8A56801CCA46BF4F4D11F105B532FBB4082758B8371D9141C347EB142837E2D8"
+    },
+    {
+      "path": "uop/uop_mmd.mmd",
+      "canonical_path": "uop/uop_mmd.mmd",
+      "bytes": 6824,
+      "sha256": "D67946A53F3A323CCDCB63B7E2DBC88F72743E620F930E5F82240B3EE5638C43"
+    },
+    {
+      "path": "uop/uop_sqlite.sqlite",
+      "canonical_path": "uop/uop_sqlite.sqlite",
+      "bytes": 1036288,
+      "sha256": "62D6DEB337B387E06DA40DD054941355ECBD80548F2D1C9728E6A9C4EDDC0480"
+    }
+  ],
+  "canonical_packaged_authority": true,
+  "duplicate_authority_copy_present": false,
+  "receipt_sha256": "B15AF3D9FC9743800B0A48FC7EB4F9440C5AFCF8DA16FBF1261605CB12FF84E8"
+}

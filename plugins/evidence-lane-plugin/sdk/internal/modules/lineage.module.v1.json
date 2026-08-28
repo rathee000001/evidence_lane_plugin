@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.lineage",
+  "source_path": "src/evidence_lane_plugin/lineage.py",
+  "source_sha256": "549760D523153AE4CEA90C94BCC5DD0BBEED4D4C5A0672E009AC6F021D164014",
+  "source_bytes": 74565,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "66736A68A2B10B9AF3A5CA6028A6920CB5C15EAA7E6DF9BC38B5F4BD97F8678B"
+}

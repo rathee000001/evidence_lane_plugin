@@ -1,0 +1,222 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "connector_plugin_register",
+  "title": "Register one bounded persistent connector or toolchain",
+  "description": "Register one connector or AI toolchain plugin with environment-variable names only, explicit capabilities, and canonical lanes. At most eight additional plugins may remain active; no secret value is persisted.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "plugin_id": {
+        "title": "Plugin Id",
+        "type": "string"
+      },
+      "name": {
+        "title": "Name",
+        "type": "string"
+      },
+      "plugin_kind": {
+        "enum": [
+          "connector",
+          "toolchain"
+        ],
+        "title": "Plugin Kind",
+        "type": "string"
+      },
+      "description": {
+        "title": "Description",
+        "type": "string"
+      },
+      "config_env_keys": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Config Env Keys",
+        "type": "array"
+      },
+      "capabilities": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Capabilities",
+        "type": "array"
+      },
+      "allowed_lanes": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Allowed Lanes",
+        "type": "array"
+      },
+      "registered_by": {
+        "title": "Registered By",
+        "type": "string"
+      },
+      "purpose": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Purpose"
+      },
+      "allowed_actions": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Allowed Actions"
+      },
+      "write_scope": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Write Scope"
+      },
+      "expires_at": {
+        "default": "NO_EXPIRY",
+        "title": "Expires At",
+        "type": "string"
+      },
+      "role": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Role"
+      },
+      "role_schema": {
+        "anyOf": [
+          {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Role Schema"
+      },
+      "host_profiles": {
+        "anyOf": [
+          {
+            "items": {
+              "const": "CODEX",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Host Profiles"
+      },
+      "backend_runtime": {
+        "default": "python",
+        "enum": [
+          "python",
+          "java",
+          "kotlin",
+          "go",
+          "rust",
+          "cpp",
+          "external_mcp"
+        ],
+        "title": "Backend Runtime",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "plugin_id",
+      "name",
+      "plugin_kind",
+      "description",
+      "config_env_keys",
+      "capabilities",
+      "allowed_lanes",
+      "registered_by"
+    ],
+    "title": "connector_plugin_registerArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "connector_plugin_registerDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "995977D28C357E8DABC518E2E6682DA7C3309CA50F72B495A8BCCD2995AC9FBE",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-additional-plugin",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "connector_plugin_register"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-additional-plugin",
+        "workflow": "register-connector",
+        "order": 2
+      },
+      {
+        "owner_skill": "evi-plugin",
+        "workflow": "change-connector-registration",
+        "order": 3
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/connector_plugin_register.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "9EFDDF5DF791F61F3CB6AFA362F0960C254D440204FCB296498768DD86603A39"
+}

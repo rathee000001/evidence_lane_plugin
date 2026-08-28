@@ -25,6 +25,7 @@ from .hashing import (
     sha256_file,
 )
 from .lane_engine import build_lane_bundle, validate_lane_bundle
+from .lane_traversal import validate_lane_query_traversal
 from .lanes import (
     CANONICAL_LANE_IDS,
     LANE_REGISTRY,
@@ -90,6 +91,98 @@ _LEGACY_PLAN_PATHS = (
     "plan_runtime_refreshes",
 )
 _LEGACY_REFERENCE_PATHS = ("plan", "chat_lineage")
+
+
+def initialize_project_authority_database(database: str | Path) -> None:
+    """Create the sole SQLite authority for project/root/workspace/pointer state."""
+
+    path = Path(database)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(path, timeout=30)
+    try:
+        connection.executescript(
+            """
+            PRAGMA foreign_keys=ON;
+            CREATE TABLE IF NOT EXISTS project_registration(
+                project_id TEXT PRIMARY KEY,
+                project_root TEXT NOT NULL,
+                project_root_identity_sha256 TEXT NOT NULL,
+                registration_state TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                payload_sha256 TEXT NOT NULL,
+                registered_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            ) STRICT;
+            CREATE TABLE IF NOT EXISTS workspace_binding(
+                binding_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                host_task_id TEXT NOT NULL,
+                workspace_root TEXT NOT NULL,
+                repository_identity_sha256 TEXT,
+                branch TEXT,
+                commit_sha TEXT,
+                tree_sha TEXT,
+                dirty_identity_sha256 TEXT,
+                state TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                payload_sha256 TEXT NOT NULL,
+                recorded_at TEXT NOT NULL
+            ) STRICT;
+            CREATE TABLE IF NOT EXISTS project_pointer_history(
+                generation INTEGER PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                accepted_pv TEXT,
+                accepted_manifest_sha256 TEXT,
+                prior_generation INTEGER,
+                movement_kind TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                payload_sha256 TEXT NOT NULL,
+                recorded_at TEXT NOT NULL
+            ) STRICT;
+            CREATE TABLE IF NOT EXISTS project_authority_member(
+                member_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                authority_kind TEXT NOT NULL,
+                authority_id TEXT NOT NULL,
+                sqlite_path TEXT,
+                mmd_path TEXT NOT NULL,
+                dot_path TEXT NOT NULL,
+                tools_path TEXT NOT NULL,
+                authority_sha256 TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                recorded_at TEXT NOT NULL,
+                UNIQUE(project_id, authority_kind, authority_id)
+            ) STRICT;
+            CREATE TABLE IF NOT EXISTS project_authority_migration_receipt(
+                sequence INTEGER PRIMARY KEY,
+                migration_id TEXT NOT NULL UNIQUE,
+                from_layout_sha256 TEXT NOT NULL,
+                to_layout_sha256 TEXT NOT NULL,
+                migrated_member_count INTEGER NOT NULL,
+                removed_redundant_file_count INTEGER NOT NULL,
+                source_bytes_preserved INTEGER NOT NULL
+                    CHECK(source_bytes_preserved IN (0,1)),
+                receipt_json TEXT NOT NULL,
+                receipt_sha256 TEXT NOT NULL UNIQUE,
+                recorded_at TEXT NOT NULL
+            ) STRICT;
+            CREATE VIRTUAL TABLE IF NOT EXISTS project_authority_fts USING fts5(
+                record_id UNINDEXED,
+                record_kind,
+                project_id,
+                authority_id,
+                payload_text,
+                tokenize='unicode61'
+            );
+            CREATE INDEX IF NOT EXISTS workspace_binding_project_task_idx
+            ON workspace_binding(project_id, host_task_id, recorded_at);
+            CREATE INDEX IF NOT EXISTS project_authority_member_kind_idx
+            ON project_authority_member(project_id, authority_kind, authority_id);
+            """
+        )
+        connection.commit()
+    finally:
+        connection.close()
 
 
 def _is_relative_to(path: Path, parent: Path) -> bool:
@@ -572,22 +665,6 @@ def copy_active_project_authority(
             continue
         copied_roots.append(item.name)
 
-    accepted_relative = f"accepted/{accepted_pv}"
-    accepted_source = source / accepted_relative
-    require(
-        accepted_source.is_dir(),
-        "PROJECT_AUTHORITY_ACCEPTED_PV_MISSING",
-        "The active accepted PV must be present before project authority relocation.",
-        status="MISMATCH",
-        accepted_pv=accepted_pv,
-    )
-    (staging / "accepted").mkdir(parents=True, exist_ok=True)
-    shutil.copytree(
-        accepted_source,
-        staging / accepted_relative,
-        copy_function=shutil.copy2,
-    )
-    copied_roots.append(accepted_relative)
     source_manifest = _file_manifest(source, copied_roots)
     staged_manifest = _file_manifest(staging, copied_roots)
     require(
@@ -606,6 +683,9 @@ def copy_active_project_authority(
         "source_manifest": source_manifest,
         "staged_manifest": staged_manifest,
         "legacy_history_roots": sorted(_LEGACY_HISTORY_TOP_LEVEL | {"accepted"}),
+        "accepted_pv_identity": accepted_pv,
+        "accepted_folder_queried": False,
+        "accepted_archive_copied": False,
     }
 
 
@@ -617,25 +697,29 @@ def _lane_reference(
     emitted_lane_ids: set[str],
 ) -> dict[str, Any]:
     lane = LANE_REGISTRY[lane_id]
-    accepted_relative = f"accepted/{accepted_pv}/lanes/{lane_id}"
-    accepted_lane_root = project_root / accepted_relative
-    populated = lane_id in emitted_lane_ids and accepted_lane_root.is_dir()
+    live_relative = f"sectors/{lane_id}"
+    live_lane_root = project_root / live_relative
+    live_database = live_lane_root / lane.sqlite_filename
+    populated = lane_id in emitted_lane_ids and live_database.is_file()
     schema = lane_schema_asset(lane_id)
     artifacts = lane_artifact_contract(lane_id)
     return {
         "schema": "evidence-lane.project-sector-reference.v1",
         "lane_id": lane_id,
         "display_label": lane.display_label,
-        "state": "ACCEPTED_MATERIALIZED" if populated else "SCHEMA_READY_UNPOPULATED",
-        "accepted_pv": accepted_pv,
-        "authority_relative_path": accepted_relative if populated else None,
-        "authority_path_exists": populated,
+        "state": "LIVE_WORKING" if populated else "SCHEMA_READY_UNPOPULATED",
+        "historical_parent_pv": accepted_pv,
+        "authority_relative_path": live_relative,
+        "database_relative_path": f"{live_relative}/{lane.sqlite_filename}",
+        "authority_path_exists": live_lane_root.is_dir(),
+        "database_path_exists": live_database.is_file(),
         "lane_schema_id": schema["schema_id"],
         "lane_schema_version": schema["schema_version"],
         "lane_schema_contract_sha256": schema["contract_sha256"],
         "artifact_contract_sha256": artifacts["contract_sha256"],
         "empty_lane_payload_fabricated": False,
-        "independent_project_truth_authority": False,
+        "independent_project_truth_authority": True,
+        "accepted_archive_queried": False,
     }
 
 
@@ -976,37 +1060,62 @@ def materialize_project_authority_layout(
         "Project authority layout requires a prepared external project root.",
         status="BLOCKED",
     )
-    lane_manifest_path = root / "accepted" / accepted_pv / "lanes" / "manifest.json"
-    require(
-        lane_manifest_path.is_file(),
-        "PROJECT_AUTHORITY_ACCEPTED_LANE_MANIFEST_MISSING",
-        "The accepted PV lane manifest is required for honest sector materialization.",
-        status="MISMATCH",
-        accepted_pv=accepted_pv,
-    )
-    lane_manifest = json.loads(lane_manifest_path.read_text(encoding="utf-8"))
+    lane_manifest_path = root / "sectors" / "manifest.json"
+    if lane_manifest_path.is_file():
+        lane_manifest = json.loads(lane_manifest_path.read_text(encoding="utf-8"))
+    else:
+        emitted_lane_ids = [
+            lane_id
+            for lane_id in CANONICAL_LANE_IDS
+            if (root / "sectors" / lane_id / LANE_REGISTRY[lane_id].sqlite_filename).is_file()
+        ]
+        lane_manifest = {
+            "schema": "evidence-lane.live-sector-registry-bootstrap.v1",
+            "canonical_lane_count": len(CANONICAL_LANE_IDS),
+            "emitted_lane_ids": emitted_lane_ids,
+            "lane_registry_derived": True,
+            "accepted_folder_queried": False,
+            "accepted_archive_used_as_authority": False,
+            "empty_lane_payload_fabricated": False,
+        }
+        atomic_write_json(lane_manifest_path, lane_manifest)
     emitted = {str(value) for value in lane_manifest.get("emitted_lane_ids") or []}
     require(
         int(lane_manifest.get("canonical_lane_count") or 0) == len(CANONICAL_LANE_IDS)
         and emitted <= set(CANONICAL_LANE_IDS),
         "PROJECT_AUTHORITY_ACCEPTED_LANE_REGISTRY_MISMATCH",
-        "The accepted lane bundle does not bind the current canonical registry.",
+        "The live lane bundle does not bind the current canonical registry.",
         status="MISMATCH",
     )
 
     layout_dirs = (
+        "accepted",
         "sectors",
         "ai_learning",
         "canon",
         "memory",
         "sources",
-        "profiles",
-        "receipts/project-authority",
-        "receipts/sdk-replay",
-        "receipts/active-contract-rebindings",
+        "universe",
+        "project_overlay",
+        "connector_brain",
+        "project_authority",
+        "receipts",
+        "sessions",
     )
     for relative in layout_dirs:
         (root / relative).mkdir(parents=True, exist_ok=True)
+
+    from .receipt_ledger import initialize_receipt_ledger
+    from .session_authority import initialize_session_authority
+
+    project_authority_database = (
+        root / "project_authority" / "project-authority.sqlite"
+    )
+    receipt_database = root / "receipts" / "receipt-ledger.sqlite"
+    session_database = root / "sessions" / "session-authority.sqlite"
+    initialize_project_authority_database(project_authority_database)
+    initialize_receipt_ledger(receipt_database)
+    initialize_session_authority(session_database)
 
     sector_rows: list[dict[str, Any]] = []
     for lane_id in CANONICAL_LANE_IDS:
@@ -1024,35 +1133,113 @@ def materialize_project_authority_layout(
     named_authorities: dict[str, dict[str, Any]] = {
         "plan": {
             "state": "CANONICAL_ACTIVE",
-            "paths": ["plan_runtime_projection.sqlite", "task_backlog.json"],
-            "sector_reference_only": True,
+            "paths": [
+                "sectors/plan/plan_sector_v001.sqlite",
+                "sectors/plan/plan.mmd",
+                "sectors/plan/plan.dot",
+                "sectors/plan/tools.json",
+            ],
+            "sector_authority": True,
         },
         "chat_lineage": {
             "state": "CANONICAL_ACTIVE",
-            "paths": ["lineage"],
-            "sector_reference_only": True,
+            "paths": [
+                "sectors/chat_lineage/chat_lineage_sector_v001.sqlite",
+                "sectors/chat_lineage/chat_lineage.mmd",
+                "sectors/chat_lineage/chat_lineage.dot",
+                "sectors/chat_lineage/tools.json",
+            ],
+            "sector_authority": True,
         },
         "ai_learning": {
             "state": "CANONICAL_ACTIVE_OR_SCHEMA_READY",
-            "paths": ["ai_learning/agent-learning.sqlite"],
+            "paths": [
+                "ai_learning/agent-learning.sqlite",
+                "ai_learning/agent-learning.mmd",
+                "ai_learning/agent-learning.dot",
+                "ai_learning/agent-learning.tools.json",
+            ],
         },
         "canon": {
             "state": "CANONICAL_ACTIVE_OR_SCHEMA_READY",
-            "paths": ["canon/canon-input.sqlite"],
+            "paths": [
+                "canon/canon-input.sqlite",
+                "canon/canon-input.mmd",
+                "canon/canon-input.dot",
+                "canon/canon-input.tools.json",
+            ],
         },
         "memory": {
-            "state": "SCHEMA_READY_AWAITING_R242",
-            "paths": [],
-            "payload_fabricated": False,
+            "state": "CANONICAL_ACTIVE_OR_SCHEMA_READY",
+            "paths": [
+                "memory/memory.sqlite",
+                "memory/memory.mmd",
+                "memory/memory.dot",
+                "memory/memory.tools.json",
+            ],
         },
         "universe": {
-            "state": "ABSENT_AWAITING_R244",
-            "paths": [],
-            "payload_fabricated": False,
+            "state": "CANONICAL_ACTIVE_OR_SCHEMA_READY",
+            "paths": [
+                "universe/project_universe.sqlite",
+                "universe/project_universe.mmd",
+                "universe/project_universe.dot",
+                "universe/project_universe.tools.json",
+            ],
+        },
+        "project_overlay": {
+            "state": "CANONICAL_ACTIVE_OR_SCHEMA_READY",
+            "paths": [
+                "project_overlay/project_overlay.sqlite",
+                "project_overlay/project_overlay.mmd",
+                "project_overlay/project_overlay.dot",
+                "project_overlay/project_overlay.tools.json",
+            ],
         },
         "sources": {
             "state": "CANONICAL_ACTIVE",
-            "paths": ["sources/source_authority.sqlite"],
+            "paths": [
+                "sources/source_authority.sqlite",
+                "sources/source_authority.mmd",
+                "sources/source_authority.dot",
+                "sources/source_authority.tools.json",
+            ],
+        },
+        "connector_brain": {
+            "state": "CANONICAL_ACTIVE_OR_SCHEMA_READY",
+            "paths": [
+                "connector_brain/connector-brain.sqlite",
+                "connector_brain/connector_brain.mmd",
+                "connector_brain/connector_brain.dot",
+                "connector_brain/connector_brain.tools.json",
+            ],
+        },
+        "project_authority": {
+            "state": "CANONICAL_ACTIVE",
+            "paths": [
+                "project_authority/project-authority.sqlite",
+                "project_authority/project_authority.mmd",
+                "project_authority/project_authority.dot",
+                "project_authority/project_authority.tools.json",
+            ],
+        },
+        "receipt_ledger": {
+            "state": "CANONICAL_ACTIVE",
+            "paths": [
+                "receipts/receipt-ledger.sqlite",
+                "receipts/receipt-ledger.mmd",
+                "receipts/receipt-ledger.dot",
+                "receipts/receipt-ledger.tools.json",
+            ],
+        },
+        "session_authority": {
+            "state": "CANONICAL_ACTIVE",
+            "paths": [
+                "sessions/session-authority.sqlite",
+                "sessions/session-authority.mmd",
+                "sessions/session-authority.dot",
+                "sessions/session-authority.tools.json",
+            ],
         },
     }
     for authority, binding in named_authorities.items():
@@ -1062,31 +1249,20 @@ def materialize_project_authority_layout(
             else root / authority
         )
         reference_root.mkdir(parents=True, exist_ok=True)
-        atomic_write_json(
-            reference_root / "operational-authority.ref.json",
-            {
-                "schema": "evidence-lane.named-project-authority-reference.v1",
-                "authority": authority.upper(),
-                "project_id": project_id,
-                **binding,
-            },
-        )
+        reference_root.mkdir(parents=True, exist_ok=True)
 
     legacy_history = (
         Path(legacy_history_root).resolve() if legacy_history_root is not None else None
     )
-    atomic_write_json(
-        root / "receipts" / "project-authority" / "legacy_history.ref.json",
-        {
-            "schema": "evidence-lane.legacy-project-history-reference.v1",
-            "state": "NON_AUTHORITATIVE_HISTORY_AWAITING_R243_CAS_MIGRATION",
-            "legacy_history_root": str(legacy_history) if legacy_history else None,
-            "accepted_current_local": accepted_pv,
-            "candidate_authority": False,
-            "accepted_pointer_authority": False,
-            "pointer_movement_allowed": False,
-        },
-    )
+    legacy_history_receipt = {
+        "schema": "evidence-lane.legacy-project-history-reference.v1",
+        "state": "NON_AUTHORITATIVE_HISTORY_PENDING_HIDDEN_RUNTIME_MIGRATION",
+        "legacy_history_root": str(legacy_history) if legacy_history else None,
+        "accepted_current_local": accepted_pv,
+        "candidate_authority": False,
+        "accepted_pointer_authority": False,
+        "pointer_movement_allowed": False,
+    }
     study_profile = {
         "schema": "evidence-lane.source-routing-profile.v1",
         "profile_id": STUDY_BRAIN_PROFILE_ID,
@@ -1100,10 +1276,21 @@ def materialize_project_authority_layout(
             "research",
         ],
         "additional_lane_routing": "SOURCE_CLASSIFICATION_DERIVED",
+        "central_code_project_count": 1,
+        "additional_code_folders_role": "LANE_SCOPED_STUDY_BRAIN",
+        "central_code_project_change_requires_new_project_pv": True,
+        "lane_owned_artifacts": [
+            "sqlite_fts5",
+            "mmd",
+            "dot",
+            "tools.json",
+            "lane_pointer.json",
+            "lane_manifest.json",
+            "study_brain.json",
+        ],
         "project_truth_promotion_allowed": False,
         "raw_payload_duplication_allowed": False,
     }
-    atomic_write_json(root / "profiles" / "study_brain.json", study_profile)
 
     layout = {
         "schema": PROJECT_AUTHORITY_LAYOUT_SCHEMA,
@@ -1131,37 +1318,152 @@ def materialize_project_authority_layout(
     }
     layout["layout_sha256"] = sha256_bytes(canonical_json_bytes(layout))
     atomic_write_json(root / "project_authority.json", layout)
+    from .graph_pipeline import SemanticGraph
+    from .receipt_ledger import append_receipt
+    from .sqlite_indexing import rebuild_connection_authority_index
 
-    mmd_lines = [
-        "flowchart TB",
-        '  PROJECT["User project authority"]',
-        '  RUNTIME["Host-managed plugin runtime"]',
-        "  PROJECT -. hashed binding only .-> RUNTIME",
-        '  PROJECT --> SECTORS["18 typed sectors"]',
-        '  PROJECT --> ADAPTIVE["Plan / Lineage / Learning / Canon / Memory / Universe"]',
-        '  PROFILE["Study Brain routing profile"] --> SECTORS',
-    ]
-    dot_lines = [
-        "digraph evidence_lane_project_authority {",
-        '  PROJECT [label="User project authority"];',
-        '  RUNTIME [label="Host-managed plugin runtime"];',
-        '  SECTORS [label="18 typed sectors"];',
-        '  ADAPTIVE [label="Named adaptive authorities"];',
-        '  PROFILE [label="Study Brain routing profile"];',
-        "  PROJECT -> RUNTIME [style=dashed];",
-        "  PROJECT -> SECTORS;",
-        "  PROJECT -> ADAPTIVE;",
-        "  PROFILE -> SECTORS;",
-        "}",
-    ]
+    authority_connection = sqlite3.connect(project_authority_database, timeout=30)
+    try:
+        authority_connection.execute("PRAGMA foreign_keys=ON")
+        layout_bytes = canonical_json_bytes(layout)
+        layout_sha256 = sha256_bytes(layout_bytes)
+        registered_at = utc_now()
+        project_root_identity_sha256 = sha256_bytes(
+            canonical_json_bytes(
+                {"project_id": project_id, "project_root": str(published)}
+            )
+        )
+        authority_connection.execute(
+            """
+            INSERT INTO project_registration(
+                project_id,project_root,project_root_identity_sha256,
+                registration_state,payload_json,payload_sha256,
+                registered_at,updated_at
+            ) VALUES(?,?,?,?,?,?,?,?)
+            ON CONFLICT(project_id) DO UPDATE SET
+                project_root=excluded.project_root,
+                project_root_identity_sha256=excluded.project_root_identity_sha256,
+                registration_state=excluded.registration_state,
+                payload_json=excluded.payload_json,
+                payload_sha256=excluded.payload_sha256,
+                updated_at=excluded.updated_at
+            """,
+            (
+                project_id,
+                str(published),
+                project_root_identity_sha256,
+                "ACTIVE",
+                layout_bytes.decode("utf-8"),
+                layout_sha256,
+                registered_at,
+                registered_at,
+            ),
+        )
+        pointer_payload = {
+            "project_id": project_id,
+            "accepted_pv": accepted_pv,
+            "accepted_manifest_sha256": accepted_manifest_sha256,
+            "generation": int(pointer_generation),
+            "movement_kind": "LAYOUT_BIND_NO_POINTER_MOVE",
+        }
+        authority_connection.execute(
+            """
+            INSERT OR IGNORE INTO project_pointer_history(
+                generation,project_id,accepted_pv,accepted_manifest_sha256,
+                prior_generation,movement_kind,payload_json,payload_sha256,
+                recorded_at
+            ) VALUES(?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                int(pointer_generation),
+                project_id,
+                accepted_pv,
+                accepted_manifest_sha256,
+                int(pointer_generation) - 1 if int(pointer_generation) > 0 else None,
+                "LAYOUT_BIND_NO_POINTER_MOVE",
+                canonical_json_bytes(pointer_payload).decode("utf-8"),
+                sha256_bytes(canonical_json_bytes(pointer_payload)),
+                registered_at,
+            ),
+        )
+        authority_connection.execute(
+            "DELETE FROM project_authority_member WHERE project_id=?",
+            (project_id,),
+        )
+        for reference in sector_rows:
+            lane_id = str(reference["lane_id"])
+            member_payload = canonical_json_bytes(reference)
+            authority_connection.execute(
+                """
+                INSERT INTO project_authority_member(
+                    member_id,project_id,authority_kind,authority_id,
+                    sqlite_path,mmd_path,dot_path,tools_path,
+                    authority_sha256,payload_json,recorded_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                """,
+                (
+                    f"sector:{lane_id}",
+                    project_id,
+                    "PROJECT_SECTOR",
+                    lane_id,
+                    str(reference["database_relative_path"]),
+                    f"sectors/{lane_id}/{LANE_REGISTRY[lane_id].mmd_filename}",
+                    f"sectors/{lane_id}/{LANE_REGISTRY[lane_id].dot_filename}",
+                    f"sectors/{lane_id}/tools.json",
+                    sha256_bytes(member_payload),
+                    member_payload.decode("utf-8"),
+                    registered_at,
+                ),
+            )
+        rebuild_connection_authority_index(
+            authority_connection,
+            authority_id="project_authority",
+        )
+        authority_connection.commit()
+    finally:
+        authority_connection.close()
+
+    append_receipt(
+        receipt_database,
+        logical_path="project-authority/legacy-history-reference.json",
+        receipt=legacy_history_receipt,
+        receipt_kind="PROJECT_AUTHORITY_MIGRATION",
+        project_id=project_id,
+    )
+    from .authority_support import refresh_authority_support
+
+    receipt_support = refresh_authority_support(root, "receipt_ledger")
+    session_support = refresh_authority_support(root, "session_authority")
+
+    authority_graph = SemanticGraph(
+        "evidence_lane_project_authority",
+        direction="TB",
+        role="AUTHORITY_TRAVERSAL",
+    )
+    for node_id, label, kind in (
+        ("PROJECT", "User project authority SQLite", "root"),
+        ("RUNTIME", "Hidden plugin runtime", "source"),
+        ("SECTORS", "18 typed sector SQLite authorities", "semantic"),
+        ("NAMED", "Named SQLite authorities", "semantic"),
+        ("PROFILE", "Study Brain routing profile", "retrieval"),
+    ):
+        authority_graph.add_node(node_id, label, kind)
+    authority_graph.add_edge("RUNTIME", "PROJECT", "registry binding")
+    authority_graph.add_edge("PROJECT", "SECTORS", "owns")
+    authority_graph.add_edge("PROJECT", "NAMED", "owns")
+    authority_graph.add_edge("PROFILE", "SECTORS", "routes")
+    authority_mmd, authority_dot, graph_pipeline_receipt = (
+        authority_graph.render_pair()
+    )
+    authority_root = root / "project_authority"
     atomic_write_bytes(
-        root / "project_authority.mmd", ("\n".join(mmd_lines) + "\n").encode("utf-8")
+        authority_root / "project_authority.mmd", authority_mmd.encode("utf-8")
     )
     atomic_write_bytes(
-        root / "project_authority.dot", ("\n".join(dot_lines) + "\n").encode("utf-8")
+        authority_root / "project_authority.dot", authority_dot.encode("utf-8")
     )
     atomic_write_json(
-        root / "project_authority.tools.json",
+        authority_root / "project_authority.tools.json",
         {
             "schema": "evidence-lane.project-authority-tools.v1",
             "project_id": project_id,
@@ -1177,24 +1479,17 @@ def materialize_project_authority_layout(
             "candidate_effect": "NONE",
             "hil_effect": "NONE",
             "pointer_effect": "NONE",
+            "sqlite_authority": "project-authority.sqlite",
+            "graph_pipeline_receipt": graph_pipeline_receipt,
+            "receipt_support_sha256": receipt_support["receipt_sha256"],
+            "session_support_sha256": session_support["receipt_sha256"],
         },
     )
     projected_members = {
-        path.relative_to(root).as_posix(): sha256_file(path)
-        for path in sorted(root.rglob("*"))
+        path.relative_to(authority_root).as_posix(): sha256_file(path)
+        for path in sorted(authority_root.rglob("*"))
         if path.is_file()
-        and path.name != "PROJECT_AUTHORITY_MANIFEST.json"
-        and (
-            path.name.startswith("project_authority")
-            or path.name
-            in {
-                "authority.ref.json",
-                "historical_authority.ref.json",
-                "operational-authority.ref.json",
-            }
-            or path.name == "study_brain.json"
-            or path.name == "legacy_history.ref.json"
-        )
+        and path.name != "manifest.json"
     }
     manifest_body = {
         "schema": "evidence-lane.project-authority-projection-manifest.v1",
@@ -1203,12 +1498,13 @@ def materialize_project_authority_layout(
         "members": projected_members,
         "canonical_lane_count": len(CANONICAL_LANE_IDS),
         "layout_sha256": layout["layout_sha256"],
+        "graph_pipeline_receipt": graph_pipeline_receipt,
     }
     manifest = {
         **manifest_body,
         "manifest_sha256": sha256_bytes(canonical_json_bytes(manifest_body)),
     }
-    atomic_write_json(root / "PROJECT_AUTHORITY_MANIFEST.json", manifest)
+    atomic_write_json(authority_root / "manifest.json", manifest)
     return {
         "status": "PASS",
         "schema": PROJECT_AUTHORITY_SCHEMA,
@@ -1223,6 +1519,11 @@ def materialize_project_authority_layout(
         "study_brain_profile": study_profile,
         "layout_sha256": layout["layout_sha256"],
         "manifest_sha256": manifest["manifest_sha256"],
+        "project_authority_database": str(project_authority_database),
+        "receipt_database": str(receipt_database),
+        "session_database": str(session_database),
+        "legacy_json_reference_files_created": False,
+        "accepted_folder_queried": False,
         "pointer_moved": False,
         "candidate_created": False,
         "hil_inferred": False,
@@ -1794,342 +2095,6 @@ def refresh_working_sector_operational_checksums(
         }
 
 
-def nest_accepted_lane_history_in_current_sectors(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    accepted_pv: str,
-    pointer_generation: int,
-    excluded_lane_ids: tuple[str, ...] = (
-        "local_code",
-        "chat_lineage",
-        "plan",
-    ),
-) -> dict[str, Any]:
-    """Copy immutable accepted lane folders beneath matching live sector folders."""
-
-    root = Path(project_root).resolve()
-    exact_pv = str(accepted_pv).strip().upper()
-    excluded = tuple(dict.fromkeys(str(value).strip() for value in excluded_lane_ids))
-    require(
-        bool(exact_pv)
-        and pointer_generation >= 0
-        and all(lane_id in CANONICAL_LANE_IDS for lane_id in excluded),
-        "ACCEPTED_LANE_HISTORY_NESTING_SCOPE_INVALID",
-        "Accepted lane history nesting requires one exact PV, generation, and canonical exclusion set.",
-        status="BLOCKED",
-        accepted_pv=exact_pv,
-        excluded_lane_ids=list(excluded),
-    )
-    pointer_path = root / "active_pointer.json"
-    require(
-        pointer_path.is_file(),
-        "ACCEPTED_LANE_HISTORY_NESTING_POINTER_MISSING",
-        "Accepted lane history nesting requires the canonical active pointer.",
-        status="MISMATCH",
-    )
-    pointer_before_bytes = pointer_path.read_bytes()
-    pointer = json.loads(pointer_before_bytes.decode("utf-8"))
-    require(
-        pointer.get("project_id") == project_id
-        and pointer.get("accepted_pv") == exact_pv
-        and int(pointer.get("generation", -1)) == pointer_generation,
-        "ACCEPTED_LANE_HISTORY_NESTING_POINTER_MISMATCH",
-        "Accepted lane history nesting is not bound to the exact current pointer.",
-        status="MISMATCH",
-        expected_accepted_pv=exact_pv,
-        expected_generation=pointer_generation,
-    )
-    accepted_lanes_root = root / "accepted" / exact_pv / "lanes"
-    sectors_root = root / "sectors"
-    manifest_path = accepted_lanes_root / "manifest.json"
-    checksums_path = accepted_lanes_root / "SHA256SUMS.json"
-    require(
-        manifest_path.is_file()
-        and checksums_path.is_file()
-        and sectors_root.is_dir(),
-        "ACCEPTED_LANE_HISTORY_NESTING_AUTHORITY_MISSING",
-        "Accepted lane history nesting requires both accepted and live sector authorities.",
-        status="MISMATCH",
-    )
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    checksums = json.loads(checksums_path.read_text(encoding="utf-8"))
-    declared_members = dict(checksums.get("members") or {})
-    actual_members = {
-        path.relative_to(accepted_lanes_root).as_posix(): sha256_file(path)
-        for path in sorted(accepted_lanes_root.rglob("*"))
-        if path.is_file() and path.name not in {"manifest.json", "SHA256SUMS.json"}
-    }
-    require(
-        checksums.get("schema") == "evidence-lane.recursive-sha256.v1"
-        and declared_members == actual_members
-        and manifest.get("bundle_sha256")
-        == sha256_bytes(canonical_json_bytes(actual_members)),
-        "ACCEPTED_LANE_HISTORY_NESTING_SOURCE_MISMATCH",
-        "The immutable accepted lane bundle does not match its sealed checksums.",
-        status="MISMATCH",
-        accepted_pv=exact_pv,
-    )
-    emitted_value = manifest.get("emitted_lane_ids")
-    emitted_lane_ids = tuple(
-        str(value)
-        for value in (
-            emitted_value if isinstance(emitted_value, list) else CANONICAL_LANE_IDS
-        )
-    )
-    copy_lane_ids = tuple(
-        lane_id for lane_id in emitted_lane_ids if lane_id not in set(excluded)
-    )
-    require(
-        set(copy_lane_ids) <= set(CANONICAL_LANE_IDS)
-        and "local_code" not in copy_lane_ids
-        and "chat_lineage" not in copy_lane_ids
-        and "plan" not in copy_lane_ids,
-        "ACCEPTED_LANE_HISTORY_NESTING_COPY_SCOPE_MISMATCH",
-        "The accepted lane history copy scope includes a forbidden live authority.",
-        status="MISMATCH",
-        copy_lane_ids=list(copy_lane_ids),
-    )
-    accepted_before_sha256 = sha256_bytes(canonical_json_bytes(actual_members))
-    working_projection_path = sectors_root / "working_migration_receipt.json"
-    committed_working_receipt_path = (
-        root
-        / "receipts"
-        / "project-authority"
-        / "working-sector-migration.json"
-    )
-    working_receipt_paths_present = (
-        working_projection_path.is_file(),
-        committed_working_receipt_path.is_file(),
-    )
-    require(
-        len(set(working_receipt_paths_present)) == 1,
-        "ACCEPTED_LANE_HISTORY_NESTING_WORKING_RECEIPT_PAIR_MISMATCH",
-        "Accepted lane history nesting requires both working receipts or neither.",
-        status="MISMATCH",
-    )
-    working_projection: dict[str, Any] | None = None
-    committed_working_receipt: dict[str, Any] | None = None
-    if all(working_receipt_paths_present):
-        working_projection = json.loads(
-            working_projection_path.read_text(encoding="utf-8")
-        )
-        sector_manifest = json.loads(
-            (sectors_root / "manifest.json").read_text(encoding="utf-8")
-        )
-        require(
-            working_projection.get("project_id") == project_id
-            and working_projection.get("historical_parent_pv") == exact_pv
-            and int(working_projection.get("pointer_generation") or -1)
-            == pointer_generation
-            and bool(dict(working_projection.get("working_identity") or {})),
-            "ACCEPTED_LANE_HISTORY_NESTING_WORKING_PROJECTION_MISMATCH",
-            "The in-bundle working receipt is not bound to this exact history copy.",
-            status="MISMATCH",
-        )
-        committed_working_receipt = _load_validated_committed_working_receipt(
-            committed_working_receipt_path,
-            project_id=project_id,
-            accepted_pv=exact_pv,
-            pointer_generation=pointer_generation,
-            working_identity=dict(working_projection["working_identity"]),
-            sector_bundle_sha256=str(sector_manifest.get("bundle_sha256") or ""),
-            missing_code=(
-                "ACCEPTED_LANE_HISTORY_NESTING_COMMITTED_RECEIPT_MISSING"
-            ),
-            mismatch_code=(
-                "ACCEPTED_LANE_HISTORY_NESTING_COMMITTED_RECEIPT_MISMATCH"
-            ),
-            migration_id=str(working_projection.get("migration_id") or ""),
-        )
-
-    def copy_one(lane_id: str) -> dict[str, Any]:
-        source = accepted_lanes_root / lane_id
-        sector = sectors_root / lane_id
-        target = sector / "accepted_history" / exact_pv
-        require(
-            source.is_dir() and sector.is_dir(),
-            "ACCEPTED_LANE_HISTORY_NESTING_LANE_MISSING",
-            "A selected accepted or live lane directory is missing.",
-            status="MISMATCH",
-            lane_id=lane_id,
-        )
-        source_members = _path_members(source)
-        if target.is_dir():
-            target_members = _path_members(target)
-            require(
-                target_members == source_members,
-                "ACCEPTED_LANE_HISTORY_NESTING_EXISTING_MISMATCH",
-                "An existing nested accepted-history lane differs from its immutable source.",
-                status="MISMATCH",
-                lane_id=lane_id,
-                accepted_pv=exact_pv,
-            )
-            action = "REUSED"
-        else:
-            history_root = target.parent
-            history_root.mkdir(parents=True, exist_ok=True)
-            staging = Path(
-                tempfile.mkdtemp(
-                    prefix=f".{exact_pv}.staging-",
-                    dir=str(history_root),
-                )
-            )
-            try:
-                for member in sorted(source.rglob("*")):
-                    relative = member.relative_to(source)
-                    destination = staging / relative
-                    if member.is_dir():
-                        destination.mkdir(parents=True, exist_ok=True)
-                    else:
-                        destination.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copy2(member, destination)
-                require(
-                    _path_members(staging) == source_members,
-                    "ACCEPTED_LANE_HISTORY_NESTING_COPY_MISMATCH",
-                    "A staged nested accepted-history lane did not preserve exact bytes.",
-                    status="FAIL",
-                    lane_id=lane_id,
-                )
-                os.replace(staging, target)
-            finally:
-                if staging.exists():
-                    shutil.rmtree(staging)
-            target_members = _path_members(target)
-            action = "COPIED"
-        return {
-            "lane_id": lane_id,
-            "action": action,
-            "source_relative_path": f"accepted/{exact_pv}/lanes/{lane_id}",
-            "target_relative_path": f"sectors/{lane_id}/accepted_history/{exact_pv}",
-            "member_count": len(source_members),
-            "source_manifest_sha256": sha256_bytes(
-                canonical_json_bytes(source_members)
-            ),
-            "target_manifest_sha256": sha256_bytes(
-                canonical_json_bytes(target_members)
-            ),
-            "exact_byte_parity": target_members == source_members,
-            "live_sector_authority_replaced": False,
-        }
-
-    with ThreadPoolExecutor(max_workers=min(8, max(1, len(copy_lane_ids)))) as executor:
-        reports_by_lane = {
-            lane_id: report
-            for lane_id, report in zip(
-                copy_lane_ids,
-                executor.map(copy_one, copy_lane_ids),
-                strict=True,
-            )
-        }
-    reports = [reports_by_lane[lane_id] for lane_id in copy_lane_ids]
-    nesting_projection = {
-        "schema": "evidence-lane.accepted-lane-history-nesting-projection.v1",
-        "accepted_pv": exact_pv,
-        "pointer_generation": pointer_generation,
-        "accepted_bundle_sha256": accepted_before_sha256,
-        "copied_lane_ids": list(copy_lane_ids),
-        "excluded_lane_ids": list(excluded),
-        "copy_count": len(reports),
-        "accepted_source_unchanged": True,
-        "pointer_unchanged": True,
-        "live_sector_authority_replaced": False,
-    }
-    if working_projection is not None:
-        working_projection = {
-            **working_projection,
-            "historical_lanes_replayed": True,
-            "historical_parent_copied_once": True,
-            "accepted_lane_history_nesting": nesting_projection,
-        }
-        atomic_write_json(working_projection_path, working_projection)
-    _refresh_lane_bundle_checksums(sectors_root)
-    refreshed_sector_manifest = json.loads(
-        (sectors_root / "manifest.json").read_text(encoding="utf-8")
-    )
-    refreshed_sector_bundle_sha256 = str(
-        refreshed_sector_manifest.get("bundle_sha256") or ""
-    )
-    accepted_after_members = {
-        path.relative_to(accepted_lanes_root).as_posix(): sha256_file(path)
-        for path in sorted(accepted_lanes_root.rglob("*"))
-        if path.is_file() and path.name not in {"manifest.json", "SHA256SUMS.json"}
-    }
-    require(
-        pointer_path.read_bytes() == pointer_before_bytes
-        and accepted_after_members == actual_members,
-        "ACCEPTED_LANE_HISTORY_NESTING_SOURCE_MUTATED",
-        "Accepted lane history nesting changed the pointer or immutable accepted source.",
-        status="FAIL",
-    )
-    receipt_body = {
-        "schema": "evidence-lane.accepted-lane-history-nesting.v1",
-        "status": "PASS",
-        "project_id": project_id,
-        "accepted_pv": exact_pv,
-        "pointer_generation": pointer_generation,
-        "accepted_bundle_sha256": accepted_before_sha256,
-        "copied_lane_ids": list(copy_lane_ids),
-        "excluded_lane_ids": list(excluded),
-        "copy_count": len(reports),
-        "parallel_copy": True,
-        "max_workers": min(8, max(1, len(copy_lane_ids))),
-        "reports": reports,
-        "accepted_source_unchanged": True,
-        "pointer_unchanged": True,
-        "candidate_created": False,
-        "hil_inferred": False,
-        "live_sector_authority_replaced": False,
-        "working_receipt_rebound": committed_working_receipt is not None,
-        "sector_bundle_sha256": refreshed_sector_bundle_sha256,
-    }
-    receipt = {
-        **receipt_body,
-        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
-    }
-    receipt_path = (
-        root
-        / "receipts"
-        / "project-authority"
-        / f"accepted-{exact_pv.lower()}-sector-history-nesting.json"
-    )
-    atomic_write_json(receipt_path, receipt)
-    committed_working_receipt_sha256: str | None = None
-    if committed_working_receipt is not None:
-        committed_body = {
-            key: value
-            for key, value in committed_working_receipt.items()
-            if key != "receipt_sha256"
-        }
-        committed_body.update(
-            {
-                "sector_bundle_sha256": refreshed_sector_bundle_sha256,
-                "historical_lanes_replayed": True,
-                "historical_parent_copied_once": True,
-                "accepted_lane_history_nesting": {
-                    **nesting_projection,
-                    "receipt_sha256": receipt["receipt_sha256"],
-                },
-            }
-        )
-        rebound_committed_receipt = {
-            **committed_body,
-            "receipt_sha256": sha256_bytes(canonical_json_bytes(committed_body)),
-        }
-        atomic_write_json(
-            committed_working_receipt_path,
-            rebound_committed_receipt,
-        )
-        committed_working_receipt_sha256 = rebound_committed_receipt[
-            "receipt_sha256"
-        ]
-    return {
-        **receipt,
-        "receipt_path": str(receipt_path),
-        "committed_working_receipt_sha256": committed_working_receipt_sha256,
-    }
-
-
 def _remove_exact_migration_target(root: Path, relative: str) -> None:
     target = (root / relative).resolve()
     require(
@@ -2463,6 +2428,85 @@ def _accepted_lane_schema_binding_compatibility(
     }
 
 
+def _working_sector_source_rebuild_required(
+    validation: dict[str, Any],
+) -> bool:
+    """Recognize narrow stale seals that Source Intake can rebuild safely.
+
+    This does not accept or reseal the changed lane databases.  It only permits
+    the explicit working-sector Source Intake action to discard those derived
+    databases and rebuild all eighteen lanes from the governed current source
+    boundary.  Any structural, topology, route, database-integrity, or
+    non-operational wrapper mismatch remains fail-closed.
+    """
+
+    lane_errors = dict(validation.get("lane_manifest_errors") or {})
+    lane_reports = dict(validation.get("lanes") or {})
+    checksum_mismatches = dict(validation.get("checksum_mismatches") or {})
+    structural_contracts_valid = bool(
+        lane_errors
+        and set(lane_errors) <= set(CANONICAL_LANE_IDS)
+        and set(lane_reports) == set(CANONICAL_LANE_IDS)
+        and all(row.get("valid") is True for row in lane_reports.values())
+        and validation.get("lane_emission_contract_valid") is True
+        and validation.get("lane_directory_set_valid") is True
+        and validation.get("parallel_execution_valid") is True
+        and validation.get("topology_valid") is True
+        and validation.get("source_routes_valid") is True
+        and dict(validation.get("lane_disposition_contract") or {}).get("valid")
+        is True
+        and all(
+            is_working_sector_operational_member(path)
+            for path in checksum_mismatches
+        )
+    )
+    if not structural_contracts_valid:
+        return False
+
+    for lane_id, error in lane_errors.items():
+        lane = LANE_REGISTRY[lane_id]
+        declared_stable = dict(error.get("declared_stable_artifacts") or {})
+        actual_stable = dict(error.get("actual_stable_artifacts") or {})
+        declared_evidence = dict(error.get("declared_evidence_artifacts") or {})
+        actual_evidence = dict(error.get("actual_evidence_artifacts") or {})
+        changed_stable = {
+            name
+            for name in declared_stable.keys() | actual_stable.keys()
+            if declared_stable.get(name) != actual_stable.get(name)
+        }
+        changed_evidence = {
+            name
+            for name in declared_evidence.keys() | actual_evidence.keys()
+            if declared_evidence.get(name) != actual_evidence.get(name)
+        }
+        four_file = dict(error.get("four_file_contract") or {})
+        artifact_roles = dict(error.get("artifact_role_contract") or {})
+        narrow_database_seal_drift = bool(
+            error.get("schema") == "evidence-lane.lane-manifest.v3"
+            and error.get("lane_id") == lane_id
+            and changed_stable == {lane.sqlite_filename}
+            and changed_evidence == {lane.sqlite_filename}
+            and not error.get("missing_required_artifacts")
+            and error.get("mmd_valid") is True
+            and error.get("dot_valid") is True
+            and dict(error.get("topology_reconciliation") or {}).get("status")
+            == "PASS"
+            and not four_file.get("missing")
+            and four_file.get("tools_json_valid") is True
+            and four_file.get("computed_tool_identity_sha256")
+            == four_file.get("declared_tool_identity_sha256")
+            and not artifact_roles.get("extensions")
+            and not artifact_roles.get("undeclared_extension_files")
+            and all(
+                row.get("exists") is True
+                for row in artifact_roles.get("required_roles") or []
+            )
+        )
+        if not narrow_database_seal_drift:
+            return False
+    return True
+
+
 def migrate_working_project_sectors(
     project_root: str | Path,
     *,
@@ -2472,6 +2516,7 @@ def migrate_working_project_sectors(
     pointer_generation: int,
     expected_branch: str | None = None,
     expected_head: str | None = None,
+    bootstrap_pv0: bool = False,
 ) -> dict[str, Any]:
     """Make all 18 sectors own the live WORKING state without PV movement."""
 
@@ -2485,10 +2530,25 @@ def migrate_working_project_sectors(
     )
     pointer_path = root / "active_pointer.json"
     pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
-    require(
+    pointer_generation_value = pointer.get("generation")
+    actual_pointer_generation = (
+        int(pointer_generation_value) if pointer_generation_value is not None else -1
+    )
+    pointer_matches_current = (
         pointer.get("project_id") == project_id
         and pointer.get("accepted_pv") == accepted_pv
-        and int(pointer.get("generation") or -1) == pointer_generation,
+        and actual_pointer_generation == pointer_generation
+    )
+    pointer_matches_pv0_bootstrap = (
+        bootstrap_pv0
+        and accepted_pv == "PV0"
+        and pointer_generation == 0
+        and pointer.get("project_id") == project_id
+        and pointer.get("accepted_pv") is None
+        and actual_pointer_generation == 0
+    )
+    require(
+        pointer_matches_current or pointer_matches_pv0_bootstrap,
         "PROJECT_WORKING_POINTER_MISMATCH",
         "Working-sector migration cannot change or reinterpret the accepted pointer.",
         status="MISMATCH",
@@ -2496,11 +2556,16 @@ def migrate_working_project_sectors(
     pointer_before = sha256_file(pointer_path)
     accepted_lane_schema_compatibility = {
         "status": "PASS",
-        "state": "ACCEPTED_HIL_ARCHIVE_POINTER_BASELINE_ONLY",
+        "state": (
+            "INITIAL_PV0_LIVE_ROOT_BASELINE_PENDING"
+            if pointer_matches_pv0_bootstrap
+            else "ACCEPTED_HIL_ARCHIVE_POINTER_BASELINE_ONLY"
+        ),
         "accepted_pv": accepted_pv,
         "accepted_archive_opened": False,
         "accepted_archive_queried": False,
         "accepted_bytes_rewritten": False,
+        "pv0_bootstrap": pointer_matches_pv0_bootstrap,
     }
     source_scaffold_preflight = _inspect_source_scaffold_retirement(root)
     identity_before = _working_repository_identity(repository)
@@ -2571,12 +2636,16 @@ def migrate_working_project_sectors(
             and validation.get("source_routes_valid") is True
             and validation.get("topology_valid") is True
         )
+        source_rebuild_required = _working_sector_source_rebuild_required(validation)
         require(
-            validation.get("valid") is True or refreshable_existing_authority,
+            validation.get("valid") is True
+            or refreshable_existing_authority
+            or source_rebuild_required,
             "PROJECT_WORKING_EXISTING_SECTORS_INVALID",
             "The existing sector-owned working authority failed validation.",
             status="MISMATCH",
             refreshable_existing_authority=refreshable_existing_authority,
+            source_rebuild_required=source_rebuild_required,
             checksum_mismatch_paths=sorted(checksum_mismatches),
         )
         # A working-to-working Refresh must compare every canonical lane with
@@ -2585,8 +2654,16 @@ def migrate_working_project_sectors(
         # ordinary Delta refresh into a full validation rebuild.  The accepted
         # PV remains the historical authority and pointer base; it is not the
         # incremental byte parent once a valid working authority exists.
-        build_parent_bundle = active_sectors
-        build_parent_kind = "CURRENT_VALIDATED_WORKING_SECTORS"
+        if source_rebuild_required:
+            # Do not treat the stale derived databases as a byte-reuse parent.
+            # The explicit Source Intake action rebuilds from the governed Git
+            # source boundary and later carries root-nested immutable history
+            # and operational Plan/ChatLineage authorities independently.
+            build_parent_bundle = None
+            build_parent_kind = "CURRENT_WORKING_SECTORS_SOURCE_REBUILD_REQUIRED"
+        else:
+            build_parent_bundle = active_sectors
+            build_parent_kind = "CURRENT_VALIDATED_WORKING_SECTORS"
         existing_receipt_path = active_sectors / "working_migration_receipt.json"
         try:
             decoded_existing_receipt = (
@@ -2971,6 +3048,19 @@ def migrate_working_project_sectors(
                         "working_identity_sha256"
                     ],
                     "bounded_query_only": True,
+                    "source_registry_authority": (
+                        f"sectors/{lane_id}/{LANE_REGISTRY[lane_id].sqlite_filename}"
+                    ),
+                    "lane_owned_artifacts": [
+                        LANE_REGISTRY[lane_id].sqlite_filename,
+                        LANE_REGISTRY[lane_id].mmd_filename,
+                        LANE_REGISTRY[lane_id].dot_filename,
+                        "tools.json",
+                        "lane_pointer.json",
+                        "lane_manifest.json",
+                        "study_brain.json",
+                    ],
+                    "additional_sources_remain_lane_scoped": True,
                     "raw_payload_model_context_loading": False,
                     "candidate_created": False,
                     "pointer_moved": False,
@@ -3029,6 +3119,7 @@ def migrate_working_project_sectors(
                 else None
             ),
             "pointer_generation": pointer_generation,
+            "pv0_bootstrap": pointer_matches_pv0_bootstrap,
             "working_identity": identity_before,
             "all_18_sectors_materialized": True,
             "historical_lanes_replayed": bool(root_nested_history_reports),
@@ -3790,6 +3881,7 @@ def query_working_project_sectors(
     study_brains: list[dict[str, Any]] = []
     historical_query_receipts: list[dict[str, Any]] = []
     working_lane_integrity_receipts: list[dict[str, Any]] = []
+    lane_traversal_receipts: list[dict[str, Any]] = []
     per_lane_limit = min(int(limit), 8)
     for lane_id in exact_lanes:
         lane = LANE_REGISTRY[lane_id]
@@ -3814,6 +3906,9 @@ def query_working_project_sectors(
             status="MISMATCH",
             lane_id=lane_id,
         )
+        traversal = validate_lane_query_traversal(lane_root, lane)
+        lane_traversal_receipts.append(traversal)
+        fts_table = str(traversal["selected_fts_table"])
         connection = sqlite3.connect(
             f"{database_path.resolve().as_uri()}?mode=ro&immutable=1",
             uri=True,
@@ -3822,9 +3917,9 @@ def query_working_project_sectors(
             rows = connection.execute(
                 (
                     "SELECT CAST(chunk_id AS INTEGER), path, locator, "
-                    f"snippet({lane.fts_table}, 2, '[', ']', ' ... ', 24), "
-                    f"bm25({lane.fts_table}) FROM {lane.fts_table} "
-                    f"WHERE {lane.fts_table} MATCH ? "
+                    f"snippet({fts_table}, 2, '[', ']', ' ... ', 24), "
+                    f"bm25({fts_table}) FROM {fts_table} "
+                    f"WHERE {fts_table} MATCH ? "
                     "ORDER BY 5, path, locator LIMIT ?"
                 ),
                 (fts, per_lane_limit),
@@ -3991,6 +4086,12 @@ def query_working_project_sectors(
         "bounded_result_limit": int(limit),
         "result_truncated": len(hits) > int(limit),
         "working_lane_integrity_receipts": working_lane_integrity_receipts,
+        "lane_traversal_receipts": lane_traversal_receipts,
+        "lane_traversal_receipt_count": len(lane_traversal_receipts),
+        "mmd_dot_traversal_used_for_every_queried_lane": (
+            len(lane_traversal_receipts) == len(exact_lanes)
+        ),
+        "tools_json_query_role": "BUILD_REFRESH_PROVENANCE_ONLY",
         "historical_query_receipts": historical_query_receipts,
         "accepted_history_loaded_as_independent_writable_authority": False,
         "accepted_archive_opened": False,

@@ -1,0 +1,10 @@
+{
+  "schema": "evidence-lane.installed-authority-pointer-contract.v1",
+  "status": "PASS",
+  "authority_id": "project_memory",
+  "project_relative_path": "memory/head.json",
+  "pointer_role": "MEMORY_HEAD_NOT_PROJECT_TRUTH_POINTER",
+  "project_truth_pointer_owner": false,
+  "pointer_movement_in_template": false,
+  "receipt_sha256": "0441814FAAC03379FCD02D6249361E3502BC6BC18E8DD9D657788E68BE0E0A7C"
+}

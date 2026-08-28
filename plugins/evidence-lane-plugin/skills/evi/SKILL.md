@@ -5,11 +5,20 @@ description: Evidence Lane root router with user-timed State Travel and exactly 
 
 # Evidence Lane root
 
+Every selected route enters the complete internal SDK public-action registry.
+MCP, skills, hooks, helper, tunnel, remote adapter, and host UI own
+transport/discovery only; no outer layer may implement an independent workflow
+or fallback. Counts are derived from the current registry and may grow or
+shrink without weakening exact set parity.
+
 `PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW`: an existing local development-slot
 update must use plugin-creator validation/cachebusting, the configured local
-marketplace source, `codex plugin add`, and exact same-task hidden
-restart/rehydration. The historical Windows whole-marketplace rename/rotation
-route is permanently ineligible and must never be retried or auto-selected.
+marketplace source, one sealed staging receipt, the dedicated cache
+materializer, terminal-safe restart preparation, a normally completed response,
+user-controlled exact-channel restart, and post-restart native reattachment.
+No turn-drain utility, scheduled child, programmatic app stop, or machine-wide
+protocol handler is allowed. Direct-add, two-selector, and whole-marketplace rotation
+compatibility executors are absent and must never be reconstructed.
 
 The installed lifecycle skill runtime first calls native `pv_status`,
 `pv_task_backlog`, one bounded live-root `pv_query`, and one prompt-relevant
@@ -17,10 +26,10 @@ six-authority `search`. These explicit
 public routes must work with hooks disabled. When enabled, `UserPromptSubmit`
 may seal an additional bounded transport envelope, but hook retrieval is
 lifecycle evidence only and never satisfies or gates the native read sequence.
-A prepared exact-work handoff makes State Travel
-eligible, but eligibility alone must not display, invoke, or consume it. Route
-to State Travel only when the user explicitly requests it or the current host
-context is genuinely exhausted and a continuity handoff is needed. Otherwise
+State Travel is eligible only when the user explicitly requests it or the
+current host context is genuinely exhausted. It uses native `session_resume`
+followed by the six-field direct same-worktree route; compatibility sealed
+handoff executors are absent. Otherwise
 run `/evi-boot` atomically and resume the existing governed session; State
 Travel is not a normal intake step.
 
@@ -51,7 +60,7 @@ disposition or a passed exact task State Travel handoff.
 `GLOBAL_PLUGIN_UPDATE_REHYDRATION_LAW` is also permanent. After any local,
 Git-main, Marketplace, or managed plugin update, the next restart or exact-task
 reattachment must independently rehydrate every already-bound task from the
-installed registry: catalog, skills, commands, SDK routes, MCP connection, and
+installed registry: catalog, skills, SDK routes, MCP connection, and
 shared-tunnel route. Preserve each exact task/deep link, project, governed and
 host sessions, workspace, execution profile, Plan/Goal binding, and writer or
 read-only role. Obtain a new server-derived runtime attestation after reconnect.
@@ -59,6 +68,16 @@ Never create or merge tasks, borrow another task's attachment, replay State
 Travel, move PV/HIL/pointers, or enable hooks. A bad task binding fails closed
 in isolation; it cannot degrade correctly reattached tasks. Reapply the exact
 native host Plan contract for each task, never a generic or fallback projection.
+
+`TERMINAL_SAFE_USER_RESTART_LAW` is permanent. The package may prepare and seal
+the exact install/task/channel binding, but it may not interrupt a turn, stop
+Codex, schedule a restart worker, activate a global protocol handler, or infer
+completion from process exit. The current response must reach its native
+terminal event before the user closes and reopens the exact selected app
+channel. Post-restart native readback must prove the exact task, package,
+project, session, workspace, Plan, and Goal identities. Historical or orphaned
+`inProgress` records remain visible host faults; no helper may rewrite rollout
+JSONL, SQLite, prompt order, or turn timestamps to hide them.
 
 Hook command files remain transport-only: they validate, redact, bound,
 deduplicate, and seal event envelopes. The installed lifecycle skill runtime
@@ -117,13 +136,14 @@ merge, or deploy authority.
 Render the completion receipt only through
 `build_rich_goal_completion_metrics_receipt` using native host-accounted Goal
 telemetry and exact persisted task binding. Show every available exact count
-with its K/M/B projection, keep reasoning output inside output, and keep the
+with its K/M/B projection, sum positive cumulative-counter deltas across every
+reset epoch, reconcile native turns/compactions/stale inProgress evidence,
+preserve daily totals and correction/supersession semantics, keep reasoning output inside output, and keep the
 host-accounted Goal counter separate from raw model traffic. When the host does
 not expose its conversion formula or another rich field, report it as unknown
 or in the structured missing-field list. If the Goal is already complete,
 validate and reuse its persisted rich receipt; never complete it again to obtain
-metrics. `build_goal_usage_receipt` is an `OBSOLETE_ROUTE` tombstone and may
-never execute or become a fallback.
+metrics. No compact or single-epoch compatibility collector is installed.
 
 After root `/evi`, expose exactly these six primary controls in this order:
 
@@ -133,6 +153,12 @@ After root `/evi`, expose exactly these six primary controls in this order:
 4. `/evi-refresh`
 5. `/evi-mode`
 6. `/evi-source-intake`
+
+`/evi-refresh` means only the HIL-side live-root Project Overlay/proposal
+finalization owned by `task_complete_and_refresh`. Source Intake plus
+`adaptive_delta_exit` own ordinary changed-lane refresh; candidate-building
+compatibility execution is absent, and ordinary non-HIL rows create neither a
+Project candidate nor a Project Overlay.
 
 Use one deterministic direct command map for these six controls. An exact slash
 command and a conservative unambiguous ordinary-language request select the
@@ -203,10 +229,18 @@ Truth, Canon, ChatLineage, candidate, or accepted Learning authority. Any later
 Learning use requires one explicit immutable provenance receipt; recording it
 neither creates a candidate nor invokes Learning or Project HIL.
 
-`/evi-build` presents the six HIL outcomes. Only the exact case-sensitive user
-token `APPROVE` may call `pv_fuse`; continuation, discussion, install, tests,
-or any other token never implies approval. `/evi-refresh` creates an unaccepted
-candidate and stops at HIL. `/evi-rollback` moves only the accepted pointer.
+`/evi-build` constructs and presents an unaccepted dual-HIL proposal, then
+stops. The separate `/evi-fuse` sidecar owns decision classification,
+non-promotion outcomes, exact Learning-then-Project approval, and `pv_fuse`.
+Continuation, discussion, install, tests, or any other token never implies
+approval. `/evi-refresh` owns only HIL-side
+Project Overlay/proposal finalization; ordinary changed-lane refresh belongs to
+Source Intake plus adaptive Delta exit. `/evi-rollback` selects a Plan-stamped
+live-root logical cursor: full PV through dual-HIL acceptance plus Project
+Overlay, or sub-PV through its auto-accepted Plan row without an Overlay. It
+preserves the accepted pointer, candidate, task, Goal, and source and never
+queries `accepted/`. Hard restore is a separate explicit user-selected matching
+full-PV ZIP transaction and is unavailable for sub-PVs.
 
 The governed session and live Flash/capture attachment persist across host
 tasks until `/evi-exit-boot`. Exit Boot fully detaches ENV/UOP Flash context
@@ -221,15 +255,18 @@ user instead continues in the unchanged host after Fuse, call
 `EXPLICIT_USER_CONTINUATION`; preserve the sealed receipt, record its
 supersession, and do not move the pointer.
 
-`/evi-plan` is a Codex-only Planning sidecar outside the six primary controls.
+`$evi-plan` is a Codex-only Planning skill sidecar outside the six primary controls.
 For ordinary planning it validates the host Plan context before a native Plan
 write. At a State Travel destination, the active skill restores the complete
-host Plan, stops for explicit host Plan acceptance, then invokes the Evidence
-Plan verification automatically. If the API cannot attest its Plan-mode
+host Plan through exactly one EVI Plan prompt and stops for explicit host Plan
+acceptance. The post-click unchanged-Plan identity check is embedded in the
+atomic carried-Goal resume transaction; it is not a second EVI Plan invocation
+or whole-Plan update. If the API cannot attest its Plan-mode
 selector, record `HOST_MODE_SELECTOR_UNAVAILABLE` without fabricating mode
-activation. After Evidence Plan passes, the active skill starts the carried
-Goal through the supported host action; do not ask the user to type `/pl`,
-`/evi-plan`, or paste a Goal prompt between destination phases.
+activation. After the acceptance receipt passes, the active skill starts the
+carried Goal through the supported host action and then relocks the fixed Step
+projection; do not ask the user to type `/pl`,
+`$evi-plan`, or paste a Goal prompt between destination phases.
 
 ## MCP routing contract
 

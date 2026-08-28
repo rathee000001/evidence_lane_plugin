@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 2,
+  "handler_number": 4,
+  "display_id": "2.4",
+  "event": "SubagentStart",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_emit.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_emit.py",
+    "timeout": 10,
+    "statusMessage": "Verifying and emitting Evidence Lane hook result"
+  },
+  "logical_action": "VERIFY_AND_EMIT_EVENT_RESULT",
+  "stage": "hooks/subhook_emit.py",
+  "stage_sha256": "58483422B501DA08226BF4292310A9328F438EB1D8F0AC127178264844D816D0",
+  "adapter": "hooks/subagent_start.py",
+  "adapter_sha256": "3EA6FE46F77CBE1CE537C01E71F4332A6D12CD04E716B84E88FB03A2D73C289C",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "D0069D1EFBFDD1213DA1F8D4F6B1465983134647CE3DDABFC83250DC4BF6A58E"
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.bounded_io",
+  "source_path": "src/evidence_lane_plugin/bounded_io.py",
+  "source_sha256": "B272C29F261E32949964AA96C464DE27BD9037580A54626C51C26924F9E83AD0",
+  "source_bytes": 11598,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "E591BD2F84C7159A820FF8B0807FE15B1E7E907BE0165E3DE346A4C6C7C4921C"
+}

@@ -1,0 +1,30 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "hil_return_to_accepted",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-fuse",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "hil_return_to_accepted"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-fuse",
+        "workflow": "dual-hil-non-promotion-decision",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "DA91B7141620F0B01C1247056C23B49B5546F67040C5C74F1292D400A4D1575C",
+  "sdk_action_binding": "sdk/actions/hil_return_to_accepted.action.v1.json",
+  "mcp_action_binding": "mcp/actions/hil_return_to_accepted.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "6741BF1937C59821DF2F00504EFEB9124D620AE8BF23EB10A3A1EFEF4A4FD48B"
+}

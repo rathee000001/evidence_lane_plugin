@@ -7,6 +7,9 @@ import json
 import os
 import re
 import shutil
+import sqlite3
+import subprocess
+import tempfile
 import threading
 import time
 import unicodedata
@@ -16,15 +19,18 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, ClassVar, Self, cast
 
+from .authority_support import refresh_authority_support
 from .capture_routing import CaptureRouteAuthority, normalize_capture_route
 from .constants import POINTER_SCHEMA, PROJECT_REGISTRY_SCHEMA
 from .errors import EvidenceLaneError, require
-from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
+from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes, sha256_file
+from .lanes import CANONICAL_LANE_IDS
 from .models import ActivePointer, ProjectConfig
 from .plan_runtime import (
     DELTA_STATUSES,
     append_delta_event,
     append_planning_mode_event,
+    append_sub_pv_acceptance,
     append_task_formula_event,
     ensure_event_ledger,
     plan_runtime_status,
@@ -34,16 +40,20 @@ from .plan_runtime import (
 from .project_authority import (
     PROJECT_AUTHORITY_CONFIRMATION,
     PROJECT_AUTHORITY_MIGRATION_SCHEMA,
+    _remove_tree_with_retry,
+    _replace_path_with_retry,
     copy_active_project_authority,
+    is_working_sector_operational_member,
     materialize_project_authority_layout,
     refresh_working_sector_operational_checksums,
     remove_verified_active_source,
+    resolved_chat_lineage_root,
     resolved_plan_auxiliary_path,
     resolved_plan_backlog_path,
     resolved_plan_runtime_path,
     validate_external_project_authority_root,
 )
-from .project_overlay import validate_project_overlay
+from .project_overlay import build_project_overlay, validate_project_overlay
 from .project_pv_storage import (
     accepted_storage_status,
     build_project_pv_archive,
@@ -1308,11 +1318,7 @@ class ProjectStore:
     def _source_authority_path(self, project_id: str) -> Path:
         """Return the project-local registry path without creating it."""
 
-        return (
-            self.project_root(project_id)
-            / "sources"
-            / "source_authority.sqlite"
-        )
+        return self.project_root(project_id) / "sources" / "source_authority.sqlite"
 
     def source_authority_path(self, project_id: str) -> Path:
         reconcile_legacy_source_authority_registry(self.project_root(project_id))
@@ -1425,6 +1431,18 @@ class ProjectStore:
                         pointer_path,
                         {"schema": POINTER_SCHEMA, **pointer.as_dict()},
                     )
+                backlog_path = resolved_plan_backlog_path(root)
+                plan_runtime_path = resolved_plan_runtime_path(root)
+                if not backlog_path.is_file() or not plan_runtime_path.is_file():
+                    initial_backlog = {
+                        "schema": "evidence-lane.linear-task-backlog.v1",
+                        "project_id": config.project_id,
+                        "plans": [],
+                        "tasks": [],
+                    }
+                    ensure_event_ledger(initial_backlog)
+                    atomic_write_json(backlog_path, initial_backlog)
+                    write_plan_runtime_projection(plan_runtime_path, initial_backlog)
                 capture_binding = CaptureRouteAuthority(root).bind(
                     project_id=config.project_id,
                     route=config.capture_route,
@@ -1733,7 +1751,11 @@ class ProjectStore:
                 accepted_manifest_sha256=str(pointer.accepted_manifest_sha256),
                 legacy_history_root=legacy,
             )
-            staging.replace(target)
+            publish_replace = _replace_path_with_retry(
+                staging,
+                target,
+                operation="PUBLISH_EXTERNAL_PROJECT_AUTHORITY",
+            )
             with self._registry_lock():
                 registry = self._load_root_registry_unlocked()
                 row = registry.get("projects", {}).get(project_id)
@@ -1770,6 +1792,7 @@ class ProjectStore:
                 "published_project_authority_root_sha256": sha256_bytes(
                     str(target).encode("utf-8")
                 ),
+                "publish_replace": publish_replace,
                 "state": "NON_AUTHORITATIVE_HISTORY_AWAITING_R243_CAS_MIGRATION",
                 "accepted_pointer_authority": False,
                 "candidate_authority": False,
@@ -4325,7 +4348,7 @@ class ProjectStore:
                 "CODEX": {
                     "native_plan_mode": True,
                     "plan_mode_shortcut": "/pl",
-                    "plugin_command": "/evi-plan",
+                    "plugin_skill": "$evi-plan",
                     "native_goal": True,
                     "native_task_panel": True,
                     "goal_start_requires_user_paste": True,
@@ -5003,275 +5026,6 @@ class ProjectStore:
                 "completion_receipt": completion_receipt,
             }
 
-    def advance_verified_fallback_prewarmer_task(
-        self,
-        project_id: str,
-        *,
-        completed_backlog_task_id: str,
-        replacement_backlog_task_id: str,
-        session_id: str,
-        prior_runtime_task_id: str,
-        replacement_contract: dict[str, Any],
-        completion_receipt: dict[str, Any],
-    ) -> dict[str, Any]:
-        """Close the exact disabled-PV11 fallback row without building a PV."""
-
-        receipt_sha256 = str(completion_receipt.get("receipt_sha256") or "").strip()
-        receipt_body = {
-            key: value
-            for key, value in completion_receipt.items()
-            if key != "receipt_sha256"
-        }
-        fallback_proof = completion_receipt.get("fallback_prewarmer_proof")
-        require(
-            completion_receipt.get("schema")
-            == "evidence-lane.verified-fallback-prewarm-task-advance.v1"
-            and len(receipt_sha256) == 64
-            and receipt_sha256 == sha256_bytes(canonical_json_bytes(receipt_body))
-            and completed_backlog_task_id
-            == "EL-CODEX-PV11-FALLBACK-SLOT-INSTALL-PREWARM-DELTA-149"
-            and isinstance(fallback_proof, dict)
-            and fallback_proof.get("schema")
-            == "evidence-lane.codex-fallback-prewarm-proof.v1"
-            and fallback_proof.get("status") == "PASS"
-            and completion_receipt.get("candidate_created") is False
-            and completion_receipt.get("pending_hil") is False
-            and completion_receipt.get("pointer_moved") is False
-            and completion_receipt.get("hil_inferred") is False,
-            "FALLBACK_PREWARM_TASK_ADVANCE_RECEIPT_INVALID",
-            "The fallback prewarm completion receipt is malformed or promoting.",
-            status="MISMATCH",
-        )
-        require(
-            completion_receipt.get("project_id") == project_id
-            and completion_receipt.get("session_id") == session_id
-            and completion_receipt.get("completed_backlog_task_id")
-            == completed_backlog_task_id
-            and completion_receipt.get("replacement_backlog_task_id")
-            == replacement_backlog_task_id
-            and completion_receipt.get("prior_runtime_task_id")
-            == prior_runtime_task_id,
-            "FALLBACK_PREWARM_TASK_ADVANCE_RECEIPT_BINDING_MISMATCH",
-            "The fallback prewarm receipt does not bind this exact Plan transition.",
-            status="MISMATCH",
-        )
-
-        with self._lock(project_id):
-            backlog = self._load_backlog(project_id)
-            ensure_event_ledger(backlog)
-            tasks_by_id = {
-                str(task["task_id"]): task for task in backlog.get("tasks", [])
-            }
-            completed = tasks_by_id.get(completed_backlog_task_id)
-            replacement = tasks_by_id.get(replacement_backlog_task_id)
-            require(
-                isinstance(completed, dict) and isinstance(replacement, dict),
-                "FALLBACK_PREWARM_TASK_ADVANCE_PLAN_TASK_MISMATCH",
-                "The fallback row or its requested successor is absent from the Plan Lane.",
-                status="MISMATCH",
-            )
-            completed = cast(dict[str, Any], completed)
-            replacement = cast(dict[str, Any], replacement)
-            exact_fields = (
-                "task_class",
-                "requested_outcome",
-                "permitted_paths",
-                "permitted_tools",
-                "acceptance_checks",
-                "stop_condition",
-            )
-            mismatches = {
-                field: {
-                    "planned": replacement.get(field),
-                    "classified": replacement_contract.get(field),
-                }
-                for field in exact_fields
-                if replacement.get(field) != replacement_contract.get(field)
-            }
-            require(
-                not mismatches,
-                "FALLBACK_PREWARM_TASK_ADVANCE_CONTRACT_MISMATCH",
-                "The successor classification must exactly match its queued Plan contract.",
-                status="MISMATCH",
-                mismatches=mismatches,
-            )
-            replacement_runtime_task_id = str(
-                replacement_contract.get("task_id") or ""
-            ).strip()
-            require(
-                bool(replacement_runtime_task_id),
-                "FALLBACK_PREWARM_TASK_ADVANCE_RUNTIME_TASK_ID_REQUIRED",
-                "The successor classification has no runtime task identity.",
-                status="BLOCKED",
-            )
-            active = [
-                task for task in backlog["tasks"] if task.get("status") == "ACTIVE"
-            ]
-            first_queued = next(
-                (
-                    task
-                    for task in sorted(
-                        backlog["tasks"], key=lambda item: int(item["sequence"])
-                    )
-                    if task.get("status") == "QUEUED"
-                ),
-                None,
-            )
-            before = (
-                len(active) == 1
-                and active[0].get("task_id") == completed_backlog_task_id
-                and completed.get("status") == "ACTIVE"
-                and completed.get("active_session_id") == session_id
-                and completed.get("runtime_task_id") == prior_runtime_task_id
-                and replacement.get("status") == "QUEUED"
-                and isinstance(first_queued, dict)
-                and first_queued.get("task_id") == replacement_backlog_task_id
-            )
-            persisted_replacement_runtime_task_id = str(
-                replacement.get("runtime_task_id") or ""
-            ).strip()
-            after = (
-                len(active) == 1
-                and active[0].get("task_id") == replacement_backlog_task_id
-                and completed.get("status") == "DONE"
-                and completed.get("fallback_prewarmer_completion_receipt_sha256")
-                == receipt_sha256
-                and completed.get("fallback_prewarmer_completion_receipt")
-                == completion_receipt
-                and replacement.get("status") == "ACTIVE"
-                and replacement.get("active_session_id") == session_id
-                and bool(persisted_replacement_runtime_task_id)
-            )
-            require(
-                before or after,
-                "FALLBACK_PREWARM_TASK_ADVANCE_PLAN_STATE_MISMATCH",
-                "The Plan is neither at the fallback row nor its idempotent successor state.",
-                status="MISMATCH",
-                active_task_ids=[task.get("task_id") for task in active],
-                completed_status=completed.get("status"),
-                replacement_status=replacement.get("status"),
-                first_queued_task_id=(
-                    first_queued.get("task_id")
-                    if isinstance(first_queued, dict)
-                    else None
-                ),
-            )
-            if after:
-                replacement_runtime_task_id = persisted_replacement_runtime_task_id
-
-            proof_sha256 = str(
-                cast(dict[str, Any], fallback_proof).get("receipt_sha256") or ""
-            )
-            completion_event_id = (
-                f"{completed_backlog_task_id}__{proof_sha256[:24].lower()}__done"
-            )
-            activation_event_id = (
-                f"{replacement_backlog_task_id}__{session_id}__"
-                f"{replacement_runtime_task_id}__fallback_active"
-            )
-            completion_event: dict[str, Any] | None
-            activation_event: dict[str, Any] | None
-            if before:
-                now = utc_now()
-                completion_event = append_delta_event(
-                    backlog,
-                    task_id=completed_backlog_task_id,
-                    event_type="FALLBACK_PREWARM_VERIFIED",
-                    to_status="DONE",
-                    actor=session_id,
-                    event_id=completion_event_id,
-                    recorded_at=now,
-                    assume_initialized=True,
-                    details={
-                        "session_id": session_id,
-                        "completion_receipt_sha256": receipt_sha256,
-                        "fallback_prewarmer_proof_sha256": proof_sha256,
-                        "fallback_activated": False,
-                        "restart_invoked": False,
-                        "candidate_created": False,
-                        "pending_hil": False,
-                        "pointer_moved": False,
-                        "hil_inferred": False,
-                    },
-                )
-                completed.pop("active_session_id", None)
-                completed.pop("runtime_task_id", None)
-                completed["fallback_prewarmer_completion_receipt_sha256"] = (
-                    receipt_sha256
-                )
-                completed["fallback_prewarmer_completion_receipt"] = completion_receipt
-                completed.setdefault("history", []).append(
-                    {
-                        "event": "FALLBACK_PREWARM_VERIFIED",
-                        "session_id": session_id,
-                        "completion_receipt_sha256": receipt_sha256,
-                        "fallback_prewarmer_proof_sha256": proof_sha256,
-                        "recorded_at": now,
-                    }
-                )
-                activation_event = append_delta_event(
-                    backlog,
-                    task_id=replacement_backlog_task_id,
-                    event_type="ACTIVATED_AFTER_FALLBACK_PREWARM",
-                    to_status="ACTIVE",
-                    actor=session_id,
-                    event_id=activation_event_id,
-                    recorded_at=now,
-                    assume_initialized=True,
-                    details={
-                        "session_id": session_id,
-                        "runtime_task_id": replacement_runtime_task_id,
-                        "completed_backlog_task_id": completed_backlog_task_id,
-                        "completion_receipt_sha256": receipt_sha256,
-                    },
-                )
-                replacement["active_session_id"] = session_id
-                replacement["runtime_task_id"] = replacement_runtime_task_id
-                replacement.setdefault("history", []).append(
-                    {
-                        "event": "CLAIMED_AFTER_FALLBACK_PREWARM",
-                        "session_id": session_id,
-                        "runtime_task_id": replacement_runtime_task_id,
-                        "completed_backlog_task_id": completed_backlog_task_id,
-                        "recorded_at": now,
-                    }
-                )
-                self._persist_backlog(project_id, backlog)
-            else:
-                completion_event = next(
-                    (
-                        event
-                        for event in backlog["events"]
-                        if event.get("event_id") == completion_event_id
-                    ),
-                    None,
-                )
-                activation_event = next(
-                    (
-                        event
-                        for event in backlog["events"]
-                        if event.get("event_id") == activation_event_id
-                    ),
-                    None,
-                )
-                require(
-                    isinstance(completion_event, dict)
-                    and isinstance(activation_event, dict),
-                    "FALLBACK_PREWARM_TASK_ADVANCE_EVENT_LEDGER_MISMATCH",
-                    "The idempotent fallback state is missing its completion or activation event.",
-                    status="MISMATCH",
-                )
-
-            return {
-                "status": "PASS",
-                "idempotent_reuse": after,
-                "completed_task": completed,
-                "active_task": replacement,
-                "completion_event": completion_event,
-                "activation_event": activation_event,
-                "completion_receipt": completion_receipt,
-            }
-
     def advance_verified_task_checkpoint(
         self,
         project_id: str,
@@ -5441,6 +5195,7 @@ class ProjectStore:
             )
             completion_event: dict[str, Any] | None
             activation_event: dict[str, Any] | None
+            sub_pv_acceptance: dict[str, Any] | None
             if before:
                 now = utc_now()
                 completion_event = append_delta_event(
@@ -5469,6 +5224,23 @@ class ProjectStore:
                 completed.pop("runtime_task_id", None)
                 completed["task_checkpoint_completion_receipt_sha256"] = receipt_sha256
                 completed["task_checkpoint_completion_receipt"] = completion_receipt
+                sub_pv_acceptance = append_sub_pv_acceptance(
+                    backlog,
+                    task_id=completed_backlog_task_id,
+                    successor_task_id=replacement_backlog_task_id,
+                    session_id=session_id,
+                    baseline_pv=str(completion_receipt.get("accepted_pv") or ""),
+                    pointer_generation=int(
+                        completion_receipt.get("pointer_generation") or 0
+                    ),
+                    task_checkpoint_completion_receipt_sha256=receipt_sha256,
+                    verification_proof_sha256=proof_sha256,
+                    delta_completion_event_sha256=str(
+                        completion_event["event_sha256"]
+                    ),
+                    accepted_at=now,
+                )
+                completed["accepted_sub_pv"] = sub_pv_acceptance
                 completed.setdefault("history", []).append(
                     {
                         "event": "VERIFIED_TASK_CHECKPOINT_COMPLETED",
@@ -5478,6 +5250,10 @@ class ProjectStore:
                         ),
                         "completion_receipt_sha256": receipt_sha256,
                         "verification_proof_sha256": proof_sha256,
+                        "accepted_sub_pv_id": sub_pv_acceptance["sub_pv_id"],
+                        "accepted_sub_pv_receipt_sha256": sub_pv_acceptance[
+                            "receipt_sha256"
+                        ],
                         "recorded_at": now,
                     }
                 )
@@ -5495,16 +5271,25 @@ class ProjectStore:
                         "runtime_task_id": replacement_runtime_task_id,
                         "completed_backlog_task_id": completed_backlog_task_id,
                         "completion_receipt_sha256": receipt_sha256,
+                        "entry_sub_pv_id": sub_pv_acceptance["sub_pv_id"],
+                        "entry_sub_pv_receipt_sha256": sub_pv_acceptance[
+                            "receipt_sha256"
+                        ],
                     },
                 )
                 replacement["active_session_id"] = session_id
                 replacement["runtime_task_id"] = replacement_runtime_task_id
+                replacement["entry_sub_pv"] = sub_pv_acceptance
                 replacement.setdefault("history", []).append(
                     {
                         "event": "CLAIMED_AFTER_VERIFIED_TASK_CHECKPOINT",
                         "session_id": session_id,
                         "runtime_task_id": replacement_runtime_task_id,
                         "completed_backlog_task_id": completed_backlog_task_id,
+                        "entry_sub_pv_id": sub_pv_acceptance["sub_pv_id"],
+                        "entry_sub_pv_receipt_sha256": sub_pv_acceptance[
+                            "receipt_sha256"
+                        ],
                         "recorded_at": now,
                     }
                 )
@@ -5533,6 +5318,22 @@ class ProjectStore:
                     "The idempotent checkpoint state lacks its completion or activation event.",
                     status="MISMATCH",
                 )
+                sub_pv_acceptance = next(
+                    (
+                        record
+                        for record in backlog.get("sub_pv_acceptances", [])
+                        if record.get("task_id") == completed_backlog_task_id
+                    ),
+                    None,
+                )
+                require(
+                    isinstance(sub_pv_acceptance, dict)
+                    and completed.get("accepted_sub_pv") == sub_pv_acceptance
+                    and replacement.get("entry_sub_pv") == sub_pv_acceptance,
+                    "TASK_CHECKPOINT_ADVANCE_SUB_PV_REPLAY_MISMATCH",
+                    "The idempotent checkpoint state is missing its accepted Delta-row sub-PV.",
+                    status="MISMATCH",
+                )
             return {
                 "status": "PASS",
                 "idempotent_reuse": after,
@@ -5541,6 +5342,7 @@ class ProjectStore:
                 "completion_event": completion_event,
                 "activation_event": activation_event,
                 "completion_receipt": completion_receipt,
+                "sub_pv_acceptance": sub_pv_acceptance,
             }
 
     def batch_completion_receipt(
@@ -5561,6 +5363,189 @@ class ProjectStore:
                 None,
             )
             return dict(receipt) if isinstance(receipt, dict) else None
+
+    def reconcile_verified_predecessor_sub_pv(
+        self,
+        project_id: str,
+        *,
+        active_task_id: str,
+        session_id: str,
+    ) -> dict[str, Any]:
+        """Backfill only an exact verified predecessor missed by older runtime bytes."""
+
+        with self._lock(project_id):
+            backlog = self._load_backlog(project_id)
+            ensure_event_ledger(backlog)
+            executable = [
+                task
+                for task in sorted(
+                    backlog.get("tasks", []),
+                    key=lambda item: int(item["sequence"]),
+                )
+                if task.get("status") in {"DONE", "ACCEPTED", "ACTIVE", "QUEUED"}
+            ]
+            active_index = next(
+                (
+                    index
+                    for index, task in enumerate(executable)
+                    if task.get("task_id") == active_task_id
+                ),
+                None,
+            )
+            require(
+                active_index is not None
+                and executable[active_index].get("status") == "ACTIVE"
+                and executable[active_index].get("active_session_id") == session_id,
+                "SUB_PV_RECONCILIATION_ACTIVE_ROW_MISMATCH",
+                "Sub-PV reconciliation requires the exact sole active Delta row.",
+                status="MISMATCH",
+                active_task_id=active_task_id,
+            )
+            active_index = cast(int, active_index)
+            if active_index == 0:
+                return {
+                    "status": "PASS",
+                    "state": "FULL_PROJECT_PV_BASELINE_NO_PREDECESSOR",
+                    "sub_pv_acceptance": None,
+                    "plan_task_advanced": False,
+                    "project_pointer_moved": False,
+                }
+            active = cast(dict[str, Any], executable[active_index])
+            predecessor = cast(dict[str, Any], executable[active_index - 1])
+            predecessor_task_id = str(predecessor["task_id"])
+            existing = next(
+                (
+                    record
+                    for record in backlog.get("sub_pv_acceptances", [])
+                    if record.get("task_id") == predecessor_task_id
+                ),
+                None,
+            )
+            if isinstance(existing, dict):
+                require(
+                    existing.get("successor_task_id") == active_task_id,
+                    "SUB_PV_RECONCILIATION_SUCCESSOR_MISMATCH",
+                    "The predecessor sub-PV is bound to another successor row.",
+                    status="MISMATCH",
+                    predecessor_task_id=predecessor_task_id,
+                )
+                changed = active.get("entry_sub_pv") != existing
+                active["entry_sub_pv"] = existing
+                if changed:
+                    self._persist_backlog(project_id, backlog)
+                return {
+                    "status": "PASS",
+                    "state": "EXISTING_SUB_PV_REUSED",
+                    "sub_pv_acceptance": existing,
+                    "plan_task_advanced": False,
+                    "project_pointer_moved": False,
+                }
+            completion_receipt = predecessor.get(
+                "task_checkpoint_completion_receipt"
+            )
+            receipt_sha256 = str(
+                predecessor.get("task_checkpoint_completion_receipt_sha256")
+                or ""
+            )
+            if predecessor.get("status") == "ACCEPTED" and not isinstance(
+                completion_receipt, dict
+            ):
+                return {
+                    "status": "PASS",
+                    "state": "FULL_PROJECT_PV_ACCEPTED_PREDECESSOR",
+                    "sub_pv_acceptance": None,
+                    "plan_task_advanced": False,
+                    "project_pointer_moved": False,
+                }
+            proof = (
+                completion_receipt.get("verification_proof")
+                if isinstance(completion_receipt, dict)
+                else None
+            )
+            completion_event = next(
+                (
+                    event
+                    for event in reversed(backlog.get("events", []))
+                    if event.get("task_id") == predecessor_task_id
+                    and event.get("event_type")
+                    == "VERIFIED_TASK_CHECKPOINT_COMPLETED"
+                    and event.get("to_status") == "DONE"
+                ),
+                None,
+            )
+            receipt_body = (
+                {
+                    key: value
+                    for key, value in completion_receipt.items()
+                    if key != "receipt_sha256"
+                }
+                if isinstance(completion_receipt, dict)
+                else {}
+            )
+            proof_body = (
+                {key: value for key, value in proof.items() if key != "receipt_sha256"}
+                if isinstance(proof, dict)
+                else {}
+            )
+            require(
+                predecessor.get("status") == "DONE"
+                and isinstance(completion_receipt, dict)
+                and completion_receipt.get("schema")
+                == "evidence-lane.verified-task-checkpoint-advance.v1"
+                and receipt_sha256 == completion_receipt.get("receipt_sha256")
+                and receipt_sha256
+                == sha256_bytes(canonical_json_bytes(receipt_body))
+                and isinstance(proof, dict)
+                and proof.get("status") == "PASS"
+                and proof.get("receipt_sha256")
+                == sha256_bytes(canonical_json_bytes(proof_body))
+                and isinstance(completion_event, dict)
+                and completion_event.get("details", {}).get(
+                    "completion_receipt_sha256"
+                )
+                == receipt_sha256,
+                "SUB_PV_RECONCILIATION_VERIFIED_COMPLETION_REQUIRED",
+                "A missing predecessor sub-PV may be repaired only from its exact verified completion receipt.",
+                status="MISMATCH",
+                predecessor_task_id=predecessor_task_id,
+            )
+            completion_receipt_dict = cast(dict[str, Any], completion_receipt)
+            proof_dict = cast(dict[str, Any], proof)
+            completion_event_dict = cast(dict[str, Any], completion_event)
+            record = append_sub_pv_acceptance(
+                backlog,
+                task_id=predecessor_task_id,
+                successor_task_id=active_task_id,
+                session_id=str(completion_receipt_dict["session_id"]),
+                baseline_pv=str(completion_receipt_dict["accepted_pv"]),
+                pointer_generation=int(completion_receipt_dict["pointer_generation"]),
+                task_checkpoint_completion_receipt_sha256=receipt_sha256,
+                verification_proof_sha256=str(proof_dict["receipt_sha256"]),
+                delta_completion_event_sha256=str(
+                    completion_event_dict["event_sha256"]
+                ),
+                accepted_at=str(completion_event_dict["recorded_at"]),
+                reconciled_from_verified_completion=True,
+            )
+            predecessor["accepted_sub_pv"] = record
+            active["entry_sub_pv"] = record
+            predecessor.setdefault("history", []).append(
+                {
+                    "event": "VERIFIED_SUB_PV_RECONCILED",
+                    "successor_task_id": active_task_id,
+                    "accepted_sub_pv_id": record["sub_pv_id"],
+                    "accepted_sub_pv_receipt_sha256": record["receipt_sha256"],
+                    "recorded_at": utc_now(),
+                }
+            )
+            self._persist_backlog(project_id, backlog)
+            return {
+                "status": "PASS",
+                "state": "VERIFIED_PREDECESSOR_SUB_PV_RECONCILED",
+                "sub_pv_acceptance": record,
+                "plan_task_advanced": False,
+                "project_pointer_moved": False,
+            }
 
     def record_backlog_done(
         self,
@@ -5974,6 +5959,7 @@ class ProjectStore:
         decided_by: str,
         candidate_id: str,
         accepted_pv: str | None,
+        dual_hil_stamp: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         with self._lock(project_id):
             backlog = self._load_backlog(project_id)
@@ -5994,8 +5980,43 @@ class ProjectStore:
             event_type = (
                 "HIL_FOLLOW_UP_REQUESTED"
                 if decision in {"APPROVE_WITH_DELTA", "MORE_RESEARCH"}
+                else "HIL_OUTCOME"
+                if decision == "APPROVE" and dual_hil_stamp is not None
                 else f"HIL_{decision}"
             )
+            if dual_hil_stamp is not None:
+                dual_hil_stamp_body = {
+                    key: value
+                    for key, value in dual_hil_stamp.items()
+                    if key != "receipt_sha256"
+                }
+                require(
+                    decision == "APPROVE"
+                    and dual_hil_stamp.get("schema")
+                    == "evidence-lane.plan-dual-hil-acceptance-stamp.v1"
+                    and dual_hil_stamp.get("status") == "PASS"
+                    and dual_hil_stamp.get("plan_task_id") == backlog_task_id
+                    and dual_hil_stamp.get("target_pv") == accepted_pv
+                    and dual_hil_stamp.get("project_decision") == "APPROVE"
+                    and dual_hil_stamp.get("learning_decision") == "APPROVE"
+                    and dual_hil_stamp.get("accepted_archive_queried_for_stamp")
+                    is False
+                    and dual_hil_stamp.get("receipt_sha256")
+                    == sha256_bytes(canonical_json_bytes(dual_hil_stamp_body)),
+                    "PLAN_DUAL_HIL_STAMP_INVALID",
+                    "The Plan HIL stamp must bind both exact approvals for the same PV without archive access.",
+                    status="MISMATCH",
+                )
+            outcome_details = {
+                "decision": decision,
+                "candidate_id": candidate_id,
+                "accepted_pv": accepted_pv,
+                **(
+                    {"dual_hil_acceptance_stamp": dual_hil_stamp}
+                    if dual_hil_stamp is not None
+                    else {}
+                ),
+            }
             outcome_event_id = f"{backlog_task_id}__{candidate_id}__{decision}"
             existing_outcome = next(
                 (
@@ -6014,11 +6035,7 @@ class ProjectStore:
                     actor=decided_by,
                     event_id=outcome_event_id,
                     assume_initialized=True,
-                    details={
-                        "decision": decision,
-                        "candidate_id": candidate_id,
-                        "accepted_pv": accepted_pv,
-                    },
+                    details=outcome_details,
                 )
                 return task
             require(
@@ -6053,19 +6070,22 @@ class ProjectStore:
                 actor=decided_by,
                 event_id=outcome_event_id,
                 assume_initialized=True,
-                details={
-                    "decision": decision,
-                    "candidate_id": candidate_id,
-                    "accepted_pv": accepted_pv,
-                },
+                details=outcome_details,
             )
             task["accepted_pv"] = accepted_pv if decision == "APPROVE" else None
+            if dual_hil_stamp is not None:
+                task["dual_hil_acceptance_stamp"] = dual_hil_stamp
             task["history"].append(
                 {
                     "event": "HIL_DECISION",
                     "decision": decision,
                     "candidate_id": candidate_id,
                     "accepted_pv": accepted_pv,
+                    "dual_hil_acceptance_stamp_sha256": (
+                        dual_hil_stamp.get("receipt_sha256")
+                        if dual_hil_stamp is not None
+                        else None
+                    ),
                     "recorded_at": lifecycle_event["recorded_at"],
                 }
             )
@@ -6082,6 +6102,7 @@ class ProjectStore:
         decided_by: str,
         candidate_id: str,
         accepted_pv: str | None,
+        dual_hil_stamp: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Apply one HIL outcome to the exact ordered DONE batch in one write."""
 
@@ -6100,6 +6121,28 @@ class ProjectStore:
             status="BLOCKED",
             decision=decision,
         )
+        if dual_hil_stamp is not None:
+            dual_hil_stamp_body = {
+                key: value
+                for key, value in dual_hil_stamp.items()
+                if key != "receipt_sha256"
+            }
+            require(
+                decision == "APPROVE"
+                and dual_hil_stamp.get("schema")
+                == "evidence-lane.plan-dual-hil-acceptance-stamp.v1"
+                and dual_hil_stamp.get("status") == "PASS"
+                and dual_hil_stamp.get("target_pv") == accepted_pv
+                and dual_hil_stamp.get("project_decision") == "APPROVE"
+                and dual_hil_stamp.get("learning_decision") == "APPROVE"
+                and dual_hil_stamp.get("accepted_archive_queried_for_stamp")
+                is False
+                and dual_hil_stamp.get("receipt_sha256")
+                == sha256_bytes(canonical_json_bytes(dual_hil_stamp_body)),
+                "PLAN_BATCH_DUAL_HIL_STAMP_INVALID",
+                "The batch Plan HIL stamp must bind both exact approvals for the same PV without archive access.",
+                status="MISMATCH",
+            )
         with self._lock(project_id):
             backlog = self._load_backlog(project_id)
             ensure_event_ledger(backlog)
@@ -6125,6 +6168,7 @@ class ProjectStore:
                 "decided_by": decided_by,
                 "candidate_id": candidate_id,
                 "accepted_pv": accepted_pv,
+                "dual_hil_stamp": dual_hil_stamp,
             }
             basis_sha256 = sha256_bytes(canonical_json_bytes(basis))
             receipt_id = f"batchoutcome_{basis_sha256[:32].lower()}"
@@ -6156,10 +6200,20 @@ class ProjectStore:
                         "candidate_id": candidate_id,
                         "accepted_pv": accepted_pv,
                         "batch_outcome_receipt_id": receipt_id,
+                        **(
+                            {"dual_hil_acceptance_stamp": dual_hil_stamp}
+                            if dual_hil_stamp is not None
+                            else {}
+                        ),
                     },
                 )
                 task = tasks[task_id]
                 task["accepted_pv"] = accepted_pv if decision == "APPROVE" else None
+                if dual_hil_stamp is not None:
+                    task["dual_hil_acceptance_stamp"] = {
+                        **dual_hil_stamp,
+                        "batch_task_id": task_id,
+                    }
                 task["history"].append(
                     {
                         "event": "HIL_DECISION",
@@ -6167,6 +6221,11 @@ class ProjectStore:
                         "decision": decision,
                         "candidate_id": candidate_id,
                         "accepted_pv": task["accepted_pv"],
+                        "dual_hil_acceptance_stamp_sha256": (
+                            dual_hil_stamp.get("receipt_sha256")
+                            if dual_hil_stamp is not None
+                            else None
+                        ),
                         "recorded_at": now,
                     }
                 )
@@ -6204,13 +6263,19 @@ class ProjectStore:
         correction_of_event_id: str | None = None,
         expected_backlog_sha256: str | None = None,
     ) -> dict[str, Any]:
-        """Apply one atomic transition or repair one proven partial DROP."""
+        """Apply one atomic transition or repair one proven lifecycle defect."""
 
         transition = transition_name.strip().upper()
         require(
-            transition in {"DROP", "SUPERSEDE", "CORRECT_DROP"},
+            transition
+            in {
+                "DROP",
+                "SUPERSEDE",
+                "CORRECT_DROP",
+                "CORRECT_PREAPPROVAL_DONE",
+            },
             "DELTA_EXPLICIT_TRANSITION_INVALID",
-            "Only DROP, SUPERSEDE, or the sealed DROP correction may be requested.",
+            "Only DROP, SUPERSEDE, or a sealed lifecycle correction may be requested.",
             status="BLOCKED",
             transition=transition,
         )
@@ -6228,6 +6293,208 @@ class ProjectStore:
                 task_id=task_id,
             )
             task = tasks[task_id]
+            if transition == "CORRECT_PREAPPROVAL_DONE":
+                exact_correction_event_id = str(correction_of_event_id or "").strip()
+                exact_expected_sha256 = (
+                    str(expected_backlog_sha256 or "").strip().upper()
+                )
+                require(
+                    bool(exact_correction_event_id)
+                    and re.fullmatch(r"[0-9A-F]{64}", exact_expected_sha256)
+                    is not None,
+                    "DELTA_PREAPPROVAL_DONE_CORRECTION_AUTHORITY_MISMATCH",
+                    "Preapproval DONE correction requires the exact event and backlog hash.",
+                    status="MISMATCH",
+                )
+                correction_event = next(
+                    (
+                        row
+                        for row in candidate.get("events", [])
+                        if row.get("event_type")
+                        == "HIL_PREAPPROVAL_DONE_CORRECTION_RESTORED"
+                        and row.get("details", {}).get("correction_of_event_id")
+                        == exact_correction_event_id
+                    ),
+                    None,
+                )
+                session_payload: dict[str, Any] | None = None
+                session_path: Path | None = None
+                if correction_event is not None:
+                    correction_details = cast(dict[str, Any], correction_event).get(
+                        "details", {}
+                    )
+                    require(
+                        task.get("status") == "ACTIVE"
+                        and task.get("last_event_id")
+                        == correction_event.get("event_id")
+                        and correction_details.get("before_backlog_sha256")
+                        == exact_expected_sha256,
+                        "DELTA_PREAPPROVAL_DONE_CORRECTION_REPLAY_MISMATCH",
+                        "The existing correction does not bind the requested prior state.",
+                        status="MISMATCH",
+                    )
+                    session_id = str(correction_details.get("session_id") or "")
+                    session_path = (
+                        self.project_root(project_id)
+                        / "sessions"
+                        / f"{session_id}.json"
+                    )
+                    session_payload = json.loads(
+                        session_path.read_text(encoding="utf-8")
+                    )
+                    session_payload.setdefault("metadata", {})[
+                        "active_backlog_task_status"
+                    ] = "ACTIVE"
+                    atomic_write_json(session_path, session_payload)
+                    return {
+                        "status": "PASS",
+                        "idempotent": True,
+                        "task": task,
+                        "event": correction_event,
+                        "backlog": self.backlog_status(project_id),
+                    }
+                require(
+                    current_backlog_sha256 == exact_expected_sha256,
+                    "DELTA_PREAPPROVAL_DONE_CORRECTION_BACKLOG_MISMATCH",
+                    "The live backlog no longer matches the sealed correction basis.",
+                    status="MISMATCH",
+                    observed_backlog_sha256=current_backlog_sha256,
+                )
+                prior_event = next(
+                    (
+                        row
+                        for row in candidate.get("events", [])
+                        if row.get("event_id") == exact_correction_event_id
+                    ),
+                    None,
+                )
+                require(
+                    isinstance(prior_event, dict)
+                    and prior_event.get("task_id") == task_id
+                    and prior_event.get("event_type") == "TASK_DONE"
+                    and prior_event.get("from_status") == "ACTIVE"
+                    and prior_event.get("to_status") == "DONE"
+                    and task.get("status") == "DONE"
+                    and task.get("last_event_id") == exact_correction_event_id,
+                    "DELTA_PREAPPROVAL_DONE_CORRECTION_EVENT_MISMATCH",
+                    "The sealed event is not the task's exact premature ACTIVE-to-DONE transition.",
+                    status="MISMATCH",
+                )
+                prior_event = cast(dict[str, Any], prior_event)
+                prior_details = cast(dict[str, Any], prior_event.get("details") or {})
+                candidate_id = str(prior_details.get("candidate_id") or "")
+                session_id = str(prior_details.get("session_id") or "")
+                require(
+                    bool(candidate_id) and bool(session_id),
+                    "DELTA_PREAPPROVAL_DONE_CORRECTION_EVENT_UNBOUND",
+                    "The premature event lacks its exact candidate or session binding.",
+                    status="MISMATCH",
+                )
+                session_path = (
+                    self.project_root(project_id) / "sessions" / f"{session_id}.json"
+                )
+                session_payload = json.loads(session_path.read_text(encoding="utf-8"))
+                session_metadata = cast(
+                    dict[str, Any], session_payload.get("metadata") or {}
+                )
+                overlay_path = (
+                    self.project_root(project_id)
+                    / "receipts"
+                    / "candidate-overlays"
+                    / f"{candidate_id}.json"
+                )
+                overlay = json.loads(overlay_path.read_text(encoding="utf-8"))
+                pointer = self.pointer(project_id)
+                require(
+                    session_payload.get("state") in {"PV1_CANDIDATE", "PVN1_CANDIDATE"}
+                    and session_payload.get("candidate_id") == candidate_id
+                    and session_metadata.get("active_backlog_task_id") == task_id
+                    and session_metadata.get("active_backlog_task_status") == "DONE"
+                    and session_payload.get("accepted_pointer_generation")
+                    == session_metadata.get("candidate_pointer_generation")
+                    == pointer.generation
+                    and overlay.get("candidate_id") == candidate_id
+                    and overlay.get("pointer_generation") == pointer.generation
+                    and overlay.get("pointer_moved") is False
+                    and overlay.get("hil_inferred") is False
+                    and overlay.get("accepted_artifact_created") is False,
+                    "DELTA_PREAPPROVAL_DONE_CORRECTION_CANDIDATE_MISMATCH",
+                    "The pending proposal no longer matches the exact preapproval correction boundary.",
+                    status="MISMATCH",
+                )
+                require(
+                    not any(
+                        row.get("task_id") == task_id
+                        and str(row.get("event_type") or "").startswith("HIL_")
+                        and (row.get("details") or {}).get("candidate_id")
+                        == candidate_id
+                        for row in candidate.get("events", [])
+                    ),
+                    "DELTA_PREAPPROVAL_DONE_CORRECTION_DECISION_EXISTS",
+                    "A HIL outcome already exists for this candidate.",
+                    status="BLOCKED",
+                )
+                correction_details = {
+                    "reason_sha256": reason_sha256,
+                    "history_preserved": True,
+                    "correction_of_event_id": exact_correction_event_id,
+                    "correction_of_event_sha256": prior_event.get("event_sha256"),
+                    "before_backlog_sha256": current_backlog_sha256,
+                    "candidate_id": candidate_id,
+                    "session_id": session_id,
+                    "pointer_generation": pointer.generation,
+                    "approval_inferred": False,
+                }
+                lifecycle_event = append_delta_event(
+                    candidate,
+                    task_id=task_id,
+                    event_type="HIL_PREAPPROVAL_DONE_CORRECTION_RESTORED",
+                    to_status="ACTIVE",
+                    actor=decided_by,
+                    event_id=event_id,
+                    assume_initialized=True,
+                    details=correction_details,
+                )
+                task.pop("completed_candidate_id", None)
+                task["active_session_id"] = session_id
+                task["history"].append(
+                    {
+                        "event": "HIL_PREAPPROVAL_DONE_CORRECTION_RESTORED",
+                        "event_id": lifecycle_event["event_id"],
+                        "recorded_at": lifecycle_event["recorded_at"],
+                        **correction_details,
+                    }
+                )
+                after_backlog_sha256 = sha256_bytes(canonical_json_bytes(candidate))
+                self._persist_backlog(project_id, candidate)
+                session_payload.setdefault("metadata", {})[
+                    "active_backlog_task_status"
+                ] = "ACTIVE"
+                atomic_write_json(session_path, session_payload)
+                return {
+                    "status": "PASS",
+                    "idempotent": False,
+                    "task": task,
+                    "event": lifecycle_event,
+                    "backlog": self.backlog_status(project_id),
+                    "transition_correction_receipt": {
+                        "schema": "evidence-lane.preapproval-done-correction-receipt.v1",
+                        "status": "PASS",
+                        "task_id": task_id,
+                        "candidate_id": candidate_id,
+                        "session_id": session_id,
+                        "correction_of_event_id": exact_correction_event_id,
+                        "before_backlog_sha256": current_backlog_sha256,
+                        "after_backlog_sha256": after_backlog_sha256,
+                        "history_preserved": True,
+                        "pointer_moved": False,
+                        "candidate_created": False,
+                        "hil_invoked": False,
+                        "approval_inferred": False,
+                        "goal_mutated": False,
+                        "git_executed": False,
+                    },
+                }
             if transition == "CORRECT_DROP":
                 exact_correction_event_id = str(correction_of_event_id or "").strip()
                 exact_expected_sha256 = (
@@ -6337,7 +6604,7 @@ class ProjectStore:
                 }
 
             target_status = "DROPPED" if transition == "DROP" else "SUPERSEDED"
-            details: dict[str, Any] = {
+            transition_details: dict[str, Any] = {
                 "reason_sha256": reason_sha256,
                 "history_preserved": True,
             }
@@ -6352,7 +6619,7 @@ class ProjectStore:
                     status="BLOCKED",
                     replacement_task_id=exact_replacement or None,
                 )
-                details["replacement_task_id"] = exact_replacement
+                transition_details["replacement_task_id"] = exact_replacement
                 task["superseded_by_task_id"] = exact_replacement
                 tasks[exact_replacement]["supersedes_task_id"] = task_id
             lifecycle_event = append_delta_event(
@@ -6363,7 +6630,7 @@ class ProjectStore:
                 actor=decided_by,
                 event_id=event_id,
                 assume_initialized=True,
-                details=details,
+                details=transition_details,
             )
             if not any(
                 row.get("event_id") == lifecycle_event["event_id"]
@@ -6374,7 +6641,7 @@ class ProjectStore:
                         "event": target_status,
                         "event_id": lifecycle_event["event_id"],
                         "recorded_at": lifecycle_event["recorded_at"],
-                        **details,
+                        **transition_details,
                     }
                 )
             # Validate the complete candidate before making any lifecycle
@@ -6502,6 +6769,130 @@ class ProjectStore:
         }
         return ProjectConfig(**fields)
 
+    def bootstrap_pv0_baseline(
+        self,
+        project_id: str,
+        *,
+        source_intake_event_id: str,
+        working_refresh_receipt_sha256: str,
+        bootstrapped_by: str,
+    ) -> dict[str, Any]:
+        """Bind the first live-root sector projection as PV0 without HIL.
+
+        PV0 is the starting authority, not an accepted HIL artifact.  This
+        operation therefore never reads or writes ``accepted/`` and never
+        creates a candidate.  Its manifest binding is the live sector bundle
+        plus the exact Source Intake refresh that built it.
+        """
+
+        root = self.project_root(project_id)
+        require(
+            self.uses_external_project_authority(project_id),
+            "PV0_BOOTSTRAP_LIVE_ROOT_REQUIRED",
+            "The current PV0 bootstrap route requires live-root project authority.",
+            status="BLOCKED",
+        )
+        exact_actor = str(bootstrapped_by).strip()
+        exact_event_id = str(source_intake_event_id).strip()
+        exact_refresh_sha256 = str(working_refresh_receipt_sha256).strip().upper()
+        require(
+            bool(exact_actor)
+            and bool(exact_event_id)
+            and re.fullmatch(r"[A-F0-9]{64}", exact_refresh_sha256) is not None,
+            "PV0_BOOTSTRAP_SOURCE_INTAKE_BINDING_REQUIRED",
+            "PV0 requires the exact Source Intake event and WORKING refresh receipt.",
+            status="BLOCKED",
+        )
+        sectors_manifest = root / "sectors" / "manifest.json"
+        require(
+            sectors_manifest.is_file(),
+            "PV0_BOOTSTRAP_SECTOR_MANIFEST_MISSING",
+            "Initial Build must materialize all sector lanes through Source Intake before PV0 can be bound.",
+            status="MISMATCH",
+        )
+        sector_manifest_sha256 = sha256_file(sectors_manifest)
+        receipt_body = {
+            "schema": "evidence-lane.pv0-live-root-bootstrap.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "baseline_pv": "PV0",
+            "pointer_generation": 0,
+            "source_intake_event_id": exact_event_id,
+            "working_refresh_receipt_sha256": exact_refresh_sha256,
+            "sector_manifest_sha256": sector_manifest_sha256,
+            "bootstrapped_by": exact_actor,
+            "initial_authority": "LIVE_PROJECT_ROOT_SECTORS",
+            "human_hil_required": False,
+            "candidate_created": False,
+            "accepted_archive_opened": False,
+            "accepted_archive_queried": False,
+            "accepted_archive_written": False,
+            "project_overlay_refreshed": False,
+            "learning_hil_invoked": False,
+            "pointer_moved_from_accepted_hil": False,
+        }
+        receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_body))
+        receipt = {**receipt_body, "receipt_sha256": receipt_sha256}
+        receipt_path = root / "receipts" / "pv0-live-root-bootstrap.json"
+        pointer_path = root / "active_pointer.json"
+        with self._lock(project_id):
+            before = self.pointer(project_id)
+            if before.accepted_pv == "PV0":
+                require(
+                    receipt_path.is_file()
+                    and json.loads(receipt_path.read_text(encoding="utf-8"))
+                    == receipt
+                    and before.generation == 0
+                    and before.accepted_manifest_sha256 == receipt_sha256,
+                    "PV0_BOOTSTRAP_REPLAY_MISMATCH",
+                    "An existing PV0 pointer does not match the exact bootstrap receipt.",
+                    status="MISMATCH",
+                )
+                return {
+                    "status": "PASS",
+                    "state": "PV0_BASELINE_IDEMPOTENT_REUSE",
+                    "pointer": before.as_dict(),
+                    "receipt": receipt,
+                    "receipt_path": str(receipt_path),
+                }
+            require(
+                before.accepted_pv is None
+                and before.accepted_manifest_sha256 is None
+                and before.generation == 0,
+                "PV0_BOOTSTRAP_POINTER_NOT_EMPTY",
+                "PV0 may be bound only once before any accepted Project HIL.",
+                status="BLOCKED",
+                pointer=before.as_dict(),
+            )
+            if receipt_path.exists():
+                require(
+                    json.loads(receipt_path.read_text(encoding="utf-8")) == receipt,
+                    "PV0_BOOTSTRAP_RECEIPT_CONFLICT",
+                    "The deterministic PV0 bootstrap receipt already has different evidence.",
+                    status="MISMATCH",
+                )
+            else:
+                atomic_write_json(receipt_path, receipt)
+            after = ActivePointer(
+                project_id=project_id,
+                accepted_pv="PV0",
+                accepted_manifest_sha256=receipt_sha256,
+                generation=0,
+                prior_generation=None,
+                updated_at=utc_now(),
+            )
+            atomic_write_json(
+                pointer_path,
+                {"schema": POINTER_SCHEMA, **after.as_dict()},
+            )
+        return {
+            "status": "PASS",
+            "state": "PV0_BASELINE_ESTABLISHED",
+            "pointer": self.pointer(project_id).as_dict(),
+            "receipt": receipt,
+            "receipt_path": str(receipt_path),
+        }
+
     def pointer(self, project_id: str) -> ActivePointer:
         path = self.project_root(project_id) / "active_pointer.json"
         require(
@@ -6601,10 +6992,25 @@ class ProjectStore:
         claimed = str(receipt.get("receipt_sha256") or "")
         body = dict(receipt)
         body.pop("receipt_sha256", None)
+        receipt_schema = receipt.get("schema")
+        proposal_identity_valid = bool(
+            receipt_schema == "evidence-lane.project-hil-proposal.v1"
+            and receipt.get("proposal_id") == candidate_id
+            and receipt.get("candidate_id") == candidate_id
+            and receipt.get("full_candidate_package_built") is False
+        )
         require(
-            receipt.get("schema") == "evidence-lane.project-candidate-overlay.v1"
+            receipt_schema
+            in {
+                "evidence-lane.project-candidate-overlay.v1",
+                "evidence-lane.project-hil-proposal.v1",
+            }
             and receipt.get("project_id") == project_id
             and receipt.get("candidate_id") == candidate_id
+            and (
+                receipt_schema == "evidence-lane.project-candidate-overlay.v1"
+                or proposal_identity_valid
+            )
             and receipt.get("state") == "SEALED_AFTER_LIFECYCLE_APPEND"
             and claimed == sha256_bytes(canonical_json_bytes(body)),
             "PROJECT_CANDIDATE_OVERLAY_RECEIPT_MISMATCH",
@@ -6632,10 +7038,19 @@ class ProjectStore:
         removed_paths = sorted(expected_rows.keys() - current_rows.keys())
         validation = dict(receipt.get("validation") or {})
         pointer = self.pointer(project_id)
-        post_promotion_receipts_only = bool(
+        operational_sector_changed_paths = [
+            path
+            for path in changed_paths
+            if path in {"sectors/manifest.json", "sectors/SHA256SUMS.json"}
+            or (
+                path.startswith("sectors/")
+                and is_working_sector_operational_member(path.removeprefix("sectors/"))
+            )
+        ]
+        post_promotion_receipts_and_operational_drift_only = bool(
             added_paths
             and not removed_paths
-            and not changed_paths
+            and len(operational_sector_changed_paths) == len(changed_paths)
             and all(
                 path.startswith("receipts/")
                 and path.count("/") == 1
@@ -6647,7 +7062,7 @@ class ProjectStore:
         )
         require(
             current["working_identity_sha256"] == receipt.get("working_identity_sha256")
-            or post_promotion_receipts_only,
+            or post_promotion_receipts_and_operational_drift_only,
             "PROJECT_CANDIDATE_OVERLAY_STALE",
             "The live project root changed after the candidate overlay was sealed.",
             status="STALE",
@@ -6658,8 +7073,11 @@ class ProjectStore:
             removed_paths=removed_paths,
             changed_paths=changed_paths,
         )
-        if post_promotion_receipts_only:
+        if post_promotion_receipts_and_operational_drift_only:
             validation["post_promotion_lifecycle_receipts"] = added_paths
+            validation["post_promotion_operational_sector_members"] = (
+                operational_sector_changed_paths
+            )
             validation["candidate_content_identity_unchanged"] = True
         require(
             not require_promotable or validation.get("promotable") is True,
@@ -6669,6 +7087,87 @@ class ProjectStore:
             candidate_id=candidate_id,
         )
         return validation
+
+    def candidate_preservation_identity(
+        self,
+        project_id: str,
+        candidate_id: str,
+    ) -> dict[str, Any]:
+        """Verify immutable candidate identity without requiring live-root equality.
+
+        Direct same-worktree State Travel preserves an already sealed candidate
+        while the live worktree continues independently.  Requiring the current
+        live-root overlay to equal that earlier candidate is the obsolete gate
+        that rejected valid pending-HIL continuity.
+        """
+
+        root = self.project_root(project_id)
+        if root == self._legacy_project_root(project_id):
+            validation = validate_pv_package(
+                self.candidate_path(project_id, candidate_id),
+                require_promotable=False,
+            )
+            return {
+                **validation,
+                "status": "PASS",
+                "candidate_id": candidate_id,
+                "preservation_scope": "IMMUTABLE_CANDIDATE_PACKAGE_IDENTITY",
+                "current_live_root_equality_required": False,
+            }
+        receipt_path = self._candidate_overlay_receipt_path(project_id, candidate_id)
+        require(
+            receipt_path.is_file(),
+            "PROJECT_CANDIDATE_OVERLAY_NOT_FOUND",
+            "The live-root candidate overlay receipt does not exist.",
+            status="MISMATCH",
+            candidate_id=candidate_id,
+        )
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        claimed = str(receipt.get("receipt_sha256") or "")
+        body = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+        receipt_schema = receipt.get("schema")
+        proposal_identity_valid = bool(
+            receipt_schema == "evidence-lane.project-hil-proposal.v1"
+            and receipt.get("proposal_id") == candidate_id
+            and receipt.get("candidate_id") == candidate_id
+            and receipt.get("full_candidate_package_built") is False
+        )
+        require(
+            receipt_schema
+            in {
+                "evidence-lane.project-candidate-overlay.v1",
+                "evidence-lane.project-hil-proposal.v1",
+            }
+            and receipt.get("project_id") == project_id
+            and receipt.get("candidate_id") == candidate_id
+            and (
+                receipt_schema == "evidence-lane.project-candidate-overlay.v1"
+                or proposal_identity_valid
+            )
+            and receipt.get("state") == "SEALED_AFTER_LIFECYCLE_APPEND"
+            and claimed == sha256_bytes(canonical_json_bytes(body)),
+            "PROJECT_CANDIDATE_PRESERVATION_RECEIPT_MISMATCH",
+            "The preserved candidate receipt failed exact identity validation.",
+            status="MISMATCH",
+            candidate_id=candidate_id,
+        )
+        validation = dict(receipt.get("validation") or {})
+        return {
+            "status": "PASS",
+            "candidate_id": candidate_id,
+            "receipt_schema": receipt_schema,
+            "receipt_sha256": claimed,
+            "manifest_sha256": validation.get("manifest_sha256"),
+            "package_sha256": validation.get("package_sha256"),
+            "working_identity_sha256": receipt.get("working_identity_sha256"),
+            "promotable": validation.get("promotable"),
+            "preservation_scope": (
+                "IMMUTABLE_CANDIDATE_RECEIPT_IDENTITY_WITHOUT_LIVE_ROOT_EQUALITY"
+            ),
+            "current_live_root_equality_required": False,
+            "candidate_cleared": False,
+            "candidate_rebuilt": False,
+        }
 
     def candidate_metadata(self, project_id: str, candidate_id: str) -> dict[str, Any]:
         root = self.project_root(project_id)
@@ -6696,10 +7195,21 @@ class ProjectStore:
             pv_id=pv_id,
         )
         root = self.project_root(project_id)
+        archives = sorted((root / "accepted").glob(f"{pv_id}__*.zip"))
+        if root != self._legacy_project_root(project_id):
+            require(
+                len(archives) == 1,
+                "PROJECT_ACCEPTED_SINGLE_ZIP_REQUIRED",
+                "Current accepted storage requires exactly one numbered full-root ZIP.",
+                status="MISMATCH",
+                project_id=project_id,
+                pv_id=pv_id,
+                archive_count=len(archives),
+            )
+            return archives[0].resolve()
         directory = (root / "accepted" / pv_id).resolve()
         if directory.is_dir():
             return directory
-        archives = sorted((root / "accepted").glob(f"{pv_id}__*.zip"))
         require(
             len(archives) <= 1,
             "PROJECT_ACCEPTED_ARCHIVE_AMBIGUOUS",
@@ -6803,7 +7313,15 @@ class ProjectStore:
         project_id: str,
         pv_id: str,
     ) -> dict[str, Any]:
-        """Validate the current external pointer from root receipts only."""
+        """Validate the current external pointer from root receipts only.
+
+        Current promotions emit one v2 receipt plus one committed swap journal.
+        External authorities migrated before that route existed may instead carry
+        the original v1 promotion receipt and exact task-binding receipts that
+        all bind the same accepted package hash.  That legacy baseline remains a
+        root-receipt reference only: this verifier never opens ``accepted/`` and
+        the next governed promotion must replace it with the v2 pair.
+        """
 
         require(
             self.uses_external_project_authority(project_id),
@@ -6852,8 +7370,7 @@ class ProjectStore:
                 and receipt.get("decision_id") == decision_id
                 and receipt.get("candidate_id") == journal.get("candidate_id")
                 and receipt.get("accepted_pv") == pv_id
-                and receipt.get("manifest_sha256")
-                == pointer.accepted_manifest_sha256
+                and receipt.get("manifest_sha256") == pointer.accepted_manifest_sha256
                 and receipt.get("archive_sha256")
                 == journal.get("staged_archive_sha256")
                 and receipt.get("pointer_generation_before")
@@ -6861,13 +7378,13 @@ class ProjectStore:
                 and receipt.get("pointer_generation_after") == pointer.generation
                 and receipt.get("live_working_identity_preserved") is True
                 and receipt.get("candidate_directory_created") is False
-                and receipt.get("prior_accepted_artifact_purged_after_new_archive_verified")
+                and receipt.get(
+                    "prior_accepted_artifact_purged_after_new_archive_verified"
+                )
                 is True
                 and journal.get("prior_accepted_artifact_purged") is True
                 and len(package_sha256) == 64
-                and all(
-                    character in "0123456789ABCDEF" for character in package_sha256
-                )
+                and all(character in "0123456789ABCDEF" for character in package_sha256)
             )
             if valid:
                 matches.append(
@@ -6879,26 +7396,185 @@ class ProjectStore:
                         "promotion_receipt_sha256": sha256_bytes(
                             receipt_path.read_bytes()
                         ),
-                        "swap_journal_sha256": sha256_bytes(
-                            journal_path.read_bytes()
+                        "swap_journal_sha256": sha256_bytes(journal_path.read_bytes()),
+                    }
+                )
+        if len(matches) == 1:
+            exact_match = {
+                **matches[0],
+                "continuity_mode": "CURRENT_V2_PROMOTION_RECEIPT_PAIR",
+                "validation_scope": "LIVE_ROOT_PROMOTION_RECEIPT_PAIR",
+                "archive_verification": "VERIFIED_DURING_GOVERNED_PROMOTION",
+                "migration_required_at_next_promotion": False,
+            }
+        else:
+            require(
+                not matches,
+                "LIVE_ROOT_POINTER_CONTINUITY_RECEIPT_MISMATCH",
+                "The current external pointer has ambiguous v2 root promotion receipt pairs.",
+                status="MISMATCH",
+                project_id=project_id,
+                pv_id=pv_id,
+                matching_receipt_count=len(matches),
+            )
+            legacy_promotions: list[dict[str, Any]] = []
+            for receipt_path in sorted((root / "receipts").glob("*.json")):
+                try:
+                    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+                except (OSError, UnicodeError, json.JSONDecodeError):
+                    continue
+                decision_id = str(receipt.get("decision_id") or "")
+                candidate_id = str(receipt.get("candidate_id") or "")
+                if not (
+                    receipt.get("schema") == "evidence-lane.pv-promotion.receipt.v1"
+                    and receipt.get("decision") == "APPROVE"
+                    and decision_id
+                    and receipt_path.stem == decision_id
+                    and candidate_id
+                    and receipt.get("accepted_pv") == pv_id
+                    and receipt.get("manifest_sha256")
+                    == pointer.accepted_manifest_sha256
+                    and receipt.get("pointer_generation_before")
+                    == pointer.prior_generation
+                    and receipt.get("pointer_generation_after") == pointer.generation
+                    and receipt.get("candidate_bytes_preserved") is True
+                ):
+                    continue
+                legacy_promotions.append(
+                    {
+                        "decision_id": decision_id,
+                        "candidate_id": candidate_id,
+                        "manifest_sha256": pointer.accepted_manifest_sha256,
+                        "promotion_receipt_sha256": sha256_bytes(
+                            receipt_path.read_bytes()
                         ),
                     }
                 )
-        require(
-            len(matches) == 1,
-            "LIVE_ROOT_POINTER_CONTINUITY_RECEIPT_MISMATCH",
-            "The current external pointer requires one exact root promotion receipt pair.",
-            status="MISMATCH",
-            project_id=project_id,
-            pv_id=pv_id,
-            matching_receipt_count=len(matches),
-        )
+
+            binding_hashes: dict[str, list[str]] = {}
+            binding_root = root / "receipts" / "codex-task-bindings"
+            for binding_path in sorted(binding_root.glob("*.json")):
+                try:
+                    binding = json.loads(binding_path.read_text(encoding="utf-8"))
+                except (OSError, UnicodeError, json.JSONDecodeError):
+                    continue
+                accepted_pointer = binding.get("accepted_pointer")
+                package_sha256 = str(
+                    accepted_pointer.get("package_sha256")
+                    if isinstance(accepted_pointer, dict)
+                    else ""
+                ).strip().upper()
+                package_hash_valid = bool(
+                    len(package_sha256) == 64
+                    and all(
+                        character in "0123456789ABCDEF"
+                        for character in package_sha256
+                    )
+                )
+                if not (
+                    binding.get("schema")
+                    == "evidence-lane.codex-exact-task-project-session-binding.v1"
+                    and binding.get("status") == "PASS"
+                    and binding.get("project_id") == project_id
+                    and isinstance(accepted_pointer, dict)
+                    and accepted_pointer.get("accepted_pv") == pv_id
+                    and accepted_pointer.get("generation") == pointer.generation
+                    and accepted_pointer.get("manifest_sha256")
+                    == pointer.accepted_manifest_sha256
+                    and package_hash_valid
+                ):
+                    continue
+                binding_hashes.setdefault(package_sha256, []).append(
+                    sha256_bytes(binding_path.read_bytes())
+                )
+
+            migration_receipt_hash: str | None = None
+            migration_path = (
+                root / "receipts" / "project-authority" / "migration.json"
+            )
+            if not binding_hashes and migration_path.is_file():
+                try:
+                    migration = json.loads(
+                        migration_path.read_text(encoding="utf-8")
+                    )
+                except (OSError, UnicodeError, json.JSONDecodeError):
+                    migration = {}
+                migration_body = {
+                    key: value
+                    for key, value in migration.items()
+                    if key != "receipt_sha256"
+                }
+                migration_package_identity = str(
+                    migration.get("copy_manifest_sha256") or ""
+                ).upper()
+                migration_valid = bool(
+                    migration.get("schema")
+                    == "evidence-lane.project-authority-migration.v1"
+                    and migration.get("status") == "PASS"
+                    and migration.get("project_id") == project_id
+                    and migration.get("accepted_pv") == pv_id
+                    and migration.get("pointer_generation") == pointer.generation
+                    and migration.get("pointer_moved") is False
+                    and migration.get("candidate_created") is False
+                    and migration.get("hil_inferred") is False
+                    and migration.get("legacy_history_authoritative") is False
+                    and len(migration_package_identity) == 64
+                    and all(
+                        character in "0123456789ABCDEF"
+                        for character in migration_package_identity
+                    )
+                    and migration.get("receipt_sha256")
+                    == sha256_bytes(canonical_json_bytes(migration_body))
+                )
+                if migration_valid:
+                    migration_receipt_hash = sha256_bytes(
+                        migration_path.read_bytes()
+                    )
+                    binding_hashes[migration_package_identity] = [
+                        migration_receipt_hash
+                    ]
+
+            require(
+                len(legacy_promotions) == 1 and len(binding_hashes) == 1,
+                "LIVE_ROOT_POINTER_CONTINUITY_RECEIPT_MISMATCH",
+                "The current external pointer requires one exact v2 pair or one unambiguous legacy root baseline.",
+                status="MISMATCH",
+                project_id=project_id,
+                pv_id=pv_id,
+                matching_receipt_count=0,
+                legacy_promotion_receipt_count=len(legacy_promotions),
+                legacy_package_hash_count=len(binding_hashes),
+            )
+            package_sha256, binding_receipt_hashes = next(iter(binding_hashes.items()))
+            exact_match = {
+                **legacy_promotions[0],
+                "package_sha256": package_sha256,
+                "swap_journal_sha256": None,
+                "supporting_task_binding_receipt_count": len(
+                    binding_receipt_hashes
+                ),
+                "supporting_task_binding_receipts_sha256": sha256_bytes(
+                    canonical_json_bytes(sorted(binding_receipt_hashes))
+                ),
+                "continuity_mode": (
+                    "PROJECT_AUTHORITY_MIGRATION_PLAN_POINTER_BASELINE"
+                    if migration_receipt_hash is not None
+                    else "LEGACY_V1_PROMOTION_POINTER_BOUND"
+                ),
+                "validation_scope": (
+                    "LIVE_ROOT_MIGRATION_RECEIPT_AND_PLAN_POINTER"
+                    if migration_receipt_hash is not None
+                    else "LIVE_ROOT_LEGACY_PROMOTION_AND_TASK_BINDINGS"
+                ),
+                "archive_verification": "UNAVAILABLE_LEGACY_BASELINE",
+                "migration_required_at_next_promotion": True,
+            }
         return {
             "status": "PASS",
             "schema": "evidence-lane.live-root-pointer-continuity.v1",
             "project_id": project_id,
             "pointer": pointer.as_dict(),
-            **matches[0],
+            **exact_match,
             "accepted_archive_opened": False,
             "accepted_archive_queried": False,
         }
@@ -6911,6 +7587,151 @@ class ProjectStore:
             ordinals.append(int(pointer.accepted_pv[2:]))
         return max(ordinals, default=0)
 
+    def place_live_root_hil_proposal(
+        self,
+        project_id: str,
+        proposal_id: str,
+        *,
+        proposed_pv: str,
+        project_overlay_source: str | Path,
+        package_metadata: dict[str, Any],
+        validation: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Commit one Project Overlay proposal without building a PV tree.
+
+        External project authority works exclusively in the live root.  The
+        pre-HIL operation therefore refreshes only ``project_overlay/`` and
+        seals a receipt over the live bytes.  The accepted CAS ZIP is created
+        later, and only after exact human approval.
+        """
+
+        root = self.project_root(project_id)
+        require(
+            root != self._legacy_project_root(project_id),
+            "LIVE_ROOT_HIL_PROPOSAL_EXTERNAL_REQUIRED",
+            "The live-root HIL proposal route is only valid for external project authority.",
+            status="MISMATCH",
+            project_id=project_id,
+        )
+        pointer = self.pointer(project_id)
+        overlay_source = Path(project_overlay_source).resolve()
+        source_overlay_validation = validate_project_overlay(overlay_source)
+        require(
+            source_overlay_validation.get("valid") is True,
+            "PROJECT_HIL_OVERLAY_PROJECTION_INVALID",
+            "The proposed Project Overlay failed validation.",
+            status="MISMATCH",
+            proposal_id=proposal_id,
+        )
+        project_overlay_target = root / "project_overlay"
+        overlay_stage = root / f".project-overlay-stage-{proposal_id}"
+        overlay_prior = root / f".project-overlay-prior-{proposal_id}"
+        require(
+            not overlay_stage.exists() and not overlay_prior.exists(),
+            "PROJECT_HIL_OVERLAY_PROJECTION_CONFLICT",
+            "A prior Project Overlay projection transaction requires recovery.",
+            status="BLOCKED",
+            proposal_id=proposal_id,
+        )
+        shutil.copytree(overlay_source, overlay_stage)
+        staged_overlay_validation = validate_project_overlay(overlay_stage)
+        require(
+            staged_overlay_validation == source_overlay_validation,
+            "PROJECT_HIL_OVERLAY_PROJECTION_COPY_MISMATCH",
+            "Project Overlay bytes changed while staging the live-root refresh.",
+            status="FAIL",
+            proposal_id=proposal_id,
+        )
+        with self._lock(project_id):
+            prior_moved = False
+            try:
+                if project_overlay_target.exists():
+                    project_overlay_target.replace(overlay_prior)
+                    prior_moved = True
+                overlay_stage.replace(project_overlay_target)
+                require(
+                    validate_project_overlay(project_overlay_target)
+                    == source_overlay_validation,
+                    "PROJECT_HIL_OVERLAY_PROJECTION_COMMIT_MISMATCH",
+                    "The committed live-root Project Overlay failed validation.",
+                    status="FAIL",
+                    proposal_id=proposal_id,
+                )
+            except Exception:
+                if prior_moved and not project_overlay_target.exists():
+                    overlay_prior.replace(project_overlay_target)
+                raise
+            if overlay_prior.exists():
+                resolved_prior = overlay_prior.resolve()
+                resolved_prior.relative_to(root)
+                require(
+                    resolved_prior.name == f".project-overlay-prior-{proposal_id}",
+                    "PROJECT_HIL_OVERLAY_PRIOR_PATH_INVALID",
+                    "The prior Project Overlay path escaped its transaction.",
+                    status="BLOCKED",
+                )
+                shutil.rmtree(resolved_prior)
+
+        working = working_overlay_manifest(root, project_id=project_id)
+        proposal_validation = {
+            **validation,
+            "storage_kind": "LIVE_PROJECT_ROOT_HIL_PROPOSAL",
+            # Compatibility fields remain bound to the exact live working
+            # identity until all public candidate terminology is migrated.
+            "manifest_sha256": working["working_identity_sha256"],
+            "package_sha256": working["working_identity_sha256"],
+            "working_identity_sha256": working["working_identity_sha256"],
+            "working_member_count": working["member_count"],
+            "candidate_directory_created": False,
+            "full_candidate_package_built": False,
+            "project_overlay_refreshed_in_live_root": True,
+            "project_overlay_validation": source_overlay_validation,
+        }
+        receipt_body = {
+            "schema": "evidence-lane.project-hil-proposal.v1",
+            "state": "PROVISIONAL_OVERLAY_REFRESH",
+            "project_id": project_id,
+            "project_root": str(root),
+            "proposal_id": proposal_id,
+            "candidate_id": proposal_id,
+            "proposed_pv": proposed_pv,
+            "parent_accepted_pv": pointer.accepted_pv,
+            "parent_accepted_manifest_sha256": pointer.accepted_manifest_sha256,
+            "pointer_generation": pointer.generation,
+            "working_identity_sha256": working["working_identity_sha256"],
+            "working_member_count": working["member_count"],
+            "working_total_bytes": working["total_bytes"],
+            "working_unique_blob_count": working["unique_blob_count"],
+            "working_members": working["members"],
+            "package_metadata": package_metadata,
+            "validation": proposal_validation,
+            "candidate_directory_created": False,
+            "full_candidate_package_built": False,
+            "accepted_artifact_created": False,
+            "accepted_archive_opened": False,
+            "accepted_archive_queried": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+        receipt = {
+            **receipt_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+        }
+        destination = self._candidate_overlay_receipt_path(project_id, proposal_id)
+        with self._lock(project_id):
+            if destination.exists():
+                existing = json.loads(destination.read_text(encoding="utf-8"))
+                require(
+                    existing == receipt,
+                    "PROJECT_HIL_PROPOSAL_CONFLICT",
+                    "The proposal ID already binds different live-root bytes.",
+                    status="BLOCKED",
+                    proposal_id=proposal_id,
+                )
+            else:
+                atomic_write_json(destination, receipt)
+        return proposal_validation
+
     def place_candidate(
         self,
         project_id: str,
@@ -6918,6 +7739,17 @@ class ProjectStore:
         built_directory: str | Path,
     ) -> dict[str, Any]:
         source = Path(built_directory).resolve()
+        root = self.project_root(project_id)
+        require(
+            root == self._legacy_project_root(project_id),
+            "OBSOLETE_EXTERNAL_CANDIDATE_CONSTRUCTION_ROUTE",
+            "External project authority must refresh the live-root HIL proposal; "
+            "building or extracting a full candidate package is obsolete.",
+            status="BLOCKED",
+            required_current_route="place_live_root_hil_proposal",
+            project_id=project_id,
+            candidate_id=candidate_id,
+        )
         validation = validate_pv_package(source)
         require(
             validation["candidate_id"] == candidate_id,
@@ -6925,126 +7757,6 @@ class ProjectStore:
             "The candidate directory and package manifest IDs differ.",
             status="MISMATCH",
         )
-        root = self.project_root(project_id)
-        if root != self._legacy_project_root(project_id):
-            pointer = self.pointer(project_id)
-            project_overlay_source = source / "project_overlay"
-            source_overlay_validation = validate_project_overlay(
-                project_overlay_source
-            )
-            require(
-                source_overlay_validation.get("valid") is True,
-                "PROJECT_CANDIDATE_OVERLAY_PROJECTION_INVALID",
-                "The candidate Project Overlay cannot refresh the live root.",
-                status="MISMATCH",
-                candidate_id=candidate_id,
-            )
-            project_overlay_target = root / "project_overlay"
-            overlay_stage = root / f".project-overlay-stage-{candidate_id}"
-            overlay_prior = root / f".project-overlay-prior-{candidate_id}"
-            require(
-                not overlay_stage.exists() and not overlay_prior.exists(),
-                "PROJECT_CANDIDATE_OVERLAY_PROJECTION_CONFLICT",
-                "A prior Project Overlay projection transaction requires recovery.",
-                status="BLOCKED",
-                candidate_id=candidate_id,
-            )
-            shutil.copytree(project_overlay_source, overlay_stage)
-            staged_overlay_validation = validate_project_overlay(overlay_stage)
-            require(
-                staged_overlay_validation == source_overlay_validation,
-                "PROJECT_CANDIDATE_OVERLAY_PROJECTION_COPY_MISMATCH",
-                "Project Overlay bytes changed while staging the live-root refresh.",
-                status="FAIL",
-                candidate_id=candidate_id,
-            )
-            with self._lock(project_id):
-                prior_moved = False
-                try:
-                    if project_overlay_target.exists():
-                        project_overlay_target.replace(overlay_prior)
-                        prior_moved = True
-                    overlay_stage.replace(project_overlay_target)
-                    require(
-                        validate_project_overlay(project_overlay_target)
-                        == source_overlay_validation,
-                        "PROJECT_CANDIDATE_OVERLAY_PROJECTION_COMMIT_MISMATCH",
-                        "The committed live-root Project Overlay failed validation.",
-                        status="FAIL",
-                        candidate_id=candidate_id,
-                    )
-                except Exception:
-                    if prior_moved and not project_overlay_target.exists():
-                        overlay_prior.replace(project_overlay_target)
-                    raise
-                if overlay_prior.exists():
-                    resolved_prior = overlay_prior.resolve()
-                    resolved_prior.relative_to(root)
-                    require(
-                        resolved_prior.name
-                        == f".project-overlay-prior-{candidate_id}",
-                        "PROJECT_CANDIDATE_OVERLAY_PRIOR_PATH_INVALID",
-                        "The prior Project Overlay path escaped its transaction.",
-                        status="BLOCKED",
-                    )
-                    shutil.rmtree(resolved_prior)
-            working = working_overlay_manifest(root, project_id=project_id)
-            package_metadata = {
-                name: json.loads((source / f"{name}.json").read_text(encoding="utf-8"))
-                for name in ("manifest", "project_identity", "entry_slip", "exit_slip")
-            }
-            overlay_validation = {
-                **validation,
-                "storage_kind": "LIVE_PROJECT_ROOT_CANDIDATE_OVERLAY",
-                "manifest_sha256": working["working_identity_sha256"],
-                "working_identity_sha256": working["working_identity_sha256"],
-                "working_member_count": working["member_count"],
-                "candidate_package_manifest_sha256": validation["manifest_sha256"],
-                "candidate_package_sha256": validation["package_sha256"],
-                "candidate_directory_created": False,
-                "project_overlay_refreshed_in_live_root": True,
-                "project_overlay_validation": source_overlay_validation,
-            }
-            receipt_body = {
-                "schema": "evidence-lane.project-candidate-overlay.v1",
-                "state": "PROVISIONAL_ENGINE_BUILD",
-                "project_id": project_id,
-                "project_root": str(root),
-                "candidate_id": candidate_id,
-                "proposed_pv": validation["proposed_pv"],
-                "parent_accepted_pv": pointer.accepted_pv,
-                "parent_accepted_manifest_sha256": pointer.accepted_manifest_sha256,
-                "pointer_generation": pointer.generation,
-                "working_identity_sha256": working["working_identity_sha256"],
-                "working_member_count": working["member_count"],
-                "working_total_bytes": working["total_bytes"],
-                "working_unique_blob_count": working["unique_blob_count"],
-                "working_members": working["members"],
-                "package_metadata": package_metadata,
-                "validation": overlay_validation,
-                "candidate_directory_created": False,
-                "accepted_artifact_created": False,
-                "pointer_moved": False,
-                "hil_inferred": False,
-            }
-            receipt = {
-                **receipt_body,
-                "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
-            }
-            destination = self._candidate_overlay_receipt_path(project_id, candidate_id)
-            with self._lock(project_id):
-                if destination.exists():
-                    existing = json.loads(destination.read_text(encoding="utf-8"))
-                    require(
-                        existing == receipt,
-                        "PROJECT_CANDIDATE_OVERLAY_CONFLICT",
-                        "The candidate ID already binds a different live-root identity.",
-                        status="BLOCKED",
-                        candidate_id=candidate_id,
-                    )
-                else:
-                    atomic_write_json(destination, receipt)
-            return overlay_validation
         destination = self.candidate_path(project_id, candidate_id)
         with self._lock(project_id):
             if destination.exists():
@@ -7067,6 +7779,221 @@ class ProjectStore:
                 )
         return validate_pv_package(destination)
 
+    def reconcile_pending_hil_project_overlay(
+        self,
+        project_id: str,
+        candidate_id: str,
+        *,
+        session_id: str,
+    ) -> dict[str, Any]:
+        """Append one final HIL blast-radius transition without rebuilding a candidate."""
+
+        root = self.project_root(project_id)
+        require(
+            root != self._legacy_project_root(project_id),
+            "PROJECT_OVERLAY_RECONCILIATION_EXTERNAL_REQUIRED",
+            "Pending-HIL Project Overlay reconciliation requires live-root authority.",
+            status="MISMATCH",
+        )
+        receipt_path = self._candidate_overlay_receipt_path(project_id, candidate_id)
+        require(
+            receipt_path.is_file(),
+            "PROJECT_CANDIDATE_OVERLAY_NOT_FOUND",
+            "The pending candidate overlay receipt is unavailable.",
+            status="MISMATCH",
+            candidate_id=candidate_id,
+        )
+        candidate_receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        validation = dict(candidate_receipt.get("validation") or {})
+        proposed_pv = str(validation.get("proposed_pv") or "").strip()
+        pointer = self.pointer(project_id)
+        sectors_manifest = root / "sectors" / "manifest.json"
+        require(
+            sectors_manifest.is_file()
+            and proposed_pv == self.next_pv_id(project_id),
+            "PROJECT_OVERLAY_RECONCILIATION_BINDING_INVALID",
+            "HIL overlay reconciliation requires current sectors and the next PV identity.",
+            status="MISMATCH",
+            candidate_id=candidate_id,
+            proposed_pv=proposed_pv or None,
+        )
+        sector_identity = sha256_file(sectors_manifest)
+        transition_id = (
+            f"{candidate_id}__FINAL_HIL_RECONCILIATION__{sector_identity[:16]}"
+        )
+        overlay_root = root / "project_overlay"
+        overlay_database = overlay_root / "project_overlay.sqlite"
+        if overlay_database.is_file():
+            connection = sqlite3.connect(overlay_database)
+            try:
+                tables = {
+                    str(row[0])
+                    for row in connection.execute(
+                        "SELECT name FROM sqlite_master WHERE type='table'"
+                    )
+                }
+                existing = (
+                    connection.execute(
+                        "SELECT transition_sha256 FROM pv_hil_transition WHERE transition_id=?",
+                        (transition_id,),
+                    ).fetchone()
+                    if "pv_hil_transition" in tables
+                    else None
+                )
+            finally:
+                connection.close()
+            if existing is not None:
+                overlay_support = refresh_authority_support(
+                    root,
+                    "project_overlay",
+                )
+                current = validate_project_overlay(overlay_root)
+                return {
+                    "status": "PASS",
+                    "idempotent_reuse": True,
+                    "candidate_id": candidate_id,
+                    "transition_id": transition_id,
+                    "transition_sha256": str(existing[0]),
+                    "project_overlay_validation": current,
+                    "project_overlay_refreshed": True,
+                    "project_overlay_support": overlay_support,
+                    "candidate_rebuilt": False,
+                    "pointer_moved": False,
+                }
+        stage = root / f".project-overlay-reconcile-{sector_identity[:16]}"
+        prior = root / f".project-overlay-prior-{sector_identity[:16]}"
+        require(
+            not stage.exists() and not prior.exists(),
+            "PROJECT_OVERLAY_RECONCILIATION_TRANSACTION_CONFLICT",
+            "A prior HIL overlay reconciliation requires explicit recovery.",
+            status="BLOCKED",
+        )
+        lineage = resolved_chat_lineage_root(root) / f"{session_id}.jsonl"
+        built = build_project_overlay(
+            stage,
+            lane_bundle_path=root / "sectors",
+            lineage_source=lineage if lineage.is_file() else None,
+            candidate_id=transition_id,
+            proposed_pv=proposed_pv,
+            parent_accepted_pv=pointer.accepted_pv,
+            pointer_generation=pointer.generation,
+            code_mode="local_code",
+            created_at=utc_now(),
+            truth_state="HIL_PROPOSAL_ONLY",
+            prior_overlay_path=overlay_root if overlay_root.is_dir() else None,
+        )
+        require(
+            built.get("valid") is True
+            and built.get("accepted_archive_opened") is False
+            and built.get("accepted_archive_queried") is False,
+            "PROJECT_OVERLAY_RECONCILIATION_BUILD_FAILED",
+            "The final HIL Project Overlay reconciliation failed validation.",
+            status="FAIL",
+        )
+        staged_database_sha256 = sha256_file(stage / "project_overlay.sqlite")
+        with self._lock(project_id):
+            prior_moved = False
+            try:
+                if overlay_root.exists():
+                    overlay_root.replace(prior)
+                    prior_moved = True
+                stage.replace(overlay_root)
+                committed_pre_support_sha256 = sha256_file(
+                    overlay_root / "project_overlay.sqlite"
+                )
+                require(
+                    committed_pre_support_sha256 == staged_database_sha256,
+                    "PROJECT_OVERLAY_RECONCILIATION_ATOMIC_SWAP_MISMATCH",
+                    "The committed HIL Project Overlay changed during the atomic directory swap.",
+                    status="FAIL",
+                    staged_database_sha256=staged_database_sha256,
+                    committed_pre_support_sha256=committed_pre_support_sha256,
+                )
+                overlay_support = refresh_authority_support(
+                    root,
+                    "project_overlay",
+                )
+                committed = validate_project_overlay(overlay_root)
+                committed_database_sha256 = sha256_file(
+                    overlay_root / "project_overlay.sqlite"
+                )
+                require(
+                    committed.get("valid") is True
+                    and committed_database_sha256
+                    == overlay_support["database"]["sha256"],
+                    "PROJECT_OVERLAY_RECONCILIATION_COMMIT_MISMATCH",
+                    "The committed HIL Project Overlay differs from its governed support refresh.",
+                    status="FAIL",
+                    staged_manifest_sha256=built.get("manifest_sha256"),
+                    committed_manifest_sha256=committed.get("manifest_sha256"),
+                    staged_transition_head_sha256=built.get(
+                        "transition_head_sha256"
+                    ),
+                    committed_transition_head_sha256=committed.get(
+                        "transition_head_sha256"
+                    ),
+                    staged_delta_sha256=dict(
+                        built.get("project_overlay_delta") or {}
+                    ).get("delta_sha256"),
+                    committed_delta_sha256=dict(
+                        committed.get("project_overlay_delta") or {}
+                    ).get("delta_sha256"),
+                    staged_database_sha256=staged_database_sha256,
+                    committed_database_sha256=committed_database_sha256,
+                )
+            except Exception:
+                if prior_moved and not overlay_root.exists():
+                    prior.replace(overlay_root)
+                raise
+            if prior.exists():
+                shutil.rmtree(prior)
+        receipt_body = {
+            "schema": "evidence-lane.project-overlay-hil-reconciliation.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "session_id": session_id,
+            "candidate_id": candidate_id,
+            "transition_id": transition_id,
+            "transition_head_sha256": built.get("transition_head_sha256"),
+            "sector_identity_sha256": sector_identity,
+            "project_overlay_delta_sha256": dict(
+                built.get("project_overlay_delta") or {}
+            ).get("delta_sha256"),
+            "project_overlay_refreshed": True,
+            "project_overlay_support_receipt_sha256": overlay_support[
+                "receipt_sha256"
+            ],
+            "candidate_id_preserved": True,
+            "candidate_rebuilt": False,
+            "accepted_archive_opened": False,
+            "accepted_archive_queried": False,
+            "pointer_moved": False,
+        }
+        receipt = {
+            **receipt_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+        }
+        reconciliation_path = (
+            root
+            / "receipts"
+            / "project-overlay-reconciliations"
+            / f"{transition_id}.json"
+        )
+        atomic_write_json(reconciliation_path, receipt)
+        return {
+            "status": "PASS",
+            "idempotent_reuse": False,
+            "candidate_id": candidate_id,
+            "transition_id": transition_id,
+            "transition_sha256": built.get("transition_head_sha256"),
+            "project_overlay_validation": built,
+            "project_overlay_refreshed": True,
+            "candidate_rebuilt": False,
+            "pointer_moved": False,
+            "receipt": receipt,
+            "receipt_path": str(reconciliation_path),
+        }
+
     def finalize_candidate_overlay(
         self, project_id: str, candidate_id: str
     ) -> dict[str, Any]:
@@ -7088,32 +8015,91 @@ class ProjectStore:
             prior_claimed = str(receipt.get("receipt_sha256") or "")
             prior_body = dict(receipt)
             prior_body.pop("receipt_sha256", None)
+            receipt_schema = receipt.get("schema")
             require(
-                receipt.get("schema") == "evidence-lane.project-candidate-overlay.v1"
+                receipt_schema
+                in {
+                    "evidence-lane.project-candidate-overlay.v1",
+                    "evidence-lane.project-hil-proposal.v1",
+                }
                 and receipt.get("project_id") == project_id
                 and receipt.get("candidate_id") == candidate_id
+                and (
+                    receipt_schema == "evidence-lane.project-candidate-overlay.v1"
+                    or (
+                        receipt.get("proposal_id") == candidate_id
+                        and receipt.get("full_candidate_package_built") is False
+                    )
+                )
                 and receipt.get("state")
-                in {"PROVISIONAL_ENGINE_BUILD", "SEALED_AFTER_LIFECYCLE_APPEND"}
+                in {
+                    "PROVISIONAL_ENGINE_BUILD",
+                    "PROVISIONAL_OVERLAY_REFRESH",
+                    "SEALED_AFTER_LIFECYCLE_APPEND",
+                }
                 and prior_claimed == sha256_bytes(canonical_json_bytes(prior_body)),
                 "PROJECT_CANDIDATE_OVERLAY_RECEIPT_MISMATCH",
                 "The provisional candidate overlay receipt failed its identity checks.",
                 status="MISMATCH",
                 candidate_id=candidate_id,
             )
+            observed_working = working_overlay_manifest(root, project_id=project_id)
+            if (
+                receipt.get("state") == "SEALED_AFTER_LIFECYCLE_APPEND"
+                and receipt.get("working_identity_sha256")
+                == observed_working["working_identity_sha256"]
+            ):
+                return self.candidate_validation(project_id, candidate_id)
+            revision_path = (
+                root
+                / "receipts"
+                / "candidate-overlay-revisions"
+                / candidate_id
+                / f"{prior_claimed}.json"
+            )
+            if revision_path.is_file():
+                require(
+                    json.loads(revision_path.read_text(encoding="utf-8")) == receipt,
+                    "PROJECT_CANDIDATE_OVERLAY_REVISION_CONFLICT",
+                    "The preserved prior candidate-overlay seal differs on replay.",
+                    status="MISMATCH",
+                    candidate_id=candidate_id,
+                    prior_receipt_sha256=prior_claimed,
+                )
+            else:
+                atomic_write_json(revision_path, receipt)
             working = working_overlay_manifest(root, project_id=project_id)
             validation = dict(receipt.get("validation") or {})
             validation.update(
                 {
-                    "storage_kind": "LIVE_PROJECT_ROOT_CANDIDATE_OVERLAY",
+                    "storage_kind": (
+                        "LIVE_PROJECT_ROOT_HIL_PROPOSAL"
+                        if receipt_schema == "evidence-lane.project-hil-proposal.v1"
+                        else "LIVE_PROJECT_ROOT_CANDIDATE_OVERLAY"
+                    ),
                     "manifest_sha256": working["working_identity_sha256"],
+                    "package_sha256": working["working_identity_sha256"],
                     "working_identity_sha256": working["working_identity_sha256"],
                     "working_member_count": working["member_count"],
                     "candidate_directory_created": False,
+                    "full_candidate_package_built": (
+                        False
+                        if receipt_schema == "evidence-lane.project-hil-proposal.v1"
+                        else validation.get("full_candidate_package_built")
+                    ),
                 }
             )
             receipt.update(
                 {
                     "state": "SEALED_AFTER_LIFECYCLE_APPEND",
+                    "prior_overlay_receipt_sha256": prior_claimed,
+                    "overlay_reconciliation_count": int(
+                        receipt.get("overlay_reconciliation_count") or 0
+                    )
+                    + 1,
+                    "candidate_id_preserved": True,
+                    "candidate_rebuilt": False,
+                    "candidate_history_preserved": True,
                     "working_identity_sha256": working["working_identity_sha256"],
                     "working_member_count": working["member_count"],
                     "working_total_bytes": working["total_bytes"],
@@ -7646,6 +8632,965 @@ class ProjectStore:
             "pointer_moved": pointer_moved,
             "candidate_promoted": False,
         }
+
+    def rollback_state_catalog(self, project_id: str) -> dict[str, Any]:
+        """Return Plan-stamped full-PV and sub-PV logical rollback states.
+
+        External live-root projects never consult the rotating accepted ZIP for
+        ordinary navigation. Full-PV Overlay transitions are comparison evidence;
+        Plan acceptance stamps remain the acceptance authority. Sub-PVs are exact
+        auto-accepted Plan rows and intentionally have no Project Overlay entry.
+        """
+
+        require(
+            self.uses_external_project_authority(project_id),
+            "ROLLBACK_LIVE_ROOT_PROJECT_REQUIRED",
+            "Plan-stamped logical rollback applies only to live-root projects.",
+            status="BLOCKED",
+        )
+        root = self.project_root(project_id)
+        pointer = self.pointer(project_id)
+        backlog = self._load_backlog(project_id)
+        full_states: dict[str, dict[str, Any]] = {}
+        if pointer.accepted_pv:
+            full_states[pointer.accepted_pv] = {
+                "state_ref": pointer.accepted_pv,
+                "state_kind": "FULL_PV",
+                "acceptance_authority": "ACCEPTED_POINTER_BASELINE",
+                "acceptance_receipt_sha256": pointer.accepted_manifest_sha256,
+                "pointer_generation_at_acceptance": pointer.generation,
+            }
+        for task in backlog.get("tasks", []):
+            stamp = task.get("dual_hil_acceptance_stamp")
+            if not isinstance(stamp, dict) or stamp.get("status") != "PASS":
+                continue
+            target = str(stamp.get("target_pv") or "").upper()
+            if target:
+                full_states[target] = {
+                    "state_ref": target,
+                    "state_kind": "FULL_PV",
+                    "acceptance_authority": "PLAN_DUAL_HIL_ACCEPTANCE_STAMP",
+                    "acceptance_receipt_sha256": stamp.get("receipt_sha256"),
+                    "plan_task_id": task.get("task_id"),
+                    "plan_row_number": task.get("sequence"),
+                    "pointer_generation_at_acceptance": stamp.get(
+                        "pointer_generation"
+                    ),
+                }
+        sub_states = [
+            {
+                "state_ref": str(row["sub_pv_id"]),
+                "state_kind": "SUB_PV_DELTA",
+                "acceptance_authority": "PLAN_SQLITE_SUB_PV_ACCEPTANCE",
+                "acceptance_receipt_sha256": row.get("receipt_sha256"),
+                "baseline_pv": row.get("baseline_pv"),
+                "target_project_pv": row.get("target_project_pv"),
+                "plan_task_id": row.get("task_id"),
+                "successor_task_id": row.get("successor_task_id"),
+                "plan_row_number": row.get("delta_row_number"),
+                "pointer_generation_at_acceptance": row.get("pointer_generation"),
+            }
+            for row in backlog.get("sub_pv_acceptances", [])
+            if row.get("state") == "AUTO_ACCEPTED_DELTA_ROW_WORK"
+            and row.get("usable_by_successor") is True
+        ]
+        overlay_path = root / "project_overlay" / "project_overlay.sqlite"
+        overlay_transitions: list[dict[str, Any]] = []
+        if overlay_path.is_file():
+            connection = sqlite3.connect(
+                f"file:{overlay_path.as_posix()}?mode=ro", uri=True
+            )
+            connection.row_factory = sqlite3.Row
+            try:
+                overlay_transitions = [
+                    {
+                        "transition_id": str(row["transition_id"]),
+                        "parent_pv": str(row["parent_pv"] or ""),
+                        "proposed_pv": str(row["proposed_pv"]),
+                        "truth_state": str(row["truth_state"]),
+                        "transition_sha256": str(row["transition_sha256"]),
+                    }
+                    for row in connection.execute(
+                        "SELECT transition_id,parent_pv,proposed_pv,truth_state,"
+                        "transition_sha256 FROM pv_hil_transition ORDER BY sequence"
+                    ).fetchall()
+                ]
+            finally:
+                connection.close()
+        states = [
+            {
+                **row,
+                "project_overlay_applicable": row["state_kind"] == "FULL_PV",
+                "hard_restore_requires_user_supplied_full_pv_zip": (
+                    row["state_kind"] == "FULL_PV"
+                ),
+            }
+            for row in [*full_states.values(), *sub_states]
+        ]
+        core = {
+            "schema": "evidence-lane.rollback-state-catalog.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "accepted_pointer": pointer.as_dict(),
+            "state_count": len(states),
+            "states": states,
+            "full_pv_state_count": len(full_states),
+            "sub_pv_state_count": len(sub_states),
+            "project_overlay": {
+                "state": "AVAILABLE" if overlay_path.is_file() else "ABSENT",
+                "database_sha256": (
+                    sha256_file(overlay_path) if overlay_path.is_file() else None
+                ),
+                "transition_count": len(overlay_transitions),
+                "transitions": overlay_transitions,
+                "sub_pv_overlay_claimed": False,
+            },
+            "ordinary_query_authority": "LIVE_ROOT_PLAN_LANES_AND_OVERLAY",
+            "accepted_folder_queried": False,
+            "accepted_zip_opened": False,
+            "hard_restore_route": (
+                "SEPARATE_EXPLICIT_USER_SELECTED_FULL_PV_ZIP_TRANSACTION"
+            ),
+        }
+        return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+    def rollback_live_root_state(
+        self,
+        project_id: str,
+        *,
+        target_state_ref: str,
+        expected_pointer_generation: int,
+        decided_by: str,
+        decision_id: str,
+        candidate_id: str | None,
+        resolution_reference: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Move one logical rollback cursor without rewriting source or accepted truth."""
+
+        catalog = self.rollback_state_catalog(project_id)
+        target = next(
+            (
+                row
+                for row in catalog["states"]
+                if row["state_ref"] == target_state_ref
+            ),
+            None,
+        )
+        require(
+            isinstance(target, dict),
+            "ROLLBACK_STATE_REF_NOT_ACCEPTED",
+            "Logical rollback may target only a Plan-stamped full PV or sub-PV.",
+            status="BLOCKED",
+            target_state_ref=target_state_ref,
+        )
+        root = self.project_root(project_id)
+        cursor_path = root / "rollback_state_cursor.json"
+        with self._lock(project_id):
+            pointer = self.pointer(project_id)
+            require(
+                pointer.generation == expected_pointer_generation,
+                "ROLLBACK_POINTER_COMPARE_AND_SWAP_FAILED",
+                "The accepted pointer changed after rollback target verification.",
+                status="STALE",
+                expected_generation=expected_pointer_generation,
+                actual_generation=pointer.generation,
+            )
+            before = (
+                json.loads(cursor_path.read_text(encoding="utf-8"))
+                if cursor_path.is_file()
+                else {
+                    "state_ref": pointer.accepted_pv,
+                    "state_kind": "FULL_PV",
+                    "source": "CURRENT_ACCEPTED_POINTER",
+                }
+            )
+            cursor_core = {
+                "schema": "evidence-lane.rollback-state-cursor.v1",
+                "project_id": project_id,
+                "state_ref": target["state_ref"],
+                "state_kind": target["state_kind"],
+                "acceptance_authority": target["acceptance_authority"],
+                "acceptance_receipt_sha256": target[
+                    "acceptance_receipt_sha256"
+                ],
+                "selected_by": decided_by,
+                "selected_at": utc_now(),
+                "accepted_pointer_generation": pointer.generation,
+                "accepted_pointer_moved": False,
+                "live_source_rewritten": False,
+            }
+            cursor = {
+                **cursor_core,
+                "cursor_sha256": sha256_bytes(canonical_json_bytes(cursor_core)),
+            }
+            atomic_write_json(cursor_path, cursor)
+            receipt = {
+                "schema": "evidence-lane.rollback.receipt.v2",
+                "status": "PASS",
+                "decision_id": decision_id,
+                "decision": "ROLLBACK_LOGICAL_STATE",
+                "decided_by": decided_by,
+                "requested_target": target_state_ref,
+                "resolved_target": target,
+                "resolution_reference": resolution_reference,
+                "candidate_preserved_unaccepted": candidate_id,
+                "cursor_before": before,
+                "cursor_after": cursor,
+                "logical_cursor_moved": before.get("state_ref")
+                != cursor["state_ref"],
+                "accepted_pointer": pointer.as_dict(),
+                "accepted_pointer_moved": False,
+                "live_source_rewritten": False,
+                "accepted_folder_queried": False,
+                "accepted_zip_opened": False,
+                "project_overlay_applicable": target[
+                    "project_overlay_applicable"
+                ],
+                "hard_restore_performed": False,
+                "hard_restore_requires": (
+                    "EXPLICIT_USER_SELECTED_MATCHING_FULL_PV_ZIP"
+                    if target["state_kind"] == "FULL_PV"
+                    else "UNAVAILABLE_FOR_SUB_PV"
+                ),
+                "decided_at": utc_now(),
+            }
+            receipt["receipt_sha256"] = sha256_bytes(
+                canonical_json_bytes(receipt)
+            )
+            receipt_path = root / "receipts" / "rollback" / f"{decision_id}.json"
+            if receipt_path.is_file():
+                require(
+                    json.loads(receipt_path.read_text(encoding="utf-8")) == receipt,
+                    "ROLLBACK_DECISION_ID_CONFLICT",
+                    "The rollback decision ID already binds different evidence.",
+                    status="BLOCKED",
+                )
+            else:
+                atomic_write_json(receipt_path, receipt)
+        return {
+            "status": "PASS",
+            "state": "LOGICAL_ROLLBACK_CURSOR_SELECTED",
+            "catalog_receipt_sha256": catalog["receipt_sha256"],
+            "cursor": cursor,
+            "receipt": receipt,
+            "pointer": self.pointer(project_id).as_dict(),
+            "pointer_moved": False,
+            "candidate_promoted": False,
+        }
+
+    @staticmethod
+    def _plan_task_contains_exact_value(task: dict[str, Any], value: str) -> bool:
+        encoded = canonical_json_bytes(task).decode("utf-8")
+        escaped = re.escape(value)
+        return re.search(
+            rf"(?<![A-Za-z0-9]){escaped}(?![A-Za-z0-9])",
+            encoded,
+            flags=re.IGNORECASE,
+        ) is not None
+
+    def _seal_rollback_replan_gate(
+        self,
+        *,
+        project_root: Path,
+        project_id: str,
+        target_plan_task_id: str,
+        decision_id: str,
+        rollback_mode: str,
+        selected_by: str,
+        target_pv: str | None = None,
+        target_commit_sha: str | None = None,
+    ) -> dict[str, Any]:
+        """Preserve Plan history and make every later executable row inert."""
+
+        backlog_path = resolved_plan_backlog_path(project_root)
+        require(
+            backlog_path.is_file(),
+            "ROLLBACK_PLAN_AUTHORITY_MISSING",
+            "Hard rollback requires the exact canonical Plan backlog.",
+            status="MISMATCH",
+        )
+        backlog = json.loads(backlog_path.read_text(encoding="utf-8"))
+        require(
+            backlog.get("schema") == "evidence-lane.linear-task-backlog.v1"
+            and backlog.get("project_id") == project_id,
+            "ROLLBACK_PLAN_AUTHORITY_MISMATCH",
+            "The rollback target Plan belongs to another project or schema.",
+            status="MISMATCH",
+        )
+        tasks = {
+            str(task.get("task_id")): task
+            for task in backlog.get("tasks", [])
+            if isinstance(task, dict)
+        }
+        target = tasks.get(target_plan_task_id)
+        require(
+            isinstance(target, dict),
+            "ROLLBACK_PLAN_TARGET_TASK_MISSING",
+            "Hard rollback requires one exact Plan-stamped target row.",
+            status="BLOCKED",
+            target_plan_task_id=target_plan_task_id,
+        )
+        target = cast(dict[str, Any], target)
+        if target_commit_sha is not None:
+            require(
+                self._plan_task_contains_exact_value(target, target_commit_sha),
+                "ROLLBACK_PLAN_COMMIT_STAMP_MISMATCH",
+                "The selected Plan row does not stamp the exact Git commit.",
+                status="MISMATCH",
+                target_plan_task_id=target_plan_task_id,
+                target_commit_sha=target_commit_sha,
+            )
+        if target_pv is not None:
+            stamp = target.get("dual_hil_acceptance_stamp")
+            stamp_matches = bool(
+                isinstance(stamp, dict)
+                and str(stamp.get("target_pv") or "").upper() == target_pv.upper()
+            )
+            require(
+                stamp_matches
+                or self._plan_task_contains_exact_value(target, target_pv),
+                "ROLLBACK_PLAN_PV_STAMP_MISMATCH",
+                "The selected Plan row does not stamp the exact full PV.",
+                status="MISMATCH",
+                target_plan_task_id=target_plan_task_id,
+                target_pv=target_pv,
+            )
+        target_sequence = int(target["sequence"])
+        request = {
+            "project_id": project_id,
+            "decision_id": decision_id,
+            "rollback_mode": rollback_mode,
+            "target_plan_task_id": target_plan_task_id,
+            "target_sequence": target_sequence,
+            "target_pv": target_pv,
+            "target_commit_sha": target_commit_sha,
+            "selected_by": selected_by,
+        }
+        request_sha256 = sha256_bytes(canonical_json_bytes(request))
+        existing_gates = list(backlog.get("rollback_replan_gates") or [])
+        replay = next(
+            (
+                row
+                for row in existing_gates
+                if isinstance(row, dict) and row.get("decision_id") == decision_id
+            ),
+            None,
+        )
+        if replay is not None:
+            require(
+                replay.get("request_sha256") == request_sha256,
+                "ROLLBACK_REPLAN_GATE_REPLAY_CONFLICT",
+                "The rollback decision already binds another Plan target.",
+                status="BLOCKED",
+            )
+            return cast(dict[str, Any], replay)
+        before_sha256 = sha256_bytes(canonical_json_bytes(backlog))
+        superseded: list[str] = []
+        already_non_executable: list[str] = []
+        for task in backlog.get("tasks", []):
+            if not isinstance(task, dict) or int(task.get("sequence") or 0) <= target_sequence:
+                continue
+            task_id = str(task["task_id"])
+            status = str(task.get("status") or "")
+            if status in {"ACTIVE", "QUEUED"}:
+                event_id = (
+                    f"{decision_id}__supersede__"
+                    f"{sha256_bytes(task_id.encode('utf-8'))[:16].lower()}"
+                )
+                event = append_delta_event(
+                    backlog,
+                    task_id=task_id,
+                    event_type="SUPERSEDED",
+                    to_status="SUPERSEDED",
+                    actor=selected_by,
+                    event_id=event_id,
+                    assume_initialized=True,
+                    details={
+                        "rollback_mode": rollback_mode,
+                        "rollback_decision_id": decision_id,
+                        "target_plan_task_id": target_plan_task_id,
+                        "fresh_evi_plan_required": True,
+                        "history_preserved": True,
+                    },
+                )
+                task.setdefault("history", []).append(
+                    {
+                        "event": "SUPERSEDED_BY_HARD_ROLLBACK_REPLAN_GATE",
+                        "event_id": event["event_id"],
+                        "recorded_at": event["recorded_at"],
+                        "rollback_mode": rollback_mode,
+                        "rollback_decision_id": decision_id,
+                    }
+                )
+                superseded.append(task_id)
+            else:
+                already_non_executable.append(task_id)
+        gate_body = {
+            "schema": "evidence-lane.rollback-replan-gate.v1",
+            "status": "PASS",
+            **request,
+            "request_sha256": request_sha256,
+            "history_preserved_through_target": True,
+            "later_executable_rows_superseded": superseded,
+            "later_rows_already_non_executable": already_non_executable,
+            "fresh_user_brief_required": True,
+            "fresh_evi_plan_required": True,
+            "explicit_plan_acceptance_required": True,
+            "new_goal_before_work_required": True,
+            "old_plan_continuation_allowed": False,
+            "candidate_created": False,
+            "hil_inferred": False,
+            "accepted_pointer_moved": False,
+            "sealed_at": utc_now(),
+        }
+        gate = {
+            **gate_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(gate_body)),
+        }
+        backlog.setdefault("rollback_replan_gates", []).append(gate)
+        ensure_event_ledger(backlog)
+        atomic_write_json(backlog_path, backlog)
+        write_plan_runtime_projection(
+            resolved_plan_runtime_path(project_root),
+            backlog,
+        )
+        refresh_working_sector_operational_checksums(
+            project_root,
+            authority="PLAN",
+        )
+        gate["backlog_sha256_before"] = before_sha256
+        gate["backlog_sha256_after"] = sha256_bytes(canonical_json_bytes(backlog))
+        return gate
+
+    def hard_restore_live_root(
+        self,
+        project_id: str,
+        *,
+        archive_path: str | Path,
+        expected_archive_sha256: str,
+        restore_root: str | Path,
+        target_plan_task_id: str,
+        expected_pointer_generation: int,
+        selected_by: str,
+        decision_id: str,
+        confirmation: str,
+    ) -> dict[str, Any]:
+        """Restore a user-selected full-PV ZIP into one fresh Project/PV root."""
+
+        require(
+            confirmation == "RESTORE_EXACT_ACCEPTED_ZIP_AND_REQUIRE_NEW_PLAN",
+            "HARD_ROLLBACK_CONFIRMATION_REQUIRED",
+            "Hard restore requires its exact destructive-boundary confirmation.",
+            status="BLOCKED",
+        )
+        current_root = self.project_root(project_id)
+        require(
+            current_root != self._legacy_project_root(project_id),
+            "HARD_ROLLBACK_EXTERNAL_PROJECT_REQUIRED",
+            "Hard restore requires the external Project/PV authority model.",
+            status="BLOCKED",
+        )
+        pointer_before = self.pointer(project_id)
+        require(
+            pointer_before.generation == expected_pointer_generation,
+            "HARD_ROLLBACK_POINTER_COMPARE_AND_SWAP_FAILED",
+            "The accepted pointer changed before hard restore.",
+            status="STALE",
+        )
+        archive = Path(archive_path).expanduser().resolve()
+        expected_sha256 = str(expected_archive_sha256 or "").upper()
+        require(
+            re.fullmatch(r"[A-F0-9]{64}", expected_sha256) is not None
+            and archive.is_file()
+            and sha256_file(archive) == expected_sha256,
+            "HARD_ROLLBACK_ARCHIVE_IDENTITY_MISMATCH",
+            "The user-selected accepted ZIP failed its exact SHA-256 binding.",
+            status="MISMATCH",
+            archive=str(archive),
+        )
+        validation = validate_project_pv_archive(archive)
+        target_pv = str(validation.get("pv_id") or "")
+        require(
+            validation.get("project_id") == project_id
+            and re.fullmatch(r"PV[1-9][0-9]*", target_pv) is not None,
+            "HARD_ROLLBACK_ARCHIVE_PROJECT_MISMATCH",
+            "The selected ZIP is not one full PV for this project.",
+            status="MISMATCH",
+        )
+        target = validate_external_project_authority_root(
+            restore_root,
+            control_root=self.root,
+            project_id=project_id,
+        )
+        require(
+            target != current_root and not target.exists(),
+            "HARD_ROLLBACK_RESTORE_ROOT_NOT_FRESH",
+            "Hard restore requires one absent user-selected Project/PV root.",
+            status="BLOCKED",
+            current_root=str(current_root),
+            restore_root=str(target),
+        )
+        target.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with materialized_project_pv_archive(archive) as materialized:
+                shutil.copytree(materialized, target)
+            archived_pointer = dict(validation.get("pointer") or {})
+            require(
+                archived_pointer.get("project_id") == project_id
+                and archived_pointer.get("accepted_pv") == target_pv,
+                "HARD_ROLLBACK_ARCHIVE_POINTER_MISMATCH",
+                "The selected full-PV ZIP does not bind its own accepted pointer.",
+                status="MISMATCH",
+            )
+            pointer_after = ActivePointer(
+                project_id=project_id,
+                accepted_pv=target_pv,
+                accepted_manifest_sha256=str(
+                    validation["archive_manifest_sha256"]
+                ),
+                generation=int(archived_pointer.get("generation") or 0),
+                prior_generation=(
+                    int(archived_pointer["prior_generation"])
+                    if archived_pointer.get("prior_generation") is not None
+                    else None
+                ),
+                updated_at=utc_now(),
+            )
+            atomic_write_json(
+                target / "active_pointer.json",
+                {"schema": POINTER_SCHEMA, **pointer_after.as_dict()},
+            )
+            accepted = target / "accepted"
+            accepted.mkdir(parents=True, exist_ok=False)
+            restored_archive = (
+                accepted
+                / f"{target_pv}__{validation['archive_manifest_sha256']}.zip"
+            )
+            shutil.copy2(archive, restored_archive)
+            config = self.config(project_id)
+            project_path = target / "project.json"
+            project_payload = json.loads(project_path.read_text(encoding="utf-8"))
+            project_payload["project_authority_root"] = str(target)
+            atomic_write_json(project_path, project_payload)
+            replan_gate = self._seal_rollback_replan_gate(
+                project_root=target,
+                project_id=project_id,
+                target_plan_task_id=target_plan_task_id,
+                decision_id=decision_id,
+                rollback_mode="HARD_ACCEPTED_ZIP_RESTORE",
+                selected_by=selected_by,
+                target_pv=target_pv,
+            )
+            layout_path = target / "project_authority.json"
+            require(
+                layout_path.is_file(),
+                "HARD_ROLLBACK_PROJECT_AUTHORITY_LAYOUT_MISSING",
+                "The selected full-PV ZIP lacks its project-authority layout.",
+                status="MISMATCH",
+            )
+            layout = json.loads(layout_path.read_text(encoding="utf-8"))
+            layout.pop("layout_sha256", None)
+            layout.update(
+                {
+                    "resolved_project_root": str(target),
+                    "repository_path": config.repository_path,
+                    "host_control_root": str(self.root),
+                    "runtime_separated": True,
+                    "accepted_pointer": {
+                        "accepted_pv": target_pv,
+                        "generation": pointer_after.generation,
+                        "accepted_manifest_sha256": validation[
+                            "archive_manifest_sha256"
+                        ],
+                        "moved": pointer_before.accepted_pv != target_pv,
+                    },
+                    "hard_restore_source_root": str(current_root),
+                    "hard_restore_decision_id": decision_id,
+                }
+            )
+            layout["layout_sha256"] = sha256_bytes(canonical_json_bytes(layout))
+            atomic_write_json(layout_path, layout)
+            projected_members = {
+                path.relative_to(target).as_posix(): sha256_file(path)
+                for path in sorted(target.rglob("*"))
+                if path.is_file()
+                and path.name != "PROJECT_AUTHORITY_MANIFEST.json"
+                and (
+                    path.name.startswith("project_authority")
+                    or path.name
+                    in {
+                        "authority.ref.json",
+                        "historical_authority.ref.json",
+                        "operational-authority.ref.json",
+                        "study_brain.json",
+                        "legacy_history.ref.json",
+                    }
+                )
+            }
+            authority_manifest_body = {
+                "schema": "evidence-lane.project-authority-projection-manifest.v1",
+                "project_id": project_id,
+                "member_count": len(projected_members),
+                "members": projected_members,
+                "canonical_lane_count": len(CANONICAL_LANE_IDS),
+                "layout_sha256": layout["layout_sha256"],
+            }
+            atomic_write_json(
+                target / "PROJECT_AUTHORITY_MANIFEST.json",
+                {
+                    **authority_manifest_body,
+                    "manifest_sha256": sha256_bytes(
+                        canonical_json_bytes(authority_manifest_body)
+                    ),
+                },
+            )
+            receipt_body = {
+                "schema": "evidence-lane.hard-rollback-receipt.v1",
+                "status": "PASS",
+                "decision_id": decision_id,
+                "project_id": project_id,
+                "selected_by": selected_by,
+                "archive_path": str(archive),
+                "archive_sha256": expected_sha256,
+                "archive_manifest_sha256": validation[
+                    "archive_manifest_sha256"
+                ],
+                "target_pv": target_pv,
+                "prior_project_root": str(current_root),
+                "restored_project_root": str(target),
+                "restored_archive": str(restored_archive),
+                "pointer_before": pointer_before.as_dict(),
+                "pointer_after": pointer_after.as_dict(),
+                "replan_gate_sha256": replan_gate["receipt_sha256"],
+                "layout_sha256": layout["layout_sha256"],
+                "fresh_user_brief_required": True,
+                "fresh_evi_plan_required": True,
+                "old_plan_continuation_allowed": False,
+                "current_dirty_workspace_reset": False,
+                "candidate_created": False,
+                "hil_inferred": False,
+                "completed_at": utc_now(),
+            }
+            receipt = {
+                **receipt_body,
+                "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+            }
+            atomic_write_json(
+                target / "receipts" / "rollback" / f"{decision_id}.json",
+                receipt,
+            )
+            with self._registry_lock():
+                registry = self._load_root_registry_unlocked()
+                row = registry.get("projects", {}).get(project_id)
+                require(
+                    isinstance(row, dict),
+                    "HARD_ROLLBACK_REGISTRY_BINDING_MISSING",
+                    "The project registry binding disappeared during hard restore.",
+                    status="MISMATCH",
+                )
+                row["project_authority_root"] = str(target)
+                row["project_authority_root_sha256"] = sha256_bytes(
+                    str(target).encode("utf-8")
+                )
+                row["project_authority_mode"] = "EXPLICIT_USER_PROJECT_ROOT"
+                atomic_write_json(self._registry_path(), registry)
+            require(
+                self.project_root(project_id) == target,
+                "HARD_ROLLBACK_POST_BINDING_MISMATCH",
+                "The hidden registry did not bind the restored Project/PV root.",
+                status="FAIL",
+            )
+            return {
+                "status": "PASS",
+                "state": "HARD_RESTORE_COMPLETE_REPLAN_REQUIRED",
+                "receipt": receipt,
+                "pointer": pointer_after.as_dict(),
+                "pointer_moved": pointer_before.accepted_pv != target_pv,
+                "replan_required": True,
+                "candidate_promoted": False,
+            }
+        except Exception:
+            if target.exists() and self.project_root(project_id) != target:
+                _remove_tree_with_retry(
+                    target,
+                    operation="ROLLBACK_FAILED_HARD_RESTORE_TARGET",
+                )
+            raise
+
+    def git_restore_live_root(
+        self,
+        project_id: str,
+        *,
+        repository_path: str | Path,
+        branch: str,
+        commit_sha: str,
+        restore_workspace: str | Path,
+        target_plan_task_id: str,
+        expected_pointer_generation: int,
+        selected_by: str,
+        decision_id: str,
+        confirmation: str,
+    ) -> dict[str, Any]:
+        """Restore one exact commit into a fresh workspace and rebuild Local Code."""
+
+        require(
+            confirmation
+            == "RESTORE_EXACT_GIT_COMMIT_TO_FRESH_WORKSPACE_AND_REQUIRE_NEW_PLAN",
+            "GIT_ROLLBACK_CONFIRMATION_REQUIRED",
+            "Git restore requires its exact fresh-workspace confirmation.",
+            status="BLOCKED",
+        )
+        root = self.project_root(project_id)
+        config = self.config(project_id)
+        repository = Path(repository_path).expanduser().resolve()
+        configured_repository = Path(config.repository_path).expanduser().resolve()
+        exact_branch = str(branch or "").strip()
+        exact_commit = str(commit_sha or "").strip().lower()
+        require(
+            repository == configured_repository
+            and (repository / ".git").exists()
+            and exact_branch in config.allowed_branches
+            and re.fullmatch(r"(?!-)(?!.*\.\.)[A-Za-z0-9._/-]+", exact_branch)
+            is not None
+            and re.fullmatch(r"[0-9a-f]{40}", exact_commit) is not None,
+            "GIT_ROLLBACK_SOURCE_IDENTITY_INVALID",
+            "Git restore requires the exact registered repository, allowed branch, and full commit SHA.",
+            status="BLOCKED",
+        )
+        pointer = self.pointer(project_id)
+        require(
+            pointer.generation == expected_pointer_generation,
+            "GIT_ROLLBACK_POINTER_COMPARE_AND_SWAP_FAILED",
+            "The accepted pointer changed before Git restore.",
+            status="STALE",
+        )
+        workspace = Path(restore_workspace).expanduser().resolve()
+        require(
+            workspace.is_absolute()
+            and not workspace.exists()
+            and workspace != repository
+            and workspace != root
+            and not workspace.is_relative_to(repository)
+            and not workspace.is_relative_to(root)
+            and not workspace.is_relative_to(self.root),
+            "GIT_ROLLBACK_WORKSPACE_NOT_FRESH",
+            "Git restore requires one absent user-selected workspace outside current authorities.",
+            status="BLOCKED",
+            restore_workspace=str(workspace),
+        )
+
+        def git(*arguments: str, cwd: Path = repository) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                ["git", "-C", str(cwd), *arguments],
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+
+        branch_commit = git("rev-parse", f"{exact_branch}^{{commit}}").stdout.strip().lower()
+        git("cat-file", "-e", f"{exact_commit}^{{commit}}")
+        git("merge-base", "--is-ancestor", exact_commit, exact_branch)
+        require(
+            bool(branch_commit),
+            "GIT_ROLLBACK_BRANCH_UNRESOLVED",
+            "The selected branch has no exact commit authority.",
+            status="MISMATCH",
+        )
+        workspace.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            [
+                "git",
+                "clone",
+                "--no-hardlinks",
+                "--no-checkout",
+                str(repository),
+                str(workspace),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        try:
+            git("checkout", "-B", exact_branch, exact_commit, cwd=workspace)
+            restored_head = git("rev-parse", "HEAD", cwd=workspace).stdout.strip().lower()
+            status = git("status", "--porcelain=v1", cwd=workspace).stdout
+            require(
+                restored_head == exact_commit and not status.strip(),
+                "GIT_ROLLBACK_WORKSPACE_VERIFICATION_FAILED",
+                "The fresh workspace does not contain the exact clean commit.",
+                status="FAIL",
+            )
+            from .lane_engine import build_lane_bundle, validate_lane_bundle
+            from .lanes import route_source
+
+            tracked = [
+                value
+                for value in git("ls-files", "-z", cwd=workspace).stdout.split("\0")
+                if value
+            ]
+            code_paths = [
+                path
+                for path in tracked
+                if route_source(path, code_mode="local_code") == "local_code"
+            ]
+            require(
+                bool(code_paths),
+                "GIT_ROLLBACK_LOCAL_CODE_SOURCE_EMPTY",
+                "The selected Git commit contains no Local Code lane sources.",
+                status="MISMATCH",
+            )
+            with tempfile.TemporaryDirectory(
+                prefix=f".{project_id}.git-rollback-",
+                dir=root.parent,
+            ) as temporary:
+                stage = Path(temporary) / "sectors"
+                build = build_lane_bundle(
+                    repository_root=workspace,
+                    output_directory=stage,
+                    code_mode="local_code",
+                    parent_lane_bundle=root / "sectors",
+                    parent_pv=pointer.accepted_pv,
+                    proposed_pv=pointer.accepted_pv or "PV0",
+                    pointer_generation=pointer.generation,
+                    source_overrides={path: "local_code" for path in code_paths},
+                    git_mode="REQUIRED",
+                    include_untracked=False,
+                    materialize_all_lanes=True,
+                    source_paths_override=code_paths,
+                    preserve_parent_unmentioned=True,
+                    index_git_history=True,
+                    allow_parent_operational_authority_drift=True,
+                )
+                validation = validate_lane_bundle(stage)
+                require(
+                    validation.get("valid") is True,
+                    "GIT_ROLLBACK_LOCAL_CODE_REBUILD_INVALID",
+                    "The restored Git commit failed Project Sector validation.",
+                    status="FAIL",
+                )
+                current_sectors = root / "sectors"
+                backup = root / f".sectors-before-{decision_id}"
+                require(
+                    current_sectors.is_dir() and not backup.exists(),
+                    "GIT_ROLLBACK_SECTOR_SWAP_CONFLICT",
+                    "The live Project Sector swap boundary is not clean.",
+                    status="BLOCKED",
+                )
+                _replace_path_with_retry(
+                    current_sectors,
+                    backup,
+                    operation="GIT_ROLLBACK_PRESERVE_PRIOR_SECTORS",
+                )
+                try:
+                    _replace_path_with_retry(
+                        stage,
+                        current_sectors,
+                        operation="GIT_ROLLBACK_PUBLISH_REBUILT_SECTORS",
+                    )
+                    published_validation = validate_lane_bundle(current_sectors)
+                    require(
+                        published_validation.get("valid") is True,
+                        "GIT_ROLLBACK_PUBLISHED_SECTORS_INVALID",
+                        "Published Project Sectors failed post-swap validation.",
+                        status="FAIL",
+                    )
+                except Exception:
+                    if current_sectors.exists():
+                        _remove_tree_with_retry(
+                            current_sectors,
+                            operation="GIT_ROLLBACK_REMOVE_FAILED_SECTORS",
+                        )
+                    _replace_path_with_retry(
+                        backup,
+                        current_sectors,
+                        operation="GIT_ROLLBACK_RESTORE_PRIOR_SECTORS",
+                    )
+                    raise
+                _remove_tree_with_retry(
+                    backup,
+                    operation="GIT_ROLLBACK_REMOVE_VERIFIED_PRIOR_SECTORS",
+                )
+            replan_gate = self._seal_rollback_replan_gate(
+                project_root=root,
+                project_id=project_id,
+                target_plan_task_id=target_plan_task_id,
+                decision_id=decision_id,
+                rollback_mode="GIT_BRANCH_COMMIT_RESTORE",
+                selected_by=selected_by,
+                target_commit_sha=exact_commit,
+            )
+            project_path = root / "project.json"
+            project_payload = json.loads(project_path.read_text(encoding="utf-8"))
+            project_payload["repository_path"] = str(workspace)
+            atomic_write_json(project_path, project_payload)
+            with self._registry_lock():
+                registry = self._load_root_registry_unlocked()
+                row = registry.get("projects", {}).get(project_id)
+                require(
+                    isinstance(row, dict),
+                    "GIT_ROLLBACK_REGISTRY_BINDING_MISSING",
+                    "The project registry binding disappeared during Git restore.",
+                    status="MISMATCH",
+                )
+                row["repository_path"] = str(workspace)
+                row["rollback_source_repository_path"] = str(repository)
+                row["rollback_source_branch"] = exact_branch
+                row["rollback_source_commit_sha"] = exact_commit
+                atomic_write_json(self._registry_path(), registry)
+            receipt_body = {
+                "schema": "evidence-lane.git-rollback-receipt.v1",
+                "status": "PASS",
+                "decision_id": decision_id,
+                "project_id": project_id,
+                "selected_by": selected_by,
+                "source_repository": str(repository),
+                "source_branch": exact_branch,
+                "source_branch_head_at_restore": branch_commit,
+                "source_commit_sha": exact_commit,
+                "restored_workspace": str(workspace),
+                "restored_head_sha": restored_head,
+                "worktree_clean": True,
+                "local_code_source_count": len(code_paths),
+                "sector_bundle_sha256": build["bundle_sha256"],
+                "replan_gate_sha256": replan_gate["receipt_sha256"],
+                "accepted_pointer": pointer.as_dict(),
+                "accepted_pointer_moved": False,
+                "candidate_created": False,
+                "hil_inferred": False,
+                "fresh_user_brief_required": True,
+                "fresh_evi_plan_required": True,
+                "old_plan_continuation_allowed": False,
+                "dirty_current_workspace_reset": False,
+                "completed_at": utc_now(),
+            }
+            receipt = {
+                **receipt_body,
+                "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+            }
+            atomic_write_json(
+                root / "receipts" / "rollback" / f"{decision_id}.json",
+                receipt,
+            )
+            return {
+                "status": "PASS",
+                "state": "GIT_RESTORE_COMPLETE_REPLAN_REQUIRED",
+                "receipt": receipt,
+                "pointer": pointer.as_dict(),
+                "pointer_moved": False,
+                "replan_required": True,
+                "candidate_promoted": False,
+            }
+        except Exception:
+            if workspace.exists():
+                _remove_tree_with_retry(
+                    workspace,
+                    operation="ROLLBACK_FAILED_GIT_WORKSPACE",
+                )
+            raise
 
     def project_status(self, project_id: str) -> dict[str, Any]:
         root = self.project_root(project_id)

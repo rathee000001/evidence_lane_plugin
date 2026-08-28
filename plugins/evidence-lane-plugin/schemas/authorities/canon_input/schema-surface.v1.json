@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.named-authority-schema-surface.v1",
+  "status": "PASS",
+  "authority_id": "canon_input",
+  "authority_root": "authorities/canon_input",
+  "authority_manifest_sha256": "8DF1F5AD209F70B2D4283BDB6034A0CB2E130226AE483CD6FA8DF560CC61E164",
+  "persistent_sqlite_authority": true,
+  "schema_file_count": 11,
+  "schema_files": [
+    {
+      "path": "authorities/canon_input/build-refresh-contract.schema.json",
+      "bytes": 559,
+      "sha256": "98BCBBF4AE3BC08195F41B6EF38DB66AA153FAB6B8DFA59C53E33BAF88A4CEFA"
+    },
+    {
+      "path": "authorities/canon_input/dot-artifact.schema.json",
+      "bytes": 961,
+      "sha256": "5FEFBA5FAE48B00068C0658E6CF887AF03EAD8A2D3D4554C8DC6AD837549378F"
+    },
+    {
+      "path": "authorities/canon_input/manifest.schema.json",
+      "bytes": 1033,
+      "sha256": "0E28EE5BD5ADF6FFBB08AAEAB63147BD716603FB393FA1AFFE6E73F8BC64E667"
+    },
+    {
+      "path": "authorities/canon_input/mmd-artifact.schema.json",
+      "bytes": 974,
+      "sha256": "AFD5B5D101B8DF806572EF1818BEA86E7759AF8E20BDEBE2CA245958A44C5A1B"
+    },
+    {
+      "path": "authorities/canon_input/pointer-contract.schema.json",
+      "bytes": 542,
+      "sha256": "F686110D7BBDFBCAE0A0ED1E178A3E8EB5888D3B9CFEB7CB5A4D2DF223F99447"
+    },
+    {
+      "path": "authorities/canon_input/reader-contract.schema.json",
+      "bytes": 761,
+      "sha256": "67FAA726D74B4A430FBE4ED0A1EB8E70A3F5E95CE3F572B83BC7AFCB1A3583C0"
+    },
+    {
+      "path": "authorities/canon_input/refresh-receipt.schema.json",
+      "bytes": 880,
+      "sha256": "785068115F9925F5D6034CC8206DDA3EB1C0C9AB42036CDBF7E847A021988B13"
+    },
+    {
+      "path": "authorities/canon_input/runtime-binding.schema.json",
+      "bytes": 592,
+      "sha256": "B52EEBC40F8119FA9D34F9CDBD4AC0E8F708B28524A36F55907A06EC94C02538"
+    },
+    {
+      "path": "authorities/canon_input/schema.sql",
+      "bytes": 5193,
+      "sha256": "60C3D12425EB36773E31E071D00488CB3411CBF78161C3908EACC9F6ADB87367"
+    },
+    {
+      "path": "authorities/canon_input/sqlite-artifact.schema.json",
+      "bytes": 952,
+      "sha256": "5C84CB46C510AC259B4E8FFB68E9846F7FB3549F692DC6FEC4CF09D315ABA502"
+    },
+    {
+      "path": "authorities/canon_input/tools.schema.json",
+      "bytes": 529,
+      "sha256": "122B858ACC1F0136E1D184482FA1E5BB9571D9CE7B7EDEEAD4F82AAE2E5016BD"
+    }
+  ],
+  "schema_bytes_duplicated_here": false,
+  "receipt_sha256": "F42FB5CE3635D74A4EE47C154D9D04F3335C7E96046FAB368D7853F0882E33F3"
+}

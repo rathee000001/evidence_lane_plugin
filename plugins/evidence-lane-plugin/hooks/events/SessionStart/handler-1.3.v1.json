@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 1,
+  "handler_number": 3,
+  "display_id": "1.3",
+  "event": "SessionStart",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_transport.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionStart subhook_transport.py",
+    "timeout": 10,
+    "statusMessage": "Warm-attaching Evidence Lane locally"
+  },
+  "logical_action": "TRANSPORT_SESSION_ENTRY_SIGNAL",
+  "stage": "hooks/subhook_transport.py",
+  "stage_sha256": "E55AE969598601F7C8691509AA5FA9CF5BAC8A69A590EDFC431DFF7EDC1A0BA9",
+  "adapter": "hooks/session_start.py",
+  "adapter_sha256": "CCDF7A49E91BF9BFD693F80648B1894413293C6EE627E4E956B1E119F56D77A6",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "F4A71BCDB1BE25D3D484F345D1014034924B76055AFF76EBE30498C9A243B735"
+}

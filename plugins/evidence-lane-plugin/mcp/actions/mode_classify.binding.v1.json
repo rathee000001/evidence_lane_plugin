@@ -1,0 +1,110 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "mode_classify",
+  "title": "Classify an ENV15 mode intersection and lanes",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "request": {
+        "title": "Request",
+        "type": "string"
+      },
+      "explicit_modes": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Explicit Modes"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      },
+      "custom_modes": {
+        "anyOf": [
+          {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Custom Modes"
+      }
+    },
+    "required": [
+      "project_id",
+      "request"
+    ],
+    "title": "mode_classifyArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "mode_classifyDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "4E85D82EC4364F65F640B8347FA7E01BF611FA8A80A4427868261A155BCB3F39",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-mode",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "mode_classify"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-mode",
+        "workflow": "classify-mode",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-plan",
+        "workflow": "classify-plan-mode",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/mode_classify.action.v1.json",
+  "sdk_action_binding_sha256": "BFFBCD70F7FE6990B42DA030FEE171B31B5407755429047492AB7D332D9C2290",
+  "public_action_schema": "schemas/actions/mode_classify.schema.json",
+  "public_action_schema_sha256": "5BDBDC8DFC89DFC19950EB60DB03F6F8A3B17907A4A747EBECD93D941F34459E",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "2B68374CED8448F9C8322BD0D0494B8336C99C580C6C16865726750CDA591E6A"
+}

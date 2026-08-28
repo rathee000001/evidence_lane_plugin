@@ -21,7 +21,6 @@ _PROFILE_ALIASES = {
 
 _CODEX_REQUIRED_PROFILE_FIELDS = (
     "model",
-    "submodel",
     "reasoning_effort",
     "reasoning_speed",
 )
@@ -762,6 +761,8 @@ def build_direct_destination_orchestration(value: Any) -> dict[str, Any]:
 
     normalized = normalize_direct_forced_same_worktree_binding(value)
     destination = cast(dict[str, Any], normalized["destination"])
+    source = cast(dict[str, Any], normalized["authoritative_source"])
+    donor = cast(dict[str, Any], normalized["runtime_attachment_donor"])
     pointer = cast(dict[str, Any], normalized["expected"])["pointer"]
     plan = _direct_plan_identity(
         cast(dict[str, Any], normalized["expected"])["plan"],
@@ -805,7 +806,9 @@ def build_direct_destination_orchestration(value: Any) -> dict[str, Any]:
             ),
             (
                 "After the user clicks **Implement this plan**, automatically run "
-                "bounded Evidence Plan verification and, only on PASS, hook or resume "
+                "one atomic native acceptance/Goal-resume transaction. Validate the "
+                "unchanged Plan identity inside that transaction—never invoke EVI Plan "
+                "or update the whole-Plan projection a second time—then hook or resume "
                 f"the one carried unfinished Goal at R{active_row} and hydrate the "
                 f"single fixed header + R{batch_start}–R{batch_end} Step Task List "
                 "plus Changes panel."
@@ -818,10 +821,31 @@ def build_direct_destination_orchestration(value: Any) -> dict[str, Any]:
         f"ACTIVE R{active_row} | ACTIVE BATCH R{batch_start}-R{batch_end} | "
         f"NEXT_HIL R{next_hil} | FINAL_HIL R{final_hil}"
     )
+    prompt_0_entry_contract = {
+        "schema": "evidence-lane.state-travel-prompt-0-entry.v1",
+        "skeleton_id": "STATE_TRAVEL_PROMPT_0_BASE_SKELETON_V1",
+        "visible_order": [
+            "NATIVE_DESTINATION_VERIFICATION_RECEIPT",
+            "STATE_TRAVEL_HANDOFF_RECEIPT",
+            "SINGLE_EVI_PLAN_PROMPT_FENCED_TEXT_LAST",
+            "USER_VISIBLE_IMPLEMENT_THIS_PLAN_CONTROL",
+            "ATOMIC_CARRIED_GOAL_RESUME_AND_FIXED_STEP_CHANGES_RELOCK",
+        ],
+        "native_destination_receipt_must_be_first_visible_block": True,
+        "state_travel_receipt_must_follow_native_receipt": True,
+        "single_evi_plan_prompt_must_be_last": True,
+        "single_evi_plan_prompt_fence": "text",
+        "implement_control_requires_explicit_user_click": True,
+        "second_evi_plan_projection_phase_allowed": False,
+        "task_specific_identity_substitution_only": True,
+        "obsolete_prepare_resume_history_is_current_runtime_law": False,
+    }
     core = {
         "schema": "evidence-lane.direct-destination-orchestration.v1",
         "status": "PASS",
         "route": normalized["route"],
+        "source": source,
+        "runtime_attachment_donor": donor,
         "destination": {
             "task_id": task_id,
             "deep_link": task_deep_link,
@@ -829,6 +853,7 @@ def build_direct_destination_orchestration(value: Any) -> dict[str, Any]:
             "project_id": destination["project_id"],
             "workspace_path": destination["workspace_path"],
         },
+        "prompt_0_entry_contract": prompt_0_entry_contract,
         "whole_plan_reprojection": {
             "authority": "EXISTING_CANONICAL_PLAN_SQLITE",
             "identity": plan,
@@ -840,6 +865,9 @@ def build_direct_destination_orchestration(value: Any) -> dict[str, Any]:
             "canonical_sqlite_reconstructed": False,
             "host_prompt_auto_pasted": False,
             "implement_control_auto_accepted": False,
+            "evi_plan_invocation_count": 1,
+            "second_evi_plan_invocation_allowed": False,
+            "second_whole_plan_update_allowed": False,
         },
         "ordered_phases": [
             {
@@ -864,7 +892,7 @@ def build_direct_destination_orchestration(value: Any) -> dict[str, Any]:
             },
             {
                 "phase": 5,
-                "name": "BOUNDED_PLAN_VERIFY_GOAL_RESUME_AND_FIXED_STEP_RELOCK",
+                "name": "ATOMIC_ACCEPTANCE_GOAL_RESUME_AND_FIXED_STEP_RELOCK",
                 "state": "BLOCKED_UNTIL_EXPLICIT_IMPLEMENT_CLICK",
             },
         ],
@@ -884,6 +912,9 @@ def build_direct_destination_orchestration(value: Any) -> dict[str, Any]:
             "fallback_projector_enabled": False,
             "sliding_window_enabled": False,
             "whole_plan_serialized_into_step_list": False,
+            "goal_resume_precedes_fixed_step_projection": True,
+            "second_evi_plan_verification_phase": False,
+            "native_plan_identity_check_embedded_in_goal_resume_transaction": True,
             "changes_panel_required": True,
             "row_contract": "TWO_METADATA_LINES_PLUS_AT_MOST_TWO_HUMAN_BRIEF_LINES",
         },
@@ -905,6 +936,41 @@ def build_direct_destination_orchestration(value: Any) -> dict[str, Any]:
             "hil_inferred": False,
             "pointer_moved": False,
         },
+        "source_task_option2_closeout": {
+            "schema": "evidence-lane.state-travel-source-option2-closeout.v1",
+            "source_task_id": source["task_id"],
+            "source_task_deep_link": source["deep_link"],
+            "destination_task_id": task_id,
+            "destination_task_deep_link": task_deep_link,
+            "source_step_projection_during_handoff": (
+                "NATIVE_STATE_TRAVEL_HANDOFF_CHECKLIST_ONLY"
+            ),
+            "canonical_plan_or_fixed_step_projection_mutated_in_source": False,
+            "wait_for": [
+                "DESTINATION_IMPLEMENT_ACCEPTANCE_RECEIPT",
+                "DESTINATION_CARRIED_GOAL_RUNNING_RECEIPT",
+                "DESTINATION_FIXED_STEP_PROJECTION_RECEIPT",
+            ],
+            "metrics_route": "RESET_AWARE_RICH_GOAL_COMPLETION_METRICS",
+            "metrics_append_target": "CHATLINEAGE_GOAL_SECTOR",
+            "metrics_render_order": [
+                "CURRENT_SOURCE_TASK_RICH_TABLE",
+                "CONSOLIDATED_FORMULA_BACKED_TABLE",
+            ],
+            "goal_disposition": "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+            "source_goal_mark_achieved_exactly_once": True,
+            "source_goal_completion_before_destination_goal_resume_allowed": False,
+            "late_source_steers": {
+                "collect_after_state_travel_request": True,
+                "send_after_destination_goal_resume": True,
+                "single_consolidated_steer": True,
+                "include_goal_metrics_log_steer": True,
+                "send_before_destination_goal_resume": False,
+                "duplicate_steer_send_allowed": False,
+            },
+            "destination_remains_sole_writer": True,
+            "state_travel_replayed_by_source_closeout": False,
+        },
     }
     return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
 
@@ -916,7 +982,7 @@ def verify_direct_destination_plan_acceptance(
     live_plan: Any,
     goal_observation: Any,
 ) -> dict[str, Any]:
-    """Verify the explicit host click before authorizing Goal/panel continuation."""
+    """Verify the click and Goal resume in one transaction, never a second EVI Plan."""
 
     require(
         isinstance(orchestration, dict),
@@ -988,7 +1054,7 @@ def verify_direct_destination_plan_acceptance(
         and goal.get("goal_count") == 1
         and goal.get("competing_goal_count") == 0
         and bool(str(goal.get("goal_id") or "").strip())
-        and goal.get("status") in {"RUNNING", "PAUSED"}
+        and goal.get("status") == "RUNNING"
         and goal.get("active_task_id") == expected_plan["active_task_id"]
         and goal.get("goal_projection_sha256")
         == expected_plan["goal_projection_sha256"]
@@ -1009,11 +1075,160 @@ def verify_direct_destination_plan_acceptance(
         "implement_this_plan_event_id": gate["implement_this_plan_event_id"],
         "goal": goal,
         "goal_action": "HOOK_OR_RESUME_ONE_CARRIED_UNFINISHED_GOAL",
+        "plan_identity_validation_mode": "EMBEDDED_GOAL_RESUME_GUARD",
+        "evi_plan_invocation_count": 1,
+        "second_evi_plan_invocation": False,
+        "second_whole_plan_update": False,
         "step_projection": step_projection,
         "step_projection_action": "HYDRATE_OR_RELOCK_SINGLE_FIXED_PROJECTOR",
+        "goal_resume_precedes_step_projection": True,
         "changes_panel_action": "PRESERVE_EXACT_TASK_AND_WORKTREE_BOUND_PANEL",
         "source_work_may_resume": True,
         "plan_acceptance_is_evidence_lane_hil": False,
+        "candidate_created": False,
+        "hil_inferred": False,
+        "pointer_moved": False,
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def verify_direct_source_option2_closeout(
+    orchestration: Any,
+    *,
+    destination_phase5: Any,
+    goal_metrics: Any,
+    goal_completion: Any,
+    consolidated_steer: Any,
+) -> dict[str, Any]:
+    """Verify source closeout only after destination Goal and Step relock PASS."""
+
+    require(
+        isinstance(orchestration, dict),
+        "DIRECT_STATE_TRAVEL_SOURCE_CLOSEOUT_ORCHESTRATION_REQUIRED",
+        "Source option-2 closeout requires the exact direct orchestration receipt.",
+        status="BLOCKED",
+    )
+    exact = dict(orchestration)
+    claimed = _direct_sha256(
+        exact.get("receipt_sha256"), field="orchestration.receipt_sha256"
+    )
+    unsigned = {key: value for key, value in exact.items() if key != "receipt_sha256"}
+    require(
+        claimed == sha256_bytes(canonical_json_bytes(unsigned)),
+        "DIRECT_STATE_TRAVEL_SOURCE_CLOSEOUT_ORCHESTRATION_SEAL_MISMATCH",
+        "The source closeout orchestration seal does not match.",
+        status="MISMATCH",
+    )
+    source = cast(dict[str, Any], exact.get("source") or {})
+    destination = cast(dict[str, Any], exact.get("destination") or {})
+    require(
+        isinstance(destination_phase5, dict),
+        "DIRECT_STATE_TRAVEL_DESTINATION_PHASE5_REQUIRED",
+        "Source closeout must wait for the destination Goal-resume receipt.",
+        status="BLOCKED",
+    )
+    phase5 = dict(destination_phase5)
+    phase5_claimed = _direct_sha256(
+        phase5.get("receipt_sha256"), field="destination_phase5.receipt_sha256"
+    )
+    phase5_unsigned = {
+        key: value for key, value in phase5.items() if key != "receipt_sha256"
+    }
+    require(
+        phase5_claimed == sha256_bytes(canonical_json_bytes(phase5_unsigned))
+        and phase5.get("schema")
+        == "evidence-lane.direct-destination-phase5-verification.v1"
+        and phase5.get("status") == "PASS"
+        and phase5.get("destination_task_id") == destination.get("task_id")
+        and dict(phase5.get("goal") or {}).get("status") == "RUNNING"
+        and phase5.get("goal_resume_precedes_step_projection") is True
+        and phase5.get("second_evi_plan_invocation") is False,
+        "DIRECT_STATE_TRAVEL_DESTINATION_NOT_READY_FOR_SOURCE_CLOSEOUT",
+        "The destination Goal and fixed Step projection are not yet exact and active.",
+        status="MISMATCH",
+    )
+    require(
+        isinstance(goal_metrics, dict),
+        "DIRECT_STATE_TRAVEL_SOURCE_GOAL_METRICS_REQUIRED",
+        "Source closeout requires the reset-aware rich Goal metrics receipt.",
+        status="BLOCKED",
+    )
+    metrics = dict(goal_metrics)
+    metrics_claimed = _direct_sha256(
+        metrics.get("receipt_sha256"), field="goal_metrics.receipt_sha256"
+    )
+    metrics_unsigned = {
+        key: value for key, value in metrics.items() if key != "receipt_sha256"
+    }
+    metrics_binding = dict(metrics.get("binding") or {})
+    reset_accounting = dict(metrics.get("reset_aware_epoch_accounting") or {})
+    require(
+        metrics_claimed == sha256_bytes(canonical_json_bytes(metrics_unsigned))
+        and metrics.get("schema")
+        == "evidence-lane.rich-goal-completion-metrics.v1"
+        and metrics.get("route") == "build_rich_goal_completion_metrics_receipt"
+        and metrics.get("status") in {"PASS", "INCOMPLETE_TELEMETRY"}
+        and metrics_binding.get("host_task_id") == source.get("task_id")
+        and reset_accounting.get("final_minus_initial_used") is False,
+        "DIRECT_STATE_TRAVEL_SOURCE_GOAL_METRICS_MISMATCH",
+        "Source metrics must use reset-aware accounting for the exact source task.",
+        status="MISMATCH",
+    )
+    require(
+        isinstance(goal_completion, dict),
+        "DIRECT_STATE_TRAVEL_SOURCE_GOAL_COMPLETION_REQUIRED",
+        "Source closeout requires one exact human option-2 authorization.",
+        status="BLOCKED",
+    )
+    completion = dict(goal_completion)
+    require(
+        completion.get("schema")
+        == "evidence-lane.goal-completion-authorization.v1"
+        and completion.get("status") == "AUTHORIZED_BY_EXACT_HUMAN_COMMAND"
+        and completion.get("current_task_id") == source.get("task_id")
+        and completion.get("disposition")
+        == "COMPLETE_THIS_TASK_AND_STATE_TRAVEL"
+        and completion.get("current_task_goal_completed") is True
+        and completion.get("successor_goal_required") is True,
+        "DIRECT_STATE_TRAVEL_SOURCE_OPTION2_COMPLETION_MISMATCH",
+        "Only the exact source-task human option-2 authorization may complete the source Goal.",
+        status="MISMATCH",
+    )
+    require(
+        isinstance(consolidated_steer, dict),
+        "DIRECT_STATE_TRAVEL_CONSOLIDATED_STEER_REQUIRED",
+        "Source closeout requires one destination-bound consolidated steer receipt.",
+        status="BLOCKED",
+    )
+    steer = dict(consolidated_steer)
+    require(
+        steer.get("schema")
+        == "evidence-lane.state-travel-consolidated-steer.v1"
+        and steer.get("status") == "PASS"
+        and steer.get("source_task_id") == source.get("task_id")
+        and steer.get("destination_task_id") == destination.get("task_id")
+        and steer.get("destination_goal_resume_receipt_sha256") == phase5_claimed
+        and steer.get("goal_metrics_receipt_sha256") == metrics_claimed
+        and steer.get("send_count") == 1
+        and steer.get("sent_after_destination_goal_resume") is True
+        and steer.get("sent_before_destination_goal_resume") is False
+        and steer.get("includes_goal_metrics_log_steer") is True,
+        "DIRECT_STATE_TRAVEL_CONSOLIDATED_STEER_MISMATCH",
+        "Late source steers and the Goal log must be sent once after destination Goal resume.",
+        status="MISMATCH",
+    )
+    core = {
+        "schema": "evidence-lane.state-travel-source-option2-closeout-receipt.v1",
+        "status": "PASS",
+        "source_task_id": source["task_id"],
+        "destination_task_id": destination["task_id"],
+        "destination_goal_resume_receipt_sha256": phase5_claimed,
+        "goal_metrics_receipt_sha256": metrics_claimed,
+        "goal_completion_disposition": "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+        "consolidated_steer_id": steer.get("steer_id"),
+        "source_goal_mark_achieved": True,
+        "destination_remains_sole_writer": True,
+        "state_travel_replayed": False,
         "candidate_created": False,
         "hil_inferred": False,
         "pointer_moved": False,
@@ -1084,8 +1299,10 @@ def require_unfinished_execution_profile(
     require(
         not missing,
         "STATE_TRAVEL_EXECUTION_PROFILE_INCOMPLETE",
-        "Unfinished Codex State Travel requires model, submodel, reasoning effort, "
-        "and reasoning speed so the destination can verify the same host profile.",
+        "Unfinished Codex State Travel requires model, reasoning effort, and "
+        "reasoning speed so the destination can verify the same host profile. "
+        "A model variant/submodel is optional derived metadata, not a separate "
+        "required user selector.",
         status="BLOCKED",
         missing=missing,
         host_settings_mutation_supported=False,

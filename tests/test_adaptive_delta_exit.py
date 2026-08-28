@@ -17,6 +17,73 @@ ACTIVE_TASK = "DELTA-246"
 INSTALL_TASK = "DELTA-248"
 
 
+def test_delta_exit_enforces_row_scoped_regression_and_install_caps() -> None:
+    active = {"task_id": ACTIVE_TASK, "number": 246, "git_commit_stage": "NO_COMMIT"}
+    goal_rows = [active]
+    verified = {
+        "status": "VERIFIED_LOCAL_TESTING_INSTALL",
+        "source_scope_sha256": "A" * 64,
+        "package_sha256": "B" * 64,
+        "catalog_sha256": "C" * 64,
+        "runtime_sha256": "D" * 64,
+        "task_binding_sha256": "E" * 64,
+        "model_visible_schema_sha256": "F" * 64,
+        "public_action_matrix_sha256": "1" * 64,
+        "installed_host_status": "PASS",
+        "exact_task_reattachment_status": "PASS",
+        "local_install_attempt_count": 2,
+        "full_regression_required": True,
+        "full_regression_run_count": 1,
+    }
+    receipt = adaptive._install_disposition(
+        verified,
+        active=active,
+        goal_rows=goal_rows,
+    )
+    assert receipt["local_install_max"] == 2
+    assert receipt["regression_repeated_per_linked_steer"] is False
+    assert receipt["installed_public_behavior_claim_status"] == "PASS"
+
+    with pytest.raises(EvidenceLaneError) as source_only_install:
+        adaptive._install_disposition(
+            {
+                key: value
+                for key, value in verified.items()
+                if key != "public_action_matrix_sha256"
+            },
+            active=active,
+            goal_rows=goal_rows,
+        )
+    assert source_only_install.value.code == "ADAPTIVE_DELTA_EXIT_HASH_INVALID"
+
+    with pytest.raises(EvidenceLaneError) as install_loop:
+        adaptive._install_disposition(
+            {**verified, "local_install_attempt_count": 3},
+            active=active,
+            goal_rows=goal_rows,
+        )
+    assert install_loop.value.code == (
+        "ADAPTIVE_DELTA_EXIT_LOCAL_INSTALL_CADENCE_EXCEEDED"
+    )
+
+    with pytest.raises(EvidenceLaneError) as regression_loop:
+        adaptive._install_disposition(
+            {**verified, "full_regression_run_count": 3},
+            active=active,
+            goal_rows=goal_rows,
+        )
+    assert regression_loop.value.code == (
+        "ADAPTIVE_DELTA_EXIT_FULL_REGRESSION_CADENCE_EXCEEDED"
+    )
+
+    git_receipt = adaptive._install_disposition(
+        {**verified, "local_install_attempt_count": 3},
+        active={**active, "git_commit_stage": "FEATURE_BRANCH_CI_MAIN_UPGRADE"},
+        goal_rows=goal_rows,
+    )
+    assert git_receipt["local_install_max"] == 3
+
+
 def _formula_backlog() -> dict:
     return {
         "schema": "evidence-lane.linear-task-backlog.v1",
@@ -44,8 +111,11 @@ def _formula_backlog() -> dict:
 
 def _entry_formula() -> dict:
     return {
-        "fired_modes": ["validation"],
-        "operators": ["INTERSECTION", "VALIDATE"],
+        "schema": "evidence-lane.executable-delta-entry-formula.v2",
+        "fired_modes": ["VAL"],
+        "modes_fired": ["VAL"],
+        "operators": [],
+        "operators_fired": [],
         "bounded_source_locators": ["workspace:src"],
         "sector_locators": ["local_code"],
         "env_uop_terms": ["ENV15", "UOP15"],
@@ -53,6 +123,28 @@ def _entry_formula() -> dict:
         "intended_validator": "targeted pytest",
         "expected_result": "PASS",
         "formula_expression": "V_R246(TESTS intersect AUTHORITY) = PASS",
+        "env_uop_runtime_execution": {
+            "status": "PASS",
+            "plane_role": "INTERNAL_AI_ACTION_PLANE_BETWEEN_SQLITE_AND_WORK",
+            "counted_as_public_action": False,
+            "receipt_sha256": "1" * 64,
+            "compiled_formula": {"compiled_formula_sha256": "2" * 64},
+            "operator_route_receipts": [],
+            "operator_route_count": 0,
+        },
+        "mathematical_execution": {
+            "status": "PASS",
+            "evaluated_result": True,
+            "null_execution": False,
+            "receipt_sha256": "3" * 64,
+        },
+        "public_action_sdk_separate": True,
+        "env_uop_ai_action_plane_separate": True,
+        "source_work_authorized": True,
+        "accepted_archive_queried": False,
+        "candidate_created": False,
+        "hil_inferred": False,
+        "pointer_moved": False,
     }
 
 
@@ -116,6 +208,16 @@ class _FakeStore:
     def project_root(self, project_id: str) -> Path:
         return self.root / project_id
 
+    def _candidate_overlay_receipt_path(
+        self, project_id: str, candidate_id: str
+    ) -> Path:
+        return (
+            self.project_root(project_id)
+            / "receipts"
+            / "project-overlay"
+            / f"{candidate_id}.json"
+        )
+
     def plan_runtime_query(self, project_id: str, **kwargs: object) -> dict:
         del project_id, kwargs
         return {
@@ -131,11 +233,20 @@ class _FakeStore:
 
 
 class _FakeSessions:
+    def __init__(
+        self,
+        *,
+        candidate_id: str | None = None,
+        state: str = "ACTIVE_EXECUTION",
+    ) -> None:
+        self.candidate_id = candidate_id
+        self.state = state
+
     def load(self, project_id: str, session_id: str) -> SimpleNamespace:
         del project_id, session_id
         return SimpleNamespace(
-            candidate_id=None,
-            state=SimpleNamespace(value="ACTIVE_EXECUTION"),
+            candidate_id=self.candidate_id,
+            state=SimpleNamespace(value=self.state),
             metadata={"current_host_session_id": "host-task-8"},
         )
 
@@ -177,10 +288,42 @@ class _FakeSdk:
         }
 
 
-def _service(tmp_path: Path) -> SimpleNamespace:
+def _service(
+    tmp_path: Path,
+    *,
+    candidate_id: str | None = None,
+) -> SimpleNamespace:
+    project_root = tmp_path / "adaptive-project"
+    project_root.mkdir(parents=True, exist_ok=True)
+    connector_root = project_root / "connector_brain"
+    connector_root.mkdir(parents=True, exist_ok=True)
+    (connector_root / "connector-brain.sqlite").write_bytes(b"connector-brain")
+    store = _FakeStore(tmp_path)
+    if candidate_id is not None:
+        candidate_receipt = store._candidate_overlay_receipt_path(
+            "adaptive-project", candidate_id
+        )
+        candidate_receipt.parent.mkdir(parents=True, exist_ok=True)
+        candidate_receipt.write_text(
+            '{"candidate_id":"' + candidate_id + '","status":"PENDING"}',
+            encoding="utf-8",
+        )
     return SimpleNamespace(
-        store=_FakeStore(tmp_path),
-        sessions=_FakeSessions(),
+        store=store,
+        sessions=_FakeSessions(
+            candidate_id=candidate_id,
+            state=("PVN1_CANDIDATE" if candidate_id else "ACTIVE_EXECUTION"),
+        ),
+        connector_plugin_catalog=lambda project_id: {
+            "status": "PASS",
+            "project_id": project_id,
+            "active_count": 0,
+            "routable_count": 0,
+            "registrations": [],
+            "integrity": ["ok"],
+            "foreign_key_errors": [],
+            "secret_values_persisted": False,
+        },
         _refresh_delta_source_authority=lambda project_id, session_id, task_id: {
             "schema": "evidence-lane.delta-source-authority-refresh.v1",
             "status": "PASS",
@@ -277,13 +420,46 @@ def test_adaptive_delta_exit_closes_formula_with_all_current_hooks(
     )
     monkeypatch.setattr(
         adaptive,
-        "query_working_project_sectors",
+        "query_live_authorities",
         lambda *args, **kwargs: {
             "status": "PASS",
-            "queried_lane_ids": list(CANONICAL_LANE_IDS),
-            "hits": [],
-            "query_mutated_project_authority": False,
-            "query_rehashed_dirty_content": False,
+            "accepted_archive_opened": False,
+            "accepted_archive_queried": False,
+            "initial_reads": [
+                {"module_id": "agent_learning", "status": "PASS"},
+                {"module_id": "project_memory", "status": "PASS"},
+                {"module_id": "canon_input", "status": "PASS"},
+            ],
+            "authorities": {
+                "sector_lanes": {
+                    "result": {
+                        "status": "PASS",
+                        "queried_lane_ids": list(CANONICAL_LANE_IDS),
+                        "hits": [],
+                        "query_mutated_project_authority": False,
+                        "query_rehashed_dirty_content": False,
+                    }
+                }
+            },
+        },
+    )
+    monkeypatch.setattr(
+        adaptive,
+        "refresh_delta_exit_authority_supports",
+        lambda *args, **kwargs: {
+            "schema": "evidence-lane.delta-exit-authority-support-refresh.v1",
+            "status": "PASS",
+            "authority_ids": [
+                "agent_learning",
+                "canon_input",
+                "project_memory",
+                "source_authority",
+                "project_universe",
+                "connector_brain",
+            ],
+            "receipts": [],
+            "project_overlay_refreshed": False,
+            "receipt_sha256": "6" * 64,
         },
     )
 
@@ -324,9 +500,7 @@ def test_adaptive_delta_exit_closes_formula_with_all_current_hooks(
     assert all(
         row["state"] == "UNCHANGED_INACTIVE" for row in receipt["hook_progression"]
     )
-    assert sdk.calls == list(adaptive._SDK_OPERATIONS) + list(
-        adaptive._DECISION_SUPPORT_OPERATIONS
-    )
+    assert sdk.calls == list(adaptive._SDK_OPERATIONS)
     assert [
         row["lane_id"]
         for row in receipt["source_authority_refresh"]["source_planes"]
@@ -347,6 +521,23 @@ def test_adaptive_delta_exit_closes_formula_with_all_current_hooks(
         CANONICAL_LANE_IDS
     )
     assert receipt["install_disposition"]["install_performed"] is False
+    assert receipt["verification_layers"] == {
+        "source_validator_status": "PASS",
+        "source_validator_scope": "IMPLEMENTATION_SOURCE_ONLY",
+        "sector_refresh_status": "PASS",
+        "sector_refresh_represents_current_delta": True,
+        "installed_public_behavior_status": "NOT_CLAIMED",
+        "installed_public_behavior_requires_local_package": True,
+        "source_tests_substitute_for_installed_host": False,
+    }
+    assert receipt["connector_brain_refresh"]["status"] == "PASS"
+    assert receipt["authority_support_refresh"]["status"] == "PASS"
+    assert receipt["project_overlay_disposition"] == {
+        "status": "NOT_RUN_NON_HIL_DELTA",
+        "hil_delta": False,
+        "refresh_owner": None,
+        "project_overlay_refreshed_during_ordinary_delta_exit": False,
+    }
     assert receipt["plan_task_advanced"] is False
     assert receipt["git_mutated"] is False
     assert Path(result["receipt_path"]).is_file()
@@ -354,6 +545,208 @@ def test_adaptive_delta_exit_closes_formula_with_all_current_hooks(
         service.store._formula_backlog["task_formula_events"][-1]["event_kind"]
         == "EXIT_FORMULA"
     )
+
+
+def test_adaptive_delta_exit_repairs_legacy_formula_without_clearing_candidate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    candidate_id = "PV13_HIL_PROPOSAL__PRESERVE_IN_PLACE"
+    service = _service(tmp_path, candidate_id=candidate_id)
+    legacy_formula = {
+        "fired_modes": ["analysis", "code"],
+        "operators": ["INTERSECTION", "VALIDATE"],
+        "bounded_source_locators": ["workspace:src"],
+        "sector_locators": ["local_code"],
+        "env_uop_terms": ["ENV15", "UOP15"],
+        "assumptions": ["candidate remains pending"],
+        "intended_validator": "legacy R265 validation",
+        "expected_result": "PASS",
+        "formula_expression": "V_R265(LEGACY_ENTRY) = PASS",
+    }
+    entry = append_task_formula_event(
+        service.store._formula_backlog,
+        task_id=ACTIVE_TASK,
+        event_kind="ENTRY_FORMULA",
+        source_event_id="legacy-entry-1",
+        session_id="session-1",
+        formula=legacy_formula,
+        actor="human-test",
+    )
+    candidate_path = service.store._candidate_overlay_receipt_path(
+        "adaptive-project", candidate_id
+    )
+    candidate_bytes_before = candidate_path.read_bytes()
+
+    def repair_entry(*args: object, **kwargs: object) -> dict:
+        del args, kwargs
+        persisted = service.store.record_task_formula(
+            "adaptive-project",
+            task_id=ACTIVE_TASK,
+            event_kind="MUTATION",
+            source_event_id="candidate-preserving-entry-repair",
+            session_id="session-1",
+            formula=_entry_formula(),
+            actor="candidate-preserving-repair",
+            prior_formula_sha256=entry["formula_sha256"],
+            changed_terms={"env_uop_runtime": "EXECUTABLE"},
+            cause_evidence_locator="delta-entry://candidate-preserving-repair",
+            event_id="candidate-preserving-entry-repair",
+        )
+        event = persisted["event"]
+        return {
+            "status": "PASS",
+            "receipt": {
+                "status": "PASS",
+                "formula_disposition": (
+                    "LEGACY_OPEN_ENTRY_SUPERSEDED_BY_EXECUTABLE_MUTATION"
+                ),
+                "formula_sha256": event["formula_sha256"],
+                "receipt_sha256": "4" * 64,
+            },
+        }
+
+    sdk = _FakeSdk()
+    monkeypatch.setattr(adaptive, "run_adaptive_delta_entry", repair_entry)
+    monkeypatch.setattr(
+        adaptive,
+        "build_live_local_sdk_context",
+        lambda *args, **kwargs: (sdk, object()),
+    )
+    monkeypatch.setattr(
+        adaptive,
+        "inspect_repository",
+        lambda *args, **kwargs: _repository_identity(),
+    )
+    monkeypatch.setattr(
+        adaptive,
+        "prepare_host_plan_rehydration",
+        lambda *args, **kwargs: {
+            "state": "REHYDRATION_RECEIPT_SEALED",
+            "receipt": {
+                "status": "PASS",
+                "action": "NO_HOST_PLAN_ACTION_REUSE_CURRENT_WINDOW",
+                "host_update_plan_required": False,
+                "projection": {
+                    "window_task_ids": [ACTIVE_TASK],
+                    "window_ui_fingerprint_sha256": "F" * 64,
+                },
+            },
+        },
+    )
+    monkeypatch.setattr(
+        adaptive,
+        "query_live_authorities",
+        lambda *args, **kwargs: {
+            "status": "PASS",
+            "accepted_archive_opened": False,
+            "accepted_archive_queried": False,
+            "initial_reads": [
+                {"module_id": "agent_learning", "status": "PASS"},
+                {"module_id": "project_memory", "status": "PASS"},
+                {"module_id": "canon_input", "status": "PASS"},
+            ],
+            "authorities": {
+                "sector_lanes": {
+                    "result": {
+                        "status": "PASS",
+                        "queried_lane_ids": list(CANONICAL_LANE_IDS),
+                        "hits": [],
+                        "query_mutated_project_authority": False,
+                        "query_rehashed_dirty_content": False,
+                    }
+                }
+            },
+        },
+    )
+    monkeypatch.setattr(
+        adaptive,
+        "refresh_delta_exit_authority_supports",
+        lambda *args, **kwargs: {
+            "schema": "evidence-lane.delta-exit-authority-support-refresh.v1",
+            "status": "PASS",
+            "authority_ids": [
+                "agent_learning",
+                "canon_input",
+                "project_memory",
+                "source_authority",
+                "project_universe",
+                "connector_brain",
+            ],
+            "receipts": [],
+            "project_overlay_refreshed": False,
+            "receipt_sha256": "6" * 64,
+        },
+    )
+
+    formula = {
+        **_exit_formula(),
+        "hil_delta": True,
+        "preexisting_candidate_preservation": {
+            "schema": (
+                "evidence-lane.pending-candidate-delta-exit-preservation.v1"
+            ),
+            "confirmation": "PRESERVE_PENDING_CANDIDATE_DURING_DELTA_EXIT",
+            "candidate_id": candidate_id,
+            "reason": "Append R265 exit evidence without clearing its proposal.",
+        },
+        "entry_formula_repair": {
+            "schema": "evidence-lane.legacy-entry-formula-delta-exit-repair.v1",
+            "confirmation": "REPAIR_LEGACY_ENTRY_FORMULA_IN_PLACE",
+            "prior_formula_sha256": entry["formula_sha256"],
+            "candidate_id": candidate_id,
+            "reason": "Upgrade the open legacy R265 formula through adaptive entry.",
+        },
+    }
+    result = adaptive.run_adaptive_delta_exit(
+        service,
+        "adaptive-project",
+        "session-1",
+        task_id=ACTIVE_TASK,
+        source_event_id="candidate-preserving-exit-1",
+        prior_formula_sha256=entry["formula_sha256"],
+        formula=formula,
+        validator_results=[
+            {
+                "name": "pytest",
+                "status": "PASS",
+                "evidence_locator": "test:candidate-preserving-exit",
+                "receipt_sha256": "A" * 64,
+            }
+        ],
+        install_disposition={
+            "status": "DEFERRED_TO_VERIFIED_BATCH",
+            "source_scope_sha256": "B" * 64,
+            "deferred_to_task_id": INSTALL_TASK,
+            "covered_task_ids": [ACTIVE_TASK],
+            "reason": "Grouped install remains at the existing verified boundary.",
+        },
+        fixed_window_task_ids=[ACTIVE_TASK],
+        event_id="candidate-preserving-exit-formula-1",
+    )
+
+    receipt = result["receipt"]
+    assert result["status"] == "PASS"
+    assert service.sessions.candidate_id == candidate_id
+    assert service.sessions.state == "PVN1_CANDIDATE"
+    assert candidate_path.read_bytes() == candidate_bytes_before
+    assert receipt["candidate_preserved"] is True
+    assert receipt["candidate_cleared"] is False
+    assert receipt["candidate_rebuilt"] is False
+    assert receipt["candidate_renamed"] is False
+    assert receipt["pending_hil_mutated"] is False
+    assert receipt["preexisting_candidate_preservation"]["candidate_id"] == (
+        candidate_id
+    )
+    assert receipt["entry_formula_repair"]["status"] == "PASS"
+    assert receipt["requested_prior_formula_sha256"] == entry["formula_sha256"]
+    assert receipt["effective_prior_formula_sha256"] != entry["formula_sha256"]
+    assert receipt["project_overlay_disposition"]["status"] == (
+        "HIL_CANDIDATE_BUILD_REQUIRED"
+    )
+    assert [
+        row["event_kind"]
+        for row in service.store._formula_backlog["task_formula_events"]
+    ] == ["ENTRY_FORMULA", "MUTATION", "EXIT_FORMULA"]
 
 
 def test_formula_identity_mismatch_fails_before_any_refresh(

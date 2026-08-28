@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-project-sector-binding.v1",
+  "status": "PASS",
+  "lane_id": "plan",
+  "authority_root": "authorities/project_sectors/plan",
+  "authority_manifest_sha256": "6CC1337B0C15DBE4F2A62B43F4B2773987C0624EAB31AB030F7E72E0395D899B",
+  "schema_surface": "schemas/project-sectors/plan/schema-surface.v1.json",
+  "builder": "authorities/project_sectors/plan/builder.py",
+  "reader": "authorities/project_sectors/plan/reader.py",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_binding": false,
+  "receipt_sha256": "B217CAC0C12F2626D4852A423E8B75310DC4E9AF4E0A1629AE33355E3AD108BD"
+}

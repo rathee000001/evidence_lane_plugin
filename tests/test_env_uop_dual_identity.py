@@ -7,7 +7,12 @@ from pathlib import Path
 import pytest
 from evidence_lane_plugin import flash_identity
 from evidence_lane_plugin.errors import EvidenceLaneError
-from evidence_lane_plugin.flash_authority import SessionFlashAuthority
+from evidence_lane_plugin.flash_authority import (
+    NESTED_SOURCE_LAYOUT_AUTHORITY_DIGEST,
+    NESTED_SOURCE_LAYOUT_FLASH_MANIFEST_SHA256,
+    NESTED_SOURCE_LAYOUT_SOURCE_AUTHORITY_MANIFEST_SHA256,
+    SessionFlashAuthority,
+)
 from evidence_lane_plugin.flash_identity import (
     REQUIRED_CODEX_PROJECTION_MEMBER_PATHS,
     SOURCE_AUTHORITY_MEMBER_PATHS,
@@ -16,17 +21,23 @@ from evidence_lane_plugin.flash_identity import (
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 
 EXPECTED_SOURCE_HASHES = {
-    "env/env_mmd.png": (
-        "EBA6F1B76BA181100426E59B0D481034296811F35BCB6F255DEBF9CAD9D18FAA"
+    "env/env_mmd.mmd": (
+        "4FDE450BB73D470440C40DD8EA4E7C67BBEB7C0B123B7796BE23E41A9E03E9A4"
+    ),
+    "env/env_mmd.dot": (
+        "B873DCD12B6B0880A67A79D2D228053AECE63C81C56D73D972EF904D141E708C"
     ),
     "env/env_sqlite.sqlite": (
-        "78EEC5EFF7BA82DF38DF62ED65F2E8A4B8E1F3A593B8387779EAD7EA45E03810"
+        "2E771E34EEEA89CCC44A8B5607B1AE3287E9721389AC53A87BF5FA42347D44EB"
     ),
-    "uop/uop_mmd.png": (
-        "09F9035EB1A71443887C37B6B57663D46FA70DB3B8B1C51D789FF5BB3A3264A1"
+    "uop/uop_mmd.mmd": (
+        "D67946A53F3A323CCDCB63B7E2DBC88F72743E620F930E5F82240B3EE5638C43"
+    ),
+    "uop/uop_mmd.dot": (
+        "8A56801CCA46BF4F4D11F105B532FBB4082758B8371D9141C347EB142837E2D8"
     ),
     "uop/uop_sqlite.sqlite": (
-        "DB2539AAC36BE38D89C74D052C4764ECD28E4CFA29EFBF4EB6B0E4234CB1377F"
+        "62D6DEB337B387E06DA40DD054941355ECBD80548F2D1C9728E6A9C4EDDC0480"
     ),
 }
 
@@ -36,7 +47,7 @@ def _identity_inputs(
 ) -> tuple[dict, dict, str]:
     manifest = json.loads(authority.manifest_path.read_text(encoding="utf-8"))
     audit = json.loads(
-        (authority.asset_root / "SOURCE_PACKET_AUDIT.json").read_text(
+        (authority.asset_root / "env" / "SOURCE_PACKET_AUDIT.json").read_text(
             encoding="utf-8"
         )
     )
@@ -73,12 +84,14 @@ def test_dual_identity_preserves_source_hashes_and_partial_boundary(
     assert SOURCE_AUTHORITY_MEMBER_PATHS.isdisjoint(projection_paths)
     assert REQUIRED_CODEX_PROJECTION_MEMBER_PATHS <= projection_paths
     assert projection["derived_projection_is_source_authority"] is False
-    assert report["runtime_projection"][
-        "source_authority_manifest_sha256"
-    ] == dual["source_authority"]["manifest_sha256"]
-    assert report["runtime_projection"][
-        "codex_projection_identity_sha256"
-    ] == dual["codex_projection"]["identity_sha256"]
+    assert (
+        report["runtime_projection"]["source_authority_manifest_sha256"]
+        == dual["source_authority"]["manifest_sha256"]
+    )
+    assert (
+        report["runtime_projection"]["codex_projection_identity_sha256"]
+        == dual["codex_projection"]["identity_sha256"]
+    )
 
 
 def test_projection_material_manifest_version_and_generator_change_identity(
@@ -95,10 +108,9 @@ def test_projection_material_manifest_version_and_generator_change_identity(
     baseline_projection = baseline["codex_projection"]["identity_sha256"]
 
     for path in (
-        "env/env_mmd.mmd",
-        "env/env_mmd.svg",
         "env/env_law.md",
         "env/locked_mmd_hash.txt",
+        "uop/uop_law.md",
     ):
         changed_manifest = copy.deepcopy(manifest)
         member = next(
@@ -111,10 +123,7 @@ def test_projection_material_manifest_version_and_generator_change_identity(
             source_audit=audit,
         )
         assert changed["source_authority"]["manifest_sha256"] == baseline_source
-        assert (
-            changed["codex_projection"]["identity_sha256"]
-            != baseline_projection
-        )
+        assert changed["codex_projection"]["identity_sha256"] != baseline_projection
 
     manifest_changed = build_flash_dual_identity(
         manifest=manifest,
@@ -122,8 +131,7 @@ def test_projection_material_manifest_version_and_generator_change_identity(
         source_audit=audit,
     )
     assert (
-        manifest_changed["codex_projection"]["identity_sha256"]
-        != baseline_projection
+        manifest_changed["codex_projection"]["identity_sha256"] != baseline_projection
     )
 
     version_manifest = copy.deepcopy(manifest)
@@ -133,10 +141,7 @@ def test_projection_material_manifest_version_and_generator_change_identity(
         manifest_sha256=manifest_sha256,
         source_audit=audit,
     )
-    assert (
-        version_changed["codex_projection"]["identity_sha256"]
-        != baseline_projection
-    )
+    assert version_changed["codex_projection"]["identity_sha256"] != baseline_projection
 
     original_generator = flash_identity._generator_identity()
     monkeypatch.setattr(
@@ -150,8 +155,7 @@ def test_projection_material_manifest_version_and_generator_change_identity(
         source_audit=audit,
     )
     assert (
-        generator_changed["codex_projection"]["identity_sha256"]
-        != baseline_projection
+        generator_changed["codex_projection"]["identity_sha256"] != baseline_projection
     )
 
 
@@ -159,9 +163,7 @@ def test_missing_locked_member_fails_closed(tmp_path: Path) -> None:
     authority = SessionFlashAuthority(data_root=tmp_path / "store")
     manifest, audit, manifest_sha256 = _identity_inputs(authority)
     manifest["members"] = [
-        item
-        for item in manifest["members"]
-        if item["path"] != "env/env_sqlite.sqlite"
+        item for item in manifest["members"] if item["path"] != "env/env_sqlite.sqlite"
     ]
     with pytest.raises(EvidenceLaneError) as error:
         build_flash_dual_identity(
@@ -182,6 +184,89 @@ def test_same_version_projection_receipt_reuse_is_rejected(tmp_path: Path) -> No
 
     with pytest.raises(EvidenceLaneError) as error:
         authority._validated_receipt(changed, receipt)
-    assert error.value.code == (
-        "SESSION_FLASH_SAME_VERSION_PROJECTION_REUSE_FORBIDDEN"
+    assert error.value.code == ("SESSION_FLASH_SAME_VERSION_PROJECTION_REUSE_FORBIDDEN")
+
+
+def test_new_plugin_build_migrates_flash_receipt_append_only(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authority = SessionFlashAuthority(data_root=tmp_path / "store")
+    created = authority.ensure_flashed()
+    prior_receipt = copy.deepcopy(created["receipt"])
+    prior_receipt_bytes = authority.receipt_path.read_bytes()
+    changed = copy.deepcopy(authority.verify())
+    changed["dual_identity"]["codex_projection"]["identity_sha256"] = "B" * 64
+    changed["authority_digest"] = "8" * 64
+    changed["manifest_sha256"] = "9" * 64
+    changed["dual_identity"]["source_authority"]["manifest_sha256"] = "A" * 64
+    changed["dual_identity"]["build_identity"].update(
+        {
+            "plugin_version": "3.0.0+codex.20990101000000",
+            "projection_cache_identity_sha256": "C" * 64,
+            "identity_sha256": "D" * 64,
+        }
+    )
+    monkeypatch.setattr(authority, "verify", lambda: copy.deepcopy(changed))
+
+    migrated = authority.ensure_flashed()
+
+    assert migrated["status"] == "PASS"
+    assert migrated["flash_action"] == "BUILD_IDENTITY_MIGRATED"
+    assert migrated["receipt"]["plugin_version"] == ("3.0.0+codex.20990101000000")
+    migration = migrated["build_migration"]
+    assert migration["prior_plugin_version"] == prior_receipt["plugin_version"]
+    assert migration["current_plugin_version"] == "3.0.0+codex.20990101000000"
+    assert migration["project_state_mutated"] is False
+    assert migration["pointer_moved"] is False
+    assert migration["candidate_mutated"] is False
+    assert migration["migration_scope"] == "NEW_PLUGIN_BUILD_FULL_FLASH_AUTHORITY"
+    assert migration["authority_changed"] is True
+    assert migration["source_authority_changed"] is True
+    assert migration["projection_changed"] is True
+    archived = list(
+        (authority.data_root / "installation" / "flash_authority_migrations").glob(
+            "*/session_flash_receipt.prior.json"
+        )
+    )
+    assert len(archived) == 1
+    assert archived[0].read_bytes() == prior_receipt_bytes
+
+
+def test_nested_layout_flash_receipt_migrates_to_current_build(
+    tmp_path: Path,
+) -> None:
+    authority = SessionFlashAuthority(data_root=tmp_path / "store")
+    current = authority.verify()
+    prior = authority._receipt_from_report(current)
+    prior.update(
+        {
+            "plugin_version": "3.0.0+codex.20260826024829",
+            "manifest_sha256": NESTED_SOURCE_LAYOUT_FLASH_MANIFEST_SHA256,
+            "authority_digest": NESTED_SOURCE_LAYOUT_AUTHORITY_DIGEST,
+            "source_authority_manifest_sha256": (
+                NESTED_SOURCE_LAYOUT_SOURCE_AUTHORITY_MANIFEST_SHA256
+            ),
+            "codex_projection_identity_sha256": "A" * 64,
+            "projection_cache_identity_sha256": "B" * 64,
+            "build_identity_sha256": "C" * 64,
+        }
+    )
+    authority.receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    authority.receipt_path.write_text(
+        json.dumps(prior, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    migrated = authority.ensure_flashed()
+
+    assert migrated["flash_action"] == "BUILD_IDENTITY_MIGRATED"
+    assert (
+        migrated["build_migration"]["source_layout_migrated_from_nested_package"]
+        is True
+    )
+    assert migrated["receipt"]["manifest_sha256"] == current["manifest_sha256"]
+    assert (
+        migrated["receipt"]["source_authority_manifest_sha256"]
+        == (current["dual_identity"]["source_authority"]["manifest_sha256"])
     )

@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-project-sector-binding.v1",
+  "status": "PASS",
+  "lane_id": "images_ocr",
+  "authority_root": "authorities/project_sectors/images_ocr",
+  "authority_manifest_sha256": "7B2D860B5EEAA8319FEC0125420274119FEAF3DD0EC3C3560009EE6F9308BABD",
+  "schema_surface": "schemas/project-sectors/images_ocr/schema-surface.v1.json",
+  "builder": "authorities/project_sectors/images_ocr/builder.py",
+  "reader": "authorities/project_sectors/images_ocr/reader.py",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_binding": false,
+  "receipt_sha256": "EDFCF88AD91AE0ECCF90407B64C7D1D6E21BD5AA76ED83F65E5E0F44DAF86289"
+}

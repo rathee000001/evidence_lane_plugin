@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SQLite PV Candidate Loader lane pointer",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "parent_pv",
+    "proposed_pv",
+    "pointer_generation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.lane-pointer-evidence.v1"
+    },
+    "lane_id": {
+      "const": "brain_loader"
+    },
+    "parent_pv": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "proposed_pv": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pointer_generation": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "02FBF60708B46ADA7C407D61B2CA582E81F3A1A2AD7223C400B3C36B1926E681"
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "evidence-lane.installed-lane-surface.v1",
+  "status": "PASS",
+  "lane_id": "docs",
+  "sqlite_filename": "docs_sector_v001.sqlite",
+  "sqlite_integrity": "ok",
+  "sqlite_table_count": 37,
+  "schema_contract_table_count": 27,
+  "members": [
+    {
+      "path": "authorities/project_sectors/docs/builder-contract.schema.json",
+      "bytes": 604,
+      "sha256": "142F02BE322806E5ACB6ECD309CAC1BFE9078F55C3F765D9A76DE4BC24FAD953"
+    },
+    {
+      "path": "authorities/project_sectors/docs/builder.py",
+      "bytes": 572,
+      "sha256": "24FB536C9DBF0E8C3CBCAB6DB6E55D7FDC903ABB9F484D6AEE0F0F5E8F6F5AEB"
+    },
+    {
+      "path": "authorities/project_sectors/docs/docs.dot",
+      "bytes": 17983,
+      "sha256": "1C1DF9DBC582F51AE8066A3E22C8C48A7B39EB862F7A6A25FDA2BB6E5C6EA246"
+    },
+    {
+      "path": "authorities/project_sectors/docs/docs.mmd",
+      "bytes": 14289,
+      "sha256": "FA7AB5A04E8BF97A6328F4FF236158A838A7976D3F64BC9E6C5601A64256C153"
+    },
+    {
+      "path": "authorities/project_sectors/docs/docs_sector_v001.sqlite",
+      "bytes": 245760,
+      "sha256": "5D20A4DF72A75D14F0B9E2AD61F5AF813CDA4286D4BBB8AB55630CD00F44337A"
+    },
+    {
+      "path": "authorities/project_sectors/docs/dot-artifact.schema.json",
+      "bytes": 932,
+      "sha256": "C57560D7F27C93A0387E43C8F13C2F50DC4B146610F947C0802858A0CFBAFBAA"
+    },
+    {
+      "path": "authorities/project_sectors/docs/lane-contract.v1.json",
+      "bytes": 7625,
+      "sha256": "F8655AD1E8A85816A8487FFC193121373CA5B2A1C836C979D0207B042D3EA4F9"
+    },
+    {
+      "path": "authorities/project_sectors/docs/lane-pointer.schema.json",
+      "bytes": 729,
+      "sha256": "68F2734400E2BAB7567E847769B4FAE0C2F9278C804F69117BD62CA72D859172"
+    },
+    {
+      "path": "authorities/project_sectors/docs/manifest.schema.json",
+      "bytes": 962,
+      "sha256": "D184C84B680E534566EA566F74D83E08CAD56B3EB546D0D0E41E97B896818895"
+    },
+    {
+      "path": "authorities/project_sectors/docs/mmd-artifact.schema.json",
+      "bytes": 949,
+      "sha256": "26F1E65D942AEBF52FA3760B4F3592DA3331022EBBA1A3B5291274CA75DBA0A9"
+    },
+    {
+      "path": "authorities/project_sectors/docs/reader-contract.schema.json",
+      "bytes": 754,
+      "sha256": "3C9CF63B7EAF7CB8483B83448A3C287F396714FA1774C25E9165EAE730408F0D"
+    },
+    {
+      "path": "authorities/project_sectors/docs/reader.py",
+      "bytes": 434,
+      "sha256": "2224BB9588A4E314840774C3BD3D66DE0928113D95B5BFCF0D770873F2687777"
+    },
+    {
+      "path": "authorities/project_sectors/docs/README.md",
+      "bytes": 360,
+      "sha256": "9F36FB697FAD25E88F21A71C1BEB309043287D4E5664AD2286B7A4FC7CCBCBA4"
+    },
+    {
+      "path": "authorities/project_sectors/docs/refresh-receipt.schema.json",
+      "bytes": 524,
+      "sha256": "F83A1C51C753B025512E60CD4B6249F18435206B916F28DF7B2D32E469946B18"
+    },
+    {
+      "path": "authorities/project_sectors/docs/schema.sql",
+      "bytes": 9312,
+      "sha256": "C53A648BE6C7CBFD8FC296764163323C20BA37935562D078B3B6268CF7EC044A"
+    },
+    {
+      "path": "authorities/project_sectors/docs/sqlite-artifact.schema.json",
+      "bytes": 951,
+      "sha256": "480ADA27D4759905401A0974AC316D392AEC4BD27305D8D9440FD59635138472"
+    },
+    {
+      "path": "authorities/project_sectors/docs/tools.json",
+      "bytes": 1146,
+      "sha256": "11916AA97BC82C325105F4983B869465BCDC0E81C97136A15EC19A5A7F96A98B"
+    },
+    {
+      "path": "authorities/project_sectors/docs/tools.schema.json",
+      "bytes": 993,
+      "sha256": "54A3653D9B391EE614E299AD4D068E9E0EB78264DC11B63494960645BEB1D254"
+    }
+  ],
+  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_template": false,
+  "template_contains_identity_metadata_only": true,
+  "receipt_sha256": "22DA95BA9AEBA2BAB94C93DD6814FE6DD9F35E39FEA7416125AA25BBA3FBFB6F"
+}

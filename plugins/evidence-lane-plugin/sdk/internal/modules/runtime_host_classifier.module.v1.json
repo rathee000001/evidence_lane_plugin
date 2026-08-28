@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.runtime_host_classifier",
+  "source_path": "src/evidence_lane_plugin/runtime_host_classifier.py",
+  "source_sha256": "4B430C7430B3F3F6D48E9D9BDCFB54A239DC3C580BAAB54E6DB365AC2CDDCF05",
+  "source_bytes": 19193,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "354268B14377536151C98F74C6BE4AAF54979515FD83A4BD54DC21E6122C5903"
+}

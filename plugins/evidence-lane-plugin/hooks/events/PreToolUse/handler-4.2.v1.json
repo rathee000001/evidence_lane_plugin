@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 4,
+  "handler_number": 2,
+  "display_id": "4.2",
+  "event": "PreToolUse",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_seal.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_seal.py",
+    "timeout": 10,
+    "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+  },
+  "logical_action": "DEDUPE_AND_SEAL_EVENT",
+  "stage": "hooks/subhook_seal.py",
+  "stage_sha256": "665E54A3126C4141682D339E5FADF62B04024F875D3376908B97B4A8AA67FE22",
+  "adapter": "hooks/pre_tool_use.py",
+  "adapter_sha256": "1D5EE052FD282B7DB09B56EA534762E4ABF49E5DC52A2F7D97B8B82EE97E746C",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "78C39D75FFC71D6C38901FC057DE44EB643AE044B86FB2959AC030A74A823FAA"
+}

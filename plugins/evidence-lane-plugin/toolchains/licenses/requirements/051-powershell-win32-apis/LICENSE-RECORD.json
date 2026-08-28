@@ -1,0 +1,24 @@
+{
+  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "status": "PASS",
+  "ordinal": 51,
+  "tool": "PowerShell_Win32_APIs",
+  "requirement": "REQUIRED_WINDOWS_HOST",
+  "classification": "HOST_PLATFORM_CAPABILITY",
+  "install_mode": "host_probe_only",
+  "license_expression_or_terms": "HOST_PLATFORM_TERMS",
+  "license_evidence": "Windows host capability probe; no host binary redistributed",
+  "evidence_paths": [
+    "toolchains/tool-requirement-matrix.v1.json"
+  ],
+  "redistributed_by_source_package": false,
+  "source_package_copied_license_text_present": false,
+  "source_package_copied_license_texts": [],
+  "native_license_acquisition": null,
+  "runtime_distribution_license_required": false,
+  "runtime_distribution_license_manifest": null,
+  "runtime_distribution_license_files_must_be_copied_before_use": false,
+  "metadata_without_a_license_file_is_labeled_metadata_only": true,
+  "mcp_inventory_separate": true,
+  "receipt_sha256": "8D91B36152C1352E76A94DFCEFA058777B81A893CF560E656631922C9C8EE7B6"
+}

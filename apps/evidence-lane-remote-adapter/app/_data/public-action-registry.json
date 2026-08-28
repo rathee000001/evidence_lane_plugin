@@ -1,0 +1,793 @@
+{
+  "schema": "evidence-lane.remote-public-action-registry.v1",
+  "status": "GENERATED_READ_ONLY_PROJECTION",
+  "source_catalog_path": "schemas/public-action-schemas.v001.json",
+  "source_catalog_sha256": "B3DD0A986CDDE45E5C6035B8FB8239B576EB9523E97BEC38CABC79A2DFB33C65",
+  "tool_count": 91,
+  "read_tool_count": 30,
+  "write_tool_count": 61,
+  "governed_skill_count": 26,
+  "ordinary_live_authority_count": 8,
+  "env_uop_governed_six_way_arms": [
+    "PROJECT_SECTORS_AND_ROOT_FILES",
+    "AI_LEARNING",
+    "CANON_GRAPH",
+    "PROJECT_MEMORY_DB",
+    "HOST_CONVERSATION_MEMORY_MD",
+    "AGENTS_MD"
+  ],
+  "linked_operational_authorities": [
+    "PROJECT_UNIVERSE",
+    "CONNECTOR_BRAIN"
+  ],
+  "hil_only_authorities": [
+    "PROJECT_OVERLAY"
+  ],
+  "sdk_planes": {
+    "schema": "evidence-lane.sdk-plane-registry.v1",
+    "status": "PASS",
+    "planes": [
+      {
+        "plane_id": "PUBLIC_ACTION_SDK",
+        "role": "OUTER_CURRENT_ACTION_ROUTE_TO_INTERNAL_IMPLEMENTATION",
+        "derived_action_count": 91,
+        "count_is_fixed_ceiling": false,
+        "owns_mcp_schema_and_public_action_dispatch": true,
+        "owns_ai_formula_execution": false
+      },
+      {
+        "plane_id": "ENV_UOP_AI_ACTION_PLANE",
+        "role": "LOCKED_SQLITE_MMD_TO_GOVERNED_WORK_EXECUTION",
+        "module_id": "env_uop_operator_runtime",
+        "internal_operation_count": 4,
+        "counted_as_public_action": false,
+        "owns_mcp_schema_and_public_action_dispatch": false,
+        "owns_ai_formula_execution": true,
+        "authority_source": "LOCKED_ENV_UOP_SQLITE_PLUS_MMD"
+      }
+    ],
+    "planes_merged": false,
+    "env_uop_operations_added_to_public_action_count": 0,
+    "internal_support_bindings": {
+      "schema": "evidence-lane.internal-sdk-support-bindings.v1",
+      "status": "PASS",
+      "component_count": 4,
+      "components": [
+        {
+          "component": "env_uop_graph",
+          "owner_module": "env_uop_operator_runtime",
+          "functions": [
+            "migrate_and_render_env_uop_graph",
+            "rebuild_flash_manifest"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.env_uop_graph"
+          ],
+          "public_action": false
+        },
+        {
+          "component": "github_toolchain",
+          "owner_module": "first_class_workflows",
+          "functions": [
+            "inspect_github_repository"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.github_toolchain"
+          ],
+          "public_action": false
+        },
+        {
+          "component": "live_root_normalization",
+          "owner_module": "storage_connectors",
+          "functions": [
+            "plan_live_root_normalization",
+            "execute_live_root_normalization"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.live_root_normalization"
+          ],
+          "public_action": false
+        },
+        {
+          "component": "runtime_api",
+          "owner_module": "provider_host_adapters",
+          "functions": [
+            "load_runtime_api_settings",
+            "create_runtime_api",
+            "run_hidden_runtime_api"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.runtime_api"
+          ],
+          "public_action": false
+        }
+      ],
+      "all_components_have_one_sdk_owner": true,
+      "support_components_inflate_public_action_count": false,
+      "receipt_sha256": "E4164C883105EA654CF4850B1725FF9AE9C9C8B5B61E82317507B17A34740C85"
+    },
+    "receipt_sha256": "23315DD0EDAB5454E3F1CD4838EC0612C59AB0011E2BDFFA655FB1CF70332FC1"
+  },
+  "public_action_and_env_uop_ai_action_planes_separate": true,
+  "authority_support_systems": {
+    "profiles": [
+      "agent_learning",
+      "canon_input",
+      "connector_brain",
+      "project_authority",
+      "project_memory",
+      "project_overlay",
+      "project_universe",
+      "receipt_ledger",
+      "session_authority",
+      "source_authority"
+    ],
+    "sector_lane_contract": "POINTER_MANIFEST_THEN_MMD_DOT_THEN_EVOLVED_SQLITE",
+    "tools_json_role": "BUILD_REFRESH_SCHEMA_AND_DEPENDENCY_PROVENANCE",
+    "tools_json_selects_query": false,
+    "bootstrap_schema_is_fixed_project_ceiling": false,
+    "ordinary_delta_exit_excludes_project_overlay": true,
+    "project_overlay_refresh_owner": "HIL_ONLY"
+  },
+  "hook_control": {
+    "event_count": 11,
+    "event_count_semantics": "OFFICIAL_REGISTERED_EVENT_TYPE_COUNT",
+    "handler_action_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT_CAN_EXCEED_11",
+    "numbering": "HOOK_EVENT_ORDINAL.ACTION_ORDINAL",
+    "one_or_more_actions_per_event": true,
+    "current_handler_action_count": 44,
+    "current_logical_action_count": 44,
+    "logical_action_numbering": "HOOK_EVENT_ORDINAL.L_ACTION_ORDINAL",
+    "host_api": [
+      "hooks/list",
+      "config/read",
+      "config/batchWrite"
+    ],
+    "native_compare_and_swap_only": true,
+    "install_enables_hooks": false,
+    "failed_event_only_disabled_during_repair": true,
+    "passing_event_reenabled_after_installed_host_proof": true
+  },
+  "current_implementation_registry_sha256": "3AB2FD404AF96F709B74F7947AF096962C49647749E42E72DA01530ACFA6C356",
+  "actions": [
+    {
+      "name": "adaptive_delta_exit",
+      "title": "Seal one adaptive Delta exit",
+      "read_only": false,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "BA332F64F8A745141FBA77F0F795E8DCC644152C18C9C4725E01D99101A113EB"
+    },
+    {
+      "name": "ai_toolchain_route",
+      "title": "Resolve full AI toolchain",
+      "read_only": true,
+      "owner_skill": "evi-toolchain",
+      "schema_sha256": "F458DEF20BB5A93761DA23F5382CBBBC1A05E54965083D40D9F6CA97A7197E72"
+    },
+    {
+      "name": "bigger_universe_link",
+      "title": "Link Bigger Universe mini-brains",
+      "read_only": false,
+      "owner_skill": "evi-bigger-universe",
+      "schema_sha256": "4CC1EBEF4327CED5A62A5C076228EEB20ED01333405C7B22FB618B953C6CDD59"
+    },
+    {
+      "name": "bigger_universe_register",
+      "title": "Register Bigger Universe project",
+      "read_only": false,
+      "owner_skill": "evi-bigger-universe",
+      "schema_sha256": "FB6C13BBFFB8D634E53AC33FFB2E4E210D5ED918E7505E842E7FA373D2CDF8C2"
+    },
+    {
+      "name": "brain_scaling_select",
+      "title": "Select bounded brain slice",
+      "read_only": true,
+      "owner_skill": "evi-brain-scaling",
+      "schema_sha256": "8309AA1CA8FF688BB1BF5CD203F7B0F10690555BE00400525A137FA4E73F93DA"
+    },
+    {
+      "name": "canon_backfire_hil",
+      "title": "Raise Canon backfire",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "0F0D2B241D47EE7D36B0CE7FF6E420EE626C67F29C72C18450B0230F3AAFBE9F"
+    },
+    {
+      "name": "canon_bind_edge",
+      "title": "Bind received Canon edge",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "FE82699838F3FA849FB9050DF364222079896C68C6C0D23DA51057A57C7D7CEC"
+    },
+    {
+      "name": "canon_classify",
+      "title": "Classify Canon envelope",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "898422FB177138AA3BA3790A0B26A3119521113B4685D537CAFA0C7A6CF1010E"
+    },
+    {
+      "name": "canon_decide",
+      "title": "Decide Canon input",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "4ED6FAF63204818B24DF0E594E92191362DE3C880A73932674D526632B35B2E5"
+    },
+    {
+      "name": "canon_dispatch_linked_task",
+      "title": "Launch or bind linked Canon work",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "11437E81D8066D0B9DC0CA265F0F345843E12D00FB4A36A746F4A60C2BC3F291"
+    },
+    {
+      "name": "canon_graph",
+      "title": "Inspect Canon task graph",
+      "read_only": true,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "FC9B3CD348A5835E02AAEA6FC98AA0B5DC68158D5306D2E8D187B0453CEAFB33"
+    },
+    {
+      "name": "canon_inbox",
+      "title": "Inspect Canon inbox",
+      "read_only": true,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "9887926FC086B7D77E1A0E7A3583D054EE4FA6FC769E13EF61872ACC9F3F3479"
+    },
+    {
+      "name": "canon_inspect",
+      "title": "Inspect Canon authority",
+      "read_only": true,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "F3B86342E011859CEE17132D500EE5738810CA21495BABAAB48F5FAA69F07A06"
+    },
+    {
+      "name": "canon_receive",
+      "title": "Receive Canon envelope",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "0065F9922D122E51ECDEF52E7963B6A5A896EAB0F4615EE88F5B3067CC5004FD"
+    },
+    {
+      "name": "canon_register_contract",
+      "title": "Register expected Canon contract",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "BAF0B7928C7AAA3089EC2A2552C38FEED60387E7CA35A384451269D21784955F"
+    },
+    {
+      "name": "canon_register_edge",
+      "title": "Register Canon task edge",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "31CD698B6DD20BA5F1C67540113F3B20ECDDCAE45DE7E033C3D9C741F5FC74DB"
+    },
+    {
+      "name": "canon_restore_continuity",
+      "title": "Restore Canon State Travel continuity",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "EB82B8210DA29C9EB8298EE9EAE90E12BC82C9F97B49A9E14E787345B92157A2"
+    },
+    {
+      "name": "canon_seal_continuity",
+      "title": "Seal Canon State Travel continuity",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "741DF6DFD4B0CE16E2C48BF18DDE493C403C2D00B4C5827004CE9EF283825369"
+    },
+    {
+      "name": "canon_seal_envelope",
+      "title": "Seal Canon envelope",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "17A566FF47B84961E63B27E243744F9CFEC49DA5C987D2A26BAE5759C24160BC"
+    },
+    {
+      "name": "canon_seal_result",
+      "title": "Seal Canon task result",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "2BE8AFAB40C7FD7B2A750B8508EF120A9E4DC7CFAD41B7BDEC75379D698F896F"
+    },
+    {
+      "name": "canon_supersede",
+      "title": "Supersede Canon input",
+      "read_only": false,
+      "owner_skill": "evi-canon",
+      "schema_sha256": "8EE74D64D8B495ABA9BFFCEBD032E23B5176210C93A64D330DED6ACFA3BAEA7F"
+    },
+    {
+      "name": "connector_plugin_catalog",
+      "title": "Inspect governed connector and toolchain plugins",
+      "read_only": true,
+      "owner_skill": "evi-plugin",
+      "schema_sha256": "875A7F67DDD477AF8D3B3BCA695ED624EE5317045BBFBBC8A93C5132AF0FBB5E"
+    },
+    {
+      "name": "connector_plugin_drop",
+      "title": "Drop one governed persistent plugin",
+      "read_only": false,
+      "owner_skill": "evi-drop-additional-plugin",
+      "schema_sha256": "98F2DF9E5424ECD9A1FF29FED02140D78A0F886E7B0F07D3B0CE8D6B9CCC6DE8"
+    },
+    {
+      "name": "connector_plugin_register",
+      "title": "Register one bounded persistent connector or toolchain",
+      "read_only": false,
+      "owner_skill": "evi-additional-plugin",
+      "schema_sha256": "995977D28C357E8DABC518E2E6682DA7C3309CA50F72B495A8BCCD2995AC9FBE"
+    },
+    {
+      "name": "connector_plugin_route",
+      "title": "Route one capability through governed plugin policy",
+      "read_only": false,
+      "owner_skill": "evi-plugin",
+      "schema_sha256": "4BA98E6EA9B8B66C57DB610BFA43F2B7F4E5D21A918250A93DFE4B1B45689888"
+    },
+    {
+      "name": "connector_plugin_settings",
+      "title": "Open the eight-slot connector settings surface",
+      "read_only": true,
+      "owner_skill": "evi-plugin",
+      "schema_sha256": "8573EC7D81C530D9DEE2D0478B910647A6DF9823C6C6CB382D1CB34A905B4AEE"
+    },
+    {
+      "name": "fetch",
+      "title": "Fetch exact live-root file or chunk",
+      "read_only": true,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "85170F97BAAAA6E30450D78CD1B2FBD1A2A14F057A0AE507E6C4E20F56DB32A8"
+    },
+    {
+      "name": "formula_engine_run",
+      "title": "Run Formula Engine",
+      "read_only": false,
+      "owner_skill": "evi-formula",
+      "schema_sha256": "060492B868630283163FA269FC5C54139DE688E9D8981DB84C05ABC7676C311E"
+    },
+    {
+      "name": "git_sync_selected",
+      "title": "Fast-forward one selected Git branch",
+      "read_only": false,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "56425C77068075F6AA2B638053C16057BE0F3F4FE667A1ADFB00E5C98DCCB86F"
+    },
+    {
+      "name": "hil_decide",
+      "title": "Record exact six-way HIL decision",
+      "read_only": false,
+      "owner_skill": "evi-fuse",
+      "schema_sha256": "47102A9AAE2F25D54DDB2AA259EFB9B822BD89125C54052833694A0F01790D53"
+    },
+    {
+      "name": "hil_intent_classify",
+      "title": "Classify tolerant HIL intent",
+      "read_only": false,
+      "owner_skill": "evi-fuse",
+      "schema_sha256": "A2444E1A49943B407CFCA3ED1012B87975F6A153FF8360D6B02A571E0C80FE66"
+    },
+    {
+      "name": "hil_return_to_accepted",
+      "title": "Return a rejected or failed run to accepted state",
+      "read_only": false,
+      "owner_skill": "evi-fuse",
+      "schema_sha256": "DA91B7141620F0B01C1247056C23B49B5546F67040C5C74F1292D400A4D1575C"
+    },
+    {
+      "name": "lane_catalog",
+      "title": "List universal Evidence Lane sectors",
+      "read_only": true,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "3CE47DDFDC25D90856C0392F118487335EBD6D331D7D4795876F73089C3AEA61"
+    },
+    {
+      "name": "lane_configure_routes",
+      "title": "Grant exact source-to-lane routes",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "0BF0762ADEF79F2E015AE30A48BDDFC5D8F249A713C078FB32B42E59983B96C3"
+    },
+    {
+      "name": "lane_fetch",
+      "title": "Fetch one exact lane source",
+      "read_only": true,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "D04A51C8DDBF2BD67B9FA72F4F533272230A37892E2317E3198EE79D2C67B62F"
+    },
+    {
+      "name": "lane_search",
+      "title": "Search one lane with FTS5, BM25, and TF-IDF",
+      "read_only": true,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "298AA70EF6AA1227B07667AA4F7EB49DB2B8155E6ED2BDF56A68DA77E9C29EC0"
+    },
+    {
+      "name": "lane_status",
+      "title": "Inspect one live-root lane authority",
+      "read_only": true,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "A16EC2DD96C9EF3EB3684E75A798D31470741F13DDE101475F99B000D20A11EE"
+    },
+    {
+      "name": "learning_decide_candidate",
+      "title": "Decide Agent Learning candidate",
+      "read_only": false,
+      "owner_skill": "evi-learning",
+      "schema_sha256": "991154FE28FF2E4108C4587D2CFF30E29772E1F299B7573D5C0FDCF49D652A60"
+    },
+    {
+      "name": "learning_inspect",
+      "title": "Inspect Agent Learning",
+      "read_only": true,
+      "owner_skill": "evi-learning",
+      "schema_sha256": "01B06073F895CBC106E9EF2115C36F31C046135F8C9F5C5CADE56714481FBFD9"
+    },
+    {
+      "name": "learning_record_host_memory_import",
+      "title": "Record host-memory provenance",
+      "read_only": false,
+      "owner_skill": "evi-learning",
+      "schema_sha256": "2340148A3D7012E226E918546878ACBC8A363B768AC665E3FB33292A03E417F0"
+    },
+    {
+      "name": "learning_retrieve",
+      "title": "Retrieve accepted Agent Learning",
+      "read_only": true,
+      "owner_skill": "evi-learning",
+      "schema_sha256": "84B4029990990FD8E1348AD0F6D07FD1FE10056F2ADDFBDBF8A2D1209C1D5A88"
+    },
+    {
+      "name": "learning_revoke",
+      "title": "Revoke accepted Agent Learning",
+      "read_only": false,
+      "owner_skill": "evi-learning",
+      "schema_sha256": "39BC006F5A3216FEC507633CEAE8645FEE6FF16E2C656867B2971DD55D5A2635"
+    },
+    {
+      "name": "learning_seal_candidate",
+      "title": "Seal Agent Learning candidate",
+      "read_only": false,
+      "owner_skill": "evi-learning",
+      "schema_sha256": "0B2E6136DCB9C688AD7579C40CACCBEC65048D41B1E0E951A37B923A103ABA1B"
+    },
+    {
+      "name": "lifecycle_transition_law",
+      "title": "Read the canonical lifecycle law",
+      "read_only": true,
+      "owner_skill": "evi",
+      "schema_sha256": "DC8F592786038F171CBBFC65A1A884DD7E5E670D57313DD5F1AA026891F28BA3"
+    },
+    {
+      "name": "mode_classify",
+      "title": "Classify an ENV15 mode intersection and lanes",
+      "read_only": false,
+      "owner_skill": "evi-mode",
+      "schema_sha256": "4E85D82EC4364F65F640B8347FA7E01BF611FA8A80A4427868261A155BCB3F39"
+    },
+    {
+      "name": "project_memory_query",
+      "title": "Query Project Memory",
+      "read_only": true,
+      "owner_skill": "evi-memory",
+      "schema_sha256": "F213CB98BBD6D89D9AE2A231940D2488129053280E90945F1455A90627D851F7"
+    },
+    {
+      "name": "project_memory_record_link",
+      "title": "Record Project Memory link",
+      "read_only": false,
+      "owner_skill": "evi-memory",
+      "schema_sha256": "C5BF34EDAC337E5ED2F75D17CEEAFFE38EAC4CE30227B282172BCEDB621D6348"
+    },
+    {
+      "name": "project_recipe_compile",
+      "title": "Compile project recipe",
+      "read_only": true,
+      "owner_skill": "evi-project-recipe",
+      "schema_sha256": "9B995E704D12C8C56BDCA41E1280D60302541F74513E54E618AF121DDFE5C59A"
+    },
+    {
+      "name": "project_register",
+      "title": "Register one Git project",
+      "read_only": false,
+      "owner_skill": "evi-boot",
+      "schema_sha256": "E0CE5FCA519A5D6ED268E6045FDC22A0F133E7E7DD1742C6B929ED7FCEE9F616"
+    },
+    {
+      "name": "prompt_index_status",
+      "title": "Read prompt-entry rollback index",
+      "read_only": true,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "7168DD8E69E353ABAAAFD021D9E5C7BA4190FB56C1C88C840864A861AAEE5B36"
+    },
+    {
+      "name": "pv_begin_next_turn",
+      "title": "Enter next turn from latest accepted PV",
+      "read_only": false,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "6EFB7F7D956F413B569B9E224D8F3D375CE9BE39048662258199E4808C6822E5"
+    },
+    {
+      "name": "pv_build_initial",
+      "title": "Build initial PV0 live authority",
+      "read_only": false,
+      "owner_skill": "evi-build",
+      "schema_sha256": "3395F9793BC824F85BE443C375478EE009546D77291E61F1597F7F6EFB7E5836"
+    },
+    {
+      "name": "pv_diff",
+      "title": "Read live Project Overlay comparison",
+      "read_only": true,
+      "owner_skill": "evi",
+      "schema_sha256": "A2AA67999DBBB877D590561DAFA3C13772621B09FB4C921125A1C2C6861D9190"
+    },
+    {
+      "name": "pv_enroll_project",
+      "title": "Enroll an external Git project",
+      "read_only": false,
+      "owner_skill": "evi-boot",
+      "schema_sha256": "7C715CFCAAA52CF14C9EEEB7E335A8B46FE28A06C0504528550C2893762D08BF"
+    },
+    {
+      "name": "pv_fuse",
+      "title": "Fuse candidate with exact APPROVE",
+      "read_only": false,
+      "owner_skill": "evi-fuse",
+      "schema_sha256": "DC8CCDE7535966C18069B6BCE3081F18C9B0D5FCE12A5AD29A769E1729907DBF"
+    },
+    {
+      "name": "pv_plan_steer_delta",
+      "title": "Append one canonical steer Delta",
+      "read_only": false,
+      "owner_skill": "evi-plan",
+      "schema_sha256": "16BD6C74219F7EAF6DB93FE49ACA9419D89CD703E208D107200D21FB320C2823"
+    },
+    {
+      "name": "pv_plan_tasks",
+      "title": "Queue a linear multi-task plan",
+      "read_only": false,
+      "owner_skill": "evi-plan",
+      "schema_sha256": "B08DAEEE7B5443CF31FF76A662CEF4A912759DD4D8ECF0E89C1A1891EFDF982D"
+    },
+    {
+      "name": "pv_query",
+      "title": "Run focused PV intelligence query",
+      "read_only": true,
+      "owner_skill": "evi",
+      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE"
+    },
+    {
+      "name": "pv_rollback",
+      "title": "Select a Plan-stamped rollback state",
+      "read_only": false,
+      "owner_skill": "evi-rollback",
+      "schema_sha256": "660838FEC5545D10BA11EF3BCBB5CA8E21B77975FB9DE55772B8F6D668E385AA"
+    },
+    {
+      "name": "pv_state_travel_direct_force_same_worktree",
+      "title": "Verify direct same-worktree State Travel",
+      "read_only": false,
+      "owner_skill": "evi-state-travel",
+      "schema_sha256": "118851A85E32DFE01DED36902D503DED1AC64A6BEF867C2EFB7A78D53D51AC48"
+    },
+    {
+      "name": "pv_status",
+      "title": "Read bounded project and pointer status",
+      "read_only": true,
+      "owner_skill": "evi",
+      "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA"
+    },
+    {
+      "name": "pv_summary",
+      "title": "Read deterministic live-root summary",
+      "read_only": true,
+      "owner_skill": "evi",
+      "schema_sha256": "13B957BB930714BB99E227002880AFB9699F023B1CD89C340FAFF4928901BDCC"
+    },
+    {
+      "name": "pv_task_backlog",
+      "title": "Read the linear task backlog",
+      "read_only": true,
+      "owner_skill": "evi",
+      "schema_sha256": "C2746023576A61362CEE3340EF2BC090F6779067BEB16749F9AFDA15185AA6A9"
+    },
+    {
+      "name": "pv_task_transition",
+      "title": "Transition or correct one Delta",
+      "read_only": false,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "B24C88C8B3FC148FC48002F9C1AA6E269F03C171444417ACCC0E774880D8A294"
+    },
+    {
+      "name": "remote_git_execute_push",
+      "title": "Execute preauthorized exact test-branch push",
+      "read_only": false,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "D089D42AC70BC241C8F30042AC570C560EF83834570B5F4885A12867E463BCB7"
+    },
+    {
+      "name": "remote_git_prepare_push",
+      "title": "Prepare automatic exact test-branch push",
+      "read_only": false,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "7240F6C3A4F87E9C7382A18DBD1BEE31258D6929B6EDA4D395A53B1ED600D021"
+    },
+    {
+      "name": "render_project_panel",
+      "title": "Render governed project and HIL panel",
+      "read_only": true,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "8C8F10765A838FA51942EC2DDBA771C0E30C963374F65BE0198164DEA74DD7FE"
+    },
+    {
+      "name": "render_runtime_panel",
+      "title": "Render Evidence Lane runtime panel",
+      "read_only": true,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "F4C8CF4D4CC1B8B70C3B3E3220C23D03189B44E21E22EAF49B22FF2382FC9597"
+    },
+    {
+      "name": "runtime_activation_status",
+      "title": "Inspect Evidence Lane runtime attachment",
+      "read_only": true,
+      "owner_skill": "evi-boot",
+      "schema_sha256": "5FF6B44A6294F618144C8E6A8B230F03435BB35F8D9C9BBF286B267FC6EA1445"
+    },
+    {
+      "name": "runtime_doctor",
+      "title": "Check Evidence Lane runtime",
+      "read_only": true,
+      "owner_skill": "evi-boot",
+      "schema_sha256": "F364133F51E5A271CABD8480B1B81ED1C36BC66628D231B27CB2D0984810D9C4"
+    },
+    {
+      "name": "search",
+      "title": "Query live six-authority project intelligence",
+      "read_only": true,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "1D4C303C7B3FE4AC1E729A6D7B45EA0A082FE57585D1C3251874A5BBE9769691"
+    },
+    {
+      "name": "session_boot",
+      "title": "Boot governed Evidence Lane session",
+      "read_only": false,
+      "owner_skill": "evi-boot",
+      "schema_sha256": "549CE2AD9EE2953AE3D17C3A0AAAD4DCF8F4C6A2ED19DFCE4E04EEACFF20CEBC"
+    },
+    {
+      "name": "session_close",
+      "title": "Close governed session",
+      "read_only": false,
+      "owner_skill": "evi-exit-boot",
+      "schema_sha256": "3A747E3E780C3BF9C23624AC8EB08E045732ACE3E420DD651AA9CCBF48FD00D5"
+    },
+    {
+      "name": "session_flash_status",
+      "title": "Inspect Evidence Lane session flash",
+      "read_only": true,
+      "owner_skill": "evi-boot",
+      "schema_sha256": "6659AD225FAC02FD58ED334CCB48BBF8DB2B5FBF493C00054D8AB4813E044062"
+    },
+    {
+      "name": "session_resume",
+      "title": "Resume persistent Evidence Lane session",
+      "read_only": false,
+      "owner_skill": "evi-boot",
+      "schema_sha256": "AB2927F0B1828FCF6BF3526C7ED8E6212DB3A6C873193284092B89A72D2FC407"
+    },
+    {
+      "name": "source_custom_schema_compile",
+      "title": "Compile and map a Custom Source Schema",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "75DBD5618758A4A4C33F0BF93C4C770D746534D7B0D7A403B36C69A4B29D3696"
+    },
+    {
+      "name": "source_git_commit_impact",
+      "title": "Map an exact Git parent diff to graph impact",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "0E5CAF7DF39E4D4A812B94D8958B69399DD18CCA96EDCA9E4B28923322D2287D"
+    },
+    {
+      "name": "source_git_history_build",
+      "title": "Seal full bounded Git history evidence",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "B053EB091AE5290127000452B72E8E7D81F23EC609D6600A4C64C26699DD5FE1"
+    },
+    {
+      "name": "source_graph_build",
+      "title": "Build a bounded provenance-first source graph",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "F71727B9AEAF773C8185207FF223360AB2387BEEBB1AD7A8A601C684318A1D7D"
+    },
+    {
+      "name": "source_graph_diff",
+      "title": "Diff exact source-graph snapshots",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "5D0A07071D0422E7190C8897B8FDC627FFD2A87AEF915B56FEA82FB12F0DBD4C"
+    },
+    {
+      "name": "source_graph_impact",
+      "title": "Traverse a bounded affected source subgraph",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "5BC430CA60C5C8C5E40EE66087355C1B03B39F103C69B74B4EF801EEEAD3E451"
+    },
+    {
+      "name": "source_identity_register",
+      "title": "Register distinct source-generation identities",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "BB6742DF7A8BE678C5967E753B8ABFE7CA3BE54752556445CAD7C2BEA3AD1DEF"
+    },
+    {
+      "name": "source_intake_classify",
+      "title": "Classify generalized Source Intake",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "CBE89FF15C6A4AD750C1D4D17C6F987420D6A3946573FA2ABB4E2FD1715E0F8A"
+    },
+    {
+      "name": "source_intake_schema_configure",
+      "title": "Add or modify a Source Intake schema pill",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "4911ACA559DAF9C937F8951C9A66C1AD578B5848FF78E9BF4D961E00D66B42AA"
+    },
+    {
+      "name": "source_sqlite_inspect",
+      "title": "Inspect registered SQLite brain authorities",
+      "read_only": false,
+      "owner_skill": "evi-source-intake",
+      "schema_sha256": "FC8B4242F2AA3AD6A8C969274C3264C29204307204D8C89F2B567EA01CD5AEE9"
+    },
+    {
+      "name": "storage_connector_inspect",
+      "title": "Inspect the primary storage connector route",
+      "read_only": true,
+      "owner_skill": "evi-storage",
+      "schema_sha256": "EF8CCDA3FCCDA17A3458C8262F9AF3887BF9720BD9CB5BE2E36A1F1B5C42F667"
+    },
+    {
+      "name": "storage_connector_select",
+      "title": "Select the project primary storage authority",
+      "read_only": false,
+      "owner_skill": "evi-storage",
+      "schema_sha256": "6CA1E5660914849488AA0F5B7DC6FDBF88782AE0CFDE05C4C0C287A9BF225DBF"
+    },
+    {
+      "name": "task_classify",
+      "title": "Classify one bounded code task",
+      "read_only": false,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "D69C1000678E95673A8CB845A178C3E071DB7855E8402FA6EC6741BE1E4B6990"
+    },
+    {
+      "name": "task_complete_and_refresh",
+      "title": "Seal one HIL-only live-root proposal and dual presentation",
+      "read_only": false,
+      "owner_skill": "evi-refresh",
+      "schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570"
+    },
+    {
+      "name": "task_confirm_source_update",
+      "title": "Confirm final host source state",
+      "read_only": false,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "09EBF3A10F0714875649202DC07B5B516F0F8FF949AD80848E0B949DC9C98570"
+    },
+    {
+      "name": "task_record_activity",
+      "title": "Append visible Chat Lineage activity",
+      "read_only": false,
+      "owner_skill": "evidence-lane-code-lifecycle",
+      "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D"
+    }
+  ],
+  "execution_authority": false,
+  "projection_sha256": "E32BDBDDEC033545DF8691A977140B4ABDB0648AD3024B731381D28D3614D8D5"
+}

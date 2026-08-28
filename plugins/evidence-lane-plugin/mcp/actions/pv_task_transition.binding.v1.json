@@ -1,0 +1,131 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "pv_task_transition",
+  "title": "Transition or correct one Delta",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "task_id": {
+        "title": "Task Id",
+        "type": "string"
+      },
+      "transition": {
+        "enum": [
+          "DROP",
+          "SUPERSEDE",
+          "CORRECT_DROP",
+          "CORRECT_PREAPPROVAL_DONE"
+        ],
+        "title": "Transition",
+        "type": "string"
+      },
+      "decided_by": {
+        "title": "Decided By",
+        "type": "string"
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string"
+      },
+      "replacement_task_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Replacement Task Id"
+      },
+      "event_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Event Id"
+      },
+      "correction_of_event_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Correction Of Event Id"
+      },
+      "expected_backlog_sha256": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Backlog Sha256"
+      }
+    },
+    "required": [
+      "project_id",
+      "task_id",
+      "transition",
+      "decided_by",
+      "reason"
+    ],
+    "title": "pv_task_transitionArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_task_transitionDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "B24C88C8B3FC148FC48002F9C1AA6E269F03C171444417ACCC0E774880D8A294",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_task_transition"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution",
+        "order": 14
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/pv_task_transition.action.v1.json",
+  "sdk_action_binding_sha256": "B0E7F3FB0A1F62DBA2FEBCA606BBA92FD9A94039DED20F4E7E76FAAE6F38E923",
+  "public_action_schema": "schemas/actions/pv_task_transition.schema.json",
+  "public_action_schema_sha256": "87F7894E8212ACF9C09AA2F5C5EB36AE7549BB4EA233B7AB5E76129CC82454C5",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "538CF66D9D6CF10CF03963556F0E9403441C84A55DC95A9821F765396B2E4D56"
+}

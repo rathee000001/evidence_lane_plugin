@@ -1,0 +1,11 @@
+{
+  "schema": "evidence-lane.sdk-named-authority-reference.v1",
+  "status": "PASS",
+  "authority_count": 11,
+  "sqlite_authority_count": 10,
+  "non_sqlite_authority_count": 1,
+  "registry": "authorities/authority-surface-registry.v1.json",
+  "registry_sha256": "DADFB18BF01001DB8528F344E72ABF462CAFBDE81FF8413481B515F6D49A5528",
+  "merged_with_project_sectors": false,
+  "receipt_sha256": "04E05BE209E244DA24D11F76F10A9E742C27123C29C795A4796979736A0F85DE"
+}

@@ -1,0 +1,240 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=7D58A1AFA532BACF46E9015B6FA3D8375FE9ED28941AED5A906B0E21ED6D6946
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  AUTHORITY_ROOT["project_universe SQLite authority"]:::root
+  subgraph SUPPORT_project_universe["project_universe SQLite schema"]
+    direction TB
+    support_table_authority_index_fts["authority_index_fts [FTS5]"]:::table
+    support_table_authority_index_fts_column_node_id["node_id : ANY"]:::column
+    support_table_authority_index_fts_column_authority_id["authority_id : ANY"]:::column
+    support_table_authority_index_fts_column_source_table["source_table : ANY"]:::column
+    support_table_authority_index_fts_column_source_identity["source_identity : ANY"]:::column
+    support_table_authority_index_fts_column_text_content["text_content : ANY"]:::column
+    support_table_authority_index_fts_config["authority_index_fts_config"]:::table
+    support_table_authority_index_fts_config_column_k["k : ANY"]:::column
+    support_table_authority_index_fts_config_column_v["v : ANY"]:::column
+    support_table_authority_index_fts_content["authority_index_fts_content"]:::table
+    support_table_authority_index_fts_content_column_id["id : INTEGER"]:::column
+    support_table_authority_index_fts_content_column_c0["c0 : ANY"]:::column
+    support_table_authority_index_fts_content_column_c1["c1 : ANY"]:::column
+    support_table_authority_index_fts_content_column_c2["c2 : ANY"]:::column
+    support_table_authority_index_fts_content_column_c3["c3 : ANY"]:::column
+    support_table_authority_index_fts_content_column_c4["c4 : ANY"]:::column
+    support_table_authority_index_fts_data["authority_index_fts_data"]:::table
+    support_table_authority_index_fts_data_column_id["id : INTEGER"]:::column
+    support_table_authority_index_fts_data_column_block["block : BLOB"]:::column
+    support_table_authority_index_fts_docsize["authority_index_fts_docsize"]:::table
+    support_table_authority_index_fts_docsize_column_id["id : INTEGER"]:::column
+    support_table_authority_index_fts_docsize_column_sz["sz : BLOB"]:::column
+    support_table_authority_index_fts_idx["authority_index_fts_idx"]:::table
+    support_table_authority_index_fts_idx_column_segid["segid : ANY"]:::column
+    support_table_authority_index_fts_idx_column_term["term : ANY"]:::column
+    support_table_authority_index_fts_idx_column_pgno["pgno : ANY"]:::column
+    support_table_authority_index_node["authority_index_node"]:::table
+    support_table_authority_index_node_column_node_id["node_id : TEXT"]:::column
+    support_table_authority_index_node_column_source_id["source_id : TEXT"]:::column
+    support_table_authority_index_node_column_ordinal["ordinal : INTEGER"]:::column
+    support_table_authority_index_node_column_char_start["char_start : INTEGER"]:::column
+    support_table_authority_index_node_column_char_end["char_end : INTEGER"]:::column
+    support_table_authority_index_node_column_text_content["text_content : TEXT"]:::column
+    support_table_authority_index_node_column_text_sha256["text_sha256 : TEXT"]:::column
+    support_table_authority_index_node_column_metadata_json["metadata_json : TEXT"]:::column
+    support_table_authority_index_refresh_receipt["authority_index_refresh_receipt"]:::table
+    support_table_authority_index_refresh_receipt_column_sequence["sequence : INTEGER"]:::column
+    support_table_authority_index_refresh_receipt_column_authority_id["authority_id : TEXT"]:::column
+    support_table_authority_index_refresh_receipt_column_source_count["source_count : INTEGER"]:::column
+    support_table_authority_index_refresh_receipt_column_node_count["node_count : INTEGER"]:::column
+    support_table_authority_index_refresh_receipt_column_indexed_table_count["indexed_table_count : INTEGER"]:::column
+    support_table_authority_index_refresh_receipt_column_llama_index_core_version["llama_index_core_version : TEXT"]:::column
+    support_table_authority_index_refresh_receipt_column_chunk_size_tokens["chunk_size_tokens : INTEGER"]:::column
+    support_table_authority_index_refresh_receipt_column_chunk_overlap_tokens["chunk_overlap_tokens : INTEGER"]:::column
+    support_table_authority_index_refresh_receipt_column_prior_receipt_sha256["prior_receipt_sha256 : TEXT"]:::column
+    support_table_authority_index_refresh_receipt_column_recorded_at["recorded_at : TEXT"]:::column
+    support_table_authority_index_refresh_receipt_column_receipt_sha256["receipt_sha256 : TEXT"]:::column
+    support_table_authority_index_refresh_receipt_column_receipt_json["receipt_json : TEXT"]:::column
+    support_table_authority_index_source["authority_index_source"]:::table
+    support_table_authority_index_source_column_source_id["source_id : TEXT"]:::column
+    support_table_authority_index_source_column_authority_id["authority_id : TEXT"]:::column
+    support_table_authority_index_source_column_source_table["source_table : TEXT"]:::column
+    support_table_authority_index_source_column_source_identity["source_identity : TEXT"]:::column
+    support_table_authority_index_source_column_source_text_sha256["source_text_sha256 : TEXT"]:::column
+    support_table_authority_index_source_column_metadata_json["metadata_json : TEXT"]:::column
+    support_table_authority_index_source_column_recorded_at["recorded_at : TEXT"]:::column
+    support_table_universe_edge["universe_edge"]:::table
+    support_table_universe_edge_column_edge_id["edge_id : TEXT"]:::column
+    support_table_universe_edge_column_relation["relation : TEXT"]:::column
+    support_table_universe_edge_column_source_node_id["source_node_id : TEXT"]:::column
+    support_table_universe_edge_column_destination_node_id["destination_node_id : TEXT"]:::column
+    support_table_universe_edge_column_attributes_json["attributes_json : TEXT"]:::column
+    support_table_universe_edge_column_record_sha256["record_sha256 : TEXT"]:::column
+    support_table_universe_fts["universe_fts [FTS5]"]:::table
+    support_table_universe_fts_column_node_id["node_id : ANY"]:::column
+    support_table_universe_fts_column_node_kind["node_kind : ANY"]:::column
+    support_table_universe_fts_column_label["label : ANY"]:::column
+    support_table_universe_fts_column_canonical_locator["canonical_locator : ANY"]:::column
+    support_table_universe_fts_column_attributes["attributes : ANY"]:::column
+    support_table_universe_fts_config["universe_fts_config"]:::table
+    support_table_universe_fts_config_column_k["k : ANY"]:::column
+    support_table_universe_fts_config_column_v["v : ANY"]:::column
+    support_table_universe_fts_content["universe_fts_content"]:::table
+    support_table_universe_fts_content_column_id["id : INTEGER"]:::column
+    support_table_universe_fts_content_column_c0["c0 : ANY"]:::column
+    support_table_universe_fts_content_column_c1["c1 : ANY"]:::column
+    support_table_universe_fts_content_column_c2["c2 : ANY"]:::column
+    support_table_universe_fts_content_column_c3["c3 : ANY"]:::column
+    support_table_universe_fts_content_column_c4["c4 : ANY"]:::column
+    support_table_universe_fts_data["universe_fts_data"]:::table
+    support_table_universe_fts_data_column_id["id : INTEGER"]:::column
+    support_table_universe_fts_data_column_block["block : BLOB"]:::column
+    support_table_universe_fts_docsize["universe_fts_docsize"]:::table
+    support_table_universe_fts_docsize_column_id["id : INTEGER"]:::column
+    support_table_universe_fts_docsize_column_sz["sz : BLOB"]:::column
+    support_table_universe_fts_idx["universe_fts_idx"]:::table
+    support_table_universe_fts_idx_column_segid["segid : ANY"]:::column
+    support_table_universe_fts_idx_column_term["term : ANY"]:::column
+    support_table_universe_fts_idx_column_pgno["pgno : ANY"]:::column
+    support_table_universe_meta["universe_meta"]:::table
+    support_table_universe_meta_column_key["key : TEXT"]:::column
+    support_table_universe_meta_column_value["value : TEXT"]:::column
+    support_table_universe_metric["universe_metric"]:::table
+    support_table_universe_metric_column_metric_key["metric_key : TEXT"]:::column
+    support_table_universe_metric_column_metric_value["metric_value : INTEGER"]:::column
+    support_table_universe_node["universe_node"]:::table
+    support_table_universe_node_column_node_id["node_id : TEXT"]:::column
+    support_table_universe_node_column_node_kind["node_kind : TEXT"]:::column
+    support_table_universe_node_column_canonical_locator["canonical_locator : TEXT"]:::column
+    support_table_universe_node_column_label["label : TEXT"]:::column
+    support_table_universe_node_column_attributes_json["attributes_json : TEXT"]:::column
+    support_table_universe_node_column_record_sha256["record_sha256 : TEXT"]:::column
+    support_table_universe_refresh["universe_refresh"]:::table
+    support_table_universe_refresh_column_refresh_id["refresh_id : TEXT"]:::column
+    support_table_universe_refresh_column_source_fingerprint_sha256["source_fingerprint_sha256 : TEXT"]:::column
+    support_table_universe_refresh_column_graph_sha256["graph_sha256 : TEXT"]:::column
+    support_table_universe_refresh_column_recorded_at["recorded_at : TEXT"]:::column
+    support_table_universe_refresh_column_node_count["node_count : INTEGER"]:::column
+    support_table_universe_refresh_column_edge_count["edge_count : INTEGER"]:::column
+  end
+  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts
+  support_table_authority_index_fts -->|"column"| support_table_authority_index_fts_column_node_id
+  support_table_authority_index_fts -->|"column"| support_table_authority_index_fts_column_authority_id
+  support_table_authority_index_fts -->|"column"| support_table_authority_index_fts_column_source_table
+  support_table_authority_index_fts -->|"column"| support_table_authority_index_fts_column_source_identity
+  support_table_authority_index_fts -->|"column"| support_table_authority_index_fts_column_text_content
+  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts_config
+  support_table_authority_index_fts_config -->|"column"| support_table_authority_index_fts_config_column_k
+  support_table_authority_index_fts_config -->|"column"| support_table_authority_index_fts_config_column_v
+  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts_content
+  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_id
+  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_c0
+  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_c1
+  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_c2
+  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_c3
+  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_c4
+  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts_data
+  support_table_authority_index_fts_data -->|"column"| support_table_authority_index_fts_data_column_id
+  support_table_authority_index_fts_data -->|"column"| support_table_authority_index_fts_data_column_block
+  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts_docsize
+  support_table_authority_index_fts_docsize -->|"column"| support_table_authority_index_fts_docsize_column_id
+  support_table_authority_index_fts_docsize -->|"column"| support_table_authority_index_fts_docsize_column_sz
+  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts_idx
+  support_table_authority_index_fts_idx -->|"column"| support_table_authority_index_fts_idx_column_segid
+  support_table_authority_index_fts_idx -->|"column"| support_table_authority_index_fts_idx_column_term
+  support_table_authority_index_fts_idx -->|"column"| support_table_authority_index_fts_idx_column_pgno
+  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_node
+  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_node_id
+  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_source_id
+  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_ordinal
+  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_char_start
+  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_char_end
+  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_text_content
+  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_text_sha256
+  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_metadata_json
+  support_table_authority_index_node -->|"FK source_id-&gt;source_id"| support_table_authority_index_source
+  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_refresh_receipt
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_sequence
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_authority_id
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_source_count
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_node_count
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_indexed_table_count
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_llama_index_core_version
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_chunk_size_tokens
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_chunk_overlap_tokens
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_prior_receipt_sha256
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_recorded_at
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_receipt_sha256
+  support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_receipt_json
+  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_source
+  support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_source_id
+  support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_authority_id
+  support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_source_table
+  support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_source_identity
+  support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_source_text_sha256
+  support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_metadata_json
+  support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_recorded_at
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_edge
+  support_table_universe_edge -->|"column"| support_table_universe_edge_column_edge_id
+  support_table_universe_edge -->|"column"| support_table_universe_edge_column_relation
+  support_table_universe_edge -->|"column"| support_table_universe_edge_column_source_node_id
+  support_table_universe_edge -->|"column"| support_table_universe_edge_column_destination_node_id
+  support_table_universe_edge -->|"column"| support_table_universe_edge_column_attributes_json
+  support_table_universe_edge -->|"column"| support_table_universe_edge_column_record_sha256
+  support_table_universe_edge -->|"FK destination_node_id-&gt;node_id"| support_table_universe_node
+  support_table_universe_edge -->|"FK source_node_id-&gt;node_id"| support_table_universe_node
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_fts
+  support_table_universe_fts -->|"column"| support_table_universe_fts_column_node_id
+  support_table_universe_fts -->|"column"| support_table_universe_fts_column_node_kind
+  support_table_universe_fts -->|"column"| support_table_universe_fts_column_label
+  support_table_universe_fts -->|"column"| support_table_universe_fts_column_canonical_locator
+  support_table_universe_fts -->|"column"| support_table_universe_fts_column_attributes
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_fts_config
+  support_table_universe_fts_config -->|"column"| support_table_universe_fts_config_column_k
+  support_table_universe_fts_config -->|"column"| support_table_universe_fts_config_column_v
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_fts_content
+  support_table_universe_fts_content -->|"column"| support_table_universe_fts_content_column_id
+  support_table_universe_fts_content -->|"column"| support_table_universe_fts_content_column_c0
+  support_table_universe_fts_content -->|"column"| support_table_universe_fts_content_column_c1
+  support_table_universe_fts_content -->|"column"| support_table_universe_fts_content_column_c2
+  support_table_universe_fts_content -->|"column"| support_table_universe_fts_content_column_c3
+  support_table_universe_fts_content -->|"column"| support_table_universe_fts_content_column_c4
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_fts_data
+  support_table_universe_fts_data -->|"column"| support_table_universe_fts_data_column_id
+  support_table_universe_fts_data -->|"column"| support_table_universe_fts_data_column_block
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_fts_docsize
+  support_table_universe_fts_docsize -->|"column"| support_table_universe_fts_docsize_column_id
+  support_table_universe_fts_docsize -->|"column"| support_table_universe_fts_docsize_column_sz
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_fts_idx
+  support_table_universe_fts_idx -->|"column"| support_table_universe_fts_idx_column_segid
+  support_table_universe_fts_idx -->|"column"| support_table_universe_fts_idx_column_term
+  support_table_universe_fts_idx -->|"column"| support_table_universe_fts_idx_column_pgno
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_meta
+  support_table_universe_meta -->|"column"| support_table_universe_meta_column_key
+  support_table_universe_meta -->|"column"| support_table_universe_meta_column_value
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_metric
+  support_table_universe_metric -->|"column"| support_table_universe_metric_column_metric_key
+  support_table_universe_metric -->|"column"| support_table_universe_metric_column_metric_value
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_node
+  support_table_universe_node -->|"column"| support_table_universe_node_column_node_id
+  support_table_universe_node -->|"column"| support_table_universe_node_column_node_kind
+  support_table_universe_node -->|"column"| support_table_universe_node_column_canonical_locator
+  support_table_universe_node -->|"column"| support_table_universe_node_column_label
+  support_table_universe_node -->|"column"| support_table_universe_node_column_attributes_json
+  support_table_universe_node -->|"column"| support_table_universe_node_column_record_sha256
+  AUTHORITY_ROOT -->|"owns"| support_table_universe_refresh
+  support_table_universe_refresh -->|"column"| support_table_universe_refresh_column_refresh_id
+  support_table_universe_refresh -->|"column"| support_table_universe_refresh_column_source_fingerprint_sha256
+  support_table_universe_refresh -->|"column"| support_table_universe_refresh_column_graph_sha256
+  support_table_universe_refresh -->|"column"| support_table_universe_refresh_column_recorded_at
+  support_table_universe_refresh -->|"column"| support_table_universe_refresh_column_node_count
+  support_table_universe_refresh -->|"column"| support_table_universe_refresh_column_edge_count

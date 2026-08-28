@@ -21,10 +21,12 @@ from .git_adapter import (
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .ids import new_ulid, prefixed_id
 from .ingest import ingest_repository, refresh_repository
-from .lane_engine import build_lane_bundle
+from .lane_engine import build_lane_bundle, validate_lane_bundle
 from .mode_governance import validate_mode_binding
 from .models import SessionRecord, TaskContract
 from .next_actions import hil_next_action, refresh_output_handoff
+from .project_authority import is_working_sector_operational_member
+from .project_overlay import build_project_overlay, validate_project_overlay
 from .pv_package import build_pv_package
 from .runtime_continuity import validate_runtime_continuity
 from .store import ProjectStore
@@ -128,6 +130,347 @@ class CodePVEngine:
             "checks": checks,
             "engine": identity,
         }
+
+    def _build_live_root_hil_proposal(
+        self,
+        *,
+        project_id: str,
+        session: SessionRecord,
+        run_id: str,
+        lineage_path: str | Path,
+        task: TaskContract | None,
+        pointer: Any,
+        config: Any,
+        runtime_continuity: dict[str, Any],
+        mode_execution: dict[str, Any] | None,
+        acceptance_health: dict[str, Any],
+        repository_payload: dict[str, Any],
+        identity: Any,
+        proposed_pv: str,
+        proposal_id: str,
+        created_at: str,
+    ) -> dict[str, Any]:
+        """Refresh only the live-root Project Overlay before explicit HIL."""
+
+        project_root = self.store.project_root(project_id)
+        sectors_root = project_root / "sectors"
+        lane_validation = validate_lane_bundle(sectors_root)
+        checksum_mismatches = dict(
+            lane_validation.get("checksum_mismatches") or {}
+        )
+        operational_authority_only_drift = bool(checksum_mismatches) and all(
+            is_working_sector_operational_member(path)
+            for path in checksum_mismatches
+        )
+        validated_live_operational_authority = bool(
+            operational_authority_only_drift
+            and not lane_validation.get("lane_manifest_errors")
+            and all(
+                lane.get("valid") is True
+                for lane in dict(lane_validation.get("lanes") or {}).values()
+            )
+            and lane_validation.get("lane_directory_set_valid") is True
+            and lane_validation.get("source_routes_valid") is True
+            and lane_validation.get("topology_valid") is True
+        )
+        require(
+            lane_validation.get("valid") is True
+            or validated_live_operational_authority,
+            "LIVE_ROOT_SECTOR_AUTHORITY_INVALID",
+            "The live sector authority must validate before Project Overlay refresh.",
+            status="MISMATCH",
+            project_id=project_id,
+            operational_authority_only_drift=operational_authority_only_drift,
+            checksum_mismatch_paths=sorted(checksum_mismatches),
+            validation=lane_validation,
+        )
+        lane_manifest = json.loads(
+            (sectors_root / "manifest.json").read_text(encoding="utf-8")
+        )
+        code_mode = str(
+            lane_manifest.get("code_mode")
+            or ("github_code" if identity.provider == "github" else "local_code")
+        )
+        prior_overlay = project_root / "project_overlay"
+        prior_overlay_validation = (
+            validate_project_overlay(prior_overlay)
+            if (prior_overlay / "project_overlay.sqlite").is_file()
+            else None
+        )
+        require(
+            prior_overlay_validation is None
+            or prior_overlay_validation.get("valid") is True,
+            "LIVE_ROOT_PROJECT_OVERLAY_BASELINE_INVALID",
+            "The prior live-root Project Overlay cannot be used as the blast-radius baseline.",
+            status="MISMATCH",
+            project_id=project_id,
+        )
+        build_prefix = f"evi-overlay-{proposed_pv.lower()}-"
+        build_parent = Path(tempfile.gettempdir()).resolve()
+        build_root = Path(tempfile.mkdtemp(prefix=build_prefix)).resolve()
+        try:
+            overlay_path = build_root / "project_overlay"
+            overlay_validation = build_project_overlay(
+                overlay_path,
+                lane_bundle_path=sectors_root,
+                lineage_source=lineage_path,
+                candidate_id=proposal_id,
+                proposed_pv=proposed_pv,
+                parent_accepted_pv=pointer.accepted_pv,
+                pointer_generation=pointer.generation,
+                code_mode=code_mode,
+                created_at=created_at,
+                truth_state="HIL_PROPOSAL_ONLY",
+                accepted_parent_access=(
+                    "LIVE_ROOT_BASELINE_ONLY_ACCEPTED_ARCHIVE_UNOPENED"
+                ),
+                prior_overlay_path=prior_overlay,
+            )
+            overlay_delta = dict(overlay_validation["project_overlay_delta"])
+            next_action_contract = hil_next_action(
+                project_id=project_id,
+                session_id=session.session_id,
+                candidate_id=proposal_id,
+                proposed_pv=proposed_pv,
+                mode_execution=mode_execution,
+            )
+            output_handoff = refresh_output_handoff(
+                host_kind=session.host.value,
+                client_can_edit_source=(
+                    session.metadata.get("client_source_edit_authority") == "DIRECT"
+                ),
+                candidate_id=proposal_id,
+                proposed_pv=proposed_pv,
+            )
+            invocation = runtime_continuity.get("invocation")
+            exit_prompt_label = (
+                str(
+                    invocation.get("exit_slip_next_prompt_label")
+                    or "PV_EXIT_SUGGESTED_NEXT_PROMPT"
+                )
+                if isinstance(invocation, dict)
+                else "PV_EXIT_SUGGESTED_NEXT_PROMPT"
+            )
+            project_identity = {
+                "schema": "evidence-lane.project-identity.v1",
+                "project_id": project_id,
+                "display_name": config.display_name,
+                "repository": repository_payload,
+                "sensitivity": config.sensitivity,
+                "source_authority": "SOLE_LIVE_PROJECT_ROOT_AND_VALIDATED_SECTORS",
+                "universal_lanes": {
+                    "lane_count": lane_validation["lane_count"],
+                    "code_mode": code_mode,
+                    "bundle_sha256": lane_validation["bundle_sha256"],
+                },
+                "accepted_archive_opened": False,
+                "accepted_archive_queried": False,
+            }
+            entry_slip = {
+                "schema": "evidence-lane.entry-slip.v1",
+                "session_id": session.session_id,
+                "run_id": run_id,
+                "project_id": project_id,
+                "accepted_entry_pv": pointer.accepted_pv,
+                "accepted_manifest_sha256": pointer.accepted_manifest_sha256,
+                "pointer_generation": pointer.generation,
+                "repository_entry": session.repository,
+                "task": task.as_dict() if task else None,
+                "runtime_continuity": runtime_continuity,
+                "mode_execution": mode_execution,
+                "entered_at": session.created_at,
+            }
+            patch = diff_patch(config.repository_path)
+            exit_slip = {
+                "schema": "evidence-lane.exit-slip.v1",
+                "session_id": session.session_id,
+                "run_id": run_id,
+                "project_id": project_id,
+                "proposed_pv": proposed_pv,
+                "proposal_id": proposal_id,
+                "candidate_id": proposal_id,
+                "repository_exit": repository_payload,
+                "source_delta": overlay_delta,
+                "git_patch_sha256": sha256_bytes(patch.encode("utf-8")),
+                "git_patch_bytes": len(patch.encode("utf-8")),
+                "task": task.as_dict() if task else None,
+                "runtime_continuity": runtime_continuity,
+                "pv_exit_prompt": {
+                    "label": exit_prompt_label,
+                    "suggested_next_prompt": next_action_contract[
+                        "suggested_next_prompt"
+                    ],
+                    "choices": next_action_contract.get("choices", []),
+                    "copyable": True,
+                    "host_owned_composer": True,
+                    "auto_submit": False,
+                },
+                "mode_execution": mode_execution,
+                "acceptance_checks": acceptance_health,
+                "lane_refresh": {
+                    "status": "NOT_RUN_LIVE_SECTORS_ALREADY_AUTHORITY",
+                    "bundle_sha256": lane_validation["bundle_sha256"],
+                    "lane_count": lane_validation["lane_count"],
+                },
+                "project_overlay_refresh": overlay_validation,
+                "next_action": next_action_contract,
+                "host_output_handoff": output_handoff,
+                "full_candidate_package_built": False,
+                "accepted_archive_opened": False,
+                "accepted_archive_queried": False,
+                "exited_at": created_at,
+            }
+            proposal_manifest = {
+                "schema": "evidence-lane.live-root-hil-proposal-manifest.v1",
+                "project_id": project_id,
+                "proposal_id": proposal_id,
+                "candidate_id": proposal_id,
+                "proposed_pv": proposed_pv,
+                "parent_accepted_pv": pointer.accepted_pv,
+                "parent_manifest_sha256": pointer.accepted_manifest_sha256,
+                "pointer_generation": pointer.generation,
+                "project_overlay_manifest_sha256": overlay_validation[
+                    "manifest_sha256"
+                ],
+                "project_overlay_delta_sha256": overlay_delta["delta_sha256"],
+                "full_candidate_package_built": False,
+                "accepted_archive_opened": False,
+                "accepted_archive_queried": False,
+                "created_at": created_at,
+            }
+            engine_identity, toolchain = build_engine_identity(
+                package_root=self.package_source_root,
+                repository_root=self.source_repository_root,
+            )
+            proposal_validation = {
+                "status": "PASS",
+                "valid": True,
+                # Match the contained package contract: promotability here is
+                # structural authority validity. Declared acceptance and any
+                # post-seal checks remain separately enforced at the decision
+                # boundary; prose checks do not make a valid live overlay
+                # structurally non-promotable.
+                "promotable": overlay_validation.get("valid") is True,
+                "project_id": project_id,
+                "proposal_id": proposal_id,
+                "candidate_id": proposal_id,
+                "proposed_pv": proposed_pv,
+                "parent_accepted_pv": pointer.accepted_pv,
+                "pointer_generation": pointer.generation,
+                "warnings": [],
+                "full_candidate_package_built": False,
+                "accepted_archive_opened": False,
+                "accepted_archive_queried": False,
+                "project_overlay": overlay_validation,
+            }
+            stored = self.store.place_live_root_hil_proposal(
+                project_id,
+                proposal_id,
+                proposed_pv=proposed_pv,
+                project_overlay_source=overlay_path,
+                package_metadata={
+                    "manifest": proposal_manifest,
+                    "project_identity": project_identity,
+                    "entry_slip": entry_slip,
+                    "exit_slip": exit_slip,
+                },
+                validation=proposal_validation,
+            )
+            postseal_declarations = declarations_for_phase(
+                config.repository_path,
+                task.acceptance_checks if task else [],
+                phase="POSTSEAL",
+            )
+            postseal_acceptance = None
+            postseal_receipt_path = None
+            postseal_receipt_sha256 = None
+            if postseal_declarations:
+                postseal_acceptance = run_acceptance_checks(
+                    config.repository_path,
+                    postseal_declarations,
+                    phase="POSTSEAL",
+                    environment={
+                        "EVIDENCE_LANE_CANDIDATE_PATH": str(project_root),
+                        "EVIDENCE_LANE_PROJECT_ROOT": str(project_root),
+                        "EVIDENCE_LANE_PROJECT_ID": project_id,
+                        "EVIDENCE_LANE_EXPECTED_CANDIDATE_ID": proposal_id,
+                        "EVIDENCE_LANE_EXPECTED_ACCEPTED_PV": (
+                            pointer.accepted_pv or "NONE"
+                        ),
+                        "EVIDENCE_LANE_EXPECTED_POINTER_GENERATION": str(
+                            pointer.generation
+                        ),
+                        "EVIDENCE_LANE_EXPECTED_COMMIT": identity.commit_sha,
+                    },
+                )
+                postseal_receipt = {
+                    "schema": "evidence-lane.postseal-acceptance.receipt.v1",
+                    "project_id": project_id,
+                    "candidate_id": proposal_id,
+                    "accepted_pv_retained": pointer.accepted_pv,
+                    "pointer_generation_retained": pointer.generation,
+                    "source_commit_sha": identity.commit_sha,
+                    "acceptance": postseal_acceptance,
+                    "recorded_at": utc_now(),
+                }
+                postseal_receipt["receipt_sha256"] = sha256_bytes(
+                    canonical_json_bytes(postseal_receipt)
+                )
+                postseal_receipt_path = (
+                    project_root
+                    / "receipts"
+                    / f"postseal_{proposal_id.lower()}.json"
+                )
+                postseal_receipt_sha256 = postseal_receipt["receipt_sha256"]
+                atomic_write_json(postseal_receipt_path, postseal_receipt)
+            return {
+                "candidate_id": proposal_id,
+                "proposal_id": proposal_id,
+                "proposed_pv": proposed_pv,
+                "manifest_sha256": stored["manifest_sha256"],
+                "package_sha256": stored["package_sha256"],
+                "warnings": [],
+                "stored_path": str(project_root),
+                "stored_validation": stored,
+                "repository": repository_payload,
+                "source_delta": overlay_delta,
+                "ingestion": {
+                    "status": "NOT_RUN_LIVE_SECTORS_ALREADY_AUTHORITY",
+                    "exact_live_sector_bundle_sha256": lane_validation[
+                        "bundle_sha256"
+                    ],
+                },
+                "acceptance_checks": acceptance_health,
+                "postseal_acceptance": postseal_acceptance,
+                "postseal_acceptance_receipt": (
+                    str(postseal_receipt_path) if postseal_receipt_path else None
+                ),
+                "postseal_acceptance_receipt_sha256": postseal_receipt_sha256,
+                "lane_refresh": lane_validation,
+                "project_overlay_refresh": overlay_validation,
+                "next_action": next_action_contract,
+                "mode_execution": mode_execution,
+                "toolchain_manifest_sha256": (
+                    engine_identity.toolchain_manifest_sha256
+                ),
+                "toolchain_package_count": len(toolchain["packages"]),
+                "full_candidate_package_built": False,
+                "candidate_directory_created": False,
+                "accepted_archive_opened": False,
+                "accepted_archive_queried": False,
+            }
+        finally:
+            resolved_build = build_root.resolve()
+            if (
+                resolved_build.parent != build_parent
+                or not resolved_build.name.startswith(build_prefix)
+            ):
+                raise EvidenceLaneError(
+                    "OVERLAY_BUILD_CLEANUP_PATH_ESCAPE",
+                    "The temporary Project Overlay path escaped its exact runtime directory.",
+                    status="FAIL",
+                )
+            shutil.rmtree(resolved_build, ignore_errors=True)
 
     def build_candidate(
         self,
@@ -276,19 +619,44 @@ class CodePVEngine:
         )
         repository_payload = identity_json(identity, config.repository_path)
         proposed_pv = self.store.next_pv_id(project_id)
-        candidate_id = f"{proposed_pv}_CANDIDATE__RUN_{new_ulid()}"
+        external_project_authority = self.store.uses_external_project_authority(
+            project_id
+        )
+        candidate_id = (
+            f"{proposed_pv}_HIL_PROPOSAL__RUN_{new_ulid()}"
+            if external_project_authority
+            else f"{proposed_pv}_CANDIDATE__RUN_{new_ulid()}"
+        )
         created_at = utc_now()
         project_root = self.store.project_root(project_id)
-        build_parent = project_root / ".build"
-        build_parent.mkdir(parents=True, exist_ok=True)
-        build_root = Path(tempfile.mkdtemp(prefix=f"{candidate_id}.", dir=build_parent))
+        if external_project_authority:
+            return self._build_live_root_hil_proposal(
+                project_id=project_id,
+                session=session,
+                run_id=run_id,
+                lineage_path=lineage_path,
+                task=task,
+                pointer=pointer,
+                config=config,
+                runtime_continuity=runtime_continuity,
+                mode_execution=mode_execution,
+                acceptance_health=acceptance_health,
+                repository_payload=repository_payload,
+                identity=identity,
+                proposed_pv=proposed_pv,
+                proposal_id=candidate_id,
+                created_at=created_at,
+            )
+        # Candidate construction is transient runtime work, not project
+        # authority.  Keep it out of the live project root so an interrupted
+        # build cannot expose a misleading `.build` project member.
+        build_prefix = f"evi-{proposed_pv.lower()}-"
+        build_parent = Path(tempfile.gettempdir()).resolve()
+        build_root = Path(tempfile.mkdtemp(prefix=build_prefix)).resolve()
         try:
             db_path = build_root / "code.sqlite"
             prior_db = None
-            external_project_authority = self.store.uses_external_project_authority(
-                project_id
-            )
-            if pointer.accepted_pv and not external_project_authority:
+            if pointer.accepted_pv:
                 prior_db = (
                     self.store.accepted_path(project_id, pointer.accepted_pv)
                     / "code.sqlite"
@@ -515,20 +883,10 @@ class CodePVEngine:
             delta = compare_source_indexes(prior_db, db_path)
             parent_lane_bundle = None
             if pointer.accepted_pv:
-                if external_project_authority:
-                    possible_parent = project_root / "sectors"
-                    require(
-                        (possible_parent / "manifest.json").is_file(),
-                        "LIVE_ROOT_SECTOR_PARENT_MISSING",
-                        "External candidate build requires the current live sector bundle.",
-                        status="MISMATCH",
-                        project_id=project_id,
-                    )
-                else:
-                    possible_parent = (
-                        self.store.accepted_path(project_id, pointer.accepted_pv)
-                        / "lanes"
-                    )
+                possible_parent = (
+                    self.store.accepted_path(project_id, pointer.accepted_pv)
+                    / "lanes"
+                )
                 if possible_parent.is_dir():
                     parent_lane_bundle = possible_parent
             lane_report = build_lane_bundle(
@@ -681,7 +1039,9 @@ class CodePVEngine:
                 lane_bundle_path=build_root / "lane_bundle",
                 code_mode=lane_report["code_mode"],
                 connector_brain_path=(
-                    self.store.project_root(project_id) / "connector_brain.sqlite"
+                    self.store.project_root(project_id)
+                    / "connector_brain"
+                    / "connector-brain.sqlite"
                 ),
             )
             stored = self.store.place_candidate(
@@ -760,12 +1120,13 @@ class CodePVEngine:
         finally:
             resolved_build = build_root.resolve()
             resolved_parent = build_parent.resolve()
-            try:
-                resolved_build.relative_to(resolved_parent)
-            except ValueError as exc:
+            if (
+                resolved_build.parent != resolved_parent
+                or not resolved_build.name.startswith(build_prefix)
+            ):
                 raise EvidenceLaneError(
                     "BUILD_CLEANUP_PATH_ESCAPE",
-                    "The temporary build path escaped the governed build directory.",
+                    "The temporary build path escaped its exact runtime directory.",
                     status="FAIL",
-                ) from exc
+                )
             shutil.rmtree(resolved_build, ignore_errors=True)

@@ -55,7 +55,7 @@ def _run_session_start(
         / "session_start.py"
     )
     environment = os.environ.copy()
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(store)
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(store)
     if tunnel_runtime_root is not None:
         environment["EVIDENCE_LANE_TUNNEL_RUNTIME_ROOT"] = str(
             tunnel_runtime_root
@@ -226,7 +226,7 @@ def test_runtime_hook_status_separates_host_dispatches_from_package_events(
     assert goal["tool_boundary_continuation_supported"] is True
     assert goal["tool_boundary_hook_event"] == "preToolUse"
     assert goal["tool_boundary_authority"] == (
-        "SEALED_ACTIVE_GOAL_RECOVERY_BINDING"
+        "NATIVE_ACTIVE_TASK_GOAL_BINDING_VERIFIED"
     )
     assert goal["tool_boundary_continuation_runnable"] is True
     assert goal["synthetic_prompt_required"] is False
@@ -397,7 +397,7 @@ def test_session_start_ignores_local_tunnel_marker_without_claiming_health(
         json.dumps(
             {
                 "schema": (
-                    "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
+                    "evidence-lane.versioned-secure-mcp-tunnel-installation.v2"
                 ),
                 "release": "2.1.0",
                 "slot_role": "stable-build",
@@ -406,6 +406,9 @@ def test_session_start_ignores_local_tunnel_marker_without_claiming_health(
                 "host_lifetime": "PERSISTENT",
                 "vm_instance_id_sha256": "NOT_APPLICABLE",
                 "runtime_key_plaintext_written": False,
+                "host_wide_project_neutral": True,
+                "per_project_or_task_tunnel_allowed": False,
+                "scheduled_task_transport_used": False,
             }
         ),
         encoding="utf-8",
@@ -520,7 +523,7 @@ def test_prompt_hook_fails_closed_when_bound_runtime_is_detached(
         / "prompt_submit.py"
     )
     environment = os.environ.copy()
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(service.store.root)
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(service.store.root)
     completed = subprocess.run(
         [sys.executable, str(hook)],
         input=json.dumps(

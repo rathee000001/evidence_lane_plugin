@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.connector_governance",
+  "source_path": "src/evidence_lane_plugin/connector_governance.py",
+  "source_sha256": "619C78D2E2447B004F4823A6B8D2C059B271381486F1F2AE3957F0B5EACCF91E",
+  "source_bytes": 69607,
+  "role": "PROJECT_AUTHORITIES",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "F2D82D564381BDEDEF195558EFE444C2F5AB3BDE7F360B0DF34623C42C4D8678"
+}

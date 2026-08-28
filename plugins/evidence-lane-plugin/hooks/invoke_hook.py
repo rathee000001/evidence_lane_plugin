@@ -20,7 +20,7 @@ HOOK_LAUNCH_DIAGNOSTIC_SCHEMA = (
     "evidence-lane.codex-hook-launch-diagnostic.v1"
 )
 
-_EVENT_HANDLERS: dict[str, tuple[str, tuple[str, ...]]] = {
+_EVENT_IMPLEMENTATIONS: dict[str, tuple[str, tuple[str, ...]]] = {
     "SessionStart": ("session_start.py", ()),
     "SubagentStart": ("subagent_start.py", ()),
     "UserPromptSubmit": ("prompt_submit.py", ()),
@@ -32,6 +32,19 @@ _EVENT_HANDLERS: dict[str, tuple[str, tuple[str, ...]]] = {
     "SubagentStop": ("subagent_stop.py", ()),
     "Stop": ("stop_response.py", ()),
     "SessionEnd": ("lifecycle_boundary.py", ("SessionEnd",)),
+}
+_SUBHOOK_HANDLERS = (
+    "subhook_validate.py",
+    "subhook_seal.py",
+    "subhook_transport.py",
+    "subhook_emit.py",
+)
+_EVENT_HANDLERS: dict[str, dict[str, tuple[str, ...]]] = {
+    event_name: {
+        handler: (event_name, implementation, *implementation_args)
+        for handler in _SUBHOOK_HANDLERS
+    }
+    for event_name, (implementation, implementation_args) in _EVENT_IMPLEMENTATIONS.items()
 }
 
 
@@ -169,10 +182,11 @@ def main(argv: list[str] | None = None) -> int:
 
     event_name = str(args.event)
     handler_name = str(args.handler)
-    expected = _EVENT_HANDLERS.get(event_name)
-    if expected is None:
+    expected_handlers = _EVENT_HANDLERS.get(event_name)
+    if expected_handlers is None:
         return _failure(event_name, "HOOK_EVENT_UNSUPPORTED", handler=handler_name)
-    if handler_name != expected[0]:
+    handler_args = expected_handlers.get(handler_name)
+    if handler_args is None:
         return _failure(
             event_name,
             "HOOK_EVENT_HANDLER_MAPPING_MISMATCH",
@@ -212,7 +226,7 @@ def main(argv: list[str] | None = None) -> int:
         output = _execute_isolated_handler(
             event_name,
             handler,
-            expected[1],
+            handler_args,
             raw_payload,
         )
     except RuntimeError as exc:

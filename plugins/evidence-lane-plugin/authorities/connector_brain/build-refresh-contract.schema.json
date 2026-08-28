@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "connector_brain support refresh request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "project_root",
+    "authority_id"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_id": {
+      "const": "connector_brain"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "6B4087B1A2B95D04A05776A55DC7DB424A538DBBF7DB90421F4BD6A3CC555B0C"
+}

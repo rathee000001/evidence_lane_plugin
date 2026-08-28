@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.enrollment",
+  "source_path": "src/evidence_lane_plugin/enrollment.py",
+  "source_sha256": "86EB6C935E68A76FB3C57915330A9F459DA908AA8F77CE4507CA250AF54F9C1B",
+  "source_bytes": 17862,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "376BD0AF25A9D4E754A474195A8112C2F1E8267D670DF104DC5CC8C944454F32"
+}

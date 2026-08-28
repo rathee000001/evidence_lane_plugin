@@ -1,0 +1,34 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "project_recipe_compile",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-project-recipe",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "project_recipe_compile"
+    },
+    "internal_sdk": {
+      "module_id": "first_class_workflows",
+      "operation": "project_recipe_compile",
+      "read_only": true
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-project-recipe",
+        "workflow": "project-type-source-and-lane-recipe-compilation",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "9B995E704D12C8C56BDCA41E1280D60302541F74513E54E618AF121DDFE5C59A",
+  "sdk_action_binding": "sdk/actions/project_recipe_compile.action.v1.json",
+  "mcp_action_binding": "mcp/actions/project_recipe_compile.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "C36CA5CBD8132B5950FDDBB7B7E5FAB6630CADF6A04CAD77A09008CE14AE9081"
+}

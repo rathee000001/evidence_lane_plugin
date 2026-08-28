@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 3,
+  "handler_number": 2,
+  "display_id": "3.2",
+  "event": "UserPromptSubmit",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler subhook_seal.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit subhook_seal.py",
+    "timeout": 10,
+    "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+  },
+  "logical_action": "DEDUPE_AND_SEAL_EVENT",
+  "stage": "hooks/subhook_seal.py",
+  "stage_sha256": "665E54A3126C4141682D339E5FADF62B04024F875D3376908B97B4A8AA67FE22",
+  "adapter": "hooks/prompt_submit.py",
+  "adapter_sha256": "D953BC48A6D3C41C43D00784772769083FD472DD9A7C02066B542EFA96EB8A4D",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "50D524F51B4CBB740623704A0E991963C8975EC7E251944E2153A0B2F7DD3F03"
+}

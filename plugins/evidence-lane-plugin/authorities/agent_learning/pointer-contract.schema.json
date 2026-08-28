@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agent_learning pointer-contract.v1.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-pointer-contract.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "agent_learning"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "85CBF583270553BC02D969D1801AD0100EC6E23AEEF946DE165022DFC3B26661"
+}

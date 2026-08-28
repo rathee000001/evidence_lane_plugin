@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "session_authority DOT_TRAVERSAL_MAP artifact receipt",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "artifact_path",
+    "artifact_role",
+    "syntax",
+    "bytes",
+    "sha256",
+    "validator",
+    "status"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "session_authority"
+    },
+    "artifact_path": {
+      "const": "session-authority.dot"
+    },
+    "artifact_role": {
+      "const": "DOT_TRAVERSAL_MAP"
+    },
+    "syntax": {
+      "const": "GRAPHVIZ_DOT"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "validator": {
+      "const": "authority_support.validate_authority_support"
+    },
+    "status": {
+      "const": "PASS"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "9D91C797E0AEAEED9C2DC0AD9821D12CAE87ABE019234448E0165A1E3D8C381E"
+}

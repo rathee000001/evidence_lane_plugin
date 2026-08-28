@@ -1,0 +1,82 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "canon_receive",
+  "title": "Receive Canon envelope",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "envelope": {
+        "additionalProperties": true,
+        "title": "Envelope",
+        "type": "object"
+      },
+      "received_at": {
+        "title": "Received At",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "envelope",
+      "received_at"
+    ],
+    "title": "canon_receiveArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "canon_receiveDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "0065F9922D122E51ECDEF52E7963B6A5A896EAB0F4615EE88F5B3067CC5004FD",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_receive"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "receive",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-envelope",
+        "order": 7
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/canon_receive.action.v1.json",
+  "sdk_action_binding_sha256": "DBB3834CF38690CAF57800F638F749B69DE62351AF75A951F99163FDF36EE97A",
+  "public_action_schema": "schemas/actions/canon_receive.schema.json",
+  "public_action_schema_sha256": "6678AA6C4906C2860FAC4BA6FA9857FA139FF068004BC2781C8CCFEEC870C6AB",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "E081460E1EB43FD3418C658C4E7F28AEFB33126614C90369430F94B28BF8888A"
+}

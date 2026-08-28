@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Discussion refresh receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "classification",
+    "recorded_at"
+  ],
+  "properties": {
+    "lane_id": {
+      "const": "discussion"
+    },
+    "classification": {
+      "type": "object"
+    },
+    "recorded_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "79664BC30178549741934F1B97AA7663321EF2D49AFF10591C53872B3714A57F"
+}

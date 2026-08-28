@@ -1,0 +1,67 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "session_close",
+  "title": "Close governed session",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "reason"
+    ],
+    "title": "session_closeArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "session_closeDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "3A747E3E780C3BF9C23624AC8EB08E045732ACE3E420DD651AA9CCBF48FD00D5",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-exit-boot",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "session_close"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-exit-boot",
+        "workflow": "close-session",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/session_close.action.v1.json",
+  "sdk_action_binding_sha256": "16ADE9945A82F2519E16492FEA5801E96FDE2C9656D613FA8CCA9278E9C8954D",
+  "public_action_schema": "schemas/actions/session_close.schema.json",
+  "public_action_schema_sha256": "201E260A5FADBBD765205D4CCDFCFD1CB0DB40737E7F19F9D8538ED3286FCD09",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "3437E9284593FDF1766B918EAA2A739C79D1D7760A199A0D56D5105A2181372F"
+}

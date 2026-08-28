@@ -55,17 +55,21 @@ requires a separate host task contract, exact permitted paths, and a sealed
 write-authorization identity; Canon itself grants no source write.
 
 Use `canon_register_edge` for a proposed graph edge and `canon_bind_edge` for
-an already created destination. Use `canon_dispatch_linked_task` only when the
-host injects the supported CodexHostDispatcher adapter over an idempotent
-native task-create operation. The host operation receives one stable dispatch
-ID and must return a self-sealed
+an already created destination. `canon_dispatch_linked_task` supports one
+idempotent two-phase native launch. When an injected `CodexHostDispatcher` is
+available, it may execute the host operation directly. Otherwise the first call
+returns `HOST_ACTION_REQUIRED` with the exact stable request; the caller invokes
+only the native Codex task-create or authorized subagent route, then recalls the
+same Canon action with the exact sealed host receipt. The host operation
+receives one stable dispatch ID and must return a self-sealed
 evidence-lane.codex-host-task-create-receipt.v1 binding the exact request,
 destination UUID, deep link, and replay state. A plain callable, title match,
 or unsealed `created_once` boolean is not sufficient. A persisted v2 Canon
-dispatch receipt may be replayed without calling the host again. If the host
-seam is absent, preserve the request and report `HOST_CAPABILITY_UNAVAILABLE`;
-never fabricate creation, fall back to a title, or ask Canon to perform host UI
-actions it cannot perform.
+dispatch receipt may be replayed without calling the host again. A missing
+injected seam is not permission to use UI control: preserve the request and use
+the caller-mediated native backend phase. If that native route is unavailable,
+report `HOST_CAPABILITY_UNAVAILABLE`. Never fabricate creation, fall back to a
+title, or perform host UI actions.
 
 A Codex lifecycle hook firing is not itself a task-create receipt. A host may
 implement the injected operation with Codex App Server, a Workspace Agent
@@ -101,9 +105,10 @@ information, a new source requirement, or input required from another linked
 task. Backfire routes a bounded request to the named receiving task, which owns
 its own three-way Canon HIL. It is not a generic error channel.
 
+Use `canon_seal_envelope` for typed upstream, downstream, or lateral messages.
 Use `canon_seal_result` to return bounded evidence and result payloads over the
-existing edge. Preserve upstream/downstream provenance and do not treat a
-returned result as implementation proof until its owning task verifies it.
+existing edge. Preserve direction and provenance. A returned result is not
+implementation proof until its owning task verifies it.
 
 ## State Travel continuity
 

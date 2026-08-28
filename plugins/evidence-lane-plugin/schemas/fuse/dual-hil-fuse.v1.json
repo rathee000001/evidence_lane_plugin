@@ -1,0 +1,17 @@
+{
+  "schema": "evidence-lane.dual-hil-fuse.v1",
+  "status": "PASS",
+  "dual_hil_fuse": {
+    "every_full_pv_hil_is_dual": true,
+    "project_and_learning_decisions_separate": true,
+    "learning_weave_approved_before_project_fuse": true,
+    "project_fuse_requires_matching_target_pv": true,
+    "individual_delta_learning_hil": false,
+    "bounded_learning_weave_summary_presented": true,
+    "acceptance_authority": "PLAN_ROW_DUAL_HIL_STAMP",
+    "accepted_storage": "ONE_NUMBERED_ROOT_ZIP_EXCLUDING_ACCEPTED",
+    "accepted_storage_role": "POST_APPROVAL_SNAPSHOT_ONLY_NEVER_QUERIED",
+    "automatic_state_travel": false
+  },
+  "receipt_sha256": "AD4BC8A281593E973ACFD56FA9F045334B9D19A241E86CE3E52F27E1635A8CD5"
+}

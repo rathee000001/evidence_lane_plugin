@@ -1,0 +1,65 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "connector_plugin_catalog",
+  "title": "Inspect governed connector and toolchain plugins",
+  "description": "Read the append-only connector brain, its active maximum of eight, dropped history, SQLite integrity, capabilities, lanes, and secret-free configuration-variable names.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id"
+    ],
+    "title": "connector_plugin_catalogArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "connector_plugin_catalogDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "875A7F67DDD477AF8D3B3BCA695ED624EE5317045BBFBBC8A93C5132AF0FBB5E",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-plugin",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "connector_plugin_catalog"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-additional-plugin",
+        "workflow": "register-connector",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-plugin",
+        "workflow": "inspect-connectors",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/connector_plugin_catalog.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "82804A702C25F7F0B47045B8827EED4377C599FAC27D726BED0E340C934682DB"
+}

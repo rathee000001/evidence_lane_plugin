@@ -1,0 +1,64 @@
+{
+  "schema": "evidence-lane.project-sector-schema-surface.v1",
+  "status": "PASS",
+  "lane_id": "data_excel",
+  "authority_root": "authorities/project_sectors/data_excel",
+  "authority_manifest_sha256": "D8FCF1090CCDB02CA3E9E9923643F35AA35984B745EBFDF0ACCA2D54BAC4BBE6",
+  "schema_file_count": 10,
+  "schema_files": [
+    {
+      "path": "authorities/project_sectors/data_excel/builder-contract.schema.json",
+      "bytes": 624,
+      "sha256": "3D55F80D7451252FAED36626719F615CF9919A80B830123A3761B3D835EE2373"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/dot-artifact.schema.json",
+      "bytes": 950,
+      "sha256": "7D75D28906F2B43C6851A3172F23BBC0E147CC35CCB097F7BFB025E3F8472018"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/lane-pointer.schema.json",
+      "bytes": 749,
+      "sha256": "33A0EFC391B927220713EA21FA4CCC79F5B1B2E43532575A5548AFEA6F19245E"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/manifest.schema.json",
+      "bytes": 988,
+      "sha256": "6A27189C152C48189A1590241B2123746C214453CCF0789591DF3DFBFAFD97F2"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/mmd-artifact.schema.json",
+      "bytes": 967,
+      "sha256": "3D523343DB135C9B9B8C4AF973A7BD0997B338D109CFCA1255B7771E2C4F491E"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/reader-contract.schema.json",
+      "bytes": 774,
+      "sha256": "BA806DE2819939907F0A6B801CB89BDEDAB342F337DAB4294BADA6E3C18DB94F"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/refresh-receipt.schema.json",
+      "bytes": 544,
+      "sha256": "579E72FD92A4DD044610E102CE39ED46C1FEFCF5ADA7062B258C903B6951B75E"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/schema.sql",
+      "bytes": 13382,
+      "sha256": "CE9EDC90D006A6396AFCF5DC653C157972DD7E7EB728E6A01AE39A3AA3F1AFFB"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/sqlite-artifact.schema.json",
+      "bytes": 969,
+      "sha256": "943805CC752AFA02E18CBBA24630E36160C298850E2C21B31090B4BB2039142E"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/tools.schema.json",
+      "bytes": 1013,
+      "sha256": "9E2E89B7634F69DC33CB84D92E7A0C1ABC815CEF036146DBFA46D606A6D67DBA"
+    }
+  ],
+  "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
+  "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_bytes_duplicated_here": false,
+  "receipt_sha256": "948A4A0ED1403B5ABE44CE260B1819792B31CC21E28DE9F03B414E2468BC8BF6"
+}

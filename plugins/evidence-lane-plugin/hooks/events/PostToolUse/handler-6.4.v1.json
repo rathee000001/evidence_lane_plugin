@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 6,
+  "handler_number": 4,
+  "display_id": "6.4",
+  "event": "PostToolUse",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_emit.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostToolUse subhook_emit.py",
+    "timeout": 10,
+    "statusMessage": "Verifying and emitting Evidence Lane hook result"
+  },
+  "logical_action": "VERIFY_AND_EMIT_EVENT_RESULT",
+  "stage": "hooks/subhook_emit.py",
+  "stage_sha256": "58483422B501DA08226BF4292310A9328F438EB1D8F0AC127178264844D816D0",
+  "adapter": "hooks/post_tool_use.py",
+  "adapter_sha256": "F1970DD6BEBA0BD262A2A35CB93293617CD6647A0BF6F0293B8975158A7E44BB",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "08994E7EEA7553F8823F7AAC57ED58067CFDA4EA873247220076092B03578F41"
+}

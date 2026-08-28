@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.runtime_api",
+  "source_path": "src/evidence_lane_plugin/runtime_api.py",
+  "source_sha256": "C8BF6A22836FB433EF3DF79BB741FCD0AD5439435DA1FAF9E450289BB3B80EFB",
+  "source_bytes": 5833,
+  "role": "AI_TOOLCHAIN_EXECUTION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "85B55187DFB6FFF9BDD6E0E84665A705B2BADC1C97D2397F970850FDDD6F24E8"
+}

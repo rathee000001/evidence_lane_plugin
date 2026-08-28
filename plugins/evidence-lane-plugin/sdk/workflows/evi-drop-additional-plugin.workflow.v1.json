@@ -1,0 +1,49 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-drop-additional-plugin",
+  "skill_sha256": "BC3BEBF14384938B9535E6019443B0334B3EDF2ED398E26398511D638DE7E92B",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "connector_plugin_drop"
+      ],
+      "workflow": "drop-connector"
+    }
+  ],
+  "action_count": 1,
+  "actions": [
+    {
+      "name": "connector_plugin_drop",
+      "schema_sha256": "98F2DF9E5424ECD9A1FF29FED02140D78A0F886E7B0F07D3B0CE8D6B9CCC6DE8",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-drop-additional-plugin",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "connector_plugin_drop"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-drop-additional-plugin",
+            "workflow": "drop-connector",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-plugin",
+            "workflow": "change-connector-registration",
+            "order": 3
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "3F83F9FEE813C89A35537580B81C5244217B5640A164D6962BDD445399BD0258"
+}

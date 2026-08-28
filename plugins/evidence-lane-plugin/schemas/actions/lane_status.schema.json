@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "lane_status",
+  "title": "Inspect one live-root lane authority",
+  "description": "Inspect one live project-root sector lane: SQLite/MMD/DOT hashes, parser/tool capability states, pointer-baseline evidence, Refresh classification, and live-source freshness. Accepted HIL ZIPs and candidates are not ordinary query surfaces.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "lane": {
+        "title": "Lane",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane"
+    ],
+    "title": "lane_statusArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "lane_statusDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "lane_status"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "lane-evidence-read",
+        "order": 7
+      },
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "bounded-source-retrieval",
+        "order": 12
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "A16EC2DD96C9EF3EB3684E75A798D31470741F13DDE101475F99B000D20A11EE",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "528150F8EF7058823840A56BE4C603862687546A7A3D3270D1A73EE089A2903D"
+}

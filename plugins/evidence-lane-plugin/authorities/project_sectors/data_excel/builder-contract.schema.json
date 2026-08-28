@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Data / Excel / CSV builder binding request",
+  "type": "object",
+  "required": [
+    "lane_id",
+    "source_paths",
+    "bundle_arguments"
+  ],
+  "properties": {
+    "lane_id": {
+      "const": "data_excel"
+    },
+    "source_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "bundle_arguments": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "2F38AA45A2DA563694DF50838641EF1666196C65A863BD64ED5EAB234854CBB4"
+}

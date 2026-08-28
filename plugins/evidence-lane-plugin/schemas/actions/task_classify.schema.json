@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "task_classify",
+  "title": "Classify one bounded code task",
+  "description": "Create the one-agent/one-task contract: exact class, outcome, paths, tools, acceptance checks, write boundary, stop condition, and HIL gate. This tool does not execute or broaden the task. When advancing a strict per-Delta package-parity row, active_delta_verification is mandatory: it binds the exact Plan-runtime contract hash, dependency generation, pre/post worktree chain, live source/test hashes, bounded commands and PASS outputs, and negative cases. A generic PASS cannot advance such a row, and the route creates no candidate, HIL, pointer, Git, or install effect. After classification it automatically runs the first-class Delta entry query over the active Plan row and linked steers, prior accepted sub-PV, all live sector lanes, Learning, Canon, Memory, Universe, connector brain, AGENTS.md, and host MEMORY.md before source work is authorized.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "task_class": {
+        "title": "Task Class",
+        "type": "string"
+      },
+      "requested_outcome": {
+        "title": "Requested Outcome",
+        "type": "string"
+      },
+      "permitted_paths": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Permitted Paths",
+        "type": "array"
+      },
+      "permitted_tools": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Permitted Tools",
+        "type": "array"
+      },
+      "acceptance_checks": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Acceptance Checks",
+        "type": "array"
+      },
+      "stop_condition": {
+        "title": "Stop Condition",
+        "type": "string"
+      },
+      "backlog_task_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Backlog Task Id"
+      },
+      "active_delta_verification": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Active Delta Verification"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "task_class",
+      "requested_outcome",
+      "permitted_paths",
+      "permitted_tools",
+      "acceptance_checks",
+      "stop_condition"
+    ],
+    "title": "task_classifyArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "task_classifyDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "task_classify"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution",
+        "order": 11
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "D69C1000678E95673A8CB845A178C3E071DB7855E8402FA6EC6741BE1E4B6990",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "26DC177E01E5AEF8137CC6163D5BED845C1B62428AAAF0EB5578B6317F5B467C"
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.freshness",
+  "source_path": "src/evidence_lane_plugin/freshness.py",
+  "source_sha256": "42DE7DCD8E79F0768D04FDC769F0A83104292AF4215DC5CD5AA764C49292CD6B",
+  "source_bytes": 8604,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "E0D469E5231D294D7F09C5823498560E91F7FEEAFE04E4CA7F41410EF139BB1A"
+}

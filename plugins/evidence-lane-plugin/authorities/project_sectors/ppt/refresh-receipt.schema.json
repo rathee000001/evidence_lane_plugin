@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PPT / Presentation refresh receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "classification",
+    "recorded_at"
+  ],
+  "properties": {
+    "lane_id": {
+      "const": "ppt"
+    },
+    "classification": {
+      "type": "object"
+    },
+    "recorded_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "A383BB49517880BBCB809D76A7FD407D0A20C9221833592E43FE4D457631F161"
+}

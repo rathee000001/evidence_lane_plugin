@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "pv_summary",
+  "title": "Read deterministic live-root summary",
+  "description": "Read repository identity, file/chunk/symbol/import/dependency/route counts, and code-family distribution from live-root Local Code without opening accepted HIL archives.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id"
+    ],
+    "title": "pv_summaryArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_summaryDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_summary"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "governance-read",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "13B957BB930714BB99E227002880AFB9699F023B1CD89C340FAFF4928901BDCC",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "2EA40EBB3EFC81399FB92DCE6400BBB3A24CDB6F436111E25900B2A3B1E19611"
+}

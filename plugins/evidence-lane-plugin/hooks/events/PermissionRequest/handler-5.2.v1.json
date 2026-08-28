@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 5,
+  "handler_number": 2,
+  "display_id": "5.2",
+  "event": "PermissionRequest",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_seal.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_seal.py",
+    "timeout": 10,
+    "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+  },
+  "logical_action": "DEDUPE_AND_SEAL_EVENT",
+  "stage": "hooks/subhook_seal.py",
+  "stage_sha256": "665E54A3126C4141682D339E5FADF62B04024F875D3376908B97B4A8AA67FE22",
+  "adapter": "hooks/permission_request.py",
+  "adapter_sha256": "05283C844BCE39B541912BCC66500B76FC7BD93C8092E064D377F104B8D971A8",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "11F5880E04306313FF36AA67AC2F0DAD480FD2D05385D1F7C50BECD97D1D01A3"
+}

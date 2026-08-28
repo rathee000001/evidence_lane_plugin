@@ -1,0 +1,30 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "pv_rollback",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-rollback",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_rollback"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-rollback",
+        "workflow": "pointer-rollback",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "660838FEC5545D10BA11EF3BCBB5CA8E21B77975FB9DE55772B8F6D668E385AA",
+  "sdk_action_binding": "sdk/actions/pv_rollback.action.v1.json",
+  "mcp_action_binding": "mcp/actions/pv_rollback.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "7605A23EFA5DAF436888DD08AA3C239791DB12B52D650E831CEEB0E587B65CDF"
+}

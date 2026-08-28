@@ -1,0 +1,49 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-mode",
+  "skill_sha256": "FFC274956C0D1B8374602A7C80C5FD5B37FB9A870F6E82DCF05A437949FDD311",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "mode_classify"
+      ],
+      "workflow": "classify-mode"
+    }
+  ],
+  "action_count": 1,
+  "actions": [
+    {
+      "name": "mode_classify",
+      "schema_sha256": "4E85D82EC4364F65F640B8347FA7E01BF611FA8A80A4427868261A155BCB3F39",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-mode",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "mode_classify"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-mode",
+            "workflow": "classify-mode",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "classify-plan-mode",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "2A788C35658B04711B163AFF0CB96EA0A6D78C86908361196EA3EA663181C3BF"
+}

@@ -20,6 +20,7 @@ from evidence_lane_plugin.state_travel_contract import (
     normalize_task_list,
     preflight_direct_forced_same_worktree_binding,
     verify_direct_destination_plan_acceptance,
+    verify_direct_source_option2_closeout,
 )
 from evidence_lane_plugin.task_binding_registry import (
     seal_or_refresh_shared_task_binding,
@@ -185,12 +186,18 @@ def test_direct_source_identity_streams_tracked_diff_without_materializing(
 
 @pytest.mark.parametrize(
     "destination_boot_attached",
-    [False, True],
-    ids=["donor-current", "destination-boot-attached"],
+    [True],
+    ids=["destination-boot-attached"],
+)
+@pytest.mark.parametrize(
+    "entry_state",
+    ["TASK_CLASSIFIED", "EXIT_BUILDING", "PVN1_CANDIDATE"],
+    ids=["classified", "interrupted-unsealed-exit", "candidate-pending-hil"],
 )
 def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
     service,
     destination_boot_attached: bool,
+    entry_state: str,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     session_id, _ = build_and_approve_pv1(service)
@@ -267,6 +274,31 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
         "schema": "evidence-lane.host-plan-window-state.v1",
         "window_task_ids": [active["task_id"], final_hil["task_id"]],
     }
+    if entry_state == "EXIT_BUILDING":
+        session.state = type(session.state)(entry_state)
+        session.candidate_id = None
+        session.metadata.pop("pending_hil", None)
+        session.metadata.pop("pending_task", None)
+    elif entry_state == "PVN1_CANDIDATE":
+        session.state = type(session.state)(entry_state)
+        session.candidate_id = "PV2_CANDIDATE__DIRECT_PRESERVATION_TEST"
+        session.metadata["pending_hil"] = True
+        session.metadata["pending_task"] = {
+            "kind": "HIL_DECISION",
+            "candidate_id": session.candidate_id,
+        }
+        monkeypatch.setattr(
+            service.store,
+            "candidate_preservation_identity",
+            lambda *_args, **_kwargs: {
+                "status": "PASS",
+                "candidate_id": session.candidate_id,
+                "manifest_sha256": "C" * 64,
+                "package_sha256": "D" * 64,
+                "preservation_scope": "IMMUTABLE_CANDIDATE_PACKAGE_IDENTITY",
+                "current_live_root_equality_required": False,
+            },
+        )
     service.sessions._save(session)
 
     source = service.sessions._direct_state_travel_source_identity("book-faires")
@@ -335,7 +367,7 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
             "plan": plan,
             "plugin": plugin,
             "runtime": {
-                "state": "TASK_CLASSIFIED",
+                "state": entry_state,
                 "generation": pointer.generation,
                 "attachment_donor_task_id": donor_task_id,
                 "runtime_instance_attestation_mode": ("SERVER_DERIVED_ATTESTATION"),
@@ -371,18 +403,8 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
             else forbidden_binding["expected"]["runtime"]
         )
         target[forbidden_field] = "caller-runtime-identity-forbidden"
-        with monkeypatch.context() as patcher:
-            patcher.setattr(
-                service.flash_authority,
-                "ensure_flashed",
-                lambda: pytest.fail("malformed preflight reached Flash"),
-            )
-            with pytest.raises(EvidenceLaneError) as caller_runtime:
-                service._direct_force_same_worktree_state_travel_with_binding(
-                    project_id="book-faires",
-                    session_id=session_id,
-                    binding=forbidden_binding,
-                )
+        with pytest.raises(EvidenceLaneError) as caller_runtime:
+            preflight_direct_forced_same_worktree_binding(forbidden_binding)
         assert (
             caller_runtime.value.code
             == "DIRECT_STATE_TRAVEL_CALLER_RUNTIME_ID_FORBIDDEN"
@@ -435,12 +457,6 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
         assert result["forced_state_travel"]["caller_supplied_nonce"] is False
         assert "binding_preflight" not in result
         assert "request_nonce" not in result["forced_state_travel"]
-    else:
-        result = service._direct_force_same_worktree_state_travel_with_binding(
-            project_id="book-faires",
-            session_id=session_id,
-            binding=binding,
-        )
     receipt = service.sessions.load("book-faires", session_id).metadata[
         "direct_forced_same_worktree_entry"
     ]
@@ -455,6 +471,16 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
     assert receipt["sealed_transport"]["prepare_called"] is False
     assert receipt["sealed_transport"]["resume_called"] is False
     assert receipt["no_mutation_flags"]["candidate_created"] is False
+    assert receipt["no_mutation_flags"]["candidate_cleared"] is False
+    assert receipt["no_mutation_flags"]["candidate_rebuilt"] is False
+    if entry_state == "PVN1_CANDIDATE":
+        preserved = receipt["preserved_candidate_hil_state"]
+        assert preserved["candidate_id"] == session.candidate_id
+        assert preserved["pending_hil"] is True
+        assert preserved["candidate_cleared"] is False
+        assert preserved["candidate_rebuilt"] is False
+        assert receipt["no_mutation_flags"]["existing_candidate_preserved"] is True
+        assert receipt["no_mutation_flags"]["pending_hil_preserved"] is True
     assert receipt["no_mutation_flags"]["pointer_moved"] is False
     runtime_attestation = receipt["runtime_plugin_profile_proof"][
         "runtime_instance_attestation"
@@ -479,12 +505,32 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
         "PASTE_RETURNED_PROMPT_WITH_NATIVE_PLAN_SELECTED",
         "CLICK_VISIBLE_IMPLEMENT_THIS_PLAN",
     ]
+    prompt_0 = orchestration["prompt_0_entry_contract"]
+    assert prompt_0["skeleton_id"] == "STATE_TRAVEL_PROMPT_0_BASE_SKELETON_V1"
+    assert prompt_0["visible_order"] == [
+        "NATIVE_DESTINATION_VERIFICATION_RECEIPT",
+        "STATE_TRAVEL_HANDOFF_RECEIPT",
+        "SINGLE_EVI_PLAN_PROMPT_FENCED_TEXT_LAST",
+        "USER_VISIBLE_IMPLEMENT_THIS_PLAN_CONTROL",
+        "ATOMIC_CARRIED_GOAL_RESUME_AND_FIXED_STEP_CHANGES_RELOCK",
+    ]
+    assert prompt_0["native_destination_receipt_must_be_first_visible_block"] is True
+    assert prompt_0["single_evi_plan_prompt_must_be_last"] is True
+    assert prompt_0["second_evi_plan_projection_phase_allowed"] is False
+    assert prompt_0["obsolete_prepare_resume_history_is_current_runtime_law"] is False
     whole = orchestration["whole_plan_reprojection"]
     assert whole["serialized_task_rows"] == []
     assert whole["serialized_fixed_batch"] is False
     assert "Implement this plan" in whole["paste_prompt"]
     assert orchestration["post_acceptance_step_projection"][
         "fallback_projector_enabled"
+    ] is False
+    assert orchestration["whole_plan_reprojection"]["evi_plan_invocation_count"] == 1
+    assert orchestration["whole_plan_reprojection"][
+        "second_evi_plan_invocation_allowed"
+    ] is False
+    assert orchestration["source_task_option2_closeout"][
+        "source_goal_completion_before_destination_goal_resume_allowed"
     ] is False
     phase5 = verify_direct_destination_plan_acceptance(
         orchestration,
@@ -518,6 +564,53 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
     assert phase5["status"] == "PASS"
     assert phase5["source_work_may_resume"] is True
     assert phase5["plan_acceptance_is_evidence_lane_hil"] is False
+    assert phase5["second_evi_plan_invocation"] is False
+    assert phase5["goal_resume_precedes_step_projection"] is True
+    metrics_body = {
+        "schema": "evidence-lane.rich-goal-completion-metrics.v1",
+        "status": "PASS",
+        "route": "build_rich_goal_completion_metrics_receipt",
+        "binding": {"host_task_id": source_task_id},
+        "reset_aware_epoch_accounting": {
+            "status": "PASS",
+            "final_minus_initial_used": False,
+        },
+    }
+    metrics = {
+        **metrics_body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(metrics_body)),
+    }
+    completion = {
+        "schema": "evidence-lane.goal-completion-authorization.v1",
+        "status": "AUTHORIZED_BY_EXACT_HUMAN_COMMAND",
+        "current_task_id": source_task_id,
+        "disposition": "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+        "current_task_goal_completed": True,
+        "successor_goal_required": True,
+    }
+    steer = {
+        "schema": "evidence-lane.state-travel-consolidated-steer.v1",
+        "status": "PASS",
+        "steer_id": "source-option2-consolidated-steer-001",
+        "source_task_id": source_task_id,
+        "destination_task_id": destination_task_id,
+        "destination_goal_resume_receipt_sha256": phase5["receipt_sha256"],
+        "goal_metrics_receipt_sha256": metrics["receipt_sha256"],
+        "send_count": 1,
+        "sent_after_destination_goal_resume": True,
+        "sent_before_destination_goal_resume": False,
+        "includes_goal_metrics_log_steer": True,
+    }
+    source_closeout = verify_direct_source_option2_closeout(
+        orchestration,
+        destination_phase5=phase5,
+        goal_metrics=metrics,
+        goal_completion=completion,
+        consolidated_steer=steer,
+    )
+    assert source_closeout["status"] == "PASS"
+    assert source_closeout["source_goal_mark_achieved"] is True
+    assert source_closeout["destination_remains_sole_writer"] is True
     with pytest.raises(EvidenceLaneError) as automated_gate:
         verify_direct_destination_plan_acceptance(
             orchestration,
@@ -546,22 +639,22 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
     assert service.store.pointer("book-faires").as_dict() == pointer.as_dict()
     rebound = service.sessions.load("book-faires", session_id)
     assert rebound.metadata["current_host_session_id"] == destination_task_id
-    recovery = rebound.metadata["active_contract_rebind_receipt"]
-    assert recovery["schema"] == "evidence-lane.active-contract-session-rebind.v1"
-    assert recovery["status"] == "PASS"
-    assert recovery["host_task_id"] == destination_task_id
-    assert recovery["active_plan_task_id"] == active["task_id"]
-    assert recovery["recovery_binding_contract"]["reentry_target"] == (
+    task_binding = rebound.metadata["active_contract_rebind_receipt"]
+    assert task_binding["schema"] == "evidence-lane.active-contract-session-rebind.v1"
+    assert task_binding["status"] == "PASS"
+    assert task_binding["host_task_id"] == destination_task_id
+    assert task_binding["active_plan_task_id"] == active["task_id"]
+    assert task_binding["task_binding_contract"]["reentry_target"] == (
         destination_task_id
     )
-    recovery_body = {
-        key: value for key, value in recovery.items() if key != "receipt_sha256"
+    task_binding_body = {
+        key: value for key, value in task_binding.items() if key != "receipt_sha256"
     }
-    assert recovery["receipt_sha256"] == sha256_bytes(
-        canonical_json_bytes(recovery_body)
+    assert task_binding["receipt_sha256"] == sha256_bytes(
+        canonical_json_bytes(task_binding_body)
     )
-    assert receipt["calling_task_recovery_authority"]["receipt_sha256"] == (
-        recovery["receipt_sha256"]
+    assert receipt["calling_task_binding_authority"]["receipt_sha256"] == (
+        task_binding["receipt_sha256"]
     )
     shared = seal_or_refresh_shared_task_binding(
         service.store.root,
@@ -572,57 +665,48 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
         bound_by="DIRECT_ENTRY_CHECKPOINT_TEST",
     )
     assert shared["task_id"] == destination_task_id
-    assert shared["active_contract_rebind_receipt_sha256"] == recovery[
+    assert shared["active_contract_rebind_receipt_sha256"] == task_binding[
         "receipt_sha256"
     ]
-    legacy_session = rebound.as_dict()
-    legacy_receipt = copy.deepcopy(receipt)
-    legacy_receipt.pop("calling_task_recovery_authority")
-    legacy_body = {
-        key: value
-        for key, value in legacy_receipt.items()
-        if key != "receipt_sha256"
-    }
-    legacy_receipt["receipt_sha256"] = sha256_bytes(
-        canonical_json_bytes(legacy_body)
-    )
-    legacy_session["metadata"]["direct_forced_same_worktree_entry"] = legacy_receipt
-    legacy_authority = _verified_direct_entry_authority(legacy_session)
-    assert legacy_authority is not None
-    assert legacy_authority["destination_task_id"] == destination_task_id
-    assert legacy_authority["recovery_authority_source"] == (
-        "CURRENT_DIRECT_ENTRY_RECOVERY_RECEIPT"
-    )
-    assert legacy_authority["recovery_authority_receipt_sha256"] == (
-        recovery["receipt_sha256"]
-    )
-    conflicting_legacy = copy.deepcopy(legacy_session)
-    conflicting_legacy["metadata"]["active_contract_rebind_receipt"] = {
+    direct_authority = _verified_direct_entry_authority(rebound.as_dict())
+    assert direct_authority is not None
+    conflicting_binding = rebound.as_dict()
+    conflicting_binding["metadata"]["active_contract_rebind_receipt"] = {
         "host_task_id": donor_task_id,
         "receipt_sha256": "A" * 64,
     }
-    with pytest.raises(TurnControlError) as conflicting_rebind:
-        _verified_direct_entry_authority(conflicting_legacy)
-    assert conflicting_rebind.value.code == (
-        "TURN_CONTROL_DIRECT_ENTRY_RECOVERY_AUTHORITY_MISMATCH"
+    with pytest.raises(TurnControlError) as conflicting_task_binding:
+        _verified_direct_entry_authority(conflicting_binding)
+    assert conflicting_task_binding.value.code == (
+        "TURN_CONTROL_DIRECT_ENTRY_TASK_BINDING_AUTHORITY_MISMATCH"
     )
 
+    checkpoint_candidate_boundary = (
+        {
+            "state": "PENDING_CANDIDATE_PRESERVED",
+            "candidate_id": rebound.candidate_id,
+        }
+        if entry_state == "PVN1_CANDIDATE"
+        else {"state": "NO_PENDING_CANDIDATE", "candidate_id": None}
+    )
     continuity = _direct_entry_checkpoint_continuity(
         project_root=service.store.project_root("book-faires"),
         project={
             "repository_path": service.store.config("book-faires").repository_path
         },
         session=rebound.as_dict(),
-        binding={
-            "candidate_boundary": {
-                "state": "NO_PENDING_CANDIDATE",
-                "candidate_id": None,
-            }
-        },
-        direct_entry=legacy_authority,
+        binding={"candidate_boundary": checkpoint_candidate_boundary},
+        direct_entry=direct_authority,
     )
-    assert continuity["pointer"]["candidate_absent"] is True
-    assert continuity["pointer"]["pending_hil"] is False
+    assert continuity["pointer"]["candidate_absent"] is (
+        entry_state != "PVN1_CANDIDATE"
+    )
+    assert continuity["pointer"]["pending_hil"] is (
+        entry_state == "PVN1_CANDIDATE"
+    )
+    assert continuity["pointer"]["candidate_preserved"] is (
+        entry_state == "PVN1_CANDIDATE"
+    )
     assert continuity["source"]["branch"] == source["branch"]
     assert continuity["source"]["commit_sha"] == source["commit_sha"]
     assert continuity["source"]["tree_sha"] == source["tree_sha"]
@@ -638,13 +722,8 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
                 ).repository_path
             },
             session=pointer_drift_session,
-            binding={
-                "candidate_boundary": {
-                    "state": "NO_PENDING_CANDIDATE",
-                    "candidate_id": None,
-                }
-            },
-            direct_entry=legacy_authority,
+            binding={"candidate_boundary": checkpoint_candidate_boundary},
+            direct_entry=direct_authority,
         )
     assert pointer_drift.value.code == "CODEX_DIRECT_ENTRY_POINTER_DRIFT"
 
@@ -653,13 +732,8 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
             project_root=service.store.project_root("book-faires"),
             project={"repository_path": service.store.root},
             session=rebound.as_dict(),
-            binding={
-                "candidate_boundary": {
-                    "state": "NO_PENDING_CANDIDATE",
-                    "candidate_id": None,
-                }
-            },
-            direct_entry=legacy_authority,
+            binding={"candidate_boundary": checkpoint_candidate_boundary},
+            direct_entry=direct_authority,
         )
     assert workspace_drift.value.code == "CODEX_DIRECT_ENTRY_WORKSPACE_MISMATCH"
 
@@ -682,13 +756,8 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
                     ).repository_path
                 },
                 session=rebound.as_dict(),
-                binding={
-                    "candidate_boundary": {
-                        "state": "NO_PENDING_CANDIDATE",
-                        "candidate_id": None,
-                    }
-                },
-                direct_entry=legacy_authority,
+                binding={"candidate_boundary": checkpoint_candidate_boundary},
+                direct_entry=direct_authority,
             )
     assert source_drift.value.code == "CODEX_DIRECT_ENTRY_SOURCE_BASE_DRIFT"
 
@@ -710,10 +779,10 @@ def test_direct_forced_same_worktree_entry_binds_fresh_task_once_without_seal(
             },
             session=candidate_session,
             binding=candidate_binding,
-            direct_entry=legacy_authority,
+            direct_entry=direct_authority,
         )
     assert candidate_present.value.code == (
-        "CODEX_DIRECT_ENTRY_CANDIDATE_OR_HIL_PRESENT"
+        "CODEX_DIRECT_ENTRY_CANDIDATE_PRESERVATION_MISMATCH"
     )
     with pytest.raises(EvidenceLaneError) as wrong_task:
         seal_or_refresh_shared_task_binding(
@@ -841,1079 +910,3 @@ def test_direct_plan_identity_uses_fixed_batch_instead_of_sliding_window(
     assert identity["host_window_row_end"] == 9
     assert identity["next_hil_row"] == 10
     assert identity["physically_final_hil_row"] == 11
-
-
-def test_state_travel_preserves_unaccepted_candidate_and_exact_resume_row(
-    service,
-) -> None:
-    profile = _profile()
-    boot = service.boot_session(
-        project_id="book-faires",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="sole-writer",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"execution_profile": profile},
-        host_session_id="origin-codex-task",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    candidate = service.build_initial("book-faires", session_id)["candidate"]
-    task_rows = [
-        {"number": 1, "step": "Inspect source", "status": "COMPLETED"},
-        {"number": 2, "step": "Present exact PV1 HIL", "status": "IN_PROGRESS"},
-        {"number": 3, "step": "Fuse only after APPROVE", "status": "PENDING"},
-    ]
-    resume_contract = {
-        "task_list": task_rows,
-        "resume_step": 2,
-        "additive_deltas": [
-            {
-                "delta_id": "STEER_001",
-                "text": "Keep the task panel visible through the next HIL.",
-                "linked_step": 2,
-            }
-        ],
-        "execution_profile": profile,
-    }
-    prepared = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract=resume_contract,
-    )
-    handoff = prepared["state_travel"]
-    assert handoff["schema"] == "evidence-lane.state-travel.v2"
-    assert handoff["travel_mode"] == "UNFINISHED_VERIFIED_WORK"
-    assert handoff["accepted_pv"] is None
-    assert handoff["candidate_snapshot"]["candidate_id"] == candidate["candidate_id"]
-    assert handoff["resume_contract"]["resume_step"] == 2
-    assert handoff["resume_contract"]["task_list"] == [
-        {**row, "task_id": f"STEP_{row['number']:03d}"} for row in task_rows
-    ]
-    assert handoff["resume_contract"]["collaboration_law"] == {
-        "writer_policy": "SOLE_WRITER",
-        "entry_recovery_subagents": ("READ_ONLY_ONLY_AT_GENUINE_STATE_TRAVEL_ENTRY"),
-        "later_subagents": "EXPLICIT_USER_COMMAND_ONLY",
-        "alternate_checkout_writer": "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE",
-        "background_mutation": "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE",
-        "browser_profile": (
-            "ONE_USER_SELECTED_PROFILE_ONLY_UNLESS_EXPLICIT_USER_CHANGE"
-        ),
-    }
-    execution_writer_boundary = handoff["resume_contract"]["execution_writer_boundary"]
-    assert execution_writer_boundary == {
-        "schema": "evidence-lane.execution-writer-boundary.v1",
-        "project_policy": "ONE_GOVERNED_PROJECT",
-        "writer_policy": "ONE_LIVE_WRITER",
-        "execution_order": "LINEAR",
-        "verification_order": "EVIDENCE_FIRST",
-        "execution_profile": profile,
-        "execution_profile_change_authority": "EXPLICIT_USER_CHANGE_ONLY",
-        "entry_recovery_agents": ("READ_ONLY_ONLY_AT_GENUINE_STATE_TRAVEL_ENTRY"),
-        "later_subagents": "EXPLICIT_USER_COMMAND_ONLY",
-        "alternate_checkout_writer": "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE",
-        "background_mutation": "FORBIDDEN_UNLESS_EXPLICIT_USER_CHANGE",
-        "browser_profile": (
-            "ONE_USER_SELECTED_PROFILE_ONLY_UNLESS_EXPLICIT_USER_CHANGE"
-        ),
-    }
-    assert handoff["next_action_contract"]["execution_writer_boundary"] == (
-        execution_writer_boundary
-    )
-    goal_continuity = handoff["resume_contract"]["goal_continuity"]
-    assert goal_continuity == {
-        "schema": "evidence-lane.goal-continuity.v1",
-        "project_id": "book-faires",
-        "session_id": session_id,
-        "plan_authority": "SAME_CANONICAL_PLAN_LANE",
-        "source_boundary": "SAME_ACTIVE_SOURCE_BOUNDARY",
-        "writer_session": "SAME_SINGLE_WRITER_SESSION",
-        "task_list_sha256": handoff["resume_contract"]["task_list_sha256"],
-        "active_row": 2,
-        "pause_triggers": [
-            "UI_CRASH",
-            "TOKEN_WAIT",
-            "REQUIRED_USER_INPUT",
-            "HIL_WAIT",
-        ],
-        "pause_effect": "PAUSE_DEPENDENT_WORK_ONLY",
-        "goal_completion_effect_while_waiting": "FORBIDDEN",
-        "usage_reporting_task_status_effect": "NONE",
-        "reconstruction_requires": [
-            "ALL_COMPLETED_BUT_STILL_GOVERNING_ROWS",
-            "EXACTLY_ONE_ACTIVE_ROW_WHEN_PANEL_PRESENT",
-            "ALL_PENDING_ROWS",
-        ],
-        "completed_governing_rows_may_be_omitted": False,
-        "goal_completion_allowed_when": ("HUMAN_EXPLICIT_GOAL_COMPLETION_DISPOSITION"),
-        "goal_completion_authority": "HUMAN_ONLY",
-        "hil_may_complete_goal": False,
-        "goal_completion_modes": [
-            "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
-            "COMPLETE_FULLY",
-        ],
-    }
-    assert handoff["next_action_contract"]["goal_continuity"] == goal_continuity
-    orchestration = handoff["resume_contract"]["destination_orchestration"]
-    assert orchestration["schema"] == (
-        "evidence-lane.state-travel-destination-orchestration.v2"
-    )
-    assert orchestration["enabled"] is True
-    assert orchestration["manual_plan_mode_command_required"] is False
-    assert orchestration["manual_evi_plan_command_required"] is False
-    assert orchestration["manual_goal_prompt_paste_required"] is False
-    assert orchestration["host_mode_selector_status"] == (
-        "HOST_MODE_SELECTOR_UNAVAILABLE"
-    )
-    assert orchestration["plan_projection_native_reads"] == [
-        "pv_status",
-        "pv_task_backlog",
-        "pv_query",
-    ]
-    assert orchestration["host_plan_projection_count"] == 2
-    assert orchestration["destination_creation_action"] == ("CONTINUE_IN_NEW_CHAT")
-    assert orchestration["destination_creation_exactly_once"] is True
-    assert orchestration["destination_creation_user_click_required"] is False
-    assert orchestration["app_restart_or_renderer_reload_allowed"] is False
-    assert orchestration["full_thread_history_hydration_allowed"] is False
-    assert orchestration["collaboration_overlay_hydration_allowed"] is False
-    assert orchestration["destination_thread_hydration_mode"] == (
-        "BOUNDED_HANDOFF_ENVELOPE_ONLY"
-    )
-    assert orchestration["host_plan_projection_source"] == (
-        "CANONICAL_PLAN_LANE_NOT_THREAD_HISTORY"
-    )
-    assert orchestration["unexpected_task_or_agent_activation_allowed"] is False
-    assert orchestration["host_continuity_failure_retry_allowed"] is False
-    assert (
-        orchestration["host_continuity_required_proof"][
-            "exact_initial_shell_source_and_destination_task_ids"
-        ]
-        is True
-    )
-    assert orchestration["host_plan_acceptance_required"] is True
-    assert orchestration["host_plan_automatic_acceptance_allowed"] is False
-    assert orchestration["host_plan_acceptance_is_evidence_lane_hil"] is False
-    assert orchestration["phase_4_or_5_before_plan_acceptance_allowed"] is False
-    assert [row["phase"] for row in orchestration["ordered_phases"]] == [
-        "CREATE_AND_BIND_FRESH_DESTINATION_TASK",
-        "ATOMIC_BOOT_FLASH_AND_RESUME_EXACTLY_ONCE",
-        "RESTORE_HOST_PLAN_AND_WAIT_FOR_EXPLICIT_ACCEPTANCE",
-        "VERIFY_EVIDENCE_PLAN_AFTER_HOST_ACCEPTANCE",
-        "START_OR_RESUME_TRANSFERRED_PLUGIN_GOAL",
-    ]
-    assert orchestration["ordered_phases"][2]["blocks_phases"] == [4, 5]
-    assert orchestration["ordered_phases"][3]["manual_command_required"] is False
-    source_binding = handoff["resume_contract"]["source_task_binding"]
-    assert source_binding == orchestration["source_task_binding"]
-    assert source_binding["source_task_id"] == "origin-codex-task"
-    assert source_binding["source_task_deep_link"] == (
-        "codex://threads/origin-codex-task"
-    )
-    assert source_binding["task_title_used_as_identity"] is False
-    assert source_binding["cwd_used_as_identity"] is False
-    assert source_binding["plugin_build"]["plugin_version"].startswith("3.0.0+codex.")
-    assert handoff["next_action_contract"]["destination_orchestration"] == (
-        orchestration
-    )
-    panel_reactivation = handoff["resume_contract"]["panel_reactivation"]
-    assert panel_reactivation == {
-        "schema": "evidence-lane.persistent-panel-reactivation.v1",
-        "required": True,
-        "triggers": [
-            "TOKEN_DRIVEN_CONTINUATION",
-            "STALLED_GOAL",
-            "CONTEXT_COMPACTION",
-            "BROWSER_RESTART",
-            "CODEX_RESTART",
-            "SESSION_CONTINUATION",
-            "SESSION_RESUME",
-            "STATE_TRAVEL_DESTINATION_ENTRY",
-            "APP_RENDERER_RELOAD",
-            "HOST_REACT_ROOT_RERENDER",
-            "THREAD_HYDRATION_OVERFLOW",
-            "COLLABORATION_OVERLAY_CONFLICT",
-            "TASK_PANEL_LOSS",
-            "CHANGES_SURFACE_LOSS",
-        ],
-        "first_required_action": "REPROJECT_EXACT_COMPLETE_TASK_LIST",
-        "must_precede": [
-            "SOURCE_INSPECTION",
-            "SOURCE_MUTATION",
-            "TESTING",
-            "GIT_ACTIVITY",
-            "SUBSEQUENT_LIFECYCLE_CALL",
-        ],
-        "state_travel_destination_first_native_lifecycle_action": (
-            "PV_STATE_TRAVEL_RESUME_EXACTLY_ONCE"
-        ),
-        "state_travel_destination_first_host_action_after_resume": (
-            "REPROJECT_EXACT_COMPLETE_TASK_LIST"
-        ),
-        "host_plan_acceptance_required_before_evidence_plan": True,
-        "host_plan_acceptance_is_evidence_lane_hil": False,
-        "goal_or_source_work_before_host_plan_acceptance": False,
-        "task_list_sha256": handoff["resume_contract"]["task_list_sha256"],
-        "visible_row_start": 1,
-        "visible_row_end": 3,
-        "visible_row_numbering": ("DYNAMIC_ASCENDING_CURRENT_EXECUTION_PROJECTION"),
-        "stable_identity_field": "task_id",
-        "renumber_after_insert_or_non_executable_transition": True,
-        "active_row": 2,
-        "non_empty_task_list_requires_exactly_one_in_progress": True,
-        "preserve_order_and_row_count": True,
-        "preserve_completed_and_pending_descriptions_unabridged": True,
-        "preserve_row_task_name_class_group_batch_dependencies_git_stage": True,
-        "visible_label_contract": handoff["resume_contract"]["panel_reactivation"][
-            "visible_label_contract"
-        ],
-        "visible_through_pause_and_hil": True,
-        "native_host_surfaces": [
-            "CODEX_RIGHT_SIDE_PLAN",
-            "CODEX_RIGHT_SIDE_CHANGES",
-        ],
-        "native_plan_activation_action": "update_plan",
-        "changes_surface_binding": "EXACT_TASK_UUID_AND_WORKTREE",
-        "surface_drop_before_goal_completion": (
-            "HOST_CONTINUITY_FAILURE_THEN_REHYDRATE_BEFORE_WORK"
-        ),
-        "canonical_rehydration_source": ("PLAN_LANE_BACKLOG_NOT_THREAD_HISTORY"),
-        "full_thread_history_hydration_allowed": False,
-        "collaboration_overlay_hydration_allowed_during_recovery": False,
-        "recovery_concurrency": "ONE_ACTIVE_TASK_ZERO_SUBAGENTS",
-        "renderer_reset_effect": ("FAIL_CLOSED_THEN_REPROJECT_EXACTLY_ONCE_PER_EVENT"),
-        "host_owned_surface_guarantee_claimed": False,
-        "goal_completion_authority": "HUMAN_ONLY",
-        "drop_allowed_when": (
-            "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_HANDOFF_PASSES"
-        ),
-    }
-    assert handoff["next_action_contract"]["task_panel_reactivation"] == (
-        panel_reactivation
-    )
-    assert handoff["resume_contract"]["task_panel_persistent_until"] == (
-        "HUMAN_MARKS_GOAL_COMPLETE_OR_EXPLICIT_TASK_STATE_TRAVEL_HANDOFF_PASSES"
-    )
-
-    wrong_profile = {**profile, "reasoning_effort": "medium"}
-    with pytest.raises(EvidenceLaneError) as mismatch:
-        service.resume_state_travel(
-            project_id="book-faires",
-            session_id=session_id,
-            handoff_id=handoff["handoff_id"],
-            host="CODEX_DESKTOP",
-            host_session_id="wrong-profile-task",
-            ephemeral=False,
-            client_can_edit_source=True,
-            server_has_durable_filesystem=True,
-            runtime_context={"execution_profile": wrong_profile},
-        )
-    assert mismatch.value.code == "STATE_TRAVEL_EXECUTION_PROFILE_MISMATCH"
-    assert (
-        service.sessions.load("book-faires", session_id).metadata[
-            "current_host_session_id"
-        ]
-        == "origin-codex-task"
-    )
-
-    with pytest.raises(EvidenceLaneError) as unavailable:
-        service.resume_state_travel(
-            project_id="book-faires",
-            session_id=session_id,
-            handoff_id=handoff["handoff_id"],
-            host="CODEX_DESKTOP",
-            host_session_id="missing-create-capability-task",
-            ephemeral=False,
-            client_can_edit_source=True,
-            server_has_durable_filesystem=True,
-            runtime_context={"execution_profile": profile},
-        )
-    assert unavailable.value.code == (
-        "STATE_TRAVEL_HOST_CONTINUE_IN_NEW_CHAT_UNAVAILABLE"
-    )
-
-    traveled = service.resume_state_travel(
-        project_id="book-faires",
-        session_id=session_id,
-        handoff_id=handoff["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="matching-profile-task",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={
-            "execution_profile": profile,
-            "state_travel_destination_creation": _destination_creation(
-                "origin-codex-task",
-                "matching-profile-task",
-            ),
-        },
-    )
-    assert traveled["next_action"] == (
-        "RESTORE_HOST_PLAN_AND_WAIT_FOR_EXPLICIT_ACCEPTANCE"
-    )
-    assert traveled["wait_state"] == "WAITING_FOR_HOST_PLAN_ACCEPTANCE"
-    assert traveled["continuation_ready"] is True
-    assert traveled["next_action_contract"]["stop_and_wait"] is True
-    assert traveled["next_action_contract"]["task_panel_reactivation"] == (
-        panel_reactivation
-    )
-    assert traveled["next_action_contract"]["execution_writer_boundary"] == (
-        execution_writer_boundary
-    )
-    assert traveled["next_action_contract"]["goal_continuity"] == goal_continuity
-    assert traveled["next_action_contract"]["destination_orchestration"] == (
-        orchestration
-    )
-    assert traveled["entry"]["destination_orchestration"] == orchestration
-    assert traveled["state_travel"]["continuation_ready_scope"] == (
-        "NATIVE_RESUME_VERIFIED_ONLY_PENDING_HOST_PLAN_ACCEPTANCE_"
-        "EVIDENCE_PLAN_AND_GOAL"
-    )
-    assert traveled["state_travel"]["native_resume_ready"] is True
-    assert traveled["state_travel"]["host_plan_acceptance_pending"] is True
-    assert traveled["state_travel"]["goal_start_allowed"] is False
-    assert traveled["state_travel"]["source_work_allowed"] is False
-    assert traveled["session"]["state"] == "PV1_CANDIDATE"
-    assert traveled["session"]["candidate_id"] == candidate["candidate_id"]
-    assert traveled["pointer"]["accepted_pv"] is None
-    assert traveled["state_travel"]["live_source_verified"] is True
-    assert traveled["state_travel"]["execution_profile_verified"] is True
-    assert traveled["entry"]["resume_step"] == 2
-    destination_binding = traveled["entry"]["destination_task_binding"]
-    assert destination_binding["source_task_id"] == "origin-codex-task"
-    assert destination_binding["destination_task_id"] == "matching-profile-task"
-    assert destination_binding["creation_count"] == 1
-    assert (
-        destination_binding["host_continuity"]["host_process_continuity_proven"] is True
-    )
-    assert destination_binding["host_continuity"]["app_restart_count"] == 0
-    assert destination_binding["task_title_used_as_identity"] is False
-    assert destination_binding["cwd_used_as_identity"] is False
-
-    pointer_before_replay = service.store.pointer("book-faires").as_dict()
-    replay = service.resume_state_travel(
-        project_id="book-faires",
-        session_id=session_id,
-        handoff_id=handoff["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="matching-profile-task",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={
-            "execution_profile": profile,
-            "state_travel_destination_creation": _destination_creation(
-                "origin-codex-task",
-                "matching-profile-task",
-            ),
-        },
-    )
-    assert replay["status"] == "ALREADY_CONSUMED_NO_REBIND"
-    assert replay["idempotent_reuse"] is True
-    assert replay["boot_repeated"] is False
-    assert replay["flash_repeated"] is False
-    incident = replay["replay_incident"]
-    assert incident["resume_invoked"] is False
-    assert incident["host_rebound"] is False
-    assert incident["source_mutated"] is False
-    assert incident["pointer_moved"] is False
-    assert incident["candidate_created"] is False
-    assert incident["pending_hil_mutated"] is False
-    assert incident["hil_inferred"] is False
-    assert service.store.pointer("book-faires").as_dict() == pointer_before_replay
-
-    with pytest.raises(EvidenceLaneError) as wrong_destination:
-        service.resume_state_travel(
-            project_id="book-faires",
-            session_id=session_id,
-            handoff_id=handoff["handoff_id"],
-            host="CODEX_DESKTOP",
-            host_session_id="different-destination-task",
-            ephemeral=False,
-            client_can_edit_source=True,
-            server_has_durable_filesystem=True,
-            runtime_context={
-                "execution_profile": profile,
-                "state_travel_destination_creation": _destination_creation(
-                    "origin-codex-task",
-                    "different-destination-task",
-                ),
-            },
-        )
-    assert wrong_destination.value.code == ("STATE_TRAVEL_REPLAY_DESTINATION_MISMATCH")
-    assert service.store.pointer("book-faires").as_dict() == pointer_before_replay
-
-
-@pytest.mark.parametrize(
-    ("field", "bad_value"),
-    [
-        ("initial_shell_source_task_id", "wrong-source-task"),
-        ("initial_shell_destination_task_id", "wrong-destination-task"),
-        ("host_process_instance_id_after", "restarted-codex-process"),
-        ("app_restart_invoked", True),
-        ("app_restart_count", 1),
-        ("renderer_reload_count", 1),
-        ("ui_freeze_count", 1),
-        ("unexpected_navigation_count", 1),
-        ("unexpected_task_activation_count", 1),
-        ("background_agent_activation_count", 1),
-        ("unbounded_thread_hydration_count", 1),
-        ("collaboration_overlay_hydration_count", 1),
-        ("thread_hydration_mode", "FULL_THREAD_HISTORY"),
-        ("full_thread_history_requested", True),
-        ("plan_projection_source", "THREAD_SCROLLBACK"),
-        ("collaboration_overlay_active", True),
-        (
-            "live_canonical_title_task_ids",
-            ["continuity-destination-task", "duplicate-title-task"],
-        ),
-    ],
-)
-def test_state_travel_host_continuity_incident_fails_before_consumption(
-    service,
-    field: str,
-    bad_value: object,
-) -> None:
-    profile = _profile()
-    boot = service.boot_session(
-        project_id="book-faires",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="sole-writer",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"execution_profile": profile},
-        host_session_id="continuity-origin-task",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    handoff = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={
-            "task_list": [
-                {
-                    "number": 1,
-                    "step": "Resume without restarting the host",
-                    "status": "IN_PROGRESS",
-                },
-                {
-                    "number": 2,
-                    "step": "Present the final HIL",
-                    "status": "PENDING",
-                    "panel_role": "PHYSICALLY_FINAL_HIL",
-                },
-            ],
-            "resume_step": 1,
-            "additive_deltas": [],
-            "execution_profile": profile,
-        },
-    )["state_travel"]
-    creation = _destination_creation(
-        "continuity-origin-task",
-        "continuity-destination-task",
-    )
-    continuity = dict(creation["host_continuity"])
-    continuity[field] = bad_value
-    creation["host_continuity"] = continuity
-
-    with pytest.raises(EvidenceLaneError) as failure:
-        service.resume_state_travel(
-            project_id="book-faires",
-            session_id=session_id,
-            handoff_id=handoff["handoff_id"],
-            host="CODEX_DESKTOP",
-            host_session_id="continuity-destination-task",
-            ephemeral=False,
-            client_can_edit_source=True,
-            server_has_durable_filesystem=True,
-            runtime_context={
-                "execution_profile": profile,
-                "state_travel_destination_creation": creation,
-            },
-        )
-
-    assert failure.value.code == "STATE_TRAVEL_HOST_CONTINUITY_FAILURE"
-    assert failure.value.details["retry_allowed"] is False
-    assert failure.value.details["handoff_consumption_allowed"] is False
-    current = service.sessions.load("book-faires", session_id)
-    assert current.metadata["current_host_session_id"] == "continuity-origin-task"
-    assert current.metadata["state_travel"]["status"] == "PREPARED"
-
-
-def test_state_travel_resolves_one_queued_client_thread_and_retains_history(
-    service,
-) -> None:
-    profile = _profile()
-    boot = service.boot_session(
-        project_id="book-faires",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="sole-writer",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"execution_profile": profile},
-        host_session_id="queued-origin-task",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    prepared = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={
-            "task_list": [
-                {
-                    "number": 1,
-                    "step": "Resume the exact active row",
-                    "status": "IN_PROGRESS",
-                },
-                {
-                    "number": 2,
-                    "step": "Present the final HIL",
-                    "status": "PENDING",
-                    "panel_role": "PHYSICALLY_FINAL_HIL",
-                },
-            ],
-            "resume_step": 1,
-            "additive_deltas": [],
-            "execution_profile": profile,
-        },
-    )["state_travel"]
-    creation = _queued_destination_creation(
-        "queued-origin-task",
-        "client-thread-queued-001",
-        "resolved-real-destination-task",
-    )
-    resumed = service.resume_state_travel(
-        project_id="book-faires",
-        session_id=session_id,
-        handoff_id=prepared["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="resolved-real-destination-task",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={
-            "execution_profile": profile,
-            "state_travel_destination_creation": creation,
-        },
-    )
-    assert resumed["status"] == "PASS"
-    binding = resumed["entry"]["destination_task_binding"]
-    resolution = binding["destination_resolution"]
-    assert resolution["status"] == "RESOLVED_UNIQUE"
-    assert resolution["client_thread_id"] == "client-thread-queued-001"
-    assert resolution["live_destination_task_ids"] == ["resolved-real-destination-task"]
-    assert resolution["duplicate_task_ids"] == ["duplicate-destination-history"]
-    assert resolution["archived_task_ids"] == ["archived-destination-history"]
-    assert (
-        resumed["state_travel"]["resume_consumption_receipt"]["resume_invocation_count"]
-        == 1
-    )
-
-    replay = service.resume_state_travel(
-        project_id="book-faires",
-        session_id=session_id,
-        handoff_id=prepared["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="resolved-real-destination-task",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={
-            "execution_profile": profile,
-            "state_travel_destination_creation": creation,
-        },
-    )
-    assert replay["status"] == "ALREADY_CONSUMED_NO_REBIND"
-    assert (
-        replay["state_travel"]["resume_consumption_receipt"]["resume_invocation_count"]
-        == 1
-    )
-
-    ambiguous_creation = _queued_destination_creation(
-        "queued-origin-task",
-        "client-thread-queued-001",
-        "resolved-real-destination-task",
-        live_destination_task_ids=[
-            "resolved-real-destination-task",
-            "second-live-destination-task",
-        ],
-    )
-    with pytest.raises(EvidenceLaneError) as ambiguous:
-        service.resume_state_travel(
-            project_id="book-faires",
-            session_id=session_id,
-            handoff_id=prepared["handoff_id"],
-            host="CODEX_DESKTOP",
-            host_session_id="resolved-real-destination-task",
-            ephemeral=False,
-            client_can_edit_source=True,
-            server_has_durable_filesystem=True,
-            runtime_context={
-                "execution_profile": profile,
-                "state_travel_destination_creation": ambiguous_creation,
-            },
-        )
-    assert ambiguous.value.code == ("STATE_TRAVEL_DESTINATION_CLIENT_THREAD_AMBIGUOUS")
-
-
-def test_state_travel_global_lock_consumes_one_handoff_once(service) -> None:
-    profile = _profile()
-    boot = service.boot_session(
-        project_id="book-faires",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="sole-writer",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"execution_profile": profile},
-        host_session_id="concurrent-origin-task",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    prepared = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={
-            "task_list": [
-                {
-                    "number": 1,
-                    "step": "Resume once globally",
-                    "status": "IN_PROGRESS",
-                },
-                {
-                    "number": 2,
-                    "step": "Present the final HIL",
-                    "status": "PENDING",
-                    "panel_role": "PHYSICALLY_FINAL_HIL",
-                },
-            ],
-            "resume_step": 1,
-            "additive_deltas": [],
-            "execution_profile": profile,
-        },
-    )["state_travel"]
-    creation = _destination_creation(
-        "concurrent-origin-task",
-        "concurrent-real-destination-task",
-    )
-
-    def resume() -> dict[str, object]:
-        return service.resume_state_travel(
-            project_id="book-faires",
-            session_id=session_id,
-            handoff_id=prepared["handoff_id"],
-            host="CODEX_DESKTOP",
-            host_session_id="concurrent-real-destination-task",
-            ephemeral=False,
-            client_can_edit_source=True,
-            server_has_durable_filesystem=True,
-            runtime_context={
-                "execution_profile": profile,
-                "state_travel_destination_creation": creation,
-            },
-        )
-
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        results = list(executor.map(lambda _: resume(), range(2)))
-
-    assert sorted(str(row["status"]) for row in results) == [
-        "ALREADY_CONSUMED_NO_REBIND",
-        "PASS",
-    ]
-    consumed = next(row for row in results if row["status"] == "PASS")
-    replay = next(
-        row for row in results if row["status"] == "ALREADY_CONSUMED_NO_REBIND"
-    )
-    consumption = consumed["state_travel"]["resume_consumption_receipt"]
-    assert consumption["resume_invocation_count"] == 1
-    assert (
-        replay["replay_incident"]["original_consumption_receipt_sha256"]
-        == consumption["receipt_sha256"]
-    )
-    assert replay["replay_incident"]["resume_invoked"] is False
-    assert not (
-        service.store.project_root("book-faires") / ".state-travel-resume.lock"
-    ).exists()
-
-
-def test_state_travel_explicit_same_host_user_correction_supersedes_unconsumed_receipt(
-    service,
-) -> None:
-    profile = _profile()
-    boot = service.boot_session(
-        project_id="book-faires",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="sole-writer",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"execution_profile": profile},
-        host_session_id="origin-codex-task",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    task_rows = [
-        {"number": 1, "step": "Keep exact work", "status": "IN_PROGRESS"},
-        {"number": 2, "step": "Present final HIL", "status": "PENDING"},
-    ]
-    first = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={
-            "task_list": task_rows,
-            "resume_step": 1,
-            "additive_deltas": [],
-            "execution_profile": profile,
-        },
-    )["state_travel"]
-    pointer_before = service.store.pointer("book-faires").as_dict()
-    corrected_rows = [
-        {**task_rows[0], "step": "Keep exact work with the user correction"},
-        task_rows[1],
-    ]
-
-    with pytest.raises(EvidenceLaneError) as missing_authority:
-        service.prepare_state_travel(
-            "book-faires",
-            session_id,
-            resume_contract={
-                "task_list": corrected_rows,
-                "resume_step": 1,
-                "additive_deltas": [],
-                "execution_profile": profile,
-            },
-        )
-    assert missing_authority.value.code == "STATE_TRAVEL_PREPARED_CONTRACT_MISMATCH"
-
-    replacement_result = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={
-            "task_list": corrected_rows,
-            "resume_step": 1,
-            "additive_deltas": [
-                {
-                    "delta_id": "USER_CORRECTION_001",
-                    "text": "Preserve the corrected exact work.",
-                    "linked_step": 1,
-                }
-            ],
-            "execution_profile": profile,
-            "supersede_prepared_handoff_id": first["handoff_id"],
-            "supersede_prepared_reason": "EXPLICIT_USER_CORRECTION",
-        },
-    )
-    replacement = replacement_result["state_travel"]
-    assert replacement["handoff_id"] != first["handoff_id"]
-    disposition = replacement["supersedes_prepared_handoff"]
-    assert disposition["status"] == "SUPERSEDED_BY_SAME_HOST_USER_CORRECTION"
-    assert disposition["handoff_id"] == first["handoff_id"]
-    assert disposition["state_travel_consumed"] is False
-    assert disposition["pointer_moved"] is False
-    assert service.store.pointer("book-faires").as_dict() == pointer_before
-    persisted = service.sessions.load("book-faires", session_id)
-    assert persisted.metadata["state_travel_history"][-1] == first
-    assert persisted.metadata["state_travel"]["handoff_id"] == replacement["handoff_id"]
-    assert replacement_result["supersession_event"] is not None
-
-
-def test_non_empty_state_travel_panel_requires_exactly_one_active_row() -> None:
-    assert normalize_task_list([]) == []
-
-    with pytest.raises(EvidenceLaneError) as missing_active:
-        normalize_task_list(
-            [
-                {"number": 1, "step": "Finished", "status": "COMPLETED"},
-                {"number": 2, "step": "Waiting", "status": "PENDING"},
-            ]
-        )
-    assert missing_active.value.code == "STATE_TRAVEL_ACTIVE_STEP_REQUIRED"
-
-    with pytest.raises(EvidenceLaneError) as multiple_active:
-        normalize_task_list(
-            [
-                {"number": 1, "step": "First", "status": "IN_PROGRESS"},
-                {"number": 2, "step": "Second", "status": "IN_PROGRESS"},
-            ]
-        )
-    assert multiple_active.value.code == "STATE_TRAVEL_MULTIPLE_ACTIVE_STEPS"
-
-
-def test_state_travel_explicitly_supersedes_orphaned_stale_host_handoff(
-    service,
-) -> None:
-    profile = _profile()
-    boot = service.boot_session(
-        project_id="book-faires",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="sole-writer",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"execution_profile": profile},
-        host_session_id="stale-origin-task-4",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    task_rows = [
-        {"number": 1, "step": "Keep exact work", "status": "IN_PROGRESS"},
-        {"number": 2, "step": "Present final HIL", "status": "PENDING"},
-    ]
-    first = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={
-            "task_list": task_rows,
-            "resume_step": 1,
-            "additive_deltas": [],
-            "execution_profile": profile,
-        },
-    )["state_travel"]
-    pointer_before = service.store.pointer("book-faires").as_dict()
-
-    current = service.sessions.load("book-faires", session_id)
-    current.metadata["current_host_session_id"] = "replacement-task-6"
-    service.sessions._save(current)
-    corrected_rows = [
-        {**task_rows[0], "step": "Keep exact work after stale Task4"},
-        task_rows[1],
-    ]
-    base_contract = {
-        "task_list": corrected_rows,
-        "resume_step": 1,
-        "additive_deltas": [
-            {
-                "delta_id": "ORPHAN_CORRECTION_001",
-                "text": "Replace only the stale prepared receipt.",
-                "linked_step": 1,
-            }
-        ],
-        "execution_profile": profile,
-        "supersede_prepared_handoff_id": first["handoff_id"],
-        "supersede_prepared_reason": "EXPLICIT_USER_CORRECTION",
-    }
-
-    with pytest.raises(EvidenceLaneError) as missing_orphan_authority:
-        service.prepare_state_travel(
-            "book-faires",
-            session_id,
-            resume_contract=base_contract,
-        )
-    assert missing_orphan_authority.value.code == (
-        "STATE_TRAVEL_PREPARED_ORPHAN_CORRECTION_INVALID"
-    )
-
-    with pytest.raises(EvidenceLaneError) as wrong_old_receipt:
-        service.prepare_state_travel(
-            "book-faires",
-            session_id,
-            resume_contract={
-                **base_contract,
-                "supersede_prepared_handoff_sha256": "0" * 64,
-                "supersede_prepared_origin_host_session_id": ("stale-origin-task-4"),
-                "supersede_prepared_scope": "ORPHANED_STALE_HOST_TASK",
-                "supersede_prepared_confirmation": (
-                    "SUPERSEDE_ORPHANED_PREPARED_HANDOFF"
-                ),
-            },
-        )
-    assert wrong_old_receipt.value.code == (
-        "STATE_TRAVEL_PREPARED_ORPHAN_CORRECTION_INVALID"
-    )
-
-    replacement_result = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={
-            **base_contract,
-            "supersede_prepared_handoff_sha256": first["handoff_sha256"],
-            "supersede_prepared_origin_host_session_id": "stale-origin-task-4",
-            "supersede_prepared_scope": "ORPHANED_STALE_HOST_TASK",
-            "supersede_prepared_confirmation": ("SUPERSEDE_ORPHANED_PREPARED_HANDOFF"),
-        },
-    )
-    replacement = replacement_result["state_travel"]
-    assert replacement["handoff_id"] != first["handoff_id"]
-    disposition = replacement["supersedes_prepared_handoff"]
-    assert disposition["status"] == ("SUPERSEDED_BY_EXPLICIT_ORPHAN_USER_CORRECTION")
-    assert disposition["handoff_id"] == first["handoff_id"]
-    assert disposition["origin_host_session_id"] == "stale-origin-task-4"
-    assert disposition["replacement_host_session_id"] == "replacement-task-6"
-    assert disposition["orphaned_stale_host_task"] is True
-    assert disposition["state_travel_consumed"] is False
-    assert disposition["pointer_moved"] is False
-    assert service.store.pointer("book-faires").as_dict() == pointer_before
-    persisted = service.sessions.load("book-faires", session_id)
-    assert persisted.metadata["state_travel_history"][-1] == first
-    assert persisted.metadata["state_travel"]["handoff_id"] == replacement["handoff_id"]
-    assert replacement_result["supersession_event"]["event_type"] == (
-        "pv.state_travel.superseded_orphan_user_correction"
-    )
-
-
-def test_state_travel_derives_full_active_plan_and_seals_every_plan_steer(
-    service,
-) -> None:
-    profile = _profile()
-    boot = service.boot_session(
-        project_id="book-faires",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="sole-writer",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"execution_profile": profile},
-        host_session_id="origin-codex-task",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    service.build_initial("book-faires", session_id)
-    active_task = {
-        "task_id": "row-active",
-        "task_class": "verify_result",
-        "requested_outcome": "Finish the current correction.",
-        "permitted_paths": [],
-        "permitted_tools": ["repository_read"],
-        "acceptance_checks": ["Verify the bounded result."],
-        "stop_condition": "Stop before the final HIL.",
-    }
-    final_hil = {
-        **active_task,
-        "task_id": "row-final-hil",
-        "requested_outcome": "Present the physically final six-way HIL.",
-        "panel_role": "PHYSICALLY_FINAL_HIL",
-    }
-    service.plan_tasks(
-        "book-faires",
-        tasks=[active_task, final_hil],
-        planned_by="human-test",
-        plan_id="state-travel-plan",
-    )
-    service.store.claim_backlog_task(
-        "book-faires",
-        backlog_task_id="row-active",
-        session_id=session_id,
-        contract={**active_task, "task_id": "runtime-active"},
-    )
-    service.record_steer_delta(
-        "book-faires",
-        delta_text="Keep the exact correction attached to the active row.",
-        actor="human-test",
-        delta_id="linked-before-travel",
-        linked_task_id="row-active",
-    )
-    service.record_steer_delta(
-        "book-faires",
-        delta_text="Add the late correction before the final HIL.",
-        actor="human-test",
-        delta_id="new-before-travel",
-        new_task_contract={
-            **active_task,
-            "task_id": "late-row",
-            "requested_outcome": "Implement the late correction.",
-        },
-    )
-
-    prepared = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={"execution_profile": profile},
-    )["state_travel"]["resume_contract"]
-
-    assert prepared["task_list_source"] == "ACTIVE_PLAN_LANE_DERIVED"
-    assert [row["task_id"] for row in prepared["task_list"]] == [
-        "row-active",
-        "late-row",
-        "row-final-hil",
-    ]
-    assert prepared["task_list"][-1]["panel_role"] == ("PHYSICALLY_FINAL_HIL")
-    assert prepared["resume_step"] == 1
-    assert [row["delta_id"] for row in prepared["additive_deltas"]] == [
-        "linked-before-travel",
-        "new-before-travel",
-    ]
-    assert [row["linked_step"] for row in prepared["additive_deltas"]] == [1, 2]
-    assert prepared["unlinked_steer_policy"] == (
-        "INSERT_NEW_STEP_BEFORE_NEXT_HIL_AND_INCREASE_COUNT"
-    )
-
-
-def test_state_travel_fails_closed_when_explicit_seal_drops_plan_delta(
-    service,
-) -> None:
-    profile = _profile()
-    boot = service.boot_session(
-        project_id="book-faires",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="sole-writer",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"execution_profile": profile},
-        host_session_id="origin-codex-task",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    service.build_initial("book-faires", session_id)
-    task = {
-        "task_id": "active-row",
-        "task_class": "verify_result",
-        "requested_outcome": "Preserve the correction.",
-        "permitted_paths": [],
-        "permitted_tools": ["repository_read"],
-        "acceptance_checks": ["Verify the correction."],
-        "stop_condition": "Stop at HIL.",
-    }
-    service.plan_tasks(
-        "book-faires",
-        tasks=[task],
-        planned_by="human-test",
-        plan_id="missing-delta-plan",
-    )
-    service.store.claim_backlog_task(
-        "book-faires",
-        backlog_task_id="active-row",
-        session_id=session_id,
-        contract={**task, "task_id": "runtime-active"},
-    )
-    service.record_steer_delta(
-        "book-faires",
-        delta_text="This Delta must never disappear from State Travel.",
-        actor="human-test",
-        delta_id="must-seal-delta",
-        linked_task_id="active-row",
-    )
-    canonical_rows = service.task_backlog("book-faires")["goal_projection"]["rows"]
-
-    with pytest.raises(EvidenceLaneError) as dropped:
-        service.prepare_state_travel(
-            "book-faires",
-            session_id,
-            resume_contract={
-                "task_list": canonical_rows,
-                "resume_step": 1,
-                "additive_deltas": [],
-                "execution_profile": profile,
-            },
-        )
-    assert dropped.value.code == "STATE_TRAVEL_PLAN_DELTA_SEAL_INCOMPLETE"

@@ -1,0 +1,34 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "ai_toolchain_route",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-toolchain",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "ai_toolchain_route"
+    },
+    "internal_sdk": {
+      "module_id": "first_class_workflows",
+      "operation": "ai_toolchain_route",
+      "read_only": true
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-toolchain",
+        "workflow": "conditional-codex-toolchain-routing",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "F458DEF20BB5A93761DA23F5382CBBBC1A05E54965083D40D9F6CA97A7197E72",
+  "sdk_action_binding": "sdk/actions/ai_toolchain_route.action.v1.json",
+  "mcp_action_binding": "mcp/actions/ai_toolchain_route.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "4A56092666F72254BD67DEC9D49D6C987A7E1DC92DF806562C3DB5AD3B5E655C"
+}

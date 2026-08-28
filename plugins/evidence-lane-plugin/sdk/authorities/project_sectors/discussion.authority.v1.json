@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-project-sector-binding.v1",
+  "status": "PASS",
+  "lane_id": "discussion",
+  "authority_root": "authorities/project_sectors/discussion",
+  "authority_manifest_sha256": "E4D4D61A530C5DA9D6A6A729D07E5048DD62AE5AA9121C43C07E3EB57C532379",
+  "schema_surface": "schemas/project-sectors/discussion/schema-surface.v1.json",
+  "builder": "authorities/project_sectors/discussion/builder.py",
+  "reader": "authorities/project_sectors/discussion/reader.py",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_binding": false,
+  "receipt_sha256": "3565762DBF9DB1968C343C040A9D5CFE007315F974257FB73DC4D2231FAB964A"
+}

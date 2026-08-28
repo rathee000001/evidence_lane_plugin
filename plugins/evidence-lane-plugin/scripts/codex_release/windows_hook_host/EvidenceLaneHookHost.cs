@@ -14,21 +14,32 @@ using System.Threading.Tasks;
 
 internal static class EvidenceLaneHookHost
 {
-    private static readonly IReadOnlyDictionary<string, string> HandlerByEvent =
-        new Dictionary<string, string>(StringComparer.Ordinal)
+    private static readonly IReadOnlyDictionary<string, ISet<string>> HandlersByEvent =
+        new Dictionary<string, ISet<string>>(StringComparer.Ordinal)
         {
-            { "SessionStart", "session_start.py" },
-            { "SubagentStart", "subagent_start.py" },
-            { "UserPromptSubmit", "prompt_submit.py" },
-            { "PreToolUse", "pre_tool_use.py" },
-            { "PermissionRequest", "permission_request.py" },
-            { "PostToolUse", "post_tool_use.py" },
-            { "PreCompact", "lifecycle_boundary.py" },
-            { "PostCompact", "lifecycle_boundary.py" },
-            { "SubagentStop", "subagent_stop.py" },
-            { "Stop", "stop_response.py" },
-            { "SessionEnd", "lifecycle_boundary.py" },
+            { "SessionStart", StageHandlers() },
+            { "SubagentStart", StageHandlers() },
+            { "UserPromptSubmit", StageHandlers() },
+            { "PreToolUse", StageHandlers() },
+            { "PermissionRequest", StageHandlers() },
+            { "PostToolUse", StageHandlers() },
+            { "PreCompact", StageHandlers() },
+            { "PostCompact", StageHandlers() },
+            { "SubagentStop", StageHandlers() },
+            { "Stop", StageHandlers() },
+            { "SessionEnd", StageHandlers() },
         };
+
+    private static ISet<string> StageHandlers()
+    {
+        return new HashSet<string>(StringComparer.Ordinal)
+        {
+            "subhook_validate.py",
+            "subhook_seal.py",
+            "subhook_transport.py",
+            "subhook_emit.py",
+        };
+    }
 
     [STAThread]
     private static int Main(string[] args)
@@ -52,9 +63,9 @@ internal static class EvidenceLaneHookHost
             return 64;
         }
 
-        string expectedHandler;
-        if (!HandlerByEvent.TryGetValue(args[0], out expectedHandler) ||
-            !string.Equals(args[1], expectedHandler, StringComparison.Ordinal))
+        ISet<string> expectedHandlers;
+        if (!HandlersByEvent.TryGetValue(args[0], out expectedHandlers) ||
+            !expectedHandlers.Contains(args[1]))
         {
             return 65;
         }

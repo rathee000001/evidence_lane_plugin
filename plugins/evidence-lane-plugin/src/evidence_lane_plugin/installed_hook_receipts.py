@@ -161,14 +161,16 @@ def validate_installed_hook_inventory(
     hooks = [
         row for row in all_hooks if str(row.get("pluginId") or "") == plugin_selector
     ]
-    if len(hooks) != len(HOOK_EVENT_NAMES):
+    if len(hooks) < len(HOOK_EVENT_NAMES):
         raise InstalledHookReceiptError("INSTALLED_HOOK_COUNT_MISMATCH")
 
-    by_event: dict[str, Mapping[str, Any]] = {}
+    by_event: dict[str, list[Mapping[str, Any]]] = {
+        event_name: [] for event_name in HOOK_EVENT_NAMES
+    }
     for row in hooks:
         host_name = str(row.get("eventName") or "")
         event_name = _CANONICAL_EVENT_NAMES.get(host_name)
-        if event_name is None or event_name in by_event:
+        if event_name is None:
             raise InstalledHookReceiptError("INSTALLED_HOOK_EVENT_INVENTORY_MISMATCH")
         key = str(row.get("key") or "")
         current_hash = str(row.get("currentHash") or "")
@@ -185,31 +187,64 @@ def validate_installed_hook_inventory(
             or _HASH.fullmatch(current_hash) is None
         ):
             raise InstalledHookReceiptError("INSTALLED_HOOK_AUTHORITY_MISMATCH")
-        by_event[event_name] = row
-    if tuple(name for name in HOOK_EVENT_NAMES if name in by_event) != HOOK_EVENT_NAMES:
+        by_event[event_name].append(row)
+    if any(not by_event[name] for name in HOOK_EVENT_NAMES):
         raise InstalledHookReceiptError("INSTALLED_HOOK_EVENT_INVENTORY_MISMATCH")
 
-    records = [
-        {
-            "event_name": event_name,
-            "host_event_name": _HOST_EVENT_NAMES[event_name],
-            "hook_key": str(by_event[event_name]["key"]),
-            "current_hash": str(by_event[event_name]["currentHash"]),
-            "source_path_sha256": _source_path_hash(
-                str(by_event[event_name]["sourcePath"])
-            ),
-            "enabled": bool(by_event[event_name]["enabled"]),
-            "trust_status": "trusted",
-        }
-        for event_name in HOOK_EVENT_NAMES
-    ]
+    records: list[dict[str, Any]] = []
+    event_action_inventory: list[dict[str, Any]] = []
+    for event_ordinal, event_name in enumerate(HOOK_EVENT_NAMES, start=1):
+        actions: list[dict[str, Any]] = []
+        for action_ordinal, row in enumerate(
+            sorted(by_event[event_name], key=lambda item: str(item.get("key") or "")),
+            start=1,
+        ):
+            record = {
+                "hook_number": event_ordinal,
+                "action_number": f"{event_ordinal}.{action_ordinal}",
+                "event_action_ordinal": action_ordinal,
+                "event_name": event_name,
+                "host_event_name": _HOST_EVENT_NAMES[event_name],
+                "hook_key": str(row["key"]),
+                "current_hash": str(row["currentHash"]),
+                "source_path_sha256": _source_path_hash(str(row["sourcePath"])),
+                "enabled": bool(row["enabled"]),
+                "trust_status": "trusted",
+            }
+            records.append(record)
+            actions.append(
+                {
+                    "action_number": record["action_number"],
+                    "event_action_ordinal": action_ordinal,
+                    "hook_key_sha256": sha256_bytes(
+                        record["hook_key"].encode("utf-8")
+                    ),
+                    "current_hash": record["current_hash"],
+                }
+            )
+        event_action_inventory.append(
+            {
+                "hook_number": event_ordinal,
+                "event_name": event_name,
+                "display_number": f"Hook {event_ordinal}",
+                "action_count": len(actions),
+                "actions": actions,
+            }
+        )
     body: dict[str, Any] = {
         "schema": INSTALLED_HOOK_INVENTORY_SCHEMA,
         "status": "PASS",
         "plugin_selector": plugin_selector,
         "workspace_sha256": sha256_bytes(expected_workspace.encode("utf-8")),
-        "hook_count": len(records),
+        "hook_count": len(HOOK_EVENT_NAMES),
+        "hook_count_semantics": "REGISTERED_EVENT_TYPE_COUNT",
+        "handler_action_count": len(records),
+        "handler_action_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
         "event_order": list(HOOK_EVENT_NAMES),
+        "event_action_inventory": event_action_inventory,
+        "event_action_inventory_sha256": sha256_bytes(
+            canonical_json_bytes(event_action_inventory)
+        ),
         "required_event_order": list(required_order),
         "progressive_subset": required_order != HOOK_EVENT_NAMES,
         "records": records,
@@ -323,6 +358,46 @@ def build_installed_hook_diagnostic_receipt(
                 "raw_source_path_included": False,
             }
         )
+    numbered_records: list[dict[str, Any]] = []
+    diagnostic_event_actions: list[dict[str, Any]] = []
+    for event_ordinal, host_event_name in enumerate(_HOST_EVENT_ORDER, start=1):
+        rows = sorted(
+            (
+                row
+                for row in hook_records
+                if row["event_name"] == host_event_name
+            ),
+            key=lambda row: str(row["hook_key"]),
+        )
+        actions: list[dict[str, Any]] = []
+        for action_ordinal, row in enumerate(rows, start=1):
+            numbered = {
+                **row,
+                "hook_number": event_ordinal,
+                "action_number": f"{event_ordinal}.{action_ordinal}",
+                "event_action_ordinal": action_ordinal,
+            }
+            numbered_records.append(numbered)
+            actions.append(
+                {
+                    "action_number": numbered["action_number"],
+                    "event_action_ordinal": action_ordinal,
+                    "hook_key_sha256": sha256_bytes(
+                        str(numbered["hook_key"]).encode("utf-8")
+                    ),
+                    "current_hash": numbered["current_hash"],
+                }
+            )
+        diagnostic_event_actions.append(
+            {
+                "hook_number": event_ordinal,
+                "event_name": _CANONICAL_EVENT_NAMES[host_event_name],
+                "host_event_name": host_event_name,
+                "display_number": f"Hook {event_ordinal}",
+                "action_count": len(actions),
+                "actions": actions,
+            }
+        )
     body: dict[str, Any] = {
         "schema": "evidence-lane.codex-installed-hook-diagnostic.v1",
         "status": (
@@ -334,8 +409,15 @@ def build_installed_hook_diagnostic_receipt(
         "warnings": warning_records,
         "error_count": len(error_records),
         "errors": error_records,
-        "hook_count": len(hook_records),
-        "hooks": hook_records,
+        "hook_count": sum(bool(row["action_count"]) for row in diagnostic_event_actions),
+        "hook_count_semantics": "REGISTERED_EVENT_TYPE_COUNT",
+        "handler_action_count": len(numbered_records),
+        "handler_action_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
+        "event_action_inventory": diagnostic_event_actions,
+        "event_action_inventory_sha256": sha256_bytes(
+            canonical_json_bytes(diagnostic_event_actions)
+        ),
+        "hooks": numbered_records,
         "diagnostic_text_after_deterministic_redaction": True,
         "raw_workspace_path_included": False,
         "raw_command_or_source_path_included": False,
@@ -377,9 +459,9 @@ def build_host_hook_ui_projection_receipt(
     installed_events = tuple(str(row.get("event_name") or "") for row in hooks)
     hook_keys = tuple(str(row.get("hook_key") or "") for row in hooks)
     if (
-        len(hooks) != len(HOOK_EVENT_NAMES)
+        len(hooks) < len(HOOK_EVENT_NAMES)
         or set(installed_events) != set(_HOST_EVENT_ORDER)
-        or len(set(installed_events)) != len(installed_events)
+        or len(set(installed_events)) != len(HOOK_EVENT_NAMES)
         or len(set(hook_keys)) != len(hook_keys)
         or any(not key for key in hook_keys)
         or any(row.get("trust_status") != "trusted" for row in hooks)
@@ -414,7 +496,14 @@ def build_host_hook_ui_projection_receipt(
             "diagnostic_receipt_sha256"
         ),
         "plugin_selector": diagnostic.get("plugin_selector"),
-        "installed_hook_count": len(hooks),
+        "installed_hook_count": len(
+            {str(row.get("event_name") or "") for row in hooks}
+        ),
+        "installed_hook_count_semantics": "REGISTERED_EVENT_TYPE_COUNT",
+        "installed_handler_action_count": len(hooks),
+        "installed_handler_action_count_semantics": (
+            "TOTAL_NESTED_HANDLER_ACTION_COUNT"
+        ),
         "installed_host_event_order": list(_HOST_EVENT_ORDER),
         "installed_hook_keys_distinct": True,
         "installed_hook_contract_complete": True,
@@ -613,12 +702,24 @@ def build_installed_hook_invocation_receipt(
         or inventory.get("status") != "PASS"
     ):
         raise InstalledHookReceiptError("PASSING_INSTALLED_INVENTORY_REQUIRED")
-    expected = {
-        str(row["event_name"]): row
-        for row in inventory.get("records") or []
-        if isinstance(row, Mapping)
+    expected_records = [
+        row for row in inventory.get("records") or [] if isinstance(row, Mapping)
+    ]
+    expected_by_key = {
+        str(row["hook_key"]): row for row in expected_records
     }
-    if tuple(name for name in HOOK_EVENT_NAMES if name in expected) != HOOK_EVENT_NAMES:
+    expected_by_event = {
+        event_name: [
+            row
+            for row in expected_records
+            if str(row.get("event_name") or "") == event_name
+        ]
+        for event_name in HOOK_EVENT_NAMES
+    }
+    if (
+        len(expected_by_key) != len(expected_records)
+        or any(not expected_by_event[name] for name in HOOK_EVENT_NAMES)
+    ):
         raise InstalledHookReceiptError("INSTALLED_INVENTORY_RECORDS_INCOMPLETE")
 
     required_order = _required_event_order(inventory.get("required_event_order"))
@@ -631,9 +732,12 @@ def build_installed_hook_invocation_receipt(
         ):
             raise InstalledHookReceiptError("RAW_OR_PRIVATE_OBSERVATION_FORBIDDEN")
         event_name = str(observation.get("event_name") or "")
-        if event_name not in required or event_name in observed:
+        hook_key = str(observation.get("hook_key") or "")
+        if event_name not in required or hook_key in observed:
             raise InstalledHookReceiptError("HOOK_OBSERVATION_EVENT_INVALID")
-        reference = expected[event_name]
+        reference = expected_by_key.get(hook_key)
+        if reference is None or reference.get("event_name") != event_name:
+            raise InstalledHookReceiptError("HOOK_OBSERVATION_IDENTITY_MISMATCH")
         if (
             observation.get("hook_key") != reference.get("hook_key")
             or observation.get("current_hash") != reference.get("current_hash")
@@ -646,6 +750,9 @@ def build_installed_hook_invocation_receipt(
         if not started or not completed or not host_session or started == completed:
             raise InstalledHookReceiptError("HOOK_OBSERVATION_CORRELATION_REQUIRED")
         record = {
+            "hook_number": reference.get("hook_number"),
+            "action_number": reference.get("action_number"),
+            "event_action_ordinal": reference.get("event_action_ordinal"),
             "event_name": event_name,
             "hook_key": str(reference["hook_key"]),
             "current_hash": str(reference["current_hash"]),
@@ -680,18 +787,44 @@ def build_installed_hook_invocation_receipt(
             if not isinstance(matching_count, int) or matching_count < 1:
                 raise InstalledHookReceiptError("HOOK_OBSERVATION_COUNT_INVALID")
             record["matching_completed_run_count"] = matching_count
-        observed[event_name] = record
+        observed[hook_key] = record
 
-    missing = [name for name in required_order if name not in observed]
+    missing_action_numbers = [
+        str(row.get("action_number") or "")
+        for event_name in required_order
+        for row in expected_by_event[event_name]
+        if str(row["hook_key"]) not in observed
+    ]
+    missing = [
+        event_name
+        for event_name in required_order
+        if any(
+            str(row["hook_key"]) not in observed
+            for row in expected_by_event[event_name]
+        )
+    ]
+    ordered_observations = [
+        observed[str(row["hook_key"])]
+        for event_name in required_order
+        for row in expected_by_event[event_name]
+        if str(row["hook_key"]) in observed
+    ]
     body: dict[str, Any] = {
         "schema": INSTALLED_HOOK_INVOCATION_SCHEMA,
         "status": "PASS" if not missing else "PENDING_INSTALLED_INVOCATION",
         "inventory_receipt_sha256": inventory["inventory_receipt_sha256"],
         "plugin_selector": inventory["plugin_selector"],
         "event_order": list(required_order),
-        "observations": [observed[name] for name in required_order if name in observed],
+        "observations": ordered_observations,
         "missing_events": missing,
-        "observed_event_count": len(observed),
+        "missing_action_numbers": missing_action_numbers,
+        "observed_event_count": len(
+            {row["event_name"] for row in ordered_observations}
+        ),
+        "observed_handler_action_count": len(ordered_observations),
+        "required_handler_action_count": sum(
+            len(expected_by_event[name]) for name in required_order
+        ),
         "installed_invocation_proof_complete": not missing,
         "unobserved_events_relabelled_unavailable": False,
         "configuration_only_relabelled_as_invocation": False,

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "source_authority support refresh request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "project_root",
+    "authority_id"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_id": {
+      "const": "source_authority"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "2678AAEF07811CFF5538F2EBC99EF595F54D603173B7B0E80C8E16A292651649"
+}

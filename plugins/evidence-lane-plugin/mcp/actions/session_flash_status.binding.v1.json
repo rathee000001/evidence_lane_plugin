@@ -1,0 +1,54 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "session_flash_status",
+  "title": "Inspect Evidence Lane session flash",
+  "input_schema": {
+    "properties": {},
+    "title": "session_flash_statusArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "session_flash_statusDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "6659AD225FAC02FD58ED334CCB48BBF8DB2B5FBF493C00054D8AB4813E044062",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-boot",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "session_flash_status"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-boot",
+        "workflow": "boot-or-resume",
+        "order": 4
+      },
+      {
+        "owner_skill": "evi-state-travel",
+        "workflow": "direct-destination-locked-flash",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/session_flash_status.action.v1.json",
+  "sdk_action_binding_sha256": "5F6A24D84AC57F8A905941A87C8E5A336ED774EDD36FD85675F065B2E93B461A",
+  "public_action_schema": "schemas/actions/session_flash_status.schema.json",
+  "public_action_schema_sha256": "79A2002870A521E97D38322D0FEE0665A5F86B1724DFC81819282CA8FFAA0915",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "12BD4DC987A95019833FC116DFDB1A2CFA2C07A54885108CF6853CD797516B77"
+}

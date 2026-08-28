@@ -7,8 +7,11 @@ classification, Plan refresh, Goal behavior, and HIL sequencing.
 
 from __future__ import annotations
 
+import json
+import re
 from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any
 
 from .hashing import canonical_json_bytes, sha256_bytes
@@ -17,6 +20,9 @@ from .redaction import contains_secret, redact
 HOOK_CONTRACT_SCHEMA = "evidence-lane.codex-hook-lifecycle-contract.v1"
 HOOK_TRANSPORT_SCHEMA = "evidence-lane.codex-hook-transport-envelope.v1"
 HOOK_CAPABILITY_SCHEMA = "evidence-lane.codex-hook-capability-receipt.v1"
+HOOK_LOGICAL_ACTION_REGISTRY_SCHEMA = (
+    "evidence-lane.hook-logical-action-registry.v1"
+)
 HOOK_LAUNCH_DIAGNOSTIC_SCHEMA = (
     "evidence-lane.codex-hook-launch-diagnostic.v1"
 )
@@ -132,6 +138,113 @@ HOOK_EVENTS: tuple[HookEventContract, ...] = (
 
 HOOK_EVENT_NAMES = tuple(row.event_name for row in HOOK_EVENTS)
 _HOOK_EVENT_BY_NAME = {row.event_name: row for row in HOOK_EVENTS}
+HOOK_EVENT_ACTION_HANDLERS = {
+    row.event_name: (
+        "subhook_validate.py",
+        "subhook_seal.py",
+        "subhook_transport.py",
+        "subhook_emit.py",
+    )
+    for row in HOOK_EVENTS
+}
+_COMMON_LOGICAL_ACTIONS = (
+    "VALIDATE_REDACT_AND_BOUND_VISIBLE_SIGNAL",
+    "DEDUPE_AND_SEAL_EVENT",
+)
+HOOK_EVENT_LOGICAL_ACTIONS = {
+    "SessionStart": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "TRANSPORT_SESSION_ENTRY_SIGNAL",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+    "SubagentStart": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "TRANSPORT_SUBAGENT_START_OBSERVATION",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+    "UserPromptSubmit": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "TRANSPORT_VISIBLE_PROMPT_SIGNAL",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+    "PreToolUse": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "TRANSPORT_PROSPECTIVE_TOOL_SIGNAL",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+    "PermissionRequest": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "TRANSPORT_PERMISSION_OBSERVATION",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+    "PostToolUse": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "TRANSPORT_VISIBLE_TOOL_RESULT_SIGNAL",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+    "PreCompact": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "TRANSPORT_PRECOMPACT_BOUNDARY_SIGNAL",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+    "PostCompact": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "TRANSPORT_POSTCOMPACT_REENTRY_SIGNAL",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+    "SubagentStop": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "TRANSPORT_SUBAGENT_STOP_OBSERVATION",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+    "Stop": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "TRANSPORT_VISIBLE_RESPONSE_STOP_SIGNAL",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+    "SessionEnd": (
+        *_COMMON_LOGICAL_ACTIONS,
+        "BEST_EFFORT_TRANSPORT_SESSION_END_SIGNAL",
+        "VERIFY_AND_EMIT_EVENT_RESULT",
+    ),
+}
+
+
+def load_hook_logical_action_registry(
+    plugin_root: Path | None = None,
+) -> dict[str, tuple[str, ...]]:
+    """Load the internal logical-action registry kept outside host hooks.json.
+
+    Codex owns the native hooks.json schema and currently accepts only the
+    description and hooks fields.  Evidence Lane's numbered SDK sub-actions
+    therefore live in a package-owned companion registry that the host never
+    parses as hook configuration.
+    """
+
+    root = plugin_root or Path(__file__).resolve().parents[2]
+    path = root / "hooks" / "logical-actions.json"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HookContractError("HOOK_LOGICAL_ACTION_REGISTRY_REQUIRED") from exc
+    if (
+        set(payload) != {"schema", "logicalActions"}
+        or payload.get("schema") != HOOK_LOGICAL_ACTION_REGISTRY_SCHEMA
+    ):
+        raise HookContractError("HOOK_LOGICAL_ACTION_REGISTRY_SCHEMA_MISMATCH")
+    actions = payload.get("logicalActions")
+    if not isinstance(actions, Mapping):
+        raise HookContractError("HOOK_LOGICAL_ACTION_REGISTRY_REQUIRED")
+    normalized = {
+        str(name): tuple(str(action) for action in values)
+        for name, values in actions.items()
+        if isinstance(values, list)
+    }
+    if tuple(normalized) != HOOK_EVENT_NAMES:
+        raise HookContractError("HOOK_LOGICAL_ACTION_EVENT_ORDER_MISMATCH")
+    if normalized != HOOK_EVENT_LOGICAL_ACTIONS:
+        raise HookContractError("HOOK_LOGICAL_ACTION_REGISTRY_MISMATCH")
+    return normalized
 _FORBIDDEN_PAYLOAD_KEYS = {
     "chain_of_thought",
     "credentials",
@@ -151,9 +264,40 @@ def lifecycle_hook_contract() -> dict[str, Any]:
     body: dict[str, Any] = {
         "schema": HOOK_CONTRACT_SCHEMA,
         "version": HOOK_CONTRACT_VERSION,
-        "events": [asdict(row) for row in HOOK_EVENTS],
+        "events": [
+            {
+                **asdict(row),
+                "logical_action_count": len(
+                    HOOK_EVENT_LOGICAL_ACTIONS[row.event_name]
+                ),
+                "logical_actions": [
+                    {
+                        "logical_action_number": f"{row.ordinal}.L{action_ordinal}",
+                        "event_logical_action_ordinal": action_ordinal,
+                        "action": action,
+                        "owner": "HOOK_TRANSPORT_ADAPTER",
+                        "project_plan_goal_hil_effect": "NONE",
+                    }
+                    for action_ordinal, action in enumerate(
+                        HOOK_EVENT_LOGICAL_ACTIONS[row.event_name], start=1
+                    )
+                ],
+            }
+            for row in HOOK_EVENTS
+        ],
         "event_order": list(HOOK_EVENT_NAMES),
         "registered_event_count": len(HOOK_EVENTS),
+        "event_numbering": "HOOK_1_THROUGH_HOOK_11",
+        "nested_action_numbering": "HOOK_EVENT_ORDINAL.ACTION_ORDINAL",
+        "handler_cardinality_per_event": "ONE_OR_MORE",
+        "hook_count_semantics": "REGISTERED_EVENT_TYPE_COUNT",
+        "handler_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
+        "logical_action_count": sum(
+            len(actions) for actions in HOOK_EVENT_LOGICAL_ACTIONS.values()
+        ),
+        "logical_action_count_semantics": (
+            "NUMBERED_SERIAL_TRANSPORT_STEPS_INSIDE_HANDLER_ACTIONS"
+        ),
         "hook_owner": "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY",
         "skill_owner": (
             "ENTRY_PREPARE_TOOL_BOUNDARIES_COMPACTION_COMMIT_NATIVE_READS_"
@@ -182,61 +326,85 @@ def lifecycle_hook_contract() -> dict[str, Any]:
 
 
 def validate_hook_configuration(configuration: Mapping[str, Any]) -> dict[str, Any]:
-    """Validate exact event order, one handler per event, and forbidden surfaces."""
+    """Validate exact event order and one-or-more numbered actions per event."""
 
+    if set(configuration) != {"description", "hooks"}:
+        raise HookContractError("HOOK_HOST_NATIVE_SCHEMA_MISMATCH")
     hooks = configuration.get("hooks")
     if not isinstance(hooks, Mapping):
         raise HookContractError("HOOK_CONFIGURATION_MAP_REQUIRED")
     event_names = tuple(str(name) for name in hooks)
     if event_names != HOOK_EVENT_NAMES:
         raise HookContractError("HOOK_EVENT_ORDER_OR_INVENTORY_MISMATCH")
+    load_hook_logical_action_registry()
     handler_records: list[dict[str, Any]] = []
     for contract in HOOK_EVENTS:
         groups = hooks.get(contract.event_name)
-        if not isinstance(groups, list) or len(groups) != 1:
-            raise HookContractError("ONE_HOOK_GROUP_PER_EVENT_REQUIRED")
-        group = groups[0]
-        handlers = group.get("hooks") if isinstance(group, Mapping) else None
-        if not isinstance(handlers, list) or len(handlers) != 1:
-            raise HookContractError("ONE_HANDLER_PER_EVENT_REQUIRED")
-        handler = handlers[0]
-        if not isinstance(handler, Mapping) or handler.get("type") != "command":
-            raise HookContractError("COMMAND_HANDLER_REQUIRED")
-        command = str(handler.get("command") or "")
-        command_windows = str(handler.get("commandWindows") or "")
-        if contract.handler not in command or contract.handler not in command_windows:
-            raise HookContractError("HOOK_HANDLER_IDENTITY_MISMATCH")
-        if (
-            "hooks/invoke_hook.py" not in command
-            or f"--event {contract.event_name}" not in command
-            or "hooks\\EvidenceLaneHookHost.exe" not in command_windows
-            or contract.event_name not in command_windows
-            or not command_windows.startswith(
-                '& "${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe" '
-            )
-            or "powershell.exe" in command_windows.casefold()
-            or "invoke_hook.ps1" in command_windows.casefold()
-            or "%SystemRoot%" in command_windows
-            or "%PLUGIN_ROOT%" in command_windows
-            or command_windows.casefold().startswith("python ")
-        ):
-            raise HookContractError("HOOK_DETERMINISTIC_HIDDEN_LAUNCHER_REQUIRED")
-        expected_timeout = 3 if contract.event_name == "SessionEnd" else 10
-        if handler.get("timeout") != expected_timeout:
-            raise HookContractError("HOOK_HOST_TIMEOUT_MISMATCH")
-        handler_records.append(
-            {
-                "event_name": contract.event_name,
-                "handler": contract.handler,
-                "timeout": expected_timeout,
-                "windows_launcher": "EvidenceLaneHookHost.exe",
-                "windows_process_window_mode": "HOST_MANAGED_NO_CHILD_WINDOW",
-                "windows_child_create_no_window": True,
-                "windows_interpreter_resolution": (
-                    "SEALED_DERIVED_RUNTIME_ONLY"
-                ),
-            }
-        )
+        if not isinstance(groups, list) or not groups:
+            raise HookContractError("ONE_OR_MORE_HOOK_GROUPS_PER_EVENT_REQUIRED")
+        event_handlers: list[str] = []
+        for group_ordinal, group in enumerate(groups, start=1):
+            handlers = group.get("hooks") if isinstance(group, Mapping) else None
+            if not isinstance(handlers, list) or not handlers:
+                raise HookContractError("ONE_OR_MORE_HANDLER_ACTIONS_REQUIRED")
+            for group_action_ordinal, handler in enumerate(handlers, start=1):
+                if not isinstance(handler, Mapping) or handler.get("type") != "command":
+                    raise HookContractError("COMMAND_HANDLER_REQUIRED")
+                command = str(handler.get("command") or "")
+                command_windows = str(handler.get("commandWindows") or "")
+                handler_match = re.search(
+                    r"--handler\s+([A-Za-z0-9_.-]+\.py)(?:\s|$)", command
+                )
+                handler_name = handler_match.group(1) if handler_match else ""
+                if not handler_name or handler_name not in command_windows:
+                    raise HookContractError("HOOK_HANDLER_IDENTITY_MISMATCH")
+                allowed_handlers = HOOK_EVENT_ACTION_HANDLERS[contract.event_name]
+                if not event_handlers and handler_name != allowed_handlers[0]:
+                    raise HookContractError("HOOK_PRIMARY_HANDLER_IDENTITY_MISMATCH")
+                if handler_name not in allowed_handlers:
+                    raise HookContractError("HOOK_HANDLER_NOT_IN_EVENT_ACTION_REGISTRY")
+                if (
+                    "hooks/invoke_hook.py" not in command
+                    or f"--event {contract.event_name}" not in command
+                    or "hooks\\EvidenceLaneHookHost.exe" not in command_windows
+                    or contract.event_name not in command_windows
+                    or not command_windows.startswith(
+                        '& "${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe" '
+                    )
+                    or "powershell.exe" in command_windows.casefold()
+                    or "invoke_hook.ps1" in command_windows.casefold()
+                    or "%SystemRoot%" in command_windows
+                    or "%PLUGIN_ROOT%" in command_windows
+                    or command_windows.casefold().startswith("python ")
+                ):
+                    raise HookContractError(
+                        "HOOK_DETERMINISTIC_HIDDEN_LAUNCHER_REQUIRED"
+                    )
+                expected_timeout = 3 if contract.event_name == "SessionEnd" else 10
+                if handler.get("timeout") != expected_timeout:
+                    raise HookContractError("HOOK_HOST_TIMEOUT_MISMATCH")
+                event_handlers.append(handler_name)
+                action_ordinal = len(event_handlers)
+                handler_records.append(
+                    {
+                        "hook_number": contract.ordinal,
+                        "action_number": f"{contract.ordinal}.{action_ordinal}",
+                        "event_name": contract.event_name,
+                        "event_action_ordinal": action_ordinal,
+                        "group_ordinal": group_ordinal,
+                        "group_action_ordinal": group_action_ordinal,
+                        "handler": handler_name,
+                        "timeout": expected_timeout,
+                        "windows_launcher": "EvidenceLaneHookHost.exe",
+                        "windows_process_window_mode": "HOST_MANAGED_NO_CHILD_WINDOW",
+                        "windows_child_create_no_window": True,
+                        "windows_interpreter_resolution": (
+                            "SEALED_DERIVED_RUNTIME_ONLY"
+                        ),
+                    }
+                )
+        if len(event_handlers) != len(set(event_handlers)):
+            raise HookContractError("HOOK_EVENT_HANDLER_ACTION_DUPLICATE")
 
     lifecycle_contract = lifecycle_hook_contract()
     return {
@@ -244,7 +412,28 @@ def validate_hook_configuration(configuration: Mapping[str, Any]) -> dict[str, A
         "schema": HOOK_CONTRACT_SCHEMA,
         "contract_sha256": lifecycle_contract["contract_sha256"],
         "event_order": list(event_names),
+        "registered_event_count": len(event_names),
         "handler_count": len(handler_records),
+        "handler_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
+        "event_action_counts": {
+            event_name: sum(
+                row["event_name"] == event_name for row in handler_records
+            )
+            for event_name in event_names
+        },
+        "logical_action_count": lifecycle_contract["logical_action_count"],
+        "logical_action_count_semantics": lifecycle_contract[
+            "logical_action_count_semantics"
+        ],
+        "logical_action_inventory": [
+            {
+                "hook_number": row["ordinal"],
+                "event_name": row["event_name"],
+                "logical_action_count": row["logical_action_count"],
+                "logical_actions": row["logical_actions"],
+            }
+            for row in lifecycle_contract["events"]
+        ],
         "handler_records": handler_records,
         "configuration_sha256": sha256_bytes(
             canonical_json_bytes(dict(configuration))

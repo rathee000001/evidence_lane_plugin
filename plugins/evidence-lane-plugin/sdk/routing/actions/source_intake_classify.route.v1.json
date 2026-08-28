@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "source_intake_classify",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "source_intake_classify"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-refresh",
+        "workflow": "steer-prompt-source-intake-refresh-working-sectors",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "classify-source-intake",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "CBE89FF15C6A4AD750C1D4D17C6F987420D6A3946573FA2ABB4E2FD1715E0F8A",
+  "sdk_action_binding": "sdk/actions/source_intake_classify.action.v1.json",
+  "mcp_action_binding": "mcp/actions/source_intake_classify.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "46D04584BAE6C8B7DA963A32484E14BFA09301CB2CBBBFA8BD54FBBF432E1781"
+}

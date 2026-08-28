@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "connector_brain runtime binding",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "module",
+    "source_sha256"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "connector_brain"
+    },
+    "module": {
+      "const": "evidence_lane_plugin.connector_governance"
+    },
+    "source_sha256": {
+      "const": "619C78D2E2447B004F4823A6B8D2C059B271381486F1F2AE3957F0B5EACCF91E"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "51D4B15502769753F2BECED68037CC97795F88E8DCAD5E10A09F18D9C8256AD3"
+}

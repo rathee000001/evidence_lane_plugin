@@ -20,7 +20,9 @@ from .freshness import (
 )
 from .hashing import canonical_json_bytes, sha256_bytes
 from .lane_engine import validate_lane_bundle
+from .lane_traversal import validate_lane_query_traversal
 from .lanes import LANE_REGISTRY, LaneRegistryError, catalog, get_lane
+from .project_authority import is_working_sector_operational_member
 from .store import ProjectStore
 
 _TOKEN_RE = re.compile(r"[\w][\w.-]{1,63}", flags=re.UNICODE)
@@ -58,6 +60,38 @@ DEFAULT_CROSS_PROJECT_TIMEOUT_MS = 30_000
 MAX_CROSS_PROJECT_TIMEOUT_MS = 120_000
 DEFAULT_CROSS_PROJECT_RESULTS = 200
 MAX_CROSS_PROJECT_RESULTS = 400
+
+
+def _live_working_bundle_read_boundary(
+    validation: dict[str, Any],
+) -> tuple[bool, list[str]]:
+    """Accept only mutable operational-wrapper drift for live lane reads."""
+
+    if validation.get("valid") is True:
+        return True, []
+    checksum_mismatches = dict(validation.get("checksum_mismatches") or {})
+    drift_paths = sorted(checksum_mismatches)
+    operational_only = bool(drift_paths) and all(
+        is_working_sector_operational_member(path) for path in drift_paths
+    )
+    valid = bool(
+        operational_only
+        and not validation.get("lane_manifest_errors")
+        and all(
+            lane.get("valid") is True
+            for lane in dict(validation.get("lanes") or {}).values()
+        )
+        and validation.get("lane_emission_contract_valid") is True
+        and validation.get("lane_directory_set_valid") is True
+        and validation.get("parallel_execution_valid") is True
+        and validation.get("topology_valid") is True
+        and validation.get("source_routes_valid") is True
+        and dict(validation.get("lane_disposition_contract") or {}).get("valid")
+        is True
+    )
+    return valid, drift_paths if valid else []
+
+
 class LaneReader:
     def __init__(
         self,
@@ -68,6 +102,14 @@ class LaneReader:
     ) -> None:
         self.store = store
         self.cross_project_authorizer = cross_project_authorizer
+
+    @staticmethod
+    def _lane_traversal_contract(
+        lane_root: Path,
+        lane: Any,
+    ) -> dict[str, Any]:
+        """Use pointer, MMD, DOT, tools, and SQLite as one query support system."""
+        return validate_lane_query_traversal(lane_root, lane)
 
     def _resolve(
         self,
@@ -91,14 +133,21 @@ class LaneReader:
         )
         authority_ref = ""
         validation = validate_lane_bundle(lanes_root)
+        readable, operational_drift_paths = _live_working_bundle_read_boundary(
+            validation
+        )
         require(
-            validation["valid"],
+            readable,
             "LANE_BUNDLE_INVALID",
             "The selected PV lane bundle failed validation.",
             status="FAIL",
             validation=validation,
         )
         bundle = json.loads((lanes_root / "manifest.json").read_text(encoding="utf-8"))
+        bundle["operational_checksum_drift_ignored"] = bool(
+            operational_drift_paths
+        )
+        bundle["operational_checksum_drift_paths"] = operational_drift_paths
         if pv_ref is None and lanes_root.name == "sectors":
             authority_ref = str(bundle.get("proposed_pv") or "WORKING_SECTORS")
         lane = get_lane(lane_alias, code_mode=bundle["code_mode"])
@@ -154,6 +203,7 @@ class LaneReader:
             (lane_root / "refresh_receipt.json").read_text(encoding="utf-8")
         )
         tools = json.loads((lane_root / "tools.json").read_text(encoding="utf-8"))
+        traversal = self._lane_traversal_contract(lane_root, lane)
         freshness = self._freshness(project_id, lanes_root, authority_ref)
         return {
             "status": result_status("PASS", freshness),
@@ -165,11 +215,18 @@ class LaneReader:
                 "code_mode": bundle["code_mode"],
                 "bundle_sha256": bundle["bundle_sha256"],
                 "summary": bundle["summary"],
+                "operational_checksum_drift_ignored": bundle[
+                    "operational_checksum_drift_ignored"
+                ],
+                "operational_checksum_drift_paths": bundle[
+                    "operational_checksum_drift_paths"
+                ],
             },
             "lane_manifest": manifest,
             "lane_pointer": pointer,
             "refresh": refresh,
             "tools": tools,
+            "traversal": traversal,
             "freshness": freshness,
         }
 
@@ -212,6 +269,8 @@ class LaneReader:
         )
         lane_root = lanes_root / lane.canonical_lane_id
         database_path = lane_root / lane.sqlite_filename
+        traversal = self._lane_traversal_contract(lane_root, lane)
+        fts_table = str(traversal["selected_fts_table"])
         fts_query, terms = self._fts_query(query)
         connection = sqlite3.connect(
             f"file:{database_path.resolve().as_posix()}?mode=ro&immutable=1",
@@ -224,14 +283,14 @@ class LaneReader:
             bm25_sql = (
                 "SELECT f.chunk_id AS chunk_id, f.path AS path, "  # nosec B608
                 "f.locator AS locator, "
-                f"snippet({lane.fts_table}, 2, '[', ']', ' ... ', 24) AS snippet, "
-                f"bm25({lane.fts_table}) AS bm25_rank, "
+                f"snippet({fts_table}, 2, '[', ']', ' ... ', 24) AS snippet, "
+                f"bm25({fts_table}) AS bm25_rank, "
                 "c.sha256 AS chunk_sha256, s.sha256 AS source_sha256, "
                 "s.parser_state AS parser_state "
-                f"FROM {lane.fts_table} f "
+                f"FROM {fts_table} f "
                 "JOIN chunk_index c ON c.chunk_id=CAST(f.chunk_id AS INTEGER) "
                 "JOIN source_registry s ON s.source_id=c.source_id "
-                f"WHERE {lane.fts_table} MATCH ? "
+                f"WHERE {fts_table} MATCH ? "
                 "ORDER BY bm25_rank, path, locator, chunk_id LIMIT ?"
             )
             bm25_rows = [
@@ -345,6 +404,7 @@ class LaneReader:
                 "hybrid": "reciprocal-rank fusion with k=60",
                 "bm25_mislabeled_as_tfidf": False,
             },
+            "traversal": traversal,
             "results": results,
             "freshness": freshness,
         }
@@ -370,8 +430,11 @@ class LaneReader:
         )
         authority_ref = ""
         validation = validate_lane_bundle(lanes_root)
+        readable, operational_drift_paths = _live_working_bundle_read_boundary(
+            validation
+        )
         require(
-            validation["valid"],
+            readable,
             "LANE_BUNDLE_INVALID",
             "The selected PV lane bundle failed validation.",
             status="FAIL",
@@ -380,6 +443,10 @@ class LaneReader:
         bundle = json.loads(
             (lanes_root / "manifest.json").read_text(encoding="utf-8")
         )
+        bundle["operational_checksum_drift_ignored"] = bool(
+            operational_drift_paths
+        )
+        bundle["operational_checksum_drift_paths"] = operational_drift_paths
         if pv_ref is None and lanes_root.name == "sectors":
             authority_ref = str(bundle.get("proposed_pv") or "WORKING_SECTORS")
         return {**bundle, "_resolved_pv_ref": authority_ref}
@@ -2023,7 +2090,9 @@ class LaneReader:
         lanes_root, authority_ref, lane, _ = self._resolve(
             project_id, lane_alias, pv_ref
         )
-        database_path = lanes_root / lane.canonical_lane_id / lane.sqlite_filename
+        lane_root = lanes_root / lane.canonical_lane_id
+        database_path = lane_root / lane.sqlite_filename
+        traversal = self._lane_traversal_contract(lane_root, lane)
         connection = sqlite3.connect(
             f"file:{database_path.resolve().as_posix()}?mode=ro&immutable=1",
             uri=True,
@@ -2081,5 +2150,6 @@ class LaneReader:
             "content": content,
             "truncated": len(data) > max_bytes,
             "facts": facts,
+            "traversal": traversal,
             "freshness": freshness,
         }

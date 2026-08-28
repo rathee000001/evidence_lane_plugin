@@ -1,0 +1,59 @@
+{
+  "schema": "evidence-lane.sdk-delta-workflow-binding.v1",
+  "status": "PASS",
+  "workflow": {
+    "workflow": "DELTA_EXIT_APPEND_REFRESH",
+    "triggers": [
+      "VERIFIED_DELTA_EXIT"
+    ],
+    "skills": [
+      "evidence-lane-code-lifecycle",
+      "evi-refresh"
+    ],
+    "public_actions": [
+      "task_confirm_source_update",
+      "adaptive_delta_exit",
+      "pv_task_transition"
+    ],
+    "sdk_modules": [
+      "source_lane_retrieval",
+      "agent_learning",
+      "canon_input",
+      "project_memory",
+      "project_universe",
+      "plan_delta_tasks"
+    ],
+    "hooks_required": false,
+    "ordinary_project_overlay_allowed": false,
+    "public_action_sdk": {
+      "actions": [
+        "task_confirm_source_update",
+        "adaptive_delta_exit",
+        "pv_task_transition"
+      ],
+      "count": 3,
+      "count_is_fixed_ceiling": false
+    },
+    "ai_action_planes": [],
+    "env_uop_operations_counted_as_public_actions": 0
+  },
+  "public_actions": [
+    {
+      "name": "task_confirm_source_update",
+      "binding": "sdk/actions/task_confirm_source_update.action.v1.json"
+    },
+    {
+      "name": "adaptive_delta_exit",
+      "binding": "sdk/actions/adaptive_delta_exit.action.v1.json"
+    },
+    {
+      "name": "pv_task_transition",
+      "binding": "sdk/actions/pv_task_transition.action.v1.json"
+    }
+  ],
+  "hooks_required": false,
+  "env_uop_ai_action_plane": true,
+  "accepted_archive_queried": false,
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "1B42740C70A61CB953C8550E1BBCD84AEAFB57C3CC075942B397BA498981A929"
+}

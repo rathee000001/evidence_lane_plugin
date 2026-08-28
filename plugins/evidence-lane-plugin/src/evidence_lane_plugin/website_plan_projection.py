@@ -15,14 +15,14 @@ from .store import ProjectStore
 
 WEBSITE_PLAN_PROJECTION_SCHEMA = "evidence-lane.website-plan-projection.v1"
 WEBSITE_PLAN_PROJECTION_PATH = (
-    "plugins/evidence-lane-plugin/remote_adapter/app/_data/"
+    "apps/evidence-lane-remote-adapter/app/_data/"
     "website-plan-projection.json"
 )
 WEBSITE_DELTA_LEDGER_PATH = (
-    "plugins/evidence-lane-plugin/remote_adapter/app/_data/delta-ledger.ts"
+    "apps/evidence-lane-remote-adapter/app/_data/delta-ledger.ts"
 )
 WEBSITE_PUBLIC_METADATA_PATH = (
-    "plugins/evidence-lane-plugin/remote_adapter/public/.well-known/"
+    "apps/evidence-lane-remote-adapter/public/.well-known/"
     "evidence-lane-plugin.json"
 )
 PERSISTENT_UNTIL = "NEXT_SIX_WAY_HIL_PRESENTED"

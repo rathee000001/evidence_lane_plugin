@@ -16,6 +16,7 @@ dependencies = [
   "cryptography==50.0.0",
   "defusedxml==0.7.1",
   "httpx==0.28.1",
+  "llama-index-core==0.14.23",
   "mcp==1.28.1",
   "numpy==2.4.6",
   "pydantic==2.13.4",
@@ -41,10 +42,6 @@ dev = [
   "pytest==9.1.1",
   "ruff==0.16.4",
 ]
-rag = [
-  "llama-index-core==0.14.23",
-]
-
 [project.scripts]
 evidence-lane-plugin = "evidence_lane_plugin.cli:main"
 
@@ -58,14 +55,6 @@ where = ["plugins/evidence-lane-plugin/src"]
 evidence_lane_plugin = [
   "runtime-public-catalog.v1.json",
   "schema.sql",
-  "schemas/*.json",
-  "schemas/canon/*.json",
-  "schemas/canon/*.sql",
-  "schemas/memory/*.sql",
-  "session_flash/env15/*.json",
-  "session_flash/env15/*.md",
-  "session_flash/env15/env/*",
-  "session_flash/env15/uop/*",
 ]
 
 [tool.pytest.ini_options]

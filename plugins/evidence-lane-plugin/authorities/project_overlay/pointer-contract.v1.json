@@ -1,0 +1,10 @@
+{
+  "schema": "evidence-lane.installed-authority-pointer-contract.v1",
+  "status": "PASS",
+  "authority_id": "project_overlay",
+  "project_relative_path": "project_overlay/manifest.json",
+  "pointer_role": "HIL_PROPOSAL_OVERLAY_NOT_ACCEPTED_POINTER",
+  "project_truth_pointer_owner": false,
+  "pointer_movement_in_template": false,
+  "receipt_sha256": "59BD867FB47582CDAEE7BF0E1F46A1B882E2E4BB40380D1A49BCAE7E8DB5BD51"
+}

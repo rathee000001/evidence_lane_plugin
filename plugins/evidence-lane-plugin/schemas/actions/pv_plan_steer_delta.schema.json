@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "pv_plan_steer_delta",
+  "title": "Append one canonical steer Delta",
+  "description": "Record a visible user steer before the next HIL by default. The host agent must classify it as either linked to one existing Plan Lane task or unrelated and therefore one complete new task row. Linked steers never replace the task or change the count; unrelated steers insert one new numbered row before the next HIL when that gate is present and increase the persistent task-panel count. A task may declare panel_role=PHYSICALLY_FINAL_HIL so that row remains physically final.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "delta_text": {
+        "title": "Delta Text",
+        "type": "string"
+      },
+      "actor": {
+        "title": "Actor",
+        "type": "string"
+      },
+      "delta_id": {
+        "title": "Delta Id",
+        "type": "string"
+      },
+      "linked_task_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Linked Task Id"
+      },
+      "new_task_contract": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "New Task Contract"
+      },
+      "boundary": {
+        "default": "BEFORE_NEXT_HIL",
+        "title": "Boundary",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "delta_text",
+      "actor",
+      "delta_id"
+    ],
+    "title": "pv_plan_steer_deltaArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_plan_steer_deltaDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-plan",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_plan_steer_delta"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "plan-steer",
+        "order": 5
+      },
+      {
+        "owner_skill": "evi-plan",
+        "workflow": "plan-steer",
+        "order": 6
+      },
+      {
+        "owner_skill": "evi-state-travel",
+        "workflow": "state-travel-plan-steer",
+        "order": 9
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "plan-steer",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "16BD6C74219F7EAF6DB93FE49ACA9419D89CD703E208D107200D21FB320C2823",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "5F2D077656D118F39D81B52BC9C20BA2DA9183DFC197385F1251488AD695CEF3"
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "evidence-lane.sdk-env-authority-binding.v1",
+  "status": "PASS",
+  "authority_root": "env",
+  "authority_manifest_sha256": "E4F283EC16F86995E2937288DD8A8E5623007351CBB1CA3FD01FDA5C7363B6C1",
+  "scope": "INSTALLATION_SCOPED_AI_ACTION_PLANE",
+  "project_authority": false,
+  "receipt_sha256": "9E6FC9EAB3F868DF00D5530E196C550AD705DB0F96D76EE68F4CD3D2E59F8C7F"
+}

@@ -1,0 +1,96 @@
+{
+  "schema": "evidence-lane.sdk-delta-workflow-binding.v1",
+  "status": "PASS",
+  "workflow": {
+    "workflow": "DELTA_ENTRY_AND_SIX_WAY_QUERY",
+    "triggers": [
+      "ACTIVE_PLAN_ROW_ENTRY"
+    ],
+    "skills": [
+      "evidence-lane-code-lifecycle",
+      "evi-learning",
+      "evi-memory",
+      "evi-canon",
+      "evi-universe",
+      "evi-instructions"
+    ],
+    "public_actions": [
+      "task_classify",
+      "pv_status",
+      "pv_task_backlog",
+      "pv_query",
+      "search",
+      "learning_retrieve",
+      "project_memory_query",
+      "canon_graph"
+    ],
+    "sdk_modules": [
+      "plan_delta_tasks",
+      "source_lane_retrieval",
+      "env_uop_operator_runtime",
+      "agent_learning",
+      "project_memory",
+      "canon_input",
+      "project_universe"
+    ],
+    "hooks_required": false,
+    "accepted_archive_query_allowed": false,
+    "public_action_sdk": {
+      "actions": [
+        "task_classify",
+        "pv_status",
+        "pv_task_backlog",
+        "pv_query",
+        "search",
+        "learning_retrieve",
+        "project_memory_query",
+        "canon_graph"
+      ],
+      "count": 8,
+      "count_is_fixed_ceiling": false
+    },
+    "ai_action_planes": [
+      "ENV_UOP_AI_ACTION_PLANE"
+    ],
+    "env_uop_operations_counted_as_public_actions": 0
+  },
+  "public_actions": [
+    {
+      "name": "task_classify",
+      "binding": "sdk/actions/task_classify.action.v1.json"
+    },
+    {
+      "name": "pv_status",
+      "binding": "sdk/actions/pv_status.action.v1.json"
+    },
+    {
+      "name": "pv_task_backlog",
+      "binding": "sdk/actions/pv_task_backlog.action.v1.json"
+    },
+    {
+      "name": "pv_query",
+      "binding": "sdk/actions/pv_query.action.v1.json"
+    },
+    {
+      "name": "search",
+      "binding": "sdk/actions/search.action.v1.json"
+    },
+    {
+      "name": "learning_retrieve",
+      "binding": "sdk/actions/learning_retrieve.action.v1.json"
+    },
+    {
+      "name": "project_memory_query",
+      "binding": "sdk/actions/project_memory_query.action.v1.json"
+    },
+    {
+      "name": "canon_graph",
+      "binding": "sdk/actions/canon_graph.action.v1.json"
+    }
+  ],
+  "hooks_required": false,
+  "env_uop_ai_action_plane": true,
+  "accepted_archive_queried": false,
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "9211B15F9F60F5BAA9F60F110BDF4A80D91B5AC5853290744CFD3022E6E9A5D0"
+}

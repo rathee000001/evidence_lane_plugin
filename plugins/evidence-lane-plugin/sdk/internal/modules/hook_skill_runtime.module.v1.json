@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.hook_skill_runtime",
+  "source_path": "src/evidence_lane_plugin/hook_skill_runtime.py",
+  "source_sha256": "A2A1C7994B4D2110B61D6AFFBE57C1FA0650E801A8E0C33AD7F421F84A7A6EB7",
+  "source_bytes": 25050,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "404E30350BE1169C3F35DB6CFDE4BBCE6A37C80D3AA60CA86B42D40373605891"
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "session_authority session-authority.tools.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-tools.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "session_authority"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "7AC77F91B917410CF34BAA455BD8E8751F722C24E8EF9936783986C3A61A6DBB"
+}

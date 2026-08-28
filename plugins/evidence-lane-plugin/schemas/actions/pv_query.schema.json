@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "pv_query",
+  "title": "Run focused PV intelligence query",
+  "description": "Run one allowlisted read-only query kind: files, symbols, imports, dependencies, routes, or receipts against live-root Local Code. Arbitrary SQL, multiple statements, and accepted-archive access are blocked.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "query_kind": {
+        "title": "Query Kind",
+        "type": "string"
+      },
+      "value": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Value"
+      },
+      "limit": {
+        "default": 50,
+        "title": "Limit",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "query_kind"
+    ],
+    "title": "pv_queryArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_queryDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_query"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "live-root-six-authority-read",
+        "order": 3
+      },
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-authority-read",
+        "order": 3
+      },
+      {
+        "owner_skill": "evi-instructions",
+        "workflow": "agents-and-host-memory-read",
+        "order": 3
+      },
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-authority-read",
+        "order": 3
+      },
+      {
+        "owner_skill": "evi-memory",
+        "workflow": "project-memory-authority-read",
+        "order": 3
+      },
+      {
+        "owner_skill": "evi-plan",
+        "workflow": "live-six-authority-read",
+        "order": 3
+      },
+      {
+        "owner_skill": "evi-state-travel",
+        "workflow": "post-entry-plan-authority-read",
+        "order": 8
+      },
+      {
+        "owner_skill": "evi-universe",
+        "workflow": "project-universe-authority-read",
+        "order": 3
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "live-root-six-authority-read",
+        "order": 3
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "D129F342FE52F650CAF70C4BD2AA8006CA4B17D5AB2F137E659F589D5A3F902B"
+}

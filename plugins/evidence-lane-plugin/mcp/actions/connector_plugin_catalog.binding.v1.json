@@ -1,0 +1,62 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "connector_plugin_catalog",
+  "title": "Inspect governed connector and toolchain plugins",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id"
+    ],
+    "title": "connector_plugin_catalogArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "connector_plugin_catalogDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "875A7F67DDD477AF8D3B3BCA695ED624EE5317045BBFBBC8A93C5132AF0FBB5E",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-plugin",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "connector_plugin_catalog"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-additional-plugin",
+        "workflow": "register-connector",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-plugin",
+        "workflow": "inspect-connectors",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/connector_plugin_catalog.action.v1.json",
+  "sdk_action_binding_sha256": "2539CB54D3A872A5400499143E4F479BE362E574CF4D534EF7BA6B299D8C73F8",
+  "public_action_schema": "schemas/actions/connector_plugin_catalog.schema.json",
+  "public_action_schema_sha256": "27B9A66320C2A7402994428C769C923DCED511EB091CB62830E6995D8C59AEB6",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "C32B8F49B1B8755E9FA2916DF4161141B29972A601E7362714D8C6A34CD5CBD6"
+}

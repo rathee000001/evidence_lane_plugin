@@ -1,0 +1,775 @@
+{
+  "schema": "evidence-lane.installed-authority-tools.v1",
+  "status": "PASS",
+  "authority_id": "receipt_ledger",
+  "database": "receipt-ledger.sqlite",
+  "query_order": [
+    "receipt-ledger.mmd",
+    "receipt-ledger.dot",
+    "receipt-ledger.sqlite"
+  ],
+  "sqlite_query_mode": "READ_ONLY_IMMUTABLE_BOUNDED_FTS5_BM25",
+  "json_role": "BUILD_REFRESH_SCHEMA_AND_POINTER_TOOLING",
+  "runtime_binding": "runtime.py",
+  "builder_binding": "builder.py:refresh",
+  "reader_binding": "reader.py:validate",
+  "linked_public_actions": [
+    {
+      "name": "adaptive_delta_exit",
+      "schema_sha256": "BA332F64F8A745141FBA77F0F795E8DCC644152C18C9C4725E01D99101A113EB",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "adaptive_delta_exit"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-refresh",
+            "workflow": "adaptive-delta-exit-append-refresh",
+            "order": 2
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "task-execution",
+            "order": 13
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "lane_catalog",
+      "schema_sha256": "3CE47DDFDC25D90856C0392F118487335EBD6D331D7D4795876F73089C3AEA61",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "lane_catalog"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "lane-evidence-read",
+            "order": 6
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "source-route-configuration",
+            "order": 9
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "task-execution",
+            "order": 9
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "lane_fetch",
+      "schema_sha256": "D04A51C8DDBF2BD67B9FA72F4F533272230A37892E2317E3198EE79D2C67B62F",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "lane_fetch"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "lane-evidence-read",
+            "order": 9
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 15
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "lane_search",
+      "schema_sha256": "298AA70EF6AA1227B07667AA4F7EB49DB2B8155E6ED2BDF56A68DA77E9C29EC0",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "lane_search"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "lane-evidence-read",
+            "order": 8
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 14
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "lane_status",
+      "schema_sha256": "A16EC2DD96C9EF3EB3684E75A798D31470741F13DDE101475F99B000D20A11EE",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "lane_status"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "lane-evidence-read",
+            "order": 7
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 12
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "lifecycle_transition_law",
+      "schema_sha256": "DC8F592786038F171CBBFC65A1A884DD7E5E670D57313DD5F1AA026891F28BA3",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "lifecycle_transition_law"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "governance-read",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_begin_next_turn",
+      "schema_sha256": "6EFB7F7D956F413B569B9E224D8F3D375CE9BE39048662258199E4808C6822E5",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_begin_next_turn"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "same-host-next-turn",
+            "order": 11
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "same-host-next-turn",
+            "order": 7
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_diff",
+      "schema_sha256": "A2AA67999DBBB877D590561DAFA3C13772621B09FB4C921125A1C2C6861D9190",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_diff"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "governance-read",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_fuse",
+      "schema_sha256": "DC8CCDE7535966C18069B6BCE3081F18C9B0D5FCE12A5AD29A769E1729907DBF",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-fuse",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_fuse"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "exact-fuse",
+            "order": 10
+          },
+          {
+            "owner_skill": "evi-fuse",
+            "workflow": "exact-learning-then-project-approval-promotion",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "exact-fuse",
+            "order": 8
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_plan_steer_delta",
+      "schema_sha256": "16BD6C74219F7EAF6DB93FE49ACA9419D89CD703E208D107200D21FB320C2823",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-plan",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_plan_steer_delta"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "plan-steer",
+            "order": 5
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "plan-steer",
+            "order": 6
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "state-travel-plan-steer",
+            "order": 9
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "plan-steer",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_query",
+      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_query"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-learning",
+            "workflow": "learning-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-memory",
+            "workflow": "project-memory-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "post-entry-plan-authority-read",
+            "order": 8
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_status",
+      "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_status"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-learning",
+            "workflow": "learning-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-memory",
+            "workflow": "project-memory-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-plan-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "post-entry-plan-authority-read",
+            "order": 6
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-authority-read",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_summary",
+      "schema_sha256": "13B957BB930714BB99E227002880AFB9699F023B1CD89C340FAFF4928901BDCC",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_summary"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "governance-read",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_task_backlog",
+      "schema_sha256": "C2746023576A61362CEE3340EF2BC090F6779067BEB16749F9AFDA15185AA6A9",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_task_backlog"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-learning",
+            "workflow": "learning-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-memory",
+            "workflow": "project-memory-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-plan-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "post-entry-plan-authority-read",
+            "order": 7
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-authority-read",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "search",
+      "schema_sha256": "1D4C303C7B3FE4AC1E729A6D7B45EA0A082FE57585D1C3251874A5BBE9769691",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "search"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 14
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_intake_classify",
+      "schema_sha256": "CBE89FF15C6A4AD750C1D4D17C6F987420D6A3946573FA2ABB4E2FD1715E0F8A",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_intake_classify"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-refresh",
+            "workflow": "steer-prompt-source-intake-refresh-working-sectors",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "classify-source-intake",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "task_complete_and_refresh",
+      "schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-refresh",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "task_complete_and_refresh"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-refresh",
+            "workflow": "hil-live-root-project-overlay-proposal",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "task-execution",
+            "order": 15
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "linked_skills": {
+    "skills/evi/SKILL.md": "47EDE692225A70AB41635F6EAF99EB3F57F0273C4F776D93731107AEBC417AC8",
+    "skills/evi-refresh/SKILL.md": "F32DA2CDFEB8F3810233BCD3AD8621024635283559720C81375BCBE6BB189511"
+  },
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/receipt_ledger.py": "62DA56B32B695350B298C3A8C54DF2DA715D3598AE11A214592053659A4BF3F6",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "receipt_ledger",
+    "source_count": 0,
+    "node_count": 0,
+    "indexed_table_count": 0,
+    "indexed_tables": [],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:52.174924Z",
+    "receipt_sha256": "66CAB64062EB82CB3E31C22903DFB95B12B08AC04C81B3DFD2AAACEAC8FC15C6"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "receipt_ledger_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 118,
+    "edge_count": 119,
+    "group_count": 1,
+    "semantic_topology_sha256": "DF0725468B9DB1CA71D8866BE5847ED9116975961846EF18B545AB8885BFDACF",
+    "mmd_sha256": "191CAD9A7C59CE073AE3A0209DA0123DF3DD7FA6AF7441EDD63B476541DE29EE",
+    "dot_sha256": "07B95939F4EA72A3B3FB1ED05F687B7A0E371DE55B042B9C4EA70ABE6A6DEDCC",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "137275DC321CFB651BAA7EAAD0280191F068CDEE4D6814FF7A2D02C925D07268",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 118,
+      "edge_count": 119,
+      "weak_component_count": 1,
+      "strong_component_count": 118,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 18
+        },
+        {
+          "node_id": "support_table_receipt_record",
+          "in_degree": 2,
+          "out_degree": 16
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_receipt_migration_batch",
+          "in_degree": 1,
+          "out_degree": 11
+        },
+        {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_authority_index_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_receipt_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_receipt_link",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_receipt_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_authority_index_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_receipt_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_authority_index_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_receipt_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_receipt_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_receipt_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_column_authority_id",
+          "in_degree": 1,
+          "out_degree": 0
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "A0BB83DEABF1392F94958E735807D2147349C97E5E9328DA554E3E746E6CF6BF",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "B2B5C8BD9B1219655D2DACF2BA340BE2E2FF1B9D63475AF2AC4845A9AAD7F583"
+  },
+  "receipt_sha256": "6439C1C023F2D17E49307831C72DC7A3C01A9E69C1C751FAB2804235726C8CE8"
+}

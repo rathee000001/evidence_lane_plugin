@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "canon_input installed authority manifest",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id",
+    "database",
+    "database_sha256",
+    "members",
+    "live_project_bytes_in_template",
+    "authority_merged_with_sector_or_peer"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-surface.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "canon_input"
+    },
+    "database": {
+      "const": "canon-input.sqlite"
+    },
+    "database_sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "members": {
+      "type": "array",
+      "minItems": 1
+    },
+    "live_project_bytes_in_template": {
+      "const": false
+    },
+    "authority_merged_with_sector_or_peer": {
+      "const": false
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "E08278A02B8D0222E164EA089D54B58D8536BF6768E7EDE2F058AB807E2D40EF"
+}

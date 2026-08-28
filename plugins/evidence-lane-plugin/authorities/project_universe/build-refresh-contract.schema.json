@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_universe support refresh request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "project_root",
+    "authority_id"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_id": {
+      "const": "project_universe"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "A19B6FE8344768FB5766394C9ECFFE69E45BCECF8F2A80E16EA61FF4239D4DAB"
+}

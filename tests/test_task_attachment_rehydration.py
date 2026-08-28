@@ -45,7 +45,7 @@ def _surface() -> dict[str, object]:
             "tools": 88,
             "read": 27,
             "write": 61,
-            "skills": 17,
+            "skills": 19,
             "commands": 6,
             "providers": 1,
         },

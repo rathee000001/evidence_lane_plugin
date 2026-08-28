@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.tasking",
+  "source_path": "src/evidence_lane_plugin/tasking.py",
+  "source_sha256": "6F48E390A3CDE7BBF817CC1328D9013C734D06CBE3483575A164C0A668086770",
+  "source_bytes": 4030,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "00E7A4A6FD582AA700B85B3064346DBFAF7DE3112ED039275BE488BE84609948"
+}

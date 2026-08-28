@@ -7,9 +7,11 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, cast
 
+from .adaptive_delta_entry import run_adaptive_delta_entry
+from .authority_support import refresh_delta_exit_authority_supports
 from .errors import require
 from .git_adapter import inspect_repository
-from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
+from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes, sha256_file
 from .hook_contract import HOOK_EVENT_NAMES
 from .host_plan_rehydration import prepare_host_plan_rehydration
 from .internal_sdk import build_live_local_sdk_context
@@ -38,6 +40,21 @@ _SDK_OPERATIONS = (
     ("project_memory", "bootstrap"),
     ("project_universe", "refresh"),
 )
+_EXECUTABLE_DELTA_ENTRY_FORMULA_SCHEMA = (
+    "evidence-lane.executable-delta-entry-formula.v2"
+)
+_PENDING_CANDIDATE_PRESERVATION_SCHEMA = (
+    "evidence-lane.pending-candidate-delta-exit-preservation.v1"
+)
+_PENDING_CANDIDATE_PRESERVATION_CONFIRMATION = (
+    "PRESERVE_PENDING_CANDIDATE_DURING_DELTA_EXIT"
+)
+_ENTRY_FORMULA_REPAIR_SCHEMA = (
+    "evidence-lane.legacy-entry-formula-delta-exit-repair.v1"
+)
+_ENTRY_FORMULA_REPAIR_CONFIRMATION = (
+    "REPAIR_LEGACY_ENTRY_FORMULA_IN_PLACE"
+)
 
 
 def _required_sha256(value: object, *, field: str) -> str:
@@ -50,6 +67,94 @@ def _required_sha256(value: object, *, field: str) -> str:
         field=field,
     )
     return exact
+
+
+def _candidate_snapshot(
+    service: Any,
+    *,
+    project_id: str,
+    session: Any,
+) -> dict[str, Any]:
+    """Seal the live proposal identity without opening accepted storage."""
+
+    candidate_id = str(session.candidate_id or "").strip()
+    if not candidate_id:
+        return {
+            "status": "NO_PENDING_CANDIDATE",
+            "candidate_id": None,
+            "session_state": session.state.value,
+            "candidate_overlay_receipt_file_sha256": None,
+            "pending_hil": False,
+        }
+    require(
+        session.state.value.endswith("_CANDIDATE"),
+        "ADAPTIVE_DELTA_EXIT_CANDIDATE_STATE_MISMATCH",
+        "A pending proposal must remain bound to its candidate lifecycle state.",
+        status="MISMATCH",
+        candidate_id=candidate_id,
+        state=session.state.value,
+    )
+    receipt_path = service.store._candidate_overlay_receipt_path(
+        project_id, candidate_id
+    )
+    require(
+        receipt_path.is_file(),
+        "ADAPTIVE_DELTA_EXIT_CANDIDATE_RECEIPT_MISSING",
+        "The pending live-root proposal receipt is unavailable.",
+        status="MISMATCH",
+        candidate_id=candidate_id,
+    )
+    return {
+        "status": "PENDING_CANDIDATE_PRESERVED",
+        "candidate_id": candidate_id,
+        "session_state": session.state.value,
+        "candidate_overlay_receipt_file_sha256": sha256_file(receipt_path),
+        "pending_hil": True,
+    }
+
+
+def _pending_candidate_preservation(
+    service: Any,
+    *,
+    project_id: str,
+    session: Any,
+    request: object,
+) -> dict[str, Any]:
+    snapshot = _candidate_snapshot(
+        service,
+        project_id=project_id,
+        session=session,
+    )
+    if snapshot["candidate_id"] is None:
+        require(
+            request is None or request is False,
+            "ADAPTIVE_DELTA_EXIT_CANDIDATE_PRESERVATION_UNEXPECTED",
+            "A candidate-preservation contract was supplied without a pending candidate.",
+            status="MISMATCH",
+        )
+        return snapshot
+    require(
+        isinstance(request, dict)
+        and request.get("schema") == _PENDING_CANDIDATE_PRESERVATION_SCHEMA
+        and request.get("confirmation")
+        == _PENDING_CANDIDATE_PRESERVATION_CONFIRMATION
+        and str(request.get("candidate_id") or "").strip()
+        == snapshot["candidate_id"]
+        and bool(str(request.get("reason") or "").strip()),
+        "ADAPTIVE_DELTA_EXIT_CANDIDATE_PRESERVATION_REQUIRED",
+        "Adaptive Delta exit requires an exact preserve-in-place contract for the pending proposal.",
+        status="BLOCKED",
+        candidate_id=snapshot["candidate_id"],
+    )
+    return {
+        **snapshot,
+        "schema": _PENDING_CANDIDATE_PRESERVATION_SCHEMA,
+        "confirmation": _PENDING_CANDIDATE_PRESERVATION_CONFIRMATION,
+        "reason": str(request["reason"]).strip(),
+        "candidate_cleared": False,
+        "candidate_rebuilt": False,
+        "candidate_renamed": False,
+    }
 
 
 def _active_row(backlog: Mapping[str, Any], *, task_id: str) -> dict[str, Any]:
@@ -96,6 +201,62 @@ def _validators(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             }
         )
     return normalized
+
+
+def _validated_entry_formula_event(
+    event: Mapping[str, Any],
+    *,
+    expected_formula_sha256: str,
+) -> dict[str, Any]:
+    formula = event.get("formula")
+    require(
+        event.get("event_kind") in {"ENTRY_FORMULA", "MUTATION"}
+        and event.get("formula_sha256") == expected_formula_sha256
+        and isinstance(formula, dict)
+        and formula.get("schema") == _EXECUTABLE_DELTA_ENTRY_FORMULA_SCHEMA
+        and formula.get("source_work_authorized") is True
+        and formula.get("public_action_sdk_separate") is True
+        and formula.get("env_uop_ai_action_plane_separate") is True,
+        "ADAPTIVE_DELTA_EXIT_EXECUTABLE_ENTRY_REQUIRED",
+        "Delta exit requires the exact open executable ENV/UOP entry formula.",
+        status="MISMATCH",
+    )
+    formula = cast(dict[str, Any], formula)
+    execution = formula.get("env_uop_runtime_execution")
+    mathematical = formula.get("mathematical_execution")
+    require(
+        isinstance(execution, dict)
+        and execution.get("status") == "PASS"
+        and execution.get("plane_role")
+        == "INTERNAL_AI_ACTION_PLANE_BETWEEN_SQLITE_AND_WORK"
+        and execution.get("counted_as_public_action") is False
+        and isinstance(execution.get("compiled_formula"), dict)
+        and bool(execution["compiled_formula"].get("compiled_formula_sha256"))
+        and isinstance(execution.get("operator_route_receipts"), list)
+        and execution.get("operator_route_count")
+        == len(execution["operator_route_receipts"])
+        and isinstance(mathematical, dict)
+        and mathematical.get("status") == "PASS"
+        and mathematical.get("evaluated_result") is True
+        and mathematical.get("null_execution") is False,
+        "ADAPTIVE_DELTA_EXIT_ENV_UOP_ENTRY_INVALID",
+        "The open entry formula did not complete locked SQLite/MMD compilation and routing.",
+        status="MISMATCH",
+    )
+    return {
+        "event_id": event.get("event_id"),
+        "event_kind": event.get("event_kind"),
+        "formula_sha256": expected_formula_sha256,
+        "env_uop_action_plane_receipt_sha256": execution.get("receipt_sha256"),
+        "compiled_formula_sha256": execution["compiled_formula"].get(
+            "compiled_formula_sha256"
+        ),
+        "operator_route_count": execution.get("operator_route_count"),
+        "mathematical_execution_receipt_sha256": mathematical.get(
+            "receipt_sha256"
+        ),
+        "source_work_authorized": True,
+    }
 
 
 def _install_disposition(
@@ -150,11 +311,28 @@ def _install_disposition(
             "catalog_sha256",
             "runtime_sha256",
             "task_binding_sha256",
+            "model_visible_schema_sha256",
+            "public_action_matrix_sha256",
         ):
             exact[field] = _required_sha256(
                 exact.get(field),
                 field=f"install_disposition.{field}",
             )
+        require(
+            str(exact.get("installed_host_status") or "").strip().upper()
+            == "PASS"
+            and str(
+                exact.get("exact_task_reattachment_status") or ""
+            ).strip().upper()
+            == "PASS",
+            "ADAPTIVE_DELTA_EXIT_INSTALLED_HOST_PROOF_REQUIRED",
+            "A verified local install requires installed-host schema/action proof "
+            "and exact-task reattachment; source tests cannot substitute for it.",
+            status="BLOCKED",
+        )
+        exact["installed_host_status"] = "PASS"
+        exact["exact_task_reattachment_status"] = "PASS"
+        exact["installed_public_behavior_claim_status"] = "PASS"
         exact["install_performed"] = True
     else:
         require(
@@ -164,6 +342,62 @@ def _install_disposition(
             status="BLOCKED",
         )
         exact["install_performed"] = False
+    local_install_attempt_count = exact.get(
+        "local_install_attempt_count",
+        1 if exact["install_performed"] else 0,
+    )
+    full_regression_required = bool(exact.get("full_regression_required", False))
+    full_regression_run_count = exact.get(
+        "full_regression_run_count",
+        0,
+    )
+    require(
+        isinstance(local_install_attempt_count, int)
+        and not isinstance(local_install_attempt_count, bool)
+        and isinstance(full_regression_run_count, int)
+        and not isinstance(full_regression_run_count, bool)
+        and local_install_attempt_count >= 0
+        and full_regression_run_count >= 0,
+        "ADAPTIVE_DELTA_EXIT_CADENCE_COUNT_INVALID",
+        "Regression and install cadence counts must be exact non-negative integers.",
+        status="BLOCKED",
+    )
+    git_stage = str(active.get("git_commit_stage") or "NO_COMMIT").strip().upper()
+    git_commit_row = git_stage not in {"", "NO_COMMIT", "LOCAL_PREVIEW_ONLY"}
+    local_install_max = 3 if git_commit_row else 2
+    require(
+        (
+            exact["install_performed"]
+            and 1 <= local_install_attempt_count <= local_install_max
+        )
+        or (not exact["install_performed"] and local_install_attempt_count == 0),
+        "ADAPTIVE_DELTA_EXIT_LOCAL_INSTALL_CADENCE_EXCEEDED",
+        "The Delta exceeded its row-scoped local-install cap or claimed an install without a counted attempt.",
+        status="BLOCKED",
+        local_install_attempt_count=local_install_attempt_count,
+        local_install_max=local_install_max,
+        git_commit_row=git_commit_row,
+    )
+    require(
+        (
+            full_regression_required
+            and 1 <= full_regression_run_count <= 2
+        )
+        or (not full_regression_required and full_regression_run_count == 0),
+        "ADAPTIVE_DELTA_EXIT_FULL_REGRESSION_CADENCE_EXCEEDED",
+        "A full regression is row-scoped, runs only when declared, and may not loop.",
+        status="BLOCKED",
+        full_regression_required=full_regression_required,
+        full_regression_run_count=full_regression_run_count,
+    )
+    exact["local_install_attempt_count"] = local_install_attempt_count
+    exact["local_install_max"] = local_install_max
+    exact["git_commit_row"] = git_commit_row
+    exact["full_regression_required"] = full_regression_required
+    exact["full_regression_run_count"] = full_regression_run_count
+    exact["regression_repeated_per_linked_steer"] = False
+    if not exact["install_performed"]:
+        exact["installed_public_behavior_claim_status"] = "NOT_CLAIMED"
     return exact
 
 
@@ -279,6 +513,40 @@ def _sdk_refreshes(
     return receipts
 
 
+def _refresh_connector_brain(service: Any, *, project_id: str) -> dict[str, Any]:
+    """Validate and seal the project connector brain after intelligence refresh."""
+
+    catalog = service.connector_plugin_catalog(project_id)
+    database_path = (
+        service.store.project_root(project_id)
+        / "connector_brain"
+        / "connector-brain.sqlite"
+    )
+    require(
+        catalog.get("status") == "PASS"
+        and catalog.get("integrity") == ["ok"]
+        and not catalog.get("foreign_key_errors")
+        and database_path.is_file(),
+        "ADAPTIVE_DELTA_EXIT_CONNECTOR_BRAIN_REFRESH_FAILED",
+        "Delta exit requires an intact refreshed connector brain.",
+        status="FAIL",
+    )
+    body = {
+        "schema": "evidence-lane.delta-exit-connector-brain-refresh.v1",
+        "status": "PASS",
+        "project_id": project_id,
+        "database_sha256": sha256_file(database_path),
+        "catalog_sha256": sha256_bytes(canonical_json_bytes(catalog)),
+        "active_count": int(catalog.get("active_count") or 0),
+        "routable_count": int(catalog.get("routable_count") or 0),
+        "secret_values_persisted": catalog.get("secret_values_persisted"),
+        "project_pointer_moved": False,
+        "candidate_created": False,
+        "hil_invoked": False,
+    }
+    return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
+
+
 def _write_immutable_receipt(path: Path, receipt: dict[str, Any]) -> None:
     if path.is_file():
         require(
@@ -317,6 +585,7 @@ def run_adaptive_delta_exit(
         prior_formula_sha256,
         field="prior_formula_sha256",
     )
+    requested_prior_formula = exact_prior_formula
     require(
         bool(exact_task_id)
         and bool(exact_source_event_id)
@@ -331,12 +600,16 @@ def run_adaptive_delta_exit(
     backlog_before = service.store.backlog_status(project_id)
     active_before = _active_row(backlog_before, task_id=exact_task_id)
     require(
-        session_before.candidate_id is None
-        and not session_before.state.value.endswith("_CANDIDATE"),
-        "ADAPTIVE_DELTA_EXIT_CANDIDATE_PRESENT",
-        "Adaptive Delta exit cannot run while a candidate or HIL is pending.",
-        status="MISMATCH",
-        candidate_id=session_before.candidate_id,
+        formula.get("preexisting_candidate_correction") is None,
+        "ADAPTIVE_DELTA_EXIT_CANDIDATE_CLEAR_ROUTE_OBSOLETE",
+        "The historical clear-and-reopen candidate route is non-executing; preserve the pending proposal in place.",
+        status="BLOCKED",
+    )
+    candidate_preservation = _pending_candidate_preservation(
+        service,
+        project_id=project_id,
+        session=session_before,
+        request=formula.get("preexisting_candidate_preservation"),
     )
     repository_path = service.store.config(project_id).repository_path
     repository_before = inspect_repository(repository_path).as_dict()
@@ -365,6 +638,87 @@ def run_adaptive_delta_exit(
         "ADAPTIVE_DELTA_EXIT_ENTRY_FORMULA_TIMESTAMP_REQUIRED",
         "Decision-support reads require the exact open formula timestamp.",
         status="MISMATCH",
+    )
+    entry_formula_repair: dict[str, Any] | None = None
+    stored_formula = formula_events[0].get("formula")
+    stored_formula_is_executable = (
+        isinstance(stored_formula, dict)
+        and stored_formula.get("schema")
+        == _EXECUTABLE_DELTA_ENTRY_FORMULA_SCHEMA
+        and stored_formula.get("source_work_authorized") is True
+        and stored_formula.get("public_action_sdk_separate") is True
+        and stored_formula.get("env_uop_ai_action_plane_separate") is True
+    )
+    if not stored_formula_is_executable:
+        repair_request = formula.get("entry_formula_repair")
+        require(
+            isinstance(repair_request, dict)
+            and repair_request.get("schema") == _ENTRY_FORMULA_REPAIR_SCHEMA
+            and repair_request.get("confirmation")
+            == _ENTRY_FORMULA_REPAIR_CONFIRMATION
+            and str(repair_request.get("prior_formula_sha256") or "").upper()
+            == requested_prior_formula
+            and str(repair_request.get("candidate_id") or "").strip()
+            == str(candidate_preservation.get("candidate_id") or "").strip()
+            and bool(str(repair_request.get("reason") or "").strip()),
+            "ADAPTIVE_DELTA_EXIT_ENTRY_FORMULA_REPAIR_REQUIRED",
+            "A legacy open formula requires one exact candidate-preserving adaptive-entry repair before exit.",
+            status="BLOCKED",
+            prior_formula_sha256=requested_prior_formula,
+        )
+        repaired = run_adaptive_delta_entry(
+            service,
+            project_id,
+            session_id,
+            actor=f"{exact_actor}_ENTRY_FORMULA_REPAIR",
+        )
+        repaired_receipt = cast(dict[str, Any], repaired.get("receipt") or {})
+        exact_prior_formula = _required_sha256(
+            repaired_receipt.get("formula_sha256"),
+            field="entry_formula_repair.formula_sha256",
+        )
+        require(
+            repaired.get("status") == "PASS"
+            and repaired_receipt.get("formula_disposition")
+            in {
+                "LEGACY_OPEN_ENTRY_SUPERSEDED_BY_EXECUTABLE_MUTATION",
+                "EXISTING_OPEN_EXECUTABLE_ENTRY_REUSED",
+            },
+            "ADAPTIVE_DELTA_EXIT_ENTRY_FORMULA_REPAIR_FAILED",
+            "The adaptive-entry repair did not produce one executable open formula head.",
+            status="FAIL",
+        )
+        entry_formula_repair = {
+            "schema": _ENTRY_FORMULA_REPAIR_SCHEMA,
+            "status": "PASS",
+            "confirmation": _ENTRY_FORMULA_REPAIR_CONFIRMATION,
+            "requested_prior_formula_sha256": requested_prior_formula,
+            "effective_prior_formula_sha256": exact_prior_formula,
+            "formula_disposition": repaired_receipt.get("formula_disposition"),
+            "receipt_sha256": repaired_receipt.get("receipt_sha256"),
+            "candidate_preserved": True,
+            "pointer_moved": False,
+        }
+        plan_slice = service.store.plan_runtime_query(
+            project_id,
+            task_id=exact_task_id,
+            limit=8,
+        )
+        formula_events = [
+            row
+            for row in plan_slice.get("formula_events") or []
+            if row.get("task_id") == exact_task_id
+            and row.get("formula_sha256") == exact_prior_formula
+        ]
+        require(
+            len(formula_events) == 1,
+            "ADAPTIVE_DELTA_EXIT_REPAIRED_FORMULA_HEAD_MISSING",
+            "The repaired executable formula head was not projected exactly once.",
+            status="MISMATCH",
+        )
+    entry_formula_execution = _validated_entry_formula_event(
+        formula_events[0],
+        expected_formula_sha256=exact_prior_formula,
     )
     request_seed = sha256_bytes(
         canonical_json_bytes(
@@ -427,6 +781,25 @@ def run_adaptive_delta_exit(
         session_id=session_id,
         request_seed=request_seed,
     )
+    connector_brain = _refresh_connector_brain(service, project_id=project_id)
+    authority_supports = refresh_delta_exit_authority_supports(
+        service.store.project_root(project_id)
+    )
+    hil_delta = bool(formula.get("hil_delta"))
+    project_overlay_disposition = {
+        "status": (
+            "HIL_CANDIDATE_BUILD_REQUIRED"
+            if hil_delta
+            else "NOT_RUN_NON_HIL_DELTA"
+        ),
+        "hil_delta": hil_delta,
+        "refresh_owner": (
+            "TASK_COMPLETE_AND_REFRESH_HIL_CANDIDATE_BUILD"
+            if hil_delta
+            else None
+        ),
+        "project_overlay_refreshed_during_ordinary_delta_exit": False,
+    }
     decision_query = " ".join(
         str(value or "").strip()
         for value in (
@@ -505,14 +878,31 @@ def run_adaptive_delta_exit(
             "install_disposition": exact_install,
         },
         "intelligence_refresh_receipts": intelligence,
+        "connector_brain_refresh_receipt": connector_brain,
+        "authority_support_refresh_receipt": authority_supports,
+        "project_overlay_disposition": project_overlay_disposition,
         "decision_support_receipts": decision_support,
         "working_sector_fallback_receipt": working_sector_fallback,
         "plan_runtime_authority_state": "LIVE_CURRENT_EXECUTION_AUTHORITY",
         "instruction_authorities_separate": ["AGENTS.md", "MEMORY.md"],
         "source_authority_refresh_receipt": source_authority,
+        "entry_formula_execution_receipt": entry_formula_execution,
         "host_window_ui_fingerprint_sha256": projection.get(
             "window_ui_fingerprint_sha256"
         ),
+        "preexisting_candidate_preservation": candidate_preservation,
+        "entry_formula_repair": entry_formula_repair,
+        "verification_layers": {
+            "source_validator_status": "PASS",
+            "source_validator_scope": "IMPLEMENTATION_SOURCE_ONLY",
+            "sector_refresh_status": "PASS",
+            "sector_refresh_represents_current_delta": True,
+            "installed_public_behavior_status": exact_install[
+                "installed_public_behavior_claim_status"
+            ],
+            "installed_public_behavior_requires_local_package": True,
+            "source_tests_substitute_for_installed_host": False,
+        },
     }
     formula_receipt = service.store.record_task_formula(
         project_id,
@@ -537,10 +927,23 @@ def run_adaptive_delta_exit(
         repository_before.get(field) == repository_after.get(field)
         for field in identity_fields
     )
+    candidate_after = _candidate_snapshot(
+        service,
+        project_id=project_id,
+        session=session_after,
+    )
     require(
         pointer_after == pointer_before
-        and session_after.candidate_id is None
-        and not session_after.state.value.endswith("_CANDIDATE")
+        and candidate_after == {
+            key: candidate_preservation.get(key)
+            for key in (
+                "status",
+                "candidate_id",
+                "session_state",
+                "candidate_overlay_receipt_file_sha256",
+                "pending_hil",
+            )
+        }
         and repository_unchanged,
         "ADAPTIVE_DELTA_EXIT_POSTCONDITION_MISMATCH",
         "Adaptive Delta exit changed a protected pointer, candidate, Plan row, or repository identity.",
@@ -561,15 +964,24 @@ def run_adaptive_delta_exit(
         "formula_event_id": formula_event["event_id"],
         "formula_event_sha256": formula_event["event_sha256"],
         "formula_sha256": formula_event["formula_sha256"],
+        "requested_prior_formula_sha256": requested_prior_formula,
+        "effective_prior_formula_sha256": exact_prior_formula,
         "validator_set_sha256": sha256_bytes(canonical_json_bytes(exact_validators)),
         "validator_count": len(exact_validators),
         "install_disposition": exact_install,
         "intelligence_refreshes": intelligence,
+        "connector_brain_refresh": connector_brain,
+        "authority_support_refresh": authority_supports,
+        "project_overlay_disposition": project_overlay_disposition,
         "decision_support_receipts": decision_support,
         "working_sector_fallback_receipt": working_sector_fallback,
         "plan_runtime_authority_state": "LIVE_CURRENT_EXECUTION_AUTHORITY",
         "instruction_authorities_separate": ["AGENTS.md", "MEMORY.md"],
         "source_authority_refresh": source_authority,
+        "entry_formula_execution": entry_formula_execution,
+        "preexisting_candidate_preservation": candidate_preservation,
+        "entry_formula_repair": entry_formula_repair,
+        "verification_layers": formula_payload["verification_layers"],
         "hook_progression": exact_hooks,
         "hook_registry_count": len(exact_hooks),
         "host_plan": {
@@ -593,6 +1005,10 @@ def run_adaptive_delta_exit(
         "pointer_before": pointer_before,
         "pointer_after": pointer_after,
         "candidate_created": False,
+        "candidate_preserved": candidate_after["candidate_id"] is not None,
+        "candidate_cleared": False,
+        "candidate_rebuilt": False,
+        "candidate_renamed": False,
         "pending_hil_mutated": False,
         "hil_inferred": False,
         "pointer_moved": False,

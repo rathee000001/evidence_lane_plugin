@@ -1,0 +1,81 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-bigger-universe",
+  "skill_sha256": "5AEBF22462918E683A0A65FCDAD70979120EA1F7F461906BB30B623430321D46",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "bigger_universe_register"
+      ],
+      "workflow": "register-changed-project-mini-brain-heads"
+    },
+    {
+      "order": 2,
+      "tools": [
+        "bigger_universe_link"
+      ],
+      "workflow": "explicit-hash-only-cross-project-link"
+    }
+  ],
+  "action_count": 2,
+  "actions": [
+    {
+      "name": "bigger_universe_register",
+      "schema_sha256": "FB6C13BBFFB8D634E53AC33FFB2E4E210D5ED918E7505E842E7FA373D2CDF8C2",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-bigger-universe",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "bigger_universe_register"
+        },
+        "internal_sdk": {
+          "module_id": "first_class_workflows",
+          "operation": "bigger_universe_register",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-bigger-universe",
+            "workflow": "register-changed-project-mini-brain-heads",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "bigger_universe_link",
+      "schema_sha256": "4CC1EBEF4327CED5A62A5C076228EEB20ED01333405C7B22FB618B953C6CDD59",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-bigger-universe",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "bigger_universe_link"
+        },
+        "internal_sdk": {
+          "module_id": "first_class_workflows",
+          "operation": "bigger_universe_link",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-bigger-universe",
+            "workflow": "explicit-hash-only-cross-project-link",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "5083CFD644609E727A719C541E4E4657B7A0DE53AC324FEB714B3F10EC77AFEA"
+}

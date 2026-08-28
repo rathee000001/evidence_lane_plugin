@@ -11,7 +11,7 @@ from evidence_lane_plugin.source_graph import _manifest_dependencies, _parse_mem
 
 ROOT = Path(__file__).resolve().parents[1]
 PNPM_LOCK = (
-    ROOT / "plugins" / "evidence-lane-plugin" / "remote_adapter" / "pnpm-lock.yaml"
+    ROOT / "apps" / "evidence-lane-remote-adapter" / "pnpm-lock.yaml"
 )
 
 

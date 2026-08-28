@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "canon_input canon-input.tools.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-tools.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "canon_input"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "0F367FBB237F3C6A36630BA6F1F4639CFB2CC75F62DDF144029A8D96A62E3B48"
+}

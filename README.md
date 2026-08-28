@@ -10,6 +10,33 @@
 
 # Evidence Lane 3.0.0
 
+<!-- EVIDENCE_LANE_CURRENT_BACKEND_START -->
+## Current backend contract
+
+This public document is refreshed from the same source graph used by the installable plugin package.
+
+- Plugin package: `3.0.0+codex.20260828064341`.
+- Native MCP: **91 actions** (**30 read / 61 write**).
+- Native skills: **26 governed skills**; the separate command layer is absent.
+- Hooks: **11 events / 44 ordered handler actions**.
+- SDK: internal action SDK and outer routing SDK remain distinct; public action count **91**.
+- ENV/UOP: separate executable authorities with **7 ENV members / 5 UOP members**.
+- Runtime control lives in the hidden Codex plugin layer; Project/PV authority and task workspace remain separate user-selected identities.
+- Public copy excludes internal receipts, task corrections, forensic reports, and historical execution documents.
+
+Exact backend bindings:
+  - `plugins/evidence-lane-plugin/.codex-plugin/plugin.json` — `42A726CD910A27EF9B8987907F02D127789857C8B04E1E214A91D1F74D151A4B`
+  - `plugins/evidence-lane-plugin/schemas/public-action-schemas.v001.json` — `B571AF9EC31691C96DB0B3845ED0B7A6700D1C84A2578ABA9A2EA594982AF045`
+  - `plugins/evidence-lane-plugin/skills/skill-surface-registry.v1.json` — `38B1F95B8160E037B43B209A6D6047BF8BCA4D2599182C2F20E4606B6CBDF3A5`
+  - `plugins/evidence-lane-plugin/hooks/hooks.json` — `C37DB05DD4701087EAD0BD31203C843AAFA79ED39A081F2E9DFF313A77631EEF`
+  - `plugins/evidence-lane-plugin/sdk/sdk-manifest.v1.json` — `5BD21AEB96D7E41209E3D059D8A5296D851BDED1D453D6EF486C0CD50D745245`
+  - `plugins/evidence-lane-plugin/mcp/mcp-manifest.v1.json` — `E9E402C2F20B2BBE63B6BF91613B1C97E85E615F982D52CF6D020408251AFAFB`
+  - `plugins/evidence-lane-plugin/env/authority-manifest.v1.json` — `E4F283EC16F86995E2937288DD8A8E5623007351CBB1CA3FD01FDA5C7363B6C1`
+  - `plugins/evidence-lane-plugin/uop/authority-manifest.v1.json` — `BBA3CDAE9CC0FF981E5C6E19F83FBBCE6EB2ED8167CDBB2E9D1C557FA03CA57C`
+  - `plugins/evidence-lane-plugin/toolchains/TOOLCHAIN_EXECUTION_MATRIX.md` — `E5379D7C4B17BC9293F332216581D60F88ADF73A4B7B361D84D09B47FC4EA66F`
+<!-- EVIDENCE_LANE_CURRENT_BACKEND_END -->
+
+
 <p align="center">
   <a href="https://evidencelane.org"><strong>evidencelane.org</strong></a><br />
   <a href="https://rathee000001.github.io/evidence_lane_plugin/">GitHub Pages</a>
@@ -23,20 +50,28 @@ or candidate should publish or link to a provisional entry.
   <a href="docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md">Canon</a> ·
   <a href="docs/AI_LEARNING.md">AI Learning</a> ·
   <a href="docs/MEMORY.md">Memory</a> ·
+  <a href="docs/PROJECT_UNIVERSE.md">Project Universe</a> ·
+  <a href="docs/PROJECT_PV_CONTENT_ADDRESSED_STORAGE.md">PV Storage</a> ·
+  <a href="docs/HOST_AND_STORAGE_MATRIX.md">Host Matrix</a> ·
   <a href="docs/SKILLS.md">Skills</a> ·
   <a href="docs/MCP.md">MCP</a> ·
   <a href="docs/TOOLS.md">Tools</a> ·
-  <a href="docs/COMMANDS.md">Commands</a> ·
   <a href="docs/HOOKS.md">Hooks</a> ·
-  <a href="docs/USER_HELPER_GUIDE.md">Helper</a> ·
+  <a href="docs/PLAN_AND_CHANGE_DISPLAY.md">Plan and Changes</a> ·
+  <a href="docs/SOURCE_INTAKE_AND_LANES.md">Source Intake and Lanes</a> ·
   <a href="docs/USER_TUNNEL_GUIDE.md">Tunnel</a> ·
+  <a href="docs/CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md">Installation</a> ·
+  <a href="docs/GIT_AND_CI_CD.md">Git and CI</a> ·
+  <a href="docs/LIFECYCLE_AND_HIL.md">Lifecycle and HIL</a> ·
+  <a href="docs/RELEASE_AND_COMPATIBILITY.md">Release</a> ·
   <a href="docs/UPSTREAM_REFERENCE_PROVENANCE.md">Provenance</a> ·
   <a href="docs/CREDITS_AND_CONTRIBUTIONS.md">Contributors</a> ·
   <a href="LICENSE.md">License</a> ·
   <a href="docs/COPYRIGHT.md">Copyright</a> ·
   <a href="docs/THIRD_PARTY_LICENSES.md">Third-party licenses</a> ·
   <a href="docs/TERMS_AND_CONDITIONS.md">Terms</a> ·
-  <a href="SECURITY.md">Security</a>
+  <a href="SECURITY.md">Security</a> ·
+  <a href="docs/REPOSITORY_MAP.md">Repository Map</a>
 </p>
 
 The AI model is rarely the only bottleneck in a serious long-running project.
@@ -51,22 +86,16 @@ candidate, accepted, Memory, Canon, and AI Learning authorities distinct while
 making the exact slice needed by the active Delta queryable across tasks,
 context windows, tools, and hosts.
 
-The current pre-HIL Codex source release is **3.0.0**. This forward release
+The current Codex source release is **3.0.0**. This forward release
 identity applies to the branch, package, helper, tunnel, Git, website, future
 Devpost publication, and maintained current documentation; sealed historical
 receipts retain their original identities only inside the historical evidence
 boundary.
 
-> **Testing status:** Version 3.0.0 is a candidate source line under branch
-> verification; it has not completed the governed release and installed-package
-> gate. Lifecycle hooks remain off in the maintainer test environment only until
-> all eleven events are repaired and verified one at a time. The corrected
-> installed release keeps all eleven ON; if one fails, native CAS control turns
-> off only that event until its repair passes while the other hooks and Goal
-> continue. Canon and AI Learning
-> cross-lane automation remain in development. Memory storage and bounded query
-> contracts can run explicitly without hooks, while automatic pre-compaction
-> sealing and post-compaction rehydration remain off with their hooks.
+Source identity, installed-runtime identity, Project/PV candidates, and human
+acceptance remain separate facts. The maintained documentation describes the
+current executable contract; installed-host and HIL receipts determine whether
+that contract is active for a particular task.
 
 ## Five product failures Evidence Lane addresses
 
@@ -135,8 +164,8 @@ AI reasons over these authorities. It is not itself the evidence authority.
 The 3.0 source package defines:
 
 - one package-local native MCP server named `evidence-lane`;
-- exactly **88 canonical actions**: 27 read-only and 61 write-capable;
-- exactly **17 governed skills**;
+- exactly **91 canonical actions**: 30 read-only and 61 write-capable;
+- exactly **25 governed skills**;
 - six primary controls in order: Boot, Rollback, Build, Refresh, Mode, and
   Source Intake;
 - eleven lifecycle hook events: `SessionStart`, `SubagentStart`,
@@ -158,8 +187,8 @@ The current same-worktree State Travel entry is the one-shot
 `pv_state_travel_direct_force_same_worktree` route. It accepts only project,
 session, source-task, runtime-donor, destination-task, and destination-title
 identities; the server derives every binding, replay, dirty-byte, Plan, runtime,
-and pointer-baseline proof. Sealed PREPARE/RESUME and caller-composed state are
-not public fallback routes for this entry.
+and pointer-baseline proof. Compatibility handoff executors and caller-composed
+state are absent from this entry.
 
 ### Complete skill surface
 
@@ -169,18 +198,26 @@ not public fallback routes for this entry.
 | `evi-boot` | Lifecycle | Yes | Verifies runtime, ENV/UOP Flash, host, storage, session, and accepted pointer. |
 | `evi-rollback` | Lifecycle | Yes | Performs pointer-only movement among immutable accepted PVs. |
 | `evi-build` | Lifecycle | Yes | Seals an unaccepted candidate and stops at exact Project HIL. |
+| `evi-fuse` | HIL decision | No | Keeps Project and Learning decisions separate; only exact dual approval may promote. |
 | `evi-refresh` | Lifecycle | Yes | Rebuilds changed evidence while preserving content-addressed history. |
 | `evi-mode` | Mode | Yes | Applies ordered ENV/UOP mode and operator intersections. |
 | `evi-source-intake` | Source | Yes | Classifies and routes bounded sources across canonical lanes. |
 | `evi-state-travel` | Continuity | No | Resumes exact unfinished work through a bound fresh task. |
 | `evi-canon` | Task coordination | No | Governs typed task contracts, receiver-owned Canon decisions, backfire, results, and graph continuity. |
 | `evi-learning` | AI Learning | No | Governs project-isolated Learning retrieval, candidates, HIL, and revocation without changing Project Truth. |
+| `evi-memory` | Project Memory | No | Queries and links the independent project Memory locator graph. |
+| `evi-instructions` | Instructions | No | Resolves AGENTS.md and host MEMORY.md without merging them with Project Memory. |
+| `evi-universe` | Project graph | No | Queries Project Universe and connector-brain integrity through bounded live authority. |
 | `evi-storage` | Storage | No | Inspects and selects eligible project-scoped persistence. |
-| `evi-change-storage-connector` | Storage | No | Preserves the explicit compatibility route for a connector change. |
 | `evi-plugin` | Connector administration | No | Governs the bounded additional-plugin/toolchain catalog. |
 | `evi-additional-plugin` | Connector grant | No | Adds one purpose-, role-, scope-, and expiry-bound grant. |
 | `evi-drop-additional-plugin` | Connector revocation | No | Revokes one exact active grant without erasing history. |
 | `evi-exit-boot` | Session | No | Closes the exact governed session while retaining installation and evidence. |
+| `evi-formula` | ENV/UOP execution | No | Compiles and routes a bounded effect-checked Formula Engine request. |
+| `evi-brain-scaling` | Bounded context | No | Selects deterministic hash-addressed indexed slices within exact budgets. |
+| `evi-project-recipe` | Source orchestration | No | Compiles the project-type Source Intake and lane execution recipe. |
+| `evi-toolchain` | Conditional tooling | No | Resolves the exact Codex toolchain and eligible fallbacks for one lane/action. |
+| `evi-bigger-universe` | Cross-project federation | No | Registers and explicitly links hash-only project mini-brains. |
 | `evidence-lane-code-lifecycle` | Code lifecycle | No | Applies the one-writer Code-mode build, test, package, and HIL law. |
 
 ### Complete native MCP surface
@@ -189,9 +226,9 @@ not public fallback routes for this entry.
 | --- | --- | --- |
 | Server | `evidence-lane` | One package-local Codex MCP; website and tunnel routes are not substitutes. |
 | Canonical namespace | `mcp__evidence_lane__*` | Display suffixes never change canonical identity. |
-| Read-only actions | 27 | Inspect authority without lifecycle mutation. |
+| Read-only actions | 30 | Inspect authority without lifecycle mutation. |
 | Write-capable actions | 61 | Each call proves its project, session, task, host, and lifecycle preconditions. |
-| Total canonical actions | 88 | Visibility is capability discovery, not permission or approval. |
+| Total canonical actions | 91 | Visibility is capability discovery, not permission or approval. |
 | Governed console | `ui://evidence-lane/governed-console-v5.html` | Read-only rendering cannot decide HIL or move a pointer. |
 | Durable default | Project-scoped local SQLite | Storage connectors remain separate surfaces. |
 
@@ -205,9 +242,9 @@ claims detached from source.
 ```mermaid
 flowchart TD
     Host["Codex host and exact task"] --> Hooks["11 lifecycle hooks"]
-    Host --> Skills["17 governed skills"]
+    Host --> Skills["25 governed skills"]
     Hooks --> Skills
-    Skills --> MCP["Native evidence-lane MCP<br/>27 read + 61 write actions"]
+    Skills --> MCP["Native evidence-lane MCP<br/>30 read + 61 write actions"]
     MCP --> SDK["Internal SDK<br/>engine + contracts + adapters"]
     SDK --> Authorities["Separate authorities<br/>Project Truth | Canon | Learning | ChatLineage | Host Entry"]
     Sources["Authorized sources"] --> Lanes["18 bounded evidence lanes"]
@@ -233,9 +270,9 @@ State Travel, Canon, Learning, Storage, plugin governance, and the code
 lifecycle are bounded sidecars and routers. Their presence does not inflate the
 six-control product surface or give them authority outside their contracts.
 
-The native lifecycle route is `mcp__evidence_lane__*`. Skills describe the
-human workflow; MCP actions implement bounded reads and writes; commands expose
-supported entry points; SDK arms provide typed internal calls; hooks improve
+The native lifecycle route is `mcp__evidence_lane__*`. Skills describe and
+select the human workflow; MCP actions implement bounded reads and writes; SDK
+arms provide typed internal calls; hooks improve
 continuity around host events. A declaration on one surface is not parity until
 the installed package routes it to executable behavior and tests prove it.
 
@@ -433,13 +470,11 @@ authority directly and creates no unnecessary external dependency.
 
 ## Maintainer slots and recovery
 
-The maintainer workflow separates three 3.0 roles:
+The maintainer workflow separates two 3.0 roles:
 
 1. **Local testing slot** — receives reviewed working-tree packages only when a
    governed local-install test is actually scheduled.
-2. **Branch stable-recovery slot** — receives the exact clean branch commit
-   package and provides recovery while later source work continues.
-3. **Git/main release slot** — receives the exact accepted release commit only
+2. **Git/main release slot** — receives the exact accepted release commit only
    through the governed Git/package route.
 
 Only one plugin/MCP route and its matching helper/tunnel identity may be active
@@ -447,29 +482,28 @@ for one task at a time. Multiple Codex apps may work on different tasks and
 projects; helpers bind the calling app and exact task rather than globally
 redirecting every app.
 
-Historical slots remain provenance, not live fallbacks. A broken testing slot
-may fail over only after the configured multi-probe failure contract, and it
-returns only after exact package, catalog, helper/tunnel, and task/session proof.
-At the final authorized main promotion, all maintained slots may be normalized
-to the same accepted bytes; that operation is not inferred from CI.
+Branch checkpoints are immutable package evidence, not a third registered
+plugin slot. Removed slot routes are absent from the live registry. At an
+authorized main promotion, the two maintained slots may be normalized to the
+same accepted bytes; that operation is never inferred from CI.
 
 ## Helper and tunnel lifecycle
 
-The user helper does not build or install the plugin. Installation completes
-first. The maintainer verifies package and hook configuration, then calls the
-version-matched helper to close the calling Codex app, reopen the same app in
-the same task and workspace, restore the full window, and attach the matching
-MCP snapshot. It should not introduce an arbitrary multi-minute wait.
+No separate user helper ships. Installation completes first. After the response
+is visibly complete, a maintainer-local dumb helper may close the explicitly
+selected Codex app and reopen the same app, task, and workspace. The helper has
+no drain logic and never owns installation, Plan, Goal, State Travel, or
+rollout/history mutation.
 
-The tunnel is a separate transport process, not the MCP catalog. It is
-installed only for host profiles that require it, starts hidden, may survive
-Windows sign-in through its versioned scheduled task, and never absorbs
-unrelated OpenAI tools. Older helper and tunnel identities are disabled when a
-new version becomes active; they are not allowed to race the current task.
+The tunnel is one host-wide, project-neutral transport process, not the MCP
+catalog. It is installed only for host profiles that require it, starts hidden,
+and may survive Windows sign-in through one exact versioned at-logon scheduled task.
+The plugin routes many exact task and project IDs through that one tunnel; no
+per-app, per-project, or per-task tunnel is created. Older tunnel startup
+tasks and runtimes are removed when a new version becomes active.
 
-See [Helper installation](docs/USER_HELPER_GUIDE.md), the
-[user tunnel guide](docs/USER_TUNNEL_GUIDE.md), and the complete
-[tunnel persistence contract](docs/WINDOWS_TUNNEL_PERSISTENCE.md).
+See the [user tunnel guide](docs/USER_TUNNEL_GUIDE.md) and the
+[host matrix](docs/HOST_AND_STORAGE_MATRIX.md).
 
 ### Bounded Windows tunnel setup
 
@@ -488,8 +522,8 @@ For an ephemeral interactive host, pass `CODEX_APP_INTERACTIVE`,
 the encrypted value uses Windows DPAPI and is never written to a receipt.
 Inspect or start the installed tunnel with `Manage-EvidenceLaneTunnel.ps1
 -Action Status`; success must report `status = PASS` before any
-`mcp__evidence_lane__*` route is treated as available. The helper remains a
-separate process and never installs the plugin.
+`mcp__evidence_lane__*` route is treated as available. The tunnel remains a
+separate process and never installs the plugin or owns lifecycle decisions.
 
 ## Git and CI/CD boundary
 
@@ -567,10 +601,9 @@ projection, preview compilation, and CodeQL surfaces configured for the commit.
 | --- | --- |
 | `plugins/evidence-lane-plugin/.codex-plugin/plugin.json` | Codex product identity and UI metadata |
 | `plugins/evidence-lane-plugin/.mcp.json` | Package-local native MCP launch contract |
-| `plugins/evidence-lane-plugin/src/evidence_lane_plugin/` | Lifecycle engine and native server |
-| `plugins/evidence-lane-plugin/src/evidence_lane_plugin/schemas/` | Installed-runtime schema authorities |
-| `plugins/evidence-lane-plugin/schemas/` | Repository and skill-facing schema projections |
-| `plugins/evidence-lane-plugin/skills/` | Seventeen governed skills |
+| `plugins/evidence-lane-plugin/src/evidence_lane_plugin/` | Canonical Python lifecycle engine, internal SDK, and native server |
+| `plugins/evidence-lane-plugin/schemas/` | Central source-derived action, authority, lane, hook, command, skill, MCP, ENV/UOP, and SDK schemas |
+| `plugins/evidence-lane-plugin/skills/` | Twenty-five governed skills |
 | `plugins/evidence-lane-plugin/hooks/` | Eleven lifecycle events and their commands |
 | `plugins/evidence-lane-plugin/scripts/` | Package, helper, tunnel, release, and verification routes |
 | `docs/` | Architecture, product surfaces, runbooks, legal pages, and provenance |
@@ -611,10 +644,10 @@ the visible Goal-completion action may close a governed Goal. Tests, automation,
 task transitions, pauses, and stalls cannot complete it, and Goal completion
 authorizes no pointer movement, Git action, installation, merge, or deployment.
 
-Release-maintainer helpers and governed-user recovery helpers serve separate
-audiences. A governed user receives only the version-bound helper and, when the
-host classifier requires it, the matching tunnel. Maintainer slot rotation is
-not imposed on downstream users or projects.
+Install, drain, and dumb restart helpers are maintainer-scoped and remain in
+the hidden plugin runtime. A governed user receives one plugin version and,
+when the host classifier proves a tool gap, the matching tunnel. Maintainer
+slot rotation is not imposed on downstream users or projects.
 
 ## Ownership, contribution, and licenses
 
@@ -631,7 +664,6 @@ The relevant authorities are:
 - [Terms and conditions](docs/TERMS_AND_CONDITIONS.md)
 - [Security policy](SECURITY.md)
 - [Credits and contributions](docs/CREDITS_AND_CONTRIBUTIONS.md)
-- [Dependency license audit](docs/DEPENDENCY_LICENSE_AUDIT.md)
 - [Upstream provenance](docs/UPSTREAM_REFERENCE_PROVENANCE.md)
 
 Third-party software, services, models, assets, and trademarks remain governed
@@ -640,8 +672,8 @@ supported role; it transfers neither ownership nor Evidence Lane authority.
 
 ## Current release boundary
 
-Version 3.0.0 is the current candidate source line, not yet a released or
-installed package claim. A release claim requires the exact reviewed commit,
+Version 3.0.0 is the current documented source line. An installed release claim
+requires the exact reviewed commit,
 all required CI checks, the built package, the governed Git-route installation,
 installed-host catalog proof, and the explicit human release decision.
 Documentation, a preview deployment, a package cache, or a passing test does

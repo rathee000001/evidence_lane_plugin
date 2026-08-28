@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence Lane live Project/PV root layout",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "project_root",
+    "workspace_root",
+    "hidden_runtime_root",
+    "project_sector_root",
+    "named_authorities",
+    "absorbed_legacy_paths",
+    "obsolete_paths_removed_after_hash_readback",
+    "obsolete_paths_tombstoned",
+    "accepted_folder_queried"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.live-project-root-layout.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "obsolete_paths_removed_after_hash_readback": {
+      "const": true
+    },
+    "obsolete_paths_tombstoned": {
+      "const": false
+    },
+    "accepted_folder_queried": {
+      "const": false
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "1901ED42059E8B9986925CCE15B29148304F89687B9D4A9FFBDE748B4E830267"
+}

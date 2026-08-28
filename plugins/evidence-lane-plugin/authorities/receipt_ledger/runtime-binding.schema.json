@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "receipt_ledger runtime binding",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "module",
+    "source_sha256"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "receipt_ledger"
+    },
+    "module": {
+      "const": "evidence_lane_plugin.receipt_ledger"
+    },
+    "source_sha256": {
+      "const": "62DA56B32B695350B298C3A8C54DF2DA715D3598AE11A214592053659A4BF3F6"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "05D4467E55F185B2E28D11C191A9DA845B71AB366CA7C343E2E62BAE7AEAD381"
+}

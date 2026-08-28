@@ -81,9 +81,7 @@ def test_global_and_project_discovery_merge_in_exact_precedence_order(
     )
     (project / "AGENTS.md").write_text("project root\n", encoding="utf-8")
     (nested / "AGENTS.md").write_text("ignored nested\n", encoding="utf-8")
-    (nested / "AGENTS.override.md").write_text(
-        "nested override\n", encoding="utf-8"
-    )
+    (nested / "AGENTS.override.md").write_text("nested override\n", encoding="utf-8")
 
     resolved = _resolve(codex_home, project, nested)
 
@@ -99,10 +97,7 @@ def test_global_and_project_discovery_merge_in_exact_precedence_order(
     assert resolved.receipt["project_doc_max_bytes"] == 32 * 1024
     assert resolved.receipt["raw_instruction_text_returned"] is False
     assert resolved.receipt["absolute_source_paths_returned"] is False
-    assert (
-        resolved.receipt["authority_effects"]["permission_widening_allowed"]
-        is False
-    )
+    assert resolved.receipt["authority_effects"]["permission_widening_allowed"] is False
 
 
 def test_empty_sources_fall_through_to_configured_project_name(
@@ -124,9 +119,10 @@ def test_empty_sources_fall_through_to_configured_project_name(
     resolved = _resolve(codex_home, project, project)
 
     assert resolved.instructions == "fallback rules"
-    assert resolved.receipt["source_chain"]["sources"][0][
-        "precedence_kind"
-    ] == "CONFIGURED_FALLBACK"
+    assert (
+        resolved.receipt["source_chain"]["sources"][0]["precedence_kind"]
+        == "CONFIGURED_FALLBACK"
+    )
 
 
 def test_missing_optional_codex_home_uses_default_global_configuration(
@@ -140,9 +136,64 @@ def test_missing_optional_codex_home_uses_default_global_configuration(
     resolved = _resolve(codex_home, project, project)
 
     assert resolved.instructions == "project-only rules"
-    assert [
-        row["locator"] for row in resolved.receipt["source_chain"]["sources"]
-    ] == ["PROJECT_ROOT/AGENTS.md"]
+    assert [row["locator"] for row in resolved.receipt["source_chain"]["sources"]] == [
+        "PROJECT_ROOT/AGENTS.md"
+    ]
+
+
+def test_resolution_accepts_model_only_profile_without_inventing_host_selectors(
+    tmp_path: Path,
+) -> None:
+    codex_home = tmp_path / "codex-home"
+    project = tmp_path / "project"
+    codex_home.mkdir()
+    project.mkdir()
+
+    resolved = resolve_agent_configuration(
+        codex_home=codex_home,
+        project_root=project,
+        cwd=project,
+        project_id="agent-config-test",
+        governed_session_id="session-agent-config-test",
+        host_task_id="01a02759-9842-74c1-860e-0c9a64f8258d",
+        host_task_deep_link=("codex://threads/01a02759-9842-74c1-860e-0c9a64f8258d"),
+        host_session_id="01a02759-9842-74c1-860e-0c9a64f8258d",
+        workspace_id=str(project),
+        active_plan_task_id="EL-CODEX-AGENTS-MD-TEST",
+        execution_profile={"model": "gpt-5.6-sol"},
+    )
+
+    assert resolved.receipt["binding"]["execution_profile"] == {"model": "gpt-5.6-sol"}
+
+
+@pytest.mark.parametrize("profile", [{}, {"model": "gpt-5.6-sol", "submodel": ""}])
+def test_resolution_still_rejects_missing_model_or_invalid_supplied_selector(
+    tmp_path: Path,
+    profile: dict[str, str],
+) -> None:
+    codex_home = tmp_path / "codex-home"
+    project = tmp_path / "project"
+    codex_home.mkdir()
+    project.mkdir()
+
+    with pytest.raises(EvidenceLaneError) as blocked:
+        resolve_agent_configuration(
+            codex_home=codex_home,
+            project_root=project,
+            cwd=project,
+            project_id="agent-config-test",
+            governed_session_id="session-agent-config-test",
+            host_task_id="01a02759-9842-74c1-860e-0c9a64f8258d",
+            host_task_deep_link=(
+                "codex://threads/01a02759-9842-74c1-860e-0c9a64f8258d"
+            ),
+            host_session_id="01a02759-9842-74c1-860e-0c9a64f8258d",
+            workspace_id=str(project),
+            active_plan_task_id="EL-CODEX-AGENTS-MD-TEST",
+            execution_profile=profile,
+        )
+
+    assert blocked.value.code == "AGENT_CONFIGURATION_BINDING_INVALID"
 
 
 def test_existing_codex_home_file_fails_closed(tmp_path: Path) -> None:
@@ -232,9 +283,7 @@ def test_resolution_is_once_per_manager_but_restart_rebuilds_chain(
         "project_id": "agent-config-test",
         "governed_session_id": "session-agent-config-test",
         "host_task_id": "01a02759-9842-74c1-860e-0c9a64f8258d",
-        "host_task_deep_link": (
-            "codex://threads/01a02759-9842-74c1-860e-0c9a64f8258d"
-        ),
+        "host_task_deep_link": ("codex://threads/01a02759-9842-74c1-860e-0c9a64f8258d"),
         "host_session_id": "01a02759-9842-74c1-860e-0c9a64f8258d",
         "workspace_id": str(project),
         "active_plan_task_id": "EL-CODEX-AGENTS-MD-TEST",
@@ -251,12 +300,10 @@ def test_resolution_is_once_per_manager_but_restart_rebuilds_chain(
     cached = manager.resolve(**kwargs)
     restarted = AgentConfigurationManager().resolve(**kwargs)
 
-    assert cached.receipt["source_chain_sha256"] == first.receipt[
-        "source_chain_sha256"
-    ]
-    assert restarted.receipt["source_chain_sha256"] != first.receipt[
-        "source_chain_sha256"
-    ]
+    assert cached.receipt["source_chain_sha256"] == first.receipt["source_chain_sha256"]
+    assert (
+        restarted.receipt["source_chain_sha256"] != first.receipt["source_chain_sha256"]
+    )
 
 
 def test_project_and_task_bindings_do_not_leak_across_resolutions(
@@ -277,9 +324,7 @@ def test_project_and_task_bindings_do_not_leak_across_resolutions(
     assert first.instructions == "first project"
     assert second.instructions == "second project"
     assert first.receipt["binding_sha256"] != second.receipt["binding_sha256"]
-    assert first.receipt["source_chain_sha256"] != second.receipt[
-        "source_chain_sha256"
-    ]
+    assert first.receipt["source_chain_sha256"] != second.receipt["source_chain_sha256"]
     assert "first" not in str(second.receipt["source_chain"]["sources"])
 
 
@@ -390,9 +435,7 @@ def test_status_exposes_bounded_authority_with_hooks_off(
     codex_home = tmp_path / "codex-home"
     codex_home.mkdir()
     (codex_home / "AGENTS.md").write_text("global test rules", encoding="utf-8")
-    (source_repository / "AGENTS.md").write_text(
-        "project test rules", encoding="utf-8"
-    )
+    (source_repository / "AGENTS.md").write_text("project test rules", encoding="utf-8")
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
     booted = _boot_local(service)
 
@@ -403,9 +446,10 @@ def test_status_exposes_bounded_authority_with_hooks_off(
     assert authority["source_count"] == 2
     assert authority["authority_effects"]["hooks_required_for_public_actions"] is False
     assert authority["raw_instruction_text_returned"] is False
-    assert booted["agent_configuration"][
-        "agent_configuration_authority_sha256"
-    ] == authority["agent_configuration_authority_sha256"]
+    assert (
+        booted["agent_configuration"]["agent_configuration_authority_sha256"]
+        == authority["agent_configuration_authority_sha256"]
+    )
 
     source_intake = service.source_intake(
         "book-faires",
@@ -414,16 +458,17 @@ def test_status_exposes_bounded_authority_with_hooks_off(
     )
     backlog = service.task_backlog_window("book-faires")
     for routed in (source_intake, backlog):
-        assert routed["agent_configuration"][
-            "agent_configuration_authority_sha256"
-        ] == authority["agent_configuration_authority_sha256"]
+        assert (
+            routed["agent_configuration"]["agent_configuration_authority_sha256"]
+            == authority["agent_configuration_authority_sha256"]
+        )
 
     restarted = EvidenceLaneService(data_root=service.store.root)
     restarted_authority = restarted.agent_configuration_authority(
         "book-faires",
         session_id=booted["session"]["session_id"],
     )
-    assert restarted_authority["source_chain_sha256"] == authority[
-        "source_chain_sha256"
-    ]
+    assert (
+        restarted_authority["source_chain_sha256"] == authority["source_chain_sha256"]
+    )
     assert restarted_authority["binding_sha256"] == authority["binding_sha256"]

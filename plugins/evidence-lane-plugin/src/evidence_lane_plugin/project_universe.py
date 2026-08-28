@@ -24,8 +24,10 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
+from .graph_pipeline import SemanticGraph
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from .project_authority import resolved_plan_runtime_path
+from .sqlite_indexing import rebuild_connection_authority_index
 from .timeutil import utc_now
 
 UNIVERSE_SCHEMA = "evidence-lane.project-universe.v1"
@@ -65,11 +67,7 @@ def _json(path: Path, *, code: str) -> dict[str, Any]:
 
 def _schema_sql() -> str:
     candidates = (
-        Path(__file__).resolve().parent
-        / "schemas"
-        / "universe"
-        / "project-universe.v1.sql",
-        Path(__file__).resolve().parents[3]
+        Path(__file__).resolve().parents[2]
         / "schemas"
         / "universe"
         / "project-universe.v1.sql",
@@ -515,25 +513,44 @@ def _write_database(
                 for row in nodes
             ],
         )
+        rebuild_connection_authority_index(
+            connection,
+            authority_id="project_universe",
+        )
         connection.commit()
         return graph_sha256, metrics
     finally:
         connection.close()
 
 
-def _projections(project_id: str, lane_rows: list[dict[str, Any]], metrics: Mapping[str, int]) -> tuple[bytes, bytes]:
-    mmd = ["graph TD", f'  P["{project_id}"]']
-    dot = ["digraph project_universe {", f'  project [label="{project_id}"];']
+def _projections(
+    project_id: str,
+    lane_rows: list[dict[str, Any]],
+    metrics: Mapping[str, int],
+) -> tuple[bytes, bytes, dict[str, Any]]:
+    graph = SemanticGraph(
+        "project_universe",
+        direction="TB",
+        role="AUTHORITY_TRAVERSAL",
+    )
+    graph.add_node("PROJECT", project_id, "root")
     for row in lane_rows:
         lane_id = str(row["lane_id"])
-        label = LANE_REGISTRY[lane_id].display_label.replace('"', "'")
-        mmd.append(f'  P --> L_{lane_id}["{label}"]')
-        dot.append(f'  lane_{lane_id} [label="{label}"];')
-        dot.append(f"  project -> lane_{lane_id};")
-    mmd.append(f'  P --> T["Tasks: {metrics["task_count"]}"]')
-    mmd.append(f'  P --> S["Sources: {metrics["source_count"]}"]')
-    dot.extend(["  project -> task_count;", "  project -> source_count;", "}"])
-    return ("\n".join(mmd) + "\n").encode(), ("\n".join(dot) + "\n").encode()
+        node_id = f"LANE_{lane_id}"
+        graph.add_node(
+            node_id,
+            LANE_REGISTRY[lane_id].display_label,
+            "semantic",
+        )
+        graph.add_edge("PROJECT", node_id, "links")
+    graph.add_node("TASK_COUNT", f"Tasks: {metrics['task_count']}", "retrieval")
+    graph.add_node(
+        "SOURCE_COUNT", f"Sources: {metrics['source_count']}", "retrieval"
+    )
+    graph.add_edge("PROJECT", "TASK_COUNT", "telemetry")
+    graph.add_edge("PROJECT", "SOURCE_COUNT", "telemetry")
+    mmd, dot, receipt = graph.render_pair()
+    return mmd.encode("utf-8"), dot.encode("utf-8"), receipt
 
 
 def _validate_bundle(root: Path, *, project_id: str) -> dict[str, Any]:
@@ -627,7 +644,9 @@ def refresh_project_universe(
             source_fingerprint_sha256=source_fingerprint,
             recorded_at=exact_time,
         )
-        mmd, dot = _projections(project_id, lanes["lanes"], metrics)
+        mmd, dot, graph_pipeline_receipt = _projections(
+            project_id, lanes["lanes"], metrics
+        )
         atomic_write_bytes(staging / "project_universe.mmd", mmd)
         atomic_write_bytes(staging / "project_universe.dot", dot)
         summary = {
@@ -640,6 +659,7 @@ def refresh_project_universe(
             "task_status_counts": plan["status_counts"],
             "unresolved_dependency_count": len(plan["unresolved_dependencies"]),
             "canonical_lane_ids": list(CANONICAL_LANE_IDS),
+            "graph_pipeline_receipt": graph_pipeline_receipt,
             "candidate_created": False,
             "hil_inferred": False,
             "pointer_moved": False,

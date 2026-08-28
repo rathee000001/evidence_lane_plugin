@@ -40,23 +40,35 @@ def _safe_component(value: str) -> str:
 
 
 def data_root() -> Path:
-    configured = os.environ.get("EVIDENCE_LANE_DATA_ROOT")
+    configured = os.environ.get("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT")
     if configured is not None:
         if not configured.strip():
             raise RuntimeError(
-                "EVIDENCE_LANE_DATA_ROOT cannot be empty when configured."
+                "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT cannot be empty when configured."
             )
-        return Path(configured).expanduser().resolve()
-    return (Path.home() / "EvidenceLanePV").resolve()
+        resolved = Path(configured).expanduser().resolve()
+    else:
+        resolved = (
+            Path.home()
+            / ".codex"
+            / "plugins"
+            / "runtime"
+            / "evidence-lane-plugin"
+        ).resolve()
+    return resolved
 
 
 def runtime_identity(plugin_root: Path) -> dict[str, Any]:
     lock = plugin_root / "requirements.lock.txt"
-    if not lock.is_file():
-        raise RuntimeError(f"Missing pinned dependency lock: {lock}")
+    toolchain_lock = plugin_root / "requirements.toolchain.lock.txt"
+    if not lock.is_file() or not toolchain_lock.is_file():
+        raise RuntimeError(
+            "Missing pinned base or full-toolchain dependency lock."
+        )
     core = {
         "schema": RUNTIME_SCHEMA,
         "requirements_lock_sha256": _sha256(lock),
+        "requirements_toolchain_lock_sha256": _sha256(toolchain_lock),
         "python_implementation": platform.python_implementation(),
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
         "python_cache_tag": str(sys.implementation.cache_tag or "unknown"),

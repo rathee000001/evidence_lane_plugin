@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "canon_consequence_graph tools.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-canon-consequence-tools.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "canon_consequence_graph"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "BA4A3B990F36565B26217EFB4C69742FA0B69643084CFEF0E03BAD85D273610F"
+}

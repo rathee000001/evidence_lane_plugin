@@ -1,0 +1,798 @@
+{
+  "schema": "evidence-lane.installed-authority-tools.v1",
+  "status": "PASS",
+  "authority_id": "canon_input",
+  "database": "canon-input.sqlite",
+  "query_order": [
+    "canon-input.mmd",
+    "canon-input.dot",
+    "canon-input.sqlite"
+  ],
+  "sqlite_query_mode": "READ_ONLY_IMMUTABLE_BOUNDED_FTS5_BM25",
+  "json_role": "BUILD_REFRESH_SCHEMA_AND_POINTER_TOOLING",
+  "runtime_binding": "runtime.py",
+  "builder_binding": "builder.py:refresh",
+  "reader_binding": "reader.py:validate",
+  "linked_public_actions": [
+    {
+      "name": "canon_backfire_hil",
+      "schema_sha256": "0F0D2B241D47EE7D36B0CE7FF6E420EE626C67F29C72C18450B0230F3AAFBE9F",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_backfire_hil"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "backfire_hil",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-backfire",
+            "order": 13
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_bind_edge",
+      "schema_sha256": "FE82699838F3FA849FB9050DF364222079896C68C6C0D23DA51057A57C7D7CEC",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_bind_edge"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "bind_edge",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-task-edge",
+            "order": 11
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_classify",
+      "schema_sha256": "898422FB177138AA3BA3790A0B26A3119521113B4685D537CAFA0C7A6CF1010E",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_classify"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "classify",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-envelope",
+            "order": 8
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_decide",
+      "schema_sha256": "4ED6FAF63204818B24DF0E594E92191362DE3C880A73932674D526632B35B2E5",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_decide"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "decide",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-decision",
+            "order": 9
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_dispatch_linked_task",
+      "schema_sha256": "11437E81D8066D0B9DC0CA265F0F345843E12D00FB4A36A746F4A60C2BC3F291",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_dispatch_linked_task"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "dispatch_linked_task",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-task-edge",
+            "order": 12
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_graph",
+      "schema_sha256": "FC9B3CD348A5835E02AAEA6FC98AA0B5DC68158D5306D2E8D187B0453CEAFB33",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_graph"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "graph",
+          "read_only": true
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_inbox",
+      "schema_sha256": "9887926FC086B7D77E1A0E7A3583D054EE4FA6FC769E13EF61872ACC9F3F3479",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_inbox"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "inbox",
+          "read_only": true
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_inspect",
+      "schema_sha256": "F3B86342E011859CEE17132D500EE5738810CA21495BABAAB48F5FAA69F07A06",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_inspect"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "inspect",
+          "read_only": true
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_receive",
+      "schema_sha256": "0065F9922D122E51ECDEF52E7963B6A5A896EAB0F4615EE88F5B3067CC5004FD",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_receive"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "receive",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-envelope",
+            "order": 7
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_register_contract",
+      "schema_sha256": "BAF0B7928C7AAA3089EC2A2552C38FEED60387E7CA35A384451269D21784955F",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_register_contract"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "register_contract",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-contract",
+            "order": 5
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_register_edge",
+      "schema_sha256": "31CD698B6DD20BA5F1C67540113F3B20ECDDCAE45DE7E033C3D9C741F5FC74DB",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_register_edge"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "register_edge",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-task-edge",
+            "order": 10
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_restore_continuity",
+      "schema_sha256": "EB82B8210DA29C9EB8298EE9EAE90E12BC82C9F97B49A9E14E787345B92157A2",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_restore_continuity"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "restore_continuity",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-state-travel-continuity",
+            "order": 16
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_seal_continuity",
+      "schema_sha256": "741DF6DFD4B0CE16E2C48BF18DDE493C403C2D00B4C5827004CE9EF283825369",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_seal_continuity"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "seal_continuity",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-state-travel-continuity",
+            "order": 15
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_seal_envelope",
+      "schema_sha256": "17A566FF47B84961E63B27E243744F9CFEC49DA5C987D2A26BAE5759C24160BC",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_seal_envelope"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "seal_envelope",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-envelope",
+            "order": 6
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_seal_result",
+      "schema_sha256": "2BE8AFAB40C7FD7B2A750B8508EF120A9E4DC7CFAD41B7BDEC75379D698F896F",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_seal_result"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "seal_result",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-result",
+            "order": 14
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "canon_supersede",
+      "schema_sha256": "8EE74D64D8B495ABA9BFFCEBD032E23B5176210C93A64D330DED6ACFA3BAEA7F",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-canon",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "canon_supersede"
+        },
+        "internal_sdk": {
+          "module_id": "canon_input",
+          "operation": "supersede",
+          "read_only": false
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-decision",
+            "order": 9
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_query",
+      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_query"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-learning",
+            "workflow": "learning-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-memory",
+            "workflow": "project-memory-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "post-entry-plan-authority-read",
+            "order": 8
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_status",
+      "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_status"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-learning",
+            "workflow": "learning-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-memory",
+            "workflow": "project-memory-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-plan-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "post-entry-plan-authority-read",
+            "order": 6
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 1
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-authority-read",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_task_backlog",
+      "schema_sha256": "C2746023576A61362CEE3340EF2BC090F6779067BEB16749F9AFDA15185AA6A9",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_task_backlog"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-canon",
+            "workflow": "canon-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-learning",
+            "workflow": "learning-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-memory",
+            "workflow": "project-memory-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-plan-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evi-state-travel",
+            "workflow": "post-entry-plan-authority-read",
+            "order": 7
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 2
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-authority-read",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "linked_skills": {
+    "skills/evi-canon/SKILL.md": "C7D28C2459DB6206EE01E88309B49DDD35B7F8ACA889BDA8BBEF1528738E7755"
+  },
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/canon_task_graph.py": "95C90680AA13216504ACCDC108A3374B67FF520BC051B5A6199BAADC11673C6F",
+    "src/evidence_lane_plugin/canon_consequence_graph.py": "AF1112AE18285A93A2308CF9E31B683EFF1D16FA5199726195CD31F25649B7F2",
+    "src/evidence_lane_plugin/canon_runtime_continuity.py": "29E5972158EADAFE08E2CD16BEE93775A7ADCCE4B3FB7E76AB4DE33523116670",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [
+    {
+      "authority_id": "canon_consequence_graph",
+      "path": "authorities/canon_input/consequence_graph",
+      "manifest_sha256": "27AD04E1F5D2A4A59F30A1070644CD958E4D5DE8C5E37F4334F4B3DC9AB37F2B",
+      "database_sha256": "CED4C2F31BF3B203E388F71E4CCDB98C229E7050C2C1C6196A7DB32A52631F79",
+      "table_count": 18,
+      "separate_sqlite_authority": true
+    }
+  ],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "canon_input",
+    "source_count": 0,
+    "node_count": 0,
+    "indexed_table_count": 0,
+    "indexed_tables": [],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:50.889343Z",
+    "receipt_sha256": "AF54EB31D7FE63E337456787E06CAF584C986BF619610EAD2D3C948C30651FCE"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "canon_input_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 126,
+    "edge_count": 128,
+    "group_count": 1,
+    "semantic_topology_sha256": "19BE82DFCB40E69748D06C152B94B51E5E3EDFF42A5C28311294A1F95AE14B2C",
+    "mmd_sha256": "7B1155632EA8B06794553374FF9EAE8969820E37272931EB0A70A51580D93AE3",
+    "dot_sha256": "F2E6CAB5F3804866BA0701EACBCD0ABE3088AE1DF0A5E687EA7A89D7CE6774BF",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "BAADDDEAB5D6B180036F05C5EFC7F95874BE1BC1FEC7A2B0C6137BD071CE4023",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 126,
+      "edge_count": 128,
+      "weak_component_count": 1,
+      "strong_component_count": 126,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 18
+        },
+        {
+          "node_id": "support_table_canon_packet",
+          "in_degree": 3,
+          "out_degree": 14
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_canon_event",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_canon_contract",
+          "in_degree": 1,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_authority_index_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_canon_edge",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_canon_schema_migration",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_canon_receipt",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_canon_backfire_dedup",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_canon_continuity_receipt",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_canon_dispatch",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_authority_index_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_authority_index_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_column_authority_id",
+          "in_degree": 1,
+          "out_degree": 0
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "9DF84484F67C171C9CC2D802553FF9D0040770F98351102446EAFBA3BC1B10C5",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "9BAD63ED4820D09387E1BE2A82E56003787A0B849E8491B8FEF94709F31FDA34"
+  },
+  "receipt_sha256": "3E6917684F2874180ADC9ABBD0B8F109701079DE4F5D317C0F90A6CCC9E7C8A1"
+}

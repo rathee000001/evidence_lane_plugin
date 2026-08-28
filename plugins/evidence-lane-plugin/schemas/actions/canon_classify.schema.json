@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "canon_classify",
+  "title": "Classify Canon envelope",
+  "description": "Classify one received Canon envelope against the receiver's exact expected contract and determine whether its receiver-owned three-way Canon HIL is required.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "envelope": {
+        "additionalProperties": true,
+        "title": "Envelope",
+        "type": "object"
+      },
+      "as_of": {
+        "title": "As Of",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "envelope",
+      "as_of"
+    ],
+    "title": "canon_classifyArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "canon_classifyDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_classify"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "classify",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-envelope",
+        "order": 8
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "898422FB177138AA3BA3790A0B26A3119521113B4685D537CAFA0C7A6CF1010E",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "EF169FEDB0EE660C9CDA8448F0ADB3AD9E8D90BC45EED65C4894B043D7165207"
+}

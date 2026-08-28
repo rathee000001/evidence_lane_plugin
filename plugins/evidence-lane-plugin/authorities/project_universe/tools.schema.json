@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_universe project_universe.tools.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-tools.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "project_universe"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "2BE9EDC4C6D578F787AAE1CEEFB242832DA11656414C78B133843925E53D362A"
+}

@@ -1,10 +1,13 @@
 [CmdletBinding()]
 param(
-    [string]$SourceRoot = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)),
+    [string]$SourceRoot = "",
     [string]$Compiler = "$env:SystemRoot\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 )
 
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($SourceRoot)) {
+    $SourceRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+}
 $sourceRootPath = [IO.Path]::GetFullPath($SourceRoot)
 $compilerPath = [IO.Path]::GetFullPath($Compiler)
 $sourcePath = Join-Path $PSScriptRoot 'windows_tunnel_host\EvidenceLaneTunnelHost.cs'
@@ -35,13 +38,19 @@ if ($subsystem -ne 2) {
     throw 'The compiled tunnel host is not a Windows GUI-subsystem executable.'
 }
 
-[ordered]@{
+$receipt = [ordered]@{
     schema = 'evidence-lane.windows-tunnel-host-build.v1'
     status = 'PASS'
-    output = $outputPath
+    source = 'scripts/codex_release/windows_tunnel_host/EvidenceLaneTunnelHost.cs'
+    source_sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $sourcePath).Hash
+    output = 'scripts/windows_tunnel/EvidenceLaneTunnelHost.exe'
     output_sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $outputPath).Hash
     pe_subsystem = 'WINDOWS_GUI_NO_VISIBLE_CONSOLE'
     pe_subsystem_value = $subsystem
     create_no_window = $true
     raw_payload_persisted = $false
-} | ConvertTo-Json -Depth 5
+}
+$receiptPath = Join-Path $sourceRootPath 'scripts\windows_tunnel\EvidenceLaneTunnelHost.build.json'
+$receiptJson = ($receipt | ConvertTo-Json -Depth 5) + "`n"
+[IO.File]::WriteAllText($receiptPath, $receiptJson, [Text.UTF8Encoding]::new($false))
+$receipt | ConvertTo-Json -Depth 5

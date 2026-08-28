@@ -25,7 +25,6 @@ BASE_RELEASE = "3.0.0"
 PLUGIN_NAME = "evidence-lane-plugin"
 MARKETPLACE_NAME = "evidence-lane-github"
 MARKETPLACE_DISPLAY_NAME = "Main Git Plugin Version"
-BRANCH_RECOVERY_MARKETPLACE_NAME = "evidence-lane-v300-stable-recovery"
 LOCAL_TESTING_MARKETPLACE_NAME = "evidence-lane-v300-testing-new"
 PLUGIN_SELECTOR = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
 HOOK_TRUST_SCHEMA = "evidence-lane.codex-hook-trust.v1"
@@ -57,6 +56,10 @@ EXPECTED_PACKAGE_HOOK_EVENTS = {
 }
 EXPECTED_PLUGIN_CREATOR_LOCAL_UPDATE_ROUTE = {
     "route_law": "PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW",
+    "plugin_creator_packing_required_every_local_build": True,
+    "fresh_cachebuster_before_each_pack_required": True,
+    "direct_cache_edit_allowed": False,
+    "standalone_fallback_install_route_allowed": False,
     "source_sync": "IN_PLACE_EXISTING_LOCAL_MARKETPLACE",
     "cache_materialization": "CODEX_PLUGIN_ADD",
     "loaded_old_cache_boundary": (
@@ -66,13 +69,18 @@ EXPECTED_PLUGIN_CREATOR_LOCAL_UPDATE_ROUTE = {
         "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART"
     ),
     "windows_marketplace_root_rotation_allowed": False,
-    "exact_same_task_hidden_restart_required": True,
-    "helper_scope": "DUMB_EXACT_TASK_CLOSE_REOPEN_ONLY",
+    "exact_same_task_hidden_restart_required": False,
+    "terminal_response_required_before_user_restart": True,
+    "manual_exact_channel_restart_required": True,
+    "helper_scope": "PREPARE_ONLY_NO_PROCESS_CONTROL",
+    "separate_exact_task_turn_drain_required_before_helper": False,
     "helper_installs_plugin": False,
-    "child_lease_acknowledgement_before_app_stop_required": True,
-    "child_launch_shape": "PROVEN_V2_2_ONE_USE_TRANSIENT_SCHEDULED_TASK",
+    "child_lease_acknowledgement_before_app_stop_required": False,
+    "child_launch_shape": "ABSENT",
     "redirected_parent_pipe_handles_allowed": False,
-    "terminal_success_or_failure_receipt_required": True,
+    "terminal_success_or_failure_receipt_required": False,
+    "preparation_receipt_required": True,
+    "post_restart_native_readback_required": True,
     "windows_ui_control_allowed": False,
     "cross_task_rehydration_allowed": False,
     "tunnel_start_allowed": False,
@@ -113,6 +121,7 @@ EXPECTED_BEHAVIOR_OWNERSHIP = {
         "pv_status",
         "pv_task_backlog",
         "pv_query",
+        "search",
     ],
     "query_must_use_native_mcp_route": True,
     "internal_hook_lookup_satisfies_native_query": False,
@@ -124,6 +133,8 @@ EXPECTED_BEHAVIOR_OWNERSHIP = {
     "plan_steer_requires_executable_goal_contract_change": True,
     "plan_steer_refreshes_full_panel_and_current_change_once": True,
     "fail_closed_when_behavior_route_unavailable": True,
+    "chat_only_execution_change_allowed": False,
+    "source_intake_may_dispatch_one_stable_idempotent_linked_steer": True,
 }
 EXPECTED_STABLE_ACTIVATION_GATE = {
     "local_rehearsal_stage_only": True,
@@ -138,11 +149,12 @@ EXPECTED_STABLE_ACTIVATION_GATE = {
         "scripts/codex_release/seal_external_release_receipts.py"
     ),
     "stable_install_command": "scripts/codex_release/install_codex_stable.py",
-    "stable_update_helper": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+    "stable_update_helper": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
     "install_completed_before_restart_helper": True,
     "restart_helper_installs_plugin": False,
-    "stable_update_reopens_same_bound_host_app": True,
-    "stable_update_rebinds_general_goal_recovery": True,
+    "stable_update_reopens_same_bound_host_app": False,
+    "stable_update_requires_user_restart_after_terminal_response": True,
+    "stable_update_rebinds_exact_task_via_native_binding": True,
     "release_authority_schema": "evidence-lane.codex-git-ci-vercel-release-authority.v2",
     "exact_clean_commit_required": True,
     "governed_native_remote_push_required": True,
@@ -218,6 +230,17 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     "interactive_codex_app_local_or_persistent": {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
         "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "host_profile": "CODEX_DESKTOP",
+        "desktop_app_variants": {
+            "stable": "OpenAI.Codex_2p2nqsd0c76g0!App",
+            "beta": "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+            "shared_plugin_contract": True,
+            "shared_host_wide_tunnel": True,
+            "per_app_tunnel_allowed": False,
+            "per_project_or_task_tunnel_allowed": False,
+            "helper_requires_exact_requested_app_id": True,
+            "cross_app_fallback_allowed": False,
+        },
         "native_mcp_available": {
             "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
             "tunnel_setup_frequency": "NONE",
@@ -271,7 +294,7 @@ EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
 SCHEMA = "evidence-lane.codex-installed-acceptance.v2"
 _IGNORED_DIRECTORIES = frozenset({".venv", "__pycache__", ".pytest_cache"})
 _IGNORED_SUFFIXES = frozenset({".pyc", ".pyo", ".log", ".tmp"})
-_MIGRATED_COMMAND_ROOT = ".codex-plugin/migrated-command-skills"
+_RETIRED_COMMAND_ROOTS = ("commands", ".codex-plugin/migrated-command-skills")
 
 
 class AcceptanceError(RuntimeError):
@@ -345,63 +368,8 @@ def _inventory(root: Path) -> dict[str, Any]:
     }
 
 
-def _expected_migrated_command_skills(marketplace: Path) -> dict[str, bytes]:
-    """Derive the exact command-to-skill files generated by supported Codex install."""
-
-    expected: dict[str, bytes] = {}
-    commands = marketplace / "commands"
-    if not commands.is_dir():
-        return expected
-    for command in sorted(commands.glob("*.md"), key=lambda item: item.name):
-        text = command.read_text(encoding="utf-8")
-        match = re.fullmatch(
-            r"---\r?\n(?P<frontmatter>.*?)\r?\n---\r?\n(?P<body>.*)",
-            text,
-            flags=re.DOTALL,
-        )
-        if match is None:
-            raise AcceptanceError(f"{command.name} has no exact command frontmatter.")
-        description_match = re.search(
-            r"(?m)^description:\s*(?P<description>.+?)\s*$",
-            match.group("frontmatter"),
-        )
-        if description_match is None:
-            raise AcceptanceError(f"{command.name} has no command description.")
-        description = description_match.group("description").strip()
-        if description.startswith('"'):
-            try:
-                description = str(json.loads(description))
-            except json.JSONDecodeError as exc:
-                raise AcceptanceError(
-                    f"{command.name} has an invalid quoted description."
-                ) from exc
-        elif description.startswith("'") and description.endswith("'"):
-            description = description[1:-1].replace("''", "'")
-        if not description or "\n" in description or "\r" in description:
-            raise AcceptanceError(f"{command.name} has an invalid description.")
-        command_name = command.stem
-        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", command_name):
-            raise AcceptanceError(f"{command.name} cannot form a migrated skill name.")
-        skill_name = f"source-command-{command_name}"
-        body = match.group("body").lstrip("\r\n").rstrip()
-        generated = (
-            "---\n"
-            f"name: {json.dumps(skill_name, ensure_ascii=False)}\n"
-            f"description: {json.dumps(description, ensure_ascii=False)}\n"
-            "---\n\n"
-            f"# {skill_name}\n\n"
-            "Use this skill when the user asks to run the migrated source command "
-            f"`{command_name}`.\n\n"
-            "## Command Template\n\n"
-            f"{body}\n"
-        ).encode()
-        relative = f"{_MIGRATED_COMMAND_ROOT}/{skill_name}/SKILL.md"
-        expected[relative] = generated
-    return expected
-
-
 def _verified_cache_inventory(installed: Path, marketplace: Path) -> dict[str, Any]:
-    """Prove source parity plus only exact Codex-generated command migrations."""
+    """Prove exact source parity and absence of the retired command surfaces."""
 
     installed_inventory = _inventory(installed)
     marketplace_inventory = _inventory(marketplace)
@@ -411,12 +379,11 @@ def _verified_cache_inventory(installed: Path, marketplace: Path) -> dict[str, A
     marketplace_files = {
         str(row["path"]): row for row in marketplace_inventory["files"]
     }
-    if any(
-        path == _MIGRATED_COMMAND_ROOT
-        or path.startswith(f"{_MIGRATED_COMMAND_ROOT}/")
-        for path in marketplace_files
-    ):
-        raise AcceptanceError("The marketplace must not prebuild host-generated skills.")
+    for root in _RETIRED_COMMAND_ROOTS:
+        if any(path == root or path.startswith(f"{root}/") for path in marketplace_files):
+            raise AcceptanceError("The marketplace contains the retired command layer.")
+        if any(path == root or path.startswith(f"{root}/") for path in installed_files):
+            raise AcceptanceError("The installed cache contains the retired command layer.")
     source_drift = [
         path
         for path, expected in marketplace_files.items()
@@ -424,46 +391,28 @@ def _verified_cache_inventory(installed: Path, marketplace: Path) -> dict[str, A
     ]
     if source_drift:
         raise AcceptanceError("Codex cache source bytes differ from the marketplace.")
-    expected_generated = _expected_migrated_command_skills(marketplace)
     actual_extra = set(installed_files).difference(marketplace_files)
-    if actual_extra != set(expected_generated):
-        raise AcceptanceError(
-            "Codex cache extras are not the exact generated command-skill set."
-        )
-    generated_records: list[dict[str, Any]] = []
-    for relative, expected_bytes in sorted(expected_generated.items()):
-        actual = installed_files[relative]
-        expected_sha256 = _sha256_bytes(expected_bytes)
-        if (
-            int(actual["bytes"]) != len(expected_bytes)
-            or actual["sha256"] != expected_sha256
-            or (installed / Path(relative)).read_bytes() != expected_bytes
-        ):
-            raise AcceptanceError(
-                "A Codex-generated command skill differs from its exact derivation."
-            )
-        generated_records.append(
-            {
-                "skill_name": Path(relative).parent.name,
-                "bytes": len(expected_bytes),
-                "sha256": expected_sha256,
-            }
-        )
+    if actual_extra:
+        raise AcceptanceError("Codex cache contains non-source package extras.")
     return {
         "installed_file_count": installed_inventory["file_count"],
         "installed_manifest_sha256": installed_inventory["manifest_sha256"],
         "marketplace_file_count": marketplace_inventory["file_count"],
         "marketplace_manifest_sha256": marketplace_inventory["manifest_sha256"],
         "source_bytes_match_marketplace": True,
-        "codex_generated_migration_count": len(generated_records),
-        "codex_generated_migrations": generated_records,
-        "cache_matches_marketplace_after_expected_host_generation": True,
+        "retired_command_surface_count": 0,
+        "cache_matches_marketplace_exactly": True,
     }
 
 
 def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
     hook_paths = [
         plugin_root / "hooks" / "hooks.json",
+        *(
+            [plugin_root / "hooks" / "logical-actions.json"]
+            if (plugin_root / "hooks" / "logical-actions.json").is_file()
+            else []
+        ),
         *sorted((plugin_root / "hooks").glob("*.exe")),
         *sorted((plugin_root / "hooks").glob("*.py")),
         *sorted((plugin_root / "hooks").glob("*.ps1")),
@@ -474,22 +423,6 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
     if frozenset(path.name for path in hook_paths) not in {
         frozenset(
             {
-                "hooks.json",
-                "invoke_hook.ps1",
-                "invoke_hook.py",
-                "lifecycle_boundary.py",
-                "post_tool_use.py",
-                "pre_tool_use.py",
-                "session_start.py",
-                "prompt_submit.py",
-                "stop_response.py",
-            }
-        ),
-        frozenset(
-            {
-                "behavior_handoff.py",
-                "event_isolation.py",
-                "EvidenceLaneHookHost.exe",
                 "hooks.json",
                 "invoke_hook.ps1",
                 "invoke_hook.py",
@@ -521,6 +454,70 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
                 "subagent_stop.py",
             }
         ),
+        frozenset(
+            {
+                "behavior_handoff.py",
+                "event_isolation.py",
+                "EvidenceLaneHookHost.exe",
+                "hooks.json",
+                "logical-actions.json",
+                "invoke_hook.ps1",
+                "invoke_hook.py",
+                "lifecycle_boundary.py",
+                "post_tool_use.py",
+                "pre_tool_use.py",
+                "session_start.py",
+                "prompt_submit.py",
+                "stop_response.py",
+            }
+        ),
+        frozenset(
+            {
+                "behavior_handoff.py",
+                "event_isolation.py",
+                "EvidenceLaneHookHost.exe",
+                "hooks.json",
+                "logical-actions.json",
+                "invoke_hook.ps1",
+                "invoke_hook.py",
+                "lifecycle_boundary.py",
+                "optional_event_observer.py",
+                "permission_request.py",
+                "post_tool_use.py",
+                "pre_tool_use.py",
+                "prompt_submit.py",
+                "session_start.py",
+                "stop_response.py",
+                "subagent_start.py",
+                "subagent_stop.py",
+            }
+        ),
+        frozenset(
+            {
+                "behavior_handoff.py",
+                "event_isolation.py",
+                "EvidenceLaneHookHost.exe",
+                "hooks.json",
+                "logical-actions.json",
+                "invoke_hook.ps1",
+                "invoke_hook.py",
+                "lifecycle_boundary.py",
+                "optional_event_observer.py",
+                "permission_request.py",
+                "post_tool_use.py",
+                "pre_tool_use.py",
+                "prompt_submit.py",
+                "session_start.py",
+                "stop_response.py",
+                "subagent_start.py",
+                "subagent_stop.py",
+                "subhook_emit.py",
+                "subhook_pipeline.py",
+                "subhook_seal.py",
+                "subhook_transport.py",
+                "subhook_validate.py",
+            }
+        ),
     }:
         raise AcceptanceError("The installed persistent hook inventory is not exact.")
 
@@ -546,19 +543,115 @@ def _surface_inventory(plugin_root: Path, *, version: str) -> dict[str, Any]:
     )
     hook_events = dict(hook_configuration.get("hooks") or {})
     registered_events = sorted(hook_events)
+    event_order = list(hook_events)
+    logical_action_path = plugin_root / "hooks" / "logical-actions.json"
+    if logical_action_path.is_file():
+        logical_action_configuration = json.loads(
+            logical_action_path.read_text(encoding="utf-8")
+        )
+        declared_logical_actions = logical_action_configuration.get("logicalActions")
+        if (
+            set(hook_configuration) != {"description", "hooks"}
+            or logical_action_configuration.get("schema")
+            != "evidence-lane.hook-logical-action-registry.v1"
+        ):
+            raise AcceptanceError("The host and internal hook registries overlap.")
+    else:
+        declared_logical_actions = hook_configuration.get("logicalActions")
+    if (
+        not isinstance(declared_logical_actions, dict)
+        or list(declared_logical_actions) != event_order
+        or any(
+            not isinstance(declared_logical_actions.get(name), list)
+            or not declared_logical_actions[name]
+            for name in event_order
+        )
+    ):
+        raise AcceptanceError("The installed hook logical-action registry is invalid.")
+    event_action_inventory: list[dict[str, Any]] = []
+    for event_ordinal, event_name in enumerate(event_order, start=1):
+        actions: list[dict[str, Any]] = []
+        groups = hook_events[event_name]
+        if not isinstance(groups, list) or not groups:
+            raise AcceptanceError("An installed hook event has no handler group.")
+        for group_ordinal, group in enumerate(groups, start=1):
+            handlers = group.get("hooks") if isinstance(group, dict) else None
+            if not isinstance(handlers, list) or not handlers:
+                raise AcceptanceError("An installed hook group has no handler action.")
+            for group_action_ordinal, handler in enumerate(handlers, start=1):
+                if not isinstance(handler, dict):
+                    raise AcceptanceError("An installed hook handler action is invalid.")
+                action_ordinal = len(actions) + 1
+                command_identity = str(
+                    handler.get("commandWindows") or handler.get("command") or ""
+                )
+                actions.append(
+                    {
+                        "action_number": f"{event_ordinal}.{action_ordinal}",
+                        "event_action_ordinal": action_ordinal,
+                        "group_ordinal": group_ordinal,
+                        "group_action_ordinal": group_action_ordinal,
+                        "type": handler.get("type"),
+                        "command_sha256": _sha256_bytes(
+                            command_identity.encode("utf-8")
+                        ),
+                        "raw_command_returned": False,
+                    }
+                )
+        event_action_inventory.append(
+            {
+                "hook_number": event_ordinal,
+                "event_name": event_name,
+                "display_number": f"Hook {event_ordinal}",
+                "action_count": len(actions),
+                "actions": actions,
+            }
+        )
     handler_count = sum(
-        len(group.get("hooks") or [])
-        for groups in hook_events.values()
-        if isinstance(groups, list)
-        for group in groups
-        if isinstance(group, dict)
+        int(row["action_count"]) for row in event_action_inventory
     )
+    logical_action_inventory = [
+        {
+            "hook_number": event_ordinal,
+            "event_name": event_name,
+            "display_number": f"Hook {event_ordinal}",
+            "logical_action_count": len(declared_logical_actions[event_name]),
+            "logical_actions": [
+                {
+                    "logical_action_number": f"{event_ordinal}.L{action_ordinal}",
+                    "event_logical_action_ordinal": action_ordinal,
+                    "action": action,
+                    "project_plan_goal_hil_effect": "NONE",
+                }
+                for action_ordinal, action in enumerate(
+                    declared_logical_actions[event_name], start=1
+                )
+            ],
+        }
+        for event_ordinal, event_name in enumerate(event_order, start=1)
+    ]
     hook_inventory = {
         "count": len(registered_events),
         "count_semantics": "REGISTERED_EVENT_COUNT",
         "registered_event_count": len(registered_events),
         "registered_events": registered_events,
         "handler_count": handler_count,
+        "handler_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
+        "event_order": event_order,
+        "event_action_inventory": event_action_inventory,
+        "event_action_inventory_sha256": _sha256_bytes(
+            _json_bytes(event_action_inventory)
+        ),
+        "logical_action_count": sum(
+            int(row["logical_action_count"]) for row in logical_action_inventory
+        ),
+        "logical_action_count_semantics": (
+            "NUMBERED_SERIAL_TRANSPORT_STEPS_INSIDE_HANDLER_ACTIONS"
+        ),
+        "logical_action_inventory": logical_action_inventory,
+        "logical_action_inventory_sha256": _sha256_bytes(
+            _json_bytes(logical_action_inventory)
+        ),
         "hook_file_count": hook_files["count"],
         "records": hook_files["records"],
         "file_inventory_sha256": hook_files["inventory_sha256"],
@@ -748,11 +841,8 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         (plugin_root / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
     stable = dict(release.get("stable") or {})
-    retired_branch_recovery = dict(release.get("retired_branch_recovery") or {})
     local_testing = dict(release.get("local_testing") or {})
     live_slots = dict(release.get("live_slot_policy") or {})
-    failover = dict(release.get("failover_operator") or {})
-    goal_recovery = dict(release.get("goal_recovery") or {})
     helper_distribution = dict(release.get("helper_distribution_policy") or {})
     maintainer_helper = dict(
         helper_distribution.get("maintainer_release_helper") or {}
@@ -786,16 +876,7 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         plugin_root
         / "scripts"
         / "codex_release"
-        / "Update-EvidenceLaneCodexStableAndResume.ps1",
-        plugin_root / "scripts" / "codex_release" / "Restart-EvidenceLaneCodex.ps1",
-        plugin_root
-        / "scripts"
-        / "codex_release"
-        / "Manage-EvidenceLaneCodexGoalRecovery.ps1",
-        plugin_root
-        / "scripts"
-        / "codex_release"
-        / "Switch-EvidenceLaneCodexSlot.ps1",
+        / "Prepare-EvidenceLaneCodexRestart.ps1",
         plugin_root / "scripts" / "codex_release" / "accept_codex_stable.py",
     )
     forbidden = (
@@ -835,14 +916,6 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or stable.get("generated_namespace_allowed") is not False
         or stable.get("direct_stdio_fallback_allowed") is not False
         or stable.get("google_drive_bundled") is not False
-        or retired_branch_recovery.get("slot_role") != "RETIRED_PURGE_ONLY"
-        or retired_branch_recovery.get("plugin_selector")
-        != f"{PLUGIN_NAME}@{BRANCH_RECOVERY_MARKETPLACE_NAME}"
-        or retired_branch_recovery.get("installation_allowed") is not False
-        or retired_branch_recovery.get("migration_read_allowed") is not True
-        or retired_branch_recovery.get("removal_via_supported_codex_api_required")
-        is not True
-        or retired_branch_recovery.get("direct_cache_deletion_allowed") is not False
         or local_testing.get("release_line") != BASE_RELEASE
         or local_testing.get("slot_role") != "versioned-local-testing"
         or local_testing.get("codex_marketplace_slot")
@@ -864,49 +937,8 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or live_slots.get("max_active_native_mcp_count") != 1
         or live_slots.get("max_active_tunnel_count") != 1
         or live_slots.get("inactive_slot_remains_installed") is not True
-        or failover.get("script")
-        != "scripts/codex_release/Switch-EvidenceLaneCodexSlot.ps1"
-        or failover.get("registry_schema")
-        != "evidence-lane.codex-two-slot-main-local-registry.v1"
-        or failover.get("failure_target_slot") != "stable-git-main"
-        or failover.get("versioned_local_failure_targets_verified_main_only")
+        or live_slots.get("obsolete_marketplace_registrations_must_be_absent")
         is not True
-        or failover.get("single_transient_error_switch_allowed") is not False
-        or failover.get("stop_source_tunnel_before_start_target") is not True
-        or failover.get("target_tunnel_ready_before_plugin_switch") is not True
-        or failover.get("controlled_exact_task_restart_required") is not True
-        or failover.get("switch_failure_restores_source_slot") is not True
-        or goal_recovery.get("script")
-        != "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1"
-        or goal_recovery.get("scope")
-        != "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_ON_THIS_WINDOWS_USER"
-        or goal_recovery.get("trigger") != "AT_LOGON_CURRENT_WINDOWS_USER"
-        or goal_recovery.get("exact_task_uuid_required") is not True
-        or goal_recovery.get("exact_host_app_binding_required") is not True
-        or goal_recovery.get("supported_host_app_ids")
-        != [
-            "OpenAI.Codex_2p2nqsd0c76g0!App",
-            "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
-        ]
-        or goal_recovery.get("persisted_goal_read_route")
-        != "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
-        or goal_recovery.get("thread_resume_writer_allowed") is not False
-        or goal_recovery.get("synthetic_prompt_allowed") is not False
-        or goal_recovery.get("turn_start_allowed") is not False
-        or goal_recovery.get("state_travel_allowed") is not False
-        or goal_recovery.get("candidate_hil_pointer_or_git_mutation_allowed")
-        is not False
-        or goal_recovery.get(
-            "requires_exactly_one_enabled_allowed_two_slot_selector"
-        )
-        is not True
-        or goal_recovery.get("allowed_runtime_selectors")
-        != [
-            "evidence-lane-plugin@evidence-lane-github",
-            "evidence-lane-plugin@evidence-lane-v300-testing-new",
-        ]
-        or goal_recovery.get("stable_selector_growth_allowed") is not False
-        or goal_recovery.get("raw_goal_objective_stored") is not False
         or plugin_creator_local_update
         != EXPECTED_PLUGIN_CREATOR_LOCAL_UPDATE_ROUTE
         or behavior_ownership != EXPECTED_BEHAVIOR_OWNERSHIP
@@ -936,6 +968,12 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         raise AcceptanceError("The installed v2 package identity or boundary drifted.")
     hooks = json.loads((plugin_root / "hooks" / "hooks.json").read_text("utf-8"))
     hook_events = dict(hooks.get("hooks") or {})
+    logical_action_path = plugin_root / "hooks" / "logical-actions.json"
+    logical_actions = (
+        json.loads(logical_action_path.read_text("utf-8")).get("logicalActions")
+        if logical_action_path.is_file()
+        else hooks.get("logicalActions")
+    )
     handler_count = sum(
         len(group.get("hooks") or [])
         for groups in hook_events.values()
@@ -947,7 +985,29 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     post_matcher = str(post_groups[0].get("matcher") or "") if post_groups else ""
     if (
         set(hook_events) != EXPECTED_PACKAGE_HOOK_EVENTS
-        or handler_count != len(EXPECTED_PACKAGE_HOOK_EVENTS)
+        or (
+            logical_action_path.is_file()
+            and set(hooks) != {"description", "hooks"}
+        )
+        or not isinstance(logical_actions, dict)
+        or list(logical_actions) != list(hook_events)
+        or any(
+            not isinstance(logical_actions.get(name), list)
+            or not logical_actions[name]
+            for name in hook_events
+        )
+        or handler_count < len(EXPECTED_PACKAGE_HOOK_EVENTS)
+        or any(
+            not isinstance(groups, list)
+            or not groups
+            or any(
+                not isinstance(group, dict)
+                or not isinstance(group.get("hooks"), list)
+                or not group["hooks"]
+                for group in groups
+            )
+            for groups in hook_events.values()
+        )
         or post_matcher
     ):
         raise AcceptanceError("The installed persistent turn hooks drifted.")
@@ -1016,6 +1076,42 @@ def _native_receipt(path: Path | None) -> dict[str, Any] | None:
     }
 
 
+def _native_hook_control_receipt(
+    path: Path | None,
+    *,
+    plugin_selector: str,
+) -> dict[str, Any] | None:
+    if path is None:
+        return None
+    payload = _sealed_json(path, hash_field="receipt_sha256")
+    after_states = dict(payload.get("after_states") or {})
+    verified = dict(payload.get("verified_event_receipts") or {})
+    if (
+        payload.get("schema") != "evidence-lane.native-hook-event-control.v1"
+        or payload.get("status") != "PASS"
+        or payload.get("plugin_selector") != plugin_selector
+        or set(after_states) != set(EXPECTED_CODEX_HOST_HOOK_EVENTS)
+        or any(value is not True for value in after_states.values())
+        or set(verified) != set(EXPECTED_CODEX_HOST_HOOK_EVENTS)
+        or any(
+            re.fullmatch(r"[A-F0-9]{64}", str(value).upper()) is None
+            for value in verified.values()
+        )
+        or payload.get("direct_config_file_write") is not False
+        or payload.get("windows_ui_control_used") is not False
+        or payload.get("unrelated_plugin_state_mutated") is not False
+    ):
+        raise AcceptanceError("The native post-restart hook-control receipt drifted.")
+    return {
+        "status": "PASS",
+        "plugin_selector": plugin_selector,
+        "enabled_event_count": len(after_states),
+        "registered_events": sorted(after_states),
+        "receipt_sha256": payload["receipt_sha256"],
+        "receipt_file_sha256": _sha256(path),
+    }
+
+
 def accept(args: argparse.Namespace) -> dict[str, Any]:
     installed = args.installed_plugin.resolve()
     marketplace = args.marketplace_plugin.resolve()
@@ -1040,23 +1136,10 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
     plugin_add = dict(activation.get("plugin_add") or {})
     exact_selector = str(plugin_add.get("pluginId") or "")
     hook_trust = dict(activation.get("hook_trust") or {})
-    hook_trust_core = dict(hook_trust)
-    hook_trust_sha256 = str(
-        hook_trust_core.pop("receipt_sha256", "")
-    ).upper()
-    hook_records = hook_trust.get("records")
-    if not isinstance(hook_records, list):
-        hook_records = []
-    hook_events = {
-        str(row.get("event_name") or "")
-        for row in hook_records
-        if isinstance(row, dict)
-    }
-    hook_keys = [
-        str(row.get("hook_key") or "")
-        for row in hook_records
-        if isinstance(row, dict)
-    ]
+    hook_control = _native_hook_control_receipt(
+        getattr(args, "hook_control_receipt", None),
+        plugin_selector=exact_selector,
+    )
     surface_change = dict(installation.get("surface_change_display") or {})
     live_slot_contract = dict(installation.get("live_slot_contract") or {})
     if (
@@ -1103,8 +1186,7 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         or live_slot_contract.get("local_slot") != "versioned-local-testing"
         or live_slot_contract.get("local_testing_selector")
         != "evidence-lane-plugin@evidence-lane-v300-testing-new"
-        or live_slot_contract.get("branch_recovery_selector_retired") is not True
-        or live_slot_contract.get("branch_recovery_install_allowed") is not False
+        or live_slot_contract.get("obsolete_selector_present") is not False
         or live_slot_contract.get("pre_3_0_fallback_allowed") is not False
         or installation.get("post_proof_obsolete_cleanup_completed") is not True
         or installation.get("obsolete_cleanup_used_supported_codex_apis") is not True
@@ -1114,30 +1196,15 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         or surface_change.get("raw_paths_included") is not False
         or surface_change.get("private_research_question_included") is not False
         or hook_trust.get("schema") != HOOK_TRUST_SCHEMA
-        or hook_trust.get("status") != "PASS"
+        or hook_trust.get("status")
+        != "PENDING_NATIVE_POST_RESTART_VERIFICATION"
         or hook_trust.get("plugin_selector") != exact_selector
         or hook_trust.get("hook_count")
         != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
-        or hook_events != EXPECTED_CODEX_HOST_HOOK_EVENTS
-        or len(hook_records) != len(EXPECTED_CODEX_HOST_HOOK_EVENTS)
-        or len(hook_keys) != len(set(hook_keys))
-        or hook_trust.get("after_trust_statuses") != ["trusted"]
-        or hook_trust_sha256
-        != _sha256_bytes(_json_bytes(hook_trust_core))
-        or any(
-            not isinstance(row, dict)
-            or row.get("enabled") is not True
-            or row.get("trust_status") != "trusted"
-            or not str(row.get("hook_key") or "").startswith(
-                f"{exact_selector}:"
-            )
-            or re.fullmatch(
-                r"sha256:[0-9a-f]{64}",
-                str(row.get("current_hash") or ""),
-            )
-            is None
-            for row in hook_records
-        )
+        or hook_trust.get("records") != []
+        or hook_trust.get("all_enabled") is not False
+        or hook_trust.get("hooks_enabled_by_update") is not False
+        or hook_trust.get("native_post_restart_verification_required") is not True
         or dict(activation.get("git_marketplace_source") or {}).get("status")
         != "PASS"
         or dict(activation.get("git_marketplace_source") or {}).get("source_type")
@@ -1199,7 +1266,33 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         or surface_change.get("hooks", {}).get("registered_events")
         != sorted(EXPECTED_PACKAGE_HOOK_EVENTS)
         or surface_change.get("hooks", {}).get("handler_count")
-        != len(EXPECTED_PACKAGE_HOOK_EVENTS)
+        != installed_identity["surface_inventory"]["hooks"]["handler_count"]
+        or surface_change.get("hooks", {}).get("handler_count_semantics")
+        != "TOTAL_NESTED_HANDLER_ACTION_COUNT"
+        or surface_change.get("hooks", {}).get("event_order")
+        != installed_identity["surface_inventory"]["hooks"]["event_order"]
+        or surface_change.get("hooks", {}).get("event_action_inventory")
+        != installed_identity["surface_inventory"]["hooks"][
+            "event_action_inventory"
+        ]
+        or surface_change.get("hooks", {}).get("event_action_inventory_sha256")
+        != installed_identity["surface_inventory"]["hooks"][
+            "event_action_inventory_sha256"
+        ]
+        or surface_change.get("hooks", {}).get("logical_action_count")
+        != installed_identity["surface_inventory"]["hooks"][
+            "logical_action_count"
+        ]
+        or surface_change.get("hooks", {}).get("logical_action_count_semantics")
+        != "NUMBERED_SERIAL_TRANSPORT_STEPS_INSIDE_HANDLER_ACTIONS"
+        or surface_change.get("hooks", {}).get("logical_action_inventory")
+        != installed_identity["surface_inventory"]["hooks"][
+            "logical_action_inventory"
+        ]
+        or surface_change.get("hooks", {}).get("logical_action_inventory_sha256")
+        != installed_identity["surface_inventory"]["hooks"][
+            "logical_action_inventory_sha256"
+        ]
         or surface_change.get("skills", {}).get("count")
         != EXPECTED_CATALOG["skills"]
         or surface_change.get("search_toolchain", {}).get("status") != "PASS"
@@ -1222,6 +1315,8 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
     native = _native_receipt(args.native_route_receipt)
     state = (
         "POST_RESTART_INSTALLED_PACKAGE_VERIFIED_READY_FOR_HIL"
+        if native is not None and hook_control is not None
+        else "POST_RESTART_NATIVE_HOOK_CONTROL_REQUIRED"
         if native is not None
         else "PRE_RESTART_INSTALLED_PACKAGE_VERIFIED_RESTART_REQUIRED"
     )
@@ -1235,19 +1330,29 @@ def accept(args: argparse.Namespace) -> dict[str, Any]:
         "catalog": dict(EXPECTED_CATALOG),
         "surface_change_display": surface_change,
         "enabled_selector": exact_selector,
-        "hook_trust_receipt_sha256": hook_trust_sha256,
+        "hook_control_receipt_sha256": (
+            hook_control["receipt_sha256"] if hook_control is not None else None
+        ),
         "hook_trust": {
-            "status": "PASS",
+            "status": (
+                "PASS" if hook_control is not None else "PENDING_NATIVE_CONTROL"
+            ),
             "hook_count": len(EXPECTED_CODEX_HOST_HOOK_EVENTS),
-            "registered_events": sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS),
-            "after_trust_statuses": ["trusted"],
+            "registered_events": (
+                hook_control["registered_events"]
+                if hook_control is not None
+                else sorted(EXPECTED_CODEX_HOST_HOOK_EVENTS)
+            ),
+            "all_enabled": hook_control is not None,
             "selector": exact_selector,
         },
         "archive_sha256": _sha256(archive),
         "package_receipt_sha256": _sha256(rehearsal_path),
         "installation_receipt_sha256": _sha256(install_path),
         "native_route": native,
+        "native_hook_control": hook_control,
         "restart_verified": native is not None,
+        "ready_for_hil": native is not None and hook_control is not None,
         "installed_host_hil_required": True,
         "hil_inferred": False,
         "candidate_created_or_accepted": False,
@@ -1276,6 +1381,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--installation-receipt", type=Path, required=True)
     parser.add_argument("--native-route-receipt", type=Path)
+    parser.add_argument("--hook-control-receipt", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     return parser
 

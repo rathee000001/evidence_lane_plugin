@@ -45,6 +45,7 @@ from .goal_usage import (
     TOKEN_COMPONENT_KEYS,
     build_component_token_accounting,
     build_profile_observed_usage_context,
+    build_reset_aware_epoch_accounting,
 )
 from .hashing import (
     atomic_write_json,
@@ -90,7 +91,6 @@ _DELTA_VERIFICATION_ROLES = {
 _SUPPORTED_EXACT_TASK_BINDING_ACTIVATION_STATES = frozenset(
     {
         "INSTALLED_RESTART_REQUIRED",
-        "LOCAL_3_0_HOOK_RECOVERY_SWITCHED_RESTART_REQUIRED",
     }
 )
 _GOVERNED_ACTIVITY_TOOL_LIMIT = 2048
@@ -159,9 +159,7 @@ _LIFECYCLE_EXIT_REASONS = {
     "STATE_TRAVEL_HANDOFF",
     "STATELESS_EPHEMERAL_END",
 }
-_GOAL_RECOVERY_BINDING_SCHEMA = "evidence-lane.codex-goal-recovery-binding.v1"
-_GOAL_RECOVERY_RELEASE_TOKEN = "v300"
-_SEALED_GOAL_CONTINUATION_ORIGIN = "SEALED_ACTIVE_GOAL_RECOVERY_BINDING"
+_NATIVE_TASK_GOAL_CONTINUATION_ORIGIN = "NATIVE_ACTIVE_GOAL_EXACT_TASK_BINDING"
 _PROJECT_TASK_PRIVATE_ANALYSIS = "PROJECT_TASK_PRIVATE_ANALYSIS"
 _MEMORY_PLUS_LEARNING_RESEARCH_QUESTION = (
     "How can this governed project preserve exact task memory and measure learning "
@@ -195,25 +193,26 @@ def resolve_codex_hook_store_root(
     """Resolve the governed local authority used by every Codex hook.
 
     Codex injects ``PLUGIN_DATA`` as installation-scoped private storage for
-    each plugin selector.  Evidence Lane project, session, PV, PromptIndex,
-    and ChatLineage state is deliberately user-owned and shared across the
-    stable/fallback selectors, so that host value must never become its
-    authority root.  Tests and explicitly configured deployments may bind an
-    alternate durable authority through ``EVIDENCE_LANE_DATA_ROOT`` only.
+    each plugin selector, so that host value must never become Evidence Lane
+    control or project authority. Hidden plugin control state uses
+    ``EVIDENCE_LANE_RUNTIME_CONTROL_ROOT``. Each project then binds its separate
+    user-selected Project/PV authority root through ``project_register``.
     """
 
     values = os.environ if environment is None else environment
-    configured_root = values.get("EVIDENCE_LANE_DATA_ROOT")
+    configured_root = values.get("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT")
     if configured_root is not None:
         configured_root = str(configured_root).strip()
         if not configured_root:
             raise TurnControlError(
-                "EVIDENCE_LANE_DATA_ROOT_INVALID",
-                "EVIDENCE_LANE_DATA_ROOT cannot be empty when configured.",
+                "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT_INVALID",
+                "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT cannot be empty when configured.",
             )
         return Path(configured_root).expanduser().resolve()
     durable_home = (home or Path.home()).expanduser().resolve()
-    return (durable_home / "EvidenceLanePV").resolve()
+    return (
+        durable_home / ".codex" / "plugins" / "runtime" / "evidence-lane-plugin"
+    ).resolve()
 
 
 def _now() -> str:
@@ -377,6 +376,7 @@ def _package_surface_inventory() -> dict[str, Any]:
     )
     hook_paths = [
         plugin_root / "hooks" / "hooks.json",
+        plugin_root / "hooks" / "logical-actions.json",
         *sorted((plugin_root / "hooks").glob("*.exe")),
         *sorted((plugin_root / "hooks").glob("*.py")),
         *sorted((plugin_root / "hooks").glob("*.ps1")),
@@ -412,16 +412,47 @@ def _package_surface_inventory() -> dict[str, Any]:
     hook_contract_validation = validate_hook_configuration(hook_configuration)
     hook_events = dict(hook_configuration.get("hooks") or {})
     registered_events = sorted(hook_events)
+    event_action_inventory: list[dict[str, Any]] = []
+    for event_ordinal, event_name in enumerate(HOOK_EVENT_NAMES, start=1):
+        actions: list[dict[str, Any]] = []
+        for group_ordinal, group in enumerate(
+            list(hook_events.get(event_name) or []), start=1
+        ):
+            for group_action_ordinal, handler in enumerate(
+                list(group.get("hooks") or []), start=1
+            ):
+                action_ordinal = len(actions) + 1
+                command_identity = str(
+                    handler.get("commandWindows") or handler.get("command") or ""
+                )
+                actions.append(
+                    {
+                        "action_number": f"{event_ordinal}.{action_ordinal}",
+                        "event_action_ordinal": action_ordinal,
+                        "group_ordinal": group_ordinal,
+                        "group_action_ordinal": group_action_ordinal,
+                        "type": handler.get("type"),
+                        "command_sha256": sha256_bytes(
+                            command_identity.encode("utf-8")
+                        ),
+                        "raw_command_returned": False,
+                    }
+                )
+        event_action_inventory.append(
+            {
+                "hook_number": event_ordinal,
+                "event_name": event_name,
+                "display_number": f"Hook {event_ordinal}",
+                "action_count": len(actions),
+                "actions": actions,
+            }
+        )
     handler_count = sum(
-        len(group.get("hooks") or [])
-        for groups in hook_events.values()
-        if isinstance(groups, list)
-        for group in groups
-        if isinstance(group, dict)
+        int(row["action_count"]) for row in event_action_inventory
     )
     _require(
         registered_events == sorted(HOOK_EVENT_NAMES)
-        and handler_count == len(registered_events),
+        and all(row["action_count"] >= 1 for row in event_action_inventory),
         "TURN_CONTROL_PACKAGE_HOOK_EVENT_INVENTORY_REQUIRED",
         "The installed persistent hook event inventory is not exact.",
     )
@@ -431,6 +462,12 @@ def _package_surface_inventory() -> dict[str, Any]:
         "registered_event_count": len(registered_events),
         "registered_events": registered_events,
         "handler_count": handler_count,
+        "handler_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
+        "event_order": list(HOOK_EVENT_NAMES),
+        "event_action_inventory": event_action_inventory,
+        "event_action_inventory_sha256": sha256_bytes(
+            canonical_json_bytes(event_action_inventory)
+        ),
         "hook_file_count": hook_files["count"],
         "records": hook_files["records"],
         "file_inventory_sha256": hook_files["inventory_sha256"],
@@ -459,7 +496,6 @@ def _package_surface_inventory() -> dict[str, Any]:
     return {
         **core,
         "surface_counts": dict(public_surface["catalog"]),
-        "commands": public_surface["commands"],
         "providers": public_surface["providers"],
         "public_surface_registry_sha256": public_surface["registry_sha256"],
         "release_catalog_matches_derived": public_surface[
@@ -488,369 +524,6 @@ def _powershell_ordered_json_sha256(value: dict[str, Any]) -> str:
             separators=(",", ":"),
         ).encode()
     )
-
-
-def verify_codex_fallback_prewarmer(
-    root: Path,
-    *,
-    project_id: str,
-    session_id: str,
-    codex_home: Path | None = None,
-) -> dict[str, Any]:
-    """Verify the disabled accepted-PV fallback and exact task recovery bind.
-
-    This is a local read-only proof.  It does not activate a plugin, start a
-    server or tunnel, restart Codex, mutate source, build a candidate, or move
-    the accepted pointer.  The registry is self-sealed and every referenced
-    installation/preparation byte is re-hashed before the proof is returned.
-    """
-
-    installation_root = root / "installations" / "codex-v200"
-    registry_path = installation_root / "two-slot" / "CODEX_TWO_SLOT_REGISTRY.json"
-    _require(
-        registry_path.is_file(),
-        "FALLBACK_PREWARM_REGISTRY_REQUIRED",
-        "The sealed Codex two-slot recovery registry is missing.",
-    )
-    registry = _json(registry_path)
-    registry_body = {
-        key: value
-        for key, value in registry.items()
-        if key not in {"seal", "registry_body_sha256"}
-    }
-    sealed_registry_body = {
-        key: value for key, value in registry.items() if key != "seal"
-    }
-    seal = dict(registry.get("seal") or {})
-    _require(
-        registry.get("schema") == "evidence-lane.codex-two-slot-registry.v1"
-        and registry.get("status") == "PASS"
-        and registry.get("state") == "STABLE_ACTIVE_FALLBACK_PREWARMED_DISABLED"
-        and registry.get("project_id") == project_id
-        and registry.get("evidence_session_id") == session_id
-        and registry.get("accepted_pv") == "PV11"
-        and registry.get("accepted_generation") == 11
-        and registry.get("prior_generation") == 10
-        and registry.get("active_slot") == "stable-build"
-        and registry.get("exact_live_slot_count") == 2
-        and registry.get("max_enabled_plugin_count") == 1
-        and registry.get("max_active_native_mcp_count") == 1
-        and registry.get("max_active_tunnel_count") == 0
-        and registry.get("tunnel_required") is False
-        and registry.get("tunnel_started") is False
-        and registry.get("server_has_durable_filesystem") is True
-        and registry.get("secret_material_present") is False
-        and registry.get("registry_body_sha256")
-        == _powershell_ordered_json_sha256(registry_body)
-        and seal.get("algorithm") == "SHA256"
-        and seal.get("body_sha256")
-        == _powershell_ordered_json_sha256(sealed_registry_body),
-        "FALLBACK_PREWARM_REGISTRY_INVALID",
-        "The Codex two-slot recovery registry is not the exact sealed PV11 boundary.",
-    )
-    slots = dict(registry.get("slots") or {})
-    stable = dict(slots.get("stable-build") or {})
-    fallback = dict(slots.get("fallback") or {})
-    _require(
-        len(slots) == 2
-        and stable.get("slot_role") == "stable-build"
-        and stable.get("enabled") is True
-        and stable.get("native_mcp_enabled") is True
-        and stable.get("byte_frozen") is False
-        and fallback.get("slot_role") == "fallback"
-        and fallback.get("enabled") is False
-        and fallback.get("native_mcp_enabled") is False
-        and fallback.get("byte_frozen") is True
-        and fallback.get("accepted_pv") == "PV11"
-        and fallback.get("accepted_generation") == 11
-        and fallback.get("package_sha256") == registry.get("accepted_package_sha256")
-        and fallback.get("plugin_version") == registry.get("accepted_plugin_version")
-        and dict(stable.get("tunnel") or {}).get("required") is False
-        and dict(fallback.get("tunnel") or {}).get("required") is False,
-        "FALLBACK_PREWARM_SLOT_INVALID",
-        "Stable and fallback are not the exact mutually exclusive two-slot boundary.",
-    )
-
-    fallback_receipt_path = Path(str(fallback.get("install_receipt") or ""))
-    _require(
-        fallback_receipt_path.is_absolute()
-        and _within(fallback_receipt_path, installation_root)
-        and fallback_receipt_path.is_file(),
-        "FALLBACK_PREWARM_INSTALL_RECEIPT_REQUIRED",
-        "The fallback installation receipt is missing or outside its authority root.",
-    )
-    fallback_receipt_file_sha256 = sha256_file(fallback_receipt_path)
-    _require(
-        fallback_receipt_file_sha256 == fallback.get("install_receipt_sha256"),
-        "FALLBACK_PREWARM_INSTALL_RECEIPT_FILE_SEAL_MISMATCH",
-        "The fallback installation receipt file seal does not match the registry.",
-    )
-    fallback_receipt = _json(fallback_receipt_path)
-    fallback_receipt_body = {
-        key: value for key, value in fallback_receipt.items() if key != "receipt_sha256"
-    }
-    activation = dict(fallback_receipt.get("activation") or {})
-    catalog = dict((fallback_receipt.get("plugin") or {}).get("catalog") or {})
-    source_parity = dict(fallback_receipt.get("source_parity") or {})
-    fallback_install_stable_selector = str(activation.get("stable_selector") or "")
-    known_stable_selectors = {
-        str(stable.get("plugin_selector") or ""),
-        *(str(value) for value in registry.get("historical_disabled_entries") or []),
-    }
-    _require(
-        fallback_receipt.get("schema") == "evidence-lane.codex-stable-installation.v2"
-        and fallback_receipt.get("status") == "PASS"
-        and fallback_receipt.get("project_id") == project_id
-        and fallback_receipt.get("evidence_session_id") == session_id
-        and fallback_receipt.get("task_id") == registry.get("task_id")
-        and fallback_receipt.get("host_session_id") == registry.get("host_session_id")
-        and fallback_receipt.get("accepted_pv") == "PV11"
-        and fallback_receipt.get("accepted_generation") == 11
-        and fallback_receipt.get("accepted_manifest_sha256")
-        == registry.get("accepted_manifest_sha256")
-        and fallback_receipt.get("archive_sha256") == fallback.get("package_sha256")
-        and fallback_receipt.get("byte_frozen") is True
-        and fallback_receipt.get("slot_role") == "fallback"
-        and fallback_receipt.get("receipt_sha256")
-        == _powershell_ordered_json_sha256(fallback_receipt_body)
-        and activation.get("plugin_selector") == fallback.get("plugin_selector")
-        and activation.get("plugin_enabled") is False
-        and activation.get("mcp_enabled") is False
-        and activation.get("active_server_started") is False
-        and activation.get("restart_invoked") is False
-        and fallback_install_stable_selector in known_stable_selectors
-        and fallback_install_stable_selector != fallback.get("plugin_selector")
-        and activation.get("stable_plugin_enabled") is True
-        and activation.get("stable_mcp_enabled") is True
-        and catalog == {"tools": 62, "read": 21, "write": 41, "skills": 15}
-        and source_parity.get("mismatch_count") == 0
-        and fallback_receipt.get("generated_cache_written_directly") is False
-        and fallback_receipt.get("supported_cli_materialization") is True
-        and fallback_receipt.get("shadow_junction_removed") is True
-        and fallback_receipt.get("source_mutated") is False
-        and fallback_receipt.get("git_mutated") is False
-        and fallback_receipt.get("candidate_created_or_accepted") is False
-        and fallback_receipt.get("pointer_moved") is False
-        and fallback_receipt.get("hil_inferred") is False
-        and fallback_receipt.get("tunnel_started") is False,
-        "FALLBACK_PREWARM_INSTALL_RECEIPT_INVALID",
-        "The fallback installation receipt is not an exact disabled accepted-PV11 proof.",
-    )
-
-    exact_codex_home = (codex_home or (Path.home() / ".codex")).resolve()
-    config_path = exact_codex_home / "config.toml"
-    _require(
-        config_path.is_file(),
-        "FALLBACK_PREWARM_CODEX_CONFIG_REQUIRED",
-        "The live Codex configuration is unavailable.",
-    )
-    try:
-        configured = tomllib.loads(config_path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, tomllib.TOMLDecodeError) as exc:
-        raise TurnControlError(
-            "FALLBACK_PREWARM_CODEX_CONFIG_INVALID",
-            "The live Codex configuration could not be parsed.",
-            error_type=type(exc).__name__,
-        ) from exc
-    plugin_config = dict(configured.get("plugins") or {})
-    evidence_selectors = sorted(
-        key for key in plugin_config if str(key).startswith("evidence-lane-plugin@")
-    )
-    expected_selectors = {
-        str(stable.get("plugin_selector")),
-        str(fallback.get("plugin_selector")),
-    }
-    _require(
-        expected_selectors.issubset(evidence_selectors),
-        "FALLBACK_PREWARM_CODEX_SLOT_CONFIG_MISSING",
-        "The live Codex configuration is missing a current recovery slot.",
-    )
-    enabled_selectors: list[str] = []
-    for selector in evidence_selectors:
-        entry = dict(plugin_config.get(selector) or {})
-        mcp = dict((entry.get("mcp_servers") or {}).get("evidence-lane") or {})
-        plugin_enabled = entry.get("enabled") is True
-        mcp_enabled = mcp.get("enabled") is True
-        _require(
-            plugin_enabled == mcp_enabled,
-            "FALLBACK_PREWARM_CODEX_SLOT_CONFIG_SPLIT",
-            "One Evidence Lane plugin/MCP registration has split activation state.",
-            selector=selector,
-        )
-        if plugin_enabled:
-            enabled_selectors.append(selector)
-        elif selector not in expected_selectors:
-            _require(
-                entry.get("enabled") is False and mcp.get("enabled") is False,
-                "FALLBACK_PREWARM_HISTORICAL_SLOT_NOT_DISABLED",
-                "An older Evidence Lane registration is not explicitly disabled.",
-                selector=selector,
-            )
-    _require(
-        enabled_selectors == [stable.get("plugin_selector")],
-        "FALLBACK_PREWARM_CODEX_EXCLUSIVE_ACTIVATION_MISMATCH",
-        "Stable must remain the sole enabled Evidence Lane route.",
-        enabled_selectors=enabled_selectors,
-    )
-
-    cache_root = exact_codex_home / "plugins" / "cache"
-    marketplace_root = exact_codex_home / "local-marketplaces"
-    for name, slot in (("stable-build", stable), ("fallback", fallback)):
-        cache = Path(str(slot.get("cache_root") or ""))
-        marketplace = Path(str(slot.get("marketplace_root") or ""))
-        _require(
-            cache.is_dir()
-            and marketplace.is_dir()
-            and _within(cache, cache_root)
-            and _within(marketplace, marketplace_root),
-            "FALLBACK_PREWARM_SLOT_BYTES_REQUIRED",
-            "A current Codex recovery slot is missing or outside the installed roots.",
-            slot=name,
-        )
-        plugin_manifest = cache / ".codex-plugin" / "plugin.json"
-        marketplace_manifest = marketplace / ".agents" / "plugins" / "marketplace.json"
-        _require(
-            plugin_manifest.is_file()
-            and marketplace_manifest.is_file()
-            and sha256_file(plugin_manifest) == slot.get("plugin_manifest_sha256")
-            and sha256_file(marketplace_manifest)
-            == slot.get("marketplace_catalog_sha256")
-            and _json(plugin_manifest).get("version") == slot.get("plugin_version"),
-            "FALLBACK_PREWARM_SLOT_MANIFEST_SEAL_MISMATCH",
-            "An installed recovery-slot manifest or version does not match its seal.",
-            slot=name,
-        )
-
-    task_id = str(registry.get("task_id") or "")
-    task_binding_path = Path(str(registry.get("fallback_recovery_task_binding") or ""))
-    _require(
-        _CODEX_TASK_ID_RE.fullmatch(task_id) is not None
-        and task_binding_path.is_absolute()
-        and _within(task_binding_path, installation_root / "two-slot")
-        and task_binding_path.is_file()
-        and sha256_file(task_binding_path)
-        == registry.get("fallback_recovery_task_binding_sha256"),
-        "FALLBACK_PREWARM_TASK_BINDING_REQUIRED",
-        "The exact sealed fallback task recovery binding is missing or stale.",
-    )
-    task_binding = _json(task_binding_path)
-    preparation_path = Path(str(task_binding.get("preparation_receipt") or ""))
-    install_path = Path(str(task_binding.get("install_receipt") or ""))
-    _require(
-        task_binding.get("schema") == "evidence-lane.codex-task-binding.v1"
-        and task_binding.get("state") == "EXACT_TASK_BINDING_PREPARED"
-        and task_binding.get("project_id") == project_id
-        and task_binding.get("evidence_session_id") == session_id
-        and task_binding.get("task_id") == task_id
-        and task_binding.get("governed_host_session_id")
-        == registry.get("host_session_id")
-        and task_binding.get("plugin_version") == fallback.get("plugin_version")
-        and task_binding.get("task_uri_sha256")
-        == sha256_bytes(f"codex://threads/{task_id}".encode())
-        and task_binding.get("claim_scope") == "EXACT_CODEX_THREAD_ID_ONLY"
-        and task_binding.get("alias_claim_allowed") is True
-        and task_binding.get("source_mutated") is False
-        and task_binding.get("candidate_created_or_accepted") is False
-        and task_binding.get("pointer_moved") is False
-        and task_binding.get("hil_inferred") is False
-        and preparation_path.is_absolute()
-        and _within(preparation_path, installation_root)
-        and preparation_path.is_file()
-        and install_path == fallback_receipt_path
-        and task_binding.get("install_receipt_sha256") == fallback_receipt_file_sha256
-        and task_binding.get("preparation_receipt_sha256")
-        == sha256_file(preparation_path),
-        "FALLBACK_PREWARM_TASK_BINDING_INVALID",
-        "The current Codex task recovery binding is stale, cross-task, or promoting.",
-    )
-    preparation = _json(preparation_path)
-    continuation = dict(preparation.get("continuation") or {})
-    _require(
-        preparation.get("schema") == "evidence-lane.codex-restart-preparation.v2"
-        and preparation.get("state") == "PREPARED_NOT_RESTARTED"
-        and preparation.get("project_id") == project_id
-        and preparation.get("evidence_session_id") == session_id
-        and preparation.get("task_id") == task_id
-        and preparation.get("host_session_id") == registry.get("host_session_id")
-        and preparation.get("install_receipt_sha256") == fallback_receipt_file_sha256
-        and preparation.get("plugin_version") == fallback.get("plugin_version")
-        and continuation.get("same_task_required") is True
-        and continuation.get("task_navigation_mode") == "CODEX_THREAD_DEEPLINK"
-        and continuation.get("task_uri_sha256") == task_binding.get("task_uri_sha256")
-        and continuation.get("coordinate_clicking_used") is False
-        and continuation.get("lifecycle_resume_call_required") is False
-        and continuation.get("state_travel_required") is False
-        and preparation.get("hot_reload_claimed") is False
-        and preparation.get("process_stopped") is False
-        and preparation.get("source_mutated") is False
-        and preparation.get("candidate_created_or_accepted") is False
-        and preparation.get("pointer_moved") is False
-        and preparation.get("hil_inferred") is False,
-        "FALLBACK_PREWARM_RESTART_PREPARATION_INVALID",
-        "The recovery helper did not prepare this exact task without restarting it.",
-    )
-
-    running_plugin_root = Path(__file__).resolve().parents[2]
-    switch_helper = (
-        running_plugin_root
-        / "scripts"
-        / "codex_release"
-        / "Switch-EvidenceLaneCodexSlot.ps1"
-    )
-    restart_helper = (
-        running_plugin_root
-        / "scripts"
-        / "codex_release"
-        / "Restart-EvidenceLaneCodex.ps1"
-    )
-    _require(
-        switch_helper.is_file()
-        and restart_helper.is_file()
-        and sha256_file(switch_helper) == registry.get("switch_helper_sha256")
-        and sha256_file(restart_helper) == registry.get("restart_helper_sha256"),
-        "FALLBACK_PREWARM_RECOVERY_HELPER_SEAL_MISMATCH",
-        "The running stable package does not contain the helpers sealed by the recovery registry.",
-    )
-
-    proof = {
-        "schema": "evidence-lane.codex-fallback-prewarm-proof.v1",
-        "status": "PASS",
-        "project_id": project_id,
-        "session_id": session_id,
-        "task_id": task_id,
-        "host_session_id": registry.get("host_session_id"),
-        "accepted_pv": "PV11",
-        "accepted_generation": 11,
-        "accepted_manifest_sha256": registry.get("accepted_manifest_sha256"),
-        "registry_sha256": sha256_file(registry_path),
-        "fallback_install_receipt_sha256": fallback_receipt_file_sha256,
-        "task_binding_receipt_sha256": sha256_file(task_binding_path),
-        "restart_preparation_receipt_sha256": sha256_file(preparation_path),
-        "config_sha256": sha256_file(config_path),
-        "stable_plugin_selector": stable.get("plugin_selector"),
-        "fallback_plugin_selector": fallback.get("plugin_selector"),
-        "fallback_package_sha256": fallback.get("package_sha256"),
-        "fallback_byte_frozen": True,
-        "stable_enabled": True,
-        "fallback_enabled": False,
-        "enabled_evidence_lane_plugin_count": 1,
-        "active_tunnel_count": 0,
-        "tunnel_required": False,
-        "current_task_recovery_prepared": True,
-        "restart_invoked": False,
-        "fallback_activated": False,
-        "source_mutated": False,
-        "git_mutated": False,
-        "candidate_created": False,
-        "pending_hil": False,
-        "pointer_moved": False,
-        "hil_inferred": False,
-        "verified_at": _now(),
-    }
-    return {
-        **proof,
-        "receipt_sha256": sha256_bytes(canonical_json_bytes(proof)),
-    }
 
 
 def _package_update_status(root: Path) -> dict[str, Any]:
@@ -964,8 +637,7 @@ def _host_binding_epoch(session: dict[str, Any]) -> str:
     """Seal the exact governed host binding without storing its raw identity."""
 
     metadata = dict(session.get("metadata") or {})
-    travel = dict(metadata.get("state_travel") or {})
-    resume_contract = dict(travel.get("resume_contract") or {})
+    direct_entry = dict(metadata.get("direct_forced_same_worktree_entry") or {})
     governed_host_session_id = str(
         metadata.get("current_host_session_id") or ""
     ).strip()
@@ -985,28 +657,14 @@ def _host_binding_epoch(session: dict[str, Any]) -> str:
             if isinstance(session.get("task"), dict)
             else None
         ),
-        "state_travel_handoff_sha256": travel.get("handoff_sha256"),
-        "state_travel_verified_snapshot_sha256": travel.get("verified_snapshot_sha256"),
-        "state_travel_task_list_sha256": resume_contract.get("task_list_sha256"),
-        "state_travel_additive_deltas_sha256": resume_contract.get(
-            "additive_deltas_sha256"
+        "direct_entry_receipt_sha256": direct_entry.get("receipt_sha256"),
+        "direct_destination_task_id_sha256": (
+            sha256_bytes(str(direct_entry.get("destination_task_id") or "").encode())
+            if direct_entry.get("destination_task_id")
+            else None
         ),
     }
     return sha256_bytes(canonical_json_bytes(core))
-
-
-def _host_transcript_sha256(transcript_path: str) -> str | None:
-    exact = str(transcript_path or "").strip()
-    if not exact:
-        return None
-    path = Path(exact)
-    if not path.is_absolute() or not path.is_file():
-        return None
-    try:
-        normalized = os.path.normcase(str(path.resolve(strict=True)))
-    except OSError:
-        return None
-    return sha256_bytes(normalized.encode("utf-8"))
 
 
 def _read_codex_task_binding(
@@ -1116,184 +774,75 @@ def _read_codex_task_binding(
     }
 
 
-def _read_active_goal_recovery_binding(
+def _derive_active_task_goal_binding(
     root: Path,
     *,
     host_session_id: str,
     turn_binding: dict[str, Any],
+    host_payload: dict[str, Any],
 ) -> dict[str, Any]:
-    """Verify one exact active Goal binding without replaying a prompt.
+    """Bind native Goal continuation to the exact task, Plan row, and runtime.
 
-    Goal continuation does not traverse ``UserPromptSubmit``.  The installed
-    recovery helper therefore supplies a separately sealed exact-task
-    authority.  This reader accepts only that current task, current installed
-    package, current active Plan row, and an active Goal.  It never reads the
-    task transcript or stores the raw Goal objective.
+    No user helper, scheduled task, synthetic prompt, transcript, or raw Goal
+    objective participates. The host must provide the native active-Goal flag
+    on the first PreToolUse boundary; otherwise the route fails closed.
     """
 
     task_id = str(host_session_id or "").strip()
     _require(
         _CODEX_TASK_ID_RE.fullmatch(task_id) is not None,
-        "TURN_CONTROL_GOAL_RECOVERY_TASK_ID_REQUIRED",
+        "TURN_CONTROL_TASK_GOAL_ID_REQUIRED",
         "Goal continuation requires one exact Codex task UUID.",
     )
-    binding_path = (
-        root
-        / "installations"
-        / "helpers"
-        / _GOAL_RECOVERY_RELEASE_TOKEN
-        / "goal-recovery"
-        / "bindings"
-        / f"{task_id.lower()}.json"
-    )
     _require(
-        binding_path.is_file(),
-        "TURN_CONTROL_GOAL_RECOVERY_BINDING_REQUIRED",
-        "The exact task has no sealed active Goal recovery binding.",
-        task_id=task_id,
+        host_payload.get("host_goal_active") is True,
+        "TURN_CONTROL_NATIVE_ACTIVE_GOAL_PROOF_REQUIRED",
+        "The first non-prompt tool boundary has no native active-Goal proof.",
     )
-    record = _json(binding_path)
-    payload = dict(record.get("payload") or {})
-    claimed_payload_sha256 = str(record.get("payload_sha256") or "").upper()
-    _require(
-        record.get("schema") == _GOAL_RECOVERY_BINDING_SCHEMA
-        and bool(payload)
-        and claimed_payload_sha256 == _powershell_ordered_json_sha256(payload),
-        "TURN_CONTROL_GOAL_RECOVERY_BINDING_SEAL_MISMATCH",
-        "The exact Goal recovery binding failed schema or SHA-256 verification.",
-    )
-
     task_binding = _read_codex_task_binding(
         root,
         observed_host_session_id=task_id,
     )
     _require(
         isinstance(task_binding, dict),
-        "TURN_CONTROL_GOAL_RECOVERY_TASK_BINDING_REQUIRED",
-        "The Goal recovery binding has no current exact-task installation authority.",
+        "TURN_CONTROL_TASK_GOAL_BINDING_REQUIRED",
+        "The active Goal has no current exact-task installation binding.",
     )
     task_binding = cast(dict[str, Any], task_binding)
-    expected_task_binding_path = (
-        root
-        / "installations"
-        / "codex-v200"
-        / "task-bindings"
-        / f"{task_id.lower()}.json"
-    ).resolve()
-    supplied_task_binding_path = Path(str(payload.get("task_binding_receipt") or ""))
-    _require(
-        supplied_task_binding_path.is_absolute()
-        and supplied_task_binding_path.resolve() == expected_task_binding_path
-        and supplied_task_binding_path.is_file()
-        and sha256_file(supplied_task_binding_path)
-        == payload.get("task_binding_receipt_sha256")
-        == task_binding.get("task_binding_receipt_sha256"),
-        "TURN_CONTROL_GOAL_RECOVERY_TASK_BINDING_SEAL_MISMATCH",
-        "The active Goal binding does not reference the current exact-task receipt.",
-    )
-
-    goal = dict(payload.get("goal") or {})
-    recovery_law = dict(payload.get("recovery_law") or {})
-    prewarm = dict(goal.get("runtime_prewarm") or {})
-    local_recovery = dict(payload.get("local_recovery_authority") or {})
-    slot_authority = dict(payload.get("slot_authority") or {})
     active_plan = dict(turn_binding.get("persistent_plan_row") or {})
-    runtime_selector = str(payload.get("runtime_plugin_selector") or "")
     task_uri_sha256 = sha256_bytes(f"codex://threads/{task_id}".encode())
     plugin_version = str(_package_surface_inventory().get("plugin_version") or "")
     _require(
-        payload.get("state") == "ACTIVE_GOAL_BOUND"
-        and payload.get("manager_scope") == "SHARED_MULTI_PROJECT_MULTI_TASK"
-        and payload.get("binding_scope") == "MUTABLE_EXACT_TASK_ROW"
-        and isinstance(payload.get("binding_revision"), int)
-        and int(payload["binding_revision"]) >= 1
-        and payload.get("project_id") == turn_binding.get("project_id")
-        and payload.get("evidence_session_id")
-        == turn_binding.get("evidence_session_id")
-        and payload.get("task_id") == task_id
-        and payload.get("governed_host_session_id") == task_id
-        and payload.get("active_plan_task_id") == turn_binding.get("plan_task_id")
-        and payload.get("canonical_authority") == "PLAN_LANE"
-        and payload.get("task_uri_sha256") == task_uri_sha256
-        and task_binding.get("project_id") == turn_binding.get("project_id")
+        task_binding.get("project_id") == turn_binding.get("project_id")
         and task_binding.get("evidence_session_id")
         == turn_binding.get("evidence_session_id")
         and task_binding.get("task_id") == task_id
         and task_binding.get("governed_host_session_id") == task_id
         and task_binding.get("task_uri_sha256") == task_uri_sha256
         and task_binding.get("plugin_version") == plugin_version
-        and active_plan.get("task_id") == payload.get("active_plan_task_id")
+        and active_plan.get("task_id") == turn_binding.get("plan_task_id")
         and active_plan.get("status") == "in_progress"
         and active_plan.get("lifecycle_status") == "ACTIVE",
-        "TURN_CONTROL_GOAL_RECOVERY_IDENTITY_MISMATCH",
-        "Goal recovery, task, project, installed package, or active Plan identity drifted.",
+        "TURN_CONTROL_TASK_GOAL_IDENTITY_MISMATCH",
+        "Native Goal, task, project, installed package, or active Plan identity drifted.",
     )
-    _require(
-        bool(runtime_selector)
-        and local_recovery.get("primary_selector") == runtime_selector
-        and local_recovery.get("byte_identical") is True
-        and local_recovery.get("recovery_enabled") is False
-        and local_recovery.get("accepted_2_1_automatic_recovery_allowed") is False
-        and prewarm.get("status") == "PASS"
-        and prewarm.get("canonical_plugin_selector") == runtime_selector
-        and prewarm.get("bound_plugin_selector") == runtime_selector
-        and prewarm.get("canonical_plugin_installed") is True
-        and prewarm.get("canonical_plugin_enabled") is True
-        and prewarm.get("canonical_plugin_local_version") == plugin_version
-        and prewarm.get("exact_tool_count") == NATIVE_TOOL_COUNT
-        and prewarm.get("thread_scoped_mcp_inventory_available") is False
-        and prewarm.get("live_host_next_active_turn_refresh_claimed") is False,
-        "TURN_CONTROL_GOAL_RECOVERY_RUNTIME_MISMATCH",
-        "The Goal recovery binding is not sealed to the current installed runtime selector.",
-    )
-    _require(
-        goal.get("task_id") == task_id
-        and goal.get("goal_status") == "active"
-        and _SHA256_RE.fullmatch(str(goal.get("goal_objective_sha256") or "").upper())
-        is not None
-        and goal.get("raw_goal_objective_stored") is False
-        and "goal_objective" not in goal
-        and goal.get("thread_resume_invoked") is False
-        and goal.get("turn_started") is False
-        and goal.get("prompt_injected") is False
-        and goal.get("app_restarted") is False
-        and goal.get("restart_fallback_invoked") is False,
-        "TURN_CONTROL_GOAL_RECOVERY_GOAL_MISMATCH",
-        "The persisted Goal is inactive, raw, synthetic, or already replayed.",
-    )
-    _require(
-        recovery_law.get("release") == ENGINE_VERSION
-        and recovery_law.get("release_token") == _GOAL_RECOVERY_RELEASE_TOKEN
-        and recovery_law.get("exact_task_only") is True
-        and recovery_law.get("persisted_goal_must_remain_active") is True
-        and recovery_law.get("raw_goal_objective_stored") is False
-        and recovery_law.get("synthetic_prompt_allowed") is False
-        and recovery_law.get("turn_start_allowed") is False
-        and recovery_law.get("thread_resume_writer_allowed") is False
-        and recovery_law.get("state_travel_allowed") is False
-        and recovery_law.get("candidate_hil_pointer_or_git_mutation_allowed") is False
-        and recovery_law.get("restart_loop_allowed") is False
-        and slot_authority.get("accepted_pv") == turn_binding.get("accepted_pv")
-        and slot_authority.get("accepted_generation")
-        == turn_binding.get("pointer_generation"),
-        "TURN_CONTROL_GOAL_RECOVERY_LAW_MISMATCH",
-        "The Goal recovery law or accepted pointer boundary drifted.",
-    )
-    receipt = {
-        "schema": "evidence-lane.codex-goal-continuation-authority.v1",
-        "state": "SEALED_ACTIVE_GOAL_RECOVERY_BINDING_VERIFIED",
-        "input_origin": _SEALED_GOAL_CONTINUATION_ORIGIN,
+    core = {
+        "schema": "evidence-lane.codex-task-goal-continuation-authority.v1",
+        "state": "NATIVE_ACTIVE_TASK_GOAL_BINDING_VERIFIED",
+        "input_origin": _NATIVE_TASK_GOAL_CONTINUATION_ORIGIN,
         "project_id": turn_binding["project_id"],
         "evidence_session_id": turn_binding["evidence_session_id"],
         "task_id": task_id,
         "active_plan_task_id": turn_binding["plan_task_id"],
-        "runtime_plugin_selector": runtime_selector,
-        "binding_revision": int(payload["binding_revision"]),
-        "goal_recovery_payload_sha256": claimed_payload_sha256,
-        "goal_recovery_file_sha256": sha256_file(binding_path),
-        "task_binding_receipt_sha256": task_binding["task_binding_receipt_sha256"],
+        "plugin_version": plugin_version,
+        "task_binding_receipt_sha256": task_binding[
+            "task_binding_receipt_sha256"
+        ],
         "task_uri_sha256": task_uri_sha256,
-        "goal_objective_sha256": str(goal["goal_objective_sha256"]).upper(),
+        "accepted_pv": turn_binding["accepted_pv"],
+        "pointer_generation": turn_binding["pointer_generation"],
+        "native_goal_status_source": "PRETOOLUSE_HOST_PAYLOAD",
+        "host_goal_active": True,
         "raw_goal_objective_stored": False,
         "synthetic_prompt_used": False,
         "user_prompt_submit_observed": False,
@@ -1305,81 +854,11 @@ def _read_active_goal_recovery_binding(
         "transcript_used": False,
         "private_reasoning_stored": False,
     }
-    receipt["receipt_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
-    return receipt
+    return {
+        **core,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(core)),
+    }
 
-
-def _read_host_alias(
-    project_root: Path,
-    *,
-    session: dict[str, Any],
-    observed_host_session_id: str,
-    transcript_path: str,
-) -> dict[str, Any] | None:
-    transcript_sha256 = _host_transcript_sha256(transcript_path)
-    if not observed_host_session_id or transcript_sha256 is None:
-        return None
-    database = resolved_chat_lineage_root(project_root) / "codex_turn_control.sqlite"
-    if not database.is_file():
-        return None
-    observed_sha256 = sha256_bytes(observed_host_session_id.encode("utf-8"))
-    binding_epoch_sha256 = _host_binding_epoch(session)
-    try:
-        connection = sqlite3.connect(
-            f"file:{database.as_posix()}?mode=ro",
-            uri=True,
-            timeout=5,
-        )
-        connection.row_factory = sqlite3.Row
-        try:
-            row = connection.execute(
-                """
-                SELECT alias_receipt_sha256, record_json
-                FROM host_session_alias
-                WHERE observed_host_session_id_sha256=?
-                  AND binding_epoch_sha256=?
-                """,
-                (observed_sha256, binding_epoch_sha256),
-            ).fetchone()
-        finally:
-            connection.close()
-    except sqlite3.Error:
-        return None
-    if row is None:
-        return None
-    try:
-        record = json.loads(row["record_json"])
-    except (TypeError, ValueError, json.JSONDecodeError):
-        return None
-    claimed = str(record.get("alias_receipt_sha256") or "")
-    actual = sha256_bytes(
-        canonical_json_bytes(
-            {
-                key: value
-                for key, value in record.items()
-                if key != "alias_receipt_sha256"
-            }
-        )
-    )
-    if (
-        claimed != actual
-        or claimed != row["alias_receipt_sha256"]
-        or record.get("project_id") != session.get("project_id")
-        or record.get("evidence_session_id") != session.get("session_id")
-        or record.get("observed_host_session_id_sha256") != observed_sha256
-        or record.get("transcript_path_sha256") != transcript_sha256
-        or record.get("binding_epoch_sha256") != binding_epoch_sha256
-        or record.get("governed_host_session_id_sha256")
-        != sha256_bytes(
-            str(
-                session.get("metadata", {}).get("current_host_session_id") or ""
-            ).encode("utf-8")
-        )
-        or record.get("raw_host_identity_stored") is not False
-        or record.get("raw_transcript_path_stored") is not False
-    ):
-        return None
-    return record
 
 
 def _session_candidates(
@@ -1394,10 +873,6 @@ def _session_candidates(
         return []
     exact: list[dict[str, Any]] = []
     cwd_matches: list[dict[str, Any]] = []
-    task_binding = _read_codex_task_binding(
-        root,
-        observed_host_session_id=host_session_id,
-    )
     current_cwd = Path(cwd).resolve() if cwd else None
     for _, project_root in project_routes:
         try:
@@ -1419,27 +894,6 @@ def _session_candidates(
             == host_session_id
         ):
             row["binding_match"] = "EXACT_HOST_SESSION"
-            exact.append(row)
-        elif (
-            _read_host_alias(
-                project_root,
-                session=session,
-                observed_host_session_id=host_session_id,
-                transcript_path=transcript_path,
-            )
-            is not None
-        ):
-            row["binding_match"] = "SEALED_CODEX_HOST_ALIAS"
-            exact.append(row)
-        elif (
-            task_binding is not None
-            and task_binding.get("project_id") == session.get("project_id")
-            and task_binding.get("evidence_session_id") == session.get("session_id")
-            and task_binding.get("governed_host_session_id")
-            == session.get("metadata", {}).get("current_host_session_id")
-        ):
-            row["binding_match"] = "PREPARED_CODEX_TASK_BINDING"
-            row["task_binding"] = task_binding
             exact.append(row)
         elif current_cwd and _within(
             current_cwd, Path(str(project["repository_path"]))
@@ -1501,10 +955,6 @@ def policy_state(
         "reason": (
             "EXACT_GOVERNED_SESSION_BINDING"
             if candidate.get("binding_match") == "EXACT_HOST_SESSION"
-            else "SEALED_CODEX_HOST_ALIAS_BINDING"
-            if candidate.get("binding_match") == "SEALED_CODEX_HOST_ALIAS"
-            else "PREPARED_EXACT_CODEX_TASK_BINDING"
-            if candidate.get("binding_match") == "PREPARED_CODEX_TASK_BINDING"
             else "STALE_OR_MISSING_HOST_SESSION_NO_CWD_REBIND"
         ),
         "project_id": session.get("project_id"),
@@ -1535,8 +985,7 @@ def _one_bound_session(
     )
     candidate = candidates[0]
     _require(
-        candidate.get("binding_match")
-        in {"EXACT_HOST_SESSION", "SEALED_CODEX_HOST_ALIAS"},
+        candidate.get("binding_match") == "EXACT_HOST_SESSION",
         "TURN_CONTROL_EXACT_HOST_BINDING_REQUIRED",
         "Repository location cannot substitute for the exact governed host-session identity.",
         binding_match=candidate.get("binding_match"),
@@ -1606,325 +1055,37 @@ def _prepare_bound_host_plan_rehydration(
         ) from exc
 
 
-def _validate_alias_claim_profile(
-    candidate: dict[str, Any],
-    host_payload: dict[str, Any],
-) -> str:
-    session = candidate["session"]
-    metadata = dict(session.get("metadata") or {})
-    travel = dict(metadata.get("state_travel") or {})
-    resume_contract = dict(travel.get("resume_contract") or {})
-    expected_profile = dict(resume_contract.get("execution_profile") or {})
-    expected_model = str(expected_profile.get("model") or "").strip()
-    supplied_model = str(host_payload.get("model") or "").strip()
-    _require(
-        bool(expected_model and supplied_model),
-        "TURN_CONTROL_HOST_ALIAS_MODEL_REQUIRED",
-        "A one-time Codex host alias claim requires the sealed and observed model identities.",
-    )
-    _require(
-        supplied_model == expected_model,
-        "TURN_CONTROL_HOST_ALIAS_MODEL_MISMATCH",
-        "The observed Codex model does not match the sealed State Travel profile.",
-        expected_model=expected_model,
-        supplied_model=supplied_model,
-    )
-    return supplied_model
-
-
-def _active_host_alias_collision(
-    root: Path,
-    *,
-    observed_host_session_id_sha256: str,
-    selected_project_id: str,
-    selected_evidence_session_id: str,
-) -> dict[str, Any] | None:
-    project_routes = _project_authority_routes(root)
-    if not project_routes:
-        return None
-    for _, project_root in project_routes:
-        try:
-            active = _json(project_root / "active_session.json")
-            session = _json(project_root / "sessions" / f"{active['session_id']}.json")
-        except (TurnControlError, KeyError):
-            continue
-        if session.get("metadata", {}).get("closed_at"):
-            continue
-        database = (
-            resolved_chat_lineage_root(project_root) / "codex_turn_control.sqlite"
-        )
-        if not database.is_file():
-            continue
-        try:
-            connection = sqlite3.connect(
-                f"file:{database.as_posix()}?mode=ro",
-                uri=True,
-                timeout=5,
-            )
-            connection.row_factory = sqlite3.Row
-            try:
-                row = connection.execute(
-                    """
-                    SELECT alias_receipt_sha256, record_json
-                    FROM host_session_alias
-                    WHERE observed_host_session_id_sha256=?
-                      AND binding_epoch_sha256=?
-                    """,
-                    (
-                        observed_host_session_id_sha256,
-                        _host_binding_epoch(session),
-                    ),
-                ).fetchone()
-            finally:
-                connection.close()
-        except sqlite3.Error:
-            continue
-        if row is None:
-            continue
-        try:
-            record = json.loads(row["record_json"])
-        except (TypeError, ValueError, json.JSONDecodeError):
-            return {"state": "INVALID_SEALED_HOST_ALIAS_RECORD"}
-        claimed = str(record.get("alias_receipt_sha256") or "")
-        actual = sha256_bytes(
-            canonical_json_bytes(
-                {
-                    key: value
-                    for key, value in record.items()
-                    if key != "alias_receipt_sha256"
-                }
-            )
-        )
-        if (
-            claimed != actual
-            or claimed != row["alias_receipt_sha256"]
-            or record.get("observed_host_session_id_sha256")
-            != observed_host_session_id_sha256
-            or record.get("binding_epoch_sha256") != _host_binding_epoch(session)
-        ):
-            return {"state": "INVALID_SEALED_HOST_ALIAS_RECORD"}
-        owner = (
-            str(record.get("project_id") or ""),
-            str(record.get("evidence_session_id") or ""),
-        )
-        if owner != (selected_project_id, selected_evidence_session_id):
-            return {
-                "project_id": owner[0],
-                "evidence_session_id": owner[1],
-                "alias_receipt_sha256": record.get("alias_receipt_sha256"),
-            }
-    return None
-
-
 def bind_codex_host_payload(
     store_root: str | Path,
     *,
     host_payload: dict[str, Any],
     event_name: str,
-    allow_alias_claim: bool,
-) -> tuple[dict[str, Any], dict[str, Any] | None]:
-    """Normalize a Codex-native session id to one sealed State Travel identity.
+) -> tuple[dict[str, Any], None]:
+    """Accept only the exact native governed task identity.
 
-    Codex hook payloads carry Codex's session id, while a governed State Travel
-    contract may deliberately use a separate destination identity.  This helper
-    permits exactly one receipt-backed association.  It never falls back from a
-    task title or an arbitrary workspace path.  A one-time claim requires either
-    the exact governed repository CWD or an installer-prepared exact Codex task
-    receipt, plus a real transcript path, the sealed model, an attached runtime,
-    and one unambiguous active project.
+    Historical host-alias claims, transcript-derived rebinding, CWD rebinding,
+    and installer-prepared identity substitution are intentionally absent.
+    State Travel and native task attachment must establish the exact session id
+    before any hook may enter strict turn control.
     """
 
+    del event_name
     root = Path(store_root).resolve()
     normalized = dict(host_payload)
     observed_host_session_id = str(normalized.get("session_id") or "").strip()
-    cwd = str(normalized.get("cwd") or "")
-    transcript_path = str(
-        normalized.get("transcript_path")
-        or normalized.get("agent_transcript_path")
-        or ""
-    ).strip()
     if not observed_host_session_id:
         return normalized, None
     candidates = _session_candidates(
         root,
         host_session_id=observed_host_session_id,
-        cwd=cwd,
-        transcript_path=transcript_path,
+        cwd=str(normalized.get("cwd") or ""),
     )
-    if len(candidates) != 1:
-        return normalized, None
-    candidate = candidates[0]
-    binding_match = str(candidate.get("binding_match") or "")
-    if binding_match == "EXACT_HOST_SESSION":
-        return normalized, None
-    if binding_match == "SEALED_CODEX_HOST_ALIAS":
-        _validate_alias_claim_profile(candidate, normalized)
-        alias = _read_host_alias(
-            Path(candidate["project_root"]),
-            session=candidate["session"],
-            observed_host_session_id=observed_host_session_id,
-            transcript_path=transcript_path,
-        )
-        _require(
-            alias is not None,
-            "TURN_CONTROL_HOST_ALIAS_RECEIPT_REQUIRED",
-            "The sealed Codex host alias receipt could not be reverified.",
-        )
-        assert alias is not None
-        governed_host_session_id = str(
-            candidate["session"].get("metadata", {}).get("current_host_session_id")
-            or ""
-        ).strip()
-        normalized["session_id"] = governed_host_session_id
-        normalized["codex_observed_session_id_sha256"] = alias[
-            "observed_host_session_id_sha256"
-        ]
-        return normalized, {
-            "state": "SEALED_CODEX_HOST_ALIAS_REUSED",
-            "alias_receipt_sha256": alias["alias_receipt_sha256"],
-            "binding_epoch_sha256": alias["binding_epoch_sha256"],
-            "observed_host_session_id_sha256": alias["observed_host_session_id_sha256"],
-            "transcript_path_sha256": alias["transcript_path_sha256"],
-            "raw_host_identity_stored": False,
-            "raw_transcript_path_stored": False,
-        }
     if (
-        binding_match
-        not in {
-            "CWD_ONLY_STALE_OR_MISSING_HOST",
-            "PREPARED_CODEX_TASK_BINDING",
-        }
-        or not allow_alias_claim
+        len(candidates) == 1
+        and candidates[0].get("binding_match") == "EXACT_HOST_SESSION"
     ):
         return normalized, None
-    transcript = Path(transcript_path)
-    if not transcript_path or not transcript.is_absolute() or not transcript.is_file():
-        return normalized, None
-    supplied_model = _validate_alias_claim_profile(candidate, normalized)
-    session = candidate["session"]
-    metadata = dict(session.get("metadata") or {})
-    governed_host_session_id = str(
-        metadata.get("current_host_session_id") or ""
-    ).strip()
-    _require(
-        bool(governed_host_session_id),
-        "TURN_CONTROL_GOVERNED_HOST_IDENTITY_REQUIRED",
-        "The active Evidence Lane session has no sealed destination host identity.",
-    )
-    activation = _runtime_activation(root)
-    attached = any(
-        isinstance(row, dict)
-        and row.get("project_id") == session.get("project_id")
-        and row.get("session_id") == session.get("session_id")
-        for row in activation.get("active_sessions", [])
-    )
-    _require(
-        activation.get("state") == "ACTIVE" and attached,
-        "TURN_CONTROL_RUNTIME_ATTACHMENT_REQUIRED",
-        "A Codex host alias cannot be claimed for a detached governed session.",
-        runtime_state=activation.get("state"),
-    )
-    observed_sha256 = sha256_bytes(observed_host_session_id.encode("utf-8"))
-    collision = _active_host_alias_collision(
-        root,
-        observed_host_session_id_sha256=observed_sha256,
-        selected_project_id=str(session.get("project_id") or ""),
-        selected_evidence_session_id=str(session.get("session_id") or ""),
-    )
-    _require(
-        collision is None,
-        "TURN_CONTROL_HOST_ALIAS_COLLISION",
-        "The observed Codex host identity is already bound to another active governed session.",
-        collision=collision,
-    )
-    transcript_sha256 = _host_transcript_sha256(transcript_path)
-    _require(
-        transcript_sha256 is not None,
-        "TURN_CONTROL_HOST_ALIAS_TRANSCRIPT_REQUIRED",
-        "A one-time Codex host alias claim requires an absolute transcript identity.",
-    )
-    claimed_at = _now()
-    task_binding = dict(candidate.get("task_binding") or {})
-    record = {
-        "schema": "evidence-lane.codex-host-session-alias.v1",
-        "project_id": session.get("project_id"),
-        "evidence_session_id": session.get("session_id"),
-        "governed_host_session_id_sha256": sha256_bytes(
-            governed_host_session_id.encode("utf-8")
-        ),
-        "observed_host_session_id_sha256": observed_sha256,
-        "transcript_path_sha256": transcript_sha256,
-        "binding_epoch_sha256": _host_binding_epoch(session),
-        "model": supplied_model,
-        "event_name": str(event_name or "").strip(),
-        "permission_mode": str(normalized.get("permission_mode") or "").strip() or None,
-        "binding_basis": (
-            "INSTALLER_PREPARED_EXACT_CODEX_TASK_RUNTIME_ATTACHMENT_"
-            "TRANSCRIPT_AND_SEALED_MODEL"
-            if binding_match == "PREPARED_CODEX_TASK_BINDING"
-            else "ONE_ACTIVE_PROJECT_EXACT_REPOSITORY_RUNTIME_ATTACHMENT_"
-            "TRANSCRIPT_AND_SEALED_MODEL"
-        ),
-        "task_binding_receipt_sha256": (
-            task_binding.get("task_binding_receipt_sha256")
-            if binding_match == "PREPARED_CODEX_TASK_BINDING"
-            else None
-        ),
-        "raw_host_identity_stored": False,
-        "raw_transcript_path_stored": False,
-        "source_mutated": False,
-        "pointer_moved": False,
-        "candidate_created": False,
-        "hil_inferred": False,
-        "claimed_at": claimed_at,
-    }
-    record["alias_receipt_sha256"] = sha256_bytes(canonical_json_bytes(record))
-    project_root = Path(candidate["project_root"])
-    with _connection(project_root) as connection:
-        connection.execute("BEGIN IMMEDIATE")
-        existing = connection.execute(
-            """
-            SELECT record_json FROM host_session_alias
-            WHERE observed_host_session_id_sha256=?
-              AND binding_epoch_sha256=?
-            """,
-            (observed_sha256, record["binding_epoch_sha256"]),
-        ).fetchone()
-        if existing is None:
-            connection.execute(
-                "INSERT INTO host_session_alias VALUES(?,?,?,?,?,?,?,?,?,?)",
-                (
-                    record["alias_receipt_sha256"],
-                    record["project_id"],
-                    record["evidence_session_id"],
-                    record["governed_host_session_id_sha256"],
-                    record["observed_host_session_id_sha256"],
-                    record["transcript_path_sha256"],
-                    record["binding_epoch_sha256"],
-                    json.dumps(record, sort_keys=True, separators=(",", ":")),
-                    claimed_at,
-                    ENGINE_VERSION,
-                ),
-            )
-        else:
-            existing_record = json.loads(existing["record_json"])
-            _require(
-                existing_record == record,
-                "TURN_CONTROL_HOST_ALIAS_CONFLICT",
-                "The observed Codex host identity already has a different sealed alias receipt.",
-            )
-        connection.commit()
-    normalized["session_id"] = governed_host_session_id
-    normalized["codex_observed_session_id_sha256"] = observed_sha256
-    return normalized, {
-        "state": "SEALED_CODEX_HOST_ALIAS_CLAIMED",
-        "alias_receipt_sha256": record["alias_receipt_sha256"],
-        "binding_epoch_sha256": record["binding_epoch_sha256"],
-        "observed_host_session_id_sha256": observed_sha256,
-        "transcript_path_sha256": transcript_sha256,
-        "raw_host_identity_stored": False,
-        "raw_transcript_path_stored": False,
-    }
+    return normalized, None
 
 
 def _sha(value: Any, *, field: str) -> str:
@@ -1960,6 +1121,7 @@ def _verified_direct_entry_authority(
         key: value for key, value in attestation.items() if key != "receipt_sha256"
     }
     no_mutation = dict(receipt.get("no_mutation_flags") or {})
+    preserved_candidate = dict(receipt.get("preserved_candidate_hil_state") or {})
     sealed_transport = dict(receipt.get("sealed_transport") or {})
     destination_task_id = str(destination.get("task_id") or "").strip()
     destination_deep_link = f"codex://threads/{destination_task_id}"
@@ -1967,7 +1129,10 @@ def _verified_direct_entry_authority(
     attestation_sha256 = str(attestation.get("receipt_sha256") or "").strip().upper()
     _require(
         receipt.get("schema")
-        == "evidence-lane.direct-forced-same-worktree-entry-receipt.v1"
+        in {
+            "evidence-lane.direct-forced-same-worktree-entry-receipt.v1",
+            "evidence-lane.direct-forced-same-worktree-entry-receipt.v2",
+        }
         and receipt.get("status") == "PASS"
         and receipt.get("route") == "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK"
         and receipt.get("project_id") == session.get("project_id")
@@ -1999,6 +1164,20 @@ def _verified_direct_entry_authority(
         and sealed_transport.get("transport_envelope_consumed") is False
         and no_mutation.get("source_mutated") is False
         and no_mutation.get("candidate_created") is False
+        and (
+            receipt.get("schema")
+            == "evidence-lane.direct-forced-same-worktree-entry-receipt.v1"
+            or (
+                no_mutation.get("candidate_cleared") is False
+                and no_mutation.get("candidate_rebuilt") is False
+                and preserved_candidate.get("candidate_id")
+                == session.get("candidate_id")
+                and preserved_candidate.get("lifecycle_state")
+                == session.get("state")
+                and bool(preserved_candidate.get("pending_hil"))
+                == bool(metadata.get("pending_hil"))
+            )
+        )
         and no_mutation.get("hil_inferred") is False
         and no_mutation.get("pointer_moved") is False
         and no_mutation.get("sealed_prepare_called") is False
@@ -2008,12 +1187,12 @@ def _verified_direct_entry_authority(
         "TURN_CONTROL_DIRECT_ENTRY_AUTHORITY_MISMATCH",
         "The stored direct State Travel receipt is not the exact sealed destination authority.",
     )
-    recovery = receipt.get("calling_task_recovery_authority")
-    history = [
-        dict(value)
-        for value in metadata.get("active_contract_rebinds") or []
-        if isinstance(value, dict)
-    ]
+    expected_pending_hil = bool(
+        preserved_candidate.get("pending_hil")
+        if receipt.get("schema")
+        == "evidence-lane.direct-forced-same-worktree-entry-receipt.v2"
+        else False
+    )
 
     def sealed_rebind(value: Mapping[str, Any]) -> bool:
         exact = dict(value)
@@ -2024,64 +1203,6 @@ def _verified_direct_entry_authority(
             and digest == sha256_bytes(canonical_json_bytes(body))
         )
 
-    if isinstance(recovery, dict):
-        embedded = dict(recovery)
-        embedded_sha256 = str(embedded.get("receipt_sha256") or "").upper()
-        matching_history = [
-            value
-            for value in history
-            if str(value.get("receipt_sha256") or "").upper() == embedded_sha256
-        ]
-        historical_rebind = (
-            matching_history[0] if len(matching_history) == 1 else {}
-        )
-        historical_direct = dict(
-            historical_rebind.get("direct_entry_authority") or {}
-        )
-        _require(
-            embedded.get("schema")
-            == "evidence-lane.active-contract-session-rebind.v1"
-            and embedded.get("status") == "PASS"
-            and embedded.get("host_task_id") == destination_task_id
-            and embedded.get("active_plan_task_id") == plan.get("active_task_id")
-            and embedded.get("authority_route")
-            == "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK"
-            and embedded.get("runtime_instance_attestation_receipt_sha256")
-            == attestation_sha256
-            and len(matching_history) == 1
-            and sealed_rebind(historical_rebind)
-            and historical_rebind.get("schema") == embedded.get("schema")
-            and historical_rebind.get("status") == embedded.get("status")
-            and historical_rebind.get("project_id") == session.get("project_id")
-            and historical_rebind.get("session_id") == session.get("session_id")
-            and historical_rebind.get("receipt_sha256") == embedded_sha256
-            and historical_rebind.get("active_plan_task_id")
-            == embedded.get("active_plan_task_id")
-            and historical_rebind.get("runtime_task_id")
-            == embedded.get("runtime_task_id")
-            and historical_rebind.get("host_task_id")
-            == embedded.get("host_task_id")
-            and historical_rebind.get("authority_route")
-            == embedded.get("authority_route")
-            and historical_direct.get(
-                "runtime_instance_attestation_receipt_sha256"
-            )
-            == attestation_sha256
-            and historical_direct.get("runtime_instance_attestation_mode")
-            == "SERVER_DERIVED_ATTESTATION"
-            and historical_direct.get("caller_supplied_runtime_identity") is False
-            and historical_rebind.get("candidate_created") is False
-            and historical_rebind.get("pending_hil") is False
-            and historical_rebind.get("pointer_moved") is False
-            and historical_rebind.get("goal_completion_mutated") is False
-            and historical_rebind.get("git_executed") is False
-            and historical_rebind.get("install_executed") is False
-            and historical_rebind.get("helper_launched") is False
-            and historical_rebind.get("tunnel_launched") is False,
-            "TURN_CONTROL_DIRECT_ENTRY_RECOVERY_AUTHORITY_MISMATCH",
-            "The embedded direct-entry recovery receipt is incomplete, unsealed, or detached from append-only session history.",
-        )
-
     current_active_task_id = str(metadata.get("active_backlog_task_id") or "")
     current_runtime_task_id = str(
         dict(session.get("task") or {}).get("task_id") or ""
@@ -2089,8 +1210,8 @@ def _verified_direct_entry_authority(
     current_rebind_raw = metadata.get("active_contract_rebind_receipt")
     if isinstance(current_rebind_raw, dict):
         current_rebind = dict(current_rebind_raw)
-        current_recovery = dict(
-            current_rebind.get("recovery_binding_contract") or {}
+        current_task_binding = dict(
+            current_rebind.get("task_binding_contract") or {}
         )
         current_direct = dict(current_rebind.get("direct_entry_authority") or {})
         direct_route = (
@@ -2120,16 +1241,20 @@ def _verified_direct_entry_authority(
             and current_rebind.get("active_plan_row_identity_preserved") is True
             and current_rebind.get("governed_session_identity_preserved") is True
             and current_rebind.get("host_task_identity_preserved") is True
-            and current_recovery.get("manager_scope")
+            and current_task_binding.get("manager_scope")
             == "SHARED_MULTI_PROJECT_MULTI_TASK"
-            and current_recovery.get("registry_mutability")
+            and current_task_binding.get("registry_mutability")
             == "MUTABLE_APPEND_OR_REFRESH"
-            and current_recovery.get("invocation_binding_scope")
+            and current_task_binding.get("invocation_binding_scope")
             == "EXACT_CALLING_TASK"
-            and current_recovery.get("reentry_target") == destination_task_id
-            and current_recovery.get("installer_helper") == "SEPARATE_COMPONENT"
+            and current_task_binding.get("reentry_target") == destination_task_id
+            and current_task_binding.get("installer_helper") == "SEPARATE_COMPONENT"
             and current_rebind.get("candidate_created") is False
-            and current_rebind.get("pending_hil") is False
+            and current_rebind.get("candidate_id_preserved")
+            == session.get("candidate_id")
+            and current_rebind.get("candidate_state_preserved")
+            == session.get("state")
+            and bool(current_rebind.get("pending_hil")) == expected_pending_hil
             and current_rebind.get("pointer_moved") is False
             and current_rebind.get("goal_completion_mutated") is False
             and current_rebind.get("git_executed") is False
@@ -2150,24 +1275,23 @@ def _verified_direct_entry_authority(
                     is False
                 )
             ),
-            "TURN_CONTROL_DIRECT_ENTRY_RECOVERY_AUTHORITY_MISMATCH",
-            "The current recovery receipt is stale, cross-task, unsealed, or not bound to the live Plan/runtime task.",
+            "TURN_CONTROL_DIRECT_ENTRY_TASK_BINDING_AUTHORITY_MISMATCH",
+            "The current task-binding receipt is stale, cross-task, unsealed, or detached from the live Plan/runtime task.",
         )
-        recovery_receipt_sha256 = str(current_rebind["receipt_sha256"])
-        recovery_source = (
-            "CURRENT_DIRECT_ENTRY_RECOVERY_RECEIPT"
+        task_binding_receipt_sha256 = str(current_rebind["receipt_sha256"])
+        task_binding_source = (
+            "CURRENT_DIRECT_ENTRY_TASK_BINDING_RECEIPT"
             if direct_route
             else "CURRENT_USER_APPROVED_CONTRACT_REBIND_RECEIPT"
         )
     else:
         _require(
-            not isinstance(recovery, dict)
-            and current_active_task_id == plan.get("active_task_id"),
-            "TURN_CONTROL_DIRECT_ENTRY_RECOVERY_AUTHORITY_MISMATCH",
-            "A legacy direct-entry receipt may stand alone only before its original Plan row advances.",
+            current_active_task_id == plan.get("active_task_id"),
+            "TURN_CONTROL_DIRECT_ENTRY_TASK_BINDING_AUTHORITY_MISMATCH",
+            "The direct-entry receipt may stand alone only while its original Plan row remains active.",
         )
-        recovery_receipt_sha256 = receipt_sha256
-        recovery_source = "LEGACY_DIRECT_ENTRY_RECEIPT"
+        task_binding_receipt_sha256 = receipt_sha256
+        task_binding_source = "DIRECT_ENTRY_RECEIPT"
     return {
         "receipt": receipt,
         "receipt_sha256": receipt_sha256,
@@ -2175,8 +1299,8 @@ def _verified_direct_entry_authority(
         "destination_deep_link": destination_deep_link,
         "plan": plan,
         "runtime_instance_attestation_receipt_sha256": attestation_sha256,
-        "recovery_authority_receipt_sha256": recovery_receipt_sha256,
-        "recovery_authority_source": recovery_source,
+        "task_binding_authority_receipt_sha256": task_binding_receipt_sha256,
+        "task_binding_authority_source": task_binding_source,
     }
 
 
@@ -2207,6 +1331,7 @@ def _direct_entry_checkpoint_continuity(
     pointer_sha256 = sha256_bytes(canonical_json_bytes(pointer))
     metadata = dict(session.get("metadata") or {})
     candidate_boundary = dict(binding.get("candidate_boundary") or {})
+    preserved_candidate = dict(receipt.get("preserved_candidate_hil_state") or {})
     _require(
         pointer_baseline.get("project_id") == session.get("project_id")
         and pointer_baseline.get("accepted_pv") == pointer.get("accepted_pv")
@@ -2222,15 +1347,39 @@ def _direct_entry_checkpoint_continuity(
         "CODEX_DIRECT_ENTRY_POINTER_DRIFT",
         "The accepted pointer no longer matches the exact direct-entry baseline.",
     )
-    _require(
-        session.get("candidate_id") is None
-        and not bool(metadata.get("pending_hil"))
-        and not isinstance(metadata.get("pending_task"), dict)
-        and candidate_boundary
-        == {"state": "NO_PENDING_CANDIDATE", "candidate_id": None},
-        "CODEX_DIRECT_ENTRY_CANDIDATE_OR_HIL_PRESENT",
-        "The direct checkpoint cannot claim a no-effect transition while a candidate or HIL is pending.",
-    )
+    candidate_present = bool(session.get("candidate_id"))
+    if candidate_present:
+        pending_task_sha256 = (
+            sha256_bytes(canonical_json_bytes(metadata["pending_task"]))
+            if isinstance(metadata.get("pending_task"), dict)
+            else None
+        )
+        _require(
+            receipt.get("schema")
+            == "evidence-lane.direct-forced-same-worktree-entry-receipt.v2"
+            and preserved_candidate.get("candidate_id") == session.get("candidate_id")
+            and preserved_candidate.get("lifecycle_state") == session.get("state")
+            and preserved_candidate.get("pending_hil") is True
+            and bool(metadata.get("pending_hil")) is True
+            and preserved_candidate.get("pending_task_sha256")
+            == pending_task_sha256
+            and candidate_boundary
+            == {
+                "state": "PENDING_CANDIDATE_PRESERVED",
+                "candidate_id": session.get("candidate_id"),
+            },
+            "CODEX_DIRECT_ENTRY_CANDIDATE_PRESERVATION_MISMATCH",
+            "The direct checkpoint candidate boundary does not match the preserved pending-HIL state.",
+        )
+    else:
+        _require(
+            not bool(metadata.get("pending_hil"))
+            and not isinstance(metadata.get("pending_task"), dict)
+            and candidate_boundary
+            == {"state": "NO_PENDING_CANDIDATE", "candidate_id": None},
+            "CODEX_DIRECT_ENTRY_CANDIDATE_OR_HIL_PRESENT",
+            "The direct checkpoint candidate boundary is inconsistent.",
+        )
 
     destination = dict(
         dict(receipt.get("host_task_binding") or {}).get("destination") or {}
@@ -2266,8 +1415,10 @@ def _direct_entry_checkpoint_continuity(
             "generation": pointer.get("generation"),
             "manifest_sha256": pointer.get("accepted_manifest_sha256"),
             "pointer_sha256": pointer_sha256,
-            "candidate_absent": True,
-            "pending_hil": False,
+            "candidate_absent": not candidate_present,
+            "candidate_id": session.get("candidate_id"),
+            "pending_hil": bool(metadata.get("pending_hil")),
+            "candidate_preserved": candidate_present,
         },
         "source": {
             "repository_path_sha256": sha256_bytes(str(repository).encode("utf-8")),
@@ -2333,21 +1484,13 @@ def _binding_snapshot(
         accepted_pv=accepted_pv,
         pointer_generation=pointer_generation,
     )
-    manifest_path = project_root / "accepted" / accepted_pv / "manifest.json"
-    _require(
-        manifest_path.is_file(),
-        "TURN_CONTROL_ACCEPTED_MANIFEST_REQUIRED",
-        "The accepted Entry manifest is missing.",
-        path=str(manifest_path),
-    )
     entry_manifest_sha256 = _sha(
         metadata.get("entry_manifest_sha256"), field="entry_manifest_sha256"
     )
     _require(
-        sha256_file(manifest_path) == entry_manifest_sha256
-        and pointer.get("accepted_manifest_sha256") == entry_manifest_sha256,
+        pointer.get("accepted_manifest_sha256") == entry_manifest_sha256,
         "TURN_CONTROL_ACCEPTED_MANIFEST_MISMATCH",
-        "The accepted Entry manifest does not match its sealed SHA-256 identity.",
+        "The accepted Entry identity does not match the sealed pointer SHA-256.",
     )
     entry_package_sha256 = _sha(
         metadata.get("entry_package_sha256"), field="entry_package_sha256"
@@ -2799,7 +1942,7 @@ def seal_exact_task_project_session_binding(
             "runtime_task_id": dict(session.get("task") or {}).get("task_id"),
             "task_binding_receipt_sha256": direct_entry["receipt_sha256"],
             "binding_authority_receipt_sha256": direct_entry[
-                "recovery_authority_receipt_sha256"
+                "task_binding_authority_receipt_sha256"
             ],
             "preparation_receipt_sha256": None,
             "release_authority_id": None,
@@ -2816,7 +1959,7 @@ def seal_exact_task_project_session_binding(
                             "current_worktree_sha256"
                         ],
                         "binding_authority_receipt_sha256": direct_entry[
-                            "recovery_authority_receipt_sha256"
+                            "task_binding_authority_receipt_sha256"
                         ],
                     }
                 )
@@ -2828,11 +1971,11 @@ def seal_exact_task_project_session_binding(
             ),
             "direct_entry_authority": {
                 "receipt_sha256": direct_entry["receipt_sha256"],
-                "recovery_authority_receipt_sha256": direct_entry[
-                    "recovery_authority_receipt_sha256"
+                "task_binding_authority_receipt_sha256": direct_entry[
+                    "task_binding_authority_receipt_sha256"
                 ],
-                "recovery_authority_source": direct_entry[
-                    "recovery_authority_source"
+                "task_binding_authority_source": direct_entry[
+                    "task_binding_authority_source"
                 ],
                 "runtime_instance_attestation_receipt_sha256": direct_entry[
                     "runtime_instance_attestation_receipt_sha256"
@@ -4490,21 +3633,6 @@ def _connection(project_root: Path) -> sqlite3.Connection:
     connection.execute("PRAGMA synchronous=FULL")
     connection.executescript(
         """
-        CREATE TABLE IF NOT EXISTS host_session_alias(
-            alias_receipt_sha256 TEXT PRIMARY KEY,
-            project_id TEXT NOT NULL,
-            evidence_session_id TEXT NOT NULL,
-            governed_host_session_id_sha256 TEXT NOT NULL,
-            observed_host_session_id_sha256 TEXT NOT NULL,
-            transcript_path_sha256 TEXT NOT NULL,
-            binding_epoch_sha256 TEXT NOT NULL,
-            record_json TEXT NOT NULL,
-            recorded_at TEXT NOT NULL,
-            engine_version TEXT NOT NULL,
-            UNIQUE(observed_host_session_id_sha256, binding_epoch_sha256)
-        ) STRICT;
-        CREATE INDEX IF NOT EXISTS host_session_alias_project_session_idx
-            ON host_session_alias(project_id, evidence_session_id, recorded_at);
         CREATE TABLE IF NOT EXISTS turn_entry(
             control_record_sha256 TEXT PRIMARY KEY,
             project_id TEXT NOT NULL,
@@ -4623,7 +3751,7 @@ def _ensure_research_question(
 ) -> dict[str, Any]:
     """Append one private project-task research question for a research-mode turn."""
 
-    if entry.get("input_origin") == _SEALED_GOAL_CONTINUATION_ORIGIN:
+    if entry.get("input_origin") == _NATIVE_TASK_GOAL_CONTINUATION_ORIGIN:
         return {
             "state": "NOT_APPLICABLE",
             "reason": "NO_NEW_VISIBLE_USER_RESEARCH_QUESTION",
@@ -4775,7 +3903,7 @@ def _goal_usage_observation(
     raw = host_payload.get("goal_usage")
     if raw is None:
         observation: dict[str, Any] = {
-            "schema": "evidence-lane.goal-usage-observation.v2",
+            "schema": "evidence-lane.goal-usage-observation.v3",
             "availability": "UNAVAILABLE",
             "reason": "HOST_GOAL_ACCOUNTED_COUNTER_NOT_EXPOSED",
             "accounting_basis": "HOST_EXPOSED_COMPONENTS_AND_FINAL_TOTAL_ONLY",
@@ -4855,6 +3983,30 @@ def _goal_usage_observation(
         "TURN_CONTROL_GOAL_USAGE_COMPONENTS_INVALID",
         "Goal usage components must be one structured object when supplied.",
     )
+    raw_cumulative_samples = safe.get("cumulative_token_samples")
+    reset_accounting: dict[str, Any] | None = None
+    reset_component_values: dict[str, int] = {}
+    if raw_cumulative_samples is not None:
+        try:
+            reset_accounting = build_reset_aware_epoch_accounting(
+                cumulative_samples=raw_cumulative_samples,
+                timezone_name=str(
+                    safe.get("daily_reconciliation_timezone")
+                    or "America/New_York"
+                ),
+            )
+        except (TypeError, ValueError) as exc:
+            raise TurnControlError(
+                "TURN_CONTROL_RESET_AWARE_GOAL_USAGE_INVALID",
+                str(exc),
+            ) from exc
+        reset_totals = dict(reset_accounting["totals"])
+        reset_component_values = {
+            "input_tokens": int(reset_totals["input_tokens"]),
+            "cached_input_tokens": int(reset_totals["cached_input_tokens"]),
+            "output_tokens": int(reset_totals["output_tokens"]),
+            "reasoning_tokens": int(reset_totals["reasoning_output_tokens"]),
+        }
     component_values: dict[str, int | None] = {}
     for key in TOKEN_COMPONENT_KEYS:
         aliases = ("agent_tokens",) if key == "main_agent_tokens" else ()
@@ -4884,6 +4036,15 @@ def _goal_usage_observation(
             if isinstance(supplied, int) and not isinstance(supplied, bool)
             else None
         )
+        reset_value = reset_component_values.get(key)
+        if reset_value is not None:
+            _require(
+                component_values[key] in {None, reset_value},
+                "TURN_CONTROL_RESET_AWARE_COMPONENT_MISMATCH",
+                "A supplied Goal component does not match reset-aware epoch accounting.",
+                component=key,
+            )
+            component_values[key] = reset_value
 
     legacy_total = safe.get("goal_accounted_tokens")
     host_total = safe.get("total_tokens", legacy_total)
@@ -4944,7 +4105,7 @@ def _goal_usage_observation(
             "Goal elapsed seconds must be an exact non-negative integer when supplied.",
         )
         observation = {
-            "schema": "evidence-lane.goal-usage-observation.v2",
+            "schema": "evidence-lane.goal-usage-observation.v3",
             "availability": (
                 "AVAILABLE" if aggregate_tokens is not None else "UNAVAILABLE"
             ),
@@ -4960,6 +4121,24 @@ def _goal_usage_observation(
             "component_values": component_values,
             "host_total_tokens": exact_host_total,
             "profile_observed_context": profile_observed_context,
+            "reset_aware_epoch_accounting": (
+                reset_accounting
+                if reset_accounting is not None
+                else {
+                    "schema": "evidence-lane.reset-aware-token-epochs.v1",
+                    "status": "UNAVAILABLE",
+                    "reason": "CUMULATIVE_TOKEN_SAMPLES_NOT_SUPPLIED",
+                    "final_minus_initial_used": False,
+                }
+            ),
+            "native_turn_reconciliation": (
+                safe.get("native_turn_evidence")
+                if isinstance(safe.get("native_turn_evidence"), dict)
+                else {
+                    "status": "UNAVAILABLE",
+                    "unavailable_values_coerced_to_zero": False,
+                }
+            ),
             "aggregate_basis": aggregate_basis,
             "elapsed_seconds": elapsed_seconds,
             "provenance": provenance,
@@ -4976,7 +4155,7 @@ def _goal_usage_observation(
         }
     else:
         observation = {
-            "schema": "evidence-lane.goal-usage-observation.v2",
+            "schema": "evidence-lane.goal-usage-observation.v3",
             "availability": "UNAVAILABLE",
             "reason": "INCOMPLETE_OR_UNTRUSTWORTHY_GOAL_USAGE_PROVENANCE",
             "accounting_basis": "HOST_EXPOSED_COMPONENTS_AND_FINAL_TOTAL_ONLY",
@@ -4986,6 +4165,24 @@ def _goal_usage_observation(
             "component_values": component_values,
             "host_total_tokens": exact_host_total,
             "profile_observed_context": profile_observed_context,
+            "reset_aware_epoch_accounting": (
+                reset_accounting
+                if reset_accounting is not None
+                else {
+                    "schema": "evidence-lane.reset-aware-token-epochs.v1",
+                    "status": "UNAVAILABLE",
+                    "reason": "CUMULATIVE_TOKEN_SAMPLES_NOT_SUPPLIED",
+                    "final_minus_initial_used": False,
+                }
+            ),
+            "native_turn_reconciliation": (
+                safe.get("native_turn_evidence")
+                if isinstance(safe.get("native_turn_evidence"), dict)
+                else {
+                    "status": "UNAVAILABLE",
+                    "unavailable_values_coerced_to_zero": False,
+                }
+            ),
             "provided_fields": sorted(str(key) for key in safe),
             "aggregation_rule": (
                 "HOST_TOTAL_ELSE_NON_OVERLAPPING_AGENT_TOTALS_ELSE_INPUT_PLUS_OUTPUT"
@@ -5113,6 +4310,12 @@ def _ensure_goal_usage(
         "metric_semantics": observation.get("metric_semantics"),
         "goal_accounted_tokens": observation.get("goal_accounted_tokens"),
         "component_accounting": record.get("component_accounting"),
+        "reset_aware_epoch_accounting": observation.get(
+            "reset_aware_epoch_accounting"
+        ),
+        "native_turn_reconciliation": observation.get(
+            "native_turn_reconciliation"
+        ),
         "profile_observed_context": observation.get("profile_observed_context"),
         "aggregation_rule": observation.get("aggregation_rule"),
         "project_local_only": True,
@@ -5297,15 +4500,16 @@ def _goal_continuation_dispatch(
     """Describe the truthful non-prompt route used by automatic Goal work."""
 
     _require(
-        authority.get("schema") == "evidence-lane.codex-goal-continuation-authority.v1"
-        and authority.get("state") == "SEALED_ACTIVE_GOAL_RECOVERY_BINDING_VERIFIED"
-        and authority.get("input_origin") == _SEALED_GOAL_CONTINUATION_ORIGIN
+        authority.get("schema")
+        == "evidence-lane.codex-task-goal-continuation-authority.v1"
+        and authority.get("state") == "NATIVE_ACTIVE_TASK_GOAL_BINDING_VERIFIED"
+        and authority.get("input_origin") == _NATIVE_TASK_GOAL_CONTINUATION_ORIGIN
         and authority.get("synthetic_prompt_used") is False
         and authority.get("user_prompt_submit_observed") is False
         and _SHA256_RE.fullmatch(str(authority.get("receipt_sha256") or "").upper())
         is not None,
         "TURN_CONTROL_GOAL_CONTINUATION_AUTHORITY_INVALID",
-        "A Goal continuation entry requires one verified sealed recovery authority.",
+        "A Goal continuation entry requires one verified native task/Goal authority.",
     )
     return {
         "surface": "GOAL_CONTINUATION",
@@ -5317,15 +4521,15 @@ def _goal_continuation_dispatch(
         "pre_reasoning_dispatch_proven": False,
         "pre_reasoning_proof_basis": "NOT_CLAIMED_GOAL_BYPASSES_USERPROMPTSUBMIT",
         "tool_boundary_continuation_proven": True,
-        "tool_boundary_proof_basis": "SEALED_ACTIVE_GOAL_RECOVERY_BINDING",
+        "tool_boundary_proof_basis": "NATIVE_ACTIVE_GOAL_EXACT_TASK_BINDING",
         "user_prompt_submit_observed": False,
         "adapter_invocation_observed": True,
         "installed_host_dispatch_independently_proven": False,
         "input_kind_derived_from_sealed_state": True,
-        "classification_basis": _SEALED_GOAL_CONTINUATION_ORIGIN,
+        "classification_basis": _NATIVE_TASK_GOAL_CONTINUATION_ORIGIN,
         "caller_input_kind_authority": False,
         "synthetic_prompt_used": False,
-        "goal_recovery_authority_receipt_sha256": authority["receipt_sha256"],
+        "task_goal_authority_receipt_sha256": authority["receipt_sha256"],
         "state": "GOAL_CONTINUATION_BOUND_AT_FIRST_TOOL",
     }
 
@@ -5799,7 +5003,7 @@ def _project_prepared_entry(
     )
     lineage = ChatLineage(lineage_path)
     sealed_goal_continuation = (
-        entry.get("input_origin") == _SEALED_GOAL_CONTINUATION_ORIGIN
+        entry.get("input_origin") == _NATIVE_TASK_GOAL_CONTINUATION_ORIGIN
     )
     input_event_id = (
         "evt_"
@@ -5828,7 +5032,7 @@ def _project_prepared_entry(
                 "continuation_descriptor_sha256_after_redaction": entry[
                     "visible_input_sha256_after_redaction"
                 ],
-                "goal_recovery_authority": entry["goal_recovery_authority"],
+                "task_goal_authority": entry["task_goal_authority"],
                 "visible_user_input_stored": False,
                 "raw_goal_objective_stored": False,
                 "synthetic_prompt_used": False,
@@ -5910,8 +5114,8 @@ def _project_prepared_entry(
             "bounded_write_scope": entry["bounded_write_scope"],
             **(
                 {
-                    "goal_recovery_authority_receipt_sha256": entry[
-                        "goal_recovery_authority"
+                    "task_goal_authority_receipt_sha256": entry[
+                        "task_goal_authority"
                     ]["receipt_sha256"],
                     "raw_goal_objective_stored": False,
                     "synthetic_prompt_used": False,
@@ -6304,6 +5508,19 @@ def prepare_turn(
             != live_source_snapshot["worktree_sha256"]
         ),
     )
+    host_plan_rehydration = _prepare_bound_host_plan_rehydration(
+        root,
+        bound=bound,
+        host_payload=host_payload,
+        trigger="USER_PROMPT_TURN",
+        trigger_event_id=str(entry["control_record_sha256"]),
+    )
+    _require(
+        host_plan_rehydration is not None
+        and host_plan_rehydration.get("receipt", {}).get("status") == "PASS",
+        "TURN_CONTROL_PROMPT_PLAN_RELOCK_REQUIRED",
+        "A new governed prompt must seal the exact native Plan relock request before work continues.",
+    )
     return {
         "state": action,
         "schema": "evidence-lane.codex-turn-control-receipt.v2",
@@ -6350,6 +5567,10 @@ def prepare_turn(
         "attachment_identity_count": len(entry["attachment_identities"]),
         "research_question": research_receipt,
         "persistent_change_display": persistent_change_display,
+        "host_plan_rehydration": host_plan_rehydration,
+        "host_plan_behavior_owner": "ACTIVE_EVIDENCE_LANE_SKILL",
+        "hook_performed_host_update_plan": False,
+        "host_plan_relock_precedes_prompt_work": True,
         "scrollback_authority": False,
         "transcript_authority": False,
         "private_reasoning_stored": False,
@@ -6366,7 +5587,7 @@ def prepare_goal_continuation_turn(
 
     Codex does not emit ``UserPromptSubmit`` for ``thread/goal/set`` work.  This
     route is therefore deliberately separate from :func:`prepare_turn`: it
-    consumes the exact sealed recovery-helper binding, stores no Goal
+    consumes the exact native active-Goal flag plus task binding, stores no Goal
     objective, creates no synthetic user input, and remains fail-closed on any
     task, installation, pointer, or active-Plan drift.
     """
@@ -6405,10 +5626,11 @@ def prepare_goal_continuation_turn(
         cwd=str(host_payload.get("cwd") or ""),
     )
     binding = _binding_snapshot(root, bound)
-    authority = _read_active_goal_recovery_binding(
+    authority = _derive_active_task_goal_binding(
         root,
         host_session_id=host_session_id,
         turn_binding=binding,
+        host_payload=host_payload,
     )
     capture_dispatch = _goal_continuation_dispatch(authority)
     project_root = Path(bound["project_root"])
@@ -6451,8 +5673,9 @@ def prepare_goal_continuation_turn(
                 candidate
                 for candidate in existing_entries
                 if candidate.get("input_kind") == "goal"
-                and candidate.get("input_origin") == _SEALED_GOAL_CONTINUATION_ORIGIN
-                and dict(candidate.get("goal_recovery_authority") or {}).get(
+                and candidate.get("input_origin")
+                == _NATIVE_TASK_GOAL_CONTINUATION_ORIGIN
+                and dict(candidate.get("task_goal_authority") or {}).get(
                     "receipt_sha256"
                 )
                 == authority["receipt_sha256"]
@@ -6519,11 +5742,11 @@ def prepare_goal_continuation_turn(
                 prepared_at = _now()
                 prompt_record = {
                     "schema": "evidence-lane.prompt-index.v2",
-                    "record_kind": "SEALED_GOAL_CONTINUATION",
+                    "record_kind": "NATIVE_TASK_GOAL_CONTINUATION",
                     "host_session_id": host_session_id,
                     "turn_id": turn_id,
                     "input_kind": "goal",
-                    "input_origin": _SEALED_GOAL_CONTINUATION_ORIGIN,
+                    "input_origin": _NATIVE_TASK_GOAL_CONTINUATION_ORIGIN,
                     "capture_dispatch": capture_dispatch,
                     "prompt_index": prompt_index,
                     "visible_prompt_after_redaction": None,
@@ -6534,7 +5757,7 @@ def prepare_goal_continuation_turn(
                         descriptor_sha256
                     ),
                     "attachment_identities": [],
-                    "goal_recovery_authority_receipt_sha256": authority[
+                    "task_goal_authority_receipt_sha256": authority[
                         "receipt_sha256"
                     ],
                     "raw_prompt_stored": False,
@@ -6568,7 +5791,7 @@ def prepare_goal_continuation_turn(
                 ]
                 entry = {
                     "schema": "evidence-lane.codex-turn-entry.v2",
-                    "entry_kind": "SEALED_GOAL_CONTINUATION_ENTRY",
+                    "entry_kind": "NATIVE_TASK_GOAL_CONTINUATION_ENTRY",
                     "prepare_state": "GOAL_CONTINUATION_BOUND_NOT_COMMITTED",
                     "project_id": binding["project_id"],
                     "evidence_session_id": binding["evidence_session_id"],
@@ -6577,9 +5800,9 @@ def prepare_goal_continuation_turn(
                     "host_session_id": host_session_id,
                     "turn_id": turn_id,
                     "input_kind": "goal",
-                    "input_origin": _SEALED_GOAL_CONTINUATION_ORIGIN,
+                    "input_origin": _NATIVE_TASK_GOAL_CONTINUATION_ORIGIN,
                     "capture_dispatch": capture_dispatch,
-                    "goal_recovery_authority": authority,
+                    "task_goal_authority": authority,
                     "prompt_index": prompt_index,
                     "prompt_record": prompt_record,
                     "prompt_record_sha256": prompt_record["record_sha256"],
@@ -6611,7 +5834,7 @@ def prepare_goal_continuation_turn(
                     "gates": {
                         **binding["gates"],
                         "source_mutation_requires_prompt_prepare": False,
-                        "source_mutation_requires_sealed_goal_binding": True,
+                        "source_mutation_requires_native_task_goal_binding": True,
                     },
                     "bounded_write_scope": binding["persistent_plan_row"][
                         "bounded_write_scope"
@@ -6711,6 +5934,19 @@ def prepare_goal_continuation_turn(
             != live_source_snapshot["worktree_sha256"]
         ),
     )
+    host_plan_rehydration = _prepare_bound_host_plan_rehydration(
+        root,
+        bound=bound,
+        host_payload={**host_payload, "host_goal_active": True},
+        trigger="GOAL_ACTIVE_TURN",
+        trigger_event_id=str(entry["control_record_sha256"]),
+    )
+    _require(
+        host_plan_rehydration is not None
+        and host_plan_rehydration.get("receipt", {}).get("status") == "PASS",
+        "TURN_CONTROL_GOAL_PLAN_RELOCK_REQUIRED",
+        "A resumed Goal must seal the exact native Plan relock request before work continues.",
+    )
     return {
         "state": action,
         "schema": "evidence-lane.codex-goal-continuation-entry.v1",
@@ -6719,7 +5955,7 @@ def prepare_goal_continuation_turn(
         "evidence_session_id": entry["evidence_session_id"],
         "turn_id": entry["turn_id"],
         "input_kind": "goal",
-        "input_origin": _SEALED_GOAL_CONTINUATION_ORIGIN,
+        "input_origin": _NATIVE_TASK_GOAL_CONTINUATION_ORIGIN,
         "capture_dispatch": entry["capture_dispatch"],
         "pre_reasoning_host_dispatch_proven": False,
         "tool_boundary_continuation_proven": True,
@@ -6727,13 +5963,17 @@ def prepare_goal_continuation_turn(
         "prompt_record_sha256": entry["prompt_record_sha256"],
         "control_record_sha256": entry["control_record_sha256"],
         "binding_sha256": entry["binding_sha256"],
-        "goal_recovery_authority": entry["goal_recovery_authority"],
+        "task_goal_authority": entry["task_goal_authority"],
         "retrieval_receipt_sha256": entry["retrieval_receipt_sha256"],
         "persistent_plan_row": entry["binding"]["persistent_plan_row"],
         "accepted_pv": entry["binding"]["accepted_pv"],
         "pointer_generation": entry["binding"]["pointer_generation"],
         "research_question": research_receipt,
         "persistent_change_display": persistent_change_display,
+        "host_plan_rehydration": host_plan_rehydration,
+        "host_plan_behavior_owner": "ACTIVE_EVIDENCE_LANE_SKILL",
+        "hook_performed_host_update_plan": False,
+        "host_plan_relock_precedes_goal_work": True,
         "raw_goal_objective_stored": False,
         "synthetic_prompt_used": False,
         "user_prompt_submit_observed": False,

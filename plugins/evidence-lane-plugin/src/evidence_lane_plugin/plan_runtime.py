@@ -19,9 +19,12 @@ from .timeutil import utc_now
 DELTA_EVENT_SCHEMA = "evidence-lane.delta-lifecycle-event.v1"
 PLANNING_MODE_EVENT_SCHEMA = "evidence-lane.planning-mode-event.v1"
 TASK_FORMULA_EVENT_SCHEMA = "evidence-lane.task-formula-event.v1"
-PLAN_RUNTIME_SCHEMA = "evidence-lane.plan-runtime-projection.v3"
-PLAN_RUNTIME_USER_VERSION = 3
+SUB_PV_ACCEPTANCE_SCHEMA = "evidence-lane.delta-row-sub-pv-acceptance.v1"
+PLAN_RUNTIME_SCHEMA = "evidence-lane.plan-runtime-projection.v4"
+PLAN_RUNTIME_USER_VERSION = 4
 _TASK_FORMULA_EVENT_KINDS = frozenset({"ENTRY_FORMULA", "MUTATION", "EXIT_FORMULA"})
+_PV_ID_RE = re.compile(r"^PV([1-9][0-9]*)$")
+_SUB_PV_ID_RE = re.compile(r"^(PV[1-9][0-9]*)\.([1-9][0-9]*)\.([1-9][0-9]*)$")
 
 _EXIT_FORMULA_REQUIRED_FIELDS = frozenset(
     {
@@ -140,6 +143,26 @@ def _event_sha256(event: dict[str, Any]) -> str:
     return sha256_bytes(canonical_json_bytes(_event_without_hash(event)))
 
 
+def projected_delta_row_number(backlog: dict[str, Any], task_id: str) -> int:
+    """Return the stable absolute executable row number for one Delta task."""
+
+    executable_number = int(backlog.get("goal_row_offset") or 0)
+    for task in sorted(backlog.get("tasks", []), key=lambda row: int(row["sequence"])):
+        if str(task.get("status") or "") not in _EXECUTABLE_HOST_STATUS:
+            continue
+        executable_number += 1
+        if str(task.get("task_id") or "") == task_id:
+            return executable_number
+    require(
+        False,
+        "SUB_PV_DELTA_ROW_NOT_EXECUTABLE",
+        "A sub-PV can be derived only for one executable Delta row.",
+        status="MISMATCH",
+        task_id=task_id,
+    )
+    raise AssertionError("unreachable")
+
+
 def _task_rows(backlog: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {str(task["task_id"]): task for task in backlog.get("tasks", [])}
 
@@ -232,6 +255,16 @@ def _validate_transition(
         # an earlier DROP was persisted before dependency validation failed.
         # The failed DROP remains immutable history; only its exact prior
         # QUEUED execution state is restored.
+        return
+    if (
+        from_status == "DONE"
+        and to_status == "ACTIVE"
+        and event_type == "HIL_PREAPPROVAL_DONE_CORRECTION_RESTORED"
+    ):
+        # A Refresh candidate is only an unaccepted HIL proposal.  This
+        # hash-bound correction preserves an older premature TASK_DONE event
+        # while restoring the exact row that must remain ACTIVE until the
+        # user records a HIL decision.
         return
     if (
         from_status == "ACTIVE"
@@ -547,6 +580,206 @@ def _validate_task_formula_events(backlog: dict[str, Any]) -> None:
     backlog["task_formula_event_head_sha256"] = global_head
 
 
+def _validate_sub_pv_acceptances(backlog: dict[str, Any]) -> None:
+    """Validate the immutable auto-accepted Delta-row working-PV chain."""
+
+    tasks = _task_rows(backlog)
+    head: str | None = None
+    seen_ids: set[str] = set()
+    seen_tasks: set[str] = set()
+    rows = backlog.setdefault("sub_pv_acceptances", [])
+    for position, record in enumerate(rows, start=1):
+        sub_pv_id = str(record.get("sub_pv_id") or "")
+        task_id = str(record.get("task_id") or "")
+        match = _SUB_PV_ID_RE.fullmatch(sub_pv_id)
+        baseline_match = _PV_ID_RE.fullmatch(str(record.get("baseline_pv") or ""))
+        target_match = _PV_ID_RE.fullmatch(str(record.get("target_project_pv") or ""))
+        body = {key: value for key, value in record.items() if key != "receipt_sha256"}
+        completion_event = next(
+            (
+                event
+                for event in backlog.get("events", [])
+                if event.get("event_sha256")
+                == record.get("delta_completion_event_sha256")
+            ),
+            None,
+        )
+        task = tasks.get(task_id)
+        require(
+            record.get("schema") == SUB_PV_ACCEPTANCE_SCHEMA
+            and record.get("sequence") == position
+            and match is not None
+            and baseline_match is not None
+            and target_match is not None
+            and sub_pv_id not in seen_ids
+            and task_id in tasks
+            and task_id not in seen_tasks
+            and record.get("state") == "AUTO_ACCEPTED_DELTA_ROW_WORK"
+            and int(match.group(2)) == int(record.get("delta_row_number") or 0)
+            and int(match.group(3)) == int(record.get("sub_delta_ordinal") or 0)
+            and match.group(1) == str(record.get("baseline_pv") or "")
+            and int(baseline_match.group(1))
+            == int(record.get("pointer_generation") or 0)
+            and int(target_match.group(1))
+            == int(record.get("pointer_generation") or 0) + 1
+            and record.get("previous_sub_pv_receipt_sha256") == head
+            and record.get("receipt_sha256")
+            == sha256_bytes(canonical_json_bytes(body))
+            and isinstance(task, dict)
+            and task.get("status") in {"DONE", "ACCEPTED"}
+            and task.get("task_checkpoint_completion_receipt_sha256")
+            == record.get("task_checkpoint_completion_receipt_sha256")
+            and isinstance(completion_event, dict)
+            and completion_event.get("task_id") == task_id
+            and completion_event.get("event_type")
+            == "VERIFIED_TASK_CHECKPOINT_COMPLETED"
+            and completion_event.get("to_status") == "DONE"
+            and record.get("project_pointer_moved") is False
+            and record.get("project_hil_required") is False
+            and record.get("accepted_archive_written") is False
+            and record.get("project_overlay_refreshed") is False,
+            "SUB_PV_ACCEPTANCE_CHAIN_MISMATCH",
+            "The auto-accepted Delta-row sub-PV chain is not canonical.",
+            status="MISMATCH",
+            position=position,
+            sub_pv_id=sub_pv_id or None,
+            task_id=task_id or None,
+        )
+        seen_ids.add(sub_pv_id)
+        seen_tasks.add(task_id)
+        head = str(record["receipt_sha256"])
+    require(
+        backlog.get("sub_pv_acceptance_head_sha256") in {None, head},
+        "SUB_PV_ACCEPTANCE_HEAD_MISMATCH",
+        "The sub-PV chain head does not match its immutable records.",
+        status="MISMATCH",
+    )
+    backlog["sub_pv_acceptance_head_sha256"] = head
+
+
+def append_sub_pv_acceptance(
+    backlog: dict[str, Any],
+    *,
+    task_id: str,
+    successor_task_id: str,
+    session_id: str,
+    baseline_pv: str,
+    pointer_generation: int,
+    task_checkpoint_completion_receipt_sha256: str,
+    verification_proof_sha256: str,
+    delta_completion_event_sha256: str,
+    accepted_at: str,
+    reconciled_from_verified_completion: bool = False,
+) -> dict[str, Any]:
+    """Seal one row's accepted work as PV(n-1).x.y without Project promotion."""
+
+    ensure_event_ledger(backlog)
+    exact_task_id = str(task_id or "").strip()
+    exact_successor = str(successor_task_id or "").strip()
+    exact_session = str(session_id or "").strip()
+    exact_baseline = str(baseline_pv or "").strip().upper()
+    baseline_match = _PV_ID_RE.fullmatch(exact_baseline)
+    row_number = projected_delta_row_number(backlog, exact_task_id)
+    existing = next(
+        (
+            row
+            for row in backlog["sub_pv_acceptances"]
+            if row.get("task_id") == exact_task_id
+        ),
+        None,
+    )
+    if existing is not None:
+        require(
+            existing.get("successor_task_id") == exact_successor
+            and existing.get("baseline_pv") == exact_baseline
+            and existing.get("pointer_generation") == pointer_generation
+            and existing.get("task_checkpoint_completion_receipt_sha256")
+            == task_checkpoint_completion_receipt_sha256
+            and existing.get("verification_proof_sha256")
+            == verification_proof_sha256
+            and existing.get("delta_completion_event_sha256")
+            == delta_completion_event_sha256,
+            "SUB_PV_ACCEPTANCE_REPLAY_MISMATCH",
+            "The Delta row already owns a different sub-PV acceptance record.",
+            status="MISMATCH",
+            task_id=exact_task_id,
+        )
+        return cast(dict[str, Any], existing)
+    require(
+        bool(exact_task_id)
+        and bool(exact_successor)
+        and bool(exact_session)
+        and baseline_match is not None
+        and int(baseline_match.group(1)) == int(pointer_generation)
+        and all(
+            len(str(value or "")) == 64
+            for value in (
+                task_checkpoint_completion_receipt_sha256,
+                verification_proof_sha256,
+                delta_completion_event_sha256,
+            )
+        )
+        and bool(str(accepted_at or "").strip()),
+        "SUB_PV_ACCEPTANCE_INPUT_INVALID",
+        "Sub-PV acceptance requires the exact Delta row, pointer baseline, and verified completion hashes.",
+        status="MISMATCH",
+        task_id=exact_task_id or None,
+    )
+    same_row = [
+        row
+        for row in backlog["sub_pv_acceptances"]
+        if row.get("baseline_pv") == exact_baseline
+        and int(row.get("delta_row_number") or 0) == row_number
+    ]
+    ordinal = len(same_row) + 1
+    sub_pv_id = f"{exact_baseline}.{row_number}.{ordinal}"
+    record_body = {
+        "schema": SUB_PV_ACCEPTANCE_SCHEMA,
+        "sequence": len(backlog["sub_pv_acceptances"]) + 1,
+        "sub_pv_id": sub_pv_id,
+        "state": "AUTO_ACCEPTED_DELTA_ROW_WORK",
+        "baseline_pv": exact_baseline,
+        "target_project_pv": f"PV{pointer_generation + 1}",
+        "pointer_generation": int(pointer_generation),
+        "delta_row_number": row_number,
+        "sub_delta_ordinal": ordinal,
+        "task_id": exact_task_id,
+        "successor_task_id": exact_successor,
+        "session_id": exact_session,
+        "task_checkpoint_completion_receipt_sha256": (
+            task_checkpoint_completion_receipt_sha256
+        ),
+        "verification_proof_sha256": verification_proof_sha256,
+        "delta_completion_event_sha256": delta_completion_event_sha256,
+        "previous_sub_pv_id": (
+            backlog["sub_pv_acceptances"][-1]["sub_pv_id"]
+            if backlog["sub_pv_acceptances"]
+            else None
+        ),
+        "previous_sub_pv_receipt_sha256": backlog.get(
+            "sub_pv_acceptance_head_sha256"
+        ),
+        "accepted_at": str(accepted_at),
+        "reconciled_from_verified_completion": bool(
+            reconciled_from_verified_completion
+        ),
+        "usable_by_successor": True,
+        "learning_acceptance_inherited_from_sub_pv": True,
+        "project_pointer_moved": False,
+        "project_hil_required": False,
+        "accepted_archive_written": False,
+        "project_overlay_refreshed": False,
+    }
+    record = {
+        **record_body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(record_body)),
+    }
+    backlog["sub_pv_acceptances"].append(record)
+    backlog["sub_pv_acceptance_head_sha256"] = record["receipt_sha256"]
+    _validate_sub_pv_acceptances(backlog)
+    return record
+
+
 def append_task_formula_event(
     backlog: dict[str, Any],
     *,
@@ -700,9 +933,11 @@ def ensure_event_ledger(backlog: dict[str, Any]) -> dict[str, Any]:
     backlog.setdefault("events", [])
     backlog.setdefault("planning_mode_events", [])
     backlog.setdefault("task_formula_events", [])
+    backlog.setdefault("sub_pv_acceptances", [])
     backlog.setdefault("event_head_sha256", None)
     backlog.setdefault("planning_mode_event_head_sha256", None)
     backlog.setdefault("task_formula_event_head_sha256", None)
+    backlog.setdefault("sub_pv_acceptance_head_sha256", None)
     current = _validate_delta_events(backlog)
     plans = {str(plan.get("plan_id")): plan for plan in backlog.get("plans", [])}
     for task in sorted(backlog.get("tasks", []), key=lambda row: row["sequence"]):
@@ -762,6 +997,7 @@ def ensure_event_ledger(backlog: dict[str, Any]) -> dict[str, Any]:
         )
     _validate_mode_events(backlog)
     _validate_task_formula_events(backlog)
+    _validate_sub_pv_acceptances(backlog)
     backlog["event_schema"] = DELTA_EVENT_SCHEMA
     backlog["universal_statuses"] = list(DELTA_STATUSES)
     return backlog
@@ -1270,6 +1506,28 @@ def _projection_payload(backlog: dict[str, Any]) -> dict[str, list[dict[str, Any
                 "content_sha256": sha256_bytes(content.encode("utf-8")),
             }
         )
+    sub_pv_acceptances = [
+        cast(dict[str, Any], json.loads(canonical_json_bytes(record)))
+        for record in backlog["sub_pv_acceptances"]
+    ]
+    for record in sub_pv_acceptances:
+        content = json.dumps(
+            record,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        fts_records.append(
+            {
+                "sequence": len(fts_records) + 1,
+                "record_id": f"sub-pv:{record['sub_pv_id']}",
+                "task_id": record["task_id"],
+                "source_kind": "SUB_PV_ACCEPTANCE",
+                "source_id": record["sub_pv_id"],
+                "content": content,
+                "content_sha256": sha256_bytes(content.encode("utf-8")),
+            }
+        )
     return {
         "tasks": tasks,
         "steers": steers,
@@ -1315,6 +1573,7 @@ def _projection_payload(backlog: dict[str, Any]) -> dict[str, list[dict[str, Any
             for event in backlog["planning_mode_events"]
         ],
         "task_formula_events": formula_events,
+        "sub_pv_acceptances": sub_pv_acceptances,
     }
 
 
@@ -1445,6 +1704,33 @@ def _read_projection_payload(
         "previous_task_event_sha256",
         "event_sha256",
     )
+    sub_pv_columns = (
+        "sequence",
+        "sub_pv_id",
+        "state",
+        "baseline_pv",
+        "target_project_pv",
+        "pointer_generation",
+        "delta_row_number",
+        "sub_delta_ordinal",
+        "task_id",
+        "successor_task_id",
+        "session_id",
+        "task_checkpoint_completion_receipt_sha256",
+        "verification_proof_sha256",
+        "delta_completion_event_sha256",
+        "previous_sub_pv_id",
+        "previous_sub_pv_receipt_sha256",
+        "accepted_at",
+        "reconciled_from_verified_completion",
+        "usable_by_successor",
+        "learning_acceptance_inherited_from_sub_pv",
+        "project_pointer_moved",
+        "project_hil_required",
+        "accepted_archive_written",
+        "project_overlay_refreshed",
+        "receipt_sha256",
+    )
     tasks = [
         dict(zip(task_columns, row, strict=True))
         for row in connection.execute(
@@ -1565,6 +1851,38 @@ def _read_projection_payload(
         item["formula"] = json.loads(str(item.pop("formula_json")))
         item["changed_terms"] = json.loads(str(item.pop("changed_terms_json")))
         task_formula_events.append(item)
+    sub_pv_acceptances = []
+    for row in connection.execute(
+        """
+        SELECT
+            sequence, sub_pv_id, state, baseline_pv, target_project_pv,
+            pointer_generation, delta_row_number, sub_delta_ordinal,
+            task_id, successor_task_id, session_id,
+            task_checkpoint_completion_receipt_sha256,
+            verification_proof_sha256, delta_completion_event_sha256,
+            previous_sub_pv_id, previous_sub_pv_receipt_sha256,
+            accepted_at, reconciled_from_verified_completion,
+            usable_by_successor, learning_acceptance_inherited_from_sub_pv,
+            project_pointer_moved, project_hil_required,
+            accepted_archive_written, project_overlay_refreshed,
+            receipt_sha256
+        FROM sub_pv_acceptance
+        ORDER BY sequence
+        """
+    ).fetchall():
+        item = dict(zip(sub_pv_columns, row, strict=True))
+        for key in (
+            "reconciled_from_verified_completion",
+            "usable_by_successor",
+            "learning_acceptance_inherited_from_sub_pv",
+            "project_pointer_moved",
+            "project_hil_required",
+            "accepted_archive_written",
+            "project_overlay_refreshed",
+        ):
+            item[key] = bool(item[key])
+        item["schema"] = SUB_PV_ACCEPTANCE_SCHEMA
+        sub_pv_acceptances.append(item)
     return {
         "tasks": tasks,
         "steers": steers,
@@ -1573,6 +1891,7 @@ def _read_projection_payload(
         "events": events,
         "planning_mode_events": planning_mode_events,
         "task_formula_events": task_formula_events,
+        "sub_pv_acceptances": sub_pv_acceptances,
     }
 
 
@@ -1724,6 +2043,35 @@ def write_plan_runtime_projection(
                     event_sha256 TEXT NOT NULL UNIQUE,
                     FOREIGN KEY (task_id) REFERENCES delta_task(task_id)
                 );
+                CREATE TABLE sub_pv_acceptance (
+                    sequence INTEGER PRIMARY KEY,
+                    sub_pv_id TEXT NOT NULL UNIQUE,
+                    state TEXT NOT NULL,
+                    baseline_pv TEXT NOT NULL,
+                    target_project_pv TEXT NOT NULL,
+                    pointer_generation INTEGER NOT NULL,
+                    delta_row_number INTEGER NOT NULL,
+                    sub_delta_ordinal INTEGER NOT NULL,
+                    task_id TEXT NOT NULL UNIQUE,
+                    successor_task_id TEXT NOT NULL,
+                    session_id TEXT NOT NULL,
+                    task_checkpoint_completion_receipt_sha256 TEXT NOT NULL,
+                    verification_proof_sha256 TEXT NOT NULL,
+                    delta_completion_event_sha256 TEXT NOT NULL UNIQUE,
+                    previous_sub_pv_id TEXT,
+                    previous_sub_pv_receipt_sha256 TEXT,
+                    accepted_at TEXT NOT NULL,
+                    reconciled_from_verified_completion INTEGER NOT NULL,
+                    usable_by_successor INTEGER NOT NULL,
+                    learning_acceptance_inherited_from_sub_pv INTEGER NOT NULL,
+                    project_pointer_moved INTEGER NOT NULL,
+                    project_hil_required INTEGER NOT NULL,
+                    accepted_archive_written INTEGER NOT NULL,
+                    project_overlay_refreshed INTEGER NOT NULL,
+                    receipt_sha256 TEXT NOT NULL UNIQUE,
+                    FOREIGN KEY (task_id) REFERENCES delta_task(task_id),
+                    FOREIGN KEY (successor_task_id) REFERENCES delta_task(task_id)
+                );
                 CREATE INDEX delta_event_task_idx
                     ON delta_event(task_id, sequence);
                 CREATE INDEX steer_delta_task_idx
@@ -1732,6 +2080,8 @@ def write_plan_runtime_projection(
                     ON plan_execution_row(projection_lane, row_number, history_number);
                 CREATE INDEX task_formula_event_task_idx
                     ON task_formula_event(task_id, sequence);
+                CREATE INDEX sub_pv_acceptance_successor_idx
+                    ON sub_pv_acceptance(successor_task_id, sequence);
                 CREATE VIRTUAL TABLE plan_runtime_fts USING fts5(
                     sequence UNINDEXED,
                     record_id UNINDEXED,
@@ -1986,6 +2336,57 @@ def write_plan_runtime_projection(
                         event["event_sha256"],
                     ),
                 )
+            for record in projection["sub_pv_acceptances"]:
+                connection.execute(
+                    """
+                    INSERT INTO sub_pv_acceptance (
+                        sequence, sub_pv_id, state, baseline_pv,
+                        target_project_pv, pointer_generation,
+                        delta_row_number, sub_delta_ordinal, task_id,
+                        successor_task_id, session_id,
+                        task_checkpoint_completion_receipt_sha256,
+                        verification_proof_sha256,
+                        delta_completion_event_sha256, previous_sub_pv_id,
+                        previous_sub_pv_receipt_sha256, accepted_at,
+                        reconciled_from_verified_completion,
+                        usable_by_successor,
+                        learning_acceptance_inherited_from_sub_pv,
+                        project_pointer_moved, project_hil_required,
+                        accepted_archive_written, project_overlay_refreshed,
+                        receipt_sha256
+                    ) VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?, ?, ?, ?, ?
+                    )
+                    """,
+                    (
+                        int(record["sequence"]),
+                        record["sub_pv_id"],
+                        record["state"],
+                        record["baseline_pv"],
+                        record["target_project_pv"],
+                        int(record["pointer_generation"]),
+                        int(record["delta_row_number"]),
+                        int(record["sub_delta_ordinal"]),
+                        record["task_id"],
+                        record["successor_task_id"],
+                        record["session_id"],
+                        record["task_checkpoint_completion_receipt_sha256"],
+                        record["verification_proof_sha256"],
+                        record["delta_completion_event_sha256"],
+                        record.get("previous_sub_pv_id"),
+                        record.get("previous_sub_pv_receipt_sha256"),
+                        record["accepted_at"],
+                        int(bool(record["reconciled_from_verified_completion"])),
+                        int(bool(record["usable_by_successor"])),
+                        int(bool(record["learning_acceptance_inherited_from_sub_pv"])),
+                        int(bool(record["project_pointer_moved"])),
+                        int(bool(record["project_hil_required"])),
+                        int(bool(record["accepted_archive_written"])),
+                        int(bool(record["project_overlay_refreshed"])),
+                        record["receipt_sha256"],
+                    ),
+                )
             metadata = {
                 "schema": PLAN_RUNTIME_SCHEMA,
                 "backlog_schema": backlog["schema"],
@@ -1998,12 +2399,17 @@ def write_plan_runtime_projection(
                     "task_formula_event_head_sha256"
                 )
                 or "",
+                "sub_pv_acceptance_head_sha256": backlog.get(
+                    "sub_pv_acceptance_head_sha256"
+                )
+                or "",
                 "projection_content_sha256": projection_content_sha256,
                 "canonical_plan_sector_mutated": "false",
                 "projection_role": "DERIVED_CONTROL_PLANE_INDEX",
                 "full_task_contracts_indexed": "true",
                 "steer_deltas_indexed": "true",
                 "task_formula_lineage_indexed": "true",
+                "sub_pv_acceptance_chain_indexed": "true",
                 "execution_and_history_rows_indexed": "true",
                 "fts5_enabled": "true",
                 "accepted_pv_payload_copied": "false",
@@ -2372,16 +2778,19 @@ def query_plan_runtime_projection(
                 "accepted_pv_payload_loaded": False,
                 "raw_chat_scrollback_loaded": False,
             }
-        tokens = re.findall(r"[A-Za-z0-9_.-]+", exact_query)
+        raw_tokens = re.findall(r"[A-Za-z0-9_.-]+", exact_query)
+        tokens = list(dict.fromkeys(token.casefold() for token in raw_tokens))
         require(
             bool(tokens) and len(tokens) <= 16 and len(exact_query) <= 512,
             "PLAN_RUNTIME_FTS_QUERY_INVALID",
             "The Plan FTS query must contain at most sixteen bounded tokens.",
             status="BLOCKED",
         )
-        fts_query = " AND ".join(f'"{token.replace(chr(34), "")}"' for token in tokens)
-        hits = connection.execute(
-            """
+        quoted_tokens = [f'"{token.replace(chr(34), "")}"' for token in tokens]
+
+        def bounded_fts(search_expression: str) -> list[sqlite3.Row]:
+            return connection.execute(
+                """
             SELECT
                 record_id, task_id, source_kind, source_id,
                 snippet(plan_runtime_fts, 5, '[', ']', ' ... ', 32) AS snippet,
@@ -2392,8 +2801,18 @@ def query_plan_runtime_projection(
             ORDER BY rank, sequence
             LIMIT ?
             """,
-            (fts_query, int(limit)),
-        ).fetchall()
+                (search_expression, int(limit)),
+            ).fetchall()
+
+        primary_query = " AND ".join(quoted_tokens)
+        primary_hits = bounded_fts(primary_query)
+        refire_performed = len(primary_hits) == 0 and len(quoted_tokens) > 1
+        refire_query = " OR ".join(quoted_tokens) if refire_performed else None
+        hits = (
+            bounded_fts(cast(str, refire_query))
+            if refire_performed
+            else primary_hits
+        )
         return {
             "status": "PASS",
             "schema": "evidence-lane.plan-runtime-query.v1",
@@ -2402,6 +2821,28 @@ def query_plan_runtime_projection(
             "tokens": tokens,
             "limit": int(limit),
             "hits": [dict(hit) for hit in hits],
+            "result": "HIT" if hits else "NO_HIT",
+            "query_strategy": (
+                "BOUNDED_OR_NO_HIT_REFIRE"
+                if refire_performed
+                else "BOUNDED_STRICT_AND"
+            ),
+            "primary_strict_and_hit_count": len(primary_hits),
+            "no_hit_refire": {
+                "performed": refire_performed,
+                "reason": (
+                    "STRICT_AND_FALSE_NO_HIT_GUARD"
+                    if refire_performed
+                    else "NOT_REQUIRED"
+                ),
+                "strategy": (
+                    "SAME_FTS5_AUTHORITY_BOUNDED_OR"
+                    if refire_performed
+                    else None
+                ),
+                "direct_sqlite_table_fallback_used": False,
+                "lane_refresh_required_after_continuing_no_hit": not bool(hits),
+            },
             "accepted_pv_payload_loaded": False,
             "raw_chat_scrollback_loaded": False,
         }

@@ -509,8 +509,7 @@ class GoogleDrivePersistence:
         return response.json()["id"]
 
     def _governed_parent(self, project_id: str, category: str) -> str:
-        root = self._folder(self.parent_folder_id, "EvidenceLanePV")
-        project = self._folder(root, project_id)
+        project = self._folder(self.parent_folder_id, project_id)
         return self._folder(project, category)
 
     def put(

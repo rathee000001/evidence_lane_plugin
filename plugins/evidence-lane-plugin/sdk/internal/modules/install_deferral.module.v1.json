@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.install_deferral",
+  "source_path": "src/evidence_lane_plugin/install_deferral.py",
+  "source_sha256": "B7578FE1D742B90835C440CB66FD12914F47CAE3A9E0845F56B8137601341CFE",
+  "source_bytes": 4273,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "6F5C89BD8588E59604B395D40F50560C5D432E6667358E1B9EDCC86810D57D96"
+}

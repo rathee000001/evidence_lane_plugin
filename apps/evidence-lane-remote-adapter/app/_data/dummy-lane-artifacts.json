@@ -1,0 +1,2003 @@
+{
+  "artifact_storage": "WEBSITE_STATIC_PUBLIC",
+  "canonical_file_count_per_lane": 4,
+  "derived_render_count_per_lane": 2,
+  "engine_bundle_sha256": "609F4DD2E079661BD833E8C2A8F480A00268F2DAE92C73F8E3F0D9904EAD3829",
+  "fixture_boundary": "SYNTHETIC_ONLY_NO_PROJECT_OR_ACCEPTED_PV_BYTES",
+  "graph_projection_boundary": "SQLITE_DERIVED_STABLE_IDENTITY_GRAPH_WITH_DISTINCT_GITHUB_AND_LOCAL_CODE_PROFILES",
+  "lane_count": 18,
+  "lanes": [
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 909312,
+          "filename": "github_code_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "3E55CF82A100F88E24A4B8F421458CA699302BB5F7573E630F0E0CD926E3B4D2",
+          "url": "/dummy-lane-packages/github_code/github_code_sector_v001.sqlite"
+        },
+        {
+          "bytes": 35896,
+          "filename": "github_code.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "269C943C9D09ADA0BF4973392FC02E17495FBB765CC836653759141CBA0DA3E0",
+          "url": "/dummy-lane-packages/github_code/github_code.mmd"
+        },
+        {
+          "bytes": 43984,
+          "filename": "github_code.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "254E42335CFE56CF4020A1EC4C6F51C0D2D4F30C9428EDCDD6D04E076755E197",
+          "url": "/dummy-lane-packages/github_code/github_code.dot"
+        },
+        {
+          "bytes": 7616,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "B8898D1B532EC53B3EB7682D7C4570FBDE777B31C8B43F226C653BDA0EBEF1B5",
+          "url": "/dummy-lane-packages/github_code/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "tiered_git_history_v2_incremental",
+      "command": "evi-source-intake --lane github_code",
+      "fts_table": "code_chunk_fts",
+      "git_history": [
+        {
+          "authored_at": "2026-01-01T00:00:00Z",
+          "commit": "fa6ec5bc26604145b4bbd170c6034403151a33d5",
+          "file_changes": [
+            {
+              "path": "dummy-git-source/README.md",
+              "status": "A"
+            },
+            {
+              "path": "dummy-git-source/app.py",
+              "status": "A"
+            }
+          ],
+          "ordinal": 0,
+          "parents": [],
+          "subject": "fixture: establish source"
+        },
+        {
+          "authored_at": "2026-01-02T00:00:00Z",
+          "commit": "0745b54cd5a14cec7f667302693a0f51b21bfd3c",
+          "file_changes": [
+            {
+              "path": "dummy-git-source/README.md",
+              "status": "M"
+            },
+            {
+              "path": "dummy-git-source/app.py",
+              "status": "M"
+            }
+          ],
+          "ordinal": 1,
+          "parents": [
+            "fa6ec5bc26604145b4bbd170c6034403151a33d5"
+          ],
+          "subject": "fixture: add governed behavior"
+        },
+        {
+          "authored_at": "2026-01-03T00:00:00Z",
+          "commit": "774ceaa0e27b1e431b615d0cf398632d8be1edbd",
+          "file_changes": [
+            {
+              "path": "dummy-git-source/test_app.py",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/analysis.md",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/artifact.json",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/brain-loader.sqlite",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/brain-package.zip",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/chat.json",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/custom.bin",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/discussion.md",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/document.docx",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/evidence.pdf",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/image.png",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/local.py",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/metrics.csv",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/metrics.xlsx",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/mode.md",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/plan.md",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/project.zip",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/research.md",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/slides.pptx",
+              "status": "A"
+            },
+            {
+              "path": "poc-fixtures/sqlite-brain.sqlite",
+              "status": "A"
+            }
+          ],
+          "ordinal": 2,
+          "parents": [
+            "0745b54cd5a14cec7f667302693a0f51b21bfd3c"
+          ],
+          "subject": "fixture: add proof and all lane sources"
+        }
+      ],
+      "graph_profile": "GITHUB_REPOSITORY_HISTORY",
+      "label": "GitHub Code",
+      "lane_id": "github_code",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=703DBD2B2378FEEB622D4A598A9CC1FE8BE3C827F90E3D99A71D35805824C653\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"GitHub Code<br/>3 sources &#124; 3 chunks &#124; 6 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=3 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".py<br/>2 sources\"]:::source\n    SOURCE_TYPE_1[\".md<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=6 &#124; kinds=3\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=40 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"code_parser_receipt<br/>rows=3\"]:::semantic\n    FACT_SAMPLE_0_0[\"dummy-git-source/README.md\"]:::semantic\n    FACT_SAMPLE_0_1[\"dummy-git-source/app.py\"]:::semantic\n    FACT_KIND_1[\"code_symbol<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_1_0[\"answer\"]:::semantic\n    FACT_SAMPLE_1_1[\"test_answer\"]:::semantic\n    FACT_KIND_2[\"code_import<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"app : answer\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=58 &#124; tables=73 &#124; auxiliaries=15 &#124; relations=43<br/>projection_sha256=30D9650617B05C36A7A5426D2D8B1D3AEAD000B67425264CD572092B6491FFA9\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=3 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=3 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=3 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=3 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=6 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=24 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=27 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=187 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=187 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=187 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=25 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"sector_meta<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"sector_head<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"artifact_registry<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"relation_edge<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"code_source_registry<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"code_file_snapshot<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"code_chunk<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_024[\"code_symbol<br/>rows=2 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_025[\"code_import<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_026[\"code_call<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_027[\"code_parser_receipt<br/>rows=3 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_028[\"code_parser_diagnostic<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_029[\"code_route<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_030[\"code_dependency<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_031[\"code_route_api_boundary<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n\n%% Preview stops at line 72; download the full 399-line lane MMD above.\n",
+      "ordinal": 1,
+      "parser_id": "github_code_reverse_history_v2",
+      "render": {
+        "bytes": 673846,
+        "filename": "github_code.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "E4D8232BB49EAE503662131E17710436A5E7EA4F36198CD32272A96DDBDE29F8",
+        "source_mmd_sha256": "269C943C9D09ADA0BF4973392FC02E17495FBB765CC836653759141CBA0DA3E0",
+        "url": "/dummy-lane-packages/github_code/github_code.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 58,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "sector_meta",
+        "sector_head",
+        "artifact_registry",
+        "relation_edge",
+        "code_source_registry",
+        "code_file_snapshot",
+        "code_chunk",
+        "code_symbol",
+        "code_import",
+        "code_call",
+        "code_parser_receipt",
+        "code_parser_diagnostic",
+        "code_route",
+        "code_dependency",
+        "code_route_api_boundary",
+        "code_config_build_test_chunk",
+        "code_index_checkpoint",
+        "code_source_active_head",
+        "code_workflow_edge",
+        "code_semantic_diff",
+        "code_synthetic_snapshot_file",
+        "code_snapshot_history",
+        "code_good_snapshot",
+        "snapshot_git_bridge",
+        "git_commit_registry",
+        "git_commit_parent",
+        "git_file_change",
+        "git_patch_hunk",
+        "git_exact_line_change",
+        "git_ref_registry",
+        "git_push_event",
+        "git_route_impact",
+        "git_symbol_impact",
+        "git_dependency_impact",
+        "git_test_impact",
+        "git_artifact_impact",
+        "git_blob_cas",
+        "git_content_chunk_cas",
+        "git_chunk_occurrence",
+        "git_history_fts",
+        "code_chunk_fts"
+      ],
+      "topology_generator_sha256": "3D3E3BFFB2A823378EBECFEE7CDC5ECAF802AE1236CDD4FC547390B433CD7DAE",
+      "vector_render": {
+        "bytes": 526172,
+        "filename": "github_code.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "68DAB9BE4B04530FDC7CE697D0807E34C9E430D6CBA981DA1D52B874B9E4F51B",
+        "source_mmd_sha256": "269C943C9D09ADA0BF4973392FC02E17495FBB765CC836653759141CBA0DA3E0",
+        "url": "/dummy-lane-packages/github_code/github_code.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 544768,
+          "filename": "local_code_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "483410E87847A90B07AD10FEBA8A8C7413F3DC2BC726380752FC6B32A9758669",
+          "url": "/dummy-lane-packages/local_code/local_code_sector_v001.sqlite"
+        },
+        {
+          "bytes": 26176,
+          "filename": "local_code.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "DFF31FAEE9B31AE141C56ACB0595264594C05CBC744D347ACDB876C0997BF003",
+          "url": "/dummy-lane-packages/local_code/local_code.mmd"
+        },
+        {
+          "bytes": 32631,
+          "filename": "local_code.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "9B39841CFBA9D696A435964919D8AEA7D7822B6262960726CD5A4BEF623F98C7",
+          "url": "/dummy-lane-packages/local_code/local_code.dot"
+        },
+        {
+          "bytes": 6713,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "1002ECF903477BB9F271090109A8412ADB3DE1EB05B0CE85506699F2803F46F8",
+          "url": "/dummy-lane-packages/local_code/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "tiered_git_history_v2_incremental",
+      "command": "evi-source-intake --lane local_code",
+      "fts_table": "code_chunk_fts",
+      "git_history": null,
+      "graph_profile": "LOCAL_WORKTREE",
+      "label": "Local Code",
+      "lane_id": "local_code",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=53A3DA9F59AE8EE782B6E02E954787D25787881F8EACD4EB4824900667499DBB\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Local Code<br/>1 sources &#124; 1 chunks &#124; 3 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".py<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=3 &#124; kinds=3\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=40 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"code_import<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"pathlib : Path\"]:::semantic\n    FACT_KIND_1[\"code_parser_receipt<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"poc-fixtures/local.py\"]:::semantic\n    FACT_KIND_2[\"code_symbol<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"fixture_symbol\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=58 &#124; tables=73 &#124; auxiliaries=15 &#124; relations=43<br/>projection_sha256=F50390CF61DDE468FFBE398CBDDB0B332FE5EED4274C7A6510D36FF137F51953\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=3 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=7 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=7 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=51 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=51 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=51 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=25 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"sector_meta<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"sector_head<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"artifact_registry<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"relation_edge<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"code_source_registry<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"code_file_snapshot<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"code_chunk<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_024[\"code_symbol<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_025[\"code_import<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_026[\"code_call<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_027[\"code_parser_receipt<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_028[\"code_parser_diagnostic<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_029[\"code_route<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_030[\"code_dependency<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_031[\"code_route_api_boundary<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_032[\"code_config_build_test_chunk<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_033[\"code_index_checkpoint<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_034[\"code_source_active_head<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n\n%% Preview stops at line 72; download the full 327-line lane MMD above.\n",
+      "ordinal": 2,
+      "parser_id": "local_code_snapshot_v2",
+      "render": {
+        "bytes": 579695,
+        "filename": "local_code.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "38A3740B59CBAE8E159CB8EB51231F1D456B58BF92D4D4E147A31AC6C7C0F8EB",
+        "source_mmd_sha256": "DFF31FAEE9B31AE141C56ACB0595264594C05CBC744D347ACDB876C0997BF003",
+        "url": "/dummy-lane-packages/local_code/local_code.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 58,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "sector_meta",
+        "sector_head",
+        "artifact_registry",
+        "relation_edge",
+        "code_source_registry",
+        "code_file_snapshot",
+        "code_chunk",
+        "code_symbol",
+        "code_import",
+        "code_call",
+        "code_parser_receipt",
+        "code_parser_diagnostic",
+        "code_route",
+        "code_dependency",
+        "code_route_api_boundary",
+        "code_config_build_test_chunk",
+        "code_index_checkpoint",
+        "code_source_active_head",
+        "code_workflow_edge",
+        "code_semantic_diff",
+        "code_synthetic_snapshot_file",
+        "code_snapshot_history",
+        "code_good_snapshot",
+        "snapshot_git_bridge",
+        "git_commit_registry",
+        "git_commit_parent",
+        "git_file_change",
+        "git_patch_hunk",
+        "git_exact_line_change",
+        "git_ref_registry",
+        "git_push_event",
+        "git_route_impact",
+        "git_symbol_impact",
+        "git_dependency_impact",
+        "git_test_impact",
+        "git_artifact_impact",
+        "git_blob_cas",
+        "git_content_chunk_cas",
+        "git_chunk_occurrence",
+        "git_history_fts",
+        "code_chunk_fts"
+      ],
+      "topology_generator_sha256": "A3F762778BBDD24A53556F7EDF336969C8B148D9B109C57159D609AA42D969AC",
+      "vector_render": {
+        "bytes": 423121,
+        "filename": "local_code.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "59DAA972C7D7CF984260EE3FB39B73628CCA546191D3DB97DE0827A3819100E1",
+        "source_mmd_sha256": "DFF31FAEE9B31AE141C56ACB0595264594C05CBC744D347ACDB876C0997BF003",
+        "url": "/dummy-lane-packages/local_code/local_code.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 438272,
+          "filename": "chat_lineage_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "D5021DCEE28A6EB3DA4D21ECEC00EC288F5766444BF6375C64A58F41F7192100",
+          "url": "/dummy-lane-packages/chat_lineage/chat_lineage_sector_v001.sqlite"
+        },
+        {
+          "bytes": 21351,
+          "filename": "chat_lineage.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "9A55B3E7503B0BB70A0944C820F692839D5F7AE157D123AEC2C2A5B60AFC0B42",
+          "url": "/dummy-lane-packages/chat_lineage/chat_lineage.mmd"
+        },
+        {
+          "bytes": 27888,
+          "filename": "chat_lineage.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "13EE1A1B0EDF2E9D37D3BD5EC9C606BA851532A4C7CB9EABBED97C7B10D8F110",
+          "url": "/dummy-lane-packages/chat_lineage/chat_lineage.dot"
+        },
+        {
+          "bytes": 6018,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "8FD8D3F816D9E36CC4ACCF461A558BE2D2C47D75A0238CEC52E8837C94EAE894",
+          "url": "/dummy-lane-packages/chat_lineage/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "prepare_response_commit_v1",
+      "command": "evi-source-intake --lane chat_lineage",
+      "fts_table": "turn_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Chat Lineage",
+      "lane_id": "chat_lineage",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=E85282DC6F905ED683564ECBC6D90868BA52E75F4B5BB5FECACC32FBCC0D78F5\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Chat Lineage<br/>1 sources &#124; 1 chunks &#124; 11 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".json<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=11 &#124; kinds=11\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=17 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"json_record_sample<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"$[0]\"]:::semantic\n    FACT_KIND_1[\"json_structure<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"$\"]:::semantic\n    FACT_KIND_2[\"lineage_head<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"poc-fixtures/chat.json\"]:::semantic\n    FACT_KIND_3[\"prompt_normalized_summary<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_3_0[\"poc-fixtures/chat.json:turn:1:prompt-summary\"]:::semantic\n    FACT_KIND_4[\"prompt_raw_exact<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_4_0[\"Preserve the accepted pointer.\"]:::semantic\n    FACT_KIND_5[\"response_raw_visible_exact<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_5_0[\"The fixture records no approval or pointer movement.\"]:::semantic\n    FACT_KIND_6[\"response_summary<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_6_0[\"poc-fixtures/chat.json:turn:1:response-summary\"]:::semantic\n    FACT_KIND_7[\"source_normalization_receipt<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_7_0[\"poc-fixtures/chat.json\"]:::semantic\n    FACT_KIND_8[\"state_hash_chain<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_8_0[\"poc-fixtures/chat.json:turn:1\"]:::semantic\n    FACT_KIND_9[\"turn_commit<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_9_0[\"poc-fixtures/chat.json:turn:1\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=35 &#124; tables=45 &#124; auxiliaries=10 &#124; relations=23<br/>projection_sha256=404EF72D162162412B06CA833A58AE6F59D0D1D76EEFCE2CD876FDDFEEA494D5\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=11 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=13 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=13 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=77 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=77 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=77 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=18 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"writeback_policy<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"turn_prepare<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"prompt_raw_exact<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"prompt_normalized_summary<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n\n%% Preview stops at line 72; download the full 303-line lane MMD above.\n",
+      "ordinal": 3,
+      "parser_id": "chat_lineage_state_travel_v57",
+      "render": {
+        "bytes": 663476,
+        "filename": "chat_lineage.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "E938D9B3BA51844895DC568E08F5A576C70B948573CDD7A58B376D16780C3C82",
+        "source_mmd_sha256": "9A55B3E7503B0BB70A0944C820F692839D5F7AE157D123AEC2C2A5B60AFC0B42",
+        "url": "/dummy-lane-packages/chat_lineage/chat_lineage.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 35,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "writeback_policy",
+        "turn_prepare",
+        "prompt_raw_exact",
+        "prompt_normalized_summary",
+        "response_raw_visible_exact",
+        "response_summary",
+        "visible_reasoning_summary",
+        "file_link_registry",
+        "source_normalization_receipt",
+        "mode_classification_run",
+        "gate_evaluation_run",
+        "operator_activation_run",
+        "entry_exit_receipt",
+        "legacy_project_carry_forward",
+        "turn_commit",
+        "lineage_head",
+        "state_hash_chain",
+        "turn_fts"
+      ],
+      "topology_generator_sha256": "28465C6779FD20D68775BC02EDD5C7EE22F8E6E23963282999323CE9AF77C36A",
+      "vector_render": {
+        "bytes": 342228,
+        "filename": "chat_lineage.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "C4F1AE16945BE2E342ED16362CFD401D42965AE2D6AC4E8DE32D057675F64F8F",
+        "source_mmd_sha256": "9A55B3E7503B0BB70A0944C820F692839D5F7AE157D123AEC2C2A5B60AFC0B42",
+        "url": "/dummy-lane-packages/chat_lineage/chat_lineage.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 372736,
+          "filename": "discussion_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "6A04AEB411239E87609DD4C85BC4C19EAB2BD1C6CC86CF08F80DD663AA02F755",
+          "url": "/dummy-lane-packages/discussion/discussion_sector_v001.sqlite"
+        },
+        {
+          "bytes": 15560,
+          "filename": "discussion.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "CC52707226C90124304C45B209BA454A36E8FA9A71E9883C949516E1784B7BC9",
+          "url": "/dummy-lane-packages/discussion/discussion.mmd"
+        },
+        {
+          "bytes": 20117,
+          "filename": "discussion.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "75CE7A228FFC0E3519737F10705FE78158A61D0D00F601D49782D3BB13181CE9",
+          "url": "/dummy-lane-packages/discussion/discussion.dot"
+        },
+        {
+          "bytes": 5799,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "9BFF218A6423F91752315F28482E5044538F4474B07F4C4DC53C377B79489D4C",
+          "url": "/dummy-lane-packages/discussion/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "semantic_blocks_v1",
+      "command": "evi-source-intake --lane discussion",
+      "fts_table": "discussion_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Discussion",
+      "lane_id": "discussion",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=34B95AB9897DBE83126E71BB79D695618752BC58D8577788737AAF97C6AF9C6A\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Discussion<br/>1 sources &#124; 1 chunks &#124; 7 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".md<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=7 &#124; kinds=5\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=8 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"discussion_item<br/>rows=3\"]:::semantic\n    FACT_SAMPLE_0_0[\"Decision: preserve PV3\"]:::semantic\n    FACT_SAMPLE_0_1[\"Delta: test exact Git evidence\"]:::semantic\n    FACT_KIND_1[\"discussion_decision<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"preserve PV3\"]:::semantic\n    FACT_KIND_2[\"discussion_delta<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"test exact Git evidence\"]:::semantic\n    FACT_KIND_3[\"discussion_hard_gate<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_3_0[\"explicit HIL only\"]:::semantic\n    FACT_KIND_4[\"discussion_source<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_4_0[\"poc-fixtures/discussion.md\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=26 &#124; tables=36 &#124; auxiliaries=10 &#124; relations=14<br/>projection_sha256=09D32464AD6A864AA5169B4723CCAF29CB3D22886610B3C1CB9953471BF9BC88\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=7 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=12 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=12 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=69 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=69 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=69 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=9 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"discussion_source<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"discussion_turn<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"discussion_item<br/>rows=3 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"discussion_decision<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"discussion_delta<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"discussion_next_action<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"discussion_hard_gate<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_024[\"discussion_artifact_reference<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_025[\"discussion_fts<br/>rows=1 &#124; columns=6 &#124; role=lane_fts_contract\"]:::semantic\n    PHYSICAL_GROUP_AUXILIARY[\"SQLite engine auxiliaries<br/>tables=10 &#124; ordered from SQLite\"]:::retrieval\n    PHYSICAL_TABLE_026[\"authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_027[\"authority_index_fts_content<br/>rows=69 &#124; columns=6 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_028[\"authority_index_fts_data<br/>rows=5 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n\n%% Preview stops at line 72; download the full 223-line lane MMD above.\n",
+      "ordinal": 4,
+      "parser_id": "discussion_structured_v1",
+      "render": {
+        "bytes": 468177,
+        "filename": "discussion.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "73D46D8033C09409C5DD33A2794AFA7E231254BE8A30C6CF454438FD2B34C644",
+        "source_mmd_sha256": "CC52707226C90124304C45B209BA454A36E8FA9A71E9883C949516E1784B7BC9",
+        "url": "/dummy-lane-packages/discussion/discussion.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 26,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "discussion_source",
+        "discussion_turn",
+        "discussion_item",
+        "discussion_decision",
+        "discussion_delta",
+        "discussion_next_action",
+        "discussion_hard_gate",
+        "discussion_artifact_reference",
+        "discussion_fts"
+      ],
+      "topology_generator_sha256": "B79108DA881E7D0C57A67CFF2175D6C0A250B2252BDFD7DBCDA1DDC13043542F",
+      "vector_render": {
+        "bytes": 229021,
+        "filename": "discussion.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "5D8547760B2DA8879246A1D3C9F4B532FBE045E297EDB840054F39938236C270",
+        "source_mmd_sha256": "CC52707226C90124304C45B209BA454A36E8FA9A71E9883C949516E1784B7BC9",
+        "url": "/dummy-lane-packages/discussion/discussion.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 368640,
+          "filename": "analysis_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "95FFC14F65210599A433006686992F47CA997FD12F452B5E77789FC0A8E092B7",
+          "url": "/dummy-lane-packages/analysis/analysis_sector_v001.sqlite"
+        },
+        {
+          "bytes": 15613,
+          "filename": "analysis.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "9026920285E4E64D2E6F9E5DF943739ACB7FC7E59DEAA10D9F437A85ADA19A3B",
+          "url": "/dummy-lane-packages/analysis/analysis.mmd"
+        },
+        {
+          "bytes": 20026,
+          "filename": "analysis.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "08A1C48A8709B01294039B6C6F569B557D0E8A2C0E85E9AA9221BF89AC119D9B",
+          "url": "/dummy-lane-packages/analysis/analysis.dot"
+        },
+        {
+          "bytes": 5801,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "6C82B835275240D0DA9C6BC1597517382A77BF478952C9BA70F55F07CB786A03",
+          "url": "/dummy-lane-packages/analysis/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "semantic_blocks_v1",
+      "command": "evi-source-intake --lane analysis",
+      "fts_table": "analysis_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Analysis",
+      "lane_id": "analysis",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=5E06D1C7FF9EF01A4D94335B53FFBDCE07297F921BE49C8E6767DEA54884A6A0\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Analysis<br/>1 sources &#124; 1 chunks &#124; 4 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".md<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=4 &#124; kinds=4\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=9 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"analysis_claim<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"only GitHub Code is real\"]:::semantic\n    FACT_KIND_1[\"analysis_evidence<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"route policy receipt\"]:::semantic\n    FACT_KIND_2[\"analysis_risk<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"host proof is external\"]:::semantic\n    FACT_KIND_3[\"analysis_source<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_3_0[\"poc-fixtures/analysis.md\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=27 &#124; tables=37 &#124; auxiliaries=10 &#124; relations=15<br/>projection_sha256=BEC9DBA128F983F3C4D0521DC4EB1997AD0562A52180A40B0756D62D950C66FA\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=4 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=14 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=14 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=67 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=67 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=67 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=10 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"analysis_source<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"analysis_claim<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"analysis_evidence<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"analysis_supporting_evidence<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"analysis_risk<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"analysis_alternative<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"analysis_open_question<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_024[\"analysis_accepted_decision<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_025[\"analysis_blocked_item<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_026[\"analysis_fts<br/>rows=1 &#124; columns=6 &#124; role=lane_fts_contract\"]:::semantic\n    PHYSICAL_GROUP_AUXILIARY[\"SQLite engine auxiliaries<br/>tables=10 &#124; ordered from SQLite\"]:::retrieval\n    PHYSICAL_TABLE_027[\"analysis_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_028[\"analysis_fts_content<br/>rows=1 &#124; columns=5 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_029[\"analysis_fts_data<br/>rows=3 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_030[\"analysis_fts_docsize<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_031[\"analysis_fts_idx<br/>rows=1 &#124; columns=3 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n\n%% Preview stops at line 72; download the full 221-line lane MMD above.\n",
+      "ordinal": 5,
+      "parser_id": "analysis_structured_v1",
+      "render": {
+        "bytes": 485406,
+        "filename": "analysis.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "71E2DFFED0B1F6A879D3147B222A3BB0B7923B4E34BCA1F711C09ABB3B2E03F2",
+        "source_mmd_sha256": "9026920285E4E64D2E6F9E5DF943739ACB7FC7E59DEAA10D9F437A85ADA19A3B",
+        "url": "/dummy-lane-packages/analysis/analysis.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 27,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "analysis_source",
+        "analysis_claim",
+        "analysis_evidence",
+        "analysis_supporting_evidence",
+        "analysis_risk",
+        "analysis_alternative",
+        "analysis_open_question",
+        "analysis_accepted_decision",
+        "analysis_blocked_item",
+        "analysis_fts"
+      ],
+      "topology_generator_sha256": "B7A6EA2B6CCDC64C674C2ECCA9E4754672AFD5BEC80683734994C4BBE4B7504D",
+      "vector_render": {
+        "bytes": 230840,
+        "filename": "analysis.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "1CE9F6BC976FB7C6F82D6D3C18CB3ABD398D1BB29E1280FA4E15E65BDD73A3C2",
+        "source_mmd_sha256": "9026920285E4E64D2E6F9E5DF943739ACB7FC7E59DEAA10D9F437A85ADA19A3B",
+        "url": "/dummy-lane-packages/analysis/analysis.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 372736,
+          "filename": "plan_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "F50102547C8839D75FC21D4367B6DFD7622C913DD81EB960477BA1E05B35E4E0",
+          "url": "/dummy-lane-packages/plan/plan_sector_v001.sqlite"
+        },
+        {
+          "bytes": 16116,
+          "filename": "plan.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "0D03BD843D006B579BA70170C97622B82E972BCD82859DCA6D6536F094B6BCCD",
+          "url": "/dummy-lane-packages/plan/plan.mmd"
+        },
+        {
+          "bytes": 20846,
+          "filename": "plan.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "6E7635E4FF9D4128C237F0E73BCDEEBA6006BC5E5FD57B0F46FDBAA185448079",
+          "url": "/dummy-lane-packages/plan/plan.dot"
+        },
+        {
+          "bytes": 5712,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "74D64FBC07F297EFDB158AA6947146E8A76D734EE3D1BD2F8401CEB80E8F5940",
+          "url": "/dummy-lane-packages/plan/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "semantic_blocks_v1",
+      "command": "evi-source-intake --lane plan",
+      "fts_table": "plan_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Plan",
+      "lane_id": "plan",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=31C7B6EA58EA424A0B34194514E5DD3604DC95660CA4DFF09DADAB8CD0B25B8D\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Plan<br/>1 sources &#124; 1 chunks &#124; 5 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".md<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=5 &#124; kinds=5\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=10 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"plan_acceptance_criteria<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"all gates pass\"]:::semantic\n    FACT_KIND_1[\"plan_owner<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"one writer\"]:::semantic\n    FACT_KIND_2[\"plan_phase<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"PoC\"]:::semantic\n    FACT_KIND_3[\"plan_source<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_3_0[\"poc-fixtures/plan.md\"]:::semantic\n    FACT_KIND_4[\"plan_task<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_4_0[\"run 18 lane audit\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=28 &#124; tables=38 &#124; auxiliaries=10 &#124; relations=16<br/>projection_sha256=08E015BB25217FD3959C73C9AAE8ECFB7734F5BB3D0A142F5AF095E4642595E1\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=5 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=14 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=14 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=69 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=69 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=69 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=11 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"plan_source<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"plan_phase<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"plan_milestone<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"plan_task<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"plan_owner<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"plan_status<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"plan_dependency<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_024[\"plan_blocker<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_025[\"plan_next_action<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_026[\"plan_acceptance_criteria<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_027[\"plan_fts<br/>rows=1 &#124; columns=6 &#124; role=lane_fts_contract\"]:::semantic\n    PHYSICAL_GROUP_AUXILIARY[\"SQLite engine auxiliaries<br/>tables=10 &#124; ordered from SQLite\"]:::retrieval\n    PHYSICAL_TABLE_028[\"authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_029[\"authority_index_fts_content<br/>rows=69 &#124; columns=6 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n\n%% Preview stops at line 72; download the full 233-line lane MMD above.\n",
+      "ordinal": 6,
+      "parser_id": "plan_structured_v1",
+      "render": {
+        "bytes": 491688,
+        "filename": "plan.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "17C1604547599A2394B694230A5ADD87080E663CE29228DFA0B89FD633EFDF97",
+        "source_mmd_sha256": "0D03BD843D006B579BA70170C97622B82E972BCD82859DCA6D6536F094B6BCCD",
+        "url": "/dummy-lane-packages/plan/plan.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 28,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "plan_source",
+        "plan_phase",
+        "plan_milestone",
+        "plan_task",
+        "plan_owner",
+        "plan_status",
+        "plan_dependency",
+        "plan_blocker",
+        "plan_next_action",
+        "plan_acceptance_criteria",
+        "plan_fts"
+      ],
+      "topology_generator_sha256": "92C48C88FA642E8A06042B3A4111CD2E5DC7CAAA309761D6C57E7323798EAFBF",
+      "vector_render": {
+        "bytes": 245402,
+        "filename": "plan.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "B911C14F7AB4F964B4AF77BEACAC9EEA96E0BC9BB32BDCA12AE1D667E583564A",
+        "source_mmd_sha256": "0D03BD843D006B579BA70170C97622B82E972BCD82859DCA6D6536F094B6BCCD",
+        "url": "/dummy-lane-packages/plan/plan.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 364544,
+          "filename": "mode_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "721011E5416919745F32F0B53E9F7B06A9F5E0CF3228980B6B823FE06A308D97",
+          "url": "/dummy-lane-packages/mode/mode_sector_v001.sqlite"
+        },
+        {
+          "bytes": 15899,
+          "filename": "mode.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "370294624BAED013FDFE9794B477D0AC11E441813786BA872868A579773A5091",
+          "url": "/dummy-lane-packages/mode/mode.mmd"
+        },
+        {
+          "bytes": 20433,
+          "filename": "mode.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "AD4F9A06F353CA6C180EB5CDE55A1F14709993036EE3C5400BF0AC709AFFE99D",
+          "url": "/dummy-lane-packages/mode/mode.dot"
+        },
+        {
+          "bytes": 5725,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "CC842BB5BF05E2EF9D1117339AF8948A7D3A60F4135D29EB7FE3A260F61A2578",
+          "url": "/dummy-lane-packages/mode/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "rule_blocks_v1",
+      "command": "evi-mode",
+      "fts_table": "mode_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Mode",
+      "lane_id": "mode",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=117B397C47C3CFA827AC7852ED7F2461E4F62BD77EA19A3955E68EF5E01200B8\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Mode<br/>1 sources &#124; 1 chunks &#124; 4 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".md<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=4 &#124; kinds=4\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=10 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"mode_gate<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"six-way HIL\"]:::semantic\n    FACT_KIND_1[\"mode_rule<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"fixtures are not production evidence\"]:::semantic\n    FACT_KIND_2[\"mode_scope<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"exact commit\"]:::semantic\n    FACT_KIND_3[\"mode_source<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_3_0[\"poc-fixtures/mode.md\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=28 &#124; tables=38 &#124; auxiliaries=10 &#124; relations=16<br/>projection_sha256=073D472462661C48E856A7114AD232478E3EE7C1B25A7E9728F06D16A167B0D8\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=4 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=12 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=12 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=63 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=63 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=63 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=11 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"mode_source<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"mode_scope<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"mode_trigger<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"mode_rule<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"mode_gate<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"mode_allowed_action<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"mode_blocked_action<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_024[\"mode_response_template<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_025[\"mode_priority<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_026[\"mode_supersede_ledger<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_027[\"mode_fts<br/>rows=1 &#124; columns=6 &#124; role=lane_fts_contract\"]:::semantic\n    PHYSICAL_GROUP_AUXILIARY[\"SQLite engine auxiliaries<br/>tables=10 &#124; ordered from SQLite\"]:::retrieval\n    PHYSICAL_TABLE_028[\"authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_029[\"authority_index_fts_content<br/>rows=63 &#124; columns=6 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_030[\"authority_index_fts_data<br/>rows=5 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_031[\"authority_index_fts_docsize<br/>rows=63 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n\n%% Preview stops at line 72; download the full 227-line lane MMD above.\n",
+      "ordinal": 7,
+      "parser_id": "mode_contract_v1",
+      "render": {
+        "bytes": 498115,
+        "filename": "mode.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "BB386E3EDA3936C00BC3A3E1501FDB6017AB4260E99F09C5085A4263849678F8",
+        "source_mmd_sha256": "370294624BAED013FDFE9794B477D0AC11E441813786BA872868A579773A5091",
+        "url": "/dummy-lane-packages/mode/mode.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 28,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "mode_source",
+        "mode_scope",
+        "mode_trigger",
+        "mode_rule",
+        "mode_gate",
+        "mode_allowed_action",
+        "mode_blocked_action",
+        "mode_response_template",
+        "mode_priority",
+        "mode_supersede_ledger",
+        "mode_fts"
+      ],
+      "topology_generator_sha256": "66839E187113E95D76586650CB979B004205B4AE3049ED37F7F52BD03AFAD450",
+      "vector_render": {
+        "bytes": 240017,
+        "filename": "mode.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "DCC29A02BE971F583BFC8B7AE8AF52EFA4F3AC8E8330CF30CE2B63468FE37663",
+        "source_mmd_sha256": "370294624BAED013FDFE9794B477D0AC11E441813786BA872868A579773A5091",
+        "url": "/dummy-lane-packages/mode/mode.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 372736,
+          "filename": "docs_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "38E1AED74F2F8552A8C80F322C06E5F9B339D25AB7BA2C37C1A68213FA3D5179",
+          "url": "/dummy-lane-packages/docs/docs_sector_v001.sqlite"
+        },
+        {
+          "bytes": 16406,
+          "filename": "docs.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "D9505B41C76A346436B54575B142D430C09B7382605F65FF826D3ED5A18F27D4",
+          "url": "/dummy-lane-packages/docs/docs.mmd"
+        },
+        {
+          "bytes": 21408,
+          "filename": "docs.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "1F34A340216E8A6D1AFA7718A72E7471B4E3F02C9669BBFDD58D9E3A46A9771D",
+          "url": "/dummy-lane-packages/docs/docs.dot"
+        },
+        {
+          "bytes": 5715,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "123A995A6749005FBE6234FBC78E3D6B571AA1BF77705518D954DA407E38E3C1",
+          "url": "/dummy-lane-packages/docs/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "document_hierarchy_v1",
+      "command": "evi-source-intake --lane docs",
+      "fts_table": "doc_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Docs",
+      "lane_id": "docs",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=6A491ABD8B92A66B78709CC1B2EFA7B4D1ECA1CD7D8938B474CCE8ECF6534EF5\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Docs<br/>1 sources &#124; 1 chunks &#124; 9 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".docx<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=9 &#124; kinds=7\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=9 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"doc_paragraph<br/>rows=3\"]:::semantic\n    FACT_SAMPLE_0_0[\"Deterministic one-shot document fixture.\"]:::semantic\n    FACT_SAMPLE_0_1[\"Key\"]:::semantic\n    FACT_KIND_1[\"doc_file<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"poc-fixtures/document.docx\"]:::semantic\n    FACT_KIND_2[\"doc_heading<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"Evidence hierarchy\"]:::semantic\n    FACT_KIND_3[\"doc_structure<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_3_0[\"word/document.xml\"]:::semantic\n    FACT_KIND_4[\"doc_table_extract<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_4_0[\"word/document.xml:table:1\"]:::semantic\n    FACT_KIND_5[\"source_structure_signature<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_5_0[\"poc-fixtures/document.docx\"]:::semantic\n    FACT_KIND_6[\"toolchain_fallback_receipt<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_6_0[\"poc-fixtures/document.docx\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=27 &#124; tables=37 &#124; auxiliaries=10 &#124; relations=15<br/>projection_sha256=58C1138DBD46FEA35ED44FB1AC4F2D5E959459CB80A4B41B9BE429D93C28435D\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=9 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=11 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=8 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=8 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=65 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=65 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=65 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=10 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"doc_file<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"doc_structure<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"doc_heading<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"doc_paragraph<br/>rows=3 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"doc_table_extract<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"doc_chunk<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"doc_image_reference<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_024[\"docling_extraction<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_025[\"source_structure_signature<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n\n%% Preview stops at line 72; download the full 239-line lane MMD above.\n",
+      "ordinal": 8,
+      "parser_id": "document_structure_v1",
+      "render": {
+        "bytes": 493259,
+        "filename": "docs.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "69C94484CD3294FB63DF6378496C07D3C19DDFB61A969C0E896DE7D74ADAEF0D",
+        "source_mmd_sha256": "D9505B41C76A346436B54575B142D430C09B7382605F65FF826D3ED5A18F27D4",
+        "url": "/dummy-lane-packages/docs/docs.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 27,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "doc_file",
+        "doc_structure",
+        "doc_heading",
+        "doc_paragraph",
+        "doc_table_extract",
+        "doc_chunk",
+        "doc_image_reference",
+        "docling_extraction",
+        "source_structure_signature",
+        "doc_fts"
+      ],
+      "topology_generator_sha256": "A87C31E855EF1CFE3A59A7E9A4D2BB0EF67FA411A14D326AAFD775FB3488FF29",
+      "vector_render": {
+        "bytes": 246501,
+        "filename": "docs.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "CFC9AA511080A923AD0CD891CE870391A2470BE9D5C5BB3B01F73FAA2A46EA2E",
+        "source_mmd_sha256": "D9505B41C76A346436B54575B142D430C09B7382605F65FF826D3ED5A18F27D4",
+        "url": "/dummy-lane-packages/docs/docs.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 520192,
+          "filename": "data_excel_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "D17E4224B29067F72985499D7291F76C6DAD79C133DA3CA931E8A03578BF48BA",
+          "url": "/dummy-lane-packages/data_excel/data_excel_sector_v001.sqlite"
+        },
+        {
+          "bytes": 24677,
+          "filename": "data_excel.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "FD0D3E684603974218F661287EBC50AE75A56F62EAF1C85AD4482D60E88A6B1E",
+          "url": "/dummy-lane-packages/data_excel/data_excel.mmd"
+        },
+        {
+          "bytes": 32566,
+          "filename": "data_excel.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "36160A2A06F57EEEF69E5EABD3E0B9992E1C8E76690A21B433E8324AF76440AA",
+          "url": "/dummy-lane-packages/data_excel/data_excel.dot"
+        },
+        {
+          "bytes": 6223,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "DA4679F9D6AA1514433E40D84BD70612CBD1587048A082C0F2DF0ED27C9D1C04",
+          "url": "/dummy-lane-packages/data_excel/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "table_structure_v1",
+      "command": "evi-source-intake --lane data_excel",
+      "fts_table": "data_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Data / Excel / CSV",
+      "lane_id": "data_excel",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=EC96511785E249A3961C4A95DB9D700DE7CCCB29F5CDCAFA863B6EC369681EF6\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Data / Excel / CSV<br/>2 sources &#124; 2 chunks &#124; 21 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=2 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".csv<br/>1 sources\"]:::source\n    SOURCE_TYPE_1[\".xlsx<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=21 &#124; kinds=14\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=23 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"toolchain_fallback_receipt<br/>rows=4\"]:::semantic\n    FACT_SAMPLE_0_0[\"poc-fixtures/metrics.csv\"]:::semantic\n    FACT_SAMPLE_0_1[\"poc-fixtures/metrics.xlsx\"]:::semantic\n    FACT_KIND_1[\"csv_row_sample<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_1_0[\"row:2\"]:::semantic\n    FACT_SAMPLE_1_1[\"row:3\"]:::semantic\n    FACT_KIND_2[\"data_source<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_2_0[\"poc-fixtures/metrics.csv\"]:::semantic\n    FACT_SAMPLE_2_1[\"poc-fixtures/metrics.xlsx\"]:::semantic\n    FACT_KIND_3[\"data_structure_signature<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_3_0[\"poc-fixtures/metrics.csv\"]:::semantic\n    FACT_SAMPLE_3_1[\"poc-fixtures/metrics.xlsx\"]:::semantic\n    FACT_KIND_4[\"sheet_cell_sample<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_4_0[\"Metrics\"]:::semantic\n    FACT_SAMPLE_4_1[\"Metrics\"]:::semantic\n    FACT_KIND_5[\"csv_header<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_5_0[\"row:1\"]:::semantic\n    FACT_KIND_6[\"sheet_chart_metadata<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_6_0[\"xl/charts/chart1.xml\"]:::semantic\n    FACT_KIND_7[\"sheet_formula<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_7_0[\"Metrics\"]:::semantic\n    FACT_KIND_8[\"sheet_formula_dependency_edge<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_8_0[\"Metrics!B1\"]:::semantic\n    FACT_KIND_9[\"sheet_range<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_9_0[\"Metrics\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=41 &#124; tables=51 &#124; auxiliaries=10 &#124; relations=29<br/>projection_sha256=D7BE2EA599CC6448B60F9D83DCE4AF2ED441B2A695A37C941D7A4D03D68A71AC\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=2 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=2 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=2 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=2 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=21 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=19 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=6 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=6 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=93 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=93 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=93 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n\n%% Preview stops at line 72; download the full 357-line lane MMD above.\n",
+      "ordinal": 9,
+      "parser_id": "office_data_structural_v1",
+      "render": {
+        "bytes": 689798,
+        "filename": "data_excel.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "63616463152538FC2477F2F206A0C8001410854A8643E571142324F79F44F26C",
+        "source_mmd_sha256": "FD0D3E684603974218F661287EBC50AE75A56F62EAF1C85AD4482D60E88A6B1E",
+        "url": "/dummy-lane-packages/data_excel/data_excel.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 41,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "data_source",
+        "sheet_workbook",
+        "sheet_tab",
+        "sheet_range",
+        "sheet_cell_sample",
+        "sheet_table",
+        "sheet_formula",
+        "sheet_formula_dependency_edge",
+        "sheet_chart_metadata",
+        "csv_header",
+        "csv_row_sample",
+        "json_structure",
+        "json_record_sample",
+        "parquet_schema",
+        "parquet_row_sample",
+        "duckdb_tabular_stage_receipt",
+        "polars_tabular_stage_receipt",
+        "openpyxl_workbook_inspection",
+        "pandas_workbook_inspection",
+        "tableau_hyper_inspection",
+        "docling_extraction",
+        "data_chunk",
+        "data_structure_signature",
+        "data_fts"
+      ],
+      "topology_generator_sha256": "D62786656ACEFC019312588705C7CAF7B0F72E77ABAA49F7E566089D957E341D",
+      "vector_render": {
+        "bytes": 427566,
+        "filename": "data_excel.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "7F5D8AAE2A6B6FE2BF8339628F000F2DFBEFAE54F4BD704865C8EF3E2D6DBE5B",
+        "source_mmd_sha256": "FD0D3E684603974218F661287EBC50AE75A56F62EAF1C85AD4482D60E88A6B1E",
+        "url": "/dummy-lane-packages/data_excel/data_excel.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 360448,
+          "filename": "ppt_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "170E8BEA6BEBD773D36CD854FF76C4F027DFF405B472AF3ACE337C7AB7D3BF4E",
+          "url": "/dummy-lane-packages/ppt/ppt_sector_v001.sqlite"
+        },
+        {
+          "bytes": 16877,
+          "filename": "ppt.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "0CA27CFA1A7F8BC3665FD43F4F906780BA556250047E97257856A778FD107126",
+          "url": "/dummy-lane-packages/ppt/ppt.mmd"
+        },
+        {
+          "bytes": 21863,
+          "filename": "ppt.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "785AF7FA31AF5811A160C651B44DEAC18536059DC702773E1FA4831D27927426",
+          "url": "/dummy-lane-packages/ppt/ppt.dot"
+        },
+        {
+          "bytes": 5724,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "8DF6C73CDCB1472ACD63452B054D5285BAB6731AAA8B258E39564F86AF4B4E55",
+          "url": "/dummy-lane-packages/ppt/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "slide_structure_v1",
+      "command": "evi-source-intake --lane ppt",
+      "fts_table": "ppt_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "PPT / Presentation",
+      "lane_id": "ppt",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=FF60B925063F7218F8BC9165ACE48DE36E5B971129FDA41779BC63156DAE0160\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"PPT / Presentation<br/>1 sources &#124; 1 chunks &#124; 6 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".pptx<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=6 &#124; kinds=6\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=11 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"ppt_file<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"poc-fixtures/slides.pptx\"]:::semantic\n    FACT_KIND_1[\"ppt_shape<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"Title 1\"]:::semantic\n    FACT_KIND_2[\"ppt_slide<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"ppt/slides/slide1.xml\"]:::semantic\n    FACT_KIND_3[\"ppt_structure_signature<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_3_0[\"poc-fixtures/slides.pptx\"]:::semantic\n    FACT_KIND_4[\"ppt_text_block<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_4_0[\"Persistent lane fixture\"]:::semantic\n    FACT_KIND_5[\"toolchain_fallback_receipt<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_5_0[\"poc-fixtures/slides.pptx\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=29 &#124; tables=39 &#124; auxiliaries=10 &#124; relations=17<br/>projection_sha256=8048DEBD4364A495C81E015E1F58F1F731F8A8525DF1C354758463D18F80932B\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=6 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=11 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=3 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=3 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=49 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=49 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=49 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=12 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"ppt_file<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"ppt_slide<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"ppt_shape<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"ppt_text_block<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"ppt_notes<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"ppt_table<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"ppt_image_reference<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_024[\"docling_extraction<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_025[\"ppt_slide_relationship<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_026[\"ppt_chunk<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_027[\"ppt_structure_signature<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_028[\"ppt_fts<br/>rows=1 &#124; columns=6 &#124; role=lane_fts_contract\"]:::semantic\n\n%% Preview stops at line 72; download the full 243-line lane MMD above.\n",
+      "ordinal": 10,
+      "parser_id": "presentation_structure_v1",
+      "render": {
+        "bytes": 512595,
+        "filename": "ppt.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "6599B5136312691F585E554F625EFA6935B881B2EF1BC03F8D52538A40FFE496",
+        "source_mmd_sha256": "0CA27CFA1A7F8BC3665FD43F4F906780BA556250047E97257856A778FD107126",
+        "url": "/dummy-lane-packages/ppt/ppt.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 29,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "ppt_file",
+        "ppt_slide",
+        "ppt_shape",
+        "ppt_text_block",
+        "ppt_notes",
+        "ppt_table",
+        "ppt_image_reference",
+        "docling_extraction",
+        "ppt_slide_relationship",
+        "ppt_chunk",
+        "ppt_structure_signature",
+        "ppt_fts"
+      ],
+      "topology_generator_sha256": "AB0FCAE572BDCDA5806D61EF9330C4247DDCC51413CDA6DC283F786F5A300A7F",
+      "vector_render": {
+        "bytes": 257942,
+        "filename": "ppt.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "4B17C19C1DA4F08B1044D6412296EFB3FF918B3E8336B01CFF6E8F69132D224A",
+        "source_mmd_sha256": "0CA27CFA1A7F8BC3665FD43F4F906780BA556250047E97257856A778FD107126",
+        "url": "/dummy-lane-packages/ppt/ppt.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 376832,
+          "filename": "pdf_ocr_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "5D33FF1B79617B696DE09E2318886B4AE9CA35485A3ED53F37F78605A9B1B732",
+          "url": "/dummy-lane-packages/pdf_ocr/pdf_ocr_sector_v001.sqlite"
+        },
+        {
+          "bytes": 16092,
+          "filename": "pdf_ocr.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "E0235BFBD7EAC34C29BBF193E6CD24F4ED611A451D37DAC211B16EF9D483D540",
+          "url": "/dummy-lane-packages/pdf_ocr/pdf_ocr.mmd"
+        },
+        {
+          "bytes": 20759,
+          "filename": "pdf_ocr.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "579C38F375F06FA292E9D52FFF5AF7BFFBAF0411255B2A7D8CB7DF3EDBE267B3",
+          "url": "/dummy-lane-packages/pdf_ocr/pdf_ocr.dot"
+        },
+        {
+          "bytes": 5752,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "500A660C41CC66D5C6C06A2F3498CB5CC27E8D0F24C2EC589B397D3CDF17D65D",
+          "url": "/dummy-lane-packages/pdf_ocr/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "page_block_v1",
+      "command": "evi-source-intake --lane pdf_ocr",
+      "fts_table": "pdf_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "PDF / OCR",
+      "lane_id": "pdf_ocr",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=B17D810502619053212F9A8F76435D85C8179024FFC236EDBB6D62B92F66CB63\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"PDF / OCR<br/>1 sources &#124; 1 chunks &#124; 5 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".pdf<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=5 &#124; kinds=5\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=10 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"pdf_file<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"poc-fixtures/evidence.pdf\"]:::semantic\n    FACT_KIND_1[\"pdf_page<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"page:1\"]:::semantic\n    FACT_KIND_2[\"pdf_structure_signature<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"poc-fixtures/evidence.pdf\"]:::semantic\n    FACT_KIND_3[\"pdf_text_block<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_3_0[\"page:1:native\"]:::semantic\n    FACT_KIND_4[\"toolchain_fallback_receipt<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_4_0[\"poc-fixtures/evidence.pdf\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=28 &#124; tables=38 &#124; auxiliaries=10 &#124; relations=16<br/>projection_sha256=19B49F8DBC0A017DCBA352E108DDF247F8FCAB18936540BA6CC6FD0AB833F259\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=5 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=23 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=5 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=5 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=63 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=63 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=63 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=11 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"pdf_file<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"pdf_page<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"pdf_text_block<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"pdf_image_block<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"pdf_ocr_run<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"pdf_ocr_block<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"pdf_ocr_line<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_024[\"pdf_review_region<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_025[\"docling_extraction<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_026[\"pdf_structure_signature<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_027[\"pdf_fts<br/>rows=1 &#124; columns=6 &#124; role=lane_fts_contract\"]:::semantic\n    PHYSICAL_GROUP_AUXILIARY[\"SQLite engine auxiliaries<br/>tables=10 &#124; ordered from SQLite\"]:::retrieval\n    PHYSICAL_TABLE_028[\"authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_029[\"authority_index_fts_content<br/>rows=63 &#124; columns=6 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n\n%% Preview stops at line 72; download the full 231-line lane MMD above.\n",
+      "ordinal": 11,
+      "parser_id": "pdf_ocr_structural_v2",
+      "render": {
+        "bytes": 493425,
+        "filename": "pdf_ocr.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "BF3080737A4456F786DCB901AF296A98954A2B98C549DDE5A037FA45C46E87EC",
+        "source_mmd_sha256": "E0235BFBD7EAC34C29BBF193E6CD24F4ED611A451D37DAC211B16EF9D483D540",
+        "url": "/dummy-lane-packages/pdf_ocr/pdf_ocr.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 28,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "pdf_file",
+        "pdf_page",
+        "pdf_text_block",
+        "pdf_image_block",
+        "pdf_ocr_run",
+        "pdf_ocr_block",
+        "pdf_ocr_line",
+        "pdf_review_region",
+        "docling_extraction",
+        "pdf_structure_signature",
+        "pdf_fts"
+      ],
+      "topology_generator_sha256": "E59ADAA58DE3F165127185DB8D6C19B7523F5B64CD0DB16F1336C5AF02CD6136",
+      "vector_render": {
+        "bytes": 243518,
+        "filename": "pdf_ocr.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "F1E4B243080F1F319E9952F7A3E19D29882BD3B6059F50D537724CA8CA51B117",
+        "source_mmd_sha256": "E0235BFBD7EAC34C29BBF193E6CD24F4ED611A451D37DAC211B16EF9D483D540",
+        "url": "/dummy-lane-packages/pdf_ocr/pdf_ocr.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 327680,
+          "filename": "images_ocr_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "864CF411183137EC8206513ED96C9B62C98B0EA18F0F256312B775684333275C",
+          "url": "/dummy-lane-packages/images_ocr/images_ocr_sector_v001.sqlite"
+        },
+        {
+          "bytes": 13764,
+          "filename": "images_ocr.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "94830F2507E18AF8A6BE48266F34869C15959F38AE30748C17426AA5B0164B4E",
+          "url": "/dummy-lane-packages/images_ocr/images_ocr.mmd"
+        },
+        {
+          "bytes": 17602,
+          "filename": "images_ocr.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "FDD8D1ABA0DB2303A516A07F461AB7042517371E00C1696817475366615EE89C",
+          "url": "/dummy-lane-packages/images_ocr/images_ocr.dot"
+        },
+        {
+          "bytes": 5718,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "AE768710673B4F27F5096DC259C16797D94908DF82D17CF2035D36E47511E5A1",
+          "url": "/dummy-lane-packages/images_ocr/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "ocr_region_v1",
+      "command": "evi-source-intake --lane images_ocr",
+      "fts_table": "image_ocr_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Images / OCR",
+      "lane_id": "images_ocr",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=FD9D9BCD6067A1E8EF72CD1E99AC7495C465264E27491DEFE833D719775197B3\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Images / OCR<br/>1 sources &#124; 0 chunks &#124; 3 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".png<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=3 &#124; kinds=3\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=6 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"image_file<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"poc-fixtures/image.png\"]:::semantic\n    FACT_KIND_1[\"image_metadata<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"image\"]:::semantic\n    FACT_KIND_2[\"image_review_region<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"image\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=24 &#124; tables=34 &#124; auxiliaries=10 &#124; relations=12<br/>projection_sha256=C94D07DC583B50417933B494654B08B75339E94452E12B56D7A8CF063CA6875A\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=0 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=0 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=0 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=3 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=16 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=0 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=40 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=40 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=40 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=7 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"image_file<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"image_metadata<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"image_ocr_run<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"image_ocr_block<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"image_ocr_line<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"image_review_region<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"image_ocr_fts<br/>rows=0 &#124; columns=6 &#124; role=lane_fts_contract\"]:::semantic\n    PHYSICAL_GROUP_AUXILIARY[\"SQLite engine auxiliaries<br/>tables=10 &#124; ordered from SQLite\"]:::retrieval\n    PHYSICAL_TABLE_024[\"authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_025[\"authority_index_fts_content<br/>rows=40 &#124; columns=6 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_026[\"authority_index_fts_data<br/>rows=4 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_027[\"authority_index_fts_docsize<br/>rows=40 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_028[\"authority_index_fts_idx<br/>rows=2 &#124; columns=3 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_029[\"image_ocr_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_030[\"image_ocr_fts_content<br/>rows=0 &#124; columns=5 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_031[\"image_ocr_fts_data<br/>rows=2 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_032[\"image_ocr_fts_docsize<br/>rows=0 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_033[\"image_ocr_fts_idx<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n\n%% Preview stops at line 72; download the full 197-line lane MMD above.\n",
+      "ordinal": 12,
+      "parser_id": "image_ocr_structural_v2",
+      "render": {
+        "bytes": 423481,
+        "filename": "images_ocr.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "A491C1E1B7458E57572CD8002461907708309D0CBEFBF69B40185F19C789FF96",
+        "source_mmd_sha256": "94830F2507E18AF8A6BE48266F34869C15959F38AE30748C17426AA5B0164B4E",
+        "url": "/dummy-lane-packages/images_ocr/images_ocr.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 24,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "image_file",
+        "image_metadata",
+        "image_ocr_run",
+        "image_ocr_block",
+        "image_ocr_line",
+        "image_review_region",
+        "image_ocr_fts"
+      ],
+      "topology_generator_sha256": "F5B91B3A2B1E88274EA04918521A4033149129712E4D4A03A1505CE8E3F000D6",
+      "vector_render": {
+        "bytes": 198191,
+        "filename": "images_ocr.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "A3990D8CC6851655FAD7D98E16BC0CDBE048A628A54E2B1A1B8BE41426BBCEA9",
+        "source_mmd_sha256": "94830F2507E18AF8A6BE48266F34869C15959F38AE30748C17426AA5B0164B4E",
+        "url": "/dummy-lane-packages/images_ocr/images_ocr.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 339968,
+          "filename": "artifacts_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "9A9ED0B2233043EC9CBC71CF61480008E3F9B48281B0E5496B7F28D7440DC851",
+          "url": "/dummy-lane-packages/artifacts/artifacts_sector_v001.sqlite"
+        },
+        {
+          "bytes": 14279,
+          "filename": "artifacts.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "2A970F2DEC331579592868943D6409A764A864CEF64AC9C7AEDCD52B775213F4",
+          "url": "/dummy-lane-packages/artifacts/artifacts.mmd"
+        },
+        {
+          "bytes": 18380,
+          "filename": "artifacts.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "5E04C94C59E0E97714A179153250C243ACC5C378B5F67CD5D01F936872A17C62",
+          "url": "/dummy-lane-packages/artifacts/artifacts.dot"
+        },
+        {
+          "bytes": 5746,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "DDE7231781475F55185727331E5E0BA82F02877AA5AF728A2E8DB646AEDBA501",
+          "url": "/dummy-lane-packages/artifacts/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "artifact_blocks_v1",
+      "command": "evi-source-intake --lane artifacts",
+      "fts_table": "artifact_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Artifacts",
+      "lane_id": "artifacts",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=7073D6798E65E21733E47461EF061ED6AFB387CC722B43EE78DF701F6C9F2255\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Artifacts<br/>1 sources &#124; 1 chunks &#124; 5 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".json<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=5 &#124; kinds=5\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=6 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"artifact_metadata<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"poc-fixtures/artifact.json\"]:::semantic\n    FACT_KIND_1[\"artifact_text_extract<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"poc-fixtures/artifact.json:extract:1\"]:::semantic\n    FACT_KIND_2[\"json_record_sample<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"$[0]\"]:::semantic\n    FACT_KIND_3[\"json_structure<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_3_0[\"$\"]:::semantic\n    FACT_KIND_4[\"project_artifact<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_4_0[\"poc-fixtures/artifact.json\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=24 &#124; tables=34 &#124; auxiliaries=10 &#124; relations=12<br/>projection_sha256=EB08409F0EC5723FA240430E1E766E524DFED4DF2CBA05C85BFDA86FE786AA9E\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=5 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=4 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=4 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=47 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=47 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=47 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=7 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"project_artifact<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"artifact_metadata<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"artifact_text_extract<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"artifact_relation_edge<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"artifact_review_required<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"artifact_media_probe<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"artifact_fts<br/>rows=1 &#124; columns=6 &#124; role=lane_fts_contract\"]:::semantic\n    PHYSICAL_GROUP_AUXILIARY[\"SQLite engine auxiliaries<br/>tables=10 &#124; ordered from SQLite\"]:::retrieval\n    PHYSICAL_TABLE_024[\"artifact_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_025[\"artifact_fts_content<br/>rows=1 &#124; columns=5 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_026[\"artifact_fts_data<br/>rows=3 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_027[\"artifact_fts_docsize<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_028[\"artifact_fts_idx<br/>rows=1 &#124; columns=3 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_029[\"authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n\n%% Preview stops at line 72; download the full 205-line lane MMD above.\n",
+      "ordinal": 13,
+      "parser_id": "artifact_structure_v1",
+      "render": {
+        "bytes": 432972,
+        "filename": "artifacts.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "473C99F64F8C72B71A15A956D6872C717AD91882775264B01DE34D8FCCF16DE5",
+        "source_mmd_sha256": "2A970F2DEC331579592868943D6409A764A864CEF64AC9C7AEDCD52B775213F4",
+        "url": "/dummy-lane-packages/artifacts/artifacts.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 24,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "project_artifact",
+        "artifact_metadata",
+        "artifact_text_extract",
+        "artifact_relation_edge",
+        "artifact_review_required",
+        "artifact_media_probe",
+        "artifact_fts"
+      ],
+      "topology_generator_sha256": "42CED2E6D214C7AD4C1EAB590F81EB53137F230ABED30B362F1F8F7497821B32",
+      "vector_render": {
+        "bytes": 205137,
+        "filename": "artifacts.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "CE542625CBAF1FC7A1BE23A403C4DC0950E254E131AE789FBBF5F9FF70C43132",
+        "source_mmd_sha256": "2A970F2DEC331579592868943D6409A764A864CEF64AC9C7AEDCD52B775213F4",
+        "url": "/dummy-lane-packages/artifacts/artifacts.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 294912,
+          "filename": "custom_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "F4245B0BADFEB4122B600BCA1B2E61EBF586B58D420EA46BA1D9A20AB6DAB20A",
+          "url": "/dummy-lane-packages/custom/custom_sector_v001.sqlite"
+        },
+        {
+          "bytes": 13217,
+          "filename": "custom.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "1A05405F0A56E395537D3D4FF366BDFF48E3DA9E5EA4878E2F6EC98AFB491E70",
+          "url": "/dummy-lane-packages/custom/custom.mmd"
+        },
+        {
+          "bytes": 16862,
+          "filename": "custom.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "C85F5CE657C28918DCD788A5161F8BE216BB4BA364EF6B909CC95D2A2FEFF0C4",
+          "url": "/dummy-lane-packages/custom/custom.dot"
+        },
+        {
+          "bytes": 5660,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "829641848D88DE58A367543B328ED4D94FB02CDA8FCCA1B74F2B23540E7B077D",
+          "url": "/dummy-lane-packages/custom/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "bounded_text_v1",
+      "command": "evi-source-intake --lane custom",
+      "fts_table": "custom_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Custom",
+      "lane_id": "custom",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=AF8F0A2A91860F98FAE2BC7C85E90CA7EECD83F4192F2C03BC5D255E39CC79CD\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Custom<br/>1 sources &#124; 0 chunks &#124; 3 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".bin<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=3 &#124; kinds=3\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=5 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"custom_item<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"poc-fixtures/custom.bin\"]:::semantic\n    FACT_KIND_1[\"custom_source<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"poc-fixtures/custom.bin\"]:::semantic\n    FACT_KIND_2[\"parser_capability_blocker<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"poc-fixtures/custom.bin\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=23 &#124; tables=33 &#124; auxiliaries=10 &#124; relations=11<br/>projection_sha256=87DB9453F127540C276A96F4CD9E395DEF56CC42C6786149235BA282FAA079BE\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=0 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=0 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=0 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=3 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=0 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=33 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=33 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=33 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=6 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"custom_source<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"custom_item<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"custom_evidence<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"custom_decision<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"custom_next_action<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"custom_fts<br/>rows=0 &#124; columns=6 &#124; role=lane_fts_contract\"]:::semantic\n    PHYSICAL_GROUP_AUXILIARY[\"SQLite engine auxiliaries<br/>tables=10 &#124; ordered from SQLite\"]:::retrieval\n    PHYSICAL_TABLE_023[\"authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_024[\"authority_index_fts_content<br/>rows=33 &#124; columns=6 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_025[\"authority_index_fts_data<br/>rows=4 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_026[\"authority_index_fts_docsize<br/>rows=33 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_027[\"authority_index_fts_idx<br/>rows=2 &#124; columns=3 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_028[\"custom_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_029[\"custom_fts_content<br/>rows=0 &#124; columns=5 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_030[\"custom_fts_data<br/>rows=2 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_031[\"custom_fts_docsize<br/>rows=0 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_032[\"custom_fts_idx<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n  end\n\n%% Preview stops at line 72; download the full 189-line lane MMD above.\n",
+      "ordinal": 14,
+      "parser_id": "custom_best_effort_v1",
+      "render": {
+        "bytes": 411966,
+        "filename": "custom.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "3D9EC088D1178F8B296F10852E9150A50A8EC6970BE656F5C269BD921D9218B5",
+        "source_mmd_sha256": "1A05405F0A56E395537D3D4FF366BDFF48E3DA9E5EA4878E2F6EC98AFB491E70",
+        "url": "/dummy-lane-packages/custom/custom.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 23,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "custom_source",
+        "custom_item",
+        "custom_evidence",
+        "custom_decision",
+        "custom_next_action",
+        "custom_fts"
+      ],
+      "topology_generator_sha256": "36C04BD27DE0161F728B86477D91DC4379545D0EA6E30589601A390C4CF73F42",
+      "vector_render": {
+        "bytes": 188217,
+        "filename": "custom.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "660F8E5125D169D4C922E433DF5F5A263976F03DF685A8CE59134543D7711FB6",
+        "source_mmd_sha256": "1A05405F0A56E395537D3D4FF366BDFF48E3DA9E5EA4878E2F6EC98AFB491E70",
+        "url": "/dummy-lane-packages/custom/custom.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 610304,
+          "filename": "brain_loader_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "84D240D0E7775904173642DCDCACE0E09E0CDB38009DBFE0C3D2A5A3962437D6",
+          "url": "/dummy-lane-packages/brain_loader/brain_loader_sector_v001.sqlite"
+        },
+        {
+          "bytes": 18475,
+          "filename": "brain_loader.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "5391FD0627A34BDCC768340BDC85FB723E74E2BFC2C0CAF0735EE6D7242D6BEC",
+          "url": "/dummy-lane-packages/brain_loader/brain_loader.mmd"
+        },
+        {
+          "bytes": 24532,
+          "filename": "brain_loader.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "8612F24AF49835240FFFD28F863439525B552D9AC3A0239AE8BA3BBF6E252DD5",
+          "url": "/dummy-lane-packages/brain_loader/brain_loader.dot"
+        },
+        {
+          "bytes": 6041,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "777600C4F4D149B1F409C526130F806B018550526CE20ED856B26CECFDA909B2",
+          "url": "/dummy-lane-packages/brain_loader/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "package_member_v1",
+      "command": "evi-source-intake --lane brain_loader",
+      "fts_table": "brain_loader_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "SQLite PV Candidate Loader",
+      "lane_id": "brain_loader",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=C29B1AAA212CD39E40489CF2F593E7AC003657861791A0D4D8FD38DF7EDA84AB\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"SQLite PV Candidate Loader<br/>2 sources &#124; 2 chunks &#124; 20 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=2 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".sqlite<br/>1 sources\"]:::source\n    SOURCE_TYPE_1[\".zip<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=20 &#124; kinds=10\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=10 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"brain_loader_schema_object<br/>rows=8\"]:::semantic\n    FACT_SAMPLE_0_0[\"child\"]:::semantic\n    FACT_SAMPLE_0_1[\"note_fts\"]:::semantic\n    FACT_KIND_1[\"brain_loader_member<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_1_0[\"manifest.json\"]:::semantic\n    FACT_SAMPLE_1_1[\"pointer.json\"]:::semantic\n    FACT_KIND_2[\"brain_loader_receipt<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_2_0[\"archive_inspection\"]:::semantic\n    FACT_SAMPLE_2_1[\"read_only_inspection\"]:::semantic\n    FACT_KIND_3[\"brain_loader_source<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_3_0[\"poc-fixtures/brain-loader.sqlite\"]:::semantic\n    FACT_SAMPLE_3_1[\"poc-fixtures/brain-package.zip\"]:::semantic\n    FACT_KIND_4[\"brain_loader_database<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_4_0[\"brain-loader.sqlite\"]:::semantic\n    FACT_KIND_5[\"brain_loader_manifest<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_5_0[\"manifest.json\"]:::semantic\n    FACT_KIND_6[\"brain_loader_package<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_6_0[\"archive\"]:::semantic\n    FACT_KIND_7[\"brain_loader_pointer<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_7_0[\"pointer.json\"]:::semantic\n    FACT_KIND_8[\"brain_loader_relationship<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_8_0[\"parent\"]:::semantic\n    FACT_KIND_9[\"sqlalchemy_schema_inspection<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_9_0[\"poc-fixtures/brain-loader.sqlite\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=28 &#124; tables=38 &#124; auxiliaries=10 &#124; relations=16<br/>projection_sha256=D2E4019F935C1E67E9891EA6FB7996DA1F35DAE7BB5BF82B4D58C6FCBAD1400C\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=2 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=2 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=2 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=2 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=20 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=11 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=38 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=38 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=152 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=154 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=154 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n\n%% Preview stops at line 72; download the full 273-line lane MMD above.\n",
+      "ordinal": 15,
+      "parser_id": "brain_package_loader_v1",
+      "render": {
+        "bytes": 522309,
+        "filename": "brain_loader.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "A3FEC1444F31879B91F5B712DA2D4E3D15AFB4A42DF0AB77D1183282046A3376",
+        "source_mmd_sha256": "5391FD0627A34BDCC768340BDC85FB723E74E2BFC2C0CAF0735EE6D7242D6BEC",
+        "url": "/dummy-lane-packages/brain_loader/brain_loader.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 28,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "brain_loader_source",
+        "brain_loader_package",
+        "brain_loader_member",
+        "brain_loader_manifest",
+        "brain_loader_pointer",
+        "brain_loader_database",
+        "brain_loader_schema_object",
+        "brain_loader_relationship",
+        "brain_loader_receipt",
+        "sqlalchemy_schema_inspection",
+        "brain_loader_fts"
+      ],
+      "topology_generator_sha256": "4E5E9AC4045F78F6346CA6C8A08236490758716BD00CA55C061B40C7B5F8C6B9",
+      "vector_render": {
+        "bytes": 281240,
+        "filename": "brain_loader.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "D2F3661E898D8D6ED6FEC4B4817FB4C63DEE4F46D5C0145E2C579179F9E9AE19",
+        "source_mmd_sha256": "5391FD0627A34BDCC768340BDC85FB723E74E2BFC2C0CAF0735EE6D7242D6BEC",
+        "url": "/dummy-lane-packages/brain_loader/brain_loader.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 364544,
+          "filename": "research_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "2986288E8888AE438270F63EB7165CDEA4EF52A305A6C2FEA7D580346C140B22",
+          "url": "/dummy-lane-packages/research/research_sector_v001.sqlite"
+        },
+        {
+          "bytes": 15765,
+          "filename": "research.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "118873A3033551C2114EBCDAA8CC0745C26D4ABED4B25715886D2D8D04F214B2",
+          "url": "/dummy-lane-packages/research/research.mmd"
+        },
+        {
+          "bytes": 20105,
+          "filename": "research.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "39243CFC621D5834C94272A6A0AD8BEC2AE013ACF05AA9022EABCEB40D56E61B",
+          "url": "/dummy-lane-packages/research/research.dot"
+        },
+        {
+          "bytes": 5801,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "C8B9D21975C96248D99B0BFEB7C13FC367ABC8CB49396BCF2A319F7C2D816645",
+          "url": "/dummy-lane-packages/research/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "claim_evidence_v1",
+      "command": "evi-source-intake --lane research",
+      "fts_table": "research_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Research",
+      "lane_id": "research",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=2602871913F81EB650BBE2E9D7B8E8E76F2E6878A05CBD36505362923495B324\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Research<br/>1 sources &#124; 1 chunks &#124; 3 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".md<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=3 &#124; kinds=3\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=10 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"research_method<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_0_0[\"compare sealed Refresh hashes\"]:::semantic\n    FACT_KIND_1[\"research_question<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_1_0[\"are unchanged bytes reused?\"]:::semantic\n    FACT_KIND_2[\"research_source<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"poc-fixtures/research.md\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=28 &#124; tables=38 &#124; auxiliaries=10 &#124; relations=16<br/>projection_sha256=3927D84B5024E09711E7A67BB9F0E597D1CF12CC8645E54BD52FD699434D6792\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=3 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=10 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=57 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=57 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=57 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=11 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"research_source<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"research_question<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_019[\"research_hypothesis<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_020[\"research_method<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_021[\"research_evidence<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_022[\"research_finding<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_023[\"research_limitation<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_024[\"research_citation<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_025[\"research_open_question<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_026[\"research_receipt<br/>rows=0 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_027[\"research_fts<br/>rows=1 &#124; columns=6 &#124; role=lane_fts_contract\"]:::semantic\n    PHYSICAL_GROUP_AUXILIARY[\"SQLite engine auxiliaries<br/>tables=10 &#124; ordered from SQLite\"]:::retrieval\n    PHYSICAL_TABLE_028[\"authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_029[\"authority_index_fts_content<br/>rows=57 &#124; columns=6 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_030[\"authority_index_fts_data<br/>rows=5 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_031[\"authority_index_fts_docsize<br/>rows=57 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_032[\"authority_index_fts_idx<br/>rows=3 &#124; columns=3 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n    PHYSICAL_TABLE_033[\"research_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary\"]:::retrieval\n\n%% Preview stops at line 72; download the full 221-line lane MMD above.\n",
+      "ordinal": 16,
+      "parser_id": "research_evidence_v1",
+      "render": {
+        "bytes": 498991,
+        "filename": "research.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "1FC1952C208658355084018BF9BD4F2B01D96D62F38BC71ECBE5AFB9395FE46E",
+        "source_mmd_sha256": "118873A3033551C2114EBCDAA8CC0745C26D4ABED4B25715886D2D8D04F214B2",
+        "url": "/dummy-lane-packages/research/research.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 28,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "research_source",
+        "research_question",
+        "research_hypothesis",
+        "research_method",
+        "research_evidence",
+        "research_finding",
+        "research_limitation",
+        "research_citation",
+        "research_open_question",
+        "research_receipt",
+        "research_fts"
+      ],
+      "topology_generator_sha256": "AF2403A84E4F0FE93B099545DB18CC8E0A346B1FA44D594E9875162D382B9C12",
+      "vector_render": {
+        "bytes": 234837,
+        "filename": "research.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "67BF76731DB706A5911D26D5DEF87CC23877BC22567EC624AA40624A1DE61B3A",
+        "source_mmd_sha256": "118873A3033551C2114EBCDAA8CC0745C26D4ABED4B25715886D2D8D04F214B2",
+        "url": "/dummy-lane-packages/research/research.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 421888,
+          "filename": "project_engulf_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "A50CC85C18D8DF535DEAF69FFD71ADA9C80BE02D7BF5F72A2F6C08DE8C7A5053",
+          "url": "/dummy-lane-packages/project_engulf/project_engulf_sector_v001.sqlite"
+        },
+        {
+          "bytes": 20192,
+          "filename": "project_engulf.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "438373326DB4D6A15C5E21A76A12F747DF27D4120E34B32DDDF45865D92E3783",
+          "url": "/dummy-lane-packages/project_engulf/project_engulf.mmd"
+        },
+        {
+          "bytes": 26758,
+          "filename": "project_engulf.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "EAF6807B99E35A6663B44740168E4662219C3DB331F0A8E3AC65C87B5C2D9498",
+          "url": "/dummy-lane-packages/project_engulf/project_engulf.dot"
+        },
+        {
+          "bytes": 6016,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "4C3CF88F5492B5870EB376DD37A547B3A7ACDA394C63D8AFF5F2DE2CB3F3BA5A",
+          "url": "/dummy-lane-packages/project_engulf/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "project_structure_v1",
+      "command": "evi-source-intake --lane project_engulf",
+      "fts_table": "project_engulf_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "Project Engulf",
+      "lane_id": "project_engulf",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=55AE815B2DD3D1B4BFA362970F1871151BA89854AC201F62CBDAB724A928284B\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"Project Engulf<br/>1 sources &#124; 1 chunks &#124; 18 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".zip<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=18 &#124; kinds=11\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=13 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"project_engulf_relationship<br/>rows=3\"]:::semantic\n    FACT_SAMPLE_0_0[\"archive-&gt;docs/readme.md\"]:::semantic\n    FACT_SAMPLE_0_1[\"archive-&gt;src/main.py\"]:::semantic\n    FACT_KIND_1[\"project_engulf_component<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_1_0[\"docs\"]:::semantic\n    FACT_SAMPLE_1_1[\"src\"]:::semantic\n    FACT_KIND_2[\"project_engulf_file<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_2_0[\"docs/readme.md\"]:::semantic\n    FACT_SAMPLE_2_1[\"src/main.py\"]:::semantic\n    FACT_KIND_3[\"project_engulf_object_decision<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_3_0[\"INDEX_ONLY_PENDING_HIL\"]:::semantic\n    FACT_SAMPLE_3_1[\"INDEX_ONLY_PENDING_HIL\"]:::semantic\n    FACT_KIND_4[\"project_engulf_schema_mapping<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_4_0[\"docs/readme.md\"]:::semantic\n    FACT_SAMPLE_4_1[\"src/main.py\"]:::semantic\n    FACT_KIND_5[\"project_engulf_sector_target<br/>rows=2\"]:::semantic\n    FACT_SAMPLE_5_0[\"docs/readme.md\"]:::semantic\n    FACT_SAMPLE_5_1[\"src/main.py\"]:::semantic\n    FACT_KIND_6[\"project_engulf_origin<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_6_0[\"archive\"]:::semantic\n    FACT_KIND_7[\"project_engulf_receipt<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_7_0[\"archive_inspection\"]:::semantic\n    FACT_KIND_8[\"project_engulf_run<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_8_0[\"archive_inspection\"]:::semantic\n    FACT_KIND_9[\"project_engulf_source<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_9_0[\"poc-fixtures/project.zip\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=31 &#124; tables=41 &#124; auxiliaries=10 &#124; relations=19<br/>projection_sha256=14E457CCB0205F52445B8B899E25256E8C71C335DFAF1CCD7E5AEAC13A74FC43\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=18 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=10 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=7 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=7 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=81 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=81 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=81 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n\n%% Preview stops at line 72; download the full 295-line lane MMD above.\n",
+      "ordinal": 17,
+      "parser_id": "project_engulf_v1",
+      "render": {
+        "bytes": 563580,
+        "filename": "project_engulf.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "46C9A0A8BAFEA5EE4B3D55F84CD6DBE829902F5F19A2E0B669DFDE8C8168E06F",
+        "source_mmd_sha256": "438373326DB4D6A15C5E21A76A12F747DF27D4120E34B32DDDF45865D92E3783",
+        "url": "/dummy-lane-packages/project_engulf/project_engulf.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 31,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "project_engulf_source",
+        "project_engulf_file",
+        "project_engulf_component",
+        "project_engulf_relationship",
+        "project_engulf_conflict",
+        "project_engulf_sector_target",
+        "project_engulf_chunk",
+        "project_engulf_origin",
+        "project_engulf_schema_mapping",
+        "project_engulf_object_decision",
+        "project_engulf_run",
+        "project_engulf_topology_update",
+        "project_engulf_receipt",
+        "project_engulf_fts"
+      ],
+      "topology_generator_sha256": "6EE039084C10A3416E29884B6D7C0F5F3D3B5C3F446FEFE4698C3F3BB061E4C6",
+      "vector_render": {
+        "bytes": 314733,
+        "filename": "project_engulf.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "FAA9023879B1EAAF791F935BD1B9A715E2ECF9E50B23530E1FD98E3B21A66B56",
+        "source_mmd_sha256": "438373326DB4D6A15C5E21A76A12F747DF27D4120E34B32DDDF45865D92E3783",
+        "url": "/dummy-lane-packages/project_engulf/project_engulf.mmd.vector.svg"
+      }
+    },
+    {
+      "canonical_artifacts": [
+        {
+          "bytes": 614400,
+          "filename": "sqlite_brain_sector_v001.sqlite",
+          "kind": "sqlite",
+          "label": "SQLite sector",
+          "sha256": "505FB54AE584E882F55B4892415527A6488CA2D30B05145A7BEA2BB992105280",
+          "url": "/dummy-lane-packages/sqlite_brain/sqlite_brain_sector_v001.sqlite"
+        },
+        {
+          "bytes": 20096,
+          "filename": "sqlite_brain.mmd",
+          "kind": "mmd",
+          "label": "Full lane Mermaid topology",
+          "sha256": "9F372676A86C299ED2FA8A019484158AFE53CEF1979C3B5B3C55FE7A6FB5A96B",
+          "url": "/dummy-lane-packages/sqlite_brain/sqlite_brain.mmd"
+        },
+        {
+          "bytes": 26385,
+          "filename": "sqlite_brain.dot",
+          "kind": "dot",
+          "label": "Full lane DOT topology",
+          "sha256": "A8A70943D88D0071689DA6CBC7285F25E90ED4492B8ED1BE9CD6B7589EEF2330",
+          "url": "/dummy-lane-packages/sqlite_brain/sqlite_brain.dot"
+        },
+        {
+          "bytes": 6105,
+          "filename": "refresh_receipt.json",
+          "kind": "receipt",
+          "label": "Refresh receipt",
+          "sha256": "04D8891FCDB7495E0C72B0666705F6C28C223EBF55635B6DAC3B723258BE21A7",
+          "url": "/dummy-lane-packages/sqlite_brain/refresh_receipt.json"
+        }
+      ],
+      "chunker_version": "sqlite_schema_row_v1",
+      "command": "evi-source-intake --lane sqlite_brain",
+      "fts_table": "loaded_sqlite_brain_fts",
+      "git_history": null,
+      "graph_profile": "SQLITE_SCHEMA_RELATION_SAMPLE",
+      "label": "SQLite Brain",
+      "lane_id": "sqlite_brain",
+      "mmd_preview": "flowchart TB\n%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER\n%% LANGGRAPH_VERSION=1.2.11\n%% LANGGRAPH_EXPORT_SHA256=C590C9C82AD11C34810AD0B77E55C5275F25B3038004998F5798C96A3758E81E\n  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;\n  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;\n  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;\n  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;\n  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;\n  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;\n  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;\n  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;\n  LANE_ROOT[\"SQLite Brain<br/>1 sources &#124; 1 chunks &#124; 25 structured facts\"]:::root\n  subgraph SOURCE_INTAKE[\"1. Source intake and exact-byte registry\"]\n    direction TB\n    SOURCE_REG[\"source_registry<br/>rows=1 &#124; SHA-256 + parser state\"]:::source\n    SOURCE_TYPE_0[\".sqlite<br/>1 sources\"]:::source\n  end\n  subgraph SEMANTIC_MODEL[\"2. Lane-specific semantic model from SQLite\"]\n    direction TB\n    FACT_INDEX[\"structured_fact<br/>rows=25 &#124; kinds=11\"]:::semantic\n    SEMANTIC_SCHEMA_HANDOFF[\"lane semantic schema<br/>entities=13 &#124; exact rows projected below\"]:::semantic\n    FACT_KIND_0[\"loaded_sqlite_brain_schema_object<br/>rows=8\"]:::semantic\n    FACT_SAMPLE_0_0[\"child\"]:::semantic\n    FACT_SAMPLE_0_1[\"note_fts\"]:::semantic\n    FACT_KIND_1[\"loaded_sqlite_brain_table_stat<br/>rows=8\"]:::semantic\n    FACT_SAMPLE_1_0[\"child\"]:::semantic\n    FACT_SAMPLE_1_1[\"note_fts\"]:::semantic\n    FACT_KIND_2[\"loaded_sqlite_brain_compatibility<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_2_0[\"schema\"]:::semantic\n    FACT_KIND_3[\"loaded_sqlite_brain_database<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_3_0[\"sqlite-brain.sqlite\"]:::semantic\n    FACT_KIND_4[\"loaded_sqlite_brain_foreign_key<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_4_0[\"parent\"]:::semantic\n    FACT_KIND_5[\"loaded_sqlite_brain_fts_table<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_5_0[\"note_fts\"]:::semantic\n    FACT_KIND_6[\"loaded_sqlite_brain_integrity_result<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_6_0[\"PRAGMA integrity_check\"]:::semantic\n    FACT_KIND_7[\"loaded_sqlite_brain_receipt<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_7_0[\"read_only_inspection\"]:::semantic\n    FACT_KIND_8[\"loaded_sqlite_brain_relationship<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_8_0[\"child.parent_id-&gt;parent.id\"]:::semantic\n    FACT_KIND_9[\"loaded_sqlite_brain_source<br/>rows=1\"]:::semantic\n    FACT_SAMPLE_9_0[\"poc-fixtures/sqlite-brain.sqlite\"]:::semantic\n  end\n  subgraph SQLITE_PHYSICAL_SCHEMA[\"3. Additive SQLite physical schema contract\"]\n    direction TB\n    PHYSICAL_SCHEMA_SECTOR[\"SQLite physical schema<br/>contract=31 &#124; tables=41 &#124; auxiliaries=10 &#124; relations=19<br/>projection_sha256=102C3E4439DCC18113378EE8A8A4515B0B1672FF193DE1B42E0A309BB10FAD80\"]:::root\n    PHYSICAL_GROUP_CORE[\"shared lane core<br/>tables=17 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_000[\"lane_meta<br/>rows=16 &#124; columns=2 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_001[\"lane_pointer<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_002[\"source_registry<br/>rows=1 &#124; columns=10 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_003[\"source_tombstone<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_004[\"chunk_index<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_005[\"chunk_content_cas<br/>rows=1 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_006[\"chunk_history<br/>rows=1 &#124; columns=9 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_007[\"structured_fact<br/>rows=25 &#124; columns=5 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_008[\"parser_capability<br/>rows=11 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_009[\"tfidf_term<br/>rows=33 &#124; columns=4 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_010[\"tfidf_vector<br/>rows=33 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_011[\"refresh_receipt<br/>rows=1 &#124; columns=11 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_012[\"mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_013[\"authority_index_source<br/>rows=147 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_014[\"authority_index_node<br/>rows=149 &#124; columns=8 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_015[\"authority_index_fts<br/>rows=149 &#124; columns=7 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_TABLE_016[\"authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract\"]:::semantic\n    PHYSICAL_GROUP_LANE[\"lane semantic contract<br/>tables=14 &#124; ordered from SQLite\"]:::semantic\n    PHYSICAL_TABLE_017[\"loaded_sqlite_brain_source<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n    PHYSICAL_TABLE_018[\"loaded_sqlite_brain_database<br/>rows=1 &#124; columns=4 &#124; role=lane_contract\"]:::semantic\n\n%% Preview stops at line 72; download the full 287-line lane MMD above.\n",
+      "ordinal": 18,
+      "parser_id": "sqlite_brain_inspector_v1",
+      "render": {
+        "bytes": 562976,
+        "filename": "sqlite_brain.mmd.8k.png",
+        "height": 4320,
+        "kind": "mmd_8k_png",
+        "label": "Full lane MMD 8K render",
+        "rasterizer": "stable_svg_chromium_screenshot",
+        "sha256": "4EC46317396E7D30F9CD9009C73A515DA81BBBE4CED84A6800B420BF771BC4E7",
+        "source_mmd_sha256": "9F372676A86C299ED2FA8A019484158AFE53CEF1979C3B5B3C55FE7A6FB5A96B",
+        "url": "/dummy-lane-packages/sqlite_brain/sqlite_brain.mmd.8k.png",
+        "width": 7680
+      },
+      "schema_table_count": 31,
+      "schema_tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_registry",
+        "source_tombstone",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "loaded_sqlite_brain_source",
+        "loaded_sqlite_brain_database",
+        "loaded_sqlite_brain_schema_object",
+        "loaded_sqlite_brain_table_stat",
+        "loaded_sqlite_brain_foreign_key",
+        "loaded_sqlite_brain_fts_table",
+        "loaded_sqlite_brain_relationship",
+        "loaded_sqlite_brain_integrity_result",
+        "loaded_sqlite_brain_package_pointer",
+        "loaded_sqlite_brain_compatibility",
+        "loaded_sqlite_brain_sector_mapping",
+        "loaded_sqlite_brain_receipt",
+        "sqlalchemy_schema_inspection",
+        "loaded_sqlite_brain_fts"
+      ],
+      "topology_generator_sha256": "13FBDF29B527AC6D53710B68544611C311C8488E6CA4D1B4FCEA9DC9B9BB4304",
+      "vector_render": {
+        "bytes": 307986,
+        "filename": "sqlite_brain.mmd.vector.svg",
+        "kind": "mmd_vector_svg",
+        "label": "Full lane MMD vector render",
+        "sha256": "FB5BD72684739F1A61DA7FBF8235C408C5899C410F6E9343E6CB10B4AFC39C18",
+        "source_mmd_sha256": "9F372676A86C299ED2FA8A019484158AFE53CEF1979C3B5B3C55FE7A6FB5A96B",
+        "url": "/dummy-lane-packages/sqlite_brain/sqlite_brain.mmd.vector.svg"
+      }
+    }
+  ],
+  "renderer": {
+    "browser": "chrome.exe",
+    "canvas": [
+      7680,
+      4320
+    ],
+    "install_performed": false,
+    "tool": "mmdc",
+    "version": "11.16.0"
+  },
+  "schema": "evidence-lane.public-full-lane-dummy-proof.v4",
+  "topology_boundary": "ACTUAL_FULL_LANE_ENGINE_MMD_AND_DOT_NOT_FOUR_FILE_OVERVIEW"
+}

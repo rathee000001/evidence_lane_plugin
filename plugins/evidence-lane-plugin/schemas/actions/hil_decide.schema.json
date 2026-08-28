@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "hil_decide",
+  "title": "Record exact six-way HIL decision",
+  "description": "Record APPROVE_WITH_DELTA, MORE_RESEARCH, REJECT, FAIL, or pointer-only ROLLBACK for one pending candidate. Exact APPROVE is deliberately rejected here and may promote only through pv_fuse. ROLLBACK preserves the candidate and accepted history; a bare target resolves to the current prompt/session entry PV.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "decision": {
+        "title": "Decision",
+        "type": "string"
+      },
+      "decided_by": {
+        "title": "Decided By",
+        "type": "string"
+      },
+      "reason": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Reason"
+      },
+      "correction_delta": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Correction Delta"
+      },
+      "research_question": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Research Question"
+      },
+      "rollback_to": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Rollback To"
+      },
+      "decision_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Decision Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "decision",
+      "decided_by"
+    ],
+    "title": "hil_decideArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "hil_decideDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-fuse",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "hil_decide"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-fuse",
+        "workflow": "dual-hil-non-promotion-decision",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "47102A9AAE2F25D54DDB2AA259EFB9B822BD89125C54052833694A0F01790D53",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "E4698B1EAA138A8529A675E4FF6DC1F6E95519A5D6032A855D104D4BD88EFAB9"
+}

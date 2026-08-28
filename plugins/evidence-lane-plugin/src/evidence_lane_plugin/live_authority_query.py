@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from .authority_support import validate_delta_exit_authority_supports
 from .errors import require
 from .git_adapter import inspect_repository
 from .hashing import canonical_json_bytes, sha256_bytes
@@ -13,16 +14,18 @@ from .lanes import CANONICAL_LANE_IDS
 from .project_authority import query_working_project_sectors
 from .timeutil import utc_now
 
-LIVE_AUTHORITY_QUERY_SCHEMA = "evidence-lane.live-six-authority-query.v1"
+LIVE_AUTHORITY_QUERY_SCHEMA = "evidence-lane.live-root-env-uop-six-way-query.v1"
 _READ_OPERATIONS = (
     ("agent_learning", "retrieve"),
     ("project_memory", "query"),
     ("canon_input", "graph"),
+    ("project_universe", "query"),
 )
 _REFRESH_OPERATIONS = (
     ("agent_learning", "bootstrap_verified_history"),
     ("canon_input", "bootstrap_consequence_graph"),
     ("project_memory", "bootstrap"),
+    ("project_universe", "refresh"),
 )
 
 
@@ -63,6 +66,15 @@ def _bounded_public_data(module_id: str, data: dict[str, Any], limit: int) -> di
                 "full_memory_loaded_into_model_context", False
             ),
         }
+    if module_id == "project_universe":
+        hits = list(data.get("hits") or [])[:limit]
+        return {
+            "status": data.get("status"),
+            "result": "HIT" if hits else "NO_HIT",
+            "hits": hits,
+            "graph_sha256": data.get("graph_sha256"),
+            "full_graph_returned": data.get("full_graph_returned", False),
+        }
     consequence = dict(data.get("consequence_graph") or {})
     return {
         "status": consequence.get("status") or data.get("status"),
@@ -77,6 +89,59 @@ def _bounded_public_data(module_id: str, data: dict[str, Any], limit: int) -> di
             "full_graph_loaded_into_model_context", False
         ),
     }
+
+
+def _apply_active_task_freshness(
+    module_id: str,
+    data: dict[str, Any],
+    *,
+    active_task_id: str,
+) -> tuple[dict[str, Any], bool]:
+    """Suppress a Project Memory hit that claims the wrong active Plan task."""
+
+    if module_id != "project_memory":
+        return data, False
+    expected = f"plan://task/{active_task_id}"
+    hits = list(data.get("hits") or [])
+    active_hits = [
+        row
+        for row in hits
+        if str(row.get("locator_kind") or "").strip().upper() == "ACTIVE_TASK"
+    ]
+    stale = [
+        row
+        for row in active_hits
+        if str(row.get("locator_value") or "").strip() != expected
+    ]
+    if not stale:
+        return {**data, "active_task_freshness": "PASS"}, False
+    stale_ids = {str(row.get("locator_id") or "") for row in stale}
+    fresh_hits = [
+        row for row in hits if str(row.get("locator_id") or "") not in stale_ids
+    ]
+    suppressed = list(data.get("suppressed") or [])
+    suppressed.extend(
+        {
+            "reason": "PROJECT_MEMORY_ACTIVE_TASK_MISMATCH",
+            "locator_id": row.get("locator_id"),
+            "revision_sha256": row.get("revision_sha256"),
+            "expected_active_task_locator_sha256": sha256_bytes(
+                expected.encode("utf-8")
+            ),
+        }
+        for row in stale
+    )
+    return (
+        {
+            **data,
+            "result": "HIT" if fresh_hits else "NO_HIT",
+            "hits": fresh_hits,
+            "suppressed": suppressed,
+            "active_task_freshness": "STALE_HITS_SUPPRESSED",
+            "stale_active_task_hit_count": len(stale),
+        },
+        True,
+    )
 
 
 def _read_arms(
@@ -109,6 +174,7 @@ def _read_arms(
             "limit": limit,
         },
         ("canon_input", "graph"): {"query": query, "limit": limit},
+        ("project_universe", "query"): {"query": query, "limit": limit},
     }
     rows: list[dict[str, Any]] = []
     for ordinal, (module_id, operation) in enumerate(_READ_OPERATIONS, start=1):
@@ -141,11 +207,17 @@ def _read_arms(
         data = _bounded_public_data(
             module_id, dict(response.get("data") or {}), limit
         )
+        data, active_task_stale = _apply_active_task_freshness(
+            module_id,
+            data,
+            active_task_id=str(binding.task_id),
+        )
         result_state = str(
             data.get("result") or data.get("state") or data.get("status") or status
         ).strip().upper()
         requires_refresh = bool(
             status == "STALE"
+            or active_task_stale
             or str(data.get("status") or "").strip().upper() == "STALE"
             or result_state in {
                 "NO_HIT",
@@ -207,7 +279,7 @@ def _refresh_arms(
             and response.get("module_id") == module_id
             and response.get("operation") == operation,
             "LIVE_AUTHORITY_REFRESH_FAILED",
-            "Learning, Canon, and Memory must refresh once in governed order.",
+            "Learning, Canon, Memory, and Universe must refresh once in governed order.",
             status="FAIL",
             module_id=module_id,
             operation=operation,
@@ -244,6 +316,16 @@ def query_live_authorities(
         status="BLOCKED",
     )
     exact_session = _active_session_id(service, project_id, session_id)
+    authority_support = validate_delta_exit_authority_supports(
+        service.store.project_root(project_id)
+    )
+    require(
+        authority_support.get("status")
+        in {"PASS", "PENDING_FIRST_DELTA_EXIT_ACTIVATION"},
+        "LIVE_AUTHORITY_SUPPORT_SYSTEM_INVALID",
+        "The live query requires intact auxiliary MMD/DOT/SQLite support systems.",
+        status="MISMATCH",
+    )
     seed = sha256_bytes(
         canonical_json_bytes(
             {
@@ -284,6 +366,15 @@ def query_live_authorities(
         and sectors.get("query_rehashed_dirty_content") is False,
         "LIVE_AUTHORITY_SECTOR_QUERY_FAILED",
         "The root query requires one read-only all-eighteen-sector slice.",
+        status="FAIL",
+    )
+    connector_brain = service.connector_plugin_catalog(project_id)
+    require(
+        connector_brain.get("status") == "PASS"
+        and connector_brain.get("integrity") == ["ok"]
+        and not connector_brain.get("foreign_key_errors"),
+        "LIVE_AUTHORITY_CONNECTOR_BRAIN_QUERY_FAILED",
+        "The live-root query requires an intact connector-brain authority.",
         status="FAIL",
     )
     refresh_required = any(row["refresh_required"] for row in reads)
@@ -343,6 +434,31 @@ def query_live_authorities(
             "derived_projection_sha256": binding.derived_projection_sha256,
             "flash_receipt_sha256": binding.flash_receipt_sha256,
         },
+        "env_uop_governance": {
+            "role": "GOVERNING_CONTROL_PLANE_NOT_AUTHORITY_ARMS",
+            "six_way_arms": [
+                "PROJECT_SECTORS_AND_ROOT_FILES",
+                "AI_LEARNING",
+                "CANON_GRAPH",
+                "PROJECT_MEMORY_DB",
+                "HOST_CONVERSATION_MEMORY_MD",
+                "AGENTS_MD",
+            ],
+            "linked_operational_layers": [
+                "PROJECT_UNIVERSE",
+                "CONNECTOR_BRAIN",
+            ],
+            "hil_only_layers": ["PROJECT_OVERLAY"],
+            "authority_merge_allowed": False,
+        },
+        "authority_support_systems": authority_support,
+        "sector_lane_traversal": {
+            "receipt_count": sectors.get("lane_traversal_receipt_count"),
+            "all_queried_lanes_used_mmd_dot": sectors.get(
+                "mmd_dot_traversal_used_for_every_queried_lane"
+            ),
+            "tools_role": sectors.get("tools_json_query_role"),
+        },
         "authorities": {
             "sector_lanes": {
                 "authority": "ALL_18_LIVE_ROOT_SECTORS",
@@ -358,6 +474,21 @@ def query_live_authorities(
             "project_memory": next(
                 row for row in effective_reads if row["authority"] == "project_memory"
             ),
+            "project_universe": next(
+                row for row in effective_reads if row["authority"] == "project_universe"
+            ),
+            "connector_brain": {
+                "authority": "CONNECTOR_BRAIN",
+                "status": connector_brain.get("status"),
+                "active_count": connector_brain.get("active_count"),
+                "routable_count": connector_brain.get("routable_count"),
+                "integrity": connector_brain.get("integrity"),
+                "foreign_key_errors": connector_brain.get("foreign_key_errors"),
+                "secret_values_persisted": connector_brain.get(
+                    "secret_values_persisted"
+                ),
+                "authority_merge_allowed": False,
+            },
             "agent_configuration": {
                 "authority": "AGENTS_MD",
                 "status": agent_configuration.get("status"),

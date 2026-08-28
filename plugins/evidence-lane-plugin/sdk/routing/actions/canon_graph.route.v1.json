@@ -1,0 +1,34 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "canon_graph",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_graph"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "graph",
+      "read_only": true
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-authority-read",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "FC9B3CD348A5835E02AAEA6FC98AA0B5DC68158D5306D2E8D187B0453CEAFB33",
+  "sdk_action_binding": "sdk/actions/canon_graph.action.v1.json",
+  "mcp_action_binding": "mcp/actions/canon_graph.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "571D9DCE66958A93FC3647FE385DCB84B206F7FCA1B34E837C3FE6B44B9F1DEA"
+}

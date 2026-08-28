@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "adaptive_delta_exit",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "adaptive_delta_exit"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-refresh",
+        "workflow": "adaptive-delta-exit-append-refresh",
+        "order": 2
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution",
+        "order": 13
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "BA332F64F8A745141FBA77F0F795E8DCC644152C18C9C4725E01D99101A113EB",
+  "sdk_action_binding": "sdk/actions/adaptive_delta_exit.action.v1.json",
+  "mcp_action_binding": "mcp/actions/adaptive_delta_exit.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "BE93650BD5C55CA53CBB10B93176B17DE95E3D72E9EA51E9FD8483B5EEB41E16"
+}

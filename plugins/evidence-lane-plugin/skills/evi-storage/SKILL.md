@@ -12,7 +12,7 @@ only.
 
 This is an administrative sidecar, not a seventh primary `/evi` control.
 
-1. Call `storage_connector_inspect` before any selection.
+1. Call `storage_connector_inspect` before any `storage_connector_select`.
 2. Route by the MCP server's actual durable-filesystem capability, then by host
    profile. Stable Codex desktop/CLI/VM and any explicitly durable mount use
    local SQLite.

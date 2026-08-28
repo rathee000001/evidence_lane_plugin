@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "receipt_ledger support refresh request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "project_root",
+    "authority_id"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_id": {
+      "const": "receipt_ledger"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "34A54B7E8D14227BF9429A6B9C46AFC37B42F254E88096FBFCAE0011E6B696DB"
+}

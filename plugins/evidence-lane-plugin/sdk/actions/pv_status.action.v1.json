@@ -1,0 +1,102 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "pv_status",
+  "title": "Read bounded project and pointer status",
+  "description": "Read a compact project, pointer, active-session, count, and current-accepted-package projection. Accepted history, candidate ID lists, lane rows, full Plan authority, and PV payloads stay behind bounded exact query routes. Performs no write.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id"
+    ],
+    "title": "pv_statusArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_statusDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_status"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "live-root-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-instructions",
+        "workflow": "agents-and-host-memory-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-memory",
+        "workflow": "project-memory-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-plan",
+        "workflow": "live-plan-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-state-travel",
+        "workflow": "post-entry-plan-authority-read",
+        "order": 6
+      },
+      {
+        "owner_skill": "evi-universe",
+        "workflow": "project-universe-authority-read",
+        "order": 1
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "live-root-authority-read",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [
+    "DELTA_ENTRY_AND_SIX_WAY_QUERY"
+  ],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/pv_status.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "70276406EEEF52180EB1E9232387F81A068B9DB0C7F8726F264C246F7EB5889D"
+}

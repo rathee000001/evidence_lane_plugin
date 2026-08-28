@@ -1,0 +1,270 @@
+{
+  "schema": "evidence-lane.installed-lane-contract.v1",
+  "status": "PASS",
+  "lane": {
+    "canonical_lane_id": "data_excel",
+    "display_label": "Data / Excel / CSV",
+    "command": "evi-source-intake --lane data_excel",
+    "aliases": [
+      "data_excel",
+      "Data / Excel / CSV",
+      "evi-source-intake --lane data_excel",
+      "excel",
+      "data",
+      "excel csv",
+      "spreadsheet data"
+    ],
+    "source_types": [
+      "spreadsheet",
+      "delimited_data",
+      "structured_data"
+    ],
+    "extensions": [
+      ".csv",
+      ".json",
+      ".jsonl",
+      ".hyper",
+      ".parquet",
+      ".tsv",
+      ".xls",
+      ".xlsm",
+      ".xlsx"
+    ],
+    "parser_id": "office_data_structural_v1",
+    "chunker_version": "table_structure_v1",
+    "fts_table": "data_fts",
+    "schema_contract": [
+      "lane_meta",
+      "lane_pointer",
+      "source_registry",
+      "source_tombstone",
+      "chunk_index",
+      "chunk_content_cas",
+      "chunk_history",
+      "structured_fact",
+      "parser_capability",
+      "tfidf_term",
+      "tfidf_vector",
+      "refresh_receipt",
+      "mutation_receipt",
+      "authority_index_source",
+      "authority_index_node",
+      "authority_index_fts",
+      "authority_index_refresh_receipt",
+      "data_source",
+      "sheet_workbook",
+      "sheet_tab",
+      "sheet_range",
+      "sheet_cell_sample",
+      "sheet_table",
+      "sheet_formula",
+      "sheet_formula_dependency_edge",
+      "sheet_chart_metadata",
+      "csv_header",
+      "csv_row_sample",
+      "json_structure",
+      "json_record_sample",
+      "parquet_schema",
+      "parquet_row_sample",
+      "duckdb_tabular_stage_receipt",
+      "polars_tabular_stage_receipt",
+      "openpyxl_workbook_inspection",
+      "pandas_workbook_inspection",
+      "tableau_hyper_inspection",
+      "docling_extraction",
+      "data_chunk",
+      "data_structure_signature",
+      "data_fts"
+    ],
+    "mutation_policy": "explicit_named_one_turn_grant_receipt_snapshot_relock",
+    "sqlite_filename": "data_excel_sector_v001.sqlite",
+    "mmd_filename": "data_excel.mmd",
+    "dot_filename": "data_excel.dot",
+    "mmd_node_id": "lane_data_excel",
+    "lane_schema_id": "evidence-lane.lane-schema.data_excel.v001",
+    "lane_schema_version": 1,
+    "lane_schema_contract_sha256": "E07CEB176859BCAA091D4245709CEFD8C87A9564CCFCD3FC3C966415B59AF11D",
+    "lane_schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+    "extension_namespace": "evidence_lane.data_excel.extensions",
+    "migration_head": "data_excel.bootstrap.v001",
+    "lane_schema_evolution_policy_sha256": "9E02DF9B8533417623E470FCDE64A70E7287A261B84A6348E1B1009B333A67D4",
+    "lane_schema_evolution_user_gate": false,
+    "lane_artifact_contract_sha256": "BB16BD3980AC1046396DEDB636AAE0715E4DC7AA17DBA957D3A2F98B2EDBDF02",
+    "lane_artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2"
+  },
+  "schema_asset": {
+    "base_schema_id": "evidence-lane.universal-lane.v2",
+    "contract_sha256": "E07CEB176859BCAA091D4245709CEFD8C87A9564CCFCD3FC3C966415B59AF11D",
+    "extension_namespace": "evidence_lane.data_excel.extensions",
+    "fts_table": "data_fts",
+    "lane_id": "data_excel",
+    "lane_table_builder": "GENERIC_ENTITY_RECORD_V1",
+    "migration_ledger": [
+      {
+        "additive_only": true,
+        "from_version": 0,
+        "migration_id": "data_excel.bootstrap.v001",
+        "operation": "BASELINE_BIND_EXISTING_SCHEMA",
+        "sequence": 1,
+        "to_version": 1
+      }
+    ],
+    "mutation_policy": "explicit_named_one_turn_grant_receipt_snapshot_relock",
+    "schema_id": "evidence-lane.lane-schema.data_excel.v001",
+    "schema_version": 1,
+    "sqlite_master_projection_sha256": "502D1D41AE57ACACED84E3FC20A9497B99E758ADA91F6EE220BCD58AF4C75D9A",
+    "tables": [
+      "lane_meta",
+      "lane_pointer",
+      "source_registry",
+      "source_tombstone",
+      "chunk_index",
+      "chunk_content_cas",
+      "chunk_history",
+      "structured_fact",
+      "parser_capability",
+      "tfidf_term",
+      "tfidf_vector",
+      "refresh_receipt",
+      "mutation_receipt",
+      "authority_index_source",
+      "authority_index_node",
+      "authority_index_fts",
+      "authority_index_refresh_receipt",
+      "data_source",
+      "sheet_workbook",
+      "sheet_tab",
+      "sheet_range",
+      "sheet_cell_sample",
+      "sheet_table",
+      "sheet_formula",
+      "sheet_formula_dependency_edge",
+      "sheet_chart_metadata",
+      "csv_header",
+      "csv_row_sample",
+      "json_structure",
+      "json_record_sample",
+      "parquet_schema",
+      "parquet_row_sample",
+      "duckdb_tabular_stage_receipt",
+      "polars_tabular_stage_receipt",
+      "openpyxl_workbook_inspection",
+      "pandas_workbook_inspection",
+      "tableau_hyper_inspection",
+      "docling_extraction",
+      "data_chunk",
+      "data_structure_signature",
+      "data_fts"
+    ]
+  },
+  "artifact_contract": {
+    "conditional_roles": [
+      {
+        "classification": "CONDITIONAL",
+        "condition": "SCHEMA_MIGRATION_APPLIED",
+        "role_name": "schema_migration_receipt"
+      },
+      {
+        "classification": "CONDITIONAL",
+        "condition": "PARSER_DERIVATIVE_EMITTED",
+        "role_name": "parser_derivative"
+      }
+    ],
+    "extension_policy": {
+      "classifications": [
+        "REQUIRED",
+        "CONDITIONAL",
+        "OPTIONAL"
+      ],
+      "core_override": "FORBIDDEN",
+      "path_escape": "FORBIDDEN",
+      "role_id_template": "evidence_lane.{lane_id}.extensions.{extension_id}.{role_name}",
+      "root_template": "extensions/{extension_id}",
+      "symlink": "FORBIDDEN",
+      "undeclared_files": "FAIL_CLOSED",
+      "unrelated_lane_effect": "NONE"
+    },
+    "extension_required_roles": [
+      {
+        "classification": "REQUIRED",
+        "condition": null,
+        "role_name": "extension_authority"
+      }
+    ],
+    "lane_id": "data_excel",
+    "optional_roles": [
+      {
+        "classification": "OPTIONAL",
+        "condition": null,
+        "role_name": "human_readable_export"
+      },
+      {
+        "classification": "OPTIONAL",
+        "condition": null,
+        "role_name": "render_preview"
+      },
+      {
+        "classification": "OPTIONAL",
+        "condition": null,
+        "role_name": "diagnostic_report"
+      }
+    ],
+    "registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
+    "required_roles": [
+      {
+        "classification": "REQUIRED",
+        "path": "data_excel_sector_v001.sqlite",
+        "role_id": "sqlite_authority",
+        "seal": "FOUR_FILE_CONTRACT"
+      },
+      {
+        "classification": "REQUIRED",
+        "path": "data_excel.mmd",
+        "role_id": "mermaid_projection",
+        "seal": "FOUR_FILE_CONTRACT"
+      },
+      {
+        "classification": "REQUIRED",
+        "path": "data_excel.dot",
+        "role_id": "dot_projection",
+        "seal": "FOUR_FILE_CONTRACT"
+      },
+      {
+        "classification": "REQUIRED",
+        "path": "tools.json",
+        "role_id": "toolchain_identity",
+        "seal": "FOUR_FILE_CONTRACT"
+      },
+      {
+        "classification": "REQUIRED",
+        "path": "lane_pointer.json",
+        "role_id": "pointer_evidence",
+        "seal": "EVIDENCE_ARTIFACTS"
+      },
+      {
+        "classification": "REQUIRED",
+        "path": "refresh_receipt.json",
+        "role_id": "refresh_receipt",
+        "seal": "EVIDENCE_ARTIFACTS"
+      },
+      {
+        "classification": "REQUIRED",
+        "path": "lane_manifest.json",
+        "role_id": "lane_manifest",
+        "seal": "SELF_MANIFEST"
+      }
+    ],
+    "schema": "evidence-lane.lane-artifact-role-contract.v1",
+    "contract_sha256": "BB16BD3980AC1046396DEDB636AAE0715E4DC7AA17DBA957D3A2F98B2EDBDF02"
+  },
+  "shared_engine_source_hashes": {
+    "src/evidence_lane_plugin/lanes.py": "2C3F9CED754BF7850C37951ED34AC61AE1876BE7DAF0956073769F24E23CA102",
+    "src/evidence_lane_plugin/lane_engine.py": "D6DC5653373ABC936EFEB1805252686BBCB4FAA322F22980D966225939118718",
+    "src/evidence_lane_plugin/lane_reader.py": "D3AD5D9A83F59FA1D47C78E9A1C3FF9B55686FAE297D86D652D778737C61A566",
+    "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
+    "src/evidence_lane_plugin/source_intake.py": "F8B9EA79F70CC9A68D1648103F1947259F09D4AF679475291A66CB9F2B47E85B"
+  },
+  "authority_is_separate_per_project_lane": true,
+  "shared_engine_does_not_merge_lane_sqlite": true,
+  "receipt_sha256": "FACE30214E9D313FB14338F8132FB9F1DB36953E0D8A3C2FC45AC56798D620AE"
+}

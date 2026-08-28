@@ -33,6 +33,31 @@ def _spec(
     )
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "code"),
+    [
+        ("authority_mode", "LIVE_ROOT", "SOURCE_INTAKE_AUTHORITY_MODE_INVALID"),
+        ("git_mode", "HISTORICAL", "GIT_ARM_MODE_INVALID"),
+    ],
+)
+def test_source_intake_invalid_route_mode_is_structured_not_internal_error(
+    field: str,
+    value: str,
+    code: str,
+) -> None:
+    arguments = {
+        "sources": ["discussion://prompt"],
+        "code_mode": "local_code",
+        "authority_mode": "CLASSIFICATION_ONLY",
+        "git_mode": "DISABLED",
+    }
+    arguments[field] = value
+    with pytest.raises(EvidenceLaneError) as raised:
+        classify_source_intake(**arguments)
+    assert raised.value.code == code
+    assert raised.value.status == "BLOCKED"
+
+
 def test_registry_preserves_order_and_proves_zip_extracted_counterpart(
     tmp_path: Path,
 ) -> None:
@@ -280,6 +305,70 @@ def test_source_intake_governed_registry_is_explicit_and_pointer_neutral(
     classified = session.metadata["classified_source_authority"]
     assert classified["batch_id"] == result["source_authority"]["batch_id"]
     assert classified["armed_for_candidate"] is False
+
+
+def test_source_intake_dispatches_only_execution_changing_prompts_to_plan(
+    service,
+    source_repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    boot = boot_local(service)
+    session_id = boot["session"]["session_id"]
+    calls: list[dict[str, object]] = []
+
+    def record(*_args, **kwargs):
+        calls.append(dict(kwargs))
+        return {
+            "status": "PASS",
+            "idempotent_reuse": False,
+            "steer": {"delta_id": kwargs["delta_id"]},
+        }
+
+    monkeypatch.setattr(service, "record_steer_delta", record)
+    ordinary = service.source_intake(
+        "book-faires",
+        [str(source_repository / "README.md")],
+        session_id=session_id,
+        plan_dispatch={"classification": "ORDINARY"},
+    )
+    assert ordinary["plan_dispatch"] == {
+        "status": "PASS",
+        "classification": "ORDINARY",
+        "pv_plan_steer_delta_invoked": False,
+        "plan_mutated": False,
+        "chat_lineage_only": True,
+    }
+    assert calls == []
+
+    execution = service.source_intake(
+        "book-faires",
+        [str(source_repository / "README.md")],
+        session_id=session_id,
+        plan_dispatch={
+            "classification": "EXECUTION_CHANGING",
+            "delta_id": "stable-prompt-steer-001",
+            "delta_text": "Change the existing release route.",
+            "linked_task_id": "existing-plan-row",
+            "actor": "human-test",
+            "boundary": "BEFORE_NEXT_HIL",
+            "changed_fields": ["RELEASE_ROUTE"],
+        },
+    )
+    assert execution["plan_dispatch"]["pv_plan_steer_delta_invoked"] is True
+    assert execution["plan_dispatch"]["source_intake_preceded_plan_steer"] is True
+    assert execution["plan_dispatch"]["stable_idempotent_id"] == (
+        "stable-prompt-steer-001"
+    )
+    assert calls == [
+        {
+            "delta_id": "stable-prompt-steer-001",
+            "delta_text": "Change the existing release route.",
+            "actor": "human-test",
+            "boundary": "BEFORE_NEXT_HIL",
+            "linked_task_id": "existing-plan-row",
+            "new_task_contract": None,
+        }
+    ]
 
 
 def test_turn_entry_queries_live_sectors_and_records_formula_lineage(

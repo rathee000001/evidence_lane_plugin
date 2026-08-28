@@ -46,11 +46,16 @@ _MMD_EDGE = re.compile(
 )
 _DOT_CLUSTER = re.compile(r"^\s*subgraph\s+(?P<id>cluster_[A-Za-z0-9_]+)\s*\{")
 _DOT_NODE = re.compile(
-    r'^\s*(?P<id>[A-Za-z0-9_]+)\s*\[label="(?P<label>.*?)",'
+    r'^\s*(?P<id>"[A-Za-z0-9_]+"|[A-Za-z0-9_]+)\s*'
+    r"\[(?P<attrs>.+)\]\s*;?\s*$"
 )
 _DOT_EDGE = re.compile(
-    r'^\s*(?P<src>[A-Za-z0-9_]+)\s*->\s*(?P<dst>[A-Za-z0-9_]+)\s*'
-    r'(?:\[label="(?P<label>.*?)"\])?\s*;\s*$'
+    r'^\s*(?P<src>"[A-Za-z0-9_]+"|[A-Za-z0-9_]+)\s*->\s*'
+    r'(?P<dst>"[A-Za-z0-9_]+"|[A-Za-z0-9_]+)\s*'
+    r"(?:\[(?P<attrs>.+)\])?\s*;?\s*$"
+)
+_DOT_LABEL = re.compile(
+    r'(?:^|[,\s])label=(?:"(?P<quoted>(?:\\.|[^"\\])*)"|(?P<plain>[^,\s\]]+))'
 )
 _ROWS_CLAIM = re.compile(r"\brows=(\d+)")
 _SOURCES_CLAIM = re.compile(r"\b(\d+)\s+sources\b")
@@ -164,17 +169,19 @@ def parse_dot(text: str) -> ParsedGraph:
     depth = 0
     for number, line in enumerate(text.splitlines(), start=1):
         stripped = line.strip()
-        if not stripped:
+        if not stripped or stripped.startswith("//"):
             continue
         if stripped.startswith("digraph ") and stripped.endswith("{"):
             depth += 1
-            continue
-        if stripped.startswith(("rankdir", "graph [", "node [", "edge [")):
             continue
         match = _DOT_CLUSTER.match(line)
         if match:
             graph.subgraphs.append(match.group("id"))
             depth += 1
+            continue
+        if stripped.startswith(
+            ("rankdir", "label=", "graph [", "node [", "edge [")
+        ) or ("=" in stripped and "[" not in stripped and "->" not in stripped):
             continue
         if stripped == "}":
             depth -= 1
@@ -185,11 +192,23 @@ def parse_dot(text: str) -> ParsedGraph:
             continue
         match = _DOT_EDGE.match(line)
         if match:
-            graph.edges.append((match.group("src"), match.group("dst")))
+            graph.edges.append(
+                (
+                    match.group("src").strip('"'),
+                    match.group("dst").strip('"'),
+                )
+            )
             continue
         match = _DOT_NODE.match(line)
         if match:
-            graph.nodes.append(GraphNode(match.group("id"), match.group("label")))
+            attributes = match.group("attrs")
+            label_match = _DOT_LABEL.search(attributes)
+            label = (
+                (label_match.group("quoted") or label_match.group("plain") or "")
+                if label_match
+                else match.group("id")
+            )
+            graph.nodes.append(GraphNode(match.group("id").strip('"'), label))
             continue
         graph.errors.append(f"line {number}: unparsed DOT statement")
     if depth:

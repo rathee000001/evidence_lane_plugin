@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "receipt_ledger receipt-ledger.tools.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-tools.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "receipt_ledger"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "7A18B85399ED46DDCA03AEE863F6A3417EB9D93593A0D191E7555510C2116ED7"
+}

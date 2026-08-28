@@ -186,7 +186,7 @@ print(json.dumps({
 }, sort_keys=True))
 """
     environment = os.environ.copy()
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(store_root)
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(store_root)
     source_root = (
         Path(__file__).resolve().parents[1] / "plugins" / "evidence-lane-plugin" / "src"
     )
@@ -206,7 +206,9 @@ print(json.dumps({
     assert completed.returncode == 0, completed.stderr
     restarted = json.loads(completed.stdout)
     assert restarted["root"]["resolved_root"] == str(store_root.resolve())
-    assert restarted["root"]["configuration_source"] == "EVIDENCE_LANE_DATA_ROOT"
+    assert restarted["root"]["configuration_source"] == (
+        "HIDDEN_PLUGIN_RUNTIME_CONTROL_ROOT"
+    )
     assert restarted["root"]["registered_project_count"] == 2
     assert restarted["alpha"]["project_route"]["relative_project_route"] == (
         "projects/project-alpha"
@@ -256,7 +258,9 @@ def test_project_and_store_route_injection_collisions_fail_closed(
         EvidenceLaneService(data_root=unavailable)
     assert unavailable_root.value.code == "EVIDENCE_LANE_DATA_ROOT_UNAVAILABLE"
 
-    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", "   ")
+    monkeypatch.setenv("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", "   ")
     with pytest.raises(EvidenceLaneError) as empty_environment_root:
         EvidenceLaneService()
-    assert empty_environment_root.value.code == "EVIDENCE_LANE_DATA_ROOT_INVALID"
+    assert empty_environment_root.value.code == (
+        "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT_INVALID"
+    )

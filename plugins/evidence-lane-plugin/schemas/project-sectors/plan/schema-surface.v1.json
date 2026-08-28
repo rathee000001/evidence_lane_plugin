@@ -1,0 +1,64 @@
+{
+  "schema": "evidence-lane.project-sector-schema-surface.v1",
+  "status": "PASS",
+  "lane_id": "plan",
+  "authority_root": "authorities/project_sectors/plan",
+  "authority_manifest_sha256": "6CC1337B0C15DBE4F2A62B43F4B2773987C0624EAB31AB030F7E72E0395D899B",
+  "schema_file_count": 10,
+  "schema_files": [
+    {
+      "path": "authorities/project_sectors/plan/builder-contract.schema.json",
+      "bytes": 604,
+      "sha256": "19E21F6ED9CD128A23E5DA25B2DA9B0CEABCE31346FE06B9689B393E23641879"
+    },
+    {
+      "path": "authorities/project_sectors/plan/dot-artifact.schema.json",
+      "bytes": 932,
+      "sha256": "05AEE6AFA20A06AF21D00BCA48E013AEBE382C6A270111F36F586E7A6FBEE17E"
+    },
+    {
+      "path": "authorities/project_sectors/plan/lane-pointer.schema.json",
+      "bytes": 729,
+      "sha256": "A1B5D596A8A35BFBE2E1CD0DB5050CEA26F25F3BDD48AC09F274652AD62DF792"
+    },
+    {
+      "path": "authorities/project_sectors/plan/manifest.schema.json",
+      "bytes": 962,
+      "sha256": "7AB67D4A41B3D7168239AF58DBEF1CA6CB842ECB70EB51C2607136BF894791A6"
+    },
+    {
+      "path": "authorities/project_sectors/plan/mmd-artifact.schema.json",
+      "bytes": 949,
+      "sha256": "BD3B1DF116A854662EFF9349BCE1F029CADB5BDD230D8749F0E3DC0422B79134"
+    },
+    {
+      "path": "authorities/project_sectors/plan/reader-contract.schema.json",
+      "bytes": 754,
+      "sha256": "1E951F71248E2A302F2CCA5D0960EBEAF9782CEABDEB929E1B8AA56B79CEFFBA"
+    },
+    {
+      "path": "authorities/project_sectors/plan/refresh-receipt.schema.json",
+      "bytes": 524,
+      "sha256": "F23C51E3521D7E18A11842509131E389A28B733F948C8AAD7E8AD0A729282743"
+    },
+    {
+      "path": "authorities/project_sectors/plan/schema.sql",
+      "bytes": 9582,
+      "sha256": "B0C29953547F06D6104E5E40DDC289BE865F0440B07D00A8C54FDBB9DDA2939C"
+    },
+    {
+      "path": "authorities/project_sectors/plan/sqlite-artifact.schema.json",
+      "bytes": 951,
+      "sha256": "4DF47D048E439612AD9A950EC2274BC5DAA530AE45F05D3BDF7D04958D3B26CE"
+    },
+    {
+      "path": "authorities/project_sectors/plan/tools.schema.json",
+      "bytes": 993,
+      "sha256": "4E2E55C8A4E26A3D4929D713AE3BBA7CF3D7FA6EE3AEDCF299140A6499A58759"
+    }
+  ],
+  "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
+  "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_bytes_duplicated_here": false,
+  "receipt_sha256": "00A64C13A7F03E0C6AEDA4AC0C4E32FED1A8A73D52CBB0AF455B5CA076530B48"
+}

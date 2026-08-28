@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "task_complete_and_refresh",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-refresh",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "task_complete_and_refresh"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-refresh",
+        "workflow": "hil-live-root-project-overlay-proposal",
+        "order": 3
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution",
+        "order": 15
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570",
+  "sdk_action_binding": "sdk/actions/task_complete_and_refresh.action.v1.json",
+  "mcp_action_binding": "mcp/actions/task_complete_and_refresh.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "E52765D850221A911A7927096555322906691B54ACEE010FB24075E4FDC71F4C"
+}

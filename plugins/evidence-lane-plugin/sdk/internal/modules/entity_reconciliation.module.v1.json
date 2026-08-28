@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.entity_reconciliation",
+  "source_path": "src/evidence_lane_plugin/entity_reconciliation.py",
+  "source_sha256": "F4FEEB6A536501740097B13EB99976A4C7767558D8101842767E35127E89AA4A",
+  "source_bytes": 2659,
+  "role": "AI_TOOLCHAIN_EXECUTION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "AB3FF60EC679A0442D755FC48DC9C5D8A1A38555A23C7E9CA6430853858C5755"
+}

@@ -1,0 +1,89 @@
+{
+  "schema": "evidence-lane.sdk-delta-entry-mid-exit.v1",
+  "status": "PASS",
+  "delta_entry": {
+    "workflow": "DELTA_ENTRY_AND_SIX_WAY_QUERY",
+    "triggers": [
+      "ACTIVE_PLAN_ROW_ENTRY"
+    ],
+    "skills": [
+      "evidence-lane-code-lifecycle",
+      "evi-learning",
+      "evi-memory",
+      "evi-canon",
+      "evi-universe",
+      "evi-instructions"
+    ],
+    "public_actions": [
+      "task_classify",
+      "pv_status",
+      "pv_task_backlog",
+      "pv_query",
+      "search",
+      "learning_retrieve",
+      "project_memory_query",
+      "canon_graph"
+    ],
+    "sdk_modules": [
+      "plan_delta_tasks",
+      "source_lane_retrieval",
+      "env_uop_operator_runtime",
+      "agent_learning",
+      "project_memory",
+      "canon_input",
+      "project_universe"
+    ],
+    "hooks_required": false,
+    "accepted_archive_query_allowed": false,
+    "public_action_sdk": {
+      "actions": [
+        "task_classify",
+        "pv_status",
+        "pv_task_backlog",
+        "pv_query",
+        "search",
+        "learning_retrieve",
+        "project_memory_query",
+        "canon_graph"
+      ],
+      "count": 8,
+      "count_is_fixed_ceiling": false
+    },
+    "ai_action_planes": [
+      "ENV_UOP_AI_ACTION_PLANE"
+    ],
+    "env_uop_operations_counted_as_public_actions": 0
+  },
+  "delta_exit": {
+    "full_pv_pointer_role": "IMMUTABLE_PV_N_MINUS_1_BASELINE",
+    "live_sector_role": "PROGRESSIVE_THROUGH_PREDECESSOR_DELTA_EXIT_SUBPV",
+    "predecessor_learning_role": "AUTO_ADMITTED_DELTA_LEARNING",
+    "current_active_delta_present_in_lanes": false,
+    "current_active_delta_source_role": "DIRTY_IMPLEMENTATION_BYTES",
+    "source_tests_prove_installed_behavior": false,
+    "installed_behavior_requires_local_package_and_reattachment": true,
+    "delta_exit_per_file_fingerprint": "GIT_INDEX_STAGE0_PATH_SET_WITH_CURRENT_WORKTREE_BYTES",
+    "tracked_deletions_explicit": true,
+    "untracked_paths_in_per_file_manifest": false
+  },
+  "prompt_steer_source_intake": {
+    "source_intake_first": true,
+    "env_uop_governed": true,
+    "chat_lineage_always_appended": true,
+    "execution_change_fields": [
+      "OUTCOME",
+      "DEPENDENCY",
+      "ACCEPTANCE",
+      "STOP_CONDITION",
+      "RELEASE_ROUTE",
+      "HIL_PATH"
+    ],
+    "execution_changing_action": "pv_plan_steer_delta",
+    "stable_idempotent_id_required": true,
+    "questions_create_plan_steer": false
+  },
+  "project_overlay_hil_only": true,
+  "canonical_entry_source": "src/evidence_lane_plugin/adaptive_delta_entry.py",
+  "canonical_exit_source": "src/evidence_lane_plugin/adaptive_delta_exit.py",
+  "receipt_sha256": "74CA818A48FA1D73D01B7FF2184F9C94D899AA1F5A5E5B1FC04C7061893E1F53"
+}

@@ -1,0 +1,96 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "fetch",
+  "title": "Fetch exact live-root file or chunk",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "ref_id": {
+        "title": "Ref Id",
+        "type": "string"
+      },
+      "max_bytes": {
+        "default": 256000,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "start_line": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Start Line"
+      },
+      "end_line": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "End Line"
+      },
+      "max_lines": {
+        "default": 400,
+        "title": "Max Lines",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "ref_id"
+    ],
+    "title": "fetchArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "fetchDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "85170F97BAAAA6E30450D78CD1B2FBD1A2A14F057A0AE507E6C4E20F56DB32A8",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "fetch"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "bounded-source-retrieval",
+        "order": 15
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/fetch.action.v1.json",
+  "sdk_action_binding_sha256": "C6A2E759180BEB6BDA23EB7FF01279ACBFADEFFB68E2CC670EA394C41F0F7968",
+  "public_action_schema": "schemas/actions/fetch.schema.json",
+  "public_action_schema_sha256": "A21CA5E3F900BE35415C67C1D4DD901B5F3E9C8D625B5E7B445F5474F95F46DE",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "8EC86E0F7F293CDC3AFB903E64C90D7ED65AC0F46AB9A3934068BB35FD4D5327"
+}

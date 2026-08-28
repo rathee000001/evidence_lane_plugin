@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "pv_plan_tasks",
+  "title": "Queue a linear multi-task plan",
+  "description": "Append one bounded task plan to the project backlog. Every task keeps its own exact class, outcome, paths, tools, acceptance checks, and stop condition. Planning normally activates nothing: the one-agent/one-active-task law still requires task_classify for one queued task at a time. An optional normalization_transition is the sole exception: it requires exact Plan, session, and pointer hashes plus an approval receipt, then journal-appends the approved successor rows and atomically rebinds the same session without adding another tool, candidate, HIL, pointer move, or Git action. A correction_of_transition_id contract may journal-restore the exact prior active row after a mistaken committed normalization; it appends two history events but no row, preserves the original journal, and may seal a fixed display offset for dynamically renumbered current-execution rows. An optional atomic_insertion uses an empty top-level task list and one bounded set of exact insertion targets. It verifies the sealed backlog-byte and canonical/executable Plan hashes plus physical-final HIL, preserves structured task metadata, and journals one idempotent multi-target commit without changing Goal, candidate, HIL, pointer, or Git state. An optional active_contract_rebind also uses an empty top-level task list. It verifies exact Plan, session, pointer, invoking host task, runtime-task, and visible user-authority receipts; append-amends only the sole ACTIVE row; and atomically reseals the same governed session/runtime task. It does not replace the row, create or complete a Goal, create a candidate, invoke HIL, move the pointer, run Git, install, launch a helper, or open a tunnel. An optional existing_task_promotion uses an empty top-level task list and atomically moves one already-recorded queued Delta before the sole ACTIVE row, preserving stable task identity and count while rebinding the same session and persistent 1+9 host projection.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "tasks": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Tasks",
+        "type": "array"
+      },
+      "planned_by": {
+        "title": "Planned By",
+        "type": "string"
+      },
+      "plan_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Plan Id"
+      },
+      "host_kind": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Host Kind"
+      },
+      "host_mode": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Host Mode"
+      },
+      "normalization_transition": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Normalization Transition"
+      },
+      "atomic_insertion": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Atomic Insertion"
+      },
+      "active_contract_rebind": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Active Contract Rebind"
+      },
+      "existing_task_promotion": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Existing Task Promotion"
+      }
+    },
+    "required": [
+      "project_id",
+      "tasks",
+      "planned_by"
+    ],
+    "title": "pv_plan_tasksArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_plan_tasksDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-plan",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_plan_tasks"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-plan",
+        "workflow": "persist-plan",
+        "order": 5
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution",
+        "order": 10
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "B08DAEEE7B5443CF31FF76A662CEF4A912759DD4D8ECF0E89C1A1891EFDF982D",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "473DE7DC841A500B53611A88F58CD35754761C06C71C73296BE55AEC069509BA"
+}

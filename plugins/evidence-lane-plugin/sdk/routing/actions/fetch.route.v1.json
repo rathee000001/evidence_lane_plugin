@@ -1,0 +1,30 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "fetch",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "fetch"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "bounded-source-retrieval",
+        "order": 15
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "85170F97BAAAA6E30450D78CD1B2FBD1A2A14F057A0AE507E6C4E20F56DB32A8",
+  "sdk_action_binding": "sdk/actions/fetch.action.v1.json",
+  "mcp_action_binding": "mcp/actions/fetch.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "428E17B51A33E7DD963AEF00C86EBDF61BD9541C109C407349EA7FC6ABD05D02"
+}

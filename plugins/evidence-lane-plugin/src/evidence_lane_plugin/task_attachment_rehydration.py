@@ -63,7 +63,7 @@ def _validate_surface(surface: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(catalog, Mapping):
         raise AttachmentRehydrationError("PUBLIC_SURFACE_CATALOG_MISSING")
     normalized_catalog: dict[str, int] = {}
-    for key in ("tools", "read", "write", "skills", "commands", "providers"):
+    for key in ("tools", "read", "write", "skills", "providers"):
         value = catalog.get(key)
         if not isinstance(value, int) or value < 0:
             raise AttachmentRehydrationError(f"PUBLIC_SURFACE_{key.upper()}_INVALID")
@@ -208,7 +208,6 @@ def plan_global_plugin_update_rehydration(
                     "runtime_attestation_source": "SERVER_DERIVED_AFTER_RECONNECT",
                     "catalog_rehydrated": True,
                     "skills_rehydrated": True,
-                    "commands_rehydrated": True,
                     "sdk_routes_rehydrated": True,
                     "mcp_connection_rehydrated": True,
                     "goal_plan_preserved": True,

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "connector_plugin_drop",
+  "title": "Drop one governed persistent plugin",
+  "description": "Drop exactly one active connector/toolchain only with DROP:<plugin-id>; preserve its registration and event history rather than deleting it.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "plugin_id": {
+        "title": "Plugin Id",
+        "type": "string"
+      },
+      "confirmation": {
+        "title": "Confirmation",
+        "type": "string"
+      },
+      "dropped_by": {
+        "title": "Dropped By",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "plugin_id",
+      "confirmation",
+      "dropped_by"
+    ],
+    "title": "connector_plugin_dropArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "connector_plugin_dropDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-drop-additional-plugin",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "connector_plugin_drop"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-drop-additional-plugin",
+        "workflow": "drop-connector",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-plugin",
+        "workflow": "change-connector-registration",
+        "order": 3
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "98F2DF9E5424ECD9A1FF29FED02140D78A0F886E7B0F07D3B0CE8D6B9CCC6DE8",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "FE34B754E8235769569BA10057E1CE5BDF572652CFA0E8DE448469A020317F6E"
+}

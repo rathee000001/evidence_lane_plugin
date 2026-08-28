@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 4,
+  "event": "PreToolUse",
+  "handler_count": 4,
+  "event_binding": "hooks/events/PreToolUse/event.v1.json",
+  "event_binding_sha256": "83A7F0FDA9A53C8E13507A247F6BE510CB94957A8BA514F6AD64A11A69E7A853",
+  "handlers": [
+    {
+      "display_id": "4.1",
+      "path": "hooks/events/PreToolUse/handler-4.1.v1.json",
+      "sha256": "9D50086290366CFAEF559760750CE8E6636316A7C55A57AC6B49760DF0737F3E"
+    },
+    {
+      "display_id": "4.2",
+      "path": "hooks/events/PreToolUse/handler-4.2.v1.json",
+      "sha256": "1F3CCF4838D8DABDE063F52215038DD9C86CE9C197CDC207FB058AF3F28ED120"
+    },
+    {
+      "display_id": "4.3",
+      "path": "hooks/events/PreToolUse/handler-4.3.v1.json",
+      "sha256": "84283D9CEFD8D520B940D107BABA7787AD6B4A2DF884A6F48FB70276B75F552C"
+    },
+    {
+      "display_id": "4.4",
+      "path": "hooks/events/PreToolUse/handler-4.4.v1.json",
+      "sha256": "A9037945D3615874CDE4DBF90A9C6880672CD8C6513334B5C5EC0A7E9785029F"
+    }
+  ],
+  "canonical_hook_manifest": "hooks/hooks.json",
+  "canonical_logical_actions": "hooks/logical-actions.json",
+  "enabled_only_after_installed_event_pass": true,
+  "receipt_sha256": "11F1EABF29DD2B9281609037636DD3319F527CFF8B3206B9998BA55DFA936A88"
+}

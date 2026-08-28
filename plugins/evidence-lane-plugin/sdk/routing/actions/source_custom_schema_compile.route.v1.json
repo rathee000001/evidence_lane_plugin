@@ -1,0 +1,30 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "source_custom_schema_compile",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "source_custom_schema_compile"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "custom-schema-intake",
+        "order": 6
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "75DBD5618758A4A4C33F0BF93C4C770D746534D7B0D7A403B36C69A4B29D3696",
+  "sdk_action_binding": "sdk/actions/source_custom_schema_compile.action.v1.json",
+  "mcp_action_binding": "mcp/actions/source_custom_schema_compile.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "DCBE45CA4AD1FAA128F46D5638B5C7D6997CA6360B0B98DCAB138E7C7DFAF2A7"
+}

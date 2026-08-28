@@ -1,0 +1,62 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "render_project_panel",
+  "title": "Render governed project and HIL panel",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id"
+    ],
+    "title": "render_project_panelArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "render_project_panelDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "8C8F10765A838FA51942EC2DDBA771C0E30C963374F65BE0198164DEA74DD7FE",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "render_project_panel"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-build",
+        "workflow": "physically-final-pv-hil-presentation-only",
+        "order": 2
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "two-trigger-render-dispatch",
+        "order": 19
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/render_project_panel.action.v1.json",
+  "sdk_action_binding_sha256": "764ABCA4ACB15B8A1CFD3D0CEF12C8C6C39C67A1E505E9F28985B40D3CEEBBF9",
+  "public_action_schema": "schemas/actions/render_project_panel.schema.json",
+  "public_action_schema_sha256": "94F2F739421C9AD11D59718BB08788CCB12B7DEC1F56CD4199EC026C4E44CDE5",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "9DB9EFA3F989612714CCE513154996FFF85FAD30657ECB4C236E882DB114A19F"
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Research bounded reader request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "lane_id",
+    "query",
+    "retrieval",
+    "limit"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lane_id": {
+      "const": "research"
+    },
+    "query": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval": {
+      "enum": [
+        "hybrid",
+        "fts5",
+        "bm25",
+        "tfidf"
+      ]
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "973B86B67D3A33015635BC7A54AB994A7277636C45C646B9BD438CB2C6DABEAA"
+}

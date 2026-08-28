@@ -11,6 +11,7 @@ from .errors import EvidenceLaneError, require
 from .flash_identity import build_flash_dual_identity
 from .flash_projection import FlashRuntimeProjection
 from .hashing import (
+    atomic_write_bytes,
     atomic_write_json,
     canonical_json_bytes,
     sha256_bytes,
@@ -22,10 +23,28 @@ FLASH_MANIFEST_SCHEMA = "evidence-lane.session-flash-manifest.v1"
 FLASH_RECEIPT_SCHEMA = "evidence-lane.session-flash-receipt.v1"
 FLASH_AUTHORITY_VERSION = "ENV15_UOP15_PUBLIC_LOCKED_20260807"
 FLASH_MANIFEST_SHA256 = (
+    "B41F53A66E2CEA58788FC43E1466D16847B5A07ECD90A2149BCEF5C8F1422512"
+)
+NESTED_SOURCE_LAYOUT_FLASH_MANIFEST_SHA256 = (
     "4585D703515D2DE245F688E3047F192C6BD3D507475B57855918561933C5293A"
 )
-ENV_MMD_SHA256 = "360C9878658106A24CFE60E0CDD98BB95EA8BAABB7229C84C9D9163F397981F1"
-UOP_MMD_SHA256 = "7D9A51F7B29D26B2B7AB120A08D7CF504AB86C2FEFE709B9C2681E32ACCD1189"
+NESTED_SOURCE_LAYOUT_AUTHORITY_DIGEST = (
+    "644AEEAE1434B3808E544BA9C634ACE3685F21F73D3F86E0CF5DE31D4A6B48A5"
+)
+NESTED_SOURCE_LAYOUT_SOURCE_AUTHORITY_MANIFEST_SHA256 = (
+    "D2DB9386672B64D0EEDFD709036699763A7B002A05360F27E2C726622FDE7B71"
+)
+
+_MIGRATABLE_NEW_BUILD_FLASH_ERRORS = {
+    "SESSION_FLASH_PROJECTION_BUILD_CHANGED",
+    "SESSION_FLASH_SOURCE_AUTHORITY_CHANGED",
+    "SESSION_FLASH_BUILD_IDENTITY_CHANGED",
+    "SESSION_FLASH_AUTHORITY_CHANGED",
+}
+ENV_MMD_SHA256 = "4FDE450BB73D470440C40DD8EA4E7C67BBEB7C0B123B7796BE23E41A9E03E9A4"
+UOP_MMD_SHA256 = "D67946A53F3A323CCDCB63B7E2DBC88F72743E620F930E5F82240B3EE5638C43"
+ENV_DOT_SHA256 = "B873DCD12B6B0880A67A79D2D228053AECE63C81C56D73D972EF904D141E708C"
+UOP_DOT_SHA256 = "8A56801CCA46BF4F4D11F105B532FBB4082758B8371D9141C347EB142837E2D8"
 
 
 class SessionFlashAuthority:
@@ -41,9 +60,9 @@ class SessionFlashAuthority:
         self.asset_root = (
             Path(asset_root).resolve()
             if asset_root
-            else Path(__file__).resolve().parent / "session_flash" / "env15"
+            else Path(__file__).resolve().parents[2]
         )
-        self.manifest_path = self.asset_root / "SESSION_FLASH_MANIFEST.json"
+        self.manifest_path = self.asset_root / "env" / "SESSION_FLASH_MANIFEST.json"
         self.receipt_path = (
             self.data_root / "installation" / "session_flash_receipt.json"
         )
@@ -184,10 +203,20 @@ class SessionFlashAuthority:
             "The session-flash manifest contains duplicate members.",
             status="FAIL",
         )
+        package_projection_metadata = {
+            "env/README.md",
+            "env/authority-manifest.v1.json",
+            "uop/README.md",
+            "uop/authority-manifest.v1.json",
+        }
         actual_names = sorted(
             path.relative_to(self.asset_root).as_posix()
-            for path in self.asset_root.rglob("*")
-            if path.is_file() and path.name != self.manifest_path.name
+            for authority_root in (self.asset_root / "env", self.asset_root / "uop")
+            for path in authority_root.rglob("*")
+            if path.is_file()
+            and path != self.manifest_path
+            and path.relative_to(self.asset_root).as_posix()
+            not in package_projection_metadata
         )
         require(
             sorted(member_names) == actual_names,
@@ -232,24 +261,24 @@ class SessionFlashAuthority:
         for authority_name in ("env", "uop"):
             authority = manifest["authorities"][authority_name]
             mmd_path = self._safe_member(self.asset_root, authority["mmd"])
+            dot_path = self._safe_member(self.asset_root, authority["dot"])
             sqlite_path = self._safe_member(self.asset_root, authority["sqlite"])
             lock_path = self.asset_root / authority_name / "locked_mmd_hash.txt"
             lock = self._parse_lock(lock_path)
-            prefix = "env_mmd" if authority_name == "env" else "uop_mmd"
             require(
                 lock.get("final_mmd_sha256", "").upper() == sha256_file(mmd_path)
-                and lock.get("svg_sha256", "").upper()
-                == sha256_file(self.asset_root / authority_name / f"{prefix}.svg")
-                and lock.get("png_sha256", "").upper()
-                == sha256_file(self.asset_root / authority_name / f"{prefix}.png"),
+                and lock.get("final_dot_sha256", "").upper() == sha256_file(dot_path)
+                and lock.get("final_sqlite_sha256", "").upper()
+                == sha256_file(sqlite_path),
                 "SESSION_FLASH_MMD_LOCK_MISMATCH",
-                "A locked ENV/UOP Mermaid source or render does not match its lock.",
+                "A locked ENV/UOP SQLite, Mermaid, or DOT source does not match its lock.",
                 status="MISMATCH",
                 authority=authority_name,
             )
             authority_reports[authority_name] = {
                 "version": authority["version"],
                 "mmd_sha256": sha256_file(mmd_path),
+                "dot_sha256": sha256_file(dot_path),
                 "sqlite_sha256": sha256_file(sqlite_path),
                 "sqlite": self._sqlite_report(
                     sqlite_path, int(authority["sqlite_user_version"])
@@ -257,7 +286,9 @@ class SessionFlashAuthority:
             }
 
         source_audit = json.loads(
-            (self.asset_root / "SOURCE_PACKET_AUDIT.json").read_text(encoding="utf-8")
+            (self.asset_root / "env" / "SOURCE_PACKET_AUDIT.json").read_text(
+                encoding="utf-8"
+            )
         )
         require(
             source_audit.get("overall_status") == "PARTIAL_INTEGRITY"
@@ -301,7 +332,9 @@ class SessionFlashAuthority:
             },
             "authorities": authority_reports,
             "prompt": {
-                "sha256": sha256_file(self.asset_root / "UNIVERSAL_FLASH_PROMPT.md"),
+                "sha256": sha256_file(
+                    self.asset_root / "env" / "UNIVERSAL_FLASH_PROMPT.md"
+                ),
                 "purpose": "SESSION_BEHAVIOR_ONLY",
                 "inside_pv": False,
             },
@@ -336,7 +369,9 @@ class SessionFlashAuthority:
             "build_identity_sha256",
             "plugin_version",
         )
-        present_identity_fields = [field for field in identity_fields if field in receipt]
+        present_identity_fields = [
+            field for field in identity_fields if field in receipt
+        ]
         require(
             not present_identity_fields
             or len(present_identity_fields) == len(identity_fields),
@@ -350,8 +385,7 @@ class SessionFlashAuthority:
                 receipt.get("plugin_version") == build_identity["plugin_version"]
             )
             require(
-                receipt.get("codex_projection_identity_sha256")
-                == projection_identity,
+                receipt.get("codex_projection_identity_sha256") == projection_identity,
                 (
                     "SESSION_FLASH_SAME_VERSION_PROJECTION_REUSE_FORBIDDEN"
                     if same_plugin_version
@@ -370,8 +404,7 @@ class SessionFlashAuthority:
                 bundled_projection_identity=projection_identity,
             )
             require(
-                receipt.get("source_authority_manifest_sha256")
-                == source_identity,
+                receipt.get("source_authority_manifest_sha256") == source_identity,
                 "SESSION_FLASH_SOURCE_AUTHORITY_CHANGED",
                 "The independently verified ENV/UOP source-authority identity changed.",
                 status="BLOCKED",
@@ -438,7 +471,120 @@ class SessionFlashAuthority:
 
         report = self.verify()
         if self.receipt_path.is_file():
-            return self.status()
+            try:
+                return self.status()
+            except EvidenceLaneError as exc:
+                if exc.code not in _MIGRATABLE_NEW_BUILD_FLASH_ERRORS:
+                    raise
+                prior_bytes = self.receipt_path.read_bytes()
+                prior = json.loads(prior_bytes.decode("utf-8"))
+                current_build = report["dual_identity"]["build_identity"]
+                nested_layout_migration = (
+                    prior.get("manifest_sha256")
+                    == NESTED_SOURCE_LAYOUT_FLASH_MANIFEST_SHA256
+                    and prior.get("authority_digest")
+                    == NESTED_SOURCE_LAYOUT_AUTHORITY_DIGEST
+                    and prior.get("source_authority_manifest_sha256")
+                    == NESTED_SOURCE_LAYOUT_SOURCE_AUTHORITY_MANIFEST_SHA256
+                )
+                current_source_identity = report["dual_identity"]["source_authority"][
+                    "manifest_sha256"
+                ]
+                require(
+                    prior.get("authority_version") == report["authority_version"]
+                    and prior.get("plugin_version") != current_build["plugin_version"],
+                    "SESSION_FLASH_BUILD_MIGRATION_INVALID",
+                    "A Flash authority migration requires the same authority contract version and a new plugin build.",
+                    status="MISMATCH",
+                )
+                authority_changed = (
+                    prior.get("authority_digest") != report["authority_digest"]
+                    or prior.get("manifest_sha256") != report["manifest_sha256"]
+                )
+                source_authority_changed = (
+                    prior.get("source_authority_manifest_sha256")
+                    != current_source_identity
+                )
+                projection_changed = (
+                    prior.get("codex_projection_identity_sha256")
+                    != report["dual_identity"]["codex_projection"]["identity_sha256"]
+                )
+                prior_sha256 = sha256_bytes(prior_bytes)
+                migration_root = (
+                    self.data_root
+                    / "installation"
+                    / "flash_authority_migrations"
+                    / (
+                        f"{str(prior.get('build_identity_sha256') or prior_sha256)[:32]}_to_"
+                        f"{str(current_build['identity_sha256'])[:32]}"
+                    )
+                )
+                archived_receipt = migration_root / "session_flash_receipt.prior.json"
+                if archived_receipt.is_file():
+                    require(
+                        sha256_file(archived_receipt) == prior_sha256,
+                        "SESSION_FLASH_BUILD_MIGRATION_ARCHIVE_CONFLICT",
+                        "The append-only prior Flash receipt archive contains other bytes.",
+                        status="MISMATCH",
+                    )
+                else:
+                    atomic_write_bytes(archived_receipt, prior_bytes)
+                migrated = self._receipt_from_report(report)
+                migration = {
+                    "schema": "evidence-lane.session-flash-build-migration.v1",
+                    "status": "PASS",
+                    "authority_digest": report["authority_digest"],
+                    "source_authority_manifest_sha256": current_source_identity,
+                    "prior_plugin_version": prior.get("plugin_version"),
+                    "current_plugin_version": current_build["plugin_version"],
+                    "prior_receipt_sha256": prior_sha256,
+                    "current_build_identity_sha256": current_build["identity_sha256"],
+                    "same_version_projection_reuse": False,
+                    "migration_scope": (
+                        "NEW_PLUGIN_BUILD_FULL_FLASH_AUTHORITY"
+                        if authority_changed or source_authority_changed
+                        else "NEW_PLUGIN_BUILD_PROJECTION_ONLY"
+                    ),
+                    "authority_changed": authority_changed,
+                    "source_authority_changed": source_authority_changed,
+                    "projection_changed": projection_changed,
+                    "prior_authority_digest": prior.get("authority_digest"),
+                    "current_authority_digest": report["authority_digest"],
+                    "prior_manifest_sha256": prior.get("manifest_sha256"),
+                    "current_manifest_sha256": report["manifest_sha256"],
+                    "prior_source_authority_manifest_sha256": prior.get(
+                        "source_authority_manifest_sha256"
+                    ),
+                    "current_source_authority_manifest_sha256": (
+                        current_source_identity
+                    ),
+                    "source_layout_migrated_from_nested_package": (
+                        nested_layout_migration
+                    ),
+                    "project_state_mutated": False,
+                    "pointer_moved": False,
+                    "candidate_mutated": False,
+                    "migrated_at": utc_now(),
+                }
+                migration["receipt_sha256"] = sha256_bytes(
+                    canonical_json_bytes(migration)
+                )
+                atomic_write_json(migration_root / "migration.json", migration)
+                atomic_write_json(self.receipt_path, migrated)
+                result = self.status()
+                result["flash_action"] = "BUILD_IDENTITY_MIGRATED"
+                result["build_migration"] = migration
+                return result
+        receipt = self._receipt_from_report(report)
+        atomic_write_json(self.receipt_path, receipt)
+        created = self.status()
+        created["flash_action"] = "CREATED"
+        return created
+
+    @staticmethod
+    def _receipt_from_report(report: dict[str, Any]) -> dict[str, Any]:
+        """Build one installation-scoped Flash receipt from verified assets."""
+
         receipt = {
             "schema": FLASH_RECEIPT_SCHEMA,
             "receipt_id": f"flash_{report['authority_digest'][:24].lower()}",
@@ -467,7 +613,4 @@ class SessionFlashAuthority:
             "inside_pv": False,
             "hil_approval_inferred": False,
         }
-        atomic_write_json(self.receipt_path, receipt)
-        created = self.status()
-        created["flash_action"] = "CREATED"
-        return created
+        return receipt

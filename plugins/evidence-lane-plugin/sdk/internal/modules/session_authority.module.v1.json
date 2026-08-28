@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.session_authority",
+  "source_path": "src/evidence_lane_plugin/session_authority.py",
+  "source_sha256": "33298393CDB6CFA11E2BD47601AC864857AEEA5571EBB6D1A2AD1BD927897043",
+  "source_bytes": 7100,
+  "role": "PROJECT_AUTHORITIES",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "DA8E37BB6673D4BDF0F0A6A476A1D50AC6570AD432B5B166E0876A3A0CF24BD5"
+}

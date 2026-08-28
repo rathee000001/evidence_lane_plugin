@@ -107,7 +107,7 @@ def _active_rebind_authority(
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     metadata = dict(session.get("metadata") or {})
     rebind = dict(metadata.get("active_contract_rebind_receipt") or {})
-    recovery = dict(rebind.get("recovery_binding_contract") or {})
+    task_binding = dict(rebind.get("task_binding_contract") or {})
     history_matches = [
         dict(value)
         for value in metadata.get("active_contract_rebinds") or []
@@ -147,13 +147,26 @@ def _active_rebind_authority(
             )
             is not None
         )
-        and recovery.get("manager_scope") == "SHARED_MULTI_PROJECT_MULTI_TASK"
-        and recovery.get("registry_mutability") == "MUTABLE_APPEND_OR_REFRESH"
-        and recovery.get("invocation_binding_scope") == "EXACT_CALLING_TASK"
-        and recovery.get("reentry_target") == task_id
-        and recovery.get("installer_helper") == "SEPARATE_COMPONENT"
+        and task_binding.get("manager_scope") == "SHARED_MULTI_PROJECT_MULTI_TASK"
+        and task_binding.get("registry_mutability") == "MUTABLE_APPEND_OR_REFRESH"
+        and task_binding.get("invocation_binding_scope") == "EXACT_CALLING_TASK"
+        and task_binding.get("reentry_target") == task_id
+        and task_binding.get("installer_helper") == "SEPARATE_COMPONENT"
         and rebind.get("candidate_created") is False
-        and rebind.get("pending_hil") is False
+        and (
+            (
+                authority_route == "DIRECT_FORCED_SAME_WORKTREE_NEW_TASK"
+                and bool(rebind.get("pending_hil"))
+                == bool(metadata.get("pending_hil"))
+                and rebind.get("candidate_id_preserved")
+                == session.get("candidate_id")
+                and rebind.get("candidate_state_preserved") == session.get("state")
+            )
+            or (
+                authority_route == "PV_PLAN_TASKS_ACTIVE_CONTRACT_REBIND"
+                and rebind.get("pending_hil") is False
+            )
+        )
         and rebind.get("pointer_moved") is False
         and rebind.get("goal_completion_mutated") is False
         and rebind.get("git_executed") is False
@@ -161,7 +174,7 @@ def _active_rebind_authority(
         and rebind.get("helper_launched") is False
         and rebind.get("tunnel_launched") is False,
         "SHARED_TASK_BINDING_REBIND_AUTHORITY_MISMATCH",
-        "The current session lacks the exact calling-task recovery authority.",
+        "The current session lacks the exact calling-task binding authority.",
         status="MISMATCH",
     )
     return metadata, rebind

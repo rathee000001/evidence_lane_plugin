@@ -17,6 +17,44 @@ Project Engulf, and SQLite Brain; accept exact per-source overrides. Always
 include Chat Lineage. Classification alone copies no source, creates no
 candidate, and moves no pointer.
 
+## Code-project, Git-lane, and lane Study Brain routing
+
+One governed project has exactly one registered central code project. The exact
+registered repository is `PRIMARY_PROJECT_CODE`. Any additional local code
+folder or public repository is a `LANE_SCOPED_STUDY_BRAIN` inside `local_code`
+or `github_code`; it never becomes a second project root or a nineteenth lane.
+Changing the central code project requires separate project/PV registration and
+cannot be performed by Source Intake.
+
+Local Code and GitHub Code remain distinct. `local_code` refreshes from current
+Delta dirty bytes. `github_code` materializes only from an exact governed Git
+checkpoint. A public/unowned repository may be read as bounded lane evidence,
+but Git history stays disabled unless ownership or explicit access is attested.
+Each lane-scoped Study Brain uses that lane's SQLite/FTS5, MMD, DOT,
+`tools.json`, lane pointer, lane manifest, and `study_brain.json`; it does not
+create a duplicate database or top-level folder.
+
+Source Intake owns registration and routing, not materialization. Initial Build
+materializes applicable lane artifacts after Source Intake. Delta exit Refresh
+updates changed lane artifacts and the intelligence layers. A HIL Delta adds
+Project Overlay; an ordinary Delta never does. Candidate-building refresh
+compatibility is absent and cannot act as a fallback builder.
+
+On a newly registered live-root project, the initial workflow first collects
+the brief, uses native Plan mode, persists the canonical Plan through EVI Plan,
+displays its Goal-start prompt, and waits for explicit host Plan acceptance.
+Host hooks then bind the active Goal and fixed Step Task List before source
+work. Initial Build subsequently owns one special Source Intake materialization:
+build all sector lanes from the governed workspace and bind them as `PV0` at
+generation `0`. This is bootstrap, not Delta exit or HIL; it creates no
+candidate, Learning decision, Project Overlay, or accepted artifact. State
+Travel never enters this path and never creates or asks for another project
+registration or PV0. Prompt/steer intake and Delta entry remain separate:
+prompt/steer intake classifies and appends visible evidence and emits one
+idempotent linked Plan steer only when an execution contract actually changes;
+Delta entry consumes the active Goal/row and prior accepted authorities before
+source work.
+
 `working_authority_action=REFRESH_WORKING_SECTORS` is the only explicit action
 that materializes or refreshes the live WORKING sector projection. Invoke it as
 a separate call with the exact active session. A `turn_entry` call is an
@@ -25,6 +63,18 @@ delete, relocate, or refresh project authority. If the projection is absent or
 bound to another branch/HEAD, the query returns
 `PROJECT_WORKING_QUERY_REFRESH_REQUIRED`; perform the explicit refresh and then
 repeat the read as a new call.
+
+During an open Delta, keep two history watermarks separate. The immutable
+full-PV pointer remains PV(n-1), while the progressive live-root sector
+projection has already been refreshed through the immediately preceding Delta
+exit and its auto-accepted Plan-only sub-PV. The predecessor's auto-admitted
+Delta Learning supplements that projection. Only the current ACTIVE Delta's
+unexited dirty source changes are absent from the lanes. Source or unit tests
+may validate those bytes, but they do not prove installed public behavior.
+Adaptive Delta exit advances the live sector and separate-intelligence
+watermarks again; installed MCP/SDK/skill/command/hook/UI behavior becomes
+provable only after the new local package is installed and the exact task is
+reattached.
 
 The Git history arm is optional for source intake. `AUTO` enriches a Git
 worktree with history and otherwise falls back to deterministic content
@@ -45,21 +95,21 @@ tracked-only boundary.
 ## Authoritative live-root six-authority query workflow
 
 `EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1` is the only ordinary query
-workflow. ENV/UOP keeps these six authorities separate: all eighteen live-root
+workflow. ENV/UOP keeps every authority separate: all eighteen live-root
 sector lanes plus Project Engulf; Agent Learning; the Canon consequence graph;
-Project Memory; the resolved `AGENTS.md` chain; and host conversation
-`MEMORY.md`. Accepted storage is an immutable HIL ZIP and is never opened,
+Project Memory; Project Universe; connector brain; the resolved `AGENTS.md`
+chain; and host conversation `MEMORY.md`. Accepted storage is an immutable HIL ZIP and is never opened,
 queried, extracted, or treated as the current database. The accepted pointer is
 baseline identity only.
 
 1. Call `lane_catalog` once for canonical lane identity, then call `search` for
    the bounded six-authority result. `search` always queries all eighteen live
-   sector SQLite/FTS5 projections with BM25 in addition to Learning, Canon, and
-   Memory. Preserve the AGENTS.md and MEMORY.md source-chain hashes separately;
-   never merge their authority roles.
+   sector SQLite/FTS5 projections with BM25 in addition to Learning, Canon,
+   Memory, Universe, and connector-brain integrity. Preserve the AGENTS.md and
+   MEMORY.md source-chain hashes separately; never merge their authority roles.
 2. A stale or no-hit Learning, Canon, or Memory arm triggers exactly one
-   ordered refresh: Learning, Canon, then Memory. Retry those three bounded
-   reads exactly once. A continuing no-hit is valid and the all-eighteen-sector
+   ordered refresh: Learning, Canon, Memory, then Universe. Retry those four
+   bounded reads exactly once. A continuing no-hit is valid and the all-eighteen-sector
    slice remains the direct fallback; never widen to the accepted ZIP.
 3. Use `lane_status`, `lane_search`, and `lane_fetch` only when the caller needs
    one exact lane result. Omit every candidate or accepted-archive selector:

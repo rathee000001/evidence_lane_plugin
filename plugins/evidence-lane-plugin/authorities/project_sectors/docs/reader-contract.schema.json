@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Docs bounded reader request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "lane_id",
+    "query",
+    "retrieval",
+    "limit"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lane_id": {
+      "const": "docs"
+    },
+    "query": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval": {
+      "enum": [
+        "hybrid",
+        "fts5",
+        "bm25",
+        "tfidf"
+      ]
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "EFA13155D65D127AF133439D8D8D61EA91D35E6B5DBDC33F39B46BECFAAA2EF5"
+}

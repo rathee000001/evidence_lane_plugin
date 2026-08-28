@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "pv_begin_next_turn",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_begin_next_turn"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "same-host-next-turn",
+        "order": 11
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "same-host-next-turn",
+        "order": 7
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "6EFB7F7D956F413B569B9E224D8F3D375CE9BE39048662258199E4808C6822E5",
+  "sdk_action_binding": "sdk/actions/pv_begin_next_turn.action.v1.json",
+  "mcp_action_binding": "mcp/actions/pv_begin_next_turn.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "3F24AB30D4EE55C35F4E8984B4B3838EE487B17179CE0FC47EDB0F0B31C03940"
+}

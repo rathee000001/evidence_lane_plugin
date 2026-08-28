@@ -1,0 +1,12 @@
+{
+    "schema":  "evidence-lane.windows-tunnel-host-build.v1",
+    "status":  "PASS",
+    "source":  "scripts/codex_release/windows_tunnel_host/EvidenceLaneTunnelHost.cs",
+    "source_sha256":  "760DA4974298C2C23EA2EAAF8E7554170245CC22F8B750EF87168FA04B32E8D1",
+    "output":  "scripts/windows_tunnel/EvidenceLaneTunnelHost.exe",
+    "output_sha256":  "CB2CC80BA7C66A41AC43232CEE5400F1850D1BEF2644958E6BF5DE8411131DBF",
+    "pe_subsystem":  "WINDOWS_GUI_NO_VISIBLE_CONSOLE",
+    "pe_subsystem_value":  2,
+    "create_no_window":  true,
+    "raw_payload_persisted":  false
+}

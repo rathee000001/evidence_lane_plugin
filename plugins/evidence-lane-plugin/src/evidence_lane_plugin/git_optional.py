@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import importlib.util
 import shutil
 import subprocess  # nosec B404
 from pathlib import Path
@@ -169,6 +170,38 @@ def probe_git_arm(
             ),
         }
     status_entries = [line for line in status.stdout.splitlines() if line.strip()]
+    gitpython: dict[str, Any]
+    if importlib.util.find_spec("git") is None:
+        gitpython = {
+            "status": "UNAVAILABLE",
+            "parity": None,
+        }
+    else:
+        from git import Repo  # type: ignore[import-not-found]
+
+        repository = Repo(root)
+        gitpython_head = str(repository.head.commit.hexsha).lower()
+        gitpython_tree = str(repository.head.commit.tree.hexsha).lower()
+        gitpython_dirty = bool(repository.is_dirty(untracked_files=True))
+        parity = (
+            gitpython_head == head.stdout.strip().lower()
+            and gitpython_tree == tree.stdout.strip().lower()
+            and gitpython_dirty == bool(status_entries)
+        )
+        require(
+            parity,
+            "GIT_CLI_GITPYTHON_IDENTITY_MISMATCH",
+            "Git CLI and GitPython disagree on the repository identity.",
+            status="MISMATCH",
+        )
+        gitpython = {
+            "status": "PASS",
+            "parity": True,
+            "head_commit": gitpython_head,
+            "head_tree": gitpython_tree,
+            "worktree_dirty": gitpython_dirty,
+            "read_only": True,
+        }
     return {
         **base,
         "status": "PASS",
@@ -182,6 +215,7 @@ def probe_git_arm(
         "detached_head": branch.returncode != 0,
         "worktree_clean": not status_entries,
         "worktree_status_entry_count": len(status_entries),
+        "gitpython": gitpython,
         "identity_scope": "HEAD_COMMIT_TREE_AND_LOCAL_WORKTREE_STATE",
         "remote_identity_included": False,
         "reason": (

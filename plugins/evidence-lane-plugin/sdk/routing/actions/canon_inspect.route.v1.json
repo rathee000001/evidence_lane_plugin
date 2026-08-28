@@ -1,0 +1,34 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "canon_inspect",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_inspect"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "inspect",
+      "read_only": true
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-authority-read",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "F3B86342E011859CEE17132D500EE5738810CA21495BABAAB48F5FAA69F07A06",
+  "sdk_action_binding": "sdk/actions/canon_inspect.action.v1.json",
+  "mcp_action_binding": "mcp/actions/canon_inspect.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "E598E5AE070BD19696BF5AD3DFABD69D73CB70D65095020DEE6B38CA51C5F4D6"
+}

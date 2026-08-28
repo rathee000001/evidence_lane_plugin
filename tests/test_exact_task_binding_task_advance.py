@@ -222,6 +222,15 @@ def test_exact_binding_checkpoint_advances_without_candidate_and_replays(
     assert receipt["pointer_moved"] is False
     assert receipt["hil_inferred"] is False
     assert service.store.pointer("book-faires").as_dict() == pointer_before
+    sub_pv = advanced["task_checkpoint_advance"]["plan_transition"][
+        "sub_pv_acceptance"
+    ]
+    assert sub_pv["state"] == "AUTO_ACCEPTED_DELTA_ROW_WORK"
+    assert sub_pv["task_id"] == exact_binding["task_id"]
+    assert sub_pv["successor_task_id"] == successor["task_id"]
+    assert sub_pv["learning_acceptance_inherited_from_sub_pv"] is True
+    assert sub_pv["project_pointer_moved"] is False
+    assert sub_pv["project_hil_required"] is False
 
     backlog = service.task_backlog("book-faires")
     assert backlog["event_count"] == event_count_before + 2
@@ -240,6 +249,9 @@ def test_exact_binding_checkpoint_advances_without_candidate_and_replays(
         **{**kwargs, "_project_panel_snapshot": _project_panel(service)},
     )
     assert replay["task_checkpoint_advance"]["idempotent_reuse"] is True
+    assert replay["task_checkpoint_advance"]["plan_transition"][
+        "sub_pv_acceptance"
+    ] == sub_pv
     assert service.task_backlog("book-faires")["event_count"] == backlog["event_count"]
     assert service.store.pointer("book-faires").as_dict() == pointer_before
 

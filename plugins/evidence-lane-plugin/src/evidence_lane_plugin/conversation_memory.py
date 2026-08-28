@@ -30,6 +30,11 @@ USER_OBSERVED_OPTIMIZED_CONVERSATION_ARTIFACT_SHA256 = (
 
 _PRIMARY_FILENAMES = ("MEMORY.override.md", "MEMORY.md")
 _SAFE_FALLBACK_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+_OPTIONAL_EXECUTION_PROFILE_FIELDS = (
+    "submodel",
+    "reasoning_effort",
+    "reasoning_speed",
+)
 
 
 def _exact_text(value: object, *, field: str, max_length: int = 512) -> str:
@@ -42,6 +47,17 @@ def _exact_text(value: object, *, field: str, max_length: int = 512) -> str:
         field=field,
     )
     return exact
+
+
+def _bounded_execution_profile(value: Mapping[str, Any]) -> dict[str, str]:
+    """Bind available host selectors without inventing unavailable fields."""
+
+    profile = {"model": _exact_text(value.get("model"), field="model")}
+    for field in _OPTIONAL_EXECUTION_PROFILE_FIELDS:
+        if field not in value or value[field] is None:
+            continue
+        profile[field] = _exact_text(value[field], field=field)
+    return profile
 
 
 def _contained(path: Path, root: Path, *, code: str) -> Path:
@@ -250,10 +266,7 @@ def resolve_conversation_memory(
         active_plan_task_id,
         field="active_plan_task_id",
     )
-    profile = {
-        field: _exact_text(execution_profile.get(field), field=field)
-        for field in ("model", "submodel", "reasoning_effort", "reasoning_speed")
-    }
+    profile = _bounded_execution_profile(execution_profile)
     home = Path(codex_home).resolve()
     root = Path(project_root).resolve()
     current = Path(cwd).resolve()

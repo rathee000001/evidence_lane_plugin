@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PDF / OCR builder binding request",
+  "type": "object",
+  "required": [
+    "lane_id",
+    "source_paths",
+    "bundle_arguments"
+  ],
+  "properties": {
+    "lane_id": {
+      "const": "pdf_ocr"
+    },
+    "source_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "bundle_arguments": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "9854D6AC2A936F659C53CF774A22DA1C764B3C851DE17C26F55EF7A21B328184"
+}

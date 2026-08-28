@@ -1,0 +1,136 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "pv_task_transition",
+  "title": "Transition or correct one Delta",
+  "description": "Append one explicit DROP or SUPERSEDE transition to the immutable Delta lifecycle ledger. SUPERSEDE requires a different queued replacement task. CORRECT_DROP is a hash-bound recovery for a DROP that was persisted before dependency validation failed. CORRECT_PREAPPROVAL_DONE is a hash-bound recovery for the exact premature TASK_DONE written while an unaccepted HIL proposal is still pending. Both preserve the failed event.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "task_id": {
+        "title": "Task Id",
+        "type": "string"
+      },
+      "transition": {
+        "enum": [
+          "DROP",
+          "SUPERSEDE",
+          "CORRECT_DROP",
+          "CORRECT_PREAPPROVAL_DONE"
+        ],
+        "title": "Transition",
+        "type": "string"
+      },
+      "decided_by": {
+        "title": "Decided By",
+        "type": "string"
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string"
+      },
+      "replacement_task_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Replacement Task Id"
+      },
+      "event_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Event Id"
+      },
+      "correction_of_event_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Correction Of Event Id"
+      },
+      "expected_backlog_sha256": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Backlog Sha256"
+      }
+    },
+    "required": [
+      "project_id",
+      "task_id",
+      "transition",
+      "decided_by",
+      "reason"
+    ],
+    "title": "pv_task_transitionArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_task_transitionDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "B24C88C8B3FC148FC48002F9C1AA6E269F03C171444417ACCC0E774880D8A294",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_task_transition"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution",
+        "order": 14
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [
+    "DELTA_EXIT_APPEND_REFRESH"
+  ],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/pv_task_transition.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "891488F87E348D735ED051C7E16798513A66A92DCCFDAD31F277B8B924FCBB4A"
+}

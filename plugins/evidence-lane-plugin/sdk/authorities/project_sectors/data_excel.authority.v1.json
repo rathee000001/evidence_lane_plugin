@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-project-sector-binding.v1",
+  "status": "PASS",
+  "lane_id": "data_excel",
+  "authority_root": "authorities/project_sectors/data_excel",
+  "authority_manifest_sha256": "D8FCF1090CCDB02CA3E9E9923643F35AA35984B745EBFDF0ACCA2D54BAC4BBE6",
+  "schema_surface": "schemas/project-sectors/data_excel/schema-surface.v1.json",
+  "builder": "authorities/project_sectors/data_excel/builder.py",
+  "reader": "authorities/project_sectors/data_excel/reader.py",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_binding": false,
+  "receipt_sha256": "4F0DA86588D835F7D77837CE4AFF717E4AF409F28FEADD9F27E5DB91222DBCA8"
+}

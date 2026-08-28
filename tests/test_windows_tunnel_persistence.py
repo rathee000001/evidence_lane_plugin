@@ -32,26 +32,30 @@ def test_boot_launcher_pins_binary_and_dpapi_envelope() -> None:
     assert "sk-" not in boot.lower()
 
 
-def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
+def test_installer_uses_current_user_dpapi_and_resilient_host_task() -> None:
     installer = _read("Install-EvidenceLaneTunnel.ps1")
     assert 'Read-Host "Runtime API key" -AsSecureString' in installer
     assert "ConvertFrom-SecureString" in installer
     assert "New-ScheduledTaskTrigger -AtLogOn" in installer
-    assert "-RestartCount 999" in installer
-    assert "-WindowStyle Hidden" in installer
+    assert "Register-ScheduledTask" in installer
     assert 'windows_console_policy = "WINDOWS_GUI_HOST_CREATE_NO_WINDOW"' in installer
     assert 'scheduled_task_window_style = "HIDDEN"' in installer
-    assert "-StartWhenAvailable" in installer
-    assert "-LogonType Interactive" in installer
-    assert 'New-ScheduledTaskAction -Execute $hostTarget' in installer
     assert 'scheduled_task_launcher_subsystem = "WINDOWS_GUI_NO_VISIBLE_CONSOLE"' in installer
     assert "scheduled_task_launcher_create_no_window = $true" in installer
+    assert "scheduled_task_transport_used = $true" in installer
     assert "runtime_key_plaintext_written = $false" in installer
     assert 'Read-Host "Tunnel ID from the OpenAI Platform tunnel page"' in installer
     assert "'^tunnel_[A-Za-z0-9]+$'" in installer
     assert 'EVIDENCE_LANE_MCP_EXPOSURE_PROFILE = "CODEX_INTERACTIVE_SUPPORT"' in installer
-    assert "EVIDENCE_LANE_DATA_ROOT" in installer
+    assert "EVIDENCE_LANE_DATA_ROOT" not in installer
+    assert "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT" in installer
     assert 'project_binding = "NONE_TRANSPORT_ONLY"' in installer
+    assert "host_wide_project_neutral = $true" in installer
+    assert (
+        'multi_project_and_task_routing = '
+        '"EXPLICIT_PLUGIN_PROJECT_ID_AND_TASK_BINDINGS"'
+    ) in installer
+    assert "per_project_or_task_tunnel_allowed = $false" in installer
     assert 'project_route_argument = "project_id"' in installer
     assert "project_route_argument_required = $true" in installer
     assert "cross_project_fallback_allowed = $false" in installer
@@ -73,33 +77,33 @@ def test_installer_uses_current_user_dpapi_and_resilient_task() -> None:
         '"tunnel-runtime-$releaseToken-stable-build"'
     ) in installer
     assert '.codex\\plugins\\runtime\\evidence-lane-plugin' in installer
-    assert 'project_data_root_separate = ' in installer
+    assert 'project_authority_lookup = "HIDDEN_REGISTRY_BY_PROJECT_ID"' in installer
+    assert "project_authority_root_hardcoded = $false" in installer
+    assert "workspace_hardcoded = $false" in installer
+    assert "[string]$DataRoot" not in installer
     assert "RuntimeKeyEnvelopeSource" in installer
-    assert "saved_slot = $true" in installer
-    assert "failover_requires_sealed_two_slot_main_local_operator = $true" in installer
+    assert "active_tunnel_registration = $true" in installer
     assert "pre_3_0_fallback_allowed = $false" in installer
     assert "release_identity_source = \"CODEX_RELEASE_CHANNEL_CONTRACT\"" in installer
     assert "runtime_identity_matches_release = $true" in installer
-    assert "prior_versioned_runtimes_retained = $true" in installer
-    assert "prior_versioned_tasks_retained = $true" in installer
-    assert "prior_versioned_runtime_deletion_allowed = $false" in installer
+    assert "prior_versioned_runtimes_retained = $false" in installer
+    assert "prior_versioned_tasks_retained = $false" in installer
+    assert "prior_versioned_runtime_deletion_required = $true" in installer
     assert "one_active_version_required = $true" in installer
     assert "Manage-EvidenceLaneTunnelVersions.ps1" not in installer
-    assert "legacy_version_manager_authoritative = $false" in installer
+    assert 'active_tunnel_registration = $true' in installer
     assert 'registered_slot = $SlotRole' in installer
-    assert "Assert-NoOtherActiveTunnel" in installer
+    assert "Remove-StoppedPriorTunnelRuntimes" in installer
     assert "Another Evidence Lane tunnel is active" in installer
     assert "could not be proven stopped; activation is blocked" in installer
     assert "$managerCommand.Parameters.ContainsKey($optionalParameter)" in installer
     assert '@("ProfileName", "TaskName", "ReleaseToken")' in installer
     assert '[string]::IsNullOrWhiteSpace($markerValue)' in installer
-    assert "Disable-ScheduledTask -TaskName $TaskName" in installer
-    assert "Disable-StoppedPriorTunnelTasks" in installer
+    assert "Remove-StoppedPriorTunnelTasks" in installer
     assert 'TaskName -like "EvidenceLane-Tunnel-*"' in installer
     assert "if ($Activate)" in installer
     assert "MigrateCurrentRuntime" not in installer
-    assert "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" in installer
-    assert "Pinned Evidence Lane $release $SlotRole secure MCP tunnel" in installer
+    assert "evidence-lane.versioned-secure-mcp-tunnel-installation.v2" in installer
     assert '"main-git-release" = "stable"' in installer
     assert '"versioned-local-testing" = "local_testing"' in installer
     assert "$release = $slotRelease" in installer
@@ -133,10 +137,7 @@ def test_installer_classifies_api_persistent_and_ephemeral_host_lifetimes() -> N
     assert "raw_vm_instance_id_stored = $false" in installer
     assert "cannot import a Runtime key envelope from durable storage" in installer
     assert '$exactHostLifetime -ne "Ephemeral"' in installer
-    assert (
-        'two_slot_registry_authority = '
-        '"SEALED_GIT_MAIN_LOCAL_TESTING_REGISTRY"'
-    ) in installer
+    assert 'runtime_selector_source = "CURRENT_ENABLED_PLUGIN_SELECTOR"' in installer
     assert "account_tier_affects_routing = $false" in installer
     assert "api_billing_affects_routing = $false" in installer
 
@@ -156,6 +157,7 @@ def test_installer_reuses_verified_dependencies_and_can_acquire_missing_client()
     assert "Resolve-PriorRuntimeKeyEnvelope" in installer
     assert "tunnel_id_reused = $tunnelIdReused" in installer
     assert "runtime_key_envelope_reused = $runtimeKeyEnvelopeReused" in installer
+    assert "profileTunnelId" in installer
 
 
 def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
@@ -164,7 +166,8 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert "--require-control-plane-poll" in manager
     assert "stable_binary_hash_valid" in manager
     assert "control_plane_poll_ready" in manager
-    assert "evidence_lane_layer_launcher_configured" in manager
+    assert "Get-ScheduledTask" in manager
+    assert "Start-ScheduledTask" in manager
     assert 'transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"' in manager
     assert 'codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"' in manager
     assert "codex_tunnel_lifecycle_proof_allowed = $false" in manager
@@ -177,7 +180,10 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert "runtime_key_plaintext_reported = $false" in manager
     assert 'ReleaseToken = "v300"' in manager
     assert "release_token = if ($null -ne $marker)" in manager
-    assert "management request does not match the exact release-bound tunnel marker" in manager
+    assert (
+        "management request does not match the exact release-bound host-wide tunnel marker"
+        in manager
+    )
     assert "slot_role = if ($null -ne $marker)" in manager
     assert "byte_frozen = if ($null -ne $marker)" in manager
     assert 'project_binding = "NONE_TRANSPORT_ONLY"' in manager
@@ -185,90 +191,28 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert "project_route_argument_required = $true" in manager
     assert "cross_project_fallback_allowed = $false" in manager
     assert "if (-not $ConfirmRemoval)" in manager
-    assert "Codex's hidden Evidence Lane runtime directory" in manager
+    assert (
+        "managed tunnel runtime must remain inside Codex's hidden Evidence Lane runtime root"
+        in manager
+    )
     assert "installation marker" in manager
     assert "marker.profile_name" in manager
-    assert "marker.profile_file" in manager
-    assert "$markerProfileFile -ne $exactProfileFile" in manager
-    assert "Unregister-ScheduledTask" in manager
+    assert "marker.task_name" in manager
+    assert "host_wide_project_neutral" in manager
+    assert "per_project_or_task_tunnel_allowed" in manager
     assert 'status = "STOPPED_SAVED"' in manager
     assert "reusable_without_reinstall = $true" in manager
 
 
-def test_legacy_version_manager_remains_migration_only_not_live_slot_authority() -> None:
-    manager = _read("Manage-EvidenceLaneTunnelVersions.ps1")
+def test_prior_tunnel_version_manager_is_physically_absent() -> None:
     installer = _read("Install-EvidenceLaneTunnel.ps1")
-    assert '[ValidateSet("Register", "List", "VerifyCandidate", "Promote", "Activate")]' in manager
-    assert 'evidence-lane.tunnel-version-registry.v1' in manager
-    assert "evidence-lane-tunnel-installation.json" in manager
-    assert "stable_client_sha256" in manager
-    assert "secret_material_in_registry = $false" in manager
-    assert "reusable_without_reinstall = $true" in manager
-    assert "Disable-ScheduledTask" in manager
-    assert "Enable-ScheduledTask" in manager
-    assert "Stop-SavedVersion" in manager
-    assert "Start-SavedVersion" in manager
-    assert 'EventType "FUTURE_TEST_FAILED_STABLE_UNTOUCHED"' in manager
-    assert 'EventType "PROMOTION_STARTED_STABLE_STILL_READY"' in manager
-    assert 'EventType "PROMOTED_TO_STABLE"' in manager
-    assert 'EventType "MOVED_TO_ARCHIVE"' in manager
-    assert "HealthReceiptSha256" in manager
-    assert "PublicRouteReceiptSha256" in manager
-    assert "HostProofReceiptSha256" in manager
-    assert "Write-VersionRegistry -Registry $channelRegistry" in manager
-    assert "--require-control-plane-poll" in manager
-    assert "Remove-Item -LiteralPath $exactRuntimeRoot -Recurse" not in manager
-    assert "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" in manager
-    assert "Manage-EvidenceLaneTunnelVersions.ps1" not in installer
-    assert "legacy_version_manager_authoritative = $false" in installer
+    assert not (TUNNEL_SCRIPTS / "Manage-EvidenceLaneTunnelVersions.ps1").exists()
+    assert "Remove-StoppedPriorTunnelRuntimes" in installer
+    assert "Remove-StoppedPriorTunnelTasks" in installer
+    assert "prior_versioned_runtimes_retained = $false" in installer
+    assert "prior_versioned_tasks_retained = $false" in installer
+    assert "prior_versioned_runtime_deletion_required = $true" in installer
 
-
-def test_version_manager_reads_legacy_registry_without_history_fields(
-    tmp_path: Path,
-) -> None:
-    powershell = shutil.which("powershell") or shutil.which("pwsh")
-    if powershell is None:
-        pytest.skip("PowerShell is required for the Windows tunnel registry test.")
-    data_root = tmp_path / "EvidenceLanePV"
-    registry_root = data_root / "tunnel-versions"
-    registry_root.mkdir(parents=True)
-    (registry_root / "registry.json").write_text(
-        json.dumps(
-            {
-                "schema": "evidence-lane.tunnel-version-registry.v1",
-                "active_release": None,
-                "versions": [],
-            }
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-    completed = subprocess.run(
-        [
-            powershell,
-            "-NoLogo",
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-File",
-            str(TUNNEL_SCRIPTS / "Manage-EvidenceLaneTunnelVersions.ps1"),
-            "-Action",
-            "List",
-            "-DataRoot",
-            str(data_root),
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert completed.returncode == 0, completed.stderr
-    payload = json.loads(completed.stdout)
-    assert payload["status"] == "PASS"
-    assert payload["event_sequence"] == 0
-    assert payload["event_head_sha256"] is None
-    assert payload["versions"] == []
 
 
 def test_all_tunnel_scripts_use_release_bound_runtime_names() -> None:
@@ -285,20 +229,13 @@ def test_all_tunnel_scripts_use_release_bound_runtime_names() -> None:
         text = _read(name)
         assert 'ReleaseToken = "v300"' in text
         assert '"evidence_lane_${ReleaseToken}"' in text
-        assert "release-bound tunnel marker" in text
+        assert "release-bound" in text and "tunnel marker" in text
         assert "evidence_lane_v150" not in text
         assert "tunnel-runtime-v150" not in text
         assert "EvidenceLane-Tunnel-v150" not in text
         assert "tunnel-runtime-v140" not in text
         assert "evidence_lane_v140" not in text
         assert "EvidenceLane-Tunnel-v140" not in text
-
-    version_manager = _read("Manage-EvidenceLaneTunnelVersions.ps1")
-    assert "tunnel-runtime-v200" not in version_manager
-    assert "tunnel-runtime-v150" not in version_manager
-    assert "tunnel-runtime-v140" not in version_manager
-    assert "tunnel-runtime-v130" not in version_manager
-
 
 def test_pinned_process_identity_uses_exact_path_and_hash_not_executable_stem() -> None:
     for name in (
@@ -312,14 +249,16 @@ def test_pinned_process_identity_uses_exact_path_and_hash_not_executable_stem() 
     for name in (
         "EvidenceLaneTunnel.Boot.ps1",
         "Manage-EvidenceLaneTunnel.ps1",
-        "Manage-EvidenceLaneTunnelVersions.ps1",
     ):
         text = _read(name)
         assert "Resolve-Path -LiteralPath $process.Path" in text
-        assert "Get-FileHash -LiteralPath $processPath -Algorithm SHA256" in text
+        assert (
+            "Get-Sha256 -Path $processPath" in text
+            or "Get-FileHash -LiteralPath $processPath -Algorithm SHA256" in text
+        )
 
 
-def test_tunnel_task_uses_gui_subsystem_no_visible_console_host() -> None:
+def test_tunnel_startup_uses_gui_subsystem_no_visible_console_host() -> None:
     host = TUNNEL_SCRIPTS / "EvidenceLaneTunnelHost.exe"
     source = (
         ROOT

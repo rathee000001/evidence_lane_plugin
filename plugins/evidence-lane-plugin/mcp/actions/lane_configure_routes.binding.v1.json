@@ -1,0 +1,87 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "lane_configure_routes",
+  "title": "Grant exact source-to-lane routes",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "overrides": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "title": "Overrides",
+        "type": "object"
+      },
+      "granted_by": {
+        "title": "Granted By",
+        "type": "string"
+      },
+      "grant_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Grant Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "overrides",
+      "granted_by"
+    ],
+    "title": "lane_configure_routesArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "lane_configure_routesDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "0BF0762ADEF79F2E015AE30A48BDDFC5D8F249A713C078FB32B42E59983B96C3",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "lane_configure_routes"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "source-route-configuration",
+        "order": 10
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/lane_configure_routes.action.v1.json",
+  "sdk_action_binding_sha256": "8F048235A2991C052940D8D4F691D8734C087DBDADA0D184BEDA6AFF501A4171",
+  "public_action_schema": "schemas/actions/lane_configure_routes.schema.json",
+  "public_action_schema_sha256": "8564E7D3CF3A2814854D1285BE78BF6D7490F9462D588CC45441ECCF30BB0ED0",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "DA5BB80F9961C2F27BA9620967C74F9A90D53D10AB6726813C1C8A7298BB232A"
+}

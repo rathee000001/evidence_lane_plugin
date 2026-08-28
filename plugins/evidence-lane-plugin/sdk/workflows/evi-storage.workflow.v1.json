@@ -1,0 +1,73 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-storage",
+  "skill_sha256": "BB7B401498F039F5F1D4381D4C2C4BBD5FB03B009BC46EFE0FC1E771BB8B0023",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "storage_connector_inspect"
+      ],
+      "workflow": "inspect-storage"
+    },
+    {
+      "order": 2,
+      "tools": [
+        "storage_connector_select"
+      ],
+      "workflow": "select-storage"
+    }
+  ],
+  "action_count": 2,
+  "actions": [
+    {
+      "name": "storage_connector_inspect",
+      "schema_sha256": "EF8CCDA3FCCDA17A3458C8262F9AF3887BF9720BD9CB5BE2E36A1F1B5C42F667",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-storage",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "storage_connector_inspect"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-storage",
+            "workflow": "inspect-storage",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "storage_connector_select",
+      "schema_sha256": "6CA1E5660914849488AA0F5B7DC6FDBF88782AE0CFDE05C4C0C287A9BF225DBF",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-storage",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "storage_connector_select"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-storage",
+            "workflow": "select-storage",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "00C8054876048EA4E76E0CE0E32A594BE30565DDA7754A83BE25E60EFB37706D"
+}

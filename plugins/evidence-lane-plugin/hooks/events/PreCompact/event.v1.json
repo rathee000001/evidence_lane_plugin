@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 7,
+  "event": "PreCompact",
+  "matcher_groups": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_validate.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_validate.py",
+          "timeout": 10,
+          "statusMessage": "Validating and bounding Evidence Lane hook signal"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_seal.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_seal.py",
+          "timeout": 10,
+          "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_transport.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_transport.py",
+          "timeout": 10,
+          "statusMessage": "Sealing Evidence Lane compaction boundary"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_emit.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_emit.py",
+          "timeout": 10,
+          "statusMessage": "Verifying and emitting Evidence Lane hook result"
+        }
+      ]
+    }
+  ],
+  "handler_count": 4,
+  "handlers": [
+    {
+      "display_id": "7.1",
+      "path": "hooks/events/PreCompact/handler-7.1.v1.json",
+      "sha256": "6FC5FD55DD26431E9B85DCD53C5D9DE44009D4FE2AECBD4F5734A62BEC88F52E"
+    },
+    {
+      "display_id": "7.2",
+      "path": "hooks/events/PreCompact/handler-7.2.v1.json",
+      "sha256": "CCEF652A57A0D867614A1DC26B62D14BB96E2C0DEBB11EA9F36C88E28754D9E5"
+    },
+    {
+      "display_id": "7.3",
+      "path": "hooks/events/PreCompact/handler-7.3.v1.json",
+      "sha256": "D7B99017BF8DB01882ABD75E366968CBA189F4B30E5E24FA66694E9B721D03CF"
+    },
+    {
+      "display_id": "7.4",
+      "path": "hooks/events/PreCompact/handler-7.4.v1.json",
+      "sha256": "C37BEBB5168EF50486008044DD571177CAA3106119FA442B16F096C7C4B3D235"
+    }
+  ],
+  "adapter": "hooks/lifecycle_boundary.py",
+  "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
+  "precompact_seals_before_compaction": true,
+  "postcompact_rehydrates_after_compaction": true,
+  "receipt_sha256": "535819EAD748F39FE0ED22881A474D9E762479854E73B9C3938DB9A93098B15C"
+}

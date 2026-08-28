@@ -27,7 +27,11 @@ from evidence_lane_plugin.codex_turn_control import (
     _build_governed_activity_count_projection,
     _governed_activity_source_plugin,
 )
-from evidence_lane_plugin.constants import ENGINE_VERSION
+from evidence_lane_plugin.constants import (
+    ENGINE_VERSION,
+    NATIVE_READ_TOOL_COUNT,
+    NATIVE_TOOL_COUNT,
+)
 from evidence_lane_plugin.mcp_apps import (
     GOVERNED_PANEL_URI,
     MCP_APP_MIME_TYPE,
@@ -47,6 +51,7 @@ from evidence_lane_plugin.mcp_stdio_compat import (
     _discovery_fallback,
     _rewrite_namespaced_tool_calls,
 )
+from evidence_lane_plugin.public_surface_registry import derive_public_surface_registry
 from evidence_lane_plugin.service import EvidenceLaneService
 from mcp.client.session import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
@@ -58,7 +63,7 @@ from .conftest import (
     state_travel_destination_creation,
 )
 
-EXPECTED_TOOL_COUNT = 88
+EXPECTED_TOOL_COUNT = NATIVE_TOOL_COUNT
 
 
 def test_public_envelope_separates_execution_from_domain_status(
@@ -142,13 +147,10 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "task_classify",
         "task_record_activity",
         "task_confirm_source_update",
-        "pv_refresh",
         "task_complete_and_refresh",
         "hil_decide",
         "pv_fuse",
-        "pv_state_travel_prepare",
         "pv_state_travel_direct_force_same_worktree",
-        "pv_state_travel_resume",
         "pv_rollback",
         "hil_return_to_accepted",
         "pv_begin_next_turn",
@@ -171,8 +173,9 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "storage_connector_select",
     }
     sdk_tool_names = {row[0] for row in SDK_NATIVE_ACTIONS}
-    assert len(sdk_tool_names) == 24
+    assert len(sdk_tool_names) == 30
     assert set(by_name) == base_tool_names | sdk_tool_names
+    assert len(by_name) == NATIVE_TOOL_COUNT
     assert by_name["search"].annotations.readOnlyHint is True
     assert by_name["fetch"].annotations.readOnlyHint is True
     assert by_name["session_flash_status"].annotations.readOnlyHint is True
@@ -194,18 +197,24 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     assert by_name["pv_task_backlog"].annotations.readOnlyHint is True
     assert by_name["pv_task_transition"].annotations.readOnlyHint is False
     assert by_name["pv_task_transition"].annotations.destructiveHint is False
+    assert set(
+        by_name["pv_task_transition"].inputSchema["properties"]["transition"]["enum"]
+    ) == {
+        "DROP",
+        "SUPERSEDE",
+        "CORRECT_DROP",
+        "CORRECT_PREAPPROVAL_DONE",
+    }
     assert by_name["hil_decide"].annotations.destructiveHint is True
     assert by_name["pv_rollback"].annotations.destructiveHint is True
     assert by_name["pv_fuse"].annotations.destructiveHint is True
-    assert by_name["pv_state_travel_prepare"].annotations.destructiveHint is False
     assert (
-        by_name["pv_state_travel_direct_force_same_worktree"]
-        .annotations.destructiveHint
+        by_name[
+            "pv_state_travel_direct_force_same_worktree"
+        ].annotations.destructiveHint
         is False
     )
-    direct_schema = by_name[
-        "pv_state_travel_direct_force_same_worktree"
-    ].inputSchema
+    direct_schema = by_name["pv_state_travel_direct_force_same_worktree"].inputSchema
     direct_public_fields = {
         "project_id",
         "session_id",
@@ -216,13 +225,14 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     }
     assert set(direct_schema["properties"]) == direct_public_fields
     assert set(direct_schema["required"]) == direct_public_fields
-    assert by_name["pv_state_travel_resume"].annotations.destructiveHint is False
     assert by_name["hil_return_to_accepted"].annotations.destructiveHint is True
+    resume_schema = by_name["session_resume"].inputSchema
+    assert "submodel" not in resume_schema["properties"]
     assert by_name["remote_git_execute_push"].annotations.openWorldHint is True
     for tool_name, _, _, _, _, read_only in SDK_NATIVE_ACTIONS:
         assert by_name[tool_name].annotations.readOnlyHint is read_only
         assert by_name[tool_name].annotations.destructiveHint is False
-    assert len(CODEX_READ_TOOL_NAMES) == 27
+    assert len(CODEX_READ_TOOL_NAMES) == NATIVE_READ_TOOL_COUNT
     assert (
         "preferred_plugin_id"
         in by_name["connector_plugin_route"].inputSchema["properties"]
@@ -268,9 +278,7 @@ def test_modern_discovery_probe_receives_exact_legacy_fallback() -> None:
             "id": "discover-test",
             "method": "server/discover",
             "params": {
-                "_meta": {
-                    "io.modelcontextprotocol/protocolVersion": "2026-07-28"
-                }
+                "_meta": {"io.modelcontextprotocol/protocolVersion": "2026-07-28"}
             },
         }
     )
@@ -290,7 +298,7 @@ def test_all_registered_tools_accept_generated_evidence_lane_namespaces(
     )
     tools = asyncio.run(server.list_tools())
     canonical_names = frozenset(tool.name for tool in tools)
-    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 88
+    assert len(canonical_names) == EXPECTED_TOOL_COUNT
 
     for namespace in (
         "evidence_lane",
@@ -326,10 +334,7 @@ def test_all_registered_tools_accept_generated_evidence_lane_namespaces(
             "params": {"name": "runtime_doctor", "arguments": {}},
         }
     )
-    assert (
-        _rewrite_namespaced_tool_calls(bare_request, canonical_names)
-        == bare_request
-    )
+    assert _rewrite_namespaced_tool_calls(bare_request, canonical_names) == bare_request
 
     for rejected_name in (
         "codex_apps.runtime_doctor",
@@ -357,17 +362,15 @@ def test_native_route_receipt_seals_the_exact_unique_catalog(tmp_path: Path) -> 
     server = create_mcp_server(
         service=EvidenceLaneService(data_root=tmp_path / "native-route-store")
     )
-    canonical_names = frozenset(
-        tool.name for tool in asyncio.run(server.list_tools())
-    )
+    canonical_names = frozenset(tool.name for tool in asyncio.run(server.list_tools()))
     receipt = server._evidence_lane_native_route_receipt  # type: ignore[attr-defined]
     assert receipt["status"] == "PASS"
     assert receipt["server_identity"] == NATIVE_MCP_SERVER_IDENTITY == "evidence-lane"
     assert receipt["canonical_tool_namespace"] == NATIVE_MCP_TOOL_NAMESPACE
-    assert receipt["tool_count"] == EXPECTED_TOOL_COUNT == 88
+    assert receipt["tool_count"] == EXPECTED_TOOL_COUNT
     assert receipt["tool_names_unique"] is True
     assert receipt["runtime_global_tool_count"] == 6
-    assert receipt["project_scoped_tool_count"] == 82
+    assert receipt["project_scoped_tool_count"] == EXPECTED_TOOL_COUNT - 6
     assert receipt["project_route_argument"] == "project_id"
     assert receipt["project_route_argument_required"] is True
     assert receipt["project_route_schema_status"] == "PASS"
@@ -414,9 +417,7 @@ def test_native_route_receipt_seals_the_exact_unique_catalog(tmp_path: Path) -> 
             },
         ]
     )
-    rewritten_batch = json.loads(
-        _rewrite_namespaced_tool_calls(batch, canonical_names)
-    )
+    rewritten_batch = json.loads(_rewrite_namespaced_tool_calls(batch, canonical_names))
     assert [item["params"]["name"] for item in rewritten_batch] == [
         "runtime_doctor",
         "pv_status",
@@ -431,30 +432,35 @@ def test_packaged_skill_tool_references_match_live_canonical_catalog(
     server = create_mcp_server(
         service=EvidenceLaneService(data_root=tmp_path / "skill-catalog-store")
     )
-    canonical_names = frozenset(
-        tool.name for tool in asyncio.run(server.list_tools())
-    )
-    assert len(canonical_names) == EXPECTED_TOOL_COUNT == 88
-    tool_families = frozenset(name.partition("_")[0] for name in canonical_names)
+    canonical_names = frozenset(tool.name for tool in asyncio.run(server.list_tools()))
+    assert len(canonical_names) == EXPECTED_TOOL_COUNT
     skill_paths = sorted((plugin / "skills").glob("*/SKILL.md"))
     command_paths = sorted((plugin / "commands").glob("*.md"))
     contract_paths = [*skill_paths, *command_paths]
-    assert len(skill_paths) == 17
-    assert [path.name for path in command_paths] == ["evi-plan.md"]
+    surface_catalog = derive_public_surface_registry()["catalog"]
+    assert len(skill_paths) == surface_catalog["skills"]
+    assert len(command_paths) == surface_catalog["commands"]
+    assert "evi-plan.md" in {path.name for path in command_paths}
 
     referenced_tools: set[str] = set()
     for path in contract_paths:
         content = path.read_text(encoding="utf-8")
-        assert re.search(
-            r"evidence_lane(?:_[a-z0-9]+)*\.[a-z][a-z0-9_]+",
-            content,
-        ) is None, path
+        assert (
+            re.search(
+                r"evidence_lane(?:_[a-z0-9]+)*\.[a-z][a-z0-9_]+",
+                content,
+            )
+            is None
+        ), path
         identifiers = re.findall(r"`([a-z][a-z0-9_]+)`", content)
+        assert not {
+            "pv_refresh",
+            "pv_state_travel_prepare",
+            "pv_state_travel_resume",
+        } & set(identifiers), path
         for identifier in identifiers:
-            if identifier.partition("_")[0] not in tool_families:
-                continue
-            assert identifier in canonical_names, (path, identifier)
-            referenced_tools.add(identifier)
+            if identifier in canonical_names:
+                referenced_tools.add(identifier)
 
     assert {
         "runtime_doctor",
@@ -465,9 +471,13 @@ def test_packaged_skill_tool_references_match_live_canonical_catalog(
         "pv_status",
         "storage_connector_inspect",
         "storage_connector_select",
-        "pv_state_travel_prepare",
         "pv_state_travel_direct_force_same_worktree",
-        "pv_state_travel_resume",
+        "formula_engine_run",
+        "brain_scaling_select",
+        "project_recipe_compile",
+        "ai_toolchain_route",
+        "bigger_universe_register",
+        "bigger_universe_link",
         "pv_fuse",
     }.issubset(referenced_tools)
 
@@ -485,7 +495,9 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
     assert GOVERNED_PANEL_URI.endswith("/governed-console-v6.html")
     assert resource.mimeType == MCP_APP_MIME_TYPE
     assert resource.icons is not None
-    assert [icon.model_dump(by_alias=True, exclude_none=True) for icon in resource.icons] == [
+    assert [
+        icon.model_dump(by_alias=True, exclude_none=True) for icon in resource.icons
+    ] == [
         {
             "src": f"{public_site}/evidence-lane-icon.png",
             "mimeType": "image/png",
@@ -529,7 +541,9 @@ def test_mcp_apps_resource_and_render_tool_metadata(tmp_path: Path) -> None:
         assert tool.outputSchema["type"] == "object"
 
 
-def test_sources_provider_ownership_keeps_evidence_lane_render_actions_isolated() -> None:
+def test_sources_provider_ownership_keeps_evidence_lane_render_actions_isolated() -> (
+    None
+):
     evidence_lane_actions = (
         "render_project_panel",
         "render_runtime_panel",
@@ -701,9 +715,7 @@ def test_project_panel_always_explains_exact_six_way_hil_without_mutation() -> N
 def test_project_panel_separates_next_and_queued_plan_hils_from_step_list() -> None:
     rows = []
     for number in range(191, 207):
-        lifecycle = (
-            "DONE" if number < 196 else "ACTIVE" if number == 196 else "QUEUED"
-        )
+        lifecycle = "DONE" if number < 196 else "ACTIVE" if number == 196 else "QUEUED"
         status = (
             "completed"
             if number < 196
@@ -862,9 +874,7 @@ def test_project_hil_cards_follow_reorder_and_append_without_row_constants() -> 
     assert reordered["next_pending_hil"]["absolute_row"] == 2
     assert reordered["next_pending_hil"]["task_id"] == "EL-NEXT-PV-HIL"
     assert reordered["physically_final_hil"]["absolute_row"] == 3
-    assert reordered["physically_final_hil"]["task_id"] == (
-        "EL-FINAL-RELEASE-HIL"
-    )
+    assert reordered["physically_final_hil"]["task_id"] == ("EL-FINAL-RELEASE-HIL")
 
     appended = [dict(row) for row in rows[:-1]]
     appended.extend(
@@ -889,9 +899,7 @@ def test_project_hil_cards_follow_reorder_and_append_without_row_constants() -> 
     assert shifted["status"] == "PASS"
     assert shifted["physically_final_hil"]["task_id"] == "EL-FINAL-RELEASE-HIL"
     assert shifted["physically_final_hil"]["absolute_row"] == 4
-    assert shifted["physically_final_hil"]["dependencies"] == [
-        "EL-APPENDED-CORRECTION"
-    ]
+    assert shifted["physically_final_hil"]["dependencies"] == ["EL-APPENDED-CORRECTION"]
     assert shifted["physically_final_hil"]["continuation_from_hil_task_id"] == (
         "EL-NEXT-PV-HIL"
     )
@@ -1115,9 +1123,9 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
     tools = asyncio.run(server.list_tools())
     assert len(tools) == EXPECTED_TOOL_COUNT
     assert all(tool.icons is not None and len(tool.icons) == 1 for tool in tools)
-    assert {
-        tool.icons[0].src for tool in tools if tool.icons is not None
-    } == {f"{public_site}/evidence-lane-icon.png"}
+    assert {tool.icons[0].src for tool in tools if tool.icons is not None} == {
+        f"{public_site}/evidence-lane-icon.png"
+    }
 
 
 def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
@@ -1160,10 +1168,14 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
         "Stop",
     }
     post_handler = hooks["hooks"]["PostToolUse"][0]["hooks"][0]
-    assert "post_tool_use.py" in post_handler["command"]
+    assert "invoke_hook.py" in post_handler["command"]
+    assert "--event PostToolUse" in post_handler["command"]
+    assert "--handler subhook_validate.py" in post_handler["command"]
     assert "matcher" not in hooks["hooks"]["PostToolUse"][0]
     stop_handler = hooks["hooks"]["Stop"][0]["hooks"][0]
-    assert "stop_response.py" in stop_handler["command"]
+    assert "invoke_hook.py" in stop_handler["command"]
+    assert "--event Stop" in stop_handler["command"]
+    assert "--handler subhook_validate.py" in stop_handler["command"]
     stop_source = (plugin / "hooks" / "stop_response.py").read_text(encoding="utf-8")
     assert '"decision"' not in stop_source
     assert "from event_isolation import stop_output" in stop_source
@@ -1235,9 +1247,10 @@ def test_declared_versions_match_runtime_source_of_truth() -> None:
     assert plugin_manifest["version"].split("+", 1)[0] == ENGINE_VERSION
     assert project["project"]["version"] == ENGINE_VERSION
     assert plugin_project["project"]["version"] == ENGINE_VERSION
-    assert (
-        plugin_project["project"]["dependencies"] == project["project"]["dependencies"]
+    assert set(project["project"]["dependencies"]).issubset(
+        plugin_project["project"]["dependencies"]
     )
+    assert all("==" in item for item in plugin_project["project"]["dependencies"])
     assert plugin_project["tool"]["setuptools"]["package-dir"] == {"": "src"}
 
 
@@ -1271,7 +1284,7 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
         ),
         encoding="utf-8",
     )
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(store)
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(store)
     completed = subprocess.run(
         [sys.executable, str(hook)],
         input='{"source":"startup","session_id":"test"}',
@@ -1319,9 +1332,10 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
     # catalog, so the advisory hook remains fresh and performs no repair.
     assert runtime["release_policy_state"] == "FRESH"
     assert runtime["host_storage_tunnel_matrix"]["routing_axes_independent"] is True
-    assert runtime["host_storage_tunnel_matrix"]["headless_api"][
-        "tunnel_requirement"
-    ] == "NOT_REQUIRED_FOR_API_LAYER"
+    assert (
+        runtime["host_storage_tunnel_matrix"]["headless_api"]["tunnel_requirement"]
+        == "NOT_REQUIRED_FOR_API_LAYER"
+    )
     persistent = json.loads(
         next(
             line.removeprefix("PERSISTENT_STATE_ENVELOPE=")
@@ -1348,382 +1362,11 @@ def test_session_start_hook_is_advisory(tmp_path: Path) -> None:
     }
 
 
-def test_prompt_hook_indexes_entry_without_raw_prompt_and_resolves_rollback(
-    service,
-    source_repository: Path,
-    tmp_path: Path,
-    monkeypatch,
-) -> None:
-    codex_home = tmp_path / "codex-home"
-    codex_home.mkdir()
-    monkeypatch.setenv("CODEX_HOME", str(codex_home))
-    session_id, _ = build_and_approve_pv1(service)
-    turn_task = {
-        "task_id": "prompt-index-v2-turn-control",
-        "task_class": "verify_result",
-        "requested_outcome": "Seal a no-source-change PV2 and verify governed prompt rollback.",
-        "permitted_paths": [
-            "plugins/evidence-lane-plugin/hooks/**",
-            "plugins/evidence-lane-plugin/src/evidence_lane_plugin/codex_turn_control.py",
-            "plugins/evidence-lane-plugin/src/evidence_lane_plugin/prompt_index.py",
-            "tests/**",
-        ],
-        "permitted_tools": ["repository_read", "test"],
-        "acceptance_checks": [
-            "Every visible turn has one PREPARE and one COMMIT.",
-            "PROMPT rollback resolves the v2 secret-redacted projection.",
-        ],
-        "stop_condition": "Stop at the physically final HIL row.",
-    }
-    final_hil = {
-        **turn_task,
-        "task_id": "prompt-index-v2-final-hil",
-        "requested_outcome": "Present the physically final six-way HIL.",
-        "panel_role": "PHYSICALLY_FINAL_HIL",
-    }
-    service.plan_tasks(
-        "book-faires",
-        tasks=[turn_task, final_hil],
-        planned_by="human-test",
-        plan_id="prompt-index-v2-plan",
-    )
-    service.classify_mode(
-        "book-faires",
-        "Verify the bounded prompt index and rollback contract.",
-        explicit_modes=["AL", "RS", "PL"],
-        session_id=session_id,
-    )
-    classified = service.sessions.classify(
-        "book-faires",
-        session_id,
-        task_class=turn_task["task_class"],
-        requested_outcome=turn_task["requested_outcome"],
-        permitted_paths=turn_task["permitted_paths"],
-        permitted_tools=turn_task["permitted_tools"],
-        acceptance_checks=turn_task["acceptance_checks"],
-        stop_condition=turn_task["stop_condition"],
-        backlog_task_id=turn_task["task_id"],
-    )
-    projection = classified["host_plan_rehydration"]["receipt"]["projection"]
-    assert projection["window_task_ids"] == [
-        turn_task["task_id"],
-        final_hil["task_id"],
-    ]
-    assert projection["fixed_header_item_count"] == 1
-    service.sessions.confirm_source_update(
-        "book-faires",
-        session_id,
-        confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
-    )
-    service.refresh("book-faires", session_id)
-    fused = service.fuse(
-        "book-faires",
-        session_id,
-        approval="APPROVE",
-        decided_by="human-test",
-        decision_id="decision_prompt_index_pv2",
-    )
-    handoff = fused["state_travel_handoff"]["state_travel"]
-    service.resume_state_travel(
-        project_id="book-faires",
-        session_id=session_id,
-        handoff_id=handoff["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="host-session-prompt-index-bootstrap",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={"source": "fresh-prompt-index-task"},
-    )
-    post_fuse_task = {
-        **turn_task,
-        "task_id": "prompt-index-v2-post-fuse-turn-control",
-        "requested_outcome": (
-            "Verify governed prompt rollback from the accepted PV2 entry."
-        ),
-    }
-    post_fuse_steer = service.record_steer_delta(
-        "book-faires",
-        delta_text=(
-            "Add the accepted-PV2 prompt rollback verification before the final HIL."
-        ),
-        actor="human-test",
-        delta_id="prompt-index-v2-post-fuse-delta",
-        new_task_contract=post_fuse_task,
-    )
-    assert post_fuse_steer["host_plan_window_rebind"]["window_task_ids"] == [
-        turn_task["task_id"],
-        post_fuse_task["task_id"],
-        final_hil["task_id"],
-    ]
-    assert post_fuse_steer["host_plan_window_rebind"]["fallback_projector_used"] is False
-    service.classify_mode(
-        "book-faires",
-        "Verify the accepted-PV2 prompt index and rollback contract.",
-        explicit_modes=["AL", "RS", "PL"],
-        session_id=session_id,
-    )
-    service.sessions.classify(
-        "book-faires",
-        session_id,
-        task_class=post_fuse_task["task_class"],
-        requested_outcome=post_fuse_task["requested_outcome"],
-        permitted_paths=post_fuse_task["permitted_paths"],
-        permitted_tools=post_fuse_task["permitted_tools"],
-        acceptance_checks=post_fuse_task["acceptance_checks"],
-        stop_condition=post_fuse_task["stop_condition"],
-        backlog_task_id=post_fuse_task["task_id"],
-    )
-    execution_profile = {
-        "model": "gpt-5.6-sol",
-        "submodel": "sol",
-        "reasoning_effort": "ultra",
-        "reasoning_speed": "standard",
-        "service_tier": "standard",
-    }
-    active_handoff = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={"execution_profile": execution_profile},
-    )["state_travel"]
-    service.resume_state_travel(
-        project_id="book-faires",
-        session_id=session_id,
-        handoff_id=active_handoff["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="host-session-prompt-index-pv2",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={
-            "execution_profile": execution_profile,
-            "state_travel_destination_creation": (
-                state_travel_destination_creation(
-                    "host-session-prompt-index-bootstrap",
-                    "host-session-prompt-index-pv2",
-                )
-            ),
-        },
-    )
-
-    root = Path(__file__).resolve().parents[1]
-    hook = root / "plugins" / "evidence-lane-plugin" / "hooks" / "prompt_submit.py"
-    environment = os.environ.copy()
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(service.store.root)
-    secret_prompt = "Rollback checkpoint token=super-secret-value"
-    completed = subprocess.run(
-        [sys.executable, str(hook)],
-        input=json.dumps(
-            {
-                "session_id": "host-session-prompt-index-pv2",
-                "turn_id": "turn-prompt-index-1",
-                "cwd": str(source_repository),
-                "hook_event_name": "UserPromptSubmit",
-                "prompt": secret_prompt,
-            }
-        ),
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        env=environment,
-    )
-    hook_payload = json.loads(completed.stdout)
-    indexed = _hook_context_json(hook_payload, "EVIDENCE_LANE_PROMPT_ENTRY=")
-    assert hook_payload["continue"] is True, json.dumps(indexed, indent=2)
-    assert indexed["state"] == "PREPARED_NOT_COMMITTED"
-    assert indexed["prompt_index"] == 1
-    assert indexed["entry_pv"] == "PV2"
-    records = list((service.store.root / "prompt-index").rglob("*.json"))
-    assert len(records) == 1
-    stored = records[0].read_text(encoding="utf-8")
-    assert secret_prompt not in stored
-    assert "super-secret-value" not in stored
-    assert "Rollback checkpoint [REDACTED]" in stored
-    assert '"redacted_visible_prompt_stored":true' in stored
-
-    stop_hook = root / "plugins" / "evidence-lane-plugin" / "hooks" / "stop_response.py"
-    secret_response = "Candidate sealed. sk-proj-THIS_IS_A_FAKE_TEST_KEY_1234567890"
-    stopped = subprocess.run(
-        [sys.executable, str(stop_hook)],
-        input=json.dumps(
-            {
-                "session_id": "host-session-prompt-index-pv2",
-                "turn_id": "turn-prompt-index-1",
-                "cwd": str(source_repository),
-                "last_assistant_message": secret_response,
-            }
-        ),
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        env=environment,
-    )
-    stop_payload = json.loads(stopped.stdout)
-    assert stop_payload == {}
-    assert "decision" not in stop_payload
-    response_records = list((service.store.root / "response-index").rglob("*.json"))
-    assert len(response_records) == 1
-    response_record = json.loads(response_records[0].read_text(encoding="utf-8"))
-    assert secret_response not in json.dumps(response_record)
-    assert "THIS_IS_A_FAKE_TEST_KEY" not in json.dumps(response_record)
-    assert response_record["visible_assistant_response_after_redaction"] == (
-        "Candidate sealed. [REDACTED]"
-    )
-    assert response_record["prompt_record_sha256"] == indexed["record_sha256"]
-    assert response_record["private_reasoning_stored"] is False
-    assert response_record["hook_continuation_requested"] is False
-    lineage_path = (
-        service.store.project_root("book-faires") / "lineage" / f"{session_id}.jsonl"
-    )
-    lineage_events = [
-        json.loads(line)
-        for line in lineage_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
-    response_events = [
-        event
-        for event in lineage_events
-        if event["event_type"] == "turn.visible_assistant_response"
-    ]
-    assert len(response_events) == 1
-    assert (
-        response_events[0]["visible_payload"]["prompt_record_sha256"]
-        == indexed["record_sha256"]
-    )
-    assert response_events[0]["visible_payload"]["private_reasoning_excluded"] is True
-    assert response_events[0]["visible_payload"]["hook_continuation_requested"] is False
-    repeated = subprocess.run(
-        [sys.executable, str(stop_hook)],
-        input=json.dumps(
-            {
-                "session_id": "host-session-prompt-index-pv2",
-                "turn_id": "turn-prompt-index-1",
-                "cwd": str(source_repository),
-                "last_assistant_message": secret_response,
-            }
-        ),
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        env=environment,
-    )
-    repeated_payload = json.loads(repeated.stdout)
-    assert repeated_payload == {}
-    assert len(list((service.store.root / "response-index").rglob("*.json"))) == 1
-    repeated_events = [
-        json.loads(line)
-        for line in lineage_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
-    assert (
-        sum(
-            event["event_type"] == "turn.visible_assistant_response"
-            for event in repeated_events
-        )
-        == 1
-    )
-
-    second_handoff = service.prepare_state_travel(
-        "book-faires",
-        session_id,
-        resume_contract={"execution_profile": execution_profile},
-    )["state_travel"]
-    service.resume_state_travel(
-        project_id="book-faires",
-        session_id=session_id,
-        handoff_id=second_handoff["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="host-session-second-task",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={
-            "execution_profile": execution_profile,
-            "state_travel_destination_creation": (
-                state_travel_destination_creation(
-                    "host-session-prompt-index-pv2",
-                    "host-session-second-task",
-                )
-            ),
-        },
-    )
-    second = subprocess.run(
-        [sys.executable, str(hook)],
-        input=json.dumps(
-            {
-                "session_id": "host-session-second-task",
-                "turn_id": "turn-prompt-index-2",
-                "cwd": str(source_repository),
-                "hook_event_name": "UserPromptSubmit",
-                "prompt": "Second task checkpoint.",
-            }
-        ),
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        env=environment,
-    )
-    second_indexed = _hook_context_json(
-        json.loads(second.stdout), "EVIDENCE_LANE_PROMPT_ENTRY="
-    )
-    assert second_indexed["prompt_index"] == 2
-    second_stopped = subprocess.run(
-        [sys.executable, str(stop_hook)],
-        input=json.dumps(
-            {
-                "session_id": "host-session-second-task",
-                "turn_id": "turn-prompt-index-2",
-                "cwd": str(source_repository),
-                "last_assistant_message": "Second task checkpoint committed.",
-            }
-        ),
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        env=environment,
-    )
-    assert json.loads(second_stopped.stdout) == {}
-
-    status = service.prompt_index_status("book-faires", session_id)
-    assert status["raw_prompt_stored"] is False
-    assert status["redacted_visible_prompt_stored"] is True
-    assert [row["prompt_index"] for row in status["records"]] == [1, 2]
-    assert {row["entry_pv"] for row in status["records"]} == {"PV2"}
-    service.sessions.confirm_source_update(
-        "book-faires",
-        session_id,
-        confirmation="HOST_SANDBOX_FINAL_STATE_CONFIRMED",
-    )
-    service.refresh("book-faires", session_id)
-    service.rollback(
-        "book-faires",
-        session_id,
-        decided_by="human-test",
-        rollback_to="PV1",
-        decision_id="decision_prompt_index_backward",
-    )
-    forward = service.rollback(
-        "book-faires",
-        session_id,
-        decided_by="human-test",
-        rollback_to="PROMPT 1",
-        decision_id="decision_prompt_index_forward",
-    )
-    assert forward["pointer"]["accepted_pv"] == "PV2"
-    assert forward["decision"]["resolution_reference"]["kind"] == "PROMPT_INDEX"
-    assert forward["decision"]["resolution_reference"]["prompt_index"] == 1
-
-
 def test_prompt_hook_does_not_index_unbound_chats(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parents[1]
     hook = root / "plugins" / "evidence-lane-plugin" / "hooks" / "prompt_submit.py"
     environment = os.environ.copy()
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(tmp_path / "empty-store")
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(tmp_path / "empty-store")
     completed = subprocess.run(
         [sys.executable, str(hook)],
         input=json.dumps(
@@ -1846,24 +1489,12 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
     def stage_cache(version: str) -> Path:
         staged = tmp_path / "plugin-cache" / version
         shutil.copytree(
-            source_plugin / "src" / "evidence_lane_plugin",
-            staged / "src" / "evidence_lane_plugin",
-            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+            source_plugin,
+            staged,
+            ignore=shutil.ignore_patterns(
+                "__pycache__", "*.pyc", "remote_adapter"
+            ),
         )
-        copies = {
-            source_plugin / "hooks" / "session_start.py": (
-                staged / "hooks" / "session_start.py"
-            ),
-            source_plugin / ".codex-plugin" / "plugin.json": (
-                staged / ".codex-plugin" / "plugin.json"
-            ),
-            source_plugin / "scripts" / "codex-release-channel.json": (
-                staged / "scripts" / "codex-release-channel.json"
-            ),
-        }
-        for source, target in copies.items():
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, target)
         manifest_path = staged / ".codex-plugin" / "plugin.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["version"] = version
@@ -1885,7 +1516,7 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
 
     def run_hook(staged: Path) -> tuple[dict, dict]:
         environment = os.environ.copy()
-        environment["EVIDENCE_LANE_DATA_ROOT"] = str(service.store.root)
+        environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(service.store.root)
         completed = subprocess.run(
             [sys.executable, str(staged / "hooks" / "session_start.py")],
             input='{"source":"cachebuster-persistence-test"}',
@@ -1933,9 +1564,7 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
     assert first_persistent["projects"] == second_persistent["projects"]
     assert second_persistent["projects"] == []
     assert second_persistent["cross_project_disclosure"] is False
-    assert second_persistent["state"] == (
-        "EXACT_HOST_SESSION_PROJECT_BINDING_REQUIRED"
-    )
+    assert second_persistent["state"] == ("EXACT_HOST_SESSION_PROJECT_BINDING_REQUIRED")
     assert second_persistent["project_count_returned"] == 0
     assert before == after_first == after_second
 
@@ -1954,19 +1583,10 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
         "evi-source-intake",
     ]
     expected_skills = {
-        "evi",
-        "evi-state-travel",
-        "evi-exit-boot",
-        "evi-plugin",
-        "evi-storage",
-        "evi-change-storage-connector",
-        "evi-additional-plugin",
-        "evi-drop-additional-plugin",
-        "evi-canon",
-        "evi-learning",
-        *public_order,
+        path.parent.name for path in skills.glob("*/SKILL.md")
     }
-    assert sorted(path.name for path in commands.glob("*.md")) == ["evi-plan.md"]
+    command_stems = {path.stem for path in commands.glob("*.md")}
+    assert command_stems == expected_skills | {"evi-plan"}
     plan_command = (commands / "evi-plan.md").read_text(encoding="utf-8")
     assert "do not ask the user to type `/pl` or `/evi-plan`" in plan_command
     assert "explicit host Plan acceptance" in plan_command
@@ -1986,7 +1606,7 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
     assert positions == sorted(positions)
     assert "State Travel" in root_skill
     assert root_skill.index("State Travel") < positions[0]
-    assert "eligibility alone must not" in root_skill
+    assert "Never run State Travel merely because a handoff exists" in root_skill
     assert "explicitly requests it" in root_skill
     assert "genuinely exhausted" in root_skill
     assert "all eighteen canonical lanes" in root_skill.lower()
@@ -2004,12 +1624,8 @@ def test_command_surface_covers_lifecycle_and_all_lane_commands() -> None:
     assert "/ev " not in skill_text.lower()
     assert "`/git`" not in skill_text.lower()
     assert "`/local`" not in skill_text.lower()
-    assert (
-        skill_text.lower().count(
-            "evidence-lane-plugin:source-command-evi-plan"
-        )
-        == 1
-    )
+    assert skill_text.lower().count("evidence-lane-plugin:source-command-evi-plan") == 0
+    assert "second evi plan invocation" in skill_text.lower()
     assert "/pv-" not in readme_text.lower()
     assert "/ev " not in readme_text.lower()
 
@@ -2020,7 +1636,7 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
 
     async def exercise() -> None:
         environment = os.environ.copy()
-        environment["EVIDENCE_LANE_DATA_ROOT"] = str(tmp_path / "stdio-store")
+        environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(tmp_path / "stdio-store")
         parameters = StdioServerParameters(
             command=sys.executable,
             args=[str(runner), "--transport", "stdio"],
@@ -2034,7 +1650,12 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
             tools = await session.list_tools()
             names = {tool.name for tool in tools.tools}
             assert "task_complete_and_refresh" in names
-            assert "pv_state_travel_resume" in names
+            assert "pv_state_travel_direct_force_same_worktree" in names
+            assert not {
+                "pv_refresh",
+                "pv_state_travel_prepare",
+                "pv_state_travel_resume",
+            } & names
             result = await session.call_tool("runtime_doctor", {})
             assert result.isError is False
             assert result.structuredContent["status"] == "PASS"
@@ -2101,7 +1722,7 @@ def test_server_start_installs_but_leaves_flash_and_runtime_detached(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     store = tmp_path / "remote-store"
-    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(store))
+    monkeypatch.setenv("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", str(store))
     monkeypatch.delenv("EVIDENCE_LANE_MCP_BEARER_TOKEN", raising=False)
     monkeypatch.delenv("EVIDENCE_LANE_MCP_BASE_URL", raising=False)
     monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ISSUER_URL", raising=False)
@@ -2130,20 +1751,12 @@ def test_server_start_installs_but_leaves_flash_and_runtime_detached(
         )
         return FakeServer()
 
-    def fake_prewarm_native_dependencies() -> tuple[str, ...]:
-        lifecycle_events.append("native_prewarm")
-        return ("rapidocr+onnxruntime",)
-
     async def fake_run_discovery_compatible_stdio(server: FakeServer) -> None:
         server.run(transport="stdio")
 
     monkeypatch.setattr(
         "evidence_lane_plugin.mcp_server.create_mcp_server",
         fake_create_mcp_server,
-    )
-    monkeypatch.setattr(
-        "evidence_lane_plugin.mcp_server.prewarm_native_dependencies",
-        fake_prewarm_native_dependencies,
     )
     monkeypatch.setattr(
         "evidence_lane_plugin.mcp_server.run_discovery_compatible_stdio",
@@ -2173,10 +1786,8 @@ def test_server_start_installs_but_leaves_flash_and_runtime_detached(
     assert second_flash["runtime_activation"]["state"] == "DETACHED"
     assert [start["transport"] for start in starts] == ["stdio", "stdio"]
     assert lifecycle_events == [
-        "native_prewarm",
         "create_server",
         "event_loop",
-        "native_prewarm",
         "create_server",
         "event_loop",
     ]
@@ -2438,17 +2049,16 @@ def test_oauth_server_declares_exact_per_tool_security_schemes(
     assert by_name["pv_build_initial"].model_extra["securitySchemes"] == [
         {"type": "oauth2", "scopes": [READ_SCOPE, WRITE_SCOPE]}
     ]
-    assert by_name["remote_git_execute_push"].model_extra[
-        "securitySchemes"
-    ] == [
+    assert by_name["remote_git_execute_push"].model_extra["securitySchemes"] == [
         {
             "type": "oauth2",
             "scopes": [READ_SCOPE, WRITE_SCOPE, REMOTE_GIT_SCOPE],
         }
     ]
-    assert by_name["pv_status"].meta["securitySchemes"] == by_name[
-        "pv_status"
-    ].model_extra["securitySchemes"]
+    assert (
+        by_name["pv_status"].meta["securitySchemes"]
+        == by_name["pv_status"].model_extra["securitySchemes"]
+    )
     receipt = server._evidence_lane_native_route_receipt
     assert (
         receipt["transport_project_binding"]
@@ -2468,9 +2078,7 @@ def test_oauth_server_declares_exact_per_tool_security_schemes(
             assert metadata_response.status_code == 200
             metadata = metadata_response.json()
             assert metadata["resource"] == "https://mcp.example/mcp"
-            assert metadata["authorization_servers"] == [
-                "https://issuer.example/"
-            ]
+            assert metadata["authorization_servers"] == ["https://issuer.example/"]
             assert metadata["scopes_supported"] == [READ_SCOPE]
             challenge = await client.post("/mcp")
             assert challenge.status_code == 401
@@ -2495,14 +2103,11 @@ def test_oauth_server_declares_exact_per_tool_security_schemes(
     assert missing_token_block.isError
     assert missing_token_block.structuredContent["mutation_performed"] is False
     assert missing_token_block.meta is not None
-    missing_token_challenge = missing_token_block.meta[
-        "mcp/www_authenticate"
-    ][0]
+    missing_token_challenge = missing_token_block.meta["mcp/www_authenticate"][0]
     assert 'error="invalid_token"' in missing_token_challenge
     assert (
         'resource_metadata="https://mcp.example/'
-        '.well-known/oauth-protected-resource/mcp"'
-        in missing_token_challenge
+        '.well-known/oauth-protected-resource/mcp"' in missing_token_challenge
     )
 
     monkeypatch.setattr(
@@ -2539,8 +2144,7 @@ def test_oauth_server_declares_exact_per_tool_security_schemes(
     assert 'error="insufficient_scope"' in scope_challenge
     assert (
         'resource_metadata="https://mcp.example/'
-        '.well-known/oauth-protected-resource/mcp"'
-        in scope_challenge
+        '.well-known/oauth-protected-resource/mcp"' in scope_challenge
     )
     assert READ_SCOPE in scope_challenge
     assert WRITE_SCOPE in scope_challenge

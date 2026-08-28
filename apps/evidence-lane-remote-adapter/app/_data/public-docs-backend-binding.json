@@ -1,0 +1,156 @@
+{
+  "schema": "evidence-lane.public-docs-backend-binding.v1",
+  "status": "PASS",
+  "plugin_version": "3.0.0+codex.20260828064341",
+  "document_count": 27,
+  "documents": [
+    {
+      "path": "ARCHITECTURE.md",
+      "bytes": 19244,
+      "sha256": "0203EBBCEF7C75A87175F364FA735FE684A2EC64899990C62DCCC76859AF27FE"
+    },
+    {
+      "path": "LICENSE.md",
+      "bytes": 3465,
+      "sha256": "2099D5287E24A1D24E99A14EAE2CC9F0A085EE4411E9A412C03624C96B5E263F"
+    },
+    {
+      "path": "README.md",
+      "bytes": 37290,
+      "sha256": "19B85BA8CA30711715F0E5708F8FD9F2EDBC8473D94324A6CE8EAB75DD7AE92B"
+    },
+    {
+      "path": "SECURITY.md",
+      "bytes": 7741,
+      "sha256": "148696C463D0D6506719207D4D3A523E9648B6E2B4190DC5E92C8956A1237F76"
+    },
+    {
+      "path": "docs/AI_LEARNING.md",
+      "bytes": 6026,
+      "sha256": "3F929BCCE215A488F76D63257202AF86716ECD16202827F07DDC88BFA7A8A117"
+    },
+    {
+      "path": "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md",
+      "bytes": 8182,
+      "sha256": "B7FE725E1F9F1E9789CCD8AAB1F7365FFB9EA1EFAF57B1767D9555C05CBD80A4"
+    },
+    {
+      "path": "docs/CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md",
+      "bytes": 8940,
+      "sha256": "18C6A94C6984822063C86E21AF366385204BDB815A138643F42DBCE28B1578AA"
+    },
+    {
+      "path": "docs/COPYRIGHT.md",
+      "bytes": 3472,
+      "sha256": "BE49AA48D4A9C27450708C6D81CD85799B4B59A462228194B65C6E53204D4EC8"
+    },
+    {
+      "path": "docs/CREDITS_AND_CONTRIBUTIONS.md",
+      "bytes": 5773,
+      "sha256": "018AE560004C3EEB3E233F31DC0E8D535599BD0489A547CEBB0BCD1BD3911BE7"
+    },
+    {
+      "path": "docs/GIT_AND_CI_CD.md",
+      "bytes": 5009,
+      "sha256": "F8E46F18BE8FA9310FF994EC85B1B2508E78AE730EEEBA4B9D512AD1D0816E4A"
+    },
+    {
+      "path": "docs/HOOKS.md",
+      "bytes": 6282,
+      "sha256": "99C704C09442EFC939B30B192CF3EA8C1789D847E8E8B29CFD7FB8806E8CADE1"
+    },
+    {
+      "path": "docs/HOST_AND_STORAGE_MATRIX.md",
+      "bytes": 6408,
+      "sha256": "7529F5440115580C686E416D6A7D72FF7C9CC1E6C79F6C2FE0184C20AA030755"
+    },
+    {
+      "path": "docs/LIFECYCLE_AND_HIL.md",
+      "bytes": 4372,
+      "sha256": "F5E81FC2BCCC8C50F8F3BA4E727A6E99506F62072A950198F9A8EE74263B427F"
+    },
+    {
+      "path": "docs/MCP.md",
+      "bytes": 5049,
+      "sha256": "9FFE0A607255908F84D7C0F7A11A6AF0C94579DD8759B9EE26480982AFF001E9"
+    },
+    {
+      "path": "docs/MEMORY.md",
+      "bytes": 7571,
+      "sha256": "D9AE8BF0B8DB1349C8451B982FBB24B4C703188432A25ADE9452933E4EDAFFFF"
+    },
+    {
+      "path": "docs/PLAN_AND_CHANGE_DISPLAY.md",
+      "bytes": 4546,
+      "sha256": "BE59D7198B7AD46030889DC61480F63D61F37806D01B4040FDB09ECF685D5344"
+    },
+    {
+      "path": "docs/PROJECT_PV_CONTENT_ADDRESSED_STORAGE.md",
+      "bytes": 4735,
+      "sha256": "A4AF8072E2B5BB8D9F9994B260C2A45DFE0E11C8DC027D016A4EF88432A01A90"
+    },
+    {
+      "path": "docs/PROJECT_UNIVERSE.md",
+      "bytes": 3453,
+      "sha256": "57E1011A1ED22CEE54BC0291C058855AA8F4FAB9156A6BCAD268C52060CA4A62"
+    },
+    {
+      "path": "docs/RELEASE_AND_COMPATIBILITY.md",
+      "bytes": 3409,
+      "sha256": "8EC61B827B980D2CBFBEC73320585038E521FD1F381C65E4FA7DCA7907A5039C"
+    },
+    {
+      "path": "docs/REPOSITORY_MAP.md",
+      "bytes": 3890,
+      "sha256": "CA46D1613E49990D126DED11A85D454044CDF9539AB265850F60D12197CA5303"
+    },
+    {
+      "path": "docs/SKILLS.md",
+      "bytes": 6534,
+      "sha256": "3DB379B894689199C96644D04AB365A7C7FF0D7CE29BB4335ED4F9574DDC601F"
+    },
+    {
+      "path": "docs/SOURCE_INTAKE_AND_LANES.md",
+      "bytes": 4919,
+      "sha256": "37960803E857D6AB5DE31FCCCAB7026019E01725C0066051A87496C470C09EE6"
+    },
+    {
+      "path": "docs/TERMS_AND_CONDITIONS.md",
+      "bytes": 4717,
+      "sha256": "157B36192B22B3A09314B1F702AA4DF407C74415E7449C49859DA2E8179DEAB7"
+    },
+    {
+      "path": "docs/THIRD_PARTY_LICENSES.md",
+      "bytes": 5204,
+      "sha256": "92E3DF292830B868E01FE739D7010844D10AD7261E7346F4D751C7EBAF89C56B"
+    },
+    {
+      "path": "docs/TOOLS.md",
+      "bytes": 50364,
+      "sha256": "AD07DDC0AB17D7A926453F2688D8AFC03121983CFCEAA51884DF25D85EB9D75A"
+    },
+    {
+      "path": "docs/UPSTREAM_REFERENCE_PROVENANCE.md",
+      "bytes": 15893,
+      "sha256": "E7E2F07B8DACBDF45930BD0AB2D7F711872BDB7F583C672AA13AADBE0A320692"
+    },
+    {
+      "path": "docs/USER_TUNNEL_GUIDE.md",
+      "bytes": 5311,
+      "sha256": "434BECD8AE424956AD8DD83AC704C8C30F164047A8575C8597570DF022E34CC1"
+    }
+  ],
+  "backend_sources": {
+    "plugins/evidence-lane-plugin/.codex-plugin/plugin.json": "42A726CD910A27EF9B8987907F02D127789857C8B04E1E214A91D1F74D151A4B",
+    "plugins/evidence-lane-plugin/schemas/public-action-schemas.v001.json": "B571AF9EC31691C96DB0B3845ED0B7A6700D1C84A2578ABA9A2EA594982AF045",
+    "plugins/evidence-lane-plugin/skills/skill-surface-registry.v1.json": "38B1F95B8160E037B43B209A6D6047BF8BCA4D2599182C2F20E4606B6CBDF3A5",
+    "plugins/evidence-lane-plugin/hooks/hooks.json": "C37DB05DD4701087EAD0BD31203C843AAFA79ED39A081F2E9DFF313A77631EEF",
+    "plugins/evidence-lane-plugin/sdk/sdk-manifest.v1.json": "5BD21AEB96D7E41209E3D059D8A5296D851BDED1D453D6EF486C0CD50D745245",
+    "plugins/evidence-lane-plugin/mcp/mcp-manifest.v1.json": "E9E402C2F20B2BBE63B6BF91613B1C97E85E615F982D52CF6D020408251AFAFB",
+    "plugins/evidence-lane-plugin/env/authority-manifest.v1.json": "E4F283EC16F86995E2937288DD8A8E5623007351CBB1CA3FD01FDA5C7363B6C1",
+    "plugins/evidence-lane-plugin/uop/authority-manifest.v1.json": "BBA3CDAE9CC0FF981E5C6E19F83FBBCE6EB2ED8167CDBB2E9D1C557FA03CA57C",
+    "plugins/evidence-lane-plugin/toolchains/TOOLCHAIN_EXECUTION_MATRIX.md": "E5379D7C4B17BC9293F332216581D60F88ADF73A4B7B361D84D09B47FC4EA66F"
+  },
+  "historical_internal_source_count": 0,
+  "main_merge_authorized": false
+}

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "pv_diff",
+  "title": "Read live Project Overlay comparison",
+  "description": "Read the progressive root Project Overlay for the requested PV labels. The immutable accepted ZIP is never opened; no source or pointer is written.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "left_pv": {
+        "title": "Left Pv",
+        "type": "string"
+      },
+      "right_pv": {
+        "title": "Right Pv",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "left_pv",
+      "right_pv"
+    ],
+    "title": "pv_diffArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_diffDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_diff"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "governance-read",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "A2AA67999DBBB877D590561DAFA3C13772621B09FB4C921125A1C2C6861D9190",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "125671B24986B47B9977C65D2F244DFCC872B19051C1D8CE1C323B60BCE292BA"
+}

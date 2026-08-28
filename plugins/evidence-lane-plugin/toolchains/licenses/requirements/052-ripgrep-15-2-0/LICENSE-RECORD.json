@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "status": "PASS",
+  "ordinal": 52,
+  "tool": "ripgrep_15_2_0",
+  "requirement": "PACKAGED_PRE_INDEX_HELPER",
+  "classification": "NATIVE_RUNTIME_ASSET",
+  "install_mode": "package_local_existing",
+  "license_expression_or_terms": "MIT OR Unlicense",
+  "license_evidence": "toolchains/native-tools.v1.json plus the installed native-tool license receipt",
+  "evidence_paths": [
+    "toolchains/native-tools.v1.json"
+  ],
+  "redistributed_by_source_package": true,
+  "source_package_copied_license_text_present": true,
+  "source_package_copied_license_texts": [
+    {
+      "path": "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT",
+      "bytes": 1102,
+      "sha256": "970813655A1BF777D2EAD189CEF71AB73AB92CE04DC864027D61A45DE03E6728"
+    },
+    {
+      "path": "toolchains/licenses/ripgrep-15.2.0/UNLICENSE",
+      "bytes": 1235,
+      "sha256": "640514163B17F977ADC997CB16F51871122CFB0555EBAD1A3F01E167B7BA8857"
+    }
+  ],
+  "native_license_acquisition": null,
+  "runtime_distribution_license_required": false,
+  "runtime_distribution_license_manifest": null,
+  "runtime_distribution_license_files_must_be_copied_before_use": false,
+  "metadata_without_a_license_file_is_labeled_metadata_only": true,
+  "mcp_inventory_separate": true,
+  "receipt_sha256": "B074BC7A36B9F29F0B35BA2C6FC67EAF33CD4DD1264E64299F6983D992974FE6"
+}

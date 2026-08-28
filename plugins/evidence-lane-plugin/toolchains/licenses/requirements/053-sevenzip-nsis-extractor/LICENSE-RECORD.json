@@ -1,0 +1,30 @@
+{
+  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "status": "PASS",
+  "ordinal": 53,
+  "tool": "SevenZip_NSIS_extractor",
+  "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+  "classification": "NATIVE_RUNTIME_ASSET",
+  "install_mode": "package_local_support_bundle",
+  "license_expression_or_terms": "LicenseRef-7-Zip",
+  "license_evidence": "toolchains/native-tools.v1.json plus the installed native-tool license receipt",
+  "evidence_paths": [
+    "toolchains/native-tools.v1.json"
+  ],
+  "redistributed_by_source_package": false,
+  "source_package_copied_license_text_present": true,
+  "source_package_copied_license_texts": [
+    {
+      "path": "toolchains/licenses/7-zip-26.01/LICENSE.txt",
+      "bytes": 6031,
+      "sha256": "519AC0A4BDED9C18EA02E0AFB71F663D8C47373BD9FACD3AC96A79F51D77765D"
+    }
+  ],
+  "native_license_acquisition": null,
+  "runtime_distribution_license_required": false,
+  "runtime_distribution_license_manifest": null,
+  "runtime_distribution_license_files_must_be_copied_before_use": false,
+  "metadata_without_a_license_file_is_labeled_metadata_only": true,
+  "mcp_inventory_separate": true,
+  "receipt_sha256": "FBD64477AF7574CB80456549B619B4C7FC925C9DA1B823E2A574CE8285C6E8BA"
+}

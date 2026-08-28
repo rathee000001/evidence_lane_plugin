@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-host-contract-binding.v1",
+  "status": "PASS",
+  "contract": "plan-relock",
+  "law": "ONE_COMPACT_HEADER_PLUS_FIXED_NINE_ROWS_AND_CHANGES",
+  "owner": "src/evidence_lane_plugin/host_plan_rehydration.py",
+  "owner_sha256": "997B9BCBB644C34B647F873AEDE2FCFA7195D52DFCE834AA1B772A3ED48D7277",
+  "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
+  "project_root_hardcoded": false,
+  "workspace_hardcoded": false,
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "7689D562E4D7D58A8EF9AB786FE85478DB3ED18B3160FC55DD52DB63E93AE141"
+}

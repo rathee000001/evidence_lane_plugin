@@ -1,0 +1,65 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "pv_build_initial",
+  "title": "Build initial PV0 live authority",
+  "description": "After initial project registration, explicit native Plan acceptance, Goal start, and Step Task List binding, run Source Intake against the authorized workspace, materialize all sector lanes, and establish the starting PV0 baseline without a candidate or HIL. Later Deltas use first-class Delta entry and Delta exit; only a full-PV HIL creates the next proposal.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id"
+    ],
+    "title": "pv_build_initialArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_build_initialDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "3395F9793BC824F85BE443C375478EE009546D77291E61F1597F7F6EFB7E5836",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-build",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_build_initial"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-build",
+        "workflow": "source-intake-backed-pv0-bootstrap",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/pv_build_initial.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "70AAE4F2AD668753A687013CD5BE4C6617207542DC042C64B4EC7241686E6BE5"
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-project-sector-binding.v1",
+  "status": "PASS",
+  "lane_id": "brain_loader",
+  "authority_root": "authorities/project_sectors/brain_loader",
+  "authority_manifest_sha256": "2462DC9B643C57E8C4F2082813B609BC11450F31F5C1924EC129F5B35975EC0A",
+  "schema_surface": "schemas/project-sectors/brain_loader/schema-surface.v1.json",
+  "builder": "authorities/project_sectors/brain_loader/builder.py",
+  "reader": "authorities/project_sectors/brain_loader/reader.py",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_binding": false,
+  "receipt_sha256": "64F8E964D945E579FB9856A955DC4A8E4773886EB990C8C900D3461C74E3A853"
+}

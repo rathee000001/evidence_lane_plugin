@@ -12,6 +12,7 @@ import posixpath
 import re
 import shutil
 import sqlite3
+import subprocess
 import zipfile
 from collections import Counter
 from collections.abc import Iterable
@@ -19,7 +20,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
 from pathlib import Path, PurePosixPath
 from threading import Lock
-from typing import Any, ClassVar, cast
+from typing import Any, cast
 
 from defusedxml import ElementTree
 
@@ -32,12 +33,27 @@ from .artifact_contract import (
     validate_four_file_contract,
 )
 from .dependency_detection import parse_pnpm_lock_dependencies
+from .data_toolchain import (
+    DataInspectionRequest,
+    inspect_excel_openpyxl,
+    inspect_sqlalchemy_sqlite,
+    inspect_tableau_hyper,
+    inspect_tabular_pandas,
+)
+from .document_toolchain import (
+    DoclingRequest,
+    docling_available,
+    extract_with_docling,
+    packaged_docling_artifacts_root,
+)
 from .git_history import (
     create_git_history_schema,
     git_history_signature,
     index_git_history,
 )
 from .git_optional import probe_git_arm
+from .entity_reconciliation import reconcile_entity_candidates
+from .graph_pipeline import SemanticGraph
 from .hashing import (
     atomic_write_bytes,
     atomic_write_json,
@@ -72,17 +88,38 @@ from .lanes import (
     route_source,
 )
 from .redaction import redact_text
+from .native_toolchain import (
+    NativeInvocationRequest,
+    configured_runtime_root,
+    run_native_tool,
+    try_resolve_native_tool,
+)
 from .schema_topology import (
     PHYSICAL_SCHEMA_PROJECTION_SCHEMA,
     physical_schema_projection,
     physical_table_groups,
     physical_table_node_ids,
 )
+from .tabular_toolchain import (
+    DuckDBStageRequest,
+    duckdb_available,
+    polars_available,
+    stage_result_to_lane_payloads,
+    stage_tabular_source,
+    stage_tabular_source_polars,
+)
+from .sqlite_execution import verify_and_optimize_sqlite_authority
+from .sqlite_indexing import (
+    ensure_authority_index_schema,
+    llama_index_nodes,
+    rebuild_connection_authority_index,
+)
 from .timeutil import utc_now
 from .topology_reconciliation import (
     reconcile_bundle_topology,
     reconcile_lane_topology,
 )
+from .web_toolchain import extract_web_document
 
 LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v2"
 LEGACY_LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v1"
@@ -99,6 +136,9 @@ MAX_PARALLEL_LANE_WORKERS = 8
 _TOKEN_RE = re.compile(r"[\w][\w.-]{1,63}", flags=re.UNICODE)
 _XML_TEXT_TAG = re.compile(r"}t$")
 _RAPIDOCR_CALL_LOCK = Lock()
+_MEDIA_EXTENSIONS = frozenset(
+    {".avi", ".flac", ".m4a", ".mkv", ".mov", ".mp3", ".mp4", ".ogg", ".wav", ".webm"}
+)
 
 
 def _module_available(name: str) -> bool:
@@ -121,6 +161,28 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
             "state": "ACTIVE",
             "tool": "sqlite3 FTS5",
             "detail": "Unicode FTS with explicit BM25 ranking.",
+        },
+        {
+            "capability": "sqlite_full_api",
+            "state": "ACTIVE" if _module_available("apsw") else "UNAVAILABLE",
+            "tool": "APSW",
+            "detail": (
+                "Preferred hidden-runtime SQLite adapter for integrity, optimize, "
+                "backup, Session/RBU capability, and tracing; bulk writes remain one "
+                "explicit transaction."
+            ),
+        },
+        {
+            "capability": "llamaindex_sqlite_nodes",
+            "state": "ACTIVE" if _module_available("llama_index") else "UNAVAILABLE",
+            "tool": "LlamaIndex",
+            "detail": "Deterministic nodes are persisted into the owning SQLite and FTS5 index.",
+        },
+        {
+            "capability": "pydantic_tool_contracts",
+            "state": "ACTIVE" if _module_available("pydantic") else "UNAVAILABLE",
+            "tool": "Pydantic",
+            "detail": "Validates typed tool requests and results before SQLite persistence.",
         },
         {
             "capability": "tfidf",
@@ -148,9 +210,9 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
         },
         {
             "capability": "graphviz_render_dot",
-            "state": "ACTIVE" if shutil.which("dot") else "UNAVAILABLE",
+            "state": "ACTIVE" if try_resolve_native_tool("graphviz") else "UNAVAILABLE",
             "tool": "dot",
-            "detail": "Optional derived render; DOT source remains authoritative.",
+            "detail": "Hidden-runtime native DOT validation/render; DOT source remains authoritative.",
         },
     ]
     if lane.canonical_lane_id == "pdf_ocr":
@@ -176,22 +238,22 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
         rows.append(
             {
                 "capability": "ocr_tesseract_binary",
-                "state": "ACTIVE" if shutil.which("tesseract") else "UNAVAILABLE",
+                "state": "ACTIVE" if try_resolve_native_tool("tesseract") else "UNAVAILABLE",
                 "tool": "tesseract",
                 "detail": "Required by pytesseract for local OCR.",
             }
         )
-        for capability, commands in (
-            ("pdf_poppler_pdftotext", ("pdftotext",)),
-            ("pdf_poppler_pdfinfo", ("pdfinfo",)),
-            ("pdf_ghostscript", ("gs", "gswin64c", "gswin32c")),
+        for capability, tool_id in (
+            ("pdf_poppler_pdftotext", "poppler_pdftotext"),
+            ("pdf_poppler_pdfinfo", "poppler_pdfinfo"),
+            ("pdf_ghostscript", "ghostscript"),
         ):
-            command = next((item for item in commands if shutil.which(item)), None)
+            command = try_resolve_native_tool(tool_id)
             rows.append(
                 {
                     "capability": capability,
                     "state": "ACTIVE" if command else "UNAVAILABLE",
-                    "tool": command or commands[0],
+                    "tool": tool_id,
                     "detail": "V1/V3 local extraction tool; absence is fail-visible.",
                 }
             )
@@ -214,7 +276,7 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
         rows.append(
             {
                 "capability": "ocr_tesseract_binary",
-                "state": "ACTIVE" if shutil.which("tesseract") else "UNAVAILABLE",
+                "state": "ACTIVE" if try_resolve_native_tool("tesseract") else "UNAVAILABLE",
                 "tool": "tesseract",
                 "detail": "Required only for the pytesseract OCR route.",
             }
@@ -230,9 +292,12 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
                 },
                 {
                     "capability": "csv_tsv",
-                    "state": "ACTIVE",
-                    "tool": "python csv",
-                    "detail": "Bounded structural row extraction.",
+                    "state": "ACTIVE" if _module_available("duckdb") else "FALLBACK",
+                    "tool": "DuckDB -> python csv",
+                    "detail": (
+                        "DuckDB is the primary bounded analytical stage; Python CSV is "
+                        "the fail-visible fallback. Results persist only to lane SQLite."
+                    ),
                 },
                 {
                     "capability": "json_jsonl",
@@ -247,6 +312,8 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
             ("excel_pandas", "pandas"),
             ("parquet_pyarrow", "pyarrow"),
             ("excel_calamine", "python_calamine"),
+            ("tabular_duckdb", "duckdb"),
+            ("tabular_polars_lazy", "polars"),
         ):
             rows.append(
                 {
@@ -289,6 +356,7 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
         "tfidf",
         "mermaid_source",
         "dot_source",
+        "pydantic_tool_contracts",
     }
     optional = {
         "mermaid_render_mmdc",
@@ -298,6 +366,10 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
         "excel_pandas",
         "parquet_pyarrow",
         "excel_calamine",
+        "sqlite_full_api",
+        "llamaindex_sqlite_nodes",
+        "tabular_duckdb",
+        "tabular_polars_lazy",
         "image_opencv",
     }
     for row in rows:
@@ -342,6 +414,12 @@ def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
         },
         "parser_implementation": {
             "lane_engine_sha256": sha256_file(Path(__file__).resolve()),
+            "tabular_toolchain_sha256": sha256_file(
+                Path(stage_tabular_source.__code__.co_filename).resolve()
+            ),
+            "sqlite_execution_sha256": sha256_file(
+                Path(verify_and_optimize_sqlite_authority.__code__.co_filename).resolve()
+            ),
             "code_ingest_sha256": sha256_file(
                 Path(extract_code_lane_facts.__code__.co_filename).resolve()
             ),
@@ -1729,6 +1807,32 @@ def _json_safe(value: Any) -> Any:
     return str(value)
 
 
+def _opencv_preprocess_for_ocr(image_data: bytes) -> tuple[bytes, bool]:
+    if not _module_available("cv2"):
+        return image_data, False
+    try:
+        import cv2  # type: ignore[import-not-found]
+        import numpy as np
+
+        decoded = cv2.imdecode(np.frombuffer(image_data, dtype=np.uint8), cv2.IMREAD_COLOR)
+        if decoded is None:
+            return image_data, False
+        grayscale = cv2.cvtColor(decoded, cv2.COLOR_BGR2GRAY)
+        filtered = cv2.bilateralFilter(grayscale, 5, 50, 50)
+        normalized = cv2.adaptiveThreshold(
+            filtered,
+            255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            cv2.THRESH_BINARY,
+            31,
+            11,
+        )
+        encoded, buffer = cv2.imencode(".png", normalized)
+        return (bytes(buffer), True) if encoded else (image_data, False)
+    except Exception:  # noqa: BLE001 - exact source remains the fallback
+        return image_data, False
+
+
 def _rapidocr_lines(image_data: bytes) -> tuple[list[dict[str, Any]], str | None]:
     # PDF and image lanes may build concurrently. The cached ONNX-backed OCR
     # object is process-local and is not documented as safe for simultaneous
@@ -1738,8 +1842,9 @@ def _rapidocr_lines(image_data: bytes) -> tuple[list[dict[str, Any]], str | None
         if cached is None:
             return [], "OCR_ENGINE_UNAVAILABLE"
         engine_name, engine = cached
+        prepared, opencv_used = _opencv_preprocess_for_ocr(image_data)
         try:
-            result = engine(image_data)
+            result = engine(prepared)
         except Exception as exc:  # noqa: BLE001 - external engine failure is evidence
             return [], f"OCR_ENGINE_ERROR_{type(exc).__name__.upper()}"
     lines: list[dict[str, Any]] = []
@@ -1758,7 +1863,7 @@ def _rapidocr_lines(image_data: bytes) -> tuple[list[dict[str, Any]], str | None
                         float(scores[index]) if index < len(scores) else None
                     ),
                     "box": _json_safe(boxes[index]) if index < len(boxes) else None,
-                    "engine": engine_name,
+                    "engine": engine_name + ("+opencv" if opencv_used else ""),
                 }
             )
         return lines, None if lines else "RAPIDOCR_EMPTY"
@@ -1773,7 +1878,7 @@ def _rapidocr_lines(image_data: bytes) -> tuple[list[dict[str, Any]], str | None
                 "confidence": (
                     float(item[2]) if len(item) > 2 and item[2] is not None else None
                 ),
-                "engine": engine_name,
+                "engine": engine_name + ("+opencv" if opencv_used else ""),
             }
         )
     return lines, None if lines else "RAPIDOCR_EMPTY"
@@ -1842,16 +1947,18 @@ def _ocr_payload(
 
 
 def _pytesseract_lines(image_data: bytes) -> tuple[list[dict[str, Any]], str | None]:
+    tesseract = try_resolve_native_tool("tesseract")
     if (
         not _module_available("PIL")
         or not _module_available("pytesseract")
-        or not shutil.which("tesseract")
+        or tesseract is None
     ):
         return [], "PYTESSERACT_ROUTE_UNAVAILABLE"
     try:
         import pytesseract  # type: ignore[import-not-found]
         from PIL import Image  # type: ignore[import-not-found]
 
+        pytesseract.pytesseract.tesseract_cmd = str(tesseract.executable)
         image = Image.open(io.BytesIO(image_data))
         text = pytesseract.image_to_string(image)
     except Exception as exc:  # noqa: BLE001 - external engine failure is evidence
@@ -1873,6 +1980,9 @@ def _pytesseract_lines(image_data: bytes) -> tuple[list[dict[str, Any]], str | N
 
 def _extract_pdf(
     data: bytes,
+    *,
+    path: Path,
+    host_profile: str,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], str]:
     documents: list[dict[str, Any]] = []
     facts: list[dict[str, Any]] = []
@@ -1880,6 +1990,92 @@ def _extract_pdf(
     parser_state = "OPAQUE_EXACT_BYTES"
     page_count = 0
     ocr_page_images: list[tuple[str, list[bytes]]] = []
+    native_root = configured_runtime_root()
+    if native_root is not None and try_resolve_native_tool("poppler_pdfinfo"):
+        receipt = run_native_tool(
+            NativeInvocationRequest(
+                tool_id="poppler_pdfinfo",
+                arguments=[str(path)],
+                host_profile=host_profile,
+            ),
+            runtime_root=native_root,
+        )
+        facts.append(
+            _fact(
+                "pdf_page",
+                "poppler:pdfinfo",
+                {
+                    "tool": "pdfinfo",
+                    "status": receipt["status"],
+                    "metadata": receipt["stdout"][:100_000],
+                    "receipt_sha256": receipt["receipt_sha256"],
+                },
+            )
+        )
+    if _module_available("pymupdf"):
+        try:
+            import pymupdf  # type: ignore[import-not-found]
+
+            document = pymupdf.open(stream=data, filetype="pdf")
+            try:
+                page_count = min(int(document.page_count), MAX_PDF_PAGES)
+                for page_index in range(page_count):
+                    page = document.load_page(page_index)
+                    locator = f"page:{page_index + 1}"
+                    text = str(page.get_text("text") or "")
+                    page_dict = page.get_text("dict")
+                    blocks = list(page_dict.get("blocks") or [])
+                    image_blocks = [
+                        block for block in blocks if int(block.get("type", -1)) == 1
+                    ]
+                    documents.append(
+                        {
+                            "locator": locator,
+                            "text": text,
+                            "metadata": {
+                                "native_text_chars": len(text),
+                                "width": float(page.rect.width),
+                                "height": float(page.rect.height),
+                                "extractor": "PyMuPDF",
+                            },
+                        }
+                    )
+                    facts.extend(
+                        [
+                            _fact(
+                                "pdf_page",
+                                locator,
+                                {
+                                    "native_text_chars": len(text),
+                                    "blocks": len(blocks),
+                                    "images": len(image_blocks),
+                                    "width": float(page.rect.width),
+                                    "height": float(page.rect.height),
+                                    "extractor": "PyMuPDF",
+                                },
+                            ),
+                            _fact(
+                                "pdf_text_block",
+                                f"{locator}:native",
+                                {
+                                    "text_chars": len(text),
+                                    "text_sha256": sha256_bytes(text.encode("utf-8")),
+                                    "extractor": "PyMuPDF",
+                                },
+                            ),
+                        ]
+                    )
+                    if len(text.strip()) < 5:
+                        pixmap = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), alpha=False)
+                        ocr_page_images.append((locator, [pixmap.tobytes("png")]))
+                parser_state = "PARSED_PYMUPDF"
+            finally:
+                document.close()
+        except Exception as exc:  # noqa: BLE001 - ordered parser fallback
+            parser_errors.append(f"PYMUPDF_{type(exc).__name__.upper()}")
+            documents.clear()
+            facts.clear()
+            ocr_page_images.clear()
     if not documents and _module_available("pypdf"):
         try:
             from pypdf import PdfReader  # type: ignore[import-not-found]
@@ -1996,6 +2192,55 @@ def _extract_pdf(
             parser_errors.append(f"PDFPLUMBER_{type(exc).__name__.upper()}")
             documents.clear()
             facts.clear()
+    if not documents and native_root is not None and try_resolve_native_tool(
+        "poppler_pdftotext"
+    ):
+        try:
+            receipt = run_native_tool(
+                NativeInvocationRequest(
+                    tool_id="poppler_pdftotext",
+                    arguments=[
+                        "-f",
+                        "1",
+                        "-l",
+                        str(MAX_PDF_PAGES),
+                        "-layout",
+                        str(path),
+                        "-",
+                    ],
+                    host_profile=host_profile,
+                    max_output_bytes=32_000_000,
+                ),
+                runtime_root=native_root,
+            )
+            extracted = str(receipt["stdout"])
+            for page_index, text in enumerate(extracted.split("\f"), start=1):
+                if not text.strip():
+                    continue
+                documents.append(
+                    {
+                        "locator": f"page:{page_index}",
+                        "text": text,
+                        "metadata": {"extractor": "Poppler pdftotext"},
+                    }
+                )
+            facts.append(
+                _fact(
+                    "pdf_text_block",
+                    "poppler:pdftotext",
+                    {
+                        "tool": "pdftotext",
+                        "status": receipt["status"],
+                        "text_chars": len(extracted),
+                        "text_sha256": sha256_bytes(extracted.encode("utf-8")),
+                        "receipt_sha256": receipt["receipt_sha256"],
+                    },
+                )
+            )
+            if documents:
+                parser_state = "PARSED_POPPLER_PDFTOTEXT"
+        except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as exc:
+            parser_errors.append(f"POPPLER_{type(exc).__name__.upper()}")
     native_chars = sum(len(str(item.get("text") or "")) for item in documents)
     text_poor = native_chars < max(10, max(page_count, 1) * 5)
     if text_poor and _module_available("pypdfium2"):
@@ -2596,6 +2841,20 @@ def _extract_archive(
             )
             for component, member_count in sorted(components.items())
         )
+        reconciliation_names = sorted(components)[:200]
+        reconciliation = reconcile_entity_candidates(reconciliation_names)
+        facts.append(
+            _fact(
+                "project_engulf_relationship",
+                "component-entity-reconciliation",
+                {
+                    **reconciliation,
+                    "component_count": len(components),
+                    "bounded_component_count": len(reconciliation_names),
+                    "truncated": len(components) > len(reconciliation_names),
+                },
+            )
+        )
         facts.extend(
             [
                 _fact(
@@ -2880,6 +3139,8 @@ def _extract_source(
     relative_path: str,
     data: bytes,
     lane: LaneDefinition,
+    *,
+    host_profile: str,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], str, str | None]:
     suffix = path.suffix.lower()
     parser_state = "OPAQUE_EXACT_BYTES"
@@ -2900,21 +3161,199 @@ def _extract_source(
             detected_encoding,
         )
 
+    def docling_enrich(
+        documents: list[dict[str, Any]],
+        facts: list[dict[str, Any]],
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        artifacts = packaged_docling_artifacts_root()
+        if not docling_available() or not artifacts.is_dir():
+            facts.append(
+                _fact(
+                    "toolchain_fallback_receipt",
+                    relative_path,
+                    {
+                        "tool": "Docling",
+                        "status": (
+                            "AWAITING_HIDDEN_RUNTIME_MODELS"
+                            if docling_available()
+                            else "DEPENDENCY_UNAVAILABLE"
+                        ),
+                        "model_download_allowed": False,
+                        "native_exact_extractor_preserved": True,
+                    },
+                )
+            )
+            return documents, facts
+        try:
+            receipt = extract_with_docling(
+                DoclingRequest(
+                    source_path=path,
+                    artifacts_path=artifacts,
+                    host_profile=host_profile,
+                    allow_model_download=False,
+                )
+            )
+            markdown = str(receipt.get("markdown") or "")
+            if markdown:
+                documents.append(
+                    {
+                        "locator": "docling:document",
+                        "text": markdown,
+                        "metadata": {
+                            "extractor": "Docling",
+                            "receipt_sha256": receipt["receipt_sha256"],
+                        },
+                    }
+                )
+            facts.append(_fact("docling_extraction", relative_path, receipt))
+        except Exception as exc:  # noqa: BLE001 - exact native extractor remains primary
+            facts.append(
+                _fact(
+                    "toolchain_fallback_receipt",
+                    relative_path,
+                    {
+                        "tool": "Docling",
+                        "status": "FAILED_NATIVE_EXTRACTOR_PRESERVED",
+                        "error": type(exc).__name__,
+                        "model_download_allowed": False,
+                    },
+                )
+            )
+        return documents, facts
+
     try:
         if suffix == ".docx":
             documents, facts = _extract_docx(data)
+            documents, facts = docling_enrich(documents, facts)
             return finish(documents, facts, "PARSED_DOCX_OPENXML", None)
         if suffix in {".xlsx", ".xlsm"}:
             documents, facts = _extract_xlsx(data)
+            request = DataInspectionRequest(
+                source_path=path,
+                host_profile=host_profile,
+                max_rows=min(MAX_ROWS_PER_TAB, 2_000),
+            )
+            for fact_kind, inspector in (
+                ("openpyxl_workbook_inspection", inspect_excel_openpyxl),
+                ("pandas_workbook_inspection", inspect_tabular_pandas),
+            ):
+                try:
+                    facts.append(_fact(fact_kind, relative_path, inspector(request)))
+                except Exception as exc:  # noqa: BLE001 - exact OpenXML facts remain primary
+                    facts.append(
+                        _fact(
+                            "toolchain_fallback_receipt",
+                            relative_path,
+                            {
+                                "tool": fact_kind,
+                                "status": "UNAVAILABLE_OR_BLOCKED",
+                                "error": type(exc).__name__,
+                                "openxml_primary_preserved": True,
+                            },
+                        )
+                    )
+            documents, facts = docling_enrich(documents, facts)
             return finish(documents, facts, "PARSED_XLSX_OPENXML", None)
         if suffix == ".xls":
             documents, facts, state = _extract_legacy_excel(path)
             return finish(documents, facts, state, None)
         if suffix in {".csv", ".tsv"}:
+            if duckdb_available():
+                result = stage_tabular_source(
+                    DuckDBStageRequest(
+                        source_path=path,
+                        lane_id=lane.canonical_lane_id,
+                        host_profile=host_profile,
+                        max_rows=min(MAX_ROWS_PER_TAB, 2_000),
+                    )
+                )
+                documents, facts = stage_result_to_lane_payloads(result)
+                return finish(
+                    documents,
+                    facts,
+                    "PARSED_DUCKDB_DELIMITED_TO_SQLITE",
+                    "AUTO_DETECTED_BY_DUCKDB",
+                )
+            if polars_available():
+                result = stage_tabular_source_polars(
+                    DuckDBStageRequest(
+                        source_path=path,
+                        lane_id=lane.canonical_lane_id,
+                        host_profile=host_profile,
+                        max_rows=min(MAX_ROWS_PER_TAB, 2_000),
+                    )
+                )
+                documents, facts = stage_result_to_lane_payloads(result)
+                return finish(
+                    documents,
+                    facts,
+                    "PARSED_POLARS_LAZY_DELIMITED_TO_SQLITE",
+                    "AUTO_DETECTED_BY_POLARS",
+                )
             documents, facts, encoding = _extract_delimited(data, suffix)
+            facts.append(
+                _fact(
+                    "toolchain_fallback_receipt",
+                    relative_path,
+                    {
+                        "primary_tool": "DuckDB",
+                        "primary_state": "UNAVAILABLE",
+                        "fallback_tool": "python csv",
+                        "host_profile": host_profile,
+                        "durable_authority": "OWNING_LANE_SQLITE",
+                    },
+                )
+            )
             return finish(documents, facts, "PARSED_DELIMITED", encoding)
         if suffix in {".json", ".jsonl"}:
+            if (
+                suffix == ".jsonl"
+                and lane.canonical_lane_id
+                in {"data_excel", "analysis", "project_engulf", "artifacts"}
+                and polars_available()
+            ):
+                result = stage_tabular_source_polars(
+                    DuckDBStageRequest(
+                        source_path=path,
+                        lane_id=lane.canonical_lane_id,
+                        host_profile=host_profile,
+                        max_rows=min(MAX_ROWS_PER_TAB, 2_000),
+                    )
+                )
+                documents, facts = stage_result_to_lane_payloads(result)
+                return finish(
+                    documents,
+                    facts,
+                    "PARSED_POLARS_LAZY_NDJSON_TO_SQLITE",
+                    "UTF-8_NDJSON",
+                )
             documents, facts, encoding = _extract_json(data, suffix)
+            native_root = configured_runtime_root()
+            if native_root is not None and try_resolve_native_tool("jq") is not None:
+                jq_receipt = run_native_tool(
+                    NativeInvocationRequest(
+                        tool_id="jq",
+                        arguments=["--sort-keys", "."],
+                        input_bytes=data,
+                        host_profile=host_profile,
+                    ),
+                    runtime_root=native_root,
+                )
+                facts.append(
+                    _fact(
+                        "native_json_validation",
+                        relative_path,
+                        {
+                            "status": jq_receipt["status"],
+                            "tool_id": "jq",
+                            "receipt_sha256": jq_receipt["receipt_sha256"],
+                            "stdout_sha256": sha256_bytes(
+                                str(jq_receipt["stdout"]).encode("utf-8")
+                            ),
+                            "python_json_remains_parser": True,
+                        },
+                    )
+                )
             decoded, _ = _decode_text(data)
             if decoded is not None and lane.canonical_lane_id in PRIMARY_CODE_LANES:
                 facts.extend(extract_code_lane_facts(relative_path, decoded))
@@ -2932,19 +3371,191 @@ def _extract_source(
                 facts.extend(_chat_lineage_facts(_chat_turns(root), relative_path))
             return finish(documents, facts, "PARSED_JSON", encoding)
         if suffix == ".parquet":
+            if duckdb_available():
+                result = stage_tabular_source(
+                    DuckDBStageRequest(
+                        source_path=path,
+                        lane_id=lane.canonical_lane_id,
+                        host_profile=host_profile,
+                        max_rows=min(MAX_ROWS_PER_TAB, 2_000),
+                    )
+                )
+                documents, facts = stage_result_to_lane_payloads(result)
+                return finish(
+                    documents,
+                    facts,
+                    "PARSED_DUCKDB_PARQUET_TO_SQLITE",
+                    None,
+                )
+            if polars_available():
+                result = stage_tabular_source_polars(
+                    DuckDBStageRequest(
+                        source_path=path,
+                        lane_id=lane.canonical_lane_id,
+                        host_profile=host_profile,
+                        max_rows=min(MAX_ROWS_PER_TAB, 2_000),
+                    )
+                )
+                documents, facts = stage_result_to_lane_payloads(result)
+                return finish(
+                    documents,
+                    facts,
+                    "PARSED_POLARS_LAZY_PARQUET_TO_SQLITE",
+                    None,
+                )
             documents, facts, state = _extract_parquet(data)
+            facts.append(
+                _fact(
+                    "toolchain_fallback_receipt",
+                    relative_path,
+                    {
+                        "primary_tool": "DuckDB",
+                        "primary_state": "UNAVAILABLE",
+                        "fallback_tool": "pyarrow",
+                        "host_profile": host_profile,
+                        "durable_authority": "OWNING_LANE_SQLITE",
+                    },
+                )
+            )
             return finish(documents, facts, state, None)
         if suffix == ".pptx":
             documents, facts = _extract_pptx(data)
+            documents, facts = docling_enrich(documents, facts)
             return finish(documents, facts, "PARSED_PPTX_OPENXML", None)
+        if suffix in _MEDIA_EXTENSIONS:
+            native_root = configured_runtime_root()
+            if native_root is None:
+                return finish(
+                    [],
+                    [
+                        _fact(
+                            "artifact_media_probe",
+                            relative_path,
+                            {
+                                "status": "BLOCKED_HIDDEN_RUNTIME_UNAVAILABLE",
+                                "required_tool": "FFmpeg",
+                                "exact_bytes_preserved": True,
+                            },
+                        )
+                    ],
+                    "BLOCKED_FFMPEG_HIDDEN_RUNTIME_UNAVAILABLE_EXACT_BYTES_PRESERVED",
+                    None,
+                )
+            receipt = run_native_tool(
+                NativeInvocationRequest(
+                    tool_id="ffmpeg",
+                    arguments=["-hide_banner", "-i", str(path), "-f", "ffmetadata", "-"],
+                    host_profile=host_profile,
+                    max_output_bytes=4_000_000,
+                ),
+                runtime_root=native_root,
+            )
+            metadata = (str(receipt["stdout"]) + "\n" + str(receipt["stderr"])).strip()
+            return finish(
+                [
+                    {
+                        "locator": "ffmpeg:metadata",
+                        "text": metadata,
+                        "metadata": {"extractor": "FFmpeg"},
+                    }
+                ],
+                [
+                    _fact(
+                        "artifact_media_probe",
+                        relative_path,
+                        {
+                            "status": receipt["status"],
+                            "metadata_sha256": sha256_bytes(metadata.encode("utf-8")),
+                            "receipt_sha256": receipt["receipt_sha256"],
+                            "media_mutated": False,
+                        },
+                    )
+                ],
+                "PARSED_FFMPEG_MEDIA_METADATA",
+                None,
+            )
+        if suffix == ".hyper":
+            try:
+                receipt = inspect_tableau_hyper(
+                    DataInspectionRequest(
+                        source_path=path,
+                        host_profile=host_profile,
+                        max_rows=min(MAX_ROWS_PER_TAB, 2_000),
+                    )
+                )
+                documents = [
+                    {
+                        "locator": str(table["name"]),
+                        "text": json.dumps(
+                            table,
+                            sort_keys=True,
+                            ensure_ascii=False,
+                            default=str,
+                        ),
+                        "metadata": {"extractor": "tableauhyperapi"},
+                    }
+                    for table in receipt["tables"]
+                ]
+                facts = [_fact("tableau_hyper_inspection", relative_path, receipt)]
+                return finish(documents, facts, "PARSED_TABLEAU_HYPER_READ_ONLY", None)
+            except Exception as exc:  # noqa: BLE001 - exact bytes remain preserved
+                return finish(
+                    [],
+                    [
+                        _fact(
+                            "parser_capability_blocker",
+                            relative_path,
+                            {
+                                "required_tool": "tableauhyperapi",
+                                "error": type(exc).__name__,
+                                "exact_bytes_preserved": True,
+                            },
+                        )
+                    ],
+                    "BLOCKED_TABLEAU_HYPER_TOOL_UNAVAILABLE_EXACT_BYTES_PRESERVED",
+                    None,
+                )
         if suffix == ".pdf":
-            documents, facts, state = _extract_pdf(data)
+            documents, facts, state = _extract_pdf(
+                data,
+                path=path,
+                host_profile=host_profile,
+            )
+            documents, facts = docling_enrich(documents, facts)
             return finish(documents, facts, state, None)
         if suffix in LANE_REGISTRY["images_ocr"].extensions:
             documents, facts, state = _extract_image(data)
             return finish(documents, facts, state, None)
         if suffix in {".db", ".sqlite", ".sqlite3"}:
             documents, facts, state = _inspect_sqlite(path, lane)
+            try:
+                facts.append(
+                    _fact(
+                        "sqlalchemy_schema_inspection",
+                        relative_path,
+                        inspect_sqlalchemy_sqlite(
+                            DataInspectionRequest(
+                                source_path=path,
+                                host_profile=host_profile,
+                                max_rows=200,
+                            )
+                        ),
+                    )
+                )
+            except Exception as exc:  # noqa: BLE001 - immutable sqlite inspection remains primary
+                facts.append(
+                    _fact(
+                        "toolchain_fallback_receipt",
+                        relative_path,
+                        {
+                            "primary_tool": "sqlite3 immutable URI",
+                            "secondary_tool": "SQLAlchemy",
+                            "secondary_state": "UNAVAILABLE_OR_BLOCKED",
+                            "error": type(exc).__name__,
+                            "writeback": False,
+                        },
+                    )
+                )
             return finish(documents, facts, state, None)
         if suffix == ".zip":
             documents, facts, state = _extract_archive(data, lane)
@@ -2962,15 +3573,32 @@ def _extract_source(
                     )
                 )
             if suffix in {".html", ".htm", ".xml"}:
-                stripped = re.sub(r"<[^>]+>", " ", decoded_text)
-                decoded_text = re.sub(r"\s+", " ", stripped)
-                text_facts.append(
-                    _fact(
-                        "document_structure",
-                        relative_path,
-                        {"source_format": suffix, "markup_stripped": True},
+                if suffix in {".html", ".htm"}:
+                    extraction = extract_web_document(decoded_text)
+                    decoded_text = str(extraction["text"])
+                    text_facts.append(
+                        _fact(
+                            "document_structure",
+                            relative_path,
+                            {
+                                "source_format": suffix,
+                                "extractor": extraction["selected_tool"],
+                                "tool_attempts": extraction["attempts"],
+                                "receipt_sha256": extraction["receipt_sha256"],
+                                "network_used": False,
+                            },
+                        )
                     )
-                )
+                else:
+                    stripped = re.sub(r"<[^>]+>", " ", decoded_text)
+                    decoded_text = re.sub(r"\s+", " ", stripped)
+                    text_facts.append(
+                        _fact(
+                            "document_structure",
+                            relative_path,
+                            {"source_format": suffix, "markup_stripped": True},
+                        )
+                    )
             return finish(
                 [
                     {
@@ -3014,18 +3642,9 @@ def _extract_source(
 
 
 def _chunks(text: str) -> Iterable[tuple[int, int, str]]:
-    if not text:
-        return
-    start = 0
-    ordinal = 0
-    step = CHUNK_CHARS - CHUNK_OVERLAP
-    while start < len(text):
-        end = min(len(text), start + CHUNK_CHARS)
-        yield ordinal, start, text[start:end]
-        if end == len(text):
-            break
-        start += step
-        ordinal += 1
+    source_id = "lane-text-" + sha256_bytes(str(text or "").encode("utf-8"))
+    for node in llama_index_nodes(str(text or ""), source_id=source_id):
+        yield node.ordinal, node.char_start, node.text_content
 
 
 LANE_SCHEMA_BUILDER_PROJECTION_SCHEMA = (
@@ -4323,6 +4942,7 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
         CREATE INDEX structured_fact_kind_idx ON structured_fact(kind);
         """
     )
+    ensure_authority_index_schema(connection)
     if lane.canonical_lane_id in PRIMARY_CODE_LANES:
         create_git_history_schema(connection)
     shared_tables = {
@@ -4387,6 +5007,7 @@ def _insert_source(
     *,
     registered_at: str,
     snapshot_ref: str,
+    host_profile: str,
 ) -> tuple[int, str]:
     path = root / Path(relative_path)
     data = path.read_bytes()
@@ -4406,7 +5027,11 @@ def _insert_source(
         encoding = None
     else:
         documents, facts, parser_state, encoding = _extract_source(
-            path, relative_path, data, lane
+            path,
+            relative_path,
+            data,
+            lane,
+            host_profile=host_profile,
         )
     source_sha256 = sha256_bytes(data)
     cursor = connection.execute(
@@ -4575,6 +5200,10 @@ def _rebuild_retrieval(connection: sqlite3.Connection, lane: LaneDefinition) -> 
                 """,
                 (chunk_id, term, count, token_count, tf, tf * idf_values[term]),
             )
+    rebuild_connection_authority_index(
+        connection,
+        authority_id=f"project_sector:{lane.canonical_lane_id}",
+    )
 
 
 def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
@@ -4617,6 +5246,9 @@ def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
             "tfidf_term",
             "tfidf_vector",
             "refresh_receipt",
+            "authority_index_source",
+            "authority_index_node",
+            "authority_index_refresh_receipt",
         )
     }
     fts_count = int(
@@ -4647,6 +5279,7 @@ def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
         and builder_projection["status"] == "PASS"
         and evolution["valid"]
         and fts_count == counts["chunk_index"]
+        and counts["authority_index_refresh_receipt"] >= 1
     )
     return {
         "status": "PASS" if valid else "FAIL",
@@ -4766,71 +5399,32 @@ def _dot_label(value: Any) -> str:
 
 
 class _TopologyGraph:
-    """Emit one deterministic semantic graph to both Mermaid and DOT."""
-
-    _DOT_STYLE: ClassVar[dict[str, str]] = {
-        "root": 'fillcolor="#101828",fontcolor="white",color="#101828"',
-        "source": 'fillcolor="#edf5ff",color="#125cdd"',
-        "semantic": 'fillcolor="#f0ebff",color="#7147c7"',
-        "retrieval": 'fillcolor="#eaf8f1",color="#24805c"',
-        "git": 'fillcolor="#fff7e7",color="#c88722"',
-        "lifecycle": 'fillcolor="#fff1f0",color="#ba4236"',
-        "output": 'fillcolor="#f7f9fc",color="#667085"',
-        "warn": 'fillcolor="#fff7e7",color="#c88722"',
-    }
+    """Route every lane topology through LangGraph and Graphviz."""
 
     def __init__(self, name: str, *, direction: str = "TB") -> None:
-        self.mmd = [
-            f"flowchart {direction}",
-            "    classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;",
-            "    classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;",
-            "    classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;",
-            "    classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;",
-            "    classDef git fill:#fff7e7,stroke:#c88722,color:#101828;",
-            "    classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;",
-            "    classDef output fill:#f7f9fc,stroke:#667085,color:#101828;",
-            "    classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;",
-        ]
-        self.dot = [
-            f"digraph {name} {{",
-            f'  rankdir="{direction}";',
-            '  graph [fontname="Arial",bgcolor="white"];',
-            '  node [shape="box",style="rounded,filled",fontname="Arial",color="#667085"];',
-            '  edge [fontname="Arial",color="#667085"];',
-        ]
+        self._graph = SemanticGraph(
+            name,
+            direction=direction,
+            role="AUTHORITY_TRAVERSAL",
+        )
+        self.receipt: dict[str, Any] | None = None
 
     def begin(self, node_id: str, label: str, *, direction: str = "TB") -> None:
-        self.mmd.extend(
-            [
-                f'    subgraph {node_id}["{_mmd_label(label)}"]',
-                f"        direction {direction}",
-            ]
-        )
-        self.dot.append(
-            f'  subgraph cluster_{node_id.lower()} {{ label="{_dot_label(label)}";'
-        )
+        self._graph.begin_group(node_id, label, direction=direction)
 
     def end(self) -> None:
-        self.mmd.append("    end")
-        self.dot.append("  }")
+        self._graph.end_group()
 
     def node(self, node_id: str, label: str, kind: str) -> None:
-        mmd_label = "<br/>".join(_mmd_label(part) for part in str(label).split("\n"))
-        dot_label = "\\n".join(_dot_label(part) for part in str(label).split("\n"))
-        self.mmd.append(f'        {node_id}["{mmd_label}"]:::{kind}')
-        style = self._DOT_STYLE[kind]
-        self.dot.append(f'    {node_id} [label="{dot_label}",{style}];')
+        self._graph.add_node(node_id, label, kind)
 
     def edge(self, source: str, target: str, label: str | None = None) -> None:
-        if label:
-            self.mmd.append(f"        {source} -->|{_mmd_label(label)}| {target}")
-            self.dot.append(f'    {source} -> {target} [label="{_dot_label(label)}"];')
-        else:
-            self.mmd.append(f"        {source} --> {target}")
-            self.dot.append(f"    {source} -> {target};")
+        self._graph.add_edge(source, target, label)
 
     def finish(self) -> tuple[str, str]:
-        return "\n".join(self.mmd) + "\n", "\n".join([*self.dot, "}"]) + "\n"
+        mmd, dot, receipt = self._graph.render_pair()
+        self.receipt = receipt
+        return mmd, dot
 
 
 def _table_count(connection: sqlite3.Connection, table: str) -> int:
@@ -6281,6 +6875,7 @@ def _build_one_lane(
     source_snapshot: dict[str, dict[str, Any]],
     preserve_parent_unmentioned: bool = False,
     force_remove_paths: set[str] | None = None,
+    host_profile: str,
 ) -> dict[str, Any]:
     output.mkdir(parents=True, exist_ok=False)
     schema_asset = lane_schema_asset(lane.canonical_lane_id)
@@ -6405,6 +7000,12 @@ def _build_one_lane(
             if history_enabled
             else None
         )
+        sqlite_execution: dict[str, Any] = {
+            "status": "UNCHANGED_REUSE",
+            "database_sha256": sha256_file(db_path),
+            "explicit_bulk_transaction_required": True,
+            "durable_authority": True,
+        }
     else:
         if prior_db and prior_db.is_file() and (
             not tool_changed or baseline_replay_eligible
@@ -6513,6 +7114,7 @@ def _build_one_lane(
                     row["path"],
                     registered_at=recorded_at,
                     snapshot_ref=proposed_pv,
+                    host_profile=host_profile,
                 )
                 if parser_state.startswith(("BLOCKED", "PARSE_FAILED")):
                     blocked = {"path": row["path"], "parser_state": parser_state}
@@ -6561,6 +7163,7 @@ def _build_one_lane(
                     relative_path,
                     registered_at=recorded_at,
                     snapshot_ref=proposed_pv,
+                    host_profile=host_profile,
                 )
                 if parser_state.startswith(("BLOCKED", "PARSE_FAILED")):
                     classification["BLOCKED_UNSUPPORTED"].append(
@@ -6660,6 +7263,9 @@ def _build_one_lane(
         connection.commit()
         connection.execute("VACUUM")
         connection.close()
+        sqlite_execution = verify_and_optimize_sqlite_authority(db_path).model_dump(
+            mode="json"
+        )
         mmd, dot = _lane_topology(lane, db_path, classification)
         atomic_write_bytes(output / lane.mmd_filename, mmd.encode("utf-8"))
         atomic_write_bytes(output / lane.dot_filename, dot.encode("utf-8"))
@@ -6701,6 +7307,7 @@ def _build_one_lane(
         "git_history_changed": git_history_changed,
         "topology_rebuild_required": topology_rebuild_required,
         "git_history": history_report,
+        "sqlite_execution": sqlite_execution,
         "stable_artifacts_byte_reused": byte_reused,
         "parent_pv": parent_pv,
         "proposed_pv": proposed_pv,
@@ -6730,6 +7337,7 @@ def _build_one_lane(
         "pointer_evidence": "lane_pointer.json",
         "refresh_receipt": "refresh_receipt.json",
         "validation": validation,
+        "sqlite_execution": sqlite_execution,
         "recorded_at": recorded_at,
     }
     atomic_write_json(output / "lane_manifest.json", lane_manifest)
@@ -6953,11 +7561,17 @@ def build_lane_bundle(
     preserve_parent_unmentioned: bool = False,
     index_git_history: bool = True,
     allow_parent_operational_authority_drift: bool = False,
+    host_profile: str = "CODEX_DESKTOP",
 ) -> dict[str, Any]:
     """Build/Refresh lanes concurrently, then assemble one deterministic PV."""
 
     if code_mode not in PRIMARY_CODE_LANES:
         raise ValueError("code_mode must be github_code or local_code")
+    exact_host_profile = host_profile.strip().upper()
+    if exact_host_profile not in {"CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"}:
+        if exact_host_profile.startswith("CHATGPT"):
+            raise ValueError("CHATGPT_TOOLCHAIN_PLANE_NOT_IMPLEMENTED")
+        raise ValueError(f"Unsupported Codex host profile: {host_profile}")
     root = Path(repository_root).resolve()
     if not 1 <= max_lane_workers <= MAX_PARALLEL_LANE_WORKERS:
         raise ValueError(
@@ -7164,6 +7778,7 @@ def build_lane_bundle(
                     ).items()
                     if prior_lane_id == lane_id and routes.get(path) != lane_id
                 },
+                host_profile=exact_host_profile,
             )
             futures[future] = lane_id
         for future in as_completed(futures):
@@ -7229,6 +7844,9 @@ def build_lane_bundle(
         "linear_governance": True,
         "parallel_lane_compute": effective_workers > 1,
         "prewarmed_dependencies": prewarmed_dependencies,
+        "toolchain_plane": "CODEX",
+        "host_profile": exact_host_profile,
+        "chatgpt_plane_mixed": False,
         "worker_count": effective_workers,
         "submitted_lane_count": len(emitted_lane_ids),
         "deterministic_assembly_order": list(emitted_lane_ids),

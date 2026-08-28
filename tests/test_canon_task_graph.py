@@ -164,8 +164,6 @@ def _schema(name: str) -> dict:
         Path(__file__).parents[1]
         / "plugins"
         / "evidence-lane-plugin"
-        / "src"
-        / "evidence_lane_plugin"
         / "schemas"
         / name
     )
@@ -606,17 +604,48 @@ def _dispatch_kwargs(source: dict) -> dict:
     }
 
 
-def test_codex_dispatch_is_unavailable_without_supported_host_operation(
+def test_codex_dispatch_returns_native_host_action_then_binds_exact_receipt(
     tmp_path: Path,
 ) -> None:
     source_root = _root(tmp_path, SOURCE_PROJECT)
-    with pytest.raises(EvidenceLaneError) as unavailable:
-        dispatch_linked_canon_task(
-            source_root,
-            dispatcher=None,
-            **_dispatch_kwargs(_endpoint(SOURCE_PROJECT, "source")),
-        )
-    assert _error_code(unavailable) == "HOST_CAPABILITY_UNAVAILABLE"
+    kwargs = _dispatch_kwargs(_endpoint(SOURCE_PROJECT, "source"))
+    pending = dispatch_linked_canon_task(
+        source_root,
+        dispatcher=None,
+        **kwargs,
+    )
+    assert pending["status"] == "HOST_ACTION_REQUIRED"
+    assert pending["created_or_bound"] is False
+    assert pending["authority_before"] == pending["authority_after"]
+    assert pending["host_request"]["idempotency_key"] == pending["dispatch_id"]
+
+    destination = _endpoint(DESTINATION_PROJECT, "destination")
+    receipt_body = {
+        "schema": CODEX_HOST_CREATE_RECEIPT_SCHEMA,
+        "host_kind": "CODEX",
+        "operation": "CREATE_LINKED_TASK",
+        "capability": CODEX_HOST_CREATE_CAPABILITY,
+        "idempotency_key": pending["dispatch_id"],
+        "request_sha256": pending["request_sha256"],
+        "destination": destination,
+        "created_once": True,
+        "replayed": False,
+        "host_receipt_id": "host_native_two_phase",
+        "issued_at": CREATED_AT,
+    }
+    host_receipt = {
+        **receipt_body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+    }
+    completed = dispatch_linked_canon_task(
+        source_root,
+        dispatcher=None,
+        host_creation_receipt=host_receipt,
+        **kwargs,
+    )
+    assert completed["status"] == "PASS"
+    assert completed["receipt"]["host_creation_receipt"] == host_receipt
+    assert completed["edge"]["destination"] == destination
 
 
 def test_codex_dispatch_rejects_a_mismatched_host_receipt(tmp_path: Path) -> None:

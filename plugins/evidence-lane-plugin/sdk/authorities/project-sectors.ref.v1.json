@@ -1,0 +1,9 @@
+{
+  "schema": "evidence-lane.sdk-project-sector-authority-reference.v1",
+  "status": "PASS",
+  "sector_count": 18,
+  "registry": "authorities/project_sectors/lane-surface-registry.v1.json",
+  "registry_sha256": "55C9DE00C6F39DBCB574A7FD6F0073B88DE42DBD9AE9C9363BA7C747CB9A1FB2",
+  "separate_sqlite_authorities": true,
+  "receipt_sha256": "FD0ACB71836215977FA84BD3C361DE24A25CF12F8BE09A47132EB04CD3DD9B8F"
+}

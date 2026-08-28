@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "ai_toolchain_route",
+  "title": "Resolve full AI toolchain",
+  "description": "Resolve one conditional Codex-only lane toolchain with exact primary and eligible fallback order; never run every tool or mix the deferred ChatGPT plane.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "lane_id": {
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "host_profile": {
+        "title": "Host Profile",
+        "type": "string"
+      },
+      "available_tools": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Available Tools"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "lane_id",
+      "host_profile"
+    ],
+    "title": "ai_toolchain_routeArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "ai_toolchain_routeDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-toolchain",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "ai_toolchain_route"
+    },
+    "internal_sdk": {
+      "module_id": "first_class_workflows",
+      "operation": "ai_toolchain_route",
+      "read_only": true
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-toolchain",
+        "workflow": "conditional-codex-toolchain-routing",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "F458DEF20BB5A93761DA23F5382CBBBC1A05E54965083D40D9F6CA97A7197E72",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "7A28C75EC5D6CC68EB56189F474FEB53E9C40A2BAF0E222BC840FE77101AFE35"
+}

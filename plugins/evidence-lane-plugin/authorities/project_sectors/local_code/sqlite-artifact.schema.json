@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "local_code SQLITE_AUTHORITY artifact receipt",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "artifact_path",
+    "artifact_role",
+    "syntax",
+    "bytes",
+    "sha256",
+    "validator",
+    "status"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "local_code"
+    },
+    "artifact_path": {
+      "const": "local_code_sector_v001.sqlite"
+    },
+    "artifact_role": {
+      "const": "SQLITE_AUTHORITY"
+    },
+    "syntax": {
+      "const": "SQLITE3_FTS5"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "validator": {
+      "const": "lane_engine.lane_schema_builder_projection"
+    },
+    "status": {
+      "const": "PASS"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "39C394E35DA0C6AB294942B7312C2BF1190A4223836FA04468B7DE98543FE0D1"
+}

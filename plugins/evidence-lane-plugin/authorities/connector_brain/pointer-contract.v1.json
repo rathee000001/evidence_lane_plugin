@@ -1,0 +1,10 @@
+{
+  "schema": "evidence-lane.installed-authority-pointer-contract.v1",
+  "status": "PASS",
+  "authority_id": "connector_brain",
+  "project_relative_path": "connector_brain.manifest.json",
+  "pointer_role": "CONNECTOR_REGISTRY_HEAD_NOT_PROJECT_TRUTH_POINTER",
+  "project_truth_pointer_owner": false,
+  "pointer_movement_in_template": false,
+  "receipt_sha256": "84F50D397D4A5F642BD59192A20341B46DF4799FD7D3BB9FFE0CAECC733368BA"
+}

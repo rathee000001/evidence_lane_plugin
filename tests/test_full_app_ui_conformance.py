@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ADAPTER = ROOT / "plugins" / "evidence-lane-plugin" / "remote_adapter"
+ADAPTER = ROOT / "apps" / "evidence-lane-remote-adapter"
 APP = ADAPTER / "app"
 COMPONENTS = APP / "_components"
 
@@ -86,14 +86,13 @@ def test_primary_navigation_has_one_typed_visual_identity_per_route() -> None:
         "/skills",
         "/mcp",
         "/hooks",
-        "/commands",
         "/proof",
         "/provenance",
         "/connect",
         "/studio",
         "/hil",
     ]
-    assert len(hrefs) == 17
+    assert len(hrefs) == 16
     assert len(set(hrefs)) == len(hrefs)
     assert "satisfies Readonly<" in header
     assert "Record<PrimaryNavigationHref" in header
@@ -276,13 +275,13 @@ def test_v140_home_uses_concentric_delta_story_plugin_catalog_and_universal_glas
     assert "HeroOrbit" in landing
     assert "sourceLanes" in orbit and "pluginSurfaces" in orbit
     assert 'aria-label="18 source lanes"' in orbit
-    assert 'aria-label="17 plugin surfaces"' in orbit
+    assert 'aria-label="25 plugin surfaces"' in orbit
     assert "Human HIL" in orbit
     for retired in ("SourceBrainLab", "UniversalCommandDeck", "LaneToolchainExplorer"):
         assert retired not in landing
 
     assert surfaces.count("primaryControl: true") == 6
-    assert len(re.findall(r'^    id: "[a-z0-9-]+",$', surfaces, flags=re.MULTILINE)) == 17
+    assert len(re.findall(r'^    id: "[a-z0-9-]+",$', surfaces, flags=re.MULTILINE)) == 25
     assert "T023_UNIVERSAL_GLASS_PILL_V001" in header
     assert "GlassIconOrb" in header and "GlassIconOrb" in catalog and "GlassIconOrb" in popup
     assert "T023_UNIVERSAL_POPUP_FADE_V001" in popup
@@ -339,7 +338,7 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     openrouter = (
         APP / "api" / "studio-query" / "openrouter-general.ts"
     ).read_text(encoding="utf-8")
-    adapter_root = ROOT / "plugins" / "evidence-lane-plugin" / "remote_adapter"
+    adapter_root = ROOT / "apps" / "evidence-lane-remote-adapter"
     adapter_package = json.loads((adapter_root / "package.json").read_text(encoding="utf-8"))
     adapter_readme = (adapter_root / "README.md").read_text(encoding="utf-8")
     openrouter_test = (
@@ -389,14 +388,14 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
         ROOT / "plugins" / "evidence-lane-plugin" / "scripts" / "build_prompt_studio_index.py"
     ).read_text(encoding="utf-8")
     assert (
-        '"plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-retrieval.ts"'
+        '"apps/evidence-lane-remote-adapter/app/_data/studio-retrieval.ts"'
         in index_builder
     )
 
     rag_index = json.loads((APP / "_data" / "studio-rag-index.json").read_text(encoding="utf-8"))
     indexed_paths = {source["path"] for source in rag_index["sources"]}
     assert (
-        "plugins/evidence-lane-plugin/remote_adapter/app/_data/studio-retrieval.ts"
+        "apps/evidence-lane-remote-adapter/app/_data/studio-retrieval.ts"
         not in indexed_paths
     )
 
@@ -572,10 +571,8 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
         "/license",
         "/copyright",
         "/credits",
-        "/commands",
         "/third-party",
-        "/helper",
-        "/tunnel",
+            "/tunnel",
     ):
         assert (APP / route.removeprefix("/") / "page.tsx").is_file()
     for label in (
@@ -584,14 +581,12 @@ def test_home_story_collapsed_delta_and_canonical_legal_footer_are_explicit() ->
         "Skills",
         "Native MCP",
         "Hooks",
-        "Commands",
         "License",
         "Copyright",
         "Terms and conditions",
         "Third-party licenses and rights",
         "Security",
         "Human contributors",
-        "User Helper Guide",
         "User Tunnel Guide",
     ):
         assert f">{label}</Link>" in footer

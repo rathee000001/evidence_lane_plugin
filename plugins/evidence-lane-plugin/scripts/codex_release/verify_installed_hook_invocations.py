@@ -258,7 +258,7 @@ class _AppServerClient:
     ) -> None:
         environment = os.environ.copy()
         environment["CODEX_HOME"] = str(codex_home)
-        environment["EVIDENCE_LANE_DATA_ROOT"] = str(data_root)
+        environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(data_root)
         environment["OPENAI_API_KEY"] = "row174-loopback-only"
         # Fail closed against accidental remote traffic.  The custom provider
         # below bypasses these dead proxies only for the explicit loopback URL.
@@ -432,7 +432,7 @@ def _workspace_hook_rows(
     *,
     plugin_selector: str,
     workspace: Path,
-) -> dict[str, dict[str, Any]]:
+) -> dict[str, list[dict[str, Any]]]:
     """Return one clean trusted registry-derived inventory keyed by host event."""
 
     result = reply.get("result")
@@ -457,24 +457,39 @@ def _workspace_hook_rows(
         for row in entry.get("hooks") or []
         if isinstance(row, dict) and row.get("pluginId") == plugin_selector
     ]
-    by_host = {str(row.get("eventName") or ""): row for row in rows}
-    if (
-        set(by_host) != set(_CANONICAL_TO_HOST.values())
-        or len(rows) != len(_CANONICAL_TO_HOST)
-    ):
+    by_host: dict[str, list[dict[str, Any]]] = {
+        host_event: [] for host_event in _CANONICAL_TO_HOST.values()
+    }
+    for row in rows:
+        host_event = str(row.get("eventName") or "")
+        if host_event not in by_host:
+            raise RuntimeError("INSTALLED_HOOK_EVENT_INVENTORY_MISMATCH")
+        by_host[host_event].append(row)
+    if any(not group for group in by_host.values()) or len(
+        {str(row.get("key") or "") for row in rows}
+    ) != len(rows):
         raise RuntimeError("INSTALLED_HOOK_EVENT_INVENTORY_MISMATCH")
-    for host_event, row in by_host.items():
-        if (
-            row.get("source") != "plugin"
-            or row.get("isManaged") is not False
-            or row.get("trustStatus") != "trusted"
-            or row.get("handlerType") != "command"
-            or not isinstance(row.get("enabled"), bool)
-            or not str(row.get("key") or "").startswith(f"{plugin_selector}:")
-            or not str(row.get("currentHash") or "").startswith("sha256:")
-            or not str(row.get("sourcePath") or "")
-        ):
-            raise RuntimeError(f"INSTALLED_HOOK_AUTHORITY_MISMATCH:{host_event}")
+    for host_event, group in by_host.items():
+        enabled_states: set[bool] = set()
+        for row in group:
+            if (
+                row.get("source") != "plugin"
+                or row.get("isManaged") is not False
+                or row.get("trustStatus") != "trusted"
+                or row.get("handlerType") != "command"
+                or not isinstance(row.get("enabled"), bool)
+                or not str(row.get("key") or "").startswith(f"{plugin_selector}:")
+                or not str(row.get("currentHash") or "").startswith("sha256:")
+                or not str(row.get("sourcePath") or "")
+            ):
+                raise RuntimeError(f"INSTALLED_HOOK_AUTHORITY_MISMATCH:{host_event}")
+            enabled_states.add(bool(row["enabled"]))
+        if len(enabled_states) != 1:
+            raise RuntimeError(f"INSTALLED_HOOK_SPLIT_STATE:{host_event}")
+        by_host[host_event] = sorted(
+            group,
+            key=lambda row: str(row.get("key") or ""),
+        )
     return by_host
 
 
@@ -560,7 +575,7 @@ def _set_progressive_hook_state(
             )
             target = before[host_event]
             states_before = {
-                name: bool(row["enabled"]) for name, row in before.items()
+                name: bool(rows[0]["enabled"]) for name, rows in before.items()
             }
             mutation_required = states_before[host_event] is not enabled
             config_version = None
@@ -580,10 +595,11 @@ def _set_progressive_hook_state(
                             {
                                 "keyPath": "hooks.state",
                                 "value": {
-                                    str(target["key"]): {
-                                        "trusted_hash": str(target["currentHash"]),
+                                    str(row["key"]): {
+                                        "trusted_hash": str(row["currentHash"]),
                                         "enabled": enabled,
                                     }
+                                    for row in target
                                 },
                                 "mergeStrategy": "upsert",
                             }
@@ -610,7 +626,9 @@ def _set_progressive_hook_state(
                 plugin_selector=plugin_selector,
                 workspace=workspace,
             )
-            states_after = {name: bool(row["enabled"]) for name, row in after.items()}
+            states_after = {
+                name: bool(rows[0]["enabled"]) for name, rows in after.items()
+            }
             if states_after[host_event] is not enabled:
                 raise RuntimeError("PROGRESSIVE_HOOK_STATE_NOT_PERSISTED")
             if any(
@@ -619,10 +637,23 @@ def _set_progressive_hook_state(
             ):
                 raise RuntimeError("UNRELATED_HOOK_STATE_MUTATED")
             if any(
-                after[name].get("key") != row.get("key")
-                or after[name].get("currentHash") != row.get("currentHash")
-                or after[name].get("trustStatus") != "trusted"
-                for name, row in before.items()
+                [
+                    (
+                        row.get("key"),
+                        row.get("currentHash"),
+                        row.get("trustStatus"),
+                    )
+                    for row in after[name]
+                ]
+                != [
+                    (
+                        row.get("key"),
+                        row.get("currentHash"),
+                        row.get("trustStatus"),
+                    )
+                    for row in rows
+                ]
+                for name, rows in before.items()
             ):
                 raise RuntimeError("INSTALLED_HOOK_IDENTITY_DRIFTED")
             config_after = hashlib.sha256(config_path.read_bytes()).hexdigest().upper()
@@ -635,6 +666,7 @@ def _set_progressive_hook_state(
                 "enabled_before": states_before[host_event],
                 "enabled_after": states_after[host_event],
                 "enabled_hook_count_after": sum(states_after.values()),
+                "target_handler_action_count": len(target),
                 "all_hooks_enabled_after": all(states_after.values()),
                 "disabled_events_after": sorted(
                     name for name, state in states_after.items() if not state
@@ -645,10 +677,12 @@ def _set_progressive_hook_state(
                 "config_sha256_before": config_before,
                 "config_sha256_after": config_after,
                 "unrelated_hook_state_mutated": False,
-                "hook_key_sha256": hashlib.sha256(
-                    str(target["key"]).encode("utf-8")
+                "handler_key_inventory_sha256": hashlib.sha256(
+                    _json_bytes([str(row["key"]) for row in target])
                 ).hexdigest().upper(),
-                "current_hash": str(target["currentHash"]),
+                "handler_current_hash_inventory_sha256": hashlib.sha256(
+                    _json_bytes([str(row["currentHash"]) for row in target])
+                ).hexdigest().upper(),
                 "raw_config_or_hook_path_included": False,
             }
             body["receipt_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()

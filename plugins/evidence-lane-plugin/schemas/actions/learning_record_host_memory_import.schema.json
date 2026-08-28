@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "learning_record_host_memory_import",
+  "title": "Record host-memory provenance",
+  "description": "Explicitly seal one nonauthoritative host-memory provenance receipt and link only its bounded locator to the governed Plan context; automatic import and promotion remain forbidden.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "source_kind": {
+        "title": "Source Kind",
+        "type": "string"
+      },
+      "source_locator": {
+        "title": "Source Locator",
+        "type": "string"
+      },
+      "source_record_sha256": {
+        "title": "Source Record Sha256",
+        "type": "string"
+      },
+      "source_context_id": {
+        "title": "Source Context Id",
+        "type": "string"
+      },
+      "observed_at": {
+        "title": "Observed At",
+        "type": "string"
+      },
+      "imported_at": {
+        "title": "Imported At",
+        "type": "string"
+      },
+      "imported_by": {
+        "title": "Imported By",
+        "type": "string"
+      },
+      "purpose": {
+        "title": "Purpose",
+        "type": "string"
+      },
+      "task_id": {
+        "title": "Task Id",
+        "type": "string"
+      },
+      "delta_id": {
+        "title": "Delta Id",
+        "type": "string"
+      },
+      "pv_ref": {
+        "title": "Pv Ref",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "source_kind",
+      "source_locator",
+      "source_record_sha256",
+      "source_context_id",
+      "observed_at",
+      "imported_at",
+      "imported_by",
+      "purpose",
+      "task_id",
+      "delta_id",
+      "pv_ref"
+    ],
+    "title": "learning_record_host_memory_importArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "learning_record_host_memory_importDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-learning",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "learning_record_host_memory_import"
+    },
+    "internal_sdk": {
+      "module_id": "agent_learning",
+      "operation": "record_host_memory_import",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-host-memory-import",
+        "order": 5
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "2340148A3D7012E226E918546878ACBC8A363B768AC665E3FB33292A03E417F0",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "19B162D30A3DFFFECDC4A03123DE706E451CB37ED80B43E50DC92C3704520AC9"
+}

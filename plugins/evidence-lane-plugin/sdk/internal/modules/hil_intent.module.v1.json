@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.hil_intent",
+  "source_path": "src/evidence_lane_plugin/hil_intent.py",
+  "source_sha256": "43C786051D3CC8ED72E3CD522C80DC45E8A97E26A5493427C8DEAD9D8BEF9CEB",
+  "source_bytes": 2852,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "EDC9D2C81DDBC939FCFE3B4AAD64F3D5F24BF6CD086E3F5CD9EB9FDF4DB11952"
+}

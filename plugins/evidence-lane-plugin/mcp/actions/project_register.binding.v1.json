@@ -1,0 +1,148 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "project_register",
+  "title": "Register one Git project",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "display_name": {
+        "title": "Display Name",
+        "type": "string"
+      },
+      "repository_path": {
+        "title": "Repository Path",
+        "type": "string"
+      },
+      "expected_owner": {
+        "title": "Expected Owner",
+        "type": "string"
+      },
+      "expected_name": {
+        "title": "Expected Name",
+        "type": "string"
+      },
+      "allowed_branches": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Allowed Branches",
+        "type": "array"
+      },
+      "project_authority_root": {
+        "title": "Project Authority Root",
+        "type": "string"
+      },
+      "sensitivity": {
+        "default": "PRIVATE",
+        "title": "Sensitivity",
+        "type": "string"
+      },
+      "capture_route": {
+        "default": "GOVERNED_PROJECT_FULL",
+        "title": "Capture Route",
+        "type": "string"
+      },
+      "project_authority_migration_confirmation": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Project Authority Migration Confirmation"
+      },
+      "expected_accepted_pv": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Accepted Pv"
+      },
+      "expected_pointer_generation": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Pointer Generation"
+      },
+      "selected_by": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Selected By"
+      }
+    },
+    "required": [
+      "project_id",
+      "display_name",
+      "repository_path",
+      "expected_owner",
+      "expected_name",
+      "allowed_branches",
+      "project_authority_root"
+    ],
+    "title": "project_registerArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "project_registerDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "E0CE5FCA519A5D6ED268E6045FDC22A0F133E7E7DD1742C6B929ED7FCEE9F616",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-boot",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "project_register"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-boot",
+        "workflow": "project-enrollment",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/project_register.action.v1.json",
+  "sdk_action_binding_sha256": "A7CF6AD9806516AAD9C37846CD59606DEA5650988231CEE3FB9F471783517071",
+  "public_action_schema": "schemas/actions/project_register.schema.json",
+  "public_action_schema_sha256": "4495A91CA6C9E9A2420839E3B3D7F8B47F088776557C93ADE742B9C84B00C036",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "DFBB5C9FB6C254BC57EA86C09825A69E98175ECAB2614B82898ED899FC0F7932"
+}

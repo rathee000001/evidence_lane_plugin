@@ -1,0 +1,12 @@
+{
+    "schema":  "evidence-lane.windows-hook-host-build.v1",
+    "status":  "PASS",
+    "source":  "scripts/codex_release/windows_hook_host/EvidenceLaneHookHost.cs",
+    "source_sha256":  "937994F4BEC7AB5CE3A836A3CB2120307FDFDD3B37AC1031E870AD804E20ABF4",
+    "output":  "hooks/EvidenceLaneHookHost.exe",
+    "output_sha256":  "3B5B8F5F5DA1A865067160D1D1F899717443930B364C67C44E439DC55D1417D3",
+    "pe_subsystem":  "WINDOWS_CUI_HOST_MANAGED",
+    "pe_subsystem_value":  3,
+    "create_no_window":  true,
+    "raw_payload_persisted":  false
+}

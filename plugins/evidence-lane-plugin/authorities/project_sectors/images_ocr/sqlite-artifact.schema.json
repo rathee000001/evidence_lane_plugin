@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "images_ocr SQLITE_AUTHORITY artifact receipt",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "artifact_path",
+    "artifact_role",
+    "syntax",
+    "bytes",
+    "sha256",
+    "validator",
+    "status"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "images_ocr"
+    },
+    "artifact_path": {
+      "const": "images_ocr_sector_v001.sqlite"
+    },
+    "artifact_role": {
+      "const": "SQLITE_AUTHORITY"
+    },
+    "syntax": {
+      "const": "SQLITE3_FTS5"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "validator": {
+      "const": "lane_engine.lane_schema_builder_projection"
+    },
+    "status": {
+      "const": "PASS"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "2E6F111D7783228767A55DF551F3D40651591A4B06B456361852035E53B799BB"
+}

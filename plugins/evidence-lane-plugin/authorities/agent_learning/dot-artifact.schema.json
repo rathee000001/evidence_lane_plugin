@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agent_learning DOT_TRAVERSAL_MAP artifact receipt",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "artifact_path",
+    "artifact_role",
+    "syntax",
+    "bytes",
+    "sha256",
+    "validator",
+    "status"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "agent_learning"
+    },
+    "artifact_path": {
+      "const": "agent-learning.dot"
+    },
+    "artifact_role": {
+      "const": "DOT_TRAVERSAL_MAP"
+    },
+    "syntax": {
+      "const": "GRAPHVIZ_DOT"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "validator": {
+      "const": "authority_support.validate_authority_support"
+    },
+    "status": {
+      "const": "PASS"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "BBC54024C1A0D68D83031DA857BFFA2A334DF3C4EADA2129587810356BB9F9C1"
+}

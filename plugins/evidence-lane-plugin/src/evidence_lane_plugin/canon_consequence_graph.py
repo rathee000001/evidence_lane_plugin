@@ -28,6 +28,7 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
+from .graph_pipeline import SemanticGraph
 from .lanes import lane_artifact_contract, lane_schema_asset
 from .project_authority import resolved_plan_runtime_path
 from .timeutil import utc_now
@@ -125,11 +126,7 @@ def _validate_sha(value: Any, *, field: str) -> str:
 
 def _schema_asset() -> tuple[Path, str]:
     candidates = (
-        Path(__file__).resolve().parent
-        / "schemas"
-        / "canon"
-        / "canon-consequence-graph.v1.sql",
-        Path(__file__).resolve().parents[3]
+        Path(__file__).resolve().parents[2]
         / "schemas"
         / "canon"
         / "canon-consequence-graph.v1.sql",
@@ -485,36 +482,24 @@ def _canon_operational_rows(
     return edges, packets, digest
 
 
-def _render_mermaid(
+def _render_graph_pair(
     nodes: Iterable[Mapping[str, Any]], edges: Iterable[Mapping[str, Any]]
-) -> str:
-    lines = ["flowchart LR"]
+) -> tuple[str, str, dict[str, Any]]:
+    graph = SemanticGraph(
+        "CanonConsequence",
+        direction="LR",
+        role="EXECUTABLE_WORKFLOW",
+    )
     for node in nodes:
-        label = f"{node['node_kind']}\\n{str(node['canonical_locator'])[:88]}"
-        label = label.replace('"', "'")
-        lines.append(f'  {node["node_id"]}["{label}"]')
+        label = f"{node['node_kind']}\n{str(node['canonical_locator'])[:88]}"
+        graph.add_node(str(node["node_id"]), label, "semantic")
     for edge in edges:
-        lines.append(
-            f"  {edge['source_node_id']} -->|{edge['relation']}| {edge['destination_node_id']}"
+        graph.add_edge(
+            str(edge["source_node_id"]),
+            str(edge["destination_node_id"]),
+            str(edge["relation"]),
         )
-    return "\n".join(lines) + "\n"
-
-
-def _render_dot(
-    nodes: Iterable[Mapping[str, Any]], edges: Iterable[Mapping[str, Any]]
-) -> str:
-    lines = ["digraph CanonConsequence {", "  rankdir=LR;"]
-    for node in nodes:
-        label = f"{node['node_kind']}\\n{str(node['canonical_locator'])[:88]}"
-        label = label.replace('"', "'")
-        lines.append(f'  {node["node_id"]} [label="{label}"];')
-    for edge in edges:
-        lines.append(
-            f"  {edge['source_node_id']} -> {edge['destination_node_id']} "
-            f'[label="{edge["relation"]}"];'
-        )
-    lines.append("}")
-    return "\n".join(lines) + "\n"
+    return graph.render_pair()
 
 
 def _write_graph_sqlite(
@@ -1106,11 +1091,14 @@ def bootstrap_canon_consequence_graph(
             nodes=nodes,
             edges=edges,
         )
+        graph_mmd, graph_dot, graph_pipeline_receipt = _render_graph_pair(
+            nodes, edges
+        )
         (temporary_root / "graph.mmd").write_text(
-            _render_mermaid(nodes, edges), encoding="utf-8", newline="\n"
+            graph_mmd, encoding="utf-8", newline="\n"
         )
         (temporary_root / "graph.dot").write_text(
-            _render_dot(nodes, edges), encoding="utf-8", newline="\n"
+            graph_dot, encoding="utf-8", newline="\n"
         )
         members = [
             {
@@ -1130,6 +1118,7 @@ def bootstrap_canon_consequence_graph(
             "node_kinds": node_kinds,
             "edge_relations": edge_relations,
             "members": members,
+            "graph_pipeline_receipt": graph_pipeline_receipt,
             "raw_plan_or_learning_payload_returned": False,
         }
         atomic_write_json(temporary_root / "manifest.json", manifest)

@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.runtime_continuity",
+  "source_path": "src/evidence_lane_plugin/runtime_continuity.py",
+  "source_sha256": "CEEF28DB1006CA36DE3EA07ACC2A97C219E8C9CC402DACE68AAAA04F45DB77C4",
+  "source_bytes": 22068,
+  "role": "HOST_RUNTIME_AND_CONTINUITY",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "28583E91F289AD0A3EEF22635A064B908AFA27DEA907BF69911D89AEB59BD5DE"
+}

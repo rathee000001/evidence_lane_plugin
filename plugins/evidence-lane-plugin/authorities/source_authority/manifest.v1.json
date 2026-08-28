@@ -1,0 +1,294 @@
+{
+  "schema": "evidence-lane.installed-authority-surface.v1",
+  "status": "PASS",
+  "authority_id": "source_authority",
+  "database": "source_authority.sqlite",
+  "database_sha256": "ECB2F8728B74F5F65BCED30F07F253520643BC7D767F18492BED7C1A124F7453",
+  "database_integrity": "ok",
+  "schema_sha256": "BD059145422ECF8FDA5B52DCFA336D923CC9C27C5AE97053943CFC7F73F5DAFB",
+  "table_count": 56,
+  "fts5_tables": [
+    "authority_index_fts",
+    "source_authority_fts"
+  ],
+  "members": [
+    {
+      "path": "authorities/source_authority/build-refresh-contract.schema.json",
+      "bytes": 569,
+      "sha256": "FD109AE8DD615B8E197DF1BD8677E8B9A9B2403EE801A48813BBB3BC59791E17"
+    },
+    {
+      "path": "authorities/source_authority/builder.py",
+      "bytes": 317,
+      "sha256": "9A3CC7A0315466E6C6E47D0ADEC7920413A7576256D1EE74C1751CC7F81CDF37"
+    },
+    {
+      "path": "authorities/source_authority/dot-artifact.schema.json",
+      "bytes": 976,
+      "sha256": "1B59392C16AEF7E1FEA35C2D67D2E7125490C2EF6948CC6A0E519EC74E94C70E"
+    },
+    {
+      "path": "authorities/source_authority/manifest.schema.json",
+      "bytes": 1048,
+      "sha256": "6FFDCF99061342F77C7863C57882E8E6385DEA23B9011FCEB979399264465F38"
+    },
+    {
+      "path": "authorities/source_authority/mmd-artifact.schema.json",
+      "bytes": 989,
+      "sha256": "5EFB29ED906ECEFD84D0D8BA8ECC79988C8473145F7AE548A9B36EBD7013B8C6"
+    },
+    {
+      "path": "authorities/source_authority/pointer-contract.schema.json",
+      "bytes": 552,
+      "sha256": "66806EF03958A89BF54AE4BCA501EED60F5613AFDF4E520D3F84C4A0525B7220"
+    },
+    {
+      "path": "authorities/source_authority/pointer-contract.v1.json",
+      "bytes": 436,
+      "sha256": "E68086DA331B5906E25AEE6BBDF590C9AFE21D4E9FF35A0B4191805D46EBDBF2"
+    },
+    {
+      "path": "authorities/source_authority/reader-contract.schema.json",
+      "bytes": 771,
+      "sha256": "16C7541DC747915EDB2617E513FA46E99B703EDDB9E52AFDB94D0F14E3999AB1"
+    },
+    {
+      "path": "authorities/source_authority/reader.py",
+      "bytes": 321,
+      "sha256": "53800346128810F11CF313956F5CBAD81B2103148D154AD958324FBDDF6420B2"
+    },
+    {
+      "path": "authorities/source_authority/README.md",
+      "bytes": 353,
+      "sha256": "DF65D120A39E2D4EB65D5CEED571CD19C04110AFAB4C1F59C768D0F4EF6AD87F"
+    },
+    {
+      "path": "authorities/source_authority/refresh-receipt.schema.json",
+      "bytes": 890,
+      "sha256": "5D24A740BE56FF8010D5A5335EA1EE3E039534B1A334AD562D51D80737C83ECA"
+    },
+    {
+      "path": "authorities/source_authority/runtime-binding.schema.json",
+      "bytes": 602,
+      "sha256": "D7B04679F5783848BF579C6855455B29F04E436AAD7389A6D1D0B08534D43A75"
+    },
+    {
+      "path": "authorities/source_authority/runtime.py",
+      "bytes": 335,
+      "sha256": "23B6BC4A9EC4E04EC1DF3DD2A2DE274BB56E555497A86D93D48CB2CE9C6FD0F0"
+    },
+    {
+      "path": "authorities/source_authority/schema.sql",
+      "bytes": 28923,
+      "sha256": "E81DCE1C6B96F55F66AED422C34A10B780F3FC3FE9B704ED53784307B709F2BD"
+    },
+    {
+      "path": "authorities/source_authority/source_authority.dot",
+      "bytes": 147398,
+      "sha256": "DA2369C6104A5A1D799ADA207B97F7E9075DC057D878A9AC829796065EDDAA2C"
+    },
+    {
+      "path": "authorities/source_authority/source_authority.mmd",
+      "bytes": 109917,
+      "sha256": "63B868964E11F5B379C175946218814BEB6E640DCF42BE20F46DEBCB61F7BF7C"
+    },
+    {
+      "path": "authorities/source_authority/source_authority.sqlite",
+      "bytes": 552960,
+      "sha256": "ECB2F8728B74F5F65BCED30F07F253520643BC7D767F18492BED7C1A124F7453"
+    },
+    {
+      "path": "authorities/source_authority/source_authority.tools.json",
+      "bytes": 20302,
+      "sha256": "F9092980F818DC52494A1288F9411492360C86787FCE26C5B2E9F3BF0137990B"
+    },
+    {
+      "path": "authorities/source_authority/sqlite-artifact.schema.json",
+      "bytes": 967,
+      "sha256": "E6B2C92AE2978B6E5E2B2068DA7BA85DCC3D895FEAE74C4B09038E97D937D9BE"
+    },
+    {
+      "path": "authorities/source_authority/sqlite-schema.v1.json",
+      "bytes": 128864,
+      "sha256": "651E887FD4FD1A0936FF3EEB4D1BB2D0F062925F8E672C30CDF29E35EAC18ADF"
+    },
+    {
+      "path": "authorities/source_authority/tools.schema.json",
+      "bytes": 544,
+      "sha256": "C1506CA2DF46FBA0BFEEE19ED8CBCEDB4E52AB735DBE839B8918C70359C4B371"
+    }
+  ],
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/source_authority.py": "D717E167B4D23E87F2A6A9AC34ACD1CEC67A95A7D495FA6149EAF2460025B95C",
+    "src/evidence_lane_plugin/source_intake.py": "F8B9EA79F70CC9A68D1648103F1947259F09D4AF679475291A66CB9F2B47E85B",
+    "src/evidence_lane_plugin/source_sqlite.py": "BF37120483C38595A70C43C9B3AAA3702C5B066FDBD9EC9788292D6A1DC65913",
+    "src/evidence_lane_plugin/source_graph.py": "F35D98CC8F32A21E767627DBFE5CA125776AA03BC1158187EB040FDF29A9E708",
+    "src/evidence_lane_plugin/source_git_history.py": "F36832D0B522AE9253306B109A840B13AEB8460768A3A2F67D6ADE0758C77F07",
+    "src/evidence_lane_plugin/source_identity.py": "0905E1CBC5217A71714586E0D30FB2116D926E00EB17F2AFC9FD4D1A1058700C",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "source_authority",
+    "source_count": 1,
+    "node_count": 1,
+    "indexed_table_count": 1,
+    "indexed_tables": [
+      "registry_meta"
+    ],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:51.525882Z",
+    "receipt_sha256": "00E226BFB4B69088FC255183D2C929F58859B43A686C5536330FD7563B14116C"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "source_authority_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 534,
+    "edge_count": 597,
+    "group_count": 1,
+    "semantic_topology_sha256": "C976AFD0C56F7A47281B5BDC010D2E49FFE302A422002C2773A365DB8B0FDC25",
+    "mmd_sha256": "63B868964E11F5B379C175946218814BEB6E640DCF42BE20F46DEBCB61F7BF7C",
+    "dot_sha256": "DA2369C6104A5A1D799ADA207B97F7E9075DC057D878A9AC829796065EDDAA2C",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "3540FFA48B5E64BB4958F0EE60955D75744E41E87D080AD7D5EC08F02DF45026",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 534,
+      "edge_count": 597,
+      "weak_component_count": 1,
+      "strong_component_count": 534,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 56
+        },
+        {
+          "node_id": "support_table_source_git_snapshot",
+          "in_degree": 5,
+          "out_degree": 35
+        },
+        {
+          "node_id": "support_table_source_git_file_change",
+          "in_degree": 9,
+          "out_degree": 19
+        },
+        {
+          "node_id": "support_table_source_object",
+          "in_degree": 13,
+          "out_degree": 13
+        },
+        {
+          "node_id": "support_table_source_graph_snapshot",
+          "in_degree": 8,
+          "out_degree": 17
+        },
+        {
+          "node_id": "support_table_source_graph_node",
+          "in_degree": 5,
+          "out_degree": 18
+        },
+        {
+          "node_id": "support_table_intake_batch",
+          "in_degree": 13,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_source_git_commit",
+          "in_degree": 7,
+          "out_degree": 14
+        },
+        {
+          "node_id": "support_table_source_git_hunk",
+          "in_degree": 6,
+          "out_degree": 15
+        },
+        {
+          "node_id": "support_table_source_graph_edge",
+          "in_degree": 1,
+          "out_degree": 19
+        },
+        {
+          "node_id": "support_table_source_git_changed_line",
+          "in_degree": 1,
+          "out_degree": 18
+        },
+        {
+          "node_id": "support_table_source_sqlite_receipt",
+          "in_degree": 2,
+          "out_degree": 17
+        },
+        {
+          "node_id": "support_table_source_git_impact",
+          "in_degree": 1,
+          "out_degree": 16
+        },
+        {
+          "node_id": "support_table_source_graph_diff",
+          "in_degree": 1,
+          "out_degree": 16
+        },
+        {
+          "node_id": "support_table_source_archive_receipt",
+          "in_degree": 1,
+          "out_degree": 15
+        },
+        {
+          "node_id": "support_table_source_graph_file_coverage",
+          "in_degree": 1,
+          "out_degree": 15
+        },
+        {
+          "node_id": "support_table_source_custom_schema_mapping",
+          "in_degree": 1,
+          "out_degree": 14
+        },
+        {
+          "node_id": "support_table_source_graph_impact",
+          "in_degree": 1,
+          "out_degree": 13
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_source_git_rename",
+          "in_degree": 1,
+          "out_degree": 12
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "11C2AFFF7F5D761BCEE7CA48F90344C1707E82E167E7C296F6DCE8D7A91C4111",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "436CB4CD8C42E549D879EA2ED36DD809E143270FCA6A54638BEE20DF0122C0B0"
+  },
+  "live_project_bytes_in_template": false,
+  "authority_merged_with_sector_or_peer": false,
+  "receipt_sha256": "E863BB01B5A15BDA69C08C0256F927CC6C08A5D92E8024ECF7F12E3D81285BD5"
+}

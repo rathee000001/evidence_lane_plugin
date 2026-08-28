@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "lane_search",
+  "title": "Search one lane with FTS5, BM25, and TF-IDF",
+  "description": "Search one live project-root sector lane using SQLite FTS5 MATCH, FTS5/BM25, explicit materialized TF-IDF, or deterministic reciprocal-rank hybrid retrieval. Results include source/chunk hashes, parser state, live-root authority, and freshness. Accepted HIL ZIPs and candidates are not opened.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "lane": {
+        "title": "Lane",
+        "type": "string"
+      },
+      "query": {
+        "title": "Query",
+        "type": "string"
+      },
+      "limit": {
+        "default": 20,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "retrieval": {
+        "default": "hybrid",
+        "title": "Retrieval",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane",
+      "query"
+    ],
+    "title": "lane_searchArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "lane_searchDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "lane_search"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "lane-evidence-read",
+        "order": 8
+      },
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "bounded-source-retrieval",
+        "order": 14
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "298AA70EF6AA1227B07667AA4F7EB49DB2B8155E6ED2BDF56A68DA77E9C29EC0",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "C44C99D5407F2D5DE797D2FA79C63CB0931B4A0317CB77AF0885BCA1B2DE3D1C"
+}

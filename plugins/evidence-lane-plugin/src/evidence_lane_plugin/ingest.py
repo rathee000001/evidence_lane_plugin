@@ -20,6 +20,7 @@ from .constants import (
     DEFAULT_MAX_FILE_BYTES,
 )
 from .dependency_detection import parse_pnpm_lock_dependencies
+from .code_toolchain import extract_tree_sitter_facts
 from .errors import EvidenceLaneError, require
 from .hashing import sha256_bytes
 from .source_policy import content_exclusion_reason, path_exclusion_reason
@@ -484,8 +485,11 @@ def _dependency_facts(path: str, text: str) -> list[dict[str, str | None]]:
 def extract_code_lane_facts(path: str, text: str) -> list[dict[str, Any]]:
     """Expose one parser law to both the primary and per-lane code authorities."""
     family = _CODE_FAMILIES.get(Path(path).suffix.lower(), "text-or-binary")
+    tree_sitter = extract_tree_sitter_facts(path, text)
     if family == "python":
         symbols, imports = _python_facts(text)
+    elif tree_sitter.status == "PASS":
+        symbols, imports = tree_sitter.symbols, tree_sitter.imports
     elif family in {"javascript", "typescript", "svelte", "vue"}:
         symbols, imports = _script_facts(text)
     else:
@@ -514,6 +518,48 @@ def extract_code_lane_facts(path: str, text: str) -> list[dict[str, Any]]:
                 },
             }
         )
+    tree_sitter_facts: list[dict[str, Any]] = [
+        {
+            "kind": "code_parser_receipt",
+            "locator": path,
+            "payload": {
+                "status": tree_sitter.status,
+                "parser": tree_sitter.parser,
+                "language": tree_sitter.language,
+                "nodes_visited": tree_sitter.nodes_visited,
+                "symbol_count": len(tree_sitter.symbols),
+                "import_count": len(tree_sitter.imports),
+                "call_count": len(tree_sitter.calls),
+                "diagnostic_count": len(tree_sitter.diagnostics),
+                "offline_only": tree_sitter.offline_only,
+                "auto_download_used": tree_sitter.auto_download_used,
+                "extraction_sha256": tree_sitter.extraction_sha256,
+                "fallback_parser": (
+                    "python-ast"
+                    if family == "python"
+                    else "script-regex"
+                    if family in {"javascript", "typescript", "svelte", "vue"}
+                    else None
+                ),
+            },
+        },
+        *(
+            {
+                "kind": "code_call",
+                "locator": path,
+                "payload": row,
+            }
+            for row in tree_sitter.calls
+        ),
+        *(
+            {
+                "kind": "code_parser_diagnostic",
+                "locator": path,
+                "payload": row,
+            }
+            for row in tree_sitter.diagnostics
+        ),
+    ]
     return [
         *({"kind": "code_symbol", "locator": path, "payload": row} for row in symbols),
         *({"kind": "code_import", "locator": path, "payload": row} for row in imports),
@@ -526,6 +572,7 @@ def extract_code_lane_facts(path: str, text: str) -> list[dict[str, Any]]:
             for row in dependency_facts
         ),
         *detector_facts,
+        *tree_sitter_facts,
     ]
 
 

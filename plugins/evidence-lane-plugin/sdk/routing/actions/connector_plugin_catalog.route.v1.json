@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "connector_plugin_catalog",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-plugin",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "connector_plugin_catalog"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-additional-plugin",
+        "workflow": "register-connector",
+        "order": 1
+      },
+      {
+        "owner_skill": "evi-plugin",
+        "workflow": "inspect-connectors",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "875A7F67DDD477AF8D3B3BCA695ED624EE5317045BBFBBC8A93C5132AF0FBB5E",
+  "sdk_action_binding": "sdk/actions/connector_plugin_catalog.action.v1.json",
+  "mcp_action_binding": "mcp/actions/connector_plugin_catalog.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "116878210F6A0080F5452E636DCDBCFD65ED4EAC568A7E747202BA18D3B53343"
+}

@@ -2,9 +2,11 @@
 param(
     [string]$TunnelClientSource = "",
     [string]$TunnelClientDownloadUri = "$env:EVIDENCE_LANE_TUNNEL_CLIENT_DOWNLOAD_URI",
+    [string]$TunnelClientLicenseSource = "$env:EVIDENCE_LANE_TUNNEL_CLIENT_LICENSE_SOURCE",
+    [string]$TunnelClientLicenseDownloadUri = "$env:EVIDENCE_LANE_TUNNEL_CLIENT_LICENSE_URI",
+    [string]$ExpectedTunnelClientLicenseSha256 = "$env:EVIDENCE_LANE_TUNNEL_CLIENT_LICENSE_SHA256",
     [string]$TunnelId = "",
     [string]$PluginRoot = "",
-    [string]$DataRoot = "$env:EVIDENCE_LANE_DATA_ROOT",
     [string]$RuntimeControlRoot = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin",
     [ValidateSet(
         "main-git-release",
@@ -12,6 +14,7 @@ param(
     )]
     [string]$SlotRole = "main-git-release",
     [string]$RuntimeRoot = "",
+    [string]$RuntimePython = "",
     [string]$ProfileName = "",
     [string]$TaskName = "",
     [string]$RuntimeKeyEnvelopeSource = "",
@@ -209,6 +212,40 @@ function Resolve-TunnelClientSource {
     throw "The pinned tunnel-client dependency is missing. Configure EVIDENCE_LANE_TUNNEL_CLIENT_DOWNLOAD_URI or provide -TunnelClientSource; no unverified binary will be installed."
 }
 
+function Resolve-TunnelClientLicenseSource {
+    if (-not [string]::IsNullOrWhiteSpace($TunnelClientLicenseSource)) {
+        $resolved = (Resolve-Path -LiteralPath $TunnelClientLicenseSource).Path
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($TunnelClientLicenseDownloadUri)) {
+        $licenseUri = [Uri]$TunnelClientLicenseDownloadUri
+        if (
+            $licenseUri.Scheme -ne "https" -or
+            -not [string]::IsNullOrWhiteSpace($licenseUri.UserInfo)
+        ) {
+            throw "The tunnel-client license URI must be credential-free HTTPS."
+        }
+        $dependencyRoot = Join-Path $RuntimeControlRoot "dependency-downloads"
+        New-Item -ItemType Directory -Path $dependencyRoot -Force | Out-Null
+        $resolved = Join-Path $dependencyRoot "tunnel-client-v0.0.10.LICENSE"
+        Invoke-WebRequest -Uri $licenseUri -OutFile $resolved -UseBasicParsing
+    }
+    else {
+        throw "The pinned tunnel-client requires an exact license source or credential-free license URI."
+    }
+    $expected = $ExpectedTunnelClientLicenseSha256.Trim().ToUpperInvariant()
+    if ($expected -notmatch '^[A-F0-9]{64}$') {
+        throw "The tunnel-client license requires an exact expected SHA-256."
+    }
+    $actual = (Get-FileHash -LiteralPath $resolved -Algorithm SHA256).Hash
+    if ($actual -ne $expected) {
+        throw "The tunnel-client license text does not match its expected SHA-256."
+    }
+    return [pscustomobject]@{
+        path = [IO.Path]::GetFullPath($resolved)
+        sha256 = $actual
+    }
+}
+
 function Resolve-PluginRoot {
     if (-not [string]::IsNullOrWhiteSpace($PluginRoot)) {
         return (Resolve-Path -LiteralPath $PluginRoot).Path
@@ -216,18 +253,55 @@ function Resolve-PluginRoot {
     return (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..")).Path
 }
 
-function Resolve-PythonCommand {
-    param([Parameter(Mandatory = $true)][string]$ExactPluginRoot)
+function Resolve-PrewarmedRuntime {
+    param(
+        [Parameter(Mandatory = $true)][string]$ExactPluginRoot,
+        [Parameter(Mandatory = $true)][string]$ExactRuntimeControlRoot,
+        [string]$RequestedRuntimePython
+    )
 
-    $privatePython = Join-Path $ExactPluginRoot ".venv\Scripts\python.exe"
-    if (Test-Path -LiteralPath $privatePython -PathType Leaf) {
-        return $privatePython
+    $runner = Join-Path $ExactPluginRoot "scripts\run_mcp.py"
+    $bootstrapPython = $RequestedRuntimePython
+    if ([string]::IsNullOrWhiteSpace($bootstrapPython)) {
+        $command = Get-Command python -ErrorAction SilentlyContinue
+        if ($null -eq $command) {
+            throw "The plugin bootstrap Python is unavailable; install the plugin runtime before the tunnel."
+        }
+        $bootstrapPython = $command.Source
     }
-    $command = Get-Command python -ErrorAction SilentlyContinue
-    if ($null -eq $command) {
-        throw "Python 3.11 or newer is required before installing the versioned secure MCP transport."
+    $bootstrapPython = [IO.Path]::GetFullPath($bootstrapPython)
+    if (-not (Test-Path -LiteralPath $bootstrapPython -PathType Leaf)) {
+        throw "The requested plugin runtime Python does not exist."
     }
-    return $command.Source
+    $prewarmText = (& $bootstrapPython $runner --prewarm-only `
+        --runtime-control-root $ExactRuntimeControlRoot `
+        --host-profile CODEX_DESKTOP | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($prewarmText)) {
+        throw "The complete hidden plugin runtime/toolchain prewarm failed before tunnel setup."
+    }
+    $prewarm = ($prewarmText -split "`r?`n" | Where-Object {
+        -not [string]::IsNullOrWhiteSpace($_)
+    } | Select-Object -Last 1) | ConvertFrom-Json
+    $runtimePython = [IO.Path]::GetFullPath([string]$prewarm.runtime_python)
+    $approvedRuntimeParent = [IO.Path]::GetFullPath(
+        (Join-Path $ExactRuntimeControlRoot "runtime\codex")
+    ) + [IO.Path]::DirectorySeparatorChar
+    if (
+        [string]$prewarm.schema -ne "evidence-lane.codex-native-runtime-prewarm.v1" -or
+        [string]$prewarm.status -ne "PASS" -or
+        [string]$prewarm.runtime_toolchain.schema -ne "evidence-lane.runtime-toolchain-prewarm.v1" -or
+        [string]$prewarm.runtime_toolchain.status -ne "PASS" -or
+        [int]$prewarm.runtime_toolchain.failure_count -ne 0 -or
+        -not $runtimePython.StartsWith($approvedRuntimeParent, [StringComparison]::OrdinalIgnoreCase) -or
+        -not (Test-Path -LiteralPath $runtimePython -PathType Leaf)
+    ) {
+        throw "The tunnel cannot use an incomplete, unprewarmed, or non-hidden plugin runtime."
+    }
+    return [pscustomobject]@{
+        python = $runtimePython
+        prewarm = $prewarm
+        toolchain = $prewarm.runtime_toolchain
+    }
 }
 
 function Protect-SecretDirectory {
@@ -303,6 +377,20 @@ function Resolve-TunnelId {
             }
         }
     }
+    if (
+        [string]::IsNullOrWhiteSpace($value) -and
+        (Test-Path -LiteralPath $profileFile -PathType Leaf)
+    ) {
+        $profileTunnelId = @(
+            Get-Content -LiteralPath $profileFile |
+            Where-Object { $_ -match '^\s*tunnel_id\s*:\s*"?(tunnel_[A-Za-z0-9]+)"?\s*$' } |
+            ForEach-Object { $Matches[1] }
+        )
+        if ($profileTunnelId.Count -eq 1) {
+            $value = [string]$profileTunnelId[0]
+            $script:tunnelIdReused = $true
+        }
+    }
     if ([string]::IsNullOrWhiteSpace($value)) {
         $value = (Read-Host "Tunnel ID from the OpenAI Platform tunnel page").Trim()
     }
@@ -338,31 +426,32 @@ function Write-LayeredChildLauncher {
     param(
         [Parameter(Mandatory = $true)][string]$Python,
         [Parameter(Mandatory = $true)][string]$Runner,
-        [Parameter(Mandatory = $true)][string]$ExactDataRoot
+        [Parameter(Mandatory = $true)][string]$ExactRuntimeControlRoot
     )
 
     $escapedPython = $Python.Replace("'", "''")
     $escapedRunner = $Runner.Replace("'", "''")
-    $escapedDataRoot = $ExactDataRoot.Replace("'", "''")
+    $escapedRuntimeControlRoot = $ExactRuntimeControlRoot.Replace("'", "''")
     $launcher = @"
 `$ErrorActionPreference = "Stop"
 `$env:EVIDENCE_LANE_MCP_EXPOSURE_PROFILE = "CODEX_INTERACTIVE_SUPPORT"
 `$env:EVIDENCE_LANE_PUBLIC_SITE_URL = "https://evidencelane.org"
-`$env:EVIDENCE_LANE_DATA_ROOT = '$escapedDataRoot'
+`$env:EVIDENCE_LANE_RUNTIME_CONTROL_ROOT = '$escapedRuntimeControlRoot'
+`$env:EVIDENCE_LANE_HOST_PROFILE = 'CODEX_DESKTOP'
 & '$escapedPython' '$escapedRunner' --transport stdio
 exit `$LASTEXITCODE
 "@
     Set-Content -LiteralPath $childTarget -Value $launcher -Encoding UTF8
 }
 
-function Assert-NoOtherActiveTunnel {
+function Remove-StoppedPriorTunnelRuntimes {
     param(
-        [Parameter(Mandatory = $true)][string]$ExactDataRoot,
+        [Parameter(Mandatory = $true)][string]$ExactRuntimeControlRoot,
         [Parameter(Mandatory = $true)][string]$ExactRuntimeRoot
     )
 
     $otherRuntimeRoots = @(
-        Get-ChildItem -LiteralPath $ExactDataRoot `
+        Get-ChildItem -LiteralPath $ExactRuntimeControlRoot `
             -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
             Where-Object {
                 [IO.Path]::GetFullPath($_.FullName) -ne $ExactRuntimeRoot
@@ -405,19 +494,27 @@ function Assert-NoOtherActiveTunnel {
                 $status.control_plane_poll_ready -eq $true -or
                 $status.process_running -eq $true
             ) {
-                throw "Another Evidence Lane tunnel is active. Stop it through the sealed slot operator before activating this slot."
+                throw "Another Evidence Lane tunnel is active; it must stop before replacement."
             }
         }
         catch {
-            if ($_.Exception.Message -like "Another Evidence Lane tunnel is active.*") {
+            if ($_.Exception.Message -like "Another Evidence Lane tunnel is active;*") {
                 throw
             }
             throw "A sibling Evidence Lane tunnel could not be proven stopped; activation is blocked."
         }
+        $resolvedOtherRoot = [IO.Path]::GetFullPath($otherRoot.FullName)
+        if (-not $resolvedOtherRoot.StartsWith(
+            ([IO.Path]::GetFullPath($ExactRuntimeControlRoot) + [IO.Path]::DirectorySeparatorChar),
+            [StringComparison]::OrdinalIgnoreCase
+        )) {
+            throw "A prior tunnel runtime escaped the hidden runtime-control root."
+        }
+        Remove-Item -LiteralPath $resolvedOtherRoot -Recurse -Force
     }
 }
 
-function Disable-StoppedPriorTunnelTasks {
+function Remove-StoppedPriorTunnelTasks {
     param([Parameter(Mandatory = $true)][string]$ExactTaskName)
 
     foreach ($priorTask in @(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object {
@@ -425,9 +522,11 @@ function Disable-StoppedPriorTunnelTasks {
         [string]$_.TaskName -ne $ExactTaskName
     })) {
         if ([string]$priorTask.State -eq "Running") {
-            throw "A prior Evidence Lane tunnel task is still running; use its sealed manager before activating this release."
+            Stop-ScheduledTask `
+                -TaskName ([string]$priorTask.TaskName) `
+                -ErrorAction Stop
         }
-        Disable-ScheduledTask -TaskName ([string]$priorTask.TaskName) -ErrorAction Stop | Out-Null
+        Unregister-ScheduledTask -TaskName ([string]$priorTask.TaskName) -Confirm:$false -ErrorAction Stop
     }
 }
 
@@ -456,9 +555,6 @@ $exactSkillCount = @(
     Get-ChildItem -LiteralPath (Join-Path $exactPluginRoot "skills") -Directory |
         Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName "SKILL.md") -PathType Leaf }
 ).Count
-$exactCommandCount = @(
-    Get-ChildItem -LiteralPath (Join-Path $exactPluginRoot "commands") -Filter "*.md" -File
-).Count
 $hookConfiguration = Get-Content -LiteralPath (Join-Path $exactPluginRoot "hooks\hooks.json") -Raw | ConvertFrom-Json
 $exactHookEventCount = @($hookConfiguration.hooks.PSObject.Properties).Count
 $exactHookHandlerCount = 0
@@ -475,7 +571,8 @@ if (
     $exactFailClosedWriteToolCount -le 0 -or
     $exactVisibleToolCount -ne ($exactActiveReadToolCount + $exactFailClosedWriteToolCount) -or
     $exactSkillCount -ne [int]$catalogContract.skill_count -or
-    $exactCommandCount -le 0 -or
+    (Test-Path -LiteralPath (Join-Path $exactPluginRoot "commands")) -or
+    (Test-Path -LiteralPath (Join-Path $exactPluginRoot ".codex-plugin\migrated-command-skills")) -or
     $exactHookEventCount -le 0 -or
     $exactHookHandlerCount -le 0 -or
     $exactProviderCount -le 0
@@ -485,19 +582,53 @@ if (
 if (-not (Test-Path -LiteralPath $sourceHost -PathType Leaf)) {
     throw "The no-visible-console Evidence Lane tunnel host is missing: $sourceHost"
 }
-$python = Resolve-PythonCommand -ExactPluginRoot $exactPluginRoot
-if ([string]::IsNullOrWhiteSpace($DataRoot)) {
-    throw "HOST_TOOL_GAP requires the governed project data root through -DataRoot or EVIDENCE_LANE_DATA_ROOT."
+$toolMatrixPath = Join-Path $exactPluginRoot "toolchains\tool-requirement-matrix.v1.json"
+$tunnelToolchainPath = Join-Path $exactPluginRoot "toolchains\tunnel-runtime-toolchain.v1.json"
+if (
+    -not (Test-Path -LiteralPath $toolMatrixPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $tunnelToolchainPath -PathType Leaf)
+) {
+    throw "The tunnel runtime/toolchain manifests are missing from the installed plugin."
 }
-$exactDataRoot = [IO.Path]::GetFullPath($DataRoot)
-if ($exactDataRoot -ceq $exactRuntimeControlRoot) {
-    throw "Project authority and hidden plugin runtime control must use separate roots."
+$runtimePrewarm = Resolve-PrewarmedRuntime `
+    -ExactPluginRoot $exactPluginRoot `
+    -ExactRuntimeControlRoot $exactRuntimeControlRoot `
+    -RequestedRuntimePython $RuntimePython
+$python = [string]$runtimePrewarm.python
+$runtimeKey = [string]$runtimePrewarm.prewarm.runtime_identity.runtime_key
+if ($runtimeKey -notmatch '^[A-F0-9]{64}$') {
+    throw "The tunnel prewarm did not return an exact hidden runtime key."
 }
-if (Test-Path -LiteralPath $exactDataRoot -PathType Leaf) {
-    throw "The configured Evidence Lane data root is a file, not a durable directory."
+$licenseScript = Join-Path $exactPluginRoot "scripts\generate_runtime_license_bundle.py"
+$licenseRoot = Join-Path $exactRuntimeControlRoot ("runtime\licenses\" + $runtimeKey)
+$licenseManifestPath = Join-Path $licenseRoot "manifest.v1.json"
+if (-not (Test-Path -LiteralPath $licenseManifestPath -PathType Leaf)) {
+    & $python $licenseScript --output $licenseRoot --plugin-root $exactPluginRoot *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw "The exact installed runtime license bundle failed before tunnel setup."
+    }
 }
-New-Item -ItemType Directory -Path $exactDataRoot -Force | Out-Null
+$runtimeLicenseManifest = Get-Content -LiteralPath $licenseManifestPath -Raw | ConvertFrom-Json
+$toolLicenseInventoryPath = Join-Path $exactPluginRoot "toolchains\tool-license-inventory.v1.json"
+$toolLicenseInventory = Get-Content -LiteralPath $toolLicenseInventoryPath -Raw | ConvertFrom-Json
+if (
+    [string]$runtimeLicenseManifest.schema -ne "evidence-lane.installed-runtime-license-bundle.v1" -or
+    [string]$runtimeLicenseManifest.status -ne "PASS" -or
+    [int]$runtimeLicenseManifest.tool_license_entry_count -ne [int]$runtimePrewarm.toolchain.requirement_count -or
+    [bool]$runtimeLicenseManifest.all_tool_requirements_license_classified -ne $true -or
+    [bool]$runtimeLicenseManifest.mcp_inventory_separate -ne $true -or
+    [string]$toolLicenseInventory.schema -ne "evidence-lane.tool-license-inventory.v1" -or
+    [string]$toolLicenseInventory.status -ne "PASS" -or
+    [int]$toolLicenseInventory.tool_requirement_count -ne [int]$runtimePrewarm.toolchain.requirement_count -or
+    [bool]$toolLicenseInventory.all_tool_requirements_classified -ne $true -or
+    [bool]$toolLicenseInventory.mcp_inventory_separate -ne $true -or
+    [int]$runtimeLicenseManifest.distribution_count -lt 1 -or
+    [string]$runtimeLicenseManifest.receipt_sha256 -notmatch '^[A-F0-9]{64}$'
+) {
+    throw "The exact installed runtime license bundle is incomplete."
+}
 $resolvedSource = Resolve-TunnelClientSource
+$resolvedLicense = Resolve-TunnelClientLicenseSource
 $sourceHash = (Get-FileHash -LiteralPath $resolvedSource -Algorithm SHA256).Hash
 if ($sourceHash -ne $expectedClientSha256) {
     throw "The supplied tunnel-client binary does not match the pinned v0.0.10 SHA-256."
@@ -506,11 +637,18 @@ $exactTunnelId = Resolve-TunnelId
 
 New-Item -ItemType Directory -Path (Split-Path -Parent $stableClient) -Force | Out-Null
 New-Item -ItemType Directory -Path $secretRoot -Force | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $RuntimeRoot "licenses\tunnel-client-v0.0.10") -Force | Out-Null
 New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
 Copy-Item -LiteralPath $resolvedSource -Destination $stableClient -Force
 Copy-Item -LiteralPath $sourceBoot -Destination $bootTarget -Force
 Copy-Item -LiteralPath $sourceManage -Destination $manageTarget -Force
 Copy-Item -LiteralPath $sourceHost -Destination $hostTarget -Force
+Copy-Item -LiteralPath ([string]$resolvedLicense.path) `
+    -Destination (Join-Path $RuntimeRoot "licenses\tunnel-client-v0.0.10\LICENSE") -Force
+$runtimePrewarm.prewarm | ConvertTo-Json -Depth 100 | Set-Content `
+    -LiteralPath (Join-Path $RuntimeRoot "runtime-toolchain-prewarm.json") -Encoding UTF8
+$runtimeLicenseManifest | ConvertTo-Json -Depth 100 | Set-Content `
+    -LiteralPath (Join-Path $RuntimeRoot "runtime-license-manifest.json") -Encoding UTF8
 Protect-SecretDirectory
 
 if ($RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Leaf)) {
@@ -536,7 +674,10 @@ if ($RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Lea
     }
 }
 
-Write-LayeredChildLauncher -Python $python -Runner $runner -ExactDataRoot $exactDataRoot
+Write-LayeredChildLauncher `
+    -Python $python `
+    -Runner $runner `
+    -ExactRuntimeControlRoot $exactRuntimeControlRoot
 $powershell = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
 $powershellForCommand = $powershell.Replace('\', '/')
 $childForCommand = $childTarget.Replace('\', '/')
@@ -557,7 +698,7 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $profileFile -PathType 
 }
 
 $marker = [ordered]@{
-    schema = "evidence-lane.versioned-secure-mcp-tunnel-installation.v1"
+    schema = "evidence-lane.versioned-secure-mcp-tunnel-installation.v2"
     release = $release
     release_token = $releaseToken
     release_identity_source = "CODEX_RELEASE_CHANNEL_CONTRACT"
@@ -565,6 +706,9 @@ $marker = [ordered]@{
     runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
     runtime_control_root = $exactRuntimeControlRoot
     runtime_control_root_hidden = $true
+    project_data_root_separate = $true
+    workspace_root_separate = $true
+    project_pv_root_user_defined = $true
     profile_name = $ProfileName
     profile_file = $profileFile
     task_name = $TaskName
@@ -572,6 +716,7 @@ $marker = [ordered]@{
     scheduled_task_launcher_sha256 = (Get-FileHash -LiteralPath $hostTarget -Algorithm SHA256).Hash
     scheduled_task_launcher_subsystem = "WINDOWS_GUI_NO_VISIBLE_CONSOLE"
     scheduled_task_launcher_create_no_window = $true
+    scheduled_task_transport_used = $true
     slot_role = $SlotRole
     byte_frozen = $SlotRole -eq "main-git-release"
     exposure_profile = "CODEX_INTERACTIVE_SUPPORT"
@@ -581,9 +726,13 @@ $marker = [ordered]@{
     codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"
     codex_tunnel_lifecycle_proof_allowed = $false
     plugin_root = $exactPluginRoot
-    data_root = $exactDataRoot
-    project_data_root_separate = ($exactDataRoot -cne $exactRuntimeControlRoot)
+    project_authority_lookup = "HIDDEN_REGISTRY_BY_PROJECT_ID"
+    project_authority_root_hardcoded = $false
+    workspace_hardcoded = $false
     project_binding = "NONE_TRANSPORT_ONLY"
+    host_wide_project_neutral = $true
+    multi_project_and_task_routing = "EXPLICIT_PLUGIN_PROJECT_ID_AND_TASK_BINDINGS"
+    per_project_or_task_tunnel_allowed = $false
     project_route_argument = "project_id"
     project_route_argument_required = $true
     cross_project_fallback_allowed = $false
@@ -591,17 +740,38 @@ $marker = [ordered]@{
     exact_active_read_tool_count = $exactActiveReadToolCount
     exact_fail_closed_write_tool_count = $exactFailClosedWriteToolCount
     exact_skill_count = $exactSkillCount
-    exact_command_count = $exactCommandCount
+    separate_command_layer_present = $false
     exact_hook_event_count = $exactHookEventCount
     exact_hook_handler_count = $exactHookHandlerCount
     exact_provider_count = $exactProviderCount
+    runtime_python = $python
+    runtime_python_sha256 = (Get-FileHash -LiteralPath $python -Algorithm SHA256).Hash
+    runtime_key = $runtimeKey
+    tool_requirement_matrix = $toolMatrixPath
+    tool_requirement_matrix_sha256 = (Get-FileHash -LiteralPath $toolMatrixPath -Algorithm SHA256).Hash
+    tunnel_runtime_toolchain = $tunnelToolchainPath
+    tunnel_runtime_toolchain_sha256 = (Get-FileHash -LiteralPath $tunnelToolchainPath -Algorithm SHA256).Hash
+    runtime_toolchain_prewarm_receipt = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "runtime-toolchain-prewarm.json"
+    runtime_toolchain_prewarm_receipt_sha256 = (Get-FileHash -LiteralPath (Join-Path $RuntimeRoot "runtime-toolchain-prewarm.json") -Algorithm SHA256).Hash
+    runtime_toolchain_requirement_count = [int]$runtimePrewarm.toolchain.requirement_count
+    runtime_toolchain_failure_count = [int]$runtimePrewarm.toolchain.failure_count
+    runtime_license_manifest = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "runtime-license-manifest.json"
+    runtime_license_manifest_sha256 = (Get-FileHash -LiteralPath (Join-Path $RuntimeRoot "runtime-license-manifest.json") -Algorithm SHA256).Hash
+    runtime_license_distribution_count = [int]$runtimeLicenseManifest.distribution_count
+    tool_license_inventory = $toolLicenseInventoryPath
+    tool_license_inventory_sha256 = (Get-FileHash -LiteralPath $toolLicenseInventoryPath -Algorithm SHA256).Hash
+    tool_license_entry_count = [int]$runtimeLicenseManifest.tool_license_entry_count
+    all_94_tool_licenses_classified = [bool]$runtimeLicenseManifest.all_tool_requirements_license_classified
+    mcp_inventory_separate_from_toolchain = [bool]$runtimeLicenseManifest.mcp_inventory_separate
+    all_required_tunnel_dependencies_prewarmed = [int]$runtimePrewarm.toolchain.failure_count -eq 0
     tunnel_id = $exactTunnelId
+    tunnel_client_license = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "licenses\tunnel-client-v0.0.10\LICENSE"
+    tunnel_client_license_sha256 = [string]$resolvedLicense.sha256
     stable_client = $stableClient
     stable_client_sha256 = $expectedClientSha256
     pid_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "${filePrefix}_tunnel.pid"
     health_url_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "${filePrefix}_health.url"
     live_slot_authority = "SEALED_POST_PV11_TWO_SLOT_REGISTRY"
-    legacy_version_manager_authoritative = $false
     saved_version = $true
     reusable_without_reinstall = $true
     runtime_key_envelope_reused = $runtimeKeyEnvelopeReused
@@ -624,9 +794,9 @@ $marker = [ordered]@{
     windows_console_policy = "WINDOWS_GUI_HOST_CREATE_NO_WINDOW"
     scheduled_task_window_style = "HIDDEN"
     distribution_audience = "USER_OR_MAINTAINER_ACTIVE_3_0_RUNTIME"
-    prior_versioned_runtimes_retained = $true
-    prior_versioned_tasks_retained = $true
-    prior_versioned_runtime_deletion_allowed = $false
+    prior_versioned_runtimes_retained = $false
+    prior_versioned_tasks_retained = $false
+    prior_versioned_runtime_deletion_required = $true
     one_active_version_required = $true
 }
 $marker | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $markerFile -Encoding UTF8
@@ -651,15 +821,15 @@ Register-ScheduledTask `
     -Trigger $trigger `
     -Principal $principal `
     -Settings $settings `
-    -Description "Pinned Evidence Lane $release $SlotRole secure MCP tunnel; automatic only while this exact slot is enabled." `
+    -Description "Pinned Evidence Lane $release $SlotRole host-wide secure MCP tunnel." `
     -Force | Out-Null
 
 Disable-ScheduledTask -TaskName $TaskName | Out-Null
 if ($Activate) {
-    Assert-NoOtherActiveTunnel `
-        -ExactDataRoot $exactRuntimeControlRoot `
+    Remove-StoppedPriorTunnelRuntimes `
+        -ExactRuntimeControlRoot $exactRuntimeControlRoot `
         -ExactRuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot))
-    Disable-StoppedPriorTunnelTasks -ExactTaskName $TaskName
+    Remove-StoppedPriorTunnelTasks -ExactTaskName $TaskName
     & $manageTarget `
         -Action Start `
         -RuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot)) `
@@ -682,6 +852,7 @@ if ($Activate) {
     byte_frozen = $SlotRole -eq "main-git-release"
     task_name = $TaskName
     trigger = "AT_LOGON"
+    scheduled_task_transport_used = $true
     current_user_dpapi = $true
     stable_client = $stableClient
     stable_client_sha256 = (Get-FileHash -LiteralPath $stableClient -Algorithm SHA256).Hash
@@ -692,11 +863,18 @@ if ($Activate) {
     chatgpt_is_layer_not_transport_identity = $true
     codex_native_lifecycle_route = "PACKAGE_LOCAL_NATIVE_MCP_ONLY"
     codex_tunnel_lifecycle_proof_allowed = $false
-    data_root = $exactDataRoot
     runtime_control_root = $exactRuntimeControlRoot
     runtime_control_root_hidden = $true
-    project_data_root_separate = ($exactDataRoot -cne $exactRuntimeControlRoot)
+    project_data_root_separate = $true
+    workspace_root_separate = $true
+    project_pv_root_user_defined = $true
+    project_authority_lookup = "HIDDEN_REGISTRY_BY_PROJECT_ID"
+    project_authority_root_hardcoded = $false
+    workspace_hardcoded = $false
     project_binding = "NONE_TRANSPORT_ONLY"
+    host_wide_project_neutral = $true
+    multi_project_and_task_routing = "EXPLICIT_PLUGIN_PROJECT_ID_AND_TASK_BINDINGS"
+    per_project_or_task_tunnel_allowed = $false
     project_route_argument = "project_id"
     project_route_argument_required = $true
     cross_project_fallback_allowed = $false
@@ -704,7 +882,7 @@ if ($Activate) {
     exact_active_read_tool_count = $exactActiveReadToolCount
     exact_fail_closed_write_tool_count = $exactFailClosedWriteToolCount
     exact_skill_count = $exactSkillCount
-    exact_command_count = $exactCommandCount
+    separate_command_layer_present = $false
     exact_hook_event_count = $exactHookEventCount
     exact_hook_handler_count = $exactHookHandlerCount
     exact_provider_count = $exactProviderCount
@@ -713,9 +891,9 @@ if ($Activate) {
     windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
     scheduled_task_window_style = "HIDDEN"
     distribution_audience = "USER_OR_MAINTAINER_ACTIVE_3_0_RUNTIME"
-    prior_versioned_runtimes_retained = $true
-    prior_versioned_tasks_retained = $true
-    prior_versioned_runtime_deletion_allowed = $false
+    prior_versioned_runtimes_retained = $false
+    prior_versioned_tasks_retained = $false
+    prior_versioned_runtime_deletion_required = $true
     one_active_version_required = $true
     runtime_key_envelope_reused = $runtimeKeyEnvelopeReused
     tunnel_id_reused = $tunnelIdReused
@@ -734,16 +912,13 @@ if ($Activate) {
     tunnel_key_retention = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "CURRENT_WINDOWS_USER_DPAPI_PROFILE" }
     tunnel_runtime_lifetime = if ($exactHostLifetime -eq "Ephemeral") { "CURRENT_VM_LIFETIME_ONLY" } else { "WINDOWS_LOGON_MANAGED_PERSISTENT_HOST" }
     codex_platform_tunnel_setup_required_once = $true
-    saved_slot = $true
+    active_tunnel_registration = $true
     reusable_without_reinstall = $true
-    two_slot_registry_authority = "SEALED_GIT_MAIN_LOCAL_TESTING_REGISTRY"
-    legacy_version_manager_authoritative = $false
-    registry_materialization_gate = "EXACT_STANDALONE_APPROVE_PLUS_NATIVE_FUSE_ACCEPTING_PV11"
-    branch_recovery_selector_retired = $true
-    branch_recovery_install_allowed = $false
+    runtime_selector_source = "CURRENT_ENABLED_PLUGIN_SELECTOR"
+    registry_materialization_gate = "CURRENT_PACKAGE_INSTALL_AND_EXPLICIT_ACTIVATE"
+    obsolete_selector_present = $false
     registered_slot = $SlotRole
     pre_3_0_fallback_allowed = $false
-    failover_requires_sealed_two_slot_main_local_operator = $true
     activated = [bool]$Activate
     started = [bool]$Activate
 } | ConvertTo-Json -Depth 4

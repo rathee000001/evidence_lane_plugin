@@ -1,0 +1,122 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "canon_seal_result",
+  "title": "Seal Canon task result",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "edge_id": {
+        "title": "Edge Id",
+        "type": "string"
+      },
+      "source_pointer": {
+        "additionalProperties": true,
+        "title": "Source Pointer",
+        "type": "object"
+      },
+      "evidence_refs": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Evidence Refs",
+        "type": "array"
+      },
+      "result_payload": {
+        "additionalProperties": true,
+        "title": "Result Payload",
+        "type": "object"
+      },
+      "schema_id": {
+        "title": "Schema Id",
+        "type": "string"
+      },
+      "schema_version": {
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "schema_sha256": {
+        "title": "Schema Sha256",
+        "type": "string"
+      },
+      "created_at": {
+        "title": "Created At",
+        "type": "string"
+      },
+      "expires_at": {
+        "title": "Expires At",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "edge_id",
+      "source_pointer",
+      "evidence_refs",
+      "result_payload",
+      "schema_id",
+      "schema_version",
+      "schema_sha256",
+      "created_at",
+      "expires_at"
+    ],
+    "title": "canon_seal_resultArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "canon_seal_resultDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "2BE8AFAB40C7FD7B2A750B8508EF120A9E4DC7CFAD41B7BDEC75379D698F896F",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_seal_result"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "seal_result",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-result",
+        "order": 14
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/canon_seal_result.action.v1.json",
+  "sdk_action_binding_sha256": "47E4F9443A266DD4B08A195E952ECC94564F96DFFE38938F5CFE0305633435C7",
+  "public_action_schema": "schemas/actions/canon_seal_result.schema.json",
+  "public_action_schema_sha256": "E4169580C55D98C6CC52DDDBD42A7E0E198926CE01E7F0151B2229C907708D9F",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "58C5BC8DB030336C6EB49C72920BD13C3CC804FEC5524E3D75EAE7C3C3DF6748"
+}

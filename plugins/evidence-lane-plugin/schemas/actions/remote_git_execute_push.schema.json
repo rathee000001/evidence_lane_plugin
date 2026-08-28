@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "remote_git_execute_push",
+  "title": "Execute preauthorized exact test-branch push",
+  "description": "Execute exactly one previously prepared remote branch push only when the sole registered branch, accepted pointer, commit, and tree remain exact. Uses host-managed credentials; never pushes main, merges, or approves a pull request.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "action_id": {
+        "title": "Action Id",
+        "type": "string"
+      },
+      "executed_by": {
+        "title": "Executed By",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "action_id",
+      "executed_by"
+    ],
+    "title": "remote_git_execute_pushArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "remote_git_execute_pushDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": true
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "remote_git_execute_push"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "governed-git-delivery",
+        "order": 18
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "D089D42AC70BC241C8F30042AC570C560EF83834570B5F4885A12867E463BCB7",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "61611BF2BB0EC1510467198DF14AC3D63AFBDB72AF11D8DE20BC1ACF770278FB"
+}

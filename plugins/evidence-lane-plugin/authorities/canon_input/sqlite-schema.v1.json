@@ -1,0 +1,1051 @@
+{
+  "schema": "evidence-lane.sqlite-authority-schema-snapshot.v1",
+  "database_sha256": "68783FC35CFB5A164B76A2008512F46CF0A514863ECBF1D544AA88F2C747F42D",
+  "objects": [
+    {
+      "type": "index",
+      "name": "authority_index_node_source_idx",
+      "tbl_name": "authority_index_node",
+      "sql": "CREATE INDEX authority_index_node_source_idx\n        ON authority_index_node(source_id, ordinal)"
+    },
+    {
+      "type": "index",
+      "name": "authority_index_source_table_idx",
+      "tbl_name": "authority_index_source",
+      "sql": "CREATE INDEX authority_index_source_table_idx\n        ON authority_index_source(authority_id, source_table, source_identity)"
+    },
+    {
+      "type": "index",
+      "name": "idx_canon_contract_version",
+      "tbl_name": "canon_contract",
+      "sql": "CREATE UNIQUE INDEX idx_canon_contract_version\nON canon_contract(contract_id,contract_version,destination_task_uuid)"
+    },
+    {
+      "type": "index",
+      "name": "idx_canon_decision_once",
+      "tbl_name": "canon_event",
+      "sql": "CREATE UNIQUE INDEX idx_canon_decision_once\nON canon_event(decision_key_sha256)\nWHERE decision_key_sha256 IS NOT NULL"
+    },
+    {
+      "type": "index",
+      "name": "idx_canon_packet_inbox",
+      "tbl_name": "canon_packet",
+      "sql": "CREATE INDEX idx_canon_packet_inbox\nON canon_packet(destination_task_uuid,current_state)"
+    },
+    {
+      "type": "index",
+      "name": "idx_canon_packet_replay",
+      "tbl_name": "canon_packet",
+      "sql": "CREATE UNIQUE INDEX idx_canon_packet_replay\nON canon_packet(owner_project_id,local_role,idempotency_key)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts",
+      "tbl_name": "authority_index_fts",
+      "sql": "CREATE VIRTUAL TABLE authority_index_fts USING fts5(\n            node_id UNINDEXED,\n            authority_id UNINDEXED,\n            source_table,\n            source_identity,\n            text_content,\n            tokenize='unicode61'\n        )"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_config",
+      "tbl_name": "authority_index_fts_config",
+      "sql": "CREATE TABLE 'authority_index_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_content",
+      "tbl_name": "authority_index_fts_content",
+      "sql": "CREATE TABLE 'authority_index_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_data",
+      "tbl_name": "authority_index_fts_data",
+      "sql": "CREATE TABLE 'authority_index_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_docsize",
+      "tbl_name": "authority_index_fts_docsize",
+      "sql": "CREATE TABLE 'authority_index_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_idx",
+      "tbl_name": "authority_index_fts_idx",
+      "sql": "CREATE TABLE 'authority_index_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_node",
+      "tbl_name": "authority_index_node",
+      "sql": "CREATE TABLE authority_index_node(\n            node_id TEXT PRIMARY KEY,\n            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)\n                ON DELETE CASCADE,\n            ordinal INTEGER NOT NULL,\n            char_start INTEGER NOT NULL,\n            char_end INTEGER NOT NULL,\n            text_content TEXT NOT NULL,\n            text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            UNIQUE(source_id, ordinal)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_refresh_receipt",
+      "tbl_name": "authority_index_refresh_receipt",
+      "sql": "CREATE TABLE authority_index_refresh_receipt(\n            sequence INTEGER PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_count INTEGER NOT NULL,\n            node_count INTEGER NOT NULL,\n            indexed_table_count INTEGER NOT NULL,\n            llama_index_core_version TEXT NOT NULL,\n            chunk_size_tokens INTEGER NOT NULL,\n            chunk_overlap_tokens INTEGER NOT NULL,\n            prior_receipt_sha256 TEXT,\n            recorded_at TEXT NOT NULL,\n            receipt_sha256 TEXT NOT NULL UNIQUE,\n            receipt_json TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_source",
+      "tbl_name": "authority_index_source",
+      "sql": "CREATE TABLE authority_index_source(\n            source_id TEXT PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_table TEXT NOT NULL,\n            source_identity TEXT NOT NULL,\n            source_text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            recorded_at TEXT NOT NULL,\n            UNIQUE(authority_id, source_table, source_identity)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "canon_backfire_dedup",
+      "tbl_name": "canon_backfire_dedup",
+      "sql": "CREATE TABLE canon_backfire_dedup(\n    dedup_key_sha256 TEXT PRIMARY KEY,\n    request_sha256 TEXT NOT NULL,\n    canon_id TEXT NOT NULL,\n    canon_sha256 TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "canon_continuity_receipt",
+      "tbl_name": "canon_continuity_receipt",
+      "sql": "CREATE TABLE canon_continuity_receipt(\n    consumption_key_sha256 TEXT PRIMARY KEY,\n    snapshot_sha256 TEXT NOT NULL,\n    receipt_sha256 TEXT NOT NULL UNIQUE,\n    receipt_json TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "canon_contract",
+      "tbl_name": "canon_contract",
+      "sql": "CREATE TABLE canon_contract(\n    contract_sha256 TEXT PRIMARY KEY,\n    contract_id TEXT NOT NULL,\n    contract_version INTEGER NOT NULL CHECK(contract_version > 0),\n    destination_project_id TEXT NOT NULL,\n    destination_task_uuid TEXT NOT NULL,\n    active INTEGER NOT NULL CHECK(active IN (0,1)),\n    contract_json TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "canon_dispatch",
+      "tbl_name": "canon_dispatch",
+      "sql": "CREATE TABLE canon_dispatch(\n    dispatch_id TEXT PRIMARY KEY,\n    request_sha256 TEXT NOT NULL,\n    receipt_sha256 TEXT NOT NULL UNIQUE,\n    receipt_json TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "canon_edge",
+      "tbl_name": "canon_edge",
+      "sql": "CREATE TABLE canon_edge(\n    edge_id TEXT PRIMARY KEY,\n    edge_sha256 TEXT NOT NULL UNIQUE,\n    source_node TEXT NOT NULL,\n    destination_node TEXT NOT NULL,\n    expected_return_contract_sha256 TEXT NOT NULL,\n    edge_json TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "canon_event",
+      "tbl_name": "canon_event",
+      "sql": "CREATE TABLE canon_event(\n    sequence INTEGER PRIMARY KEY AUTOINCREMENT,\n    event_id TEXT NOT NULL UNIQUE,\n    canon_id TEXT NOT NULL REFERENCES canon_packet(canon_id),\n    event_type TEXT NOT NULL,\n    from_state TEXT,\n    to_state TEXT NOT NULL,\n    occurred_at TEXT NOT NULL,\n    decision_key_sha256 TEXT,\n    previous_event_sha256 TEXT,\n    event_sha256 TEXT NOT NULL UNIQUE,\n    event_json TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "canon_packet",
+      "tbl_name": "canon_packet",
+      "sql": "CREATE TABLE canon_packet(\n    canon_id TEXT PRIMARY KEY,\n    canon_sha256 TEXT NOT NULL UNIQUE,\n    owner_project_id TEXT NOT NULL,\n    local_role TEXT NOT NULL,\n    source_project_id TEXT NOT NULL,\n    source_task_uuid TEXT NOT NULL,\n    destination_project_id TEXT NOT NULL,\n    destination_task_uuid TEXT NOT NULL,\n    destination_contract_sha256 TEXT NOT NULL,\n    canon_type TEXT NOT NULL,\n    revision INTEGER NOT NULL CHECK(revision > 0),\n    idempotency_key TEXT NOT NULL,\n    current_state TEXT NOT NULL,\n    envelope_json TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "canon_receipt",
+      "tbl_name": "canon_receipt",
+      "sql": "CREATE TABLE canon_receipt(\n    receipt_sha256 TEXT PRIMARY KEY,\n    canon_id TEXT NOT NULL REFERENCES canon_packet(canon_id),\n    receipt_type TEXT NOT NULL,\n    receipt_json TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "canon_schema_migration",
+      "tbl_name": "canon_schema_migration",
+      "sql": "CREATE TABLE canon_schema_migration(\n    schema_name TEXT NOT NULL,\n    from_version INTEGER NOT NULL CHECK(from_version >= 0),\n    to_version INTEGER NOT NULL CHECK(to_version > 0),\n    asset_sha256 TEXT NOT NULL,\n    migration_mode TEXT NOT NULL,\n    applied_at TEXT NOT NULL,\n    PRIMARY KEY(schema_name,to_version)\n) STRICT"
+    }
+  ],
+  "tables": [
+    {
+      "name": "authority_index_fts",
+      "virtual_fts5": true,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "node_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_table",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_identity",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_config",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_content",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "c4",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_data",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_docsize",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_idx",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_node",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "char_start",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "char_end",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "text_content",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "text_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "metadata_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "source_id",
+          "table": "authority_index_source",
+          "to": "source_id"
+        }
+      ]
+    },
+    {
+      "name": "authority_index_refresh_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "indexed_table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "llama_index_core_version",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "chunk_size_tokens",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "chunk_overlap_tokens",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "prior_receipt_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_source",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_table",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_identity",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "source_text_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "metadata_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "canon_backfire_dedup",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "dedup_key_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "request_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "canon_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "canon_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "canon_continuity_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "consumption_key_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "snapshot_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "canon_contract",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "contract_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "contract_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "contract_version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "destination_project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "destination_task_uuid",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "active",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "contract_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "canon_dispatch",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "dispatch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "request_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "canon_edge",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "edge_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "edge_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_node",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "destination_node",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "expected_return_contract_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "edge_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "canon_event",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "canon_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "event_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "from_state",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "to_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "occurred_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "decision_key_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "previous_event_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "event_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "event_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "canon_id",
+          "table": "canon_packet",
+          "to": "canon_id"
+        }
+      ]
+    },
+    {
+      "name": "canon_packet",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "canon_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "canon_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "owner_project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "local_role",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "source_project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "source_task_uuid",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "destination_project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "destination_task_uuid",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "destination_contract_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "canon_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "idempotency_key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "current_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "envelope_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "canon_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "canon_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "receipt_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "canon_id",
+          "table": "canon_packet",
+          "to": "canon_id"
+        }
+      ]
+    },
+    {
+      "name": "canon_schema_migration",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "schema_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "from_version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "to_version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 3,
+          "name": "asset_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "migration_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    }
+  ],
+  "table_count": 18,
+  "fts5_tables": [
+    "authority_index_fts"
+  ],
+  "schema_sha256": "50F7CAB62DA81768659780F6199878FF1BB834D34607FAD1556994DDDE8C2DCF",
+  "receipt_sha256": "BB43B3F2226DAED9BDEE2A0C2A34256707879ACB0B4B5F321ED071C52207B2BD"
+}

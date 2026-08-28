@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "source_graph_impact",
+  "title": "Traverse a bounded affected source subgraph",
+  "description": "From exact stable node IDs, traverse upstream dependents, downstream dependencies, or both across an explicit relation allowlist. Depth and node caps are mandatory, edge evidence retains source location and confidence, and the traversal never changes source or lifecycle state.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "graph_id": {
+        "title": "Graph Id",
+        "type": "string"
+      },
+      "seed_node_ids": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Seed Node Ids",
+        "type": "array"
+      },
+      "relations": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Relations"
+      },
+      "direction": {
+        "default": "UPSTREAM",
+        "title": "Direction",
+        "type": "string"
+      },
+      "max_depth": {
+        "default": 3,
+        "title": "Max Depth",
+        "type": "integer"
+      },
+      "max_nodes": {
+        "default": 1000,
+        "title": "Max Nodes",
+        "type": "integer"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "graph_id",
+      "seed_node_ids"
+    ],
+    "title": "source_graph_impactArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "source_graph_impactDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "source_graph_impact"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "source-graph-intake",
+        "order": 8
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "5BC430CA60C5C8C5E40EE66087355C1B03B39F103C69B74B4EF801EEEAD3E451",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "877BDE3846C4CD5062AF902A1184E43A6FB8BC769D2D50A3B0E634051D383670"
+}

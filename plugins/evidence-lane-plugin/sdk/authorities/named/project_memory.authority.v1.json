@@ -1,0 +1,12 @@
+{
+  "schema": "evidence-lane.sdk-named-authority-binding.v1",
+  "status": "PASS",
+  "authority_id": "project_memory",
+  "authority_root": "authorities/project_memory",
+  "authority_manifest_sha256": "01EE5DE0E33CBE9B6099FDB7B66F2570D7E942177770067E13FE712C4362DC21",
+  "schema_surface": "schemas/authorities/project_memory/schema-surface.v1.json",
+  "persistent_sqlite_authority": true,
+  "linked_public_action_count": 5,
+  "merged_with_project_sector_or_peer": false,
+  "receipt_sha256": "81B08FE84E49C26B846B0820FA0198B6866FB8FE882DA2E9A1132FE4CB164C1C"
+}

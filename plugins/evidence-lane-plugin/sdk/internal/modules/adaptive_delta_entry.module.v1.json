@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.adaptive_delta_entry",
+  "source_path": "src/evidence_lane_plugin/adaptive_delta_entry.py",
+  "source_sha256": "5EA63FEA73F02846C51599659A950BEEAFA9ADD3A37F6131F8F745D6F5388017",
+  "source_bytes": 41500,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "B2830DABB1E751A0D2A71732FB789AB7FCBCB7C500C1F3DFABCE102067C565DC"
+}

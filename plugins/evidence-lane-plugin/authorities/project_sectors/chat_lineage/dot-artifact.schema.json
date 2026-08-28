@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "chat_lineage DOT_TRAVERSAL_MAP artifact receipt",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "artifact_path",
+    "artifact_role",
+    "syntax",
+    "bytes",
+    "sha256",
+    "validator",
+    "status"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "chat_lineage"
+    },
+    "artifact_path": {
+      "const": "chat_lineage.dot"
+    },
+    "artifact_role": {
+      "const": "DOT_TRAVERSAL_MAP"
+    },
+    "syntax": {
+      "const": "GRAPHVIZ_DOT"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "validator": {
+      "const": "topology_reconciliation.validate_dot"
+    },
+    "status": {
+      "const": "PASS"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "53D5453956DCEE87F86902782E91AF3AE0DBC696F4513458E41C83A58439FB5A"
+}

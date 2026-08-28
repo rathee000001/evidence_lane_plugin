@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 8,
+  "event": "PostCompact",
+  "handler_count": 4,
+  "event_binding": "hooks/events/PostCompact/event.v1.json",
+  "event_binding_sha256": "06BC5EDA004B3EF094D9923DB6FEE7D5E8F4A3BF3DEF2CDA8DCC40E0B934DC78",
+  "handlers": [
+    {
+      "display_id": "8.1",
+      "path": "hooks/events/PostCompact/handler-8.1.v1.json",
+      "sha256": "E6A53558C32A4572506C7AD62D8D77166F641E3A6B6380F7AB9F70C3835900D4"
+    },
+    {
+      "display_id": "8.2",
+      "path": "hooks/events/PostCompact/handler-8.2.v1.json",
+      "sha256": "32A06D68A5DC9C84A5E475AF97FA2A720C76584CC68E41889760C78CFE239736"
+    },
+    {
+      "display_id": "8.3",
+      "path": "hooks/events/PostCompact/handler-8.3.v1.json",
+      "sha256": "FFAD5694D7ABF994AA803C0AB8784602A58C2C537AEFE88EEF9840EE270D9F15"
+    },
+    {
+      "display_id": "8.4",
+      "path": "hooks/events/PostCompact/handler-8.4.v1.json",
+      "sha256": "08DE44AFB174CB878A8AF63A3B1B4BFF42AB48FB0782354607B0682E6A189C91"
+    }
+  ],
+  "canonical_hook_manifest": "hooks/hooks.json",
+  "canonical_logical_actions": "hooks/logical-actions.json",
+  "enabled_only_after_installed_event_pass": true,
+  "receipt_sha256": "A75FD0E1B9BF173BF77F85CFEC0B642B164122B5CA61C3F096705E82FD0DCE91"
+}

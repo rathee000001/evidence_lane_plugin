@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import ast
+import asyncio
 import json
 import shutil
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin.constants import GOVERNED_SKILL_COUNT, NATIVE_TOOL_COUNT
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.mcp_server import (
     SKILL_MCP_ROUTING_SCHEMA,
@@ -51,7 +53,7 @@ def _copy_plugin_skills(tmp_path: Path) -> Path:
 def test_every_skill_declares_exact_bundled_mcp_dependency() -> None:
     skill_paths = sorted(SKILLS.glob("*/SKILL.md"))
 
-    assert len(skill_paths) == 17
+    assert len(skill_paths) == GOVERNED_SKILL_COUNT
     for skill_path in skill_paths:
         skill_name = skill_path.parent.name
         skill_text = skill_path.read_text(encoding="utf-8")
@@ -76,9 +78,9 @@ def test_shared_manifest_owns_and_routes_the_exact_catalog() -> None:
 
     assert manifest["schema"] == SKILL_MCP_ROUTING_SCHEMA
     assert manifest["server_identity"] == "evidence-lane"
-    assert manifest["catalog_contract"]["tool_count"] == 88
+    assert manifest["catalog_contract"]["tool_count"] == NATIVE_TOOL_COUNT
     assert set(manifest["tool_owners"]) == set(registered)
-    assert len(manifest["tool_owners"]) == 88
+    assert len(manifest["tool_owners"]) == NATIVE_TOOL_COUNT
     assert len(manifest["low_level_tools"]) == 22
     assert set(manifest["workflows"]) == {
         path.parent.name for path in SKILLS.glob("*/SKILL.md")
@@ -134,9 +136,9 @@ def test_direct_state_travel_routes_destination_resume_before_one_shot() -> None
     state_travel = (SKILLS / "evi-state-travel" / "SKILL.md").read_text(
         encoding="utf-8"
     )
-    assert "DIRECT_STATE_TRAVEL_DESTINATION_RESUME_ROUTE_LAW" in state_travel
-    assert "required_current_route=session_resume" in state_travel
-    assert "do not run `pv_status`, `pv_task_backlog`, `pv_query`" in state_travel
+    assert "current workflow is direct-only" in state_travel
+    assert "native `session_resume` followed\nby the six-field direct route" in state_travel
+    assert "never\ncalls `render_runtime_panel`" in state_travel
 
 
 def test_mcp_construction_attaches_bounded_skill_routing_receipt() -> None:
@@ -145,9 +147,9 @@ def test_mcp_construction_attaches_bounded_skill_routing_receipt() -> None:
     route = server._evidence_lane_native_route_receipt  # type: ignore[attr-defined]
 
     assert review["status"] == "PASS"
-    assert review["skill_count"] == 17
-    assert review["tool_count"] == 88
-    assert review["owned_tool_count"] == 88
+    assert review["skill_count"] == GOVERNED_SKILL_COUNT
+    assert review["tool_count"] == NATIVE_TOOL_COUNT
+    assert review["owned_tool_count"] == NATIVE_TOOL_COUNT
     assert review["low_level_tool_count"] == 22
     assert route["skill_mcp_routing"] == {
         "schema": review["schema"],
@@ -155,14 +157,25 @@ def test_mcp_construction_attaches_bounded_skill_routing_receipt() -> None:
         "routing_schema": SKILL_MCP_ROUTING_SCHEMA,
         "manifest_format": review["manifest_format"],
         "server_identity": "evidence-lane",
-        "skill_count": 17,
-        "tool_count": 88,
-        "owned_tool_count": 88,
+        "skill_count": GOVERNED_SKILL_COUNT,
+        "tool_count": NATIVE_TOOL_COUNT,
+        "owned_tool_count": NATIVE_TOOL_COUNT,
         "low_level_tool_count": 22,
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
         "manifest_sha256": review["manifest_sha256"],
         "receipt_sha256": review["receipt_sha256"],
     }
+    sdk_dispatch = (  # type: ignore[attr-defined]
+        server._evidence_lane_internal_sdk_public_dispatch_review
+    )
+    assert sdk_dispatch["status"] == "PASS"
+    assert sdk_dispatch["internal_sdk_public_action_count"] == NATIVE_TOOL_COUNT
+    assert sdk_dispatch["outer_router_action_count"] == NATIVE_TOOL_COUNT
+    assert sdk_dispatch["all_public_actions_enter_internal_sdk"] is True
+    assert sdk_dispatch["specialized_internal_module_action_count"] == 30
+    assert sdk_dispatch["general_internal_engine_route_action_count"] == 61
+    assert sdk_dispatch["business_logic_duplicated_in_outer_router"] is False
+    assert sdk_dispatch["counts_are_derived_not_fixed"] is True
 
 
 def test_mcp_construction_uses_explicit_plugin_root(
@@ -174,8 +187,34 @@ def test_mcp_construction_uses_explicit_plugin_root(
     review = server._evidence_lane_skill_mcp_routing_review  # type: ignore[attr-defined]
 
     assert review["status"] == "PASS"
-    assert review["skill_count"] == 17
-    assert review["tool_count"] == 88
+    assert review["skill_count"] == GOVERNED_SKILL_COUNT
+    assert review["tool_count"] == NATIVE_TOOL_COUNT
+
+
+def test_public_mcp_call_enters_internal_sdk_dispatcher() -> None:
+    server = create_mcp_server()
+    tool = next(
+        item
+        for item in server._tool_manager.list_tools()  # type: ignore[attr-defined]
+        if item.name == "runtime_doctor"
+    )
+
+    result = asyncio.run(tool.run({}, convert_result=False))
+    dispatcher = (  # type: ignore[attr-defined]
+        server._evidence_lane_internal_sdk_public_dispatcher
+    )
+    review = dispatcher.review(
+        {item.name for item in server._tool_manager.list_tools()}  # type: ignore[attr-defined]
+    )
+
+    assert result["execution_status"] in {"PASS", "FAIL"}
+    if result["execution_status"] == "FAIL":
+        assert result["error"]["code"] == "SESSION_FLASH_PROJECTION_BUILD_CHANGED"
+        expected_dispatch_count = 0
+    else:
+        expected_dispatch_count = 1
+    assert review["status"] == "PASS"
+    assert review["dispatch_call_counts"]["runtime_doctor"] == expected_dispatch_count
 
 
 def test_mcp_construction_rejects_relative_explicit_plugin_root(

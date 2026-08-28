@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.website_plan_projection",
+  "source_path": "src/evidence_lane_plugin/website_plan_projection.py",
+  "source_sha256": "7FD54A723012FB3112DBE514429EA72E8FA967F480AF56754A26E8B9CCEC8376",
+  "source_bytes": 17790,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "717EA466B91DEB8091185016CB1E4E56244B4446C4374A2D6901EECD58623AC2"
+}

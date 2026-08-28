@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "source_authority installed authority manifest",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id",
+    "database",
+    "database_sha256",
+    "members",
+    "live_project_bytes_in_template",
+    "authority_merged_with_sector_or_peer"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-surface.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "source_authority"
+    },
+    "database": {
+      "const": "source_authority.sqlite"
+    },
+    "database_sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "members": {
+      "type": "array",
+      "minItems": 1
+    },
+    "live_project_bytes_in_template": {
+      "const": false
+    },
+    "authority_merged_with_sector_or_peer": {
+      "const": false
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "373CCD76B49B4EACE9C0C8A6868C013A6F78F35464E0DA3FFBE0CB87ABCC4C9E"
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "remote_git_prepare_push",
+  "title": "Prepare automatic exact test-branch push",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "requested_by": {
+        "title": "Requested By",
+        "type": "string"
+      },
+      "remote": {
+        "title": "Remote",
+        "type": "string"
+      },
+      "local_ref": {
+        "title": "Local Ref",
+        "type": "string"
+      },
+      "remote_branch": {
+        "title": "Remote Branch",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "requested_by",
+      "remote",
+      "local_ref",
+      "remote_branch"
+    ],
+    "title": "remote_git_prepare_pushArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "remote_git_prepare_pushDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "7240F6C3A4F87E9C7382A18DBD1BEE31258D6929B6EDA4D395A53B1ED600D021",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "remote_git_prepare_push"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "governed-git-delivery",
+        "order": 17
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/remote_git_prepare_push.action.v1.json",
+  "sdk_action_binding_sha256": "AC91A7D4B0648D1D6A25523137FC7EC189A03065CD484EB76255A9F0A64573AE",
+  "public_action_schema": "schemas/actions/remote_git_prepare_push.schema.json",
+  "public_action_schema_sha256": "3E7B0209006B7772A822E6F298CD3DF0902E5135AA23B70BD01DE70283097763",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "056FFC0E33D0EF177D3EC9C9628846855DF9209307A3CFF1312F21309556531F"
+}

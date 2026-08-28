@@ -4,6 +4,7 @@ import importlib.util
 import json
 import sqlite3
 import time
+from contextlib import ExitStack
 from pathlib import Path
 from types import ModuleType
 
@@ -105,7 +106,7 @@ def _initialize(module: ModuleType, root: Path, monkeypatch: pytest.MonkeyPatch)
         root,
         installation_id="test-installation",
     )
-    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(root))
+    monkeypatch.setenv("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", str(root))
     monkeypatch.setenv("EVIDENCE_LANE_HOOK_KILL_SWITCH_RECEIPT", receipt["path"])
     monkeypatch.setenv(
         "EVIDENCE_LANE_HOOK_KILL_SWITCH_RECEIPT_SHA256",
@@ -233,7 +234,7 @@ print('{}')
     assert (status, event_name, json.loads(output)) == ("COMPLETE", "Stop", {})
 
 
-def test_exact_owner_reentrancy_lock_denies_nested_handler_execution(
+def test_exact_handler_occurrence_reentrancy_lock_denies_duplicate_execution(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -242,14 +243,14 @@ def test_exact_owner_reentrancy_lock_denies_nested_handler_execution(
     payload = _payload("UserPromptSubmit", tmp_path)
     raw = json.dumps(payload)
     _, input_sha256 = module.validate_input("UserPromptSubmit", raw)
-    owner_sha256, _ = module._identity(
-        "UserPromptSubmit", payload, input_sha256
+    _owner_sha256, correlation_id = module._identity(
+        "UserPromptSubmit", payload, input_sha256, "never.py"
     )
     handler = tmp_path / "never.py"
     handler.write_text("raise SystemExit('must not execute')\n", encoding="utf-8")
 
     with (
-        module._OwnerLock(owner_sha256),
+        module._OwnerLock(correlation_id),
         pytest.raises(
             module.HookEventIsolationError,
             match="REENTRANCY_DENIED",
@@ -263,12 +264,36 @@ def test_exact_owner_reentrancy_lock_denies_nested_handler_execution(
         )
 
 
+def test_distinct_subhook_occurrences_share_owner_without_false_reentrancy(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    _initialize(module, tmp_path, monkeypatch)
+    payload = _payload("SessionStart", tmp_path)
+    raw = json.dumps(payload)
+    _, input_sha256 = module.validate_input("SessionStart", raw)
+    identities = [
+        module._identity("SessionStart", payload, input_sha256, handler)[1]
+        for handler in (
+            "subhook_validate.py",
+            "subhook_seal.py",
+            "subhook_transport.py",
+            "subhook_emit.py",
+        )
+    ]
+    assert len(set(identities)) == 4
+    with ExitStack() as stack:
+        for identity in identities:
+            stack.enter_context(module._OwnerLock(identity))
+
+
 def test_missing_or_active_kill_switch_fails_closed_before_handler(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     module = _module()
-    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(tmp_path))
+    monkeypatch.setenv("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", str(tmp_path))
     with pytest.raises(module.HookEventIsolationError, match="RECEIPT_MISSING"):
         module.verify_inactive_kill_switch()
 

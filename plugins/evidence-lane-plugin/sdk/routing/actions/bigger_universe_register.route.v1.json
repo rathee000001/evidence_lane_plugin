@@ -1,0 +1,34 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "bigger_universe_register",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-bigger-universe",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "bigger_universe_register"
+    },
+    "internal_sdk": {
+      "module_id": "first_class_workflows",
+      "operation": "bigger_universe_register",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-bigger-universe",
+        "workflow": "register-changed-project-mini-brain-heads",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "FB6C13BBFFB8D634E53AC33FFB2E4E210D5ED918E7505E842E7FA373D2CDF8C2",
+  "sdk_action_binding": "sdk/actions/bigger_universe_register.action.v1.json",
+  "mcp_action_binding": "mcp/actions/bigger_universe_register.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "B3BC0AD6943E14F60F8447AF5719580691DDA62F04A6B17E55B3951C363FE3A2"
+}

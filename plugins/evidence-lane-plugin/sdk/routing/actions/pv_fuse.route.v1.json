@@ -1,0 +1,40 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "pv_fuse",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-fuse",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_fuse"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "exact-fuse",
+        "order": 10
+      },
+      {
+        "owner_skill": "evi-fuse",
+        "workflow": "exact-learning-then-project-approval-promotion",
+        "order": 3
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "exact-fuse",
+        "order": 8
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "DC8CCDE7535966C18069B6BCE3081F18C9B0D5FCE12A5AD29A769E1729907DBF",
+  "sdk_action_binding": "sdk/actions/pv_fuse.action.v1.json",
+  "mcp_action_binding": "mcp/actions/pv_fuse.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "DC5280AC2065FF55EE2E6C1EFD556FC8559ED89662ADE7D3C59CFA743491EA7D"
+}

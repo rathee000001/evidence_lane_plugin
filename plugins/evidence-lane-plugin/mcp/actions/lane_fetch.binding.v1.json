@@ -1,0 +1,77 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "lane_fetch",
+  "title": "Fetch one exact lane source",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "lane": {
+        "title": "Lane",
+        "type": "string"
+      },
+      "path": {
+        "title": "Path",
+        "type": "string"
+      },
+      "max_bytes": {
+        "default": 100000,
+        "title": "Max Bytes",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane",
+      "path"
+    ],
+    "title": "lane_fetchArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "lane_fetchDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "D04A51C8DDBF2BD67B9FA72F4F533272230A37892E2317E3198EE79D2C67B62F",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "lane_fetch"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "lane-evidence-read",
+        "order": 9
+      },
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "bounded-source-retrieval",
+        "order": 15
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/lane_fetch.action.v1.json",
+  "sdk_action_binding_sha256": "529335E404A3D46D3832CAEF44A7C52EE1C4C3E1C663A2F6E1FBBB3534D4C9D1",
+  "public_action_schema": "schemas/actions/lane_fetch.schema.json",
+  "public_action_schema_sha256": "8B66661BD642827BF41B6EFB1C955F38E22A3AF0661E2F3DB731692E698D288C",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "FDB34C2A1E804E417C7D6E3B972604F58E1AC2AFA7A0582B1669A3350045380F"
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_memory support refresh request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "project_root",
+    "authority_id"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_id": {
+      "const": "project_memory"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "43E2F50D8FB170657C7A19F765D1941EBB30563127DD6B27B2F5E8306AC5C0F9"
+}

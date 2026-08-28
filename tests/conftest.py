@@ -6,6 +6,8 @@ from pathlib import Path
 import pytest
 from evidence_lane_plugin.service import EvidenceLaneService
 
+from evidence_lane_plugin.service import EvidenceLaneService
+
 
 def git(repository: Path, *args: str) -> str:
     completed = subprocess.run(
@@ -173,17 +175,12 @@ def build_and_approve_pv1(application: EvidenceLaneService) -> tuple[str, dict]:
         decision_id="decision_pv1",
     )
     assert decision["pointer"]["accepted_pv"] == "PV1"
-    handoff = decision["state_travel_handoff"]["state_travel"]
-    traveled = application.resume_state_travel(
-        project_id="book-faires",
-        session_id=session_id,
-        handoff_id=handoff["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="host-session-state-travel-pv1",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={"source": "fresh-test-task"},
+    assert "state_travel_handoff" not in decision
+    continued = application.sessions.begin_next_turn(
+        "book-faires",
+        session_id,
+        continue_same_host=True,
+        continuation_reason="EXPLICIT_USER_CONTINUATION",
     )
-    assert traveled["wait_state"] == "WAITING_FOR_NEXT_USER_COMMAND"
+    assert continued["status"] == "PASS"
     return session_id, candidate

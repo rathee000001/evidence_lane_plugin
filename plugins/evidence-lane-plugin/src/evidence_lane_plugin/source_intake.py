@@ -33,6 +33,26 @@ _PROJECT_MARKERS = {
     "src/",
 }
 
+_CODE_PROJECT_ROLES = {
+    "PRIMARY_PROJECT_CODE",
+    "LANE_SCOPED_STUDY_BRAIN",
+}
+_REPOSITORY_ACCESS_CLASSES = {
+    "REGISTERED_PROJECT_AUTHORITY",
+    "OWNED_OR_EXPLICITLY_AUTHORIZED",
+    "PUBLIC_READ_ONLY_UNOWNED",
+    "LOCAL_READ_ONLY_UNVERIFIED",
+}
+_LANE_STUDY_BRAIN_ARTIFACTS = [
+    "LANE_SQLITE_FTS5",
+    "LANE_MMD",
+    "LANE_DOT",
+    "TOOLS_JSON",
+    "LANE_POINTER_JSON",
+    "LANE_MANIFEST_JSON",
+    "STUDY_BRAIN_JSON",
+]
+
 _MANIFEST_BASENAMES = {
     "manifest.json",
     "project_brain_package_manifest.json",
@@ -442,6 +462,169 @@ def _archive_lane(profile: dict[str, Any]) -> tuple[str, str]:
     return "custom", "archive_generic"
 
 
+def _is_code_project_directory(path: Path) -> bool:
+    return any(
+        (path / marker.removesuffix("/")).exists() for marker in _PROJECT_MARKERS
+    )
+
+
+def _same_resolved_path(left: str, right: str | Path | None) -> bool:
+    if right is None:
+        return False
+    try:
+        return Path(left).expanduser().resolve() == Path(right).expanduser().resolve()
+    except (OSError, RuntimeError):
+        return False
+
+
+def _apply_code_source_roles(
+    receipts: list[dict[str, Any]],
+    assertions: dict[str, dict[str, Any]],
+    *,
+    registered_repository_path: str | Path | None,
+) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]], dict[str, Any]]:
+    effective_assertions = {
+        source: dict(value) for source, value in assertions.items()
+    }
+    code_rows: list[dict[str, Any]] = []
+    primary_count = 0
+    for receipt in receipts:
+        source = str(receipt["source"])
+        lane_id = str(receipt["canonical_lane_id"])
+        parsed = urlparse(source)
+        is_remote_git = lane_id == "github_code" or parsed.scheme in {
+            "git",
+            "ssh",
+        }
+        is_local_code = lane_id == "local_code"
+        if not (is_remote_git or is_local_code):
+            continue
+        assertion = effective_assertions.setdefault(source, {})
+        registered = _same_resolved_path(source, registered_repository_path)
+        requested_role = str(assertion.get("code_project_role") or "").upper()
+        require(
+            not requested_role or requested_role in _CODE_PROJECT_ROLES,
+            "SOURCE_INTAKE_CODE_PROJECT_ROLE_INVALID",
+            "A code source role must be PRIMARY_PROJECT_CODE or "
+            "LANE_SCOPED_STUDY_BRAIN.",
+            status="BLOCKED",
+        )
+        role = requested_role or (
+            "PRIMARY_PROJECT_CODE" if registered else "LANE_SCOPED_STUDY_BRAIN"
+        )
+        if role == "PRIMARY_PROJECT_CODE":
+            require(
+                registered,
+                "SOURCE_INTAKE_PRIMARY_CODE_CHANGE_REQUIRES_NEW_PROJECT_PV",
+                "Changing the central code project requires a separately registered "
+                "project/PV root; Source Intake cannot replace it in place.",
+                status="BLOCKED",
+                source_identity_sha256=sha256_bytes(source.encode()),
+            )
+            primary_count += 1
+        requested_access = str(assertion.get("repository_access") or "").upper()
+        require(
+            not requested_access
+            or requested_access in _REPOSITORY_ACCESS_CLASSES,
+            "SOURCE_INTAKE_REPOSITORY_ACCESS_INVALID",
+            "Repository access must use one current governed access class.",
+            status="BLOCKED",
+        )
+        if requested_access:
+            access = requested_access
+        elif registered:
+            access = "REGISTERED_PROJECT_AUTHORITY"
+        elif parsed.scheme in {"http", "https", "git", "ssh"}:
+            access = "PUBLIC_READ_ONLY_UNOWNED"
+        else:
+            access = "OWNED_OR_EXPLICITLY_AUTHORIZED"
+        access_allows_history = access in {
+            "REGISTERED_PROJECT_AUTHORITY",
+            "OWNED_OR_EXPLICITLY_AUTHORIZED",
+        }
+        history_authorized = (
+            access_allows_history
+            and assertion.get("git_history_authorized", access_allows_history) is True
+        )
+        git_arm = dict(receipt.get("git_optional_arm") or {})
+        require(
+            not (
+                git_arm.get("requested_mode") == "REQUIRED"
+                and not history_authorized
+            ),
+            "SOURCE_INTAKE_GIT_HISTORY_AUTHORIZATION_REQUIRED",
+            "Required Git history needs registered ownership or explicit access.",
+            status="BLOCKED",
+        )
+        if git_arm.get("history_index_enabled") is True and not history_authorized:
+            git_arm.update(
+                {
+                    "state": "UNAUTHORIZED_HISTORY_DISABLED",
+                    "history_index_enabled": False,
+                    "reason": (
+                        "Code remains readable as lane-scoped evidence, but Git "
+                        "history is disabled without ownership/authorization."
+                    ),
+                }
+            )
+        assertion.update(
+            {
+                "code_project_role": role,
+                "repository_access": access,
+                "git_history_authorized": history_authorized,
+            }
+        )
+        receipt["git_optional_arm"] = git_arm
+        receipt["code_source_routing"] = {
+            "schema": "evidence-lane.code-source-routing.v1",
+            "role": role,
+            "repository_access": access,
+            "git_history_authorized": history_authorized,
+            "github_code_materialization_authorized": bool(
+                history_authorized
+                and assertion.get("governed_git_checkpoint") is True
+            ),
+            "lane_scoped_study_brain": role == "LANE_SCOPED_STUDY_BRAIN",
+            "lane_owned_artifacts": list(_LANE_STUDY_BRAIN_ARTIFACTS),
+            "central_project_replacement_allowed": False,
+            "new_project_pv_required_for_central_change": True,
+        }
+        code_rows.append(
+            {
+                "source_identity_sha256": sha256_bytes(source.encode()),
+                "lane_id": lane_id,
+                **receipt["code_source_routing"],
+            }
+        )
+    require(
+        primary_count <= 1,
+        "SOURCE_INTAKE_MULTIPLE_PRIMARY_CODE_PROJECTS",
+        "One governed project can have only one central code project.",
+        status="BLOCKED",
+    )
+    contract = {
+        "schema": "evidence-lane.code-source-routing-batch.v1",
+        "status": "PASS",
+        "central_code_project_count": primary_count,
+        "code_source_count": len(code_rows),
+        "study_brain_source_count": sum(
+            row["role"] == "LANE_SCOPED_STUDY_BRAIN" for row in code_rows
+        ),
+        "local_code_and_github_code_distinct": True,
+        "local_code_refresh_source": "CURRENT_DELTA_DIRTY_BYTES",
+        "github_code_refresh_source": "EXACT_GOVERNED_GIT_CHECKPOINT_ONLY",
+        "unowned_public_repository_history_allowed": False,
+        "central_project_change_requires_new_project_pv": True,
+        "source_intake_materializes_lanes": False,
+        "initial_build_materializes_lane_artifacts": True,
+        "delta_refresh_updates_changed_lane_artifacts": True,
+        "hil_refresh_adds_project_overlay": True,
+        "ordinary_delta_refresh_adds_project_overlay": False,
+        "code_sources": code_rows,
+    }
+    return receipts, effective_assertions, contract
+
+
 def _classify_one(
     source: str, *, code_mode: str, override: str | None, git_mode: str
 ) -> dict[str, Any]:
@@ -472,7 +655,8 @@ def _classify_one(
             git_arm_receipt = probe_git_arm(path, requested_mode=git_mode)
             lane_id = (
                 code_mode
-                if git_arm_receipt["history_index_enabled"]
+                if git_arm_receipt["repository_is_git"]
+                or _is_code_project_directory(path)
                 else "project_engulf"
             )
             reason = (
@@ -574,29 +758,48 @@ def classify_source_intake(
     authority_mode: str = "CLASSIFICATION_ONLY",
     authority_registry_path: str | Path | None = None,
     source_assertions: dict[str, dict[str, Any]] | None = None,
+    registered_repository_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Classify ordered inputs and optionally register read-only byte authority."""
 
-    if code_mode not in {"github_code", "local_code"}:
-        raise ValueError("code_mode must be github_code or local_code")
+    require(
+        code_mode in {"github_code", "local_code"},
+        "SOURCE_INTAKE_CODE_MODE_INVALID",
+        "Source Intake code mode must be github_code or local_code.",
+        status="BLOCKED",
+    )
     normalized_authority_mode = authority_mode.strip().upper()
-    if normalized_authority_mode not in {
-        "CLASSIFICATION_ONLY",
-        "GOVERNED_CONTENT_REGISTRY",
-    }:
-        raise ValueError(
-            "authority_mode must be CLASSIFICATION_ONLY or GOVERNED_CONTENT_REGISTRY"
-        )
-    normalized_git_mode = normalize_git_arm_mode(git_mode)
+    require(
+        normalized_authority_mode
+        in {"CLASSIFICATION_ONLY", "GOVERNED_CONTENT_REGISTRY"},
+        "SOURCE_INTAKE_AUTHORITY_MODE_INVALID",
+        "Source Intake authority mode must be CLASSIFICATION_ONLY or "
+        "GOVERNED_CONTENT_REGISTRY.",
+        status="BLOCKED",
+    )
+    try:
+        normalized_git_mode = normalize_git_arm_mode(git_mode)
+    except ValueError as exc:
+        raise EvidenceLaneError(
+            code="SOURCE_INTAKE_GIT_MODE_INVALID",
+            message="Source Intake Git mode must be AUTO, REQUIRED, or DISABLED.",
+            status="BLOCKED",
+        ) from exc
     exact_sources = [str(source).strip() for source in sources if str(source).strip()]
-    if not exact_sources:
-        raise ValueError("At least one non-empty source is required.")
+    require(
+        bool(exact_sources),
+        "SOURCE_INTAKE_SOURCE_REQUIRED",
+        "Source Intake requires at least one non-empty source.",
+        status="BLOCKED",
+    )
     exact_overrides = overrides or {}
     unknown_overrides = sorted(set(exact_overrides) - set(exact_sources))
     if unknown_overrides:
-        raise ValueError(
-            "Every explicit source override must name one exact supplied source: "
-            + ", ".join(unknown_overrides)
+        raise EvidenceLaneError(
+            code="SOURCE_INTAKE_OVERRIDE_SOURCE_MISMATCH",
+            message="Every source override must name one exact supplied source.",
+            status="MISMATCH",
+            details={"unknown_source_count": len(unknown_overrides)},
         )
     receipts = [
         _classify_one(
@@ -610,15 +813,26 @@ def classify_source_intake(
     assertions = source_assertions or {}
     unknown_assertions = sorted(set(assertions) - set(exact_sources))
     if unknown_assertions:
-        raise ValueError(
-            "Every source assertion must name one exact supplied source: "
-            + ", ".join(unknown_assertions)
+        raise EvidenceLaneError(
+            code="SOURCE_INTAKE_ASSERTION_SOURCE_MISMATCH",
+            message="Every source assertion must name one exact supplied source.",
+            status="MISMATCH",
+            details={"unknown_source_count": len(unknown_assertions)},
         )
+    receipts, assertions, code_source_routing = _apply_code_source_roles(
+        receipts,
+        assertions,
+        registered_repository_path=registered_repository_path,
+    )
     authority: dict[str, Any]
     if normalized_authority_mode == "GOVERNED_CONTENT_REGISTRY":
         if authority_registry_path is None:
-            raise ValueError(
-                "authority_registry_path is required for GOVERNED_CONTENT_REGISTRY"
+            raise EvidenceLaneError(
+                code="SOURCE_INTAKE_AUTHORITY_REGISTRY_REQUIRED",
+                message=(
+                    "GOVERNED_CONTENT_REGISTRY requires its project-scoped registry."
+                ),
+                status="BLOCKED",
             )
         authority = register_source_batch(
             authority_registry_path,
@@ -662,6 +876,7 @@ def classify_source_intake(
         "authority_mode": normalized_authority_mode,
         "source_authority": authority,
         "source_assertion_count": sum(len(row) for row in assertions.values()),
+        "code_source_routing": code_source_routing,
         "source_bytes_mutated": False,
         "source_payloads_copied": False,
         "local_registry_mutated": normalized_authority_mode

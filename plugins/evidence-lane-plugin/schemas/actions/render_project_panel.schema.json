@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "render_project_panel",
+  "title": "Render governed project and HIL panel",
+  "description": "Render a read-only MCP Apps panel for one registered project's accepted pointer, active lifecycle state, pending candidate, and canonical next/queued HIL queue with Plan connections. This is not the host Step Task List. The tool never accepts, rejects, rolls back, or promotes.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id"
+    ],
+    "title": "render_project_panelArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "render_project_panelDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "render_project_panel"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-build",
+        "workflow": "physically-final-pv-hil-presentation-only",
+        "order": 2
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "two-trigger-render-dispatch",
+        "order": 19
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "8C8F10765A838FA51942EC2DDBA771C0E30C963374F65BE0198164DEA74DD7FE",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "4AAEB8DCB0D2767AC78B6CCBDEC3D130E9E4AE0BBFB476F8594FA8834C7D9E7F"
+}

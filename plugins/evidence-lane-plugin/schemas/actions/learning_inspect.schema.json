@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "learning_inspect",
+  "title": "Inspect Agent Learning",
+  "description": "Inspect the project-isolated Agent Learning authority, candidate ledger, pointer, and decisions without reading it as Project Truth.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id"
+    ],
+    "title": "learning_inspectArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "learning_inspectDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-learning",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "learning_inspect"
+    },
+    "internal_sdk": {
+      "module_id": "agent_learning",
+      "operation": "inspect",
+      "read_only": true
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-authority-read",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "01B06073F895CBC106E9EF2115C36F31C046135F8C9F5C5CADE56714481FBFD9",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "9439C5E894292FD50F9D502811EE8725BB42ACCFFA7CFB7260646EF6CC2EC16B"
+}

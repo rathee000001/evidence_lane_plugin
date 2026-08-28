@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.persistence",
+  "source_path": "src/evidence_lane_plugin/persistence.py",
+  "source_sha256": "94B2AF929B7171826EE8E73E907D8227CF9B2FBDEC18B9563F90CE0E3428CAF3",
+  "source_bytes": 25734,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "A4D1815264928353171A278BA62828C8211EDE89562C46BC125F056DAED1DC72"
+}

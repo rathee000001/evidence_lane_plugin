@@ -73,15 +73,9 @@ def test_historical_dependency_manifests_are_vendor_isolated() -> None:
         / "plugins"
         / "evidence-lane-plugin"
         / "requirements.lock.txt",
-        ROOT
-        / "plugins"
-        / "evidence-lane-plugin"
-        / "remote_adapter"
+        ROOT / "apps" / "evidence-lane-remote-adapter"
         / "package.json",
-        ROOT
-        / "plugins"
-        / "evidence-lane-plugin"
-        / "remote_adapter"
+        ROOT / "apps" / "evidence-lane-remote-adapter"
         / "pnpm-lock.yaml",
     }
     assert all(path.is_file() for path in active_manifests)
@@ -114,7 +108,7 @@ def test_live_dependency_manifests_hold_current_security_floors() -> None:
         assert "cryptography==48.0.1" not in manifest
         assert "pypdf==6.14.2" not in manifest
 
-    adapter = ROOT / "plugins" / "evidence-lane-plugin" / "remote_adapter"
+    adapter = ROOT / "apps" / "evidence-lane-remote-adapter"
     adapter_package = json.loads(
         (adapter / "package.json").read_text(encoding="utf-8")
     )

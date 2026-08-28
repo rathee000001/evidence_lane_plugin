@@ -1,0 +1,1458 @@
+{
+  "schema": "evidence-lane.sqlite-authority-schema-snapshot.v1",
+  "database_sha256": "54728352EBBC42F17AEE0099563714EF6950882742AF362ED736271D8FCCEB3F",
+  "objects": [
+    {
+      "type": "index",
+      "name": "authority_index_node_source_idx",
+      "tbl_name": "authority_index_node",
+      "sql": "CREATE INDEX authority_index_node_source_idx\n        ON authority_index_node(source_id, ordinal)"
+    },
+    {
+      "type": "index",
+      "name": "authority_index_source_table_idx",
+      "tbl_name": "authority_index_source",
+      "sql": "CREATE INDEX authority_index_source_table_idx\n        ON authority_index_source(authority_id, source_table, source_identity)"
+    },
+    {
+      "type": "index",
+      "name": "idx_learning_candidate_dedup",
+      "tbl_name": "learning_candidate",
+      "sql": "CREATE INDEX idx_learning_candidate_dedup\nON learning_candidate(project_id,dedup_key_sha256)"
+    },
+    {
+      "type": "index",
+      "name": "idx_learning_decision_once",
+      "tbl_name": "learning_event",
+      "sql": "CREATE UNIQUE INDEX idx_learning_decision_once\nON learning_event(decision_key_sha256)\nWHERE decision_key_sha256 IS NOT NULL"
+    },
+    {
+      "type": "index",
+      "name": "idx_memory_edge_project_source",
+      "tbl_name": "memory_edge",
+      "sql": "CREATE INDEX idx_memory_edge_project_source\nON memory_edge(project_id,source_locator_id,edge_type)"
+    },
+    {
+      "type": "index",
+      "name": "idx_memory_edge_project_target",
+      "tbl_name": "memory_edge",
+      "sql": "CREATE INDEX idx_memory_edge_project_target\nON memory_edge(project_id,target_locator_id,edge_type)"
+    },
+    {
+      "type": "index",
+      "name": "idx_memory_locator_project_sector",
+      "tbl_name": "memory_locator",
+      "sql": "CREATE INDEX idx_memory_locator_project_sector\nON memory_locator(project_id,sector,locator_id)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts",
+      "tbl_name": "authority_index_fts",
+      "sql": "CREATE VIRTUAL TABLE authority_index_fts USING fts5(\n            node_id UNINDEXED,\n            authority_id UNINDEXED,\n            source_table,\n            source_identity,\n            text_content,\n            tokenize='unicode61'\n        )"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_config",
+      "tbl_name": "authority_index_fts_config",
+      "sql": "CREATE TABLE 'authority_index_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_content",
+      "tbl_name": "authority_index_fts_content",
+      "sql": "CREATE TABLE 'authority_index_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_data",
+      "tbl_name": "authority_index_fts_data",
+      "sql": "CREATE TABLE 'authority_index_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_docsize",
+      "tbl_name": "authority_index_fts_docsize",
+      "sql": "CREATE TABLE 'authority_index_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_idx",
+      "tbl_name": "authority_index_fts_idx",
+      "sql": "CREATE TABLE 'authority_index_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_node",
+      "tbl_name": "authority_index_node",
+      "sql": "CREATE TABLE authority_index_node(\n            node_id TEXT PRIMARY KEY,\n            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)\n                ON DELETE CASCADE,\n            ordinal INTEGER NOT NULL,\n            char_start INTEGER NOT NULL,\n            char_end INTEGER NOT NULL,\n            text_content TEXT NOT NULL,\n            text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            UNIQUE(source_id, ordinal)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_refresh_receipt",
+      "tbl_name": "authority_index_refresh_receipt",
+      "sql": "CREATE TABLE authority_index_refresh_receipt(\n            sequence INTEGER PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_count INTEGER NOT NULL,\n            node_count INTEGER NOT NULL,\n            indexed_table_count INTEGER NOT NULL,\n            llama_index_core_version TEXT NOT NULL,\n            chunk_size_tokens INTEGER NOT NULL,\n            chunk_overlap_tokens INTEGER NOT NULL,\n            prior_receipt_sha256 TEXT,\n            recorded_at TEXT NOT NULL,\n            receipt_sha256 TEXT NOT NULL UNIQUE,\n            receipt_json TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_source",
+      "tbl_name": "authority_index_source",
+      "sql": "CREATE TABLE authority_index_source(\n            source_id TEXT PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_table TEXT NOT NULL,\n            source_identity TEXT NOT NULL,\n            source_text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            recorded_at TEXT NOT NULL,\n            UNIQUE(authority_id, source_table, source_identity)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "learning_candidate",
+      "tbl_name": "learning_candidate",
+      "sql": "CREATE TABLE learning_candidate(\n    candidate_id TEXT PRIMARY KEY,\n    project_id TEXT NOT NULL,\n    candidate_sha256 TEXT NOT NULL UNIQUE,\n    dedup_key_sha256 TEXT NOT NULL,\n    tier TEXT NOT NULL,\n    lesson_type TEXT NOT NULL,\n    expires_at TEXT,\n    candidate_json TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "learning_candidate_fts",
+      "tbl_name": "learning_candidate_fts",
+      "sql": "CREATE VIRTUAL TABLE learning_candidate_fts USING fts5(\n    candidate_id UNINDEXED,\n    project_id UNINDEXED,\n    statement,\n    lesson_type,\n    scope_text,\n    tokenize='unicode61'\n)"
+    },
+    {
+      "type": "table",
+      "name": "learning_candidate_fts_config",
+      "tbl_name": "learning_candidate_fts_config",
+      "sql": "CREATE TABLE 'learning_candidate_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "learning_candidate_fts_content",
+      "tbl_name": "learning_candidate_fts_content",
+      "sql": "CREATE TABLE 'learning_candidate_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4)"
+    },
+    {
+      "type": "table",
+      "name": "learning_candidate_fts_data",
+      "tbl_name": "learning_candidate_fts_data",
+      "sql": "CREATE TABLE 'learning_candidate_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "learning_candidate_fts_docsize",
+      "tbl_name": "learning_candidate_fts_docsize",
+      "sql": "CREATE TABLE 'learning_candidate_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "learning_candidate_fts_idx",
+      "tbl_name": "learning_candidate_fts_idx",
+      "sql": "CREATE TABLE 'learning_candidate_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "learning_decision_receipt",
+      "tbl_name": "learning_decision_receipt",
+      "sql": "CREATE TABLE learning_decision_receipt(\n    decision_key_sha256 TEXT PRIMARY KEY,\n    candidate_id TEXT NOT NULL\n        REFERENCES learning_candidate(candidate_id),\n    receipt_sha256 TEXT NOT NULL UNIQUE,\n    receipt_json TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "learning_event",
+      "tbl_name": "learning_event",
+      "sql": "CREATE TABLE learning_event(\n    sequence INTEGER PRIMARY KEY AUTOINCREMENT,\n    event_id TEXT NOT NULL UNIQUE,\n    candidate_id TEXT NOT NULL\n        REFERENCES learning_candidate(candidate_id),\n    event_type TEXT NOT NULL,\n    lifecycle_state TEXT NOT NULL,\n    occurred_at TEXT NOT NULL,\n    decision_key_sha256 TEXT,\n    event_sha256 TEXT NOT NULL UNIQUE,\n    event_json TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "learning_pointer_history",
+      "tbl_name": "learning_pointer_history",
+      "sql": "CREATE TABLE learning_pointer_history(\n    project_id TEXT NOT NULL,\n    generation INTEGER NOT NULL CHECK(generation > 0),\n    candidate_id TEXT NOT NULL\n        REFERENCES learning_candidate(candidate_id),\n    candidate_sha256 TEXT NOT NULL,\n    prior_generation INTEGER NOT NULL CHECK(prior_generation >= 0),\n    reason TEXT NOT NULL,\n    pointer_sha256 TEXT NOT NULL UNIQUE,\n    pointer_json TEXT NOT NULL,\n    PRIMARY KEY(project_id,generation)\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "learning_schema_metadata",
+      "tbl_name": "learning_schema_metadata",
+      "sql": "CREATE TABLE learning_schema_metadata(\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n    schema_id TEXT NOT NULL,\n    schema_version INTEGER NOT NULL CHECK(schema_version > 0),\n    ddl_sha256 TEXT NOT NULL,\n    schema_signature_sha256 TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "memory_edge",
+      "tbl_name": "memory_edge",
+      "sql": "CREATE TABLE memory_edge(\n    edge_id TEXT PRIMARY KEY,\n    project_id TEXT NOT NULL,\n    source_locator_id TEXT NOT NULL REFERENCES memory_locator(locator_id),\n    target_locator_id TEXT NOT NULL REFERENCES memory_locator(locator_id),\n    edge_type TEXT NOT NULL,\n    evidence_sha256 TEXT NOT NULL,\n    edge_sha256 TEXT NOT NULL UNIQUE,\n    edge_json TEXT NOT NULL,\n    recorded_at TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "memory_locator",
+      "tbl_name": "memory_locator",
+      "sql": "CREATE TABLE memory_locator(\n    locator_id TEXT PRIMARY KEY,\n    project_id TEXT NOT NULL,\n    sector TEXT NOT NULL,\n    locator_kind TEXT NOT NULL,\n    locator_value TEXT NOT NULL,\n    revision_sha256 TEXT NOT NULL,\n    label TEXT NOT NULL,\n    search_text TEXT NOT NULL,\n    locator_sha256 TEXT NOT NULL UNIQUE,\n    locator_json TEXT NOT NULL,\n    recorded_at TEXT NOT NULL\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "memory_locator_fts",
+      "tbl_name": "memory_locator_fts",
+      "sql": "CREATE VIRTUAL TABLE memory_locator_fts USING fts5(\n    locator_id UNINDEXED,\n    project_id UNINDEXED,\n    sector,\n    locator_kind,\n    label,\n    search_text,\n    tokenize='unicode61'\n)"
+    },
+    {
+      "type": "table",
+      "name": "memory_locator_fts_config",
+      "tbl_name": "memory_locator_fts_config",
+      "sql": "CREATE TABLE 'memory_locator_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "memory_locator_fts_content",
+      "tbl_name": "memory_locator_fts_content",
+      "sql": "CREATE TABLE 'memory_locator_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4, c5)"
+    },
+    {
+      "type": "table",
+      "name": "memory_locator_fts_data",
+      "tbl_name": "memory_locator_fts_data",
+      "sql": "CREATE TABLE 'memory_locator_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "memory_locator_fts_docsize",
+      "tbl_name": "memory_locator_fts_docsize",
+      "sql": "CREATE TABLE 'memory_locator_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "memory_locator_fts_idx",
+      "tbl_name": "memory_locator_fts_idx",
+      "sql": "CREATE TABLE 'memory_locator_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+    }
+  ],
+  "tables": [
+    {
+      "name": "authority_index_fts",
+      "virtual_fts5": true,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "node_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_table",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_identity",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_config",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_content",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "c4",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_data",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_docsize",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_idx",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_node",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "char_start",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "char_end",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "text_content",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "text_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "metadata_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "source_id",
+          "table": "authority_index_source",
+          "to": "source_id"
+        }
+      ]
+    },
+    {
+      "name": "authority_index_refresh_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "indexed_table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "llama_index_core_version",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "chunk_size_tokens",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "chunk_overlap_tokens",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "prior_receipt_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_source",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_table",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_identity",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "source_text_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "metadata_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "learning_candidate",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "candidate_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "candidate_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "dedup_key_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "tier",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "lesson_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "expires_at",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "candidate_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "learning_candidate_fts",
+      "virtual_fts5": true,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "candidate_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 1,
+          "name": "project_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "statement",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "lesson_type",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "scope_text",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "learning_candidate_fts_config",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "learning_candidate_fts_content",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "c4",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "learning_candidate_fts_data",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "learning_candidate_fts_docsize",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "learning_candidate_fts_idx",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "learning_decision_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "decision_key_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "candidate_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "candidate_id",
+          "table": "learning_candidate",
+          "to": "candidate_id"
+        }
+      ]
+    },
+    {
+      "name": "learning_event",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "candidate_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "event_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "lifecycle_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "occurred_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "decision_key_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "event_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "event_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "candidate_id",
+          "table": "learning_candidate",
+          "to": "candidate_id"
+        }
+      ]
+    },
+    {
+      "name": "learning_pointer_history",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "candidate_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "candidate_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "prior_generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "reason",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "pointer_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "pointer_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "candidate_id",
+          "table": "learning_candidate",
+          "to": "candidate_id"
+        }
+      ]
+    },
+    {
+      "name": "learning_schema_metadata",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "schema_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "schema_version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "ddl_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "schema_signature_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "memory_edge",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "edge_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_locator_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "target_locator_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "edge_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "evidence_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "edge_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "edge_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "target_locator_id",
+          "table": "memory_locator",
+          "to": "locator_id"
+        },
+        {
+          "from": "source_locator_id",
+          "table": "memory_locator",
+          "to": "locator_id"
+        }
+      ]
+    },
+    {
+      "name": "memory_locator",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "locator_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "sector",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "locator_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "locator_value",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "revision_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "label",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "search_text",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "locator_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "locator_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "memory_locator_fts",
+      "virtual_fts5": true,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "locator_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 1,
+          "name": "project_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "sector",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "locator_kind",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "label",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "search_text",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "memory_locator_fts_config",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "memory_locator_fts_content",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "c4",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "c5",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "memory_locator_fts_data",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "memory_locator_fts_docsize",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "memory_locator_fts_idx",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    }
+  ],
+  "table_count": 28,
+  "fts5_tables": [
+    "authority_index_fts",
+    "learning_candidate_fts",
+    "memory_locator_fts"
+  ],
+  "schema_sha256": "A19896053BBF6F32DE1D47754A9EABA2B8430D1BBD5A6237C39926BE9EF8B891",
+  "receipt_sha256": "4269D5A4A17A59E216072A75154BE6F66A93A1B4C5E017F8373FC4CDE7FC5B44"
+}

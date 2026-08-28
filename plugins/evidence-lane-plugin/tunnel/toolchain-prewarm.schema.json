@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence Lane tunnel toolchain prewarm receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "matrix_sha256",
+    "requirement_count",
+    "failure_count",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.runtime-toolchain-prewarm.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "matrix_sha256": {
+      "const": "3D9AA351C78E796D57B18CFE749D90023EA2AACBD946A6FA2BB1BD2EB3DC2253"
+    },
+    "requirement_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "failure_count": {
+      "const": 0
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "EF48BFEE4536F5AA1C6281CC2201F0610F2461CCF932630E4BD05B69BB9AD35D"
+}

@@ -1,0 +1,12 @@
+digraph instructions_authority {
+  // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
+  // PYTHON_GRAPHVIZ_VERSION=0.21
+  bgcolor=white fontname=Arial rankdir=LR
+  node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
+  edge [color="#667085" fontname=Arial]
+  AGENTS [label="AGENTS.md scoped instruction chain" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
+  MEMORY [label="Host MEMORY.md bounded helpful recall" color="#125cdd" fillcolor="#edf5ff" shape=box style="rounded,filled"]
+  WORK [label="ENV/UOP governed work" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+  AGENTS -> WORK [label=governs]
+  MEMORY -> WORK [label="bounded recall only"]
+}

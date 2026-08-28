@@ -1,0 +1,24 @@
+{
+  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "status": "PASS",
+  "ordinal": 55,
+  "tool": "FFmpeg",
+  "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY_AND_DEPENDENCY",
+  "classification": "NATIVE_RUNTIME_ASSET",
+  "install_mode": "python_wheel_binary",
+  "license_expression_or_terms": "BSD-2-Clause wrapper; bundled FFmpeg license reported at install",
+  "license_evidence": "toolchains/native-tools.v1.json plus the installed native-tool license receipt",
+  "evidence_paths": [
+    "toolchains/native-tools.v1.json"
+  ],
+  "redistributed_by_source_package": false,
+  "source_package_copied_license_text_present": false,
+  "source_package_copied_license_texts": [],
+  "native_license_acquisition": null,
+  "runtime_distribution_license_required": true,
+  "runtime_distribution_license_manifest": "%RUNTIME_CONTROL_ROOT%/runtime/licenses/<runtime_key>/manifest.v1.json",
+  "runtime_distribution_license_files_must_be_copied_before_use": true,
+  "metadata_without_a_license_file_is_labeled_metadata_only": true,
+  "mcp_inventory_separate": true,
+  "receipt_sha256": "B8EA03D08C2BB60A9736D17D27A62EE4753036B2AA2CEA8D327B3CA1CDA41E18"
+}

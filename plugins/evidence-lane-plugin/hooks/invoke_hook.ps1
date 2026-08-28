@@ -94,15 +94,15 @@ try {
         Write-HookLaunchFailure -Code 'HOOK_EVENT_ISOLATION_POLICY_MISSING'
     }
     $failureStage = 'DATA_ROOT_RESOLUTION'
-    $configuredRoot = [Environment]::GetEnvironmentVariable('EVIDENCE_LANE_DATA_ROOT')
+    $configuredRoot = [Environment]::GetEnvironmentVariable('EVIDENCE_LANE_RUNTIME_CONTROL_ROOT')
     if ($null -ne $configuredRoot -and -not $configuredRoot.Trim()) {
-        Write-HookLaunchFailure -Code 'EVIDENCE_LANE_DATA_ROOT_EMPTY'
+        Write-HookLaunchFailure -Code 'EVIDENCE_LANE_RUNTIME_CONTROL_ROOT_EMPTY'
     }
     $failureStage = 'DATA_ROOT_PATH'
     $dataRoot = if ($configuredRoot) {
         [IO.Path]::GetFullPath($configuredRoot)
     } else {
-        Join-Path ([Environment]::GetFolderPath('UserProfile')) 'EvidenceLanePV'
+        Join-Path ([Environment]::GetFolderPath('UserProfile')) '.codex\plugins\runtime\evidence-lane-plugin'
     }
     $failureStage = 'LOCK_HASH'
     $lockSha256 = Get-Sha256 -LiteralPath $lockPath

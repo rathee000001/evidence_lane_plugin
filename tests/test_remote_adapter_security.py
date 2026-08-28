@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
-PUBLIC_SITE = PLUGIN / "remote_adapter"
+PUBLIC_SITE = ROOT / "apps" / "evidence-lane-remote-adapter"
 
 
 def test_v2_has_no_active_chatgpt_remote_mcp_adapter() -> None:

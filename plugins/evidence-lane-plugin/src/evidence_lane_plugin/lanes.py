@@ -16,7 +16,7 @@ MUTATION_AUTOMATIC_APPEND_ONLY = "automatic_append_only"
 MUTATION_NAMED_GRANT_RELOCK = "explicit_named_one_turn_grant_receipt_snapshot_relock"
 PRIMARY_CODE_LANES = frozenset({"github_code", "local_code"})
 LANE_SCHEMA_REGISTRY_SCHEMA = "evidence-lane.lane-schema-registry.v1"
-_PACKAGE_SCHEMA_ROOT = Path(__file__).resolve().parent / "schemas"
+_PACKAGE_SCHEMA_ROOT = Path(__file__).resolve().parents[2] / "schemas"
 LANE_SCHEMA_REGISTRY_PATH = _PACKAGE_SCHEMA_ROOT / "lane-schema-registry.v001.json"
 LANE_SCHEMA_EVOLUTION_POLICY_SCHEMA = (
     "evidence-lane.lane-schema-evolution-policy.v1"
@@ -146,6 +146,10 @@ _CORE_SCHEMA = (
     "tfidf_vector",
     "refresh_receipt",
     "mutation_receipt",
+    "authority_index_source",
+    "authority_index_node",
+    "authority_index_fts",
+    "authority_index_refresh_receipt",
 )
 CORE_SCHEMA_TABLES = frozenset(_CORE_SCHEMA)
 
@@ -159,6 +163,9 @@ _CODE_SCHEMA = _CORE_SCHEMA + (
     "code_chunk",
     "code_symbol",
     "code_import",
+    "code_call",
+    "code_parser_receipt",
+    "code_parser_diagnostic",
     "code_route",
     "code_dependency",
     "code_route_api_boundary",
@@ -456,6 +463,7 @@ _DEFINITIONS = (
             "doc_table_extract",
             "doc_chunk",
             "doc_image_reference",
+            "docling_extraction",
             "source_structure_signature",
             "doc_fts",
         ),
@@ -470,6 +478,7 @@ _DEFINITIONS = (
             ".csv",
             ".json",
             ".jsonl",
+            ".hyper",
             ".parquet",
             ".tsv",
             ".xls",
@@ -496,6 +505,12 @@ _DEFINITIONS = (
             "json_record_sample",
             "parquet_schema",
             "parquet_row_sample",
+            "duckdb_tabular_stage_receipt",
+            "polars_tabular_stage_receipt",
+            "openpyxl_workbook_inspection",
+            "pandas_workbook_inspection",
+            "tableau_hyper_inspection",
+            "docling_extraction",
             "data_chunk",
             "data_structure_signature",
             "data_fts",
@@ -520,6 +535,7 @@ _DEFINITIONS = (
             "ppt_notes",
             "ppt_table",
             "ppt_image_reference",
+            "docling_extraction",
             "ppt_slide_relationship",
             "ppt_chunk",
             "ppt_structure_signature",
@@ -546,6 +562,7 @@ _DEFINITIONS = (
             "pdf_ocr_block",
             "pdf_ocr_line",
             "pdf_review_region",
+            "docling_extraction",
             "pdf_structure_signature",
             "pdf_fts",
         ),
@@ -585,9 +602,19 @@ _DEFINITIONS = (
             ".jsonl",
             ".md",
             ".mmd",
+            ".avi",
+            ".flac",
+            ".m4a",
+            ".mkv",
+            ".mov",
+            ".mp3",
+            ".mp4",
+            ".ogg",
             ".parquet",
             ".svg",
             ".txt",
+            ".wav",
+            ".webm",
             ".xml",
         ),
         parser_id="artifact_structure_v1",
@@ -600,6 +627,7 @@ _DEFINITIONS = (
             "artifact_text_extract",
             "artifact_relation_edge",
             "artifact_review_required",
+            "artifact_media_probe",
             "artifact_fts",
         ),
     ),
@@ -661,6 +689,7 @@ _DEFINITIONS = (
             "brain_loader_schema_object",
             "brain_loader_relationship",
             "brain_loader_receipt",
+            "sqlalchemy_schema_inspection",
             "brain_loader_fts",
         ),
     ),
@@ -750,6 +779,7 @@ _DEFINITIONS = (
             "loaded_sqlite_brain_compatibility",
             "loaded_sqlite_brain_sector_mapping",
             "loaded_sqlite_brain_receipt",
+            "sqlalchemy_schema_inspection",
             "loaded_sqlite_brain_fts",
         ),
     ),

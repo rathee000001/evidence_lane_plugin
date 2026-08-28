@@ -140,6 +140,59 @@ def test_installed_inventory_requires_one_warning_free_exact_selector(
         )
 
 
+def test_installed_inventory_separates_event_and_nested_handler_action_counts(
+    tmp_path: Path,
+) -> None:
+    selector = "evidence-lane-plugin@evidence-lane-github"
+    reply = _reply(tmp_path, selector)
+    pre_tool = next(
+        row
+        for row in reply["result"]["data"][0]["hooks"]
+        if row["eventName"] == "preToolUse"
+    )
+    reply["result"]["data"][0]["hooks"].append(
+        {
+            **pre_tool,
+            "key": f"{selector}:hooks/hooks.json:preToolUse:0:1",
+            "currentHash": f"sha256:{99:064x}",
+        }
+    )
+
+    inventory = validate_installed_hook_inventory(
+        reply,
+        plugin_selector=selector,
+        workspace=tmp_path,
+    )
+
+    assert inventory["hook_count"] == 11
+    assert inventory["handler_action_count"] == 12
+    pre_tool_inventory = inventory["event_action_inventory"][3]
+    assert pre_tool_inventory["hook_number"] == 4
+    assert pre_tool_inventory["action_count"] == 2
+    assert [row["action_number"] for row in pre_tool_inventory["actions"]] == [
+        "4.1",
+        "4.2",
+    ]
+
+    observations = [
+        {
+            "event_name": row["event_name"],
+            "hook_key": row["hook_key"],
+            "current_hash": row["current_hash"],
+            "status": "COMPLETED",
+            "host_started_event_id": f"start-{index}",
+            "host_completed_event_id": f"complete-{index}",
+            "host_session_id": "host-session",
+        }
+        for index, row in enumerate(inventory["records"], start=1)
+    ]
+    complete = build_installed_hook_invocation_receipt(inventory, observations)
+    assert complete["status"] == "PASS"
+    assert complete["observed_event_count"] == 11
+    assert complete["observed_handler_action_count"] == 12
+    assert complete["required_handler_action_count"] == 12
+
+
 def test_invocation_receipt_never_promotes_missing_host_events(
     tmp_path: Path,
 ) -> None:

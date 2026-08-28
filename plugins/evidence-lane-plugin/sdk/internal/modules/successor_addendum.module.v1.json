@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.successor_addendum",
+  "source_path": "src/evidence_lane_plugin/successor_addendum.py",
+  "source_sha256": "5FFA8BADF9D88CCADCA6EDEB5E952754E788B74DC611A5DAF3AEF6145BC0FC0C",
+  "source_bytes": 7711,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "B29DE8A85437A9D08D3372EACBAD83D67D4D5AAAE3DB523E6567700E6E4A36BA"
+}

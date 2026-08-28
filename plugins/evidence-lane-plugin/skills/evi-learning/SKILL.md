@@ -57,16 +57,24 @@ explicit reason.
 The Learning ledger is schema-versioned and validates its exact SQLite tables,
 indexes, and FTS5 projections before use. Retrieval queries FTS5 with BM25 and
 returns only the bounded result slice; never scan or place the full ledger in
-model context. Project Memory is a separate authority and SDK arm. The public
-family retains eight compatibility action names: `learning_inspect`,
-`learning_retrieve`, `learning_memory_query`, `learning_memory_record_link`,
-`learning_record_host_memory_import`, `learning_seal_candidate`,
-`learning_decide_candidate`, and `learning_revoke`.
+model context. Project Memory is a separate authority, SDK arm, and first-class
+`evi-memory` skill. AI Learning owns six current public actions:
+`learning_inspect`, `learning_retrieve`, `learning_record_host_memory_import`,
+`learning_seal_candidate`, `learning_decide_candidate`, and `learning_revoke`.
+The installed registry contains no Learning-as-Memory compatibility actions;
+never route or recreate them.
 
 ## Historical and forward bootstrap
 
+PV0 creates no Learning candidate or HIL. Beginning with the first verified
+Delta, each Plan-only sub-PV acceptance auto-admits its corresponding Delta
+Learning member. Those members are available to later Delta entry as bounded
+accepted procedural evidence. The full-PV pointer still represents PV(n-1),
+while the live sector projection advances at every Delta exit through the
+immediately preceding sub-PV; only the current ACTIVE Delta is absent.
+
 The internal provider-neutral SDK owns `bootstrap_verified_history`; it is not
-a ninth MCP action. It may seal unaccepted Learning candidates only from two
+a ninth MCP action. It may seal Learning Delta members only from two
 canonical Plan event classes: an `ACCEPTED` row whose latest exact event is an
 approved `HIL_OUTCOME`, or a `DONE` row whose latest exact event is
 `VERIFIED_TASK_CHECKPOINT_COMPLETED`. Ordinary `TASK_DONE`, queued, dropped,
@@ -74,24 +82,27 @@ superseded, ambiguous, or unverified rows are excluded.
 
 The bootstrap reads the canonical Plan SQLite projection in read-only mode,
 checks integrity and foreign keys, binds the accepted Project pointer, and
-emits one deterministic candidate per eligible task. Repeating the same input
-must reuse the same candidate identities and one immutable bootstrap receipt.
-It never accepts Learning, invokes either HIL, creates a Project candidate,
+emits one deterministic member per eligible task. Each verified intermediate
+member is automatically admitted as `AUTO_ACCEPTED_DELTA_LEARNING`, inheriting
+the row's sub-PV acceptance when present and never moving the Learning pointer.
+The complete admitted member set is then woven into one deterministic
+`PV(n)` Learning candidate for the next full-PV HIL. Repeating the same input
+must reuse every member, auto-acceptance event, weave identity, and immutable
+receipt. The bootstrap never invokes either HIL, creates a Project candidate,
 moves either pointer, imports host memory, or loads the full Plan into model
 context. Later verified Deltas become eligible through the same SDK operation;
 hooks do not own or auto-run the bootstrap.
 
-`learning_memory_record_link` and `learning_memory_query` are compatibility
-names only. The MCP catalog routes them to the independent Project Memory
-SDK arm (record-link and query operations). Use the former to append only typed,
-content-addressed locators and edges among the 18 project lanes, ChatLineage,
-Plan, Project Truth, Canon, Agent Learning, Project Universe, receipts, and an
-explicit host-memory import receipt. Use the latter for a bounded cross-sector
-locator slice. Neither route stores or returns raw lane databases, Markdown,
-chat scrollback, or private reasoning. `SUPERSEDES`, `SUPPRESSES`, and
-`REVOKES` edges exclude stale targets at the requested retrieval time while
-preserving immutable history. Legacy Memory tables in Learning are immutable
-migration source, never the active owner for new Memory writes.
+Project Memory query and record-link behavior is owned only by `evi-memory`
+through `project_memory_query` and `project_memory_record_link`. Those routes
+append or return bounded content-addressed locators and edges among the 18
+project lanes, ChatLineage, Plan, Project Truth, Canon, Agent Learning, Project
+Universe, receipts, and explicit host-memory import receipts. Neither route
+stores or returns raw lane databases, Markdown, chat scrollback, or private
+reasoning. `SUPERSEDES`, `SUPPRESSES`, and `REVOKES` edges exclude stale targets
+at the requested retrieval time while preserving immutable history. Legacy
+Memory tables and action names in Learning are immutable migration evidence,
+never an active execution route or owner for new Memory writes.
 
 ## Expiry ownership
 
@@ -125,6 +136,20 @@ decision surface: `APPROVE`, `APPROVE_WITH_DELTA`, `MORE_RESEARCH`, pointer-only
 Learning rollback, `REJECT`, or `FAIL`. The decision may move only the Learning
 pointer. It cannot promote Project Truth or authorize Project Fuse, Git,
 install, deployment, Canon acceptance, or State Travel.
+
+Intermediate auto-accepted Delta members are weave inputs and cannot receive
+individual human decisions. A full-PV Learning HIL decides exactly one woven
+candidate and moves the Learning pointer at most once.
+
+Every full-PV presentation is conjoined with the Project HIL for the same
+derived PV number, but the decisions remain separate. Record the Learning
+decision first. Project `pv_fuse` may run only after it verifies that the
+accepted Learning head is the unique weave targeting that Project proposal.
+Project Fuse never moves the Learning pointer, and Learning approval never
+promotes Project Truth. After both exact approvals, append one dual HIL
+acceptance stamp to the exact Plan row, including the bounded weave summary and
+both receipt hashes. Accepted ZIP storage is only the resulting Project
+snapshot; Learning inspection and later entry/State Travel never query it.
 
 Use `learning_revoke` to append a revocation for accepted Learning. Preserve the
 candidate, acceptance, pointer, retrieval, and revocation history. Never delete

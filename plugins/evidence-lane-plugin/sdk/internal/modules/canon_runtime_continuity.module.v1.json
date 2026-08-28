@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.canon_runtime_continuity",
+  "source_path": "src/evidence_lane_plugin/canon_runtime_continuity.py",
+  "source_sha256": "29E5972158EADAFE08E2CD16BEE93775A7ADCCE4B3FB7E76AB4DE33523116670",
+  "source_bytes": 26906,
+  "role": "PROJECT_AUTHORITIES",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "134D7FED77B1FDA6C736A9CF5A764F557D6D3A5FD9E10EB771D3AAE2EB946493"
+}

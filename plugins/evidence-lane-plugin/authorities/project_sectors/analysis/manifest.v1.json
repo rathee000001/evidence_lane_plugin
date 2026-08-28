@@ -1,0 +1,107 @@
+{
+  "schema": "evidence-lane.installed-lane-surface.v1",
+  "status": "PASS",
+  "lane_id": "analysis",
+  "sqlite_filename": "analysis_sector_v001.sqlite",
+  "sqlite_integrity": "ok",
+  "sqlite_table_count": 37,
+  "schema_contract_table_count": 27,
+  "members": [
+    {
+      "path": "authorities/project_sectors/analysis/analysis.dot",
+      "bytes": 18126,
+      "sha256": "CBEEFEF1B37D2EF5BDC098E4E952A6662635DD8FB7BF1EF3BE60AAAA674CDF1B"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/analysis.mmd",
+      "bytes": 14428,
+      "sha256": "12FD09EAAFD028B651FA512BC99381072A3632ACBD142FECFE890ED7C2ED3A28"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/analysis_sector_v001.sqlite",
+      "bytes": 245760,
+      "sha256": "4A4632C7CB00357F55BC445651385933F7ACB708DFBC4CE4706CDA26F0ED1F59"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/builder-contract.schema.json",
+      "bytes": 612,
+      "sha256": "ED8201C0C6575EE9BE9182D507A51ECFD659BF95CC611B8918D22C7F1C8EB19C"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/builder.py",
+      "bytes": 576,
+      "sha256": "74D6EB53B8850395316B4CFAF91BC0B8DFCF4E3060F83DC5525E8E5C598E368E"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/dot-artifact.schema.json",
+      "bytes": 944,
+      "sha256": "9D70A67421D61B7A92253038EF5EDD4942FEFF2ECE1BC1E5CBFDF01C2418C9C5"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/lane-contract.v1.json",
+      "bytes": 7594,
+      "sha256": "52DF0D2FBDCEEB4F887F83C77B660926A31515D5344F918F5EBE810A444999CC"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/lane-pointer.schema.json",
+      "bytes": 737,
+      "sha256": "D8E2D9B26C6ED9DD657CE26B7300C17587CF7F196E1428975D04B5399D830586"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/manifest.schema.json",
+      "bytes": 974,
+      "sha256": "78CC8BF540008DC009DB75AFC07E8B6043BC9BFAF2845EC9C2AEC4BDC5A19AF5"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/mmd-artifact.schema.json",
+      "bytes": 961,
+      "sha256": "21B619F86BF79EABBC52A04E8578B35843493AE76CA8F811F0C6E69490CE3A90"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/reader-contract.schema.json",
+      "bytes": 762,
+      "sha256": "ED1FB4E216CC18C36658388323FAE4D18E1155B308CA34516BF349538C1BF720"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/reader.py",
+      "bytes": 438,
+      "sha256": "11C2442B0B071F9B96F6EB055B39B89F0548329C08447C1CAA0406B826FD7A31"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/README.md",
+      "bytes": 364,
+      "sha256": "483F97F235677E9BACA098087A9021A01BD1DB61AE7576D9CC297268063B5D2C"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/refresh-receipt.schema.json",
+      "bytes": 532,
+      "sha256": "98F93F119183D93D154C0A8319F233B177DA8CF1465D649C782837BFC87A1A0B"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/schema.sql",
+      "bytes": 9359,
+      "sha256": "CAF50998F09CDD0FA2624257B59F91B068DA1D7B79C2B645EB2928924AD9DBD4"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/sqlite-artifact.schema.json",
+      "bytes": 963,
+      "sha256": "3F80F22A8E8DF696B667226BAB2B0352840D7FFC502F79ECAFEB31F6960D4F0F"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/tools.json",
+      "bytes": 1150,
+      "sha256": "6A684DAF9CB6006069FC0F01F83C4A9A887E7C4DAE406448EA35467BAF272919"
+    },
+    {
+      "path": "authorities/project_sectors/analysis/tools.schema.json",
+      "bytes": 1001,
+      "sha256": "6B083DB28D016DBACE3D2EA03B18DCE2FEC792687A0FBE4ED10DB3FBA1F995C7"
+    }
+  ],
+  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_template": false,
+  "template_contains_identity_metadata_only": true,
+  "receipt_sha256": "4BD16D6E139C14BBDF36ED5CA83ABBA4DF145CB8E1C3931E74B08CB2C76437BE"
+}

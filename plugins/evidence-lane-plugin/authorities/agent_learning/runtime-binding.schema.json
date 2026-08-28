@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agent_learning runtime binding",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "module",
+    "source_sha256"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "agent_learning"
+    },
+    "module": {
+      "const": "evidence_lane_plugin.agent_learning"
+    },
+    "source_sha256": {
+      "const": "38D89683C25EA536392E2EC9816B26F4B94E1561057791EAEF792104C3A54331"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "4F86242B0CD704650C5CD532BEF58E521A3D531F2A8CDD41CF878B9DCDC4356F"
+}

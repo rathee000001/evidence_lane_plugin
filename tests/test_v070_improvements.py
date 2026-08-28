@@ -318,62 +318,6 @@ def test_arbitrary_chat_activation_routes_visible_lineage_brains_and_projects(
     ] is False
 
 
-def test_explicit_same_host_continuation_preserves_and_supersedes_handoff(
-    service,
-) -> None:
-    boot = boot_local(service)
-    session_id = boot["session"]["session_id"]
-    service.build_initial("book-faires", session_id)
-    fused = service.decide(
-        "book-faires",
-        session_id,
-        decision="APPROVE",
-        decided_by="human-test",
-        decision_id="decision_v070_same_host",
-    )
-    handoff = fused["state_travel_handoff"]["state_travel"]
-    pointer_before = service.store.pointer("book-faires").as_dict()
-
-    with pytest.raises(EvidenceLaneError) as still_blocked:
-        service.sessions.begin_next_turn("book-faires", session_id)
-    assert still_blocked.value.code == "STATE_TRAVEL_RESUME_REQUIRED"
-
-    entry = service.sessions.begin_next_turn(
-        "book-faires",
-        session_id,
-        continue_same_host=True,
-        continuation_reason="EXPLICIT_USER_CONTINUATION",
-    )
-    pointer_after = service.store.pointer("book-faires").as_dict()
-    assert pointer_before == pointer_after
-    assert entry["session"]["state"] == "PVN1_ENTRY"
-    disposition = entry["state_travel_disposition"]
-    assert disposition["status"] == "SUPERSEDED_BY_SAME_HOST_CONTINUATION"
-    assert disposition["handoff_id"] == handoff["handoff_id"]
-    assert disposition["handoff_sha256"] == handoff["handoff_sha256"]
-    assert disposition["state_travel_consumed"] is False
-    persisted = service.sessions.load("book-faires", session_id)
-    assert persisted.metadata["state_travel_history"][-1] == handoff
-    assert persisted.metadata["state_travel"]["status"] == (
-        "SUPERSEDED_BY_SAME_HOST_CONTINUATION"
-    )
-    lineage_path = (
-        service.store.project_root("book-faires")
-        / "lineage"
-        / f"{session_id}.jsonl"
-    )
-    events = [
-        json.loads(line)
-        for line in lineage_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
-    assert any(
-        row["event_type"] == "pv.state_travel.superseded_same_host"
-        for row in events
-    )
-    assert not any(row["event_type"] == "pv.state_travel.verified" for row in events)
-
-
 def test_hil_intent_appends_visible_lineage_without_pointer_move(service) -> None:
     boot = boot_local(service)
     session_id = boot["session"]["session_id"]
@@ -404,7 +348,7 @@ def test_mid_turn_steers_append_in_order_and_deduplicate(
     root = Path(__file__).resolve().parents[1]
     hook = root / "plugins" / "evidence-lane-plugin" / "hooks" / "prompt_submit.py"
     environment = os.environ.copy()
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(service.store.root)
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(service.store.root)
 
     def submit(prompt: str) -> dict:
         completed = subprocess.run(

@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "formula_engine_run",
+  "title": "Run Formula Engine",
+  "description": "Compile and optionally route one bounded ENV/UOP formula through the separate Formula Engine without making Mode the owner or changing Project Truth, HIL, candidate, or pointer state.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "mode_governance": {
+        "additionalProperties": true,
+        "title": "Mode Governance",
+        "type": "object"
+      },
+      "execution_budget": {
+        "additionalProperties": true,
+        "title": "Execution Budget",
+        "type": "object"
+      },
+      "route": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Route"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "mode_governance",
+      "execution_budget"
+    ],
+    "title": "formula_engine_runArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "formula_engine_runDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-formula",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "formula_engine_run"
+    },
+    "internal_sdk": {
+      "module_id": "first_class_workflows",
+      "operation": "formula_engine_run",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-formula",
+        "workflow": "bounded-env-uop-formula-execution",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "060492B868630283163FA269FC5C54139DE688E9D8981DB84C05ABC7676C311E",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "28B90B8D7EBCED6AA2234CEDDD767F1158FC55BFFF9AC409E4E2299D09FB07C8"
+}

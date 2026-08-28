@@ -65,7 +65,7 @@ def _initialize_isolation(
         root,
         installation_id="stop-contract-test-installation",
     )
-    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(root))
+    monkeypatch.setenv("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", str(root))
     monkeypatch.setenv("EVIDENCE_LANE_HOOK_KILL_SWITCH_RECEIPT", receipt["path"])
     monkeypatch.setenv(
         "EVIDENCE_LANE_HOOK_KILL_SWITCH_RECEIPT_SHA256",
@@ -117,7 +117,7 @@ def test_source_stop_handler_first_delivery_and_replay_are_both_empty(
     tmp_path: Path,
 ) -> None:
     environment = os.environ.copy()
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(tmp_path / "source-store")
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(tmp_path / "source-store")
     for stop_hook_active in (False, True):
         completed = subprocess.run(
             [sys.executable, str(HOOKS / "stop_response.py")],
@@ -193,16 +193,28 @@ def test_package_and_copied_installed_fixture_keep_identical_stop_contract(
     package_hooks = json.loads(
         (installed / "hooks" / "hooks.json").read_text(encoding="utf-8")
     )
-    handler = package_hooks["hooks"]["Stop"][0]["hooks"][0]
-    assert "invoke_hook.py" in handler["command"]
-    assert "Stop --handler stop_response.py" in handler["command"]
-    assert handler["commandWindows"] == (
+    handlers = package_hooks["hooks"]["Stop"][0]["hooks"]
+    assert [
+        row["command"].rsplit("--handler ", 1)[1] for row in handlers
+    ] == [
+        "subhook_validate.py",
+        "subhook_seal.py",
+        "subhook_transport.py",
+        "subhook_emit.py",
+    ]
+    assert [row["commandWindows"] for row in handlers] == [
         '& "${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe" '
-        "Stop stop_response.py"
-    )
+        f"Stop {name}"
+        for name in (
+            "subhook_validate.py",
+            "subhook_seal.py",
+            "subhook_transport.py",
+            "subhook_emit.py",
+        )
+    ]
 
     environment = os.environ.copy()
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(tmp_path / "installed-store")
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(tmp_path / "installed-store")
     for stop_hook_active in (False, True):
         completed = subprocess.run(
             [sys.executable, str(installed / "hooks" / "stop_response.py")],

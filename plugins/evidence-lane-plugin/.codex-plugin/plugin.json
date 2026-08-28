@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "3.0.0+codex.20260824115846",
-  "description": "Evidence Lane 3.0.0 is the current pre-HIL Codex source release. Human-governed project memory preserves exact evidence, resumes unfinished work, and keeps acceptance under the user's control.",
+  "version": "3.0.0+codex.20260828064341",
+  "description": "Evidence Lane keeps long Codex projects grounded in their evidence, resumes the exact unfinished work, and leaves every important decision with the user.",
   "author": {
     "name": "Praveen Rathee",
     "url": "https://github.com/rathee000001"
@@ -19,8 +19,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Evidence Lane",
-    "shortDescription": "Evidence Lane 3.0.0 - 88 native actions (27 read / 61 write) - 17 governed skills.",
-    "longDescription": "Evidence Lane is human-governed project memory for Codex. It keeps source, worktree, project, Plan, ChatLineage, installed-runtime, candidate, and accepted truth distinct across long-running work. The package exposes seventeen governed skills and one package-local native MCP server with eighty-eight canonical actions: twenty-seven read-only and sixty-one write-capable. Queryable SQLite, FTS5/BM25 retrieval, graphs, pointers, receipts, Canon, AI Learning, and the cross-sector memory graph let Codex resume from bounded evidence instead of reloading raw histories. Source Intake, Build, Refresh, pointer-only Rollback, State Travel, Mode, storage and plugin administration, panels, search, diff, and governed Git evidence remain separate routes with explicit effects. Candidate acceptance stays human-controlled: natural intent never promotes a candidate, and only the exact governed approval contract may authorize Fuse on a genuinely write-capable host.",
+    "shortDescription": "Keep long Codex projects grounded, resumable, and human-approved.",
+    "longDescription": "Evidence Lane helps people carry substantial Codex projects across tasks without losing what was decided, what is active, or what still needs human approval. It keeps the working folder, user-selected Project/PV root, Plan, evidence, memory, learning, history, and hidden installed runtime as separate identities, then reconnects them through one governed workflow. Each change remains traceable to its source and active Plan row. State Travel resumes the existing project instead of starting over. No proposal, rollback, Git delivery, or Project or Learning acceptance happens without the required human decision. The current 3.0.0 package exposes 91 native actions (30 read and 61 write), 26 governed skills with no separate command layer, and 11 lifecycle event classes with 44 ordered handlers. Its 18 project-sector lanes remain distinct from Learning, Canon, Project Memory, Project Universe, Sources, Instructions, receipts and sessions, connector brain, and Project Overlay. The internal ENV/UOP action plane and whole-plugin SDK choose and govern the right workflow without turning stored authority into passive documentation.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "websiteURL": "https://evidencelane.org",
@@ -32,9 +32,9 @@
     "privacyPolicyURL": "https://evidencelane.org/privacy",
     "termsOfServiceURL": "https://evidencelane.org/terms",
     "defaultPrompt": [
-      "Boot Evidence Lane, verify ENV/UOP Flash, and show the six controls with host availability.",
-      "Show the accepted PV, Entry/Exit Slips, source lanes, and persistent plan without mutation.",
-      "Explain the current six-way HIL and exact next decision in clear business language."
+      "Open my Evidence Lane project, verify that it is ready, and show the six controls available on this host.",
+      "Show the accepted project state, current Plan row, recent changes, and supporting evidence without changing anything.",
+      "Explain the current six-way HIL, the exact next human decision, and what each choice would change."
     ],
     "brandColor": "#18A9C8",
     "composerIcon": "./assets/evidence-lane-icon.png",

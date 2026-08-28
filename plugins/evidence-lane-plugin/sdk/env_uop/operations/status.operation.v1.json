@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-env-uop-operation.v1",
+  "status": "PASS",
+  "operation": "status",
+  "callable": "validate_mode_governance_selection",
+  "canonical_module": "evidence_lane_plugin.mode_governance",
+  "canonical_module_sha256": "8A1BB62B96D6925947D7671572AA93A9B2779A121577EA43E79A4F90050E60EF",
+  "env_authority_manifest_sha256": "E4F283EC16F86995E2937288DD8A8E5623007351CBB1CA3FD01FDA5C7363B6C1",
+  "uop_authority_manifest_sha256": "BBA3CDAE9CC0FF981E5C6E19F83FBBCE6EB2ED8167CDBB2E9D1C557FA03CA57C",
+  "counted_as_public_mcp_action": false,
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "BD9E0DD7AD09021B9C683D3DA5926129614F1C1DD2BEFC7A0235570E682CC6EC"
+}

@@ -1,0 +1,156 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "learning_seal_candidate",
+  "title": "Seal Agent Learning candidate",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "tier": {
+        "title": "Tier",
+        "type": "string"
+      },
+      "lesson_type": {
+        "title": "Lesson Type",
+        "type": "string"
+      },
+      "statement": {
+        "title": "Statement",
+        "type": "string"
+      },
+      "scope": {
+        "additionalProperties": true,
+        "title": "Scope",
+        "type": "object"
+      },
+      "evidence": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Evidence",
+        "type": "array"
+      },
+      "outcome": {
+        "title": "Outcome",
+        "type": "string"
+      },
+      "confidence": {
+        "title": "Confidence",
+        "type": "number"
+      },
+      "counterevidence": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Counterevidence",
+        "type": "array"
+      },
+      "contradictions": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Contradictions",
+        "type": "array"
+      },
+      "temporal": {
+        "additionalProperties": true,
+        "title": "Temporal",
+        "type": "object"
+      },
+      "privacy": {
+        "title": "Privacy",
+        "type": "string"
+      },
+      "source_lineage_head_sha256": {
+        "title": "Source Lineage Head Sha256",
+        "type": "string"
+      },
+      "supersedes": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Supersedes"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "tier",
+      "lesson_type",
+      "statement",
+      "scope",
+      "evidence",
+      "outcome",
+      "confidence",
+      "counterevidence",
+      "contradictions",
+      "temporal",
+      "privacy",
+      "source_lineage_head_sha256"
+    ],
+    "title": "learning_seal_candidateArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "learning_seal_candidateDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "0B2E6136DCB9C688AD7579C40CACCBEC65048D41B1E0E951A37B923A103ABA1B",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-learning",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "learning_seal_candidate"
+    },
+    "internal_sdk": {
+      "module_id": "agent_learning",
+      "operation": "seal_candidate",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-candidate",
+        "order": 6
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/learning_seal_candidate.action.v1.json",
+  "sdk_action_binding_sha256": "B4384D9D32F64C9DFF30A3DD9E4FBF63AA62B234D7D248D8A786CBD88C8E639F",
+  "public_action_schema": "schemas/actions/learning_seal_candidate.schema.json",
+  "public_action_schema_sha256": "1701BFA110AD78A7AA299B333E0BBF0DA4E59A7E1478F7247BED1BE306F7C1E0",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "2250E76655BEF13E53FC93FA02B08ADF615FC8C440D070C763D0FE0D378029C7"
+}

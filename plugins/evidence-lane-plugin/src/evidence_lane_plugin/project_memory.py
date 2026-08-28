@@ -26,6 +26,7 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
+from .graph_pipeline import SemanticGraph
 from .lanes import CANONICAL_LANE_IDS
 from .project_authority import resolved_plan_runtime_path
 from .redaction import contains_secret
@@ -168,11 +169,7 @@ def _database_path(root: Path) -> Path:
 
 def _schema_asset() -> tuple[Path, str]:
     candidates = (
-        Path(__file__).resolve().parent
-        / "schemas"
-        / "memory"
-        / "project-memory.v1.sql",
-        Path(__file__).resolve().parents[3]
+        Path(__file__).resolve().parents[2]
         / "schemas"
         / "memory"
         / "project-memory.v1.sql",
@@ -676,7 +673,7 @@ def _migrate_legacy_memory(
     }
 
 
-def _plan_identity(root: Path, *, active_plan_task_id: str) -> tuple[str, str]:
+def _plan_identity(root: Path, *, active_plan_task_id: str) -> tuple[str, str, int]:
     path = resolved_plan_runtime_path(root)
     require(
         path.is_file(),
@@ -691,7 +688,7 @@ def _plan_identity(root: Path, *, active_plan_task_id: str) -> tuple[str, str]:
     connection.row_factory = sqlite3.Row
     try:
         rows = connection.execute(
-            "SELECT task_id,task_contract_sha256 FROM plan_execution_row "
+            "SELECT task_id,task_contract_sha256,row_number FROM plan_execution_row "
             "WHERE lifecycle_status='ACTIVE' AND effective_for_execution=1"
         ).fetchall()
     finally:
@@ -704,7 +701,18 @@ def _plan_identity(root: Path, *, active_plan_task_id: str) -> tuple[str, str]:
         expected_active_task_id=active_plan_task_id,
         active_task_ids=[str(row["task_id"]) for row in rows],
     )
-    return digest, _sha256(rows[0]["task_contract_sha256"], field="task_contract")
+    row_number = int(rows[0]["row_number"] or 0)
+    require(
+        row_number > 0,
+        "MEMORY_ACTIVE_PLAN_ROW_REQUIRED",
+        "Project Memory requires the active Plan row number.",
+        status="MISMATCH",
+    )
+    return (
+        digest,
+        _sha256(rows[0]["task_contract_sha256"], field="task_contract"),
+        row_number,
+    )
 
 
 def _authority_locators(
@@ -715,6 +723,7 @@ def _authority_locators(
     pointer_generation: int,
     accepted_manifest_sha256: str,
     active_plan_task_id: str,
+    active_plan_row: int,
     plan_sha256: str,
     task_contract_sha256: str,
     lineage_head_sha256: str,
@@ -768,8 +777,14 @@ def _authority_locators(
             "locator_kind": "ACTIVE_TASK",
             "locator_value": f"plan://task/{active_plan_task_id}",
             "revision_sha256": task_contract_sha256,
-            "label": f"Active Plan task {active_plan_task_id}",
-            "search_terms": ["plan", "active", "task", active_plan_task_id],
+            "label": f"Active Plan R{active_plan_row} task {active_plan_task_id}",
+            "search_terms": [
+                "plan",
+                "active",
+                "task",
+                f"r{active_plan_row}",
+                active_plan_task_id,
+            ],
         },
         "PLAN_SQLITE",
         plan_sha256,
@@ -942,31 +957,27 @@ def _current_head(connection: sqlite3.Connection) -> dict[str, Any]:
     return cast(dict[str, Any], json.loads(str(row["head_json"])))
 
 
-def _render_mermaid(locators: list[dict[str, Any]], edges: list[dict[str, Any]]) -> str:
-    lines = ["flowchart LR"]
+def _render_graph_pair(
+    locators: list[dict[str, Any]], edges: list[dict[str, Any]]
+) -> tuple[str, str, dict[str, Any]]:
+    graph = SemanticGraph(
+        "ProjectMemory",
+        direction="LR",
+        role="AUTHORITY_TRAVERSAL",
+    )
     for locator in locators:
-        label = f"{locator['sector']}\\n{locator['label']}".replace('"', "'")
-        lines.append(f'  {locator["locator_id"]}["{label}"]')
-    for edge in edges:
-        lines.append(
-            f"  {edge['source_locator_id']} -->|{edge['edge_type']}| "
-            f"{edge['target_locator_id']}"
+        graph.add_node(
+            str(locator["locator_id"]),
+            f"{locator['sector']}\n{locator['label']}",
+            "retrieval",
         )
-    return "\n".join(lines) + "\n"
-
-
-def _render_dot(locators: list[dict[str, Any]], edges: list[dict[str, Any]]) -> str:
-    lines = ["digraph ProjectMemory {", "  rankdir=LR;"]
-    for locator in locators:
-        label = f"{locator['sector']}\\n{locator['label']}".replace('"', "'")
-        lines.append(f'  {locator["locator_id"]} [label="{label}"];')
     for edge in edges:
-        lines.append(
-            f"  {edge['source_locator_id']} -> {edge['target_locator_id']} "
-            f'[label="{edge["edge_type"]}"];'
+        graph.add_edge(
+            str(edge["source_locator_id"]),
+            str(edge["target_locator_id"]),
+            str(edge["edge_type"]),
         )
-    lines.append("}")
-    return "\n".join(lines) + "\n"
+    return graph.render_pair()
 
 
 def _refresh_projections(root: Path) -> dict[str, Any]:
@@ -1018,12 +1029,11 @@ def _refresh_projections(root: Path) -> dict[str, Any]:
             "public_tool_count_changed": False,
         },
     )
-    atomic_write_bytes(
-        memory_root / "memory.mmd", _render_mermaid(locators, edges).encode("utf-8")
+    memory_mmd, memory_dot, graph_pipeline_receipt = _render_graph_pair(
+        locators, edges
     )
-    atomic_write_bytes(
-        memory_root / "memory.dot", _render_dot(locators, edges).encode("utf-8")
-    )
+    atomic_write_bytes(memory_root / "memory.mmd", memory_mmd.encode("utf-8"))
+    atomic_write_bytes(memory_root / "memory.dot", memory_dot.encode("utf-8"))
     member_names = (
         "memory.sqlite",
         "memory.json",
@@ -1046,6 +1056,7 @@ def _refresh_projections(root: Path) -> dict[str, Any]:
         "memory_head_sha256": head["head_sha256"],
         "counts": {"locator_count": len(locators), "edge_count": len(edges)},
         "members": members,
+        "graph_pipeline_receipt": graph_pipeline_receipt,
         "raw_source_payloads_stored": False,
         "full_memory_loaded_into_model_context": False,
     }
@@ -1092,7 +1103,7 @@ def bootstrap_project_memory(
     exact_manifest = _sha256(accepted_manifest_sha256, field="accepted_manifest_sha256")
     exact_lineage = _sha256(lineage_head_sha256, field="lineage_head_sha256")
     exact_recorded_at = _timestamp(recorded_at, field="memory_recorded_at")
-    plan_sha256, task_contract_sha256 = _plan_identity(
+    plan_sha256, task_contract_sha256, active_plan_row = _plan_identity(
         root, active_plan_task_id=active_plan_task_id
     )
     authority_locators = _authority_locators(
@@ -1102,6 +1113,7 @@ def bootstrap_project_memory(
         pointer_generation=pointer_generation,
         accepted_manifest_sha256=exact_manifest,
         active_plan_task_id=active_plan_task_id,
+        active_plan_row=active_plan_row,
         plan_sha256=plan_sha256,
         task_contract_sha256=task_contract_sha256,
         lineage_head_sha256=exact_lineage,
@@ -1545,6 +1557,23 @@ def query_memory_graph(
                 )
         for row in candidates:
             locator_id = str(row["locator_id"])
+            if (
+                str(row["locator_kind"]) == "ACTIVE_TASK"
+                and str(row["locator_value"])
+                != f"plan://task/{head['active_plan_task_id']}"
+            ):
+                if len(suppressed) < limit:
+                    suppressed.append(
+                        {
+                            "locator_id": locator_id,
+                            "state": "STALE_ACTIVE_TASK_LOCATOR",
+                            "reason": "MEMORY_HEAD_ACTIVE_TASK_MISMATCH",
+                            "current_active_task_locator_sha256": sha256_bytes(
+                                f"plan://task/{head['active_plan_task_id']}".encode()
+                            ),
+                        }
+                    )
+                continue
             semantic_key = (
                 str(row["sector"]),
                 str(row["locator_kind"]),
@@ -1658,7 +1687,9 @@ def seal_memory_checkpoint(
     )
     exact_lineage = _sha256(lineage_head_sha256, field="lineage_head_sha256")
     exact_sealed_at = _timestamp(sealed_at, field="memory_checkpoint_sealed_at")
-    plan_sha256, _ = _plan_identity(root, active_plan_task_id=active_plan_task_id)
+    plan_sha256, _, _ = _plan_identity(
+        root, active_plan_task_id=active_plan_task_id
+    )
     query_result = query_memory_graph(
         root,
         project_id=project_id,
@@ -1797,7 +1828,9 @@ def rehydrate_memory_checkpoint(
         "The Memory checkpoint does not match the exact reentry binding.",
         status="MISMATCH",
     )
-    plan_sha256, _ = _plan_identity(root, active_plan_task_id=active_plan_task_id)
+    plan_sha256, _, _ = _plan_identity(
+        root, active_plan_task_id=active_plan_task_id
+    )
     connection = _connect(root)
     try:
         head = _current_head(connection)

@@ -1,0 +1,67 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "hil_return_to_accepted",
+  "title": "Return a rejected or failed run to accepted state",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "reason"
+    ],
+    "title": "hil_return_to_acceptedArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "hil_return_to_acceptedDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "schema_sha256": "DA91B7141620F0B01C1247056C23B49B5546F67040C5C74F1292D400A4D1575C",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-fuse",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "hil_return_to_accepted"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-fuse",
+        "workflow": "dual-hil-non-promotion-decision",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/hil_return_to_accepted.action.v1.json",
+  "sdk_action_binding_sha256": "36B9F0F258FF4026238DF75EAD204C3E20FA801FE2DA54D2074CCA698F6BAA61",
+  "public_action_schema": "schemas/actions/hil_return_to_accepted.schema.json",
+  "public_action_schema_sha256": "11B4758119291A842400F94F7C9E151510D203F52D1D6D05CDFB2E90F4938967",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "B6CB1F4C62BCB102A68AD6F7388F1ED6129D9F0CD84AB1ACB2BA1FB6F77A464C"
+}

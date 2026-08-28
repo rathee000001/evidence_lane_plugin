@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-hook-runtime-reference.v1",
+  "status": "PASS",
+  "event_count": 11,
+  "handler_action_count": 44,
+  "hooks_manifest": "hooks/hooks.json",
+  "hooks_manifest_sha256": "C37DB05DD4701087EAD0BD31203C843AAFA79ED39A081F2E9DFF313A77631EEF",
+  "logical_actions": "hooks/logical-actions.json",
+  "logical_actions_sha256": "B63F604D0610EFC6D192534E3E54851D86171A42AB54E0221FD3F861312549C8",
+  "canonical_contract": "src/evidence_lane_plugin/hook_contract.py",
+  "canonical_contract_sha256": "04A31A64CD6F8AAF3662BD2CAF26FF027AC62D2C888B71C0E692C1837596F6F8",
+  "receipt_sha256": "A8510B20A008746B235C92354909951AA85EA5BE094D84C5EF8C235E5A3342FD"
+}

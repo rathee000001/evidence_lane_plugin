@@ -156,8 +156,8 @@ def test_production_local_adapter_classifies_every_declared_sdk_operation(
     )
 
     assert parity["status"] == "PASS"
-    assert parity["declared_operation_count"] == 75
-    assert parity["registered_local_handler_count"] == 68
+    assert parity["declared_operation_count"] == 81
+    assert parity["registered_local_handler_count"] == 74
     assert parity["external_provider_operation_count"] == 7
     assert parity["narrowed_operation_claim_count"] == 5
     assert parity["unclassified_operation_count"] == 0
@@ -274,6 +274,45 @@ def test_learning_memory_public_adapter_routes_execute_with_bounded_results(
     assert imported["candidate_created"] is False
     assert imported["learning_hil_invoked"] is False
     assert imported["project_truth_pointer_moved"] is False
+
+
+def test_canon_graph_consumes_limit_without_query_and_learning_retrieve_validates(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = _Service(tmp_path)
+    binding = _binding()
+    adapter = build_local_service_adapter(
+        service, runtime_binding=binding.as_dict()
+    )
+    monkeypatch.setattr(
+        internal_sdk_module,
+        "inspect_canon_task_graph",
+        lambda *_args, **_kwargs: {"status": "PASS", "nodes": []},
+    )
+    monkeypatch.setattr(
+        internal_sdk_module,
+        "inspect_canon_consequence_graph",
+        lambda *_args, **_kwargs: {"status": "PASS", "nodes": []},
+    )
+
+    graph = adapter.invoke(
+        "canon_input",
+        "graph",
+        binding,
+        {"limit": 5},
+        _context("sdk-canon-limit-only-001"),
+    )
+    assert graph["status"] == "PASS"
+
+    with pytest.raises(EvidenceLaneError) as invalid:
+        adapter.invoke(
+            "agent_learning",
+            "retrieve",
+            binding,
+            {"query": "bounded retry"},
+            _context("sdk-learning-invalid-payload-001"),
+        )
+    assert invalid.value.code == "SDK_LEARNING_RETRIEVE_PAYLOAD_INVALID"
 
 
 def test_learning_and_memory_bootstrap_handlers_derive_live_binding_fields(

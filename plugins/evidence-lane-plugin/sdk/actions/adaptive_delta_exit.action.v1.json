@@ -1,0 +1,169 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "adaptive_delta_exit",
+  "title": "Seal one adaptive Delta exit",
+  "description": "Verify the exact active Delta, targeted PASS receipts, grouped or exact local-install disposition, and all distinct registered hook states; then refresh changed live sector lanes, Learning, Canon, Memory, Universe, and connector brain through the current routes, close the task formula, and seal one replay-safe receipt. Ordinary rows never refresh Project Overlay. The route never advances the Plan row, creates a candidate, invokes HIL, moves the accepted pointer, or mutates Git.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "task_id": {
+        "title": "Task Id",
+        "type": "string"
+      },
+      "source_event_id": {
+        "title": "Source Event Id",
+        "type": "string"
+      },
+      "prior_formula_sha256": {
+        "title": "Prior Formula Sha256",
+        "type": "string"
+      },
+      "formula": {
+        "additionalProperties": true,
+        "title": "Formula",
+        "type": "object"
+      },
+      "validator_results": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Validator Results",
+        "type": "array"
+      },
+      "install_disposition": {
+        "additionalProperties": true,
+        "title": "Install Disposition",
+        "type": "object"
+      },
+      "actor": {
+        "default": "ADAPTIVE_DELTA_EXIT",
+        "title": "Actor",
+        "type": "string"
+      },
+      "hook_progression": {
+        "anyOf": [
+          {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Hook Progression"
+      },
+      "fixed_window_task_ids": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Fixed Window Task Ids"
+      },
+      "observed_host_plan": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Observed Host Plan"
+      },
+      "event_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Event Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "task_id",
+      "source_event_id",
+      "prior_formula_sha256",
+      "formula",
+      "validator_results",
+      "install_disposition"
+    ],
+    "title": "adaptive_delta_exitArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "adaptive_delta_exitDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "BA332F64F8A745141FBA77F0F795E8DCC644152C18C9C4725E01D99101A113EB",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "adaptive_delta_exit"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-refresh",
+        "workflow": "adaptive-delta-exit-append-refresh",
+        "order": 2
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution",
+        "order": 13
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [
+    "DELTA_EXIT_APPEND_REFRESH"
+  ],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/adaptive_delta_exit.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "AF6184E7B28C7DBAE3C370FA88EB5F3972F058E26D92B5844B30AAFF2155A498"
+}

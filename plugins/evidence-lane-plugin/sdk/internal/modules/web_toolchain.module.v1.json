@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.web_toolchain",
+  "source_path": "src/evidence_lane_plugin/web_toolchain.py",
+  "source_sha256": "A16EFB34B01803C939CFD15610998945B40B4079B2BA89054A819C4BE4A77890",
+  "source_bytes": 11240,
+  "role": "AI_TOOLCHAIN_EXECUTION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "27C690A768F368068F14AF8D99DF64F3B983DB8777A7A9ABC10559B496D4C1D6"
+}

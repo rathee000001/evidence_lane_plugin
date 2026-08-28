@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_universe bounded reader request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "authority_id",
+    "query",
+    "retrieval",
+    "limit"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_id": {
+      "const": "project_universe"
+    },
+    "query": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval": {
+      "enum": [
+        "fts5",
+        "bm25",
+        "hybrid"
+      ]
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "6582B64D61C4D89BDF7B2F1B9C76C91338417CD94857AEDE616D0B307A9B9608"
+}

@@ -52,13 +52,33 @@ from .canon_task_graph import (
     seal_canon_task_result,
     supersede_canon_input,
 )
+from .current_route_registry import current_implementation_registry
+from .connector_governance import ConnectorGovernance
 from .errors import EvidenceLaneError, require
+from .env_uop_graph import migrate_and_render_env_uop_graph, rebuild_flash_manifest
+from .first_class_workflows import (
+    BiggerUniverseProjectRequest,
+    BrainScalingRequest,
+    FormulaEngineRequest,
+    FullAIToolchainRequest,
+    ProjectRecipeRequest,
+    compile_project_recipe,
+    register_bigger_universe_project,
+    run_brain_scaling,
+    run_formula_engine,
+    run_full_ai_toolchain,
+)
 from .hashing import canonical_json_bytes, sha256_bytes
+from .github_toolchain import inspect_github_repository
 from .host_entry_continuity import (
     derive_host_entry_env_uop,
     inspect_host_entry_continuity,
 )
 from .lineage import ChatLineage
+from .live_root_normalization import (
+    execute_live_root_normalization,
+    plan_live_root_normalization,
+)
 from .mode_governance import (
     compile_env_uop_formula,
     env_uop_authority_boundary,
@@ -83,6 +103,7 @@ from .public_surface_registry import (
     resolve_public_surface_plugin_root,
 )
 from .redaction import contains_secret
+from .runtime_api import create_runtime_api, load_runtime_api_settings, run_hidden_runtime_api
 from .timeutil import utc_now
 
 INTERNAL_SDK_ABI = "evidence-lane.internal-sdk.v1"
@@ -94,6 +115,9 @@ INTERNAL_SDK_MAX_TIMEOUT_MS = 60_000
 INTERNAL_SDK_HANDLER_PARITY_SCHEMA = "evidence-lane.sdk-handler-parity.v1"
 INTERNAL_SDK_PUBLIC_BOUNDARY_SCHEMA = "evidence-lane.internal-sdk-public-boundary.v1"
 INTERNAL_SDK_WITHHELD_SCHEMA = "evidence-lane.internal-sdk-withheld-receipt.v1"
+PUBLIC_ACTION_SDK_DISPATCH_SCHEMA = (
+    "evidence-lane.internal-sdk-public-action-dispatch.v1"
+)
 
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
 _SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$")
@@ -120,6 +144,525 @@ _SDK_FORBIDDEN_PUBLIC_KEYS = frozenset(
         "raw_sqlite",
     }
 )
+
+SDK_INTERNAL_SUPPORT_BINDINGS = {
+    "env_uop_graph": {
+        "owner_module": "env_uop_operator_runtime",
+        "functions": (
+            migrate_and_render_env_uop_graph,
+            rebuild_flash_manifest,
+        ),
+        "public_action": False,
+    },
+    "github_toolchain": {
+        "owner_module": "first_class_workflows",
+        "functions": (inspect_github_repository,),
+        "public_action": False,
+    },
+    "live_root_normalization": {
+        "owner_module": "storage_connectors",
+        "functions": (
+            plan_live_root_normalization,
+            execute_live_root_normalization,
+        ),
+        "public_action": False,
+    },
+    "runtime_api": {
+        "owner_module": "provider_host_adapters",
+        "functions": (
+            load_runtime_api_settings,
+            create_runtime_api,
+            run_hidden_runtime_api,
+        ),
+        "public_action": False,
+    },
+}
+
+
+def internal_support_binding_registry() -> dict[str, Any]:
+    rows = [
+        {
+            "component": component,
+            "owner_module": contract["owner_module"],
+            "functions": [function.__name__ for function in contract["functions"]],
+            "function_modules": sorted(
+                {function.__module__ for function in contract["functions"]}
+            ),
+            "public_action": bool(contract["public_action"]),
+        }
+        for component, contract in sorted(SDK_INTERNAL_SUPPORT_BINDINGS.items())
+    ]
+    core = {
+        "schema": "evidence-lane.internal-sdk-support-bindings.v1",
+        "status": "PASS",
+        "component_count": len(rows),
+        "components": rows,
+        "all_components_have_one_sdk_owner": all(row["owner_module"] for row in rows),
+        "support_components_inflate_public_action_count": False,
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+class PublicActionSDKDispatcher:
+    """Complete internal-SDK public-action entry behind outer transports.
+
+    MCP, skills, hooks, and UI are outer routing adapters. This
+    internal dispatcher resolves one current implementation route, records
+    bounded in-process dispatch evidence, and invokes the larger internal
+    engine callback exactly once without duplicating business logic.
+    """
+
+    def __init__(self, *, specialized_native_actions: set[str] | None = None) -> None:
+        registry = current_implementation_registry()
+        rows = list(registry["public_tool_routes"])
+        self._routes = {str(row["tool"]): dict(row) for row in rows}
+        require(
+            len(rows) == len(self._routes) == int(registry["public_tool_count"]),
+            "PUBLIC_ACTION_SDK_ROUTE_REGISTRY_INVALID",
+            "The internal SDK requires one current route per public action.",
+            status="BLOCKED",
+        )
+        self._specialized_native_actions = set(specialized_native_actions or set())
+        require(
+            self._specialized_native_actions <= set(self._routes),
+            "PUBLIC_ACTION_SDK_SPECIALIZED_ROUTE_UNKNOWN",
+            "A specialized SDK-native action is absent from the public registry.",
+            status="BLOCKED",
+        )
+        self._lock = threading.RLock()
+        self._call_counts = {name: 0 for name in self._routes}
+
+    def dispatch(
+        self,
+        tool_name: str,
+        callback: Callable[..., dict[str, Any]],
+        /,
+        *args: Any,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        exact = str(tool_name or "").strip()
+        require(
+            exact in self._routes and callable(callback),
+            "PUBLIC_ACTION_SDK_ROUTE_UNAVAILABLE",
+            "The public action does not resolve through the internal SDK registry.",
+            status="BLOCKED",
+            tool_name=exact,
+        )
+        with self._lock:
+            self._call_counts[exact] += 1
+        result = callback(*args, **kwargs)
+        require(
+            isinstance(result, dict),
+            "PUBLIC_ACTION_SDK_RESULT_INVALID",
+            "The routed internal engine callback did not return one result object.",
+            status="FAIL",
+            tool_name=exact,
+        )
+        return result
+
+    def review(self, registered_tool_names: set[str] | None = None) -> dict[str, Any]:
+        registered = set(registered_tool_names or self._routes)
+        route_names = set(self._routes)
+        core = {
+            "schema": PUBLIC_ACTION_SDK_DISPATCH_SCHEMA,
+            "status": "PASS" if registered == route_names else "BLOCKED",
+            "internal_sdk_public_action_count": len(route_names),
+            "outer_router_action_count": len(registered),
+            "all_public_actions_enter_internal_sdk": registered == route_names,
+            "specialized_internal_module_action_count": len(
+                self._specialized_native_actions
+            ),
+            "general_internal_engine_route_action_count": len(route_names)
+            - len(self._specialized_native_actions),
+            "specialized_internal_module_actions": sorted(
+                self._specialized_native_actions
+            ),
+            "missing_sdk_routes": sorted(registered - route_names),
+            "orphan_sdk_routes": sorted(route_names - registered),
+            "business_logic_duplicated_in_outer_router": False,
+            "counts_are_derived_not_fixed": True,
+            "callback_exactly_once": True,
+            "dispatch_call_counts": dict(sorted(self._call_counts.items())),
+        }
+        return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def build_public_action_sdk_dispatcher(
+    *, specialized_native_actions: set[str] | None = None
+) -> PublicActionSDKDispatcher:
+    return PublicActionSDKDispatcher(
+        specialized_native_actions=specialized_native_actions
+    )
+
+
+def sdk_plane_registry() -> dict[str, Any]:
+    """Keep public action routing separate from the ENV/UOP AI action plane."""
+
+    public_action_count = int(current_implementation_registry()["public_tool_count"])
+    env_module = next(
+        module for module in SDK_MODULES if module.module_id == "env_uop_operator_runtime"
+    )
+    core = {
+        "schema": "evidence-lane.sdk-plane-registry.v1",
+        "status": "PASS",
+        "planes": [
+            {
+                "plane_id": "PUBLIC_ACTION_SDK",
+                "role": "OUTER_CURRENT_ACTION_ROUTE_TO_INTERNAL_IMPLEMENTATION",
+                "derived_action_count": public_action_count,
+                "count_is_fixed_ceiling": False,
+                "owns_mcp_schema_and_public_action_dispatch": True,
+                "owns_ai_formula_execution": False,
+            },
+            {
+                "plane_id": "ENV_UOP_AI_ACTION_PLANE",
+                "role": "LOCKED_SQLITE_MMD_TO_GOVERNED_WORK_EXECUTION",
+                "module_id": env_module.module_id,
+                "internal_operation_count": len(env_module.operations),
+                "counted_as_public_action": False,
+                "owns_mcp_schema_and_public_action_dispatch": False,
+                "owns_ai_formula_execution": True,
+                "authority_source": "LOCKED_ENV_UOP_SQLITE_PLUS_MMD",
+            },
+        ],
+        "planes_merged": False,
+        "env_uop_operations_added_to_public_action_count": 0,
+        "internal_support_bindings": internal_support_binding_registry(),
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def whole_plugin_sdk_governance_registry() -> dict[str, Any]:
+    """Prove every plugin component is implemented or governed by the SDK."""
+
+    registry = current_implementation_registry()
+    capabilities = list(registry["capabilities"])
+    required_adapter_capabilities = {
+        "hook_control",
+        "local_install",
+        "restart_reattachment",
+        "tunnel_transport",
+        "remote_adapter",
+    }
+    by_capability = {
+        str(row["capability"]): row for row in capabilities if isinstance(row, dict)
+    }
+    missing_governance = sorted(
+        str(row.get("capability"))
+        for row in capabilities
+        if not isinstance(row.get("sdk_governance"), dict)
+        or row["sdk_governance"].get("behavior_owner") != "INTERNAL_SDK"
+    )
+    outer_logic_violations = sorted(
+        str(row.get("capability"))
+        for row in capabilities
+        if isinstance(row.get("sdk_governance"), dict)
+        and row["sdk_governance"].get("implementation_class")
+        != "INTERNAL_SDK_IMPLEMENTATION"
+        and (
+            row["sdk_governance"].get("outer_business_logic_allowed") is not False
+            or row["sdk_governance"].get(
+                "outer_adapter_may_reason_about_lifecycle"
+            )
+            is not False
+        )
+    )
+    missing_adapters = sorted(required_adapter_capabilities - set(by_capability))
+    implementation_counts: dict[str, int] = {}
+    for row in capabilities:
+        classification = str(row["sdk_governance"]["implementation_class"])
+        implementation_counts[classification] = (
+            implementation_counts.get(classification, 0) + 1
+        )
+    consumer_surfaces = sorted(
+        {
+            str(consumer)
+            for row in capabilities
+            for consumer in row.get("consumers", [])
+        }
+    )
+    planes = sdk_plane_registry()
+    core = {
+        "schema": "evidence-lane.whole-plugin-sdk-governance.v1",
+        "status": (
+            "PASS"
+            if not missing_governance
+            and not outer_logic_violations
+            and not missing_adapters
+            else "BLOCKED"
+        ),
+        "law": "ALL_PLUGIN_BEHAVIOR_INTERNAL_SDK_GOVERNED",
+        "capability_count": len(capabilities),
+        "public_action_count": int(registry["public_tool_count"]),
+        "sdk_planes": planes,
+        "public_action_and_env_uop_planes_separate": (
+            planes["planes_merged"] is False
+            and planes["env_uop_operations_added_to_public_action_count"] == 0
+        ),
+        "implementation_class_counts": dict(sorted(implementation_counts.items())),
+        "required_adapter_capabilities": sorted(required_adapter_capabilities),
+        "missing_adapter_capabilities": missing_adapters,
+        "missing_sdk_governance": missing_governance,
+        "outer_logic_violations": outer_logic_violations,
+        "consumer_surfaces": consumer_surfaces,
+        "helper_tunnel_hooks_are_sdk_governed_thin_adapters": True,
+        "helper_or_tunnel_lifecycle_reasoning_allowed": False,
+        "counts_are_derived_not_fixed": True,
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def runtime_workflow_sdk_registry() -> dict[str, Any]:
+    """Bind complete plugin workflows to internal SDK modules and public actions."""
+
+    public_actions = {
+        str(row["tool"])
+        for row in current_implementation_registry()["public_tool_routes"]
+    }
+    module_ids = {module.module_id for module in SDK_MODULES}
+    workflows = [
+        {
+            "workflow": "PROMPT_OR_STEER_ENTRY",
+            "triggers": [
+                "CODEX_SKILL_AUTO_SELECTION",
+                "EXPLICIT_SOURCE_INTAKE_ACTION",
+            ],
+            "skills": [
+                "evi-source-intake",
+                "evi-mode",
+                "evi-plan",
+                "evi-instructions",
+            ],
+            "public_actions": [
+                "source_intake_classify",
+                "mode_classify",
+                "pv_plan_steer_delta",
+                "task_record_activity",
+            ],
+            "sdk_modules": [
+                "source_lane_retrieval",
+                "env_uop_operator_runtime",
+                "chat_lineage",
+                "plan_delta_tasks",
+            ],
+            "hooks_required": False,
+            "pre_reasoning_interception_claimed": False,
+        },
+        {
+            "workflow": "DELTA_ENTRY_AND_SIX_WAY_QUERY",
+            "triggers": ["ACTIVE_PLAN_ROW_ENTRY"],
+            "skills": [
+                "evidence-lane-code-lifecycle",
+                "evi-learning",
+                "evi-memory",
+                "evi-canon",
+                "evi-universe",
+                "evi-instructions",
+            ],
+            "public_actions": [
+                "task_classify",
+                "pv_status",
+                "pv_task_backlog",
+                "pv_query",
+                "search",
+                "learning_retrieve",
+                "project_memory_query",
+                "canon_graph",
+            ],
+            "sdk_modules": [
+                "plan_delta_tasks",
+                "source_lane_retrieval",
+                "env_uop_operator_runtime",
+                "agent_learning",
+                "project_memory",
+                "canon_input",
+                "project_universe",
+            ],
+            "hooks_required": False,
+            "accepted_archive_query_allowed": False,
+        },
+        {
+            "workflow": "IN_DELTA_BOUNDED_QUERY_AND_NO_HIT_REFIRE",
+            "triggers": ["TASK_SCOPE_CHANGE", "BOUNDED_NO_HIT"],
+            "skills": [
+                "evi-source-intake",
+                "evi-learning",
+                "evi-memory",
+                "evi-canon",
+                "evi-universe",
+                "evi-instructions",
+            ],
+            "public_actions": [
+                "lane_search",
+                "lane_fetch",
+                "pv_query",
+                "search",
+                "learning_retrieve",
+                "project_memory_query",
+                "canon_graph",
+            ],
+            "sdk_modules": [
+                "source_lane_retrieval",
+                "agent_learning",
+                "project_memory",
+                "canon_input",
+                "project_universe",
+            ],
+            "hooks_required": False,
+            "refire_order": [
+                "LIVE_SECTOR_FALLBACK",
+                "AI_LEARNING",
+                "CANON",
+                "PROJECT_MEMORY",
+                "PROJECT_UNIVERSE",
+                "CONNECTOR_BRAIN",
+            ],
+        },
+        {
+            "workflow": "DELTA_EXIT_APPEND_REFRESH",
+            "triggers": ["VERIFIED_DELTA_EXIT"],
+            "skills": ["evidence-lane-code-lifecycle", "evi-refresh"],
+            "public_actions": [
+                "task_confirm_source_update",
+                "adaptive_delta_exit",
+                "pv_task_transition",
+            ],
+            "sdk_modules": [
+                "source_lane_retrieval",
+                "agent_learning",
+                "canon_input",
+                "project_memory",
+                "project_universe",
+                "plan_delta_tasks",
+            ],
+            "hooks_required": False,
+            "ordinary_project_overlay_allowed": False,
+        },
+        {
+            "workflow": "FULL_PV_DUAL_HIL",
+            "triggers": ["FULL_PV_HIL_ROW_AFTER_DELTA_EXIT"],
+            "skills": ["evi-refresh", "evi-learning", "evi-build"],
+            "public_actions": [
+                "task_complete_and_refresh",
+                "learning_decide_candidate",
+                "pv_fuse",
+            ],
+            "sdk_modules": [
+                "hil_candidate_pointer",
+                "agent_learning",
+                "plan_delta_tasks",
+            ],
+            "hooks_required": False,
+            "two_explicit_human_decisions_required": True,
+        },
+        {
+            "workflow": "STATE_TRAVEL_DIRECT",
+            "triggers": ["EXPLICIT_USER_REQUEST", "GENUINE_CONTEXT_EXHAUSTION"],
+            "skills": ["evi-state-travel", "evi-boot"],
+            "public_actions": [
+                "runtime_doctor",
+                "session_flash_status",
+                "session_resume",
+                "runtime_activation_status",
+                "pv_state_travel_direct_force_same_worktree",
+            ],
+            "sdk_modules": [
+                "host_entry_continuity",
+                "lifecycle_hooks",
+                "plan_delta_tasks",
+            ],
+            "hooks_required": False,
+            "sealed_prepare_or_resume_allowed": False,
+        },
+        {
+            "workflow": "STEP_TASK_LIST_RELOCK",
+            "triggers": [
+                "APP_RESTART",
+                "PANEL_DROP",
+                "POST_COMPACT",
+                "STATE_TRAVEL_DESTINATION",
+                "GOAL_CONTINUATION",
+            ],
+            "skills": ["evi-plan", "evidence-lane-code-lifecycle"],
+            "public_actions": ["pv_plan_tasks", "pv_task_backlog"],
+            "sdk_modules": ["plan_delta_tasks", "host_entry_continuity"],
+            "hooks_required": False,
+            "identical_fingerprint_reattachment_required": True,
+            "plan_mutation_allowed_for_panel_drop_or_restart": False,
+        },
+        {
+            "workflow": "HOOK_EVENT_TRANSPORT",
+            "triggers": ["11_REGISTERED_HOST_EVENT_CLASSES"],
+            "skills": ["evidence-lane-code-lifecycle"],
+            "public_actions": ["task_record_activity"],
+            "sdk_modules": ["lifecycle_hooks", "chat_lineage"],
+            "hooks_required": False,
+            "logical_sub_actions": 44,
+            "hook_business_logic_allowed": False,
+        },
+        {
+            "workflow": "LOCAL_INSTALL_RESTART_REATTACH",
+            "triggers": ["AUTHORIZED_LOCAL_SLOT_ROW"],
+            "skills": ["evi-boot", "evidence-lane-code-lifecycle"],
+            "public_actions": ["runtime_doctor", "runtime_activation_status"],
+            "sdk_modules": [
+                "lifecycle_hooks",
+                "host_entry_continuity",
+                "plan_delta_tasks",
+            ],
+            "hooks_required": False,
+            "children_first_drain_required": True,
+            "helper_and_tunnel_are_dumb_adapters": True,
+        },
+    ]
+    for workflow in workflows:
+        workflow["public_action_sdk"] = {
+            "actions": list(workflow["public_actions"]),
+            "count": len(workflow["public_actions"]),
+            "count_is_fixed_ceiling": False,
+        }
+        workflow["ai_action_planes"] = (
+            ["ENV_UOP_AI_ACTION_PLANE"]
+            if "env_uop_operator_runtime" in workflow["sdk_modules"]
+            else []
+        )
+        workflow["env_uop_operations_counted_as_public_actions"] = 0
+    missing_actions = sorted(
+        {
+            action
+            for workflow in workflows
+            for action in workflow["public_actions"]
+            if action not in public_actions
+        }
+    )
+    missing_modules = sorted(
+        {
+            module
+            for workflow in workflows
+            for module in workflow["sdk_modules"]
+            if module not in module_ids
+        }
+    )
+    core = {
+        "schema": "evidence-lane.runtime-workflow-sdk-registry.v1",
+        "status": (
+            "PASS" if not missing_actions and not missing_modules else "BLOCKED"
+        ),
+        "workflow_count": len(workflows),
+        "workflows": workflows,
+        "internal_sdk_public_action_count": len(public_actions),
+        "sdk_planes": sdk_plane_registry(),
+        "public_action_and_env_uop_planes_separate": True,
+        "missing_public_actions": missing_actions,
+        "missing_sdk_modules": missing_modules,
+        "all_explicit_actions_work_with_hooks_off": all(
+            workflow["hooks_required"] is False for workflow in workflows
+        ),
+        "host_skill_auto_selection_is_prompt_trigger": True,
+        "sdk_claims_pre_reasoning_prompt_interception": False,
+        "counts_are_derived_not_fixed": True,
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
 
 
 def _sdk_forbidden_public_paths(
@@ -392,6 +935,19 @@ SDK_MODULES: tuple[SDKModuleSpec, ...] = (
         ),
     ),
     SDKModuleSpec(
+        "first_class_workflows",
+        "sdk.first-class-workflows.v1",
+        "FIRST_CLASS_WORKFLOWS",
+        _operations(
+            "formula_engine_run:WRITE_DERIVED_OPERATOR",
+            "brain_scaling_select:READ",
+            "project_recipe_compile:READ",
+            "ai_toolchain_route:READ",
+            "bigger_universe_register:WRITE_UNIVERSE_FEDERATION",
+            "bigger_universe_link:WRITE_UNIVERSE_FEDERATION",
+        ),
+    ),
+    SDKModuleSpec(
         "storage_connectors",
         "sdk.storage-connectors.v1",
         "STORAGE_CONNECTORS",
@@ -573,9 +1129,9 @@ class SDKBinding:
     derived_projection_sha256: str
     flash_receipt_sha256: str
     model: str
-    submodel: str
-    reasoning_effort: str
-    reasoning_speed: str
+    submodel: str | None
+    reasoning_effort: str | None
+    reasoning_speed: str | None
     host_kind: str
     host_session_id: str
     agent_configuration_authority_sha256: str | None = None
@@ -602,12 +1158,14 @@ class SDKBinding:
             "derived_projection_sha256",
             "flash_receipt_sha256",
             "model",
-            "submodel",
-            "reasoning_effort",
-            "reasoning_speed",
             "host_kind",
             "host_session_id",
             "write_scope",
+        }
+        optional_execution_profile_fields = {
+            "submodel",
+            "reasoning_effort",
+            "reasoning_speed",
         }
         agent_configuration_fields = {
             "agent_configuration_authority_sha256",
@@ -626,6 +1184,7 @@ class SDKBinding:
             agent_configuration_fields
             | conversation_memory_fields
             | installed_surface_fields
+            | optional_execution_profile_fields
         )
         value_fields = set(value)
         agent_configuration_pair_valid = (
@@ -715,12 +1274,20 @@ class SDKBinding:
                 value["flash_receipt_sha256"], field="flash_receipt_sha256"
             ),
             model=_exact_text(value["model"], field="model"),
-            submodel=_exact_text(value["submodel"], field="submodel"),
-            reasoning_effort=_exact_text(
-                value["reasoning_effort"], field="reasoning_effort"
+            submodel=(
+                _exact_text(value["submodel"], field="submodel")
+                if "submodel" in value
+                else None
             ),
-            reasoning_speed=_exact_text(
-                value["reasoning_speed"], field="reasoning_speed"
+            reasoning_effort=(
+                _exact_text(value["reasoning_effort"], field="reasoning_effort")
+                if "reasoning_effort" in value
+                else None
+            ),
+            reasoning_speed=(
+                _exact_text(value["reasoning_speed"], field="reasoning_speed")
+                if "reasoning_speed" in value
+                else None
             ),
             host_kind=_exact_text(value["host_kind"], field="host_kind"),
             host_session_id=_exact_text(
@@ -826,13 +1393,16 @@ class SDKBinding:
             "derived_projection_sha256": self.derived_projection_sha256,
             "flash_receipt_sha256": self.flash_receipt_sha256,
             "model": self.model,
-            "submodel": self.submodel,
-            "reasoning_effort": self.reasoning_effort,
-            "reasoning_speed": self.reasoning_speed,
             "host_kind": self.host_kind,
             "host_session_id": self.host_session_id,
             "write_scope": list(self.write_scope),
         }
+        if self.submodel is not None:
+            result["submodel"] = self.submodel
+        if self.reasoning_effort is not None:
+            result["reasoning_effort"] = self.reasoning_effort
+        if self.reasoning_speed is not None:
+            result["reasoning_speed"] = self.reasoning_speed
         if self.agent_configuration_authority_sha256 is not None:
             result["agent_configuration_authority_sha256"] = (
                 self.agent_configuration_authority_sha256
@@ -1292,7 +1862,12 @@ class InternalEvidenceLaneSDK:
                     ],
                     "independent_replay_ledger": True,
                     **(
-                        {"authority_boundary": env_uop_authority_boundary()}
+                        {
+                            "authority_boundary": env_uop_authority_boundary(),
+                            "sdk_plane": "ENV_UOP_AI_ACTION_PLANE",
+                            "counted_as_public_action": False,
+                            "public_action_sdk_role": "SEPARATE_OUTER_ROUTER",
+                        }
                         if module.module_id == "env_uop_operator_runtime"
                         else {}
                     ),
@@ -1300,6 +1875,7 @@ class InternalEvidenceLaneSDK:
                 for module in SDK_MODULES
             ],
             "narrowed_operation_claims": dict(SDK_NARROWED_OPERATION_CLAIMS),
+            "internal_support_bindings": internal_support_binding_registry(),
         }
 
     def capability_status(self) -> dict[str, Any]:
@@ -1427,9 +2003,7 @@ class InternalEvidenceLaneSDK:
         if isinstance(raw, dict) and legacy_effect_keys <= set(raw) <= set(
             _AUTHORITY_EFFECT_KEYS
         ):
-            raw = {
-                key: raw.get(key, "NONE") for key in _AUTHORITY_EFFECT_KEYS
-            }
+            raw = {key: raw.get(key, "NONE") for key in _AUTHORITY_EFFECT_KEYS}
         require(
             isinstance(raw, dict) and set(raw) == set(_AUTHORITY_EFFECT_KEYS),
             "SDK_AUTHORITY_EFFECTS_INVALID",
@@ -1952,6 +2526,16 @@ def build_local_service_adapter(
     ) -> dict[str, Any]:
         context.checkpoint()
         exact_payload = _canon_payload(binding, payload)
+        query = exact_payload.pop("query", None)
+        limit = exact_payload.pop("limit", 8)
+        require(
+            isinstance(limit, int)
+            and not isinstance(limit, bool)
+            and 1 <= limit <= 100,
+            "SDK_CANON_GRAPH_LIMIT_INVALID",
+            "Canon graph limit must be an integer from one through one hundred.",
+            status="BLOCKED",
+        )
         task_graph = inspect_canon_task_graph(
             _canon_root(binding), project_id=binding.project_id
         )
@@ -1959,10 +2543,10 @@ def build_local_service_adapter(
             query_canon_consequence_graph(
                 _canon_root(binding),
                 project_id=binding.project_id,
-                query=str(exact_payload.pop("query")),
-                limit=int(exact_payload.pop("limit", 8)),
+                query=str(query),
+                limit=limit,
             )
-            if exact_payload.get("query") is not None
+            if query is not None
             else inspect_canon_consequence_graph(
                 _canon_root(binding), project_id=binding.project_id
             )
@@ -2166,10 +2750,28 @@ def build_local_service_adapter(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
+        exact_payload = _learning_payload(binding, payload)
+        allowed = {
+            "query",
+            "scope_selectors",
+            "as_of",
+            "project_truth_conflict_candidate_ids",
+            "limit",
+        }
+        require(
+            set(exact_payload) <= allowed
+            and isinstance(exact_payload.get("query"), str)
+            and isinstance(exact_payload.get("scope_selectors"), list)
+            and isinstance(exact_payload.get("as_of"), str),
+            "SDK_LEARNING_RETRIEVE_PAYLOAD_INVALID",
+            "Learning retrieval requires query, scope_selectors, and as_of; only optional conflict candidate IDs and limit may accompany them.",
+            status="BLOCKED",
+            unexpected_fields=sorted(set(exact_payload) - allowed),
+        )
         return retrieve_accepted_learning(
             service.store.project_root(binding.project_id),
             project_id=binding.project_id,
-            **_learning_payload(binding, payload),
+            **exact_payload,
         )
 
     def _learning_bootstrap_verified_history(
@@ -2237,7 +2839,7 @@ def build_local_service_adapter(
             recorded_at=utc_now(),
         )
 
-    def _learning_memory_query(
+    def _project_memory_query(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
@@ -2249,7 +2851,7 @@ def build_local_service_adapter(
             **exact_payload,
         )
 
-    def _learning_memory_record_link(
+    def _project_memory_record_link(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
@@ -2342,11 +2944,7 @@ def build_local_service_adapter(
         return {
             **result,
             "authority_effects": {
-                key: (
-                    "REFRESHED"
-                    if key == "project_universe"
-                    else "NONE"
-                )
+                key: ("REFRESHED" if key == "project_universe" else "NONE")
                 for key in _AUTHORITY_EFFECT_KEYS
             },
         }
@@ -2459,7 +3057,11 @@ def build_local_service_adapter(
         supplied_session = str(payload.get("session_id") or binding.session_id)
         supplied_task = str(payload.get("task_id") or binding.task_id)
         supplied_model = str(payload.get("model") or binding.model)
-        supplied_submodel = str(payload.get("submodel") or binding.submodel)
+        supplied_submodel = (
+            str(payload["submodel"]).strip()
+            if payload.get("submodel") is not None
+            else binding.submodel
+        )
         require(
             supplied_session == binding.session_id
             and supplied_task == binding.task_id
@@ -2762,6 +3364,68 @@ def build_local_service_adapter(
             ],
         }
 
+    def _formula_engine_run(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        result = run_formula_engine(
+            FormulaEngineRequest.model_validate(
+                {**payload, "sdk_binding_sha256": binding.sha256}
+            )
+        )
+        context.checkpoint()
+        return result
+
+    def _brain_scaling_select(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        del binding
+        context.checkpoint()
+        return run_brain_scaling(BrainScalingRequest.model_validate(payload))
+
+    def _project_recipe_compile(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        return compile_project_recipe(
+            ProjectRecipeRequest.model_validate(
+                {**payload, "project_id": binding.project_id}
+            )
+        )
+
+    def _ai_toolchain_route(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        del binding
+        context.checkpoint()
+        return run_full_ai_toolchain(FullAIToolchainRequest.model_validate(payload))
+
+    def _bigger_universe_register(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        database = (
+            service.store.project_root(binding.project_id)
+            / "connector_brain"
+            / "connector-brain.sqlite"
+        )
+        return register_bigger_universe_project(
+            BiggerUniverseProjectRequest.model_validate(
+                {**payload, "database": database, "project_id": binding.project_id}
+            )
+        )
+
+    def _bigger_universe_link(
+        binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
+    ) -> dict[str, Any]:
+        context.checkpoint()
+        database = (
+            service.store.project_root(binding.project_id)
+            / "connector_brain"
+            / "connector-brain.sqlite"
+        )
+        return ConnectorGovernance(database).link_universe_mini_brains(**payload)
+
     handlers: dict[tuple[str, str], SDKHandler] = {
         ("project_truth", "status"): _truth_status,
         ("project_truth", "search"): _truth_search,
@@ -2796,8 +3460,8 @@ def build_local_service_adapter(
         ): _learning_bootstrap_verified_history,
         ("project_memory", "inspect"): _memory_inspect,
         ("project_memory", "bootstrap"): _memory_bootstrap,
-        ("project_memory", "query"): _learning_memory_query,
-        ("project_memory", "record_link"): _learning_memory_record_link,
+        ("project_memory", "query"): _project_memory_query,
+        ("project_memory", "record_link"): _project_memory_record_link,
         ("project_memory", "seal_checkpoint"): _memory_seal_checkpoint,
         (
             "project_memory",
@@ -2833,6 +3497,15 @@ def build_local_service_adapter(
         ("source_lane_retrieval", "source_intake"): _source_intake,
         ("env_uop_operator_runtime", "status"): _env,
         ("env_uop_operator_runtime", "classify_mode"): _classify_mode,
+        ("first_class_workflows", "formula_engine_run"): _formula_engine_run,
+        ("first_class_workflows", "brain_scaling_select"): _brain_scaling_select,
+        ("first_class_workflows", "project_recipe_compile"): _project_recipe_compile,
+        ("first_class_workflows", "ai_toolchain_route"): _ai_toolchain_route,
+        (
+            "first_class_workflows",
+            "bigger_universe_register",
+        ): _bigger_universe_register,
+        ("first_class_workflows", "bigger_universe_link"): _bigger_universe_link,
         ("storage_connectors", "inspect"): _storage,
         ("storage_connectors", "select"): _storage_select,
         (
@@ -2929,12 +3602,7 @@ def build_live_local_sdk_context(
     )
     profile_value = session.metadata.get("execution_profile")
     profile = dict(profile_value) if isinstance(profile_value, Mapping) else {}
-    required_profile = {
-        "model",
-        "submodel",
-        "reasoning_effort",
-        "reasoning_speed",
-    }
+    required_profile = {"model"}
     require(
         required_profile <= set(profile)
         and all(str(profile[field] or "").strip() for field in required_profile),
@@ -2979,9 +3647,15 @@ def build_live_local_sdk_context(
             "lineage_head_sha256": lineage_head,
             **env_uop,
             "model": str(profile["model"]),
-            "submodel": str(profile["submodel"]),
-            "reasoning_effort": str(profile["reasoning_effort"]),
-            "reasoning_speed": str(profile["reasoning_speed"]),
+            **{
+                field: str(profile[field])
+                for field in (
+                    "submodel",
+                    "reasoning_effort",
+                    "reasoning_speed",
+                )
+                if str(profile.get(field) or "").strip()
+            },
             "host_kind": session.host.value,
             "host_session_id": host_session_id,
             "agent_configuration_authority_sha256": agent_configuration[
@@ -3002,11 +3676,12 @@ def build_live_local_sdk_context(
             "write_scope": list(write_scope),
         }
     )
-    adapter = build_local_service_adapter(
+    base_adapter = build_local_service_adapter(
         service,
         runtime_binding=binding.as_dict(),
         canon_dispatcher=canon_dispatcher,
     )
+    adapter = build_env_uop_operator_provider_adapter(base_adapter)
     return (
         InternalEvidenceLaneSDK(service.store.project_root(project_id), adapter),
         binding,

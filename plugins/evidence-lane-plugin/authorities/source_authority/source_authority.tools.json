@@ -1,0 +1,643 @@
+{
+  "schema": "evidence-lane.installed-authority-tools.v1",
+  "status": "PASS",
+  "authority_id": "source_authority",
+  "database": "source_authority.sqlite",
+  "query_order": [
+    "source_authority.mmd",
+    "source_authority.dot",
+    "source_authority.sqlite"
+  ],
+  "sqlite_query_mode": "READ_ONLY_IMMUTABLE_BOUNDED_FTS5_BM25",
+  "json_role": "BUILD_REFRESH_SCHEMA_AND_POINTER_TOOLING",
+  "runtime_binding": "runtime.py",
+  "builder_binding": "builder.py:refresh",
+  "reader_binding": "reader.py:validate",
+  "linked_public_actions": [
+    {
+      "name": "fetch",
+      "schema_sha256": "85170F97BAAAA6E30450D78CD1B2FBD1A2A14F057A0AE507E6C4E20F56DB32A8",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "fetch"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 15
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "lane_catalog",
+      "schema_sha256": "3CE47DDFDC25D90856C0392F118487335EBD6D331D7D4795876F73089C3AEA61",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "lane_catalog"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "lane-evidence-read",
+            "order": 6
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "source-route-configuration",
+            "order": 9
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "task-execution",
+            "order": 9
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "lane_configure_routes",
+      "schema_sha256": "0BF0762ADEF79F2E015AE30A48BDDFC5D8F249A713C078FB32B42E59983B96C3",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "lane_configure_routes"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "source-route-configuration",
+            "order": 10
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "lane_fetch",
+      "schema_sha256": "D04A51C8DDBF2BD67B9FA72F4F533272230A37892E2317E3198EE79D2C67B62F",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "lane_fetch"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "lane-evidence-read",
+            "order": 9
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 15
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "lane_search",
+      "schema_sha256": "298AA70EF6AA1227B07667AA4F7EB49DB2B8155E6ED2BDF56A68DA77E9C29EC0",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "lane_search"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "lane-evidence-read",
+            "order": 8
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 14
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "lane_status",
+      "schema_sha256": "A16EC2DD96C9EF3EB3684E75A798D31470741F13DDE101475F99B000D20A11EE",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "lane_status"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "lane-evidence-read",
+            "order": 7
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 12
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "prompt_index_status",
+      "schema_sha256": "7168DD8E69E353ABAAAFD021D9E5C7BA4190FB56C1C88C840864A861AAEE5B36",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "prompt_index_status"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 13
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "search",
+      "schema_sha256": "1D4C303C7B3FE4AC1E729A6D7B45EA0A082FE57585D1C3251874A5BBE9769691",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "search"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-instructions",
+            "workflow": "agents-and-host-memory-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-plan",
+            "workflow": "live-six-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "bounded-source-retrieval",
+            "order": 14
+          },
+          {
+            "owner_skill": "evi-universe",
+            "workflow": "project-universe-authority-read",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "live-root-six-authority-read",
+            "order": 3
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_custom_schema_compile",
+      "schema_sha256": "75DBD5618758A4A4C33F0BF93C4C770D746534D7B0D7A403B36C69A4B29D3696",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_custom_schema_compile"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "custom-schema-intake",
+            "order": 6
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_git_commit_impact",
+      "schema_sha256": "0E5CAF7DF39E4D4A812B94D8958B69399DD18CCA96EDCA9E4B28923322D2287D",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_git_commit_impact"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "git-read-intake",
+            "order": 5
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_git_history_build",
+      "schema_sha256": "B053EB091AE5290127000452B72E8E7D81F23EC609D6600A4C64C26699DD5FE1",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_git_history_build"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "git-read-intake",
+            "order": 4
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_graph_build",
+      "schema_sha256": "F71727B9AEAF773C8185207FF223360AB2387BEEBB1AD7A8A601C684318A1D7D",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_graph_build"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "source-graph-intake",
+            "order": 7
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_graph_diff",
+      "schema_sha256": "5D0A07071D0422E7190C8897B8FDC627FFD2A87AEF915B56FEA82FB12F0DBD4C",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_graph_diff"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "source-graph-intake",
+            "order": 8
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_graph_impact",
+      "schema_sha256": "5BC430CA60C5C8C5E40EE66087355C1B03B39F103C69B74B4EF801EEEAD3E451",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_graph_impact"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "source-graph-intake",
+            "order": 8
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_identity_register",
+      "schema_sha256": "BB6742DF7A8BE678C5967E753B8ABFE7CA3BE54752556445CAD7C2BEA3AD1DEF",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_identity_register"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "source-identity-intake",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_intake_classify",
+      "schema_sha256": "CBE89FF15C6A4AD750C1D4D17C6F987420D6A3946573FA2ABB4E2FD1715E0F8A",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_intake_classify"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-refresh",
+            "workflow": "steer-prompt-source-intake-refresh-working-sectors",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "classify-source-intake",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_intake_schema_configure",
+      "schema_sha256": "4911ACA559DAF9C937F8951C9A66C1AD578B5848FF78E9BF4D961E00D66B42AA",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_intake_schema_configure"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "source-route-configuration",
+            "order": 11
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_sqlite_inspect",
+      "schema_sha256": "FC8B4242F2AA3AD6A8C969274C3264C29204307204D8C89F2B567EA01CD5AEE9",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_sqlite_inspect"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "sqlite-source-intake",
+            "order": 3
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "linked_skills": {
+    "skills/evi-source-intake/SKILL.md": "E3F66743E788863F6E5530E379C488D4C5A7B99F8EA3DF377145EBD75211C824"
+  },
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/source_authority.py": "D717E167B4D23E87F2A6A9AC34ACD1CEC67A95A7D495FA6149EAF2460025B95C",
+    "src/evidence_lane_plugin/source_intake.py": "F8B9EA79F70CC9A68D1648103F1947259F09D4AF679475291A66CB9F2B47E85B",
+    "src/evidence_lane_plugin/source_sqlite.py": "BF37120483C38595A70C43C9B3AAA3702C5B066FDBD9EC9788292D6A1DC65913",
+    "src/evidence_lane_plugin/source_graph.py": "F35D98CC8F32A21E767627DBFE5CA125776AA03BC1158187EB040FDF29A9E708",
+    "src/evidence_lane_plugin/source_git_history.py": "F36832D0B522AE9253306B109A840B13AEB8460768A3A2F67D6ADE0758C77F07",
+    "src/evidence_lane_plugin/source_identity.py": "0905E1CBC5217A71714586E0D30FB2116D926E00EB17F2AFC9FD4D1A1058700C",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "source_authority",
+    "source_count": 1,
+    "node_count": 1,
+    "indexed_table_count": 1,
+    "indexed_tables": [
+      "registry_meta"
+    ],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:51.525882Z",
+    "receipt_sha256": "00E226BFB4B69088FC255183D2C929F58859B43A686C5536330FD7563B14116C"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "source_authority_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 534,
+    "edge_count": 597,
+    "group_count": 1,
+    "semantic_topology_sha256": "C976AFD0C56F7A47281B5BDC010D2E49FFE302A422002C2773A365DB8B0FDC25",
+    "mmd_sha256": "63B868964E11F5B379C175946218814BEB6E640DCF42BE20F46DEBCB61F7BF7C",
+    "dot_sha256": "DA2369C6104A5A1D799ADA207B97F7E9075DC057D878A9AC829796065EDDAA2C",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "3540FFA48B5E64BB4958F0EE60955D75744E41E87D080AD7D5EC08F02DF45026",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 534,
+      "edge_count": 597,
+      "weak_component_count": 1,
+      "strong_component_count": 534,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 56
+        },
+        {
+          "node_id": "support_table_source_git_snapshot",
+          "in_degree": 5,
+          "out_degree": 35
+        },
+        {
+          "node_id": "support_table_source_git_file_change",
+          "in_degree": 9,
+          "out_degree": 19
+        },
+        {
+          "node_id": "support_table_source_object",
+          "in_degree": 13,
+          "out_degree": 13
+        },
+        {
+          "node_id": "support_table_source_graph_snapshot",
+          "in_degree": 8,
+          "out_degree": 17
+        },
+        {
+          "node_id": "support_table_source_graph_node",
+          "in_degree": 5,
+          "out_degree": 18
+        },
+        {
+          "node_id": "support_table_intake_batch",
+          "in_degree": 13,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_source_git_commit",
+          "in_degree": 7,
+          "out_degree": 14
+        },
+        {
+          "node_id": "support_table_source_git_hunk",
+          "in_degree": 6,
+          "out_degree": 15
+        },
+        {
+          "node_id": "support_table_source_graph_edge",
+          "in_degree": 1,
+          "out_degree": 19
+        },
+        {
+          "node_id": "support_table_source_git_changed_line",
+          "in_degree": 1,
+          "out_degree": 18
+        },
+        {
+          "node_id": "support_table_source_sqlite_receipt",
+          "in_degree": 2,
+          "out_degree": 17
+        },
+        {
+          "node_id": "support_table_source_git_impact",
+          "in_degree": 1,
+          "out_degree": 16
+        },
+        {
+          "node_id": "support_table_source_graph_diff",
+          "in_degree": 1,
+          "out_degree": 16
+        },
+        {
+          "node_id": "support_table_source_archive_receipt",
+          "in_degree": 1,
+          "out_degree": 15
+        },
+        {
+          "node_id": "support_table_source_graph_file_coverage",
+          "in_degree": 1,
+          "out_degree": 15
+        },
+        {
+          "node_id": "support_table_source_custom_schema_mapping",
+          "in_degree": 1,
+          "out_degree": 14
+        },
+        {
+          "node_id": "support_table_source_graph_impact",
+          "in_degree": 1,
+          "out_degree": 13
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_source_git_rename",
+          "in_degree": 1,
+          "out_degree": 12
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "11C2AFFF7F5D761BCEE7CA48F90344C1707E82E167E7C296F6DCE8D7A91C4111",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "436CB4CD8C42E549D879EA2ED36DD809E143270FCA6A54638BEE20DF0122C0B0"
+  },
+  "receipt_sha256": "4E41F01B439AA2F3F269F317BF0C4633454065C4574D9CD7F84A6BCFF33FD20B"
+}

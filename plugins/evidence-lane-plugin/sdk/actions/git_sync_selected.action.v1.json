@@ -1,0 +1,99 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "git_sync_selected",
+  "title": "Fast-forward one selected Git branch",
+  "description": "Fetch one explicit local Git source or credential-free HTTPS repository and one exact branch, verify identity and optional commit, preview changed paths against any active task, then apply only a clean fast-forward. In an active governed session, an explicit replacement flag may narrow authority to the exact already-checked-out branch and writes a receipt. It never pushes, merges divergent history, switches branches, or broadens branch authority.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "source": {
+        "title": "Source",
+        "type": "string"
+      },
+      "branch": {
+        "title": "Branch",
+        "type": "string"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      },
+      "expected_commit": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Commit"
+      },
+      "replace_registered_branch": {
+        "default": false,
+        "title": "Replace Registered Branch",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "source",
+      "branch"
+    ],
+    "title": "git_sync_selectedArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "git_sync_selectedDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "56425C77068075F6AA2B638053C16057BE0F3F4FE667A1ADFB00E5C98DCCB86F",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "git_sync_selected"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "governed-git-delivery",
+        "order": 16
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/git_sync_selected.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "FBAEED3385C4332592F20E51604585D2F49BB79FF47927191CBAF333D0140856"
+}

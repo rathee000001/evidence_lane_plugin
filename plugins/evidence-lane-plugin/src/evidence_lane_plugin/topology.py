@@ -24,21 +24,12 @@ from .hashing import (
     sha256_bytes,
     sha256_file,
 )
+from .graph_pipeline import SemanticGraph
 from .redaction import redact_text
 
 RENDER_RECEIPT_SCHEMA = "evidence-lane.mermaid-render-receipt.v2"
 _SVG_COMMENT = re.compile(r"<!--.*?-->", flags=re.DOTALL)
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-
-
-def _escape(value: str) -> str:
-    return (
-        value.replace("\\", "/")
-        .replace("&", "&amp;")
-        .replace('"', "&quot;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-    )
 
 
 def _renderer_environment() -> tuple[dict[str, str], str | None]:
@@ -129,8 +120,10 @@ def _renderer_environment() -> tuple[dict[str, str], str | None]:
     return environment, str(browser) if browser else None
 
 
-def build_mermaid(
-    connection: sqlite3.Connection, output_path: str | Path
+def build_topology(
+    connection: sqlite3.Connection,
+    mmd_output_path: str | Path,
+    dot_output_path: str | Path,
 ) -> dict[str, Any]:
     repository = connection.execute(
         "SELECT owner, name, branch, commit_sha, tree_sha FROM repositories LIMIT 1"
@@ -158,57 +151,64 @@ def build_mermaid(
         LIMIT 100
         """
     ).fetchall()
-    lines = [
-        "---",
-        'title: "Evidence Lane Git Code Project Topology"',
-        "---",
-        "flowchart LR",
+    graph = SemanticGraph(
+        "EvidenceLaneGitCode",
+        direction="LR",
+        role="AUTHORITY_TRAVERSAL",
+    )
+    graph.add_node(
+        "REPOSITORY",
         (
-            f'  repo["{_escape(repository["owner"])}/{_escape(repository["name"])}'
-            f"<br/>branch: {_escape(repository['branch'])}"
-            f"<br/>commit: {_escape(repository['commit_sha'][:12])}"
-            f'<br/>tree: {_escape(repository["tree_sha"][:12])}"]'
+            f"{repository['owner']}/{repository['name']}\\n"
+            f"branch: {repository['branch']}\\n"
+            f"commit: {repository['commit_sha'][:12]}\\n"
+            f"tree: {repository['tree_sha'][:12]}"
         ),
-    ]
+        "root",
+    )
     for index, row in enumerate(families):
-        node_id = f"family_{index}"
-        lines.append(
-            f'  {node_id}["{_escape(row["code_family"])}'
-            f'<br/>{row["file_count"]} files / {row["bytes"]} bytes"]'
+        node_id = f"FAMILY_{index}"
+        graph.add_node(
+            node_id,
+            (
+                f"{row['code_family']}\\n"
+                f"{row['file_count']} files / {row['bytes']} bytes"
+            ),
+            "semantic",
         )
-        lines.append(f"  repo --> {node_id}")
+        graph.add_edge("REPOSITORY", node_id, "code family")
     top_directories: dict[str, int] = {}
     for row in files:
         part = row["path"].split("/", 1)[0]
         top_directories[part] = top_directories.get(part, 0) + 1
     for index, (directory, count) in enumerate(sorted(top_directories.items())):
-        node_id = f"path_{index}"
-        lines.append(f'  {node_id}["{_escape(directory)}<br/>{count} files"]')
-        lines.append(f"  repo -.-> {node_id}")
+        node_id = f"PATH_{index}"
+        graph.add_node(node_id, f"{directory}\\n{count} files", "source")
+        graph.add_edge("REPOSITORY", node_id, "top-level path")
     for index, row in enumerate(routes):
-        node_id = f"route_{index}"
+        node_id = f"ROUTE_{index}"
         method = row["method"] or "ROUTE"
-        lines.append(
-            f'  {node_id}["{_escape(method)} {_escape(row["path_pattern"])}'
-            f'<br/>{_escape(row["path"])}"]'
+        graph.add_node(
+            node_id,
+            f"{method} {row['path_pattern']}\\n{row['path']}",
+            "git",
         )
-        lines.append(f"  repo --> {node_id}")
-    lines.extend(
-        [
-            "  classDef repository fill:#e9fbff,stroke:#15a6c8,color:#17324d,stroke-width:2px;",
-            "  classDef node fill:#f8fbfc,stroke:#8bb5c2,color:#17324d;",
-            "  class repo repository;",
-        ]
-    )
-    output = Path(output_path)
-    atomic_write_bytes(output, ("\n".join(lines) + "\n").encode("utf-8"))
+        graph.add_edge("REPOSITORY", node_id, "route")
+    mmd, dot, graph_pipeline_receipt = graph.render_pair()
+    mmd_output = Path(mmd_output_path)
+    dot_output = Path(dot_output_path)
+    atomic_write_bytes(mmd_output, mmd.encode("utf-8"))
+    atomic_write_bytes(dot_output, dot.encode("utf-8"))
     return {
         "status": "PASS",
-        "path": output.name,
-        "sha256": sha256_file(output),
+        "mmd_path": mmd_output.name,
+        "mmd_sha256": sha256_file(mmd_output),
+        "dot_path": dot_output.name,
+        "dot_sha256": sha256_file(dot_output),
         "files": len(files),
         "families": len(families),
         "routes": len(routes),
+        "graph_pipeline_receipt": graph_pipeline_receipt,
     }
 
 

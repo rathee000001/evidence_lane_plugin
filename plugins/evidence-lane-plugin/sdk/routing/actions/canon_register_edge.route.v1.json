@@ -1,0 +1,34 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "canon_register_edge",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_register_edge"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "register_edge",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-task-edge",
+        "order": 10
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "31CD698B6DD20BA5F1C67540113F3B20ECDDCAE45DE7E033C3D9C741F5FC74DB",
+  "sdk_action_binding": "sdk/actions/canon_register_edge.action.v1.json",
+  "mcp_action_binding": "mcp/actions/canon_register_edge.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "7D81A2A7429BF746A9814D18FE360C9AE8F7CF15E182D939ABD56F24C223E77A"
+}

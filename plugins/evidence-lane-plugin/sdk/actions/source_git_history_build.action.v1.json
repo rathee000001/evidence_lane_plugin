@@ -1,0 +1,132 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "source_git_history_build",
+  "title": "Seal full bounded Git history evidence",
+  "description": "For one exact registered directory that still has local .git metadata, seal all reachable refs, commits, parent edges, objects, per-commit trees, per-parent file changes, renames, hunk coordinates, and changed-line hashes. Extracted folders never qualify as history; lazy fetch, source writes, Git writes, candidate creation, and pointer movement are forbidden. Finite bounds fail closed without a partial snapshot.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "batch_id": {
+        "title": "Batch Id",
+        "type": "string"
+      },
+      "occurrence_ordinal": {
+        "title": "Occurrence Ordinal",
+        "type": "integer"
+      },
+      "max_refs": {
+        "default": 20000,
+        "title": "Max Refs",
+        "type": "integer"
+      },
+      "max_commits": {
+        "default": 100000,
+        "title": "Max Commits",
+        "type": "integer"
+      },
+      "max_objects": {
+        "default": 2000000,
+        "title": "Max Objects",
+        "type": "integer"
+      },
+      "max_tree_entries": {
+        "default": 5000000,
+        "title": "Max Tree Entries",
+        "type": "integer"
+      },
+      "max_file_changes": {
+        "default": 2000000,
+        "title": "Max File Changes",
+        "type": "integer"
+      },
+      "max_hunks": {
+        "default": 2000000,
+        "title": "Max Hunks",
+        "type": "integer"
+      },
+      "max_changed_lines": {
+        "default": 5000000,
+        "title": "Max Changed Lines",
+        "type": "integer"
+      },
+      "max_patch_bytes": {
+        "default": 2147483648,
+        "title": "Max Patch Bytes",
+        "type": "integer"
+      },
+      "max_single_object_bytes": {
+        "default": 1073741824,
+        "title": "Max Single Object Bytes",
+        "type": "integer"
+      },
+      "max_total_object_bytes": {
+        "default": 8589934592,
+        "title": "Max Total Object Bytes",
+        "type": "integer"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "batch_id",
+      "occurrence_ordinal"
+    ],
+    "title": "source_git_history_buildArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "source_git_history_buildDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "B053EB091AE5290127000452B72E8E7D81F23EC609D6600A4C64C26699DD5FE1",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "source_git_history_build"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "git-read-intake",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/source_git_history_build.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "5B611942AA3E1F3B587EDE95AA8F55475A8DD801C39F910ECD73EC9C155D1A2D"
+}

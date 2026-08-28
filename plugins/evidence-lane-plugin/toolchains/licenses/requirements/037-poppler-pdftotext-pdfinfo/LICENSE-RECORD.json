@@ -1,0 +1,29 @@
+{
+  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "status": "PASS",
+  "ordinal": 37,
+  "tool": "Poppler_pdftotext_pdfinfo",
+  "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+  "classification": "NATIVE_RUNTIME_ASSET",
+  "install_mode": "portable_zip",
+  "license_expression_or_terms": "GPL-2.0-or-later",
+  "license_evidence": "toolchains/native-tools.v1.json plus the installed native-tool license receipt",
+  "evidence_paths": [
+    "toolchains/native-tools.v1.json"
+  ],
+  "redistributed_by_source_package": false,
+  "source_package_copied_license_text_present": false,
+  "source_package_copied_license_texts": [],
+  "native_license_acquisition": {
+    "url": "https://gitlab.freedesktop.org/poppler/poppler/-/raw/poppler-26.02.0/COPYING",
+    "bytes": 17987,
+    "sha256": "AB15FD526BD8DD18A9E77EBC139656BF4D33E97FC7238CD11BF60E2B9B8666C6",
+    "copied_to_hidden_runtime_before_use": true
+  },
+  "runtime_distribution_license_required": false,
+  "runtime_distribution_license_manifest": null,
+  "runtime_distribution_license_files_must_be_copied_before_use": false,
+  "metadata_without_a_license_file_is_labeled_metadata_only": true,
+  "mcp_inventory_separate": true,
+  "receipt_sha256": "0346171C7A32FE9426CE89A226F394DB0AD165732FF903535D4A1D951E33BBF5"
+}

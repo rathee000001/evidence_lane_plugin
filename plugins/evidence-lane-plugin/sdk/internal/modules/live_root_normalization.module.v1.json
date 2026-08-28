@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.live_root_normalization",
+  "source_path": "src/evidence_lane_plugin/live_root_normalization.py",
+  "source_sha256": "017FB7AE6562C184EB3F0EF22B15DE5BE06E273482732FA2B3771391D0F34B4D",
+  "source_bytes": 22374,
+  "role": "PROJECT_AUTHORITIES",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "597B6C378A00688C4C8950AC69BF8DA7E6045B93B8952FF79D80662277C29CE5"
+}

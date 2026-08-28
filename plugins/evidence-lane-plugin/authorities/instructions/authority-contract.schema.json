@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "instructions authority contract",
+  "type": "object",
+  "required": [
+    "schema",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-instruction-arms-contract.v1"
+    },
+    "status": {
+      "const": "PASS"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "0CC29E81480D48953850E5901B77D75446FD329FFC0F2B97CA7601700AC28D44"
+}

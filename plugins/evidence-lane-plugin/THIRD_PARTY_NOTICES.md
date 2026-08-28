@@ -19,9 +19,11 @@ redistributed wheel or binary runtime must preserve those exact bundled files.
 See the [pypdfium2 project](https://github.com/pypdfium2-team/pypdfium2) and
 [published package metadata](https://pypi.org/project/pypdfium2/).
 
-`PyMuPDF` is not an active dependency and is not included in the package. It was
-removed because its AGPL-or-commercial licensing model requires a deliberate
-distribution decision that this proprietary package must not infer.
+`PyMuPDF==1.28.2` is an active local document-toolchain dependency for
+high-fidelity extraction. Its AGPL-or-commercial licensing model is an explicit
+release gate: no proprietary binary publication may bundle or provision it
+without a compatible license decision and the required source/notices.
+Permissive PDF fallbacks remain available when that gate is not satisfied.
 
 The Windows x86-64 Codex package includes `ripgrep==15.2.0` under its upstream
 MIT-or-Unlicense choice. Its exact license texts are preserved under
@@ -40,7 +42,7 @@ dependency and native-binary graph, and preserve every required notice.
 The ordered repository-facing summary is
 [`THIRD_PARTY_LICENSES.md`](../../docs/THIRD_PARTY_LICENSES.md). The exact declared
 direct-version table is
-[`docs/DEPENDENCY_LICENSE_AUDIT.md`](../../docs/DEPENDENCY_LICENSE_AUDIT.md),
+[`docs/THIRD_PARTY_LICENSES.md`](../../docs/THIRD_PARTY_LICENSES.md),
 and the lane-to-tool declaration is
 [`docs/TOOLS.md`](../../docs/TOOLS.md). Internal Evidence Lane components shown
 on the Tools page do not acquire a separate third-party license merely because

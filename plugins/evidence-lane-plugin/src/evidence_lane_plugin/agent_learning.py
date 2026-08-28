@@ -46,6 +46,9 @@ LEARNING_LEDGER_SCHEMA_VERSION = 2
 LEARNING_EXPIRY_RECEIPT_SCHEMA = "evidence-lane.learning-expiry-receipt.v1"
 LEARNING_EXPIRY_OWNER = "AGENT_LEARNING_AUTHORITY_MAINTENANCE"
 LEARNING_BOOTSTRAP_RECEIPT_SCHEMA = "evidence-lane.learning-bootstrap-receipt.v1"
+LEARNING_DELTA_AUTO_ACCEPTANCE_STATE = "AUTO_ACCEPTED_DELTA_LEARNING"
+LEARNING_DELTA_AUTO_ACCEPTANCE_EVENT = "AUTO_ACCEPTED_DELTA_LEARNING"
+LEARNING_WEAVE_RECEIPT_SCHEMA = "evidence-lane.learning-pv-weave-receipt.v1"
 LEARNING_LAYOUT_MIGRATION_RECEIPT_SCHEMA = (
     "evidence-lane.learning-authority-layout-migration.v1"
 )
@@ -60,8 +63,6 @@ _LEARNING_REFERENCE_HOLD_DIRECTORY = ".ai_learning-reference-hold"
 _LEARNING_PUBLIC_ACTIONS = (
     "learning_inspect",
     "learning_retrieve",
-    "learning_memory_query",
-    "learning_memory_record_link",
     "learning_record_host_memory_import",
     "learning_seal_candidate",
     "learning_decide_candidate",
@@ -647,10 +648,16 @@ def learning_runtime_contract() -> dict[str, Any]:
             "schema_version": 1,
             "authority": "INDEPENDENT_PROJECT_MEMORY_AUTHORITY",
             "sdk_module": "project_memory",
-            "compatibility_action_names": [
+            "current_action_names": [
+                "project_memory_query",
+                "project_memory_record_link",
+            ],
+            "owner_skill": "evi-memory",
+            "obsolete_compatibility_action_names": [
                 "learning_memory_query",
                 "learning_memory_record_link",
             ],
+            "obsolete_compatibility_actions_executable": False,
             "legacy_learning_tables": "IMMUTABLE_MIGRATION_SOURCE_ONLY",
             "sectors": sorted(MEMORY_SECTOR_LOCATOR_PREFIXES),
             "raw_database_or_markdown_stored": False,
@@ -658,6 +665,14 @@ def learning_runtime_contract() -> dict[str, Any]:
             "project_truth_effect": "NONE",
             "candidate_effect": "NONE",
             "hil_effect": "NONE",
+        },
+        "delta_learning": {
+            "intermediate_acceptance": "AUTO_ACCEPTED_AT_VERIFIED_DELTA_EXIT",
+            "project_pointer_effect": "NONE",
+            "learning_pointer_effect": "NONE",
+            "full_pv_hil_input": "ONE_DETERMINISTIC_WOVEN_CANDIDATE",
+            "individual_member_hil_allowed": False,
+            "weave_decision_pointer_moves": 1,
         },
         "public_actions": list(_LEARNING_PUBLIC_ACTIONS),
         "public_action_count": len(_LEARNING_PUBLIC_ACTIONS),
@@ -2432,8 +2447,29 @@ def _learning_bootstrap_rows(
             """
         ).fetchone()[0]
     )
-    rows = connection.execute(
+    has_sub_pv = "sub_pv_acceptance" in tables
+    sub_pv_columns = (
         """
+            sub_pv.sub_pv_id,
+            sub_pv.state AS sub_pv_state,
+            sub_pv.receipt_sha256 AS sub_pv_receipt_sha256,
+            sub_pv.learning_acceptance_inherited_from_sub_pv,
+        """
+        if has_sub_pv
+        else """
+            NULL AS sub_pv_id,
+            NULL AS sub_pv_state,
+            NULL AS sub_pv_receipt_sha256,
+            NULL AS learning_acceptance_inherited_from_sub_pv,
+        """
+    )
+    sub_pv_join = (
+        "LEFT JOIN sub_pv_acceptance AS sub_pv ON sub_pv.task_id=row.task_id"
+        if has_sub_pv
+        else ""
+    )
+    rows = connection.execute(
+        f"""
         SELECT
             row.task_id,
             row.row_number,
@@ -2444,6 +2480,7 @@ def _learning_bootstrap_rows(
             row.plan_group,
             row.commit_batch_id,
             row.task_contract_sha256,
+            {sub_pv_columns}
             event.event_id,
             event.event_type,
             event.recorded_at,
@@ -2451,6 +2488,7 @@ def _learning_bootstrap_rows(
             event.details_json
         FROM plan_execution_row AS row
         JOIN delta_event AS event ON event.task_id=row.task_id
+        {sub_pv_join}
         WHERE
             (
                 row.lifecycle_status='ACCEPTED'
@@ -2481,6 +2519,186 @@ def _learning_bootstrap_rows(
         """
     ).fetchall()
     return rows, terminal_count
+
+
+def _auto_accept_learning_delta(
+    root: Path,
+    *,
+    project_id: str,
+    candidate: dict[str, Any],
+    occurred_at: str,
+    acceptance_basis: str,
+    source_event_sha256: str,
+    sub_pv_id: str | None,
+    sub_pv_receipt_sha256: str | None,
+) -> dict[str, Any]:
+    """Auto-admit one verified Delta lesson without moving either pointer."""
+
+    details = {
+        "candidate_sha256": candidate["candidate_sha256"],
+        "acceptance_basis": acceptance_basis,
+        "source_event_sha256": source_event_sha256,
+        "sub_pv_id": sub_pv_id,
+        "sub_pv_receipt_sha256": sub_pv_receipt_sha256,
+        "automatic_acceptance": True,
+        "individual_learning_hil_required": False,
+        "eligible_for_full_pv_weave": True,
+        "learning_pointer_moved": False,
+        "project_truth_pointer_moved": False,
+    }
+    connection = _connect(root)
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        current = _current_state(connection, str(candidate["candidate_id"]))
+        if current == LEARNING_DELTA_AUTO_ACCEPTANCE_STATE:
+            prior = connection.execute(
+                """
+                SELECT event_json FROM learning_event
+                WHERE candidate_id=? AND event_type=?
+                ORDER BY sequence DESC LIMIT 1
+                """,
+                (
+                    candidate["candidate_id"],
+                    LEARNING_DELTA_AUTO_ACCEPTANCE_EVENT,
+                ),
+            ).fetchone()
+            require(
+                prior is not None
+                and json.loads(str(prior["event_json"]))["details"] == details,
+                "LEARNING_DELTA_AUTO_ACCEPTANCE_REPLAY_MISMATCH",
+                "The auto-accepted Delta Learning receipt differs on replay.",
+                status="MISMATCH",
+                candidate_id=candidate["candidate_id"],
+            )
+            connection.rollback()
+            return {
+                "status": "PASS",
+                "idempotent_reuse": True,
+                "event": json.loads(str(prior["event_json"])),
+            }
+        require(
+            current == "PENDING_LEARNING_HIL",
+            "LEARNING_DELTA_AUTO_ACCEPTANCE_STATE_INVALID",
+            "Only a freshly sealed verified Delta lesson may be auto-accepted.",
+            status="MISMATCH",
+            candidate_id=candidate["candidate_id"],
+            state=current,
+        )
+        event = _append_event(
+            connection,
+            project_id=project_id,
+            candidate_id=str(candidate["candidate_id"]),
+            event_type=LEARNING_DELTA_AUTO_ACCEPTANCE_EVENT,
+            lifecycle_state=LEARNING_DELTA_AUTO_ACCEPTANCE_STATE,
+            occurred_at=occurred_at,
+            details=details,
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    return {"status": "PASS", "idempotent_reuse": False, "event": event}
+
+
+def _seal_learning_pv_weave(
+    root: Path,
+    *,
+    project_id: str,
+    accepted_pv: str,
+    members: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Weave auto-accepted Delta learnings into one full-PV HIL candidate."""
+
+    require(
+        bool(members),
+        "LEARNING_WEAVE_MEMBERS_REQUIRED",
+        "A full-PV Learning weave requires auto-accepted Delta members.",
+        status="BLOCKED",
+    )
+    ordered = sorted(members, key=lambda item: item["candidate"]["candidate_id"])
+    target_pv = f"PV{int(accepted_pv[2:]) + 1}"
+    member_identities = [
+        {
+            "candidate_id": item["candidate"]["candidate_id"],
+            "candidate_sha256": item["candidate"]["candidate_sha256"],
+            "auto_acceptance_event_sha256": item["event"]["event_sha256"],
+        }
+        for item in ordered
+    ]
+    weave_head = sha256_bytes(canonical_json_bytes(member_identities))
+    valid_from = max(
+        str(item["candidate"]["temporal"]["valid_from"]) for item in ordered
+    )
+    evidence: list[dict[str, Any]] = []
+    contradictions: set[str] = set()
+    for item in ordered:
+        candidate = cast(dict[str, Any], item["candidate"])
+        selector = str(candidate["scope"]["selectors"][0])
+        evidence.append(
+            {
+                "project_id": project_id,
+                "task_id": selector,
+                "delta_id": selector,
+                "pv_ref": str(candidate["evidence"][0]["pv_ref"]),
+                "ref": f"learning-candidate://{candidate['candidate_id']}",
+                "sha256": candidate["candidate_sha256"],
+            }
+        )
+        contradictions.update(str(value) for value in candidate["contradictions"])
+    sealed = seal_learning_candidate(
+        root,
+        project_id=project_id,
+        tier="CROSS_PV",
+        lesson_type="RELATIONAL",
+        statement=(
+            f"Consolidated {target_pv} Learning weave for {project_id} across "
+            f"{len(ordered)} auto-accepted Delta learnings."
+        ),
+        scope={"kind": "PROJECT", "selectors": [project_id]},
+        evidence=evidence,
+        outcome="SUCCEEDED",
+        confidence=min(float(item["candidate"]["confidence"]) for item in ordered),
+        counterevidence=[],
+        contradictions=sorted(contradictions),
+        temporal={
+            "observed_at": valid_from,
+            "valid_from": valid_from,
+            "expires_at": None,
+        },
+        privacy="PROJECT_PRIVATE",
+        source_lineage_head_sha256=weave_head,
+    )
+    weave_candidate = cast(dict[str, Any], sealed["candidate"])
+    receipt_body = {
+        "schema": LEARNING_WEAVE_RECEIPT_SCHEMA,
+        "status": "PASS",
+        "project_id": project_id,
+        "accepted_project_pv": accepted_pv,
+        "target_project_pv": target_pv,
+        "member_count": len(member_identities),
+        "members": member_identities,
+        "member_set_sha256": weave_head,
+        "weave_candidate_id": weave_candidate["candidate_id"],
+        "weave_candidate_sha256": weave_candidate["candidate_sha256"],
+        "weave_candidate_initial_state": "PENDING_LEARNING_HIL",
+        "learning_pointer_moved": False,
+        "project_truth_pointer_moved": False,
+        "individual_member_hil_invoked": False,
+        "full_pv_learning_hil_required": True,
+    }
+    receipt = {
+        **receipt_body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+    }
+    receipt_path = _receipt_path(root, str(receipt["receipt_sha256"]))
+    _immutable_json(receipt_path, receipt)
+    return {
+        "status": "PASS",
+        "candidate": weave_candidate,
+        "state": sealed["state"],
+        "idempotent_reuse": sealed["idempotent_reuse"],
+        "receipt": receipt,
+        "receipt_path": str(receipt_path),
+    }
 
 
 def bootstrap_verified_learning_history(
@@ -2579,6 +2797,9 @@ def bootstrap_verified_learning_history(
             tier = "CROSS_PV"
             source_kind = "ACCEPTED_HISTORY"
             confidence = 0.95
+            acceptance_basis = "PROJECT_HIL_ACCEPTED_HISTORY"
+            sub_pv_id = None
+            sub_pv_receipt_sha256 = None
         else:
             verification_kind = str(details.get("verification_kind") or "").strip()
             verification_valid = (
@@ -2606,6 +2827,24 @@ def bootstrap_verified_learning_history(
             tier = "DELTA_OBSERVATION"
             source_kind = "VERIFIED_FORWARD"
             confidence = 0.9
+            sub_pv_id = str(row["sub_pv_id"] or "").strip() or None
+            sub_pv_receipt_sha256 = (
+                str(row["sub_pv_receipt_sha256"] or "").strip() or None
+            )
+            if sub_pv_id is not None:
+                require(
+                    row["sub_pv_state"] == "AUTO_ACCEPTED_DELTA_ROW_WORK"
+                    and int(row["learning_acceptance_inherited_from_sub_pv"] or 0)
+                    == 1
+                    and bool(_SHA256_RE.fullmatch(sub_pv_receipt_sha256 or "")),
+                    "LEARNING_BOOTSTRAP_SUB_PV_ACCEPTANCE_INVALID",
+                    "Verified Delta Learning requires an intact inherited sub-PV acceptance.",
+                    status="MISMATCH",
+                    task_id=row["task_id"],
+                )
+                acceptance_basis = "AUTO_ACCEPTED_SUB_PV_DELTA"
+            else:
+                acceptance_basis = "VERIFIED_FORWARD_LEGACY_RECONCILIATION"
         task_id = str(row["task_id"])
         outcome = str(row["requested_outcome"] or "").strip()
         statement = f"Verified outcome for {task_id}: {outcome}"
@@ -2628,6 +2867,9 @@ def bootstrap_verified_learning_history(
                 "confidence": confidence,
                 "task_id": task_id,
                 "statement": statement,
+                "acceptance_basis": acceptance_basis,
+                "sub_pv_id": sub_pv_id,
+                "sub_pv_receipt_sha256": sub_pv_receipt_sha256,
             }
         )
 
@@ -2638,6 +2880,9 @@ def bootstrap_verified_learning_history(
     candidate_states: dict[str, str] = {}
     source_kind_counts = {"ACCEPTED_HISTORY": 0, "VERIFIED_FORWARD": 0}
     event_hashes: list[str] = []
+    auto_accepted_count = 0
+    auto_acceptance_reuse_count = 0
+    auto_members: list[dict[str, Any]] = []
     for prepared in prepared_rows:
         row = cast(sqlite3.Row, prepared["row"])
         details = cast(dict[str, Any], prepared["details"])
@@ -2687,14 +2932,47 @@ def bootstrap_verified_learning_history(
             source_lineage_head_sha256=event_hash,
         )
         candidate_id = str(sealed["candidate"]["candidate_id"])
+        auto_accepted = _auto_accept_learning_delta(
+            root,
+            project_id=project_id,
+            candidate=cast(dict[str, Any], sealed["candidate"]),
+            occurred_at=str(row["recorded_at"]),
+            acceptance_basis=str(prepared["acceptance_basis"]),
+            source_event_sha256=event_hash,
+            sub_pv_id=cast(str | None, prepared["sub_pv_id"]),
+            sub_pv_receipt_sha256=cast(
+                str | None, prepared["sub_pv_receipt_sha256"]
+            ),
+        )
         candidate_ids.append(candidate_id)
-        candidate_states[candidate_id] = str(sealed["state"])
+        candidate_states[candidate_id] = LEARNING_DELTA_AUTO_ACCEPTANCE_STATE
         event_hashes.append(event_hash)
+        auto_members.append(
+            {
+                "candidate": sealed["candidate"],
+                "event": auto_accepted["event"],
+            }
+        )
+        if auto_accepted["idempotent_reuse"]:
+            auto_acceptance_reuse_count += 1
+        else:
+            auto_accepted_count += 1
         source_kind_counts[source_kind] += 1
         if sealed["idempotent_reuse"]:
             reused_count += 1
         else:
             created_count += 1
+
+    weave = (
+        _seal_learning_pv_weave(
+            root,
+            project_id=project_id,
+            accepted_pv=exact_pv,
+            members=auto_members,
+        )
+        if auto_members
+        else None
+    )
 
     project_pointer_after = project_truth_pointer_sha256(root, project_id=project_id)
     learning_pointer_after = (
@@ -2728,6 +3006,17 @@ def bootstrap_verified_learning_history(
         "excluded_ambiguous_or_unverified_count": excluded_count,
         "source_kind_counts": source_kind_counts,
         "candidate_ids": candidate_ids,
+        "auto_accepted_delta_count": len(candidate_ids),
+        "weave_candidate_id": (
+            weave["candidate"]["candidate_id"] if weave is not None else None
+        ),
+        "weave_candidate_sha256": (
+            weave["candidate"]["candidate_sha256"] if weave is not None else None
+        ),
+        "weave_candidate_state": weave["state"] if weave is not None else None,
+        "weave_receipt_sha256": (
+            weave["receipt"]["receipt_sha256"] if weave is not None else None
+        ),
         "project_truth_pointer_sha256": project_pointer_before,
         "learning_pointer_sha256": learning_pointer_before,
         "project_truth_pointer_moved": False,
@@ -2735,7 +3024,9 @@ def bootstrap_verified_learning_history(
         "project_candidate_created": False,
         "project_hil_invoked": False,
         "learning_hil_invoked": False,
-        "automatic_learning_acceptance": False,
+        "automatic_learning_acceptance": bool(candidate_ids),
+        "individual_member_hil_invoked": False,
+        "consolidated_learning_hil_required": weave is not None,
         "private_reasoning_stored": False,
         "full_plan_loaded_into_model_context": False,
     }
@@ -2745,7 +3036,7 @@ def bootstrap_verified_learning_history(
     _immutable_json(receipt_path, receipt)
     return {
         "status": "PASS",
-        "state": "BOOTSTRAP_CANDIDATES_SEALED"
+        "state": "BOOTSTRAP_DELTA_LEARNING_AUTO_ACCEPTED_WEAVE_SEALED"
         if candidate_ids
         else "NO_ELIGIBLE_VERIFIED_DELTAS",
         "created_count": created_count,
@@ -2753,6 +3044,13 @@ def bootstrap_verified_learning_history(
         "candidate_count": len(candidate_ids),
         "candidate_ids": candidate_ids,
         "candidate_states": candidate_states,
+        "auto_accepted_delta_count": len(candidate_ids),
+        "auto_acceptance_created_count": auto_accepted_count,
+        "auto_acceptance_reuse_count": auto_acceptance_reuse_count,
+        "weave_candidate": weave["candidate"] if weave is not None else None,
+        "weave_candidate_state": weave["state"] if weave is not None else None,
+        "weave_receipt": weave["receipt"] if weave is not None else None,
+        "weave_receipt_path": weave["receipt_path"] if weave is not None else None,
         "excluded_ambiguous_or_unverified_count": excluded_count,
         "source_kind_counts": source_kind_counts,
         "receipt": receipt,
@@ -2762,7 +3060,9 @@ def bootstrap_verified_learning_history(
         "project_candidate_created": False,
         "project_hil_invoked": False,
         "learning_hil_invoked": False,
-        "automatic_learning_acceptance": False,
+        "automatic_learning_acceptance": bool(candidate_ids),
+        "individual_member_hil_invoked": False,
+        "consolidated_learning_hil_required": weave is not None,
         "full_plan_loaded_into_model_context": False,
     }
 
@@ -2903,11 +3203,13 @@ def decide_learning_candidate(
         )
         state_before = _current_state(connection, candidate_id)
         require(
-            state_before not in _TERMINAL_STATES
-            and state_before
-            not in {"CORRECTION_REQUESTED", "RESEARCH_REQUESTED", "ROLLED_BACK"},
+            (action == "ROLLBACK" and state_before == "ACCEPTED")
+            or (
+                action != "ROLLBACK"
+                and state_before == "PENDING_LEARNING_HIL"
+            ),
             "LEARNING_CANDIDATE_NOT_DECIDABLE",
-            "The Learning Candidate is no longer at an open decision boundary.",
+            "Only the consolidated pending-HIL candidate may receive a new Learning decision; auto-accepted Delta members are not individually decidable.",
             status="BLOCKED",
             state=state_before,
         )
@@ -3560,6 +3862,107 @@ def inspect_learning_authority(
                 status="MISMATCH",
             )
         current_pointer = _read_pointer(root, project_id=project_id)
+        learning_weaves: list[dict[str, Any]] = []
+        receipts_root = _learning_root(root) / "receipts"
+        for receipt_path in sorted(receipts_root.glob("*.json")):
+            receipt_value = json.loads(receipt_path.read_text(encoding="utf-8"))
+            if receipt_value.get("schema") != LEARNING_WEAVE_RECEIPT_SCHEMA:
+                continue
+            claimed = _sha256(
+                receipt_value.get("receipt_sha256"), field="weave_receipt_sha256"
+            )
+            receipt_body = {
+                key: value
+                for key, value in receipt_value.items()
+                if key != "receipt_sha256"
+            }
+            members = list(receipt_value.get("members") or [])
+            candidate_id = str(receipt_value.get("weave_candidate_id") or "")
+            require(
+                claimed == sha256_bytes(canonical_json_bytes(receipt_body))
+                and int(receipt_value.get("member_count") or 0) == len(members)
+                and len({str(item.get("candidate_id") or "") for item in members})
+                == len(members)
+                and candidate_id in states
+                and all(
+                    str(item.get("candidate_id") or "") in states
+                    and states[str(item["candidate_id"])]
+                    == LEARNING_DELTA_AUTO_ACCEPTANCE_STATE
+                    for item in members
+                ),
+                "LEARNING_WEAVE_RECEIPT_INVALID",
+                "The consolidated Learning weave failed membership or receipt validation.",
+                status="MISMATCH",
+                receipt_path=str(receipt_path),
+            )
+            acceptance_rows = connection.execute(
+                """
+                SELECT receipt_sha256,receipt_json
+                FROM learning_decision_receipt
+                WHERE candidate_id=?
+                ORDER BY receipt_sha256
+                """,
+                (candidate_id,),
+            ).fetchall()
+            acceptance_receipts = []
+            for acceptance_row in acceptance_rows:
+                acceptance_receipt = cast(
+                    dict[str, Any],
+                    json.loads(str(acceptance_row["receipt_json"])),
+                )
+                if acceptance_receipt.get("decision_token") != "APPROVE":
+                    continue
+                require(
+                    acceptance_receipt.get("receipt_sha256")
+                    == str(acceptance_row["receipt_sha256"])
+                    and acceptance_receipt.get("candidate_id") == candidate_id
+                    and acceptance_receipt.get("state_after") == "ACCEPTED",
+                    "LEARNING_WEAVE_APPROVAL_RECEIPT_INVALID",
+                    "The consolidated weave has a malformed acceptance receipt.",
+                    status="MISMATCH",
+                )
+                acceptance_receipts.append(acceptance_receipt)
+            require(
+                (states[candidate_id] == "ACCEPTED" and len(acceptance_receipts) == 1)
+                or (
+                    states[candidate_id] != "ACCEPTED"
+                    and len(acceptance_receipts) == 0
+                ),
+                "LEARNING_WEAVE_APPROVAL_RECEIPT_CARDINALITY_INVALID",
+                "A woven Learning candidate must have exactly one APPROVE receipt only after acceptance.",
+                status="MISMATCH",
+                candidate_id=candidate_id,
+                candidate_state=states[candidate_id],
+                approval_receipt_count=len(acceptance_receipts),
+            )
+            accepted_receipt = (
+                acceptance_receipts[0] if acceptance_receipts else None
+            )
+            learning_weaves.append(
+                {
+                    "accepted_project_pv": receipt_value["accepted_project_pv"],
+                    "target_project_pv": receipt_value["target_project_pv"],
+                    "member_count": len(members),
+                    "member_set_sha256": receipt_value["member_set_sha256"],
+                    "weave_candidate_id": candidate_id,
+                    "weave_candidate_sha256": receipt_value[
+                        "weave_candidate_sha256"
+                    ],
+                    "weave_candidate_state": states[candidate_id],
+                    "receipt_sha256": claimed,
+                    "acceptance_decision_receipt_sha256": (
+                        accepted_receipt.get("receipt_sha256")
+                        if accepted_receipt is not None
+                        else None
+                    ),
+                    "acceptance_decided_at": (
+                        accepted_receipt.get("decided_at")
+                        if accepted_receipt is not None
+                        else None
+                    ),
+                    "full_member_payload_returned": False,
+                }
+            )
         import_root = _learning_root(root) / "host-memory-imports"
         host_memory_imports = (
             sorted(import_root.glob("*.json")) if import_root.is_dir() else []
@@ -3595,6 +3998,15 @@ def inspect_learning_authority(
         "pointer_generation_count": len(pointer_rows),
         "current_pointer": current_pointer,
         "candidate_states": states,
+        "auto_accepted_delta_count": sum(
+            state == LEARNING_DELTA_AUTO_ACCEPTANCE_STATE
+            for state in states.values()
+        ),
+        "learning_weaves": learning_weaves,
+        "pending_weave_count": sum(
+            row["weave_candidate_state"] == "PENDING_LEARNING_HIL"
+            for row in learning_weaves
+        ),
         "integrity": integrity,
         "foreign_key_errors": len(foreign_keys),
         "project_truth_authority": "SEPARATE_UNCHANGED",

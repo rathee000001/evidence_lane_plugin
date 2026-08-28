@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-APP = ROOT / "plugins" / "evidence-lane-plugin" / "remote_adapter" / "app"
+APP = ROOT / "apps" / "evidence-lane-remote-adapter" / "app"
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from prepare_github_pages import PAGES, build
@@ -20,27 +20,25 @@ ROUTE_DOCUMENTS = {
     "/skills": "docs/SKILLS.md",
     "/mcp": "docs/MCP.md",
     "/hooks": "docs/HOOKS.md",
-    "/commands": "docs/COMMANDS.md",
     "/plan": "docs/PLAN_AND_CHANGE_DISPLAY.md",
     "/git-ci": "docs/GIT_AND_CI_CD.md",
     "/architecture": "ARCHITECTURE.md",
-    "/lanes": "docs/ARCHITECTURE.md",
-    "/operators": "docs/HOST_STORAGE_ENV_MODE_CONTINUITY.md",
+    "/lanes": "docs/SOURCE_INTAKE_AND_LANES.md",
+    "/operators": "docs/HOST_AND_STORAGE_MATRIX.md",
     "/studio": "README.md",
-    "/proof": "docs/IMPLEMENTATION_TRACEABILITY.md",
+    "/proof": "docs/REPOSITORY_MAP.md",
     "/provenance": "docs/UPSTREAM_REFERENCE_PROVENANCE.md",
     "/release": "docs/RELEASE_AND_COMPATIBILITY.md",
-    "/connect": "docs/HOST_CAPABILITY_MATRIX.md",
-    "/hil": "docs/FIRST_HIL_RUNBOOK.md",
+    "/connect": "docs/HOST_AND_STORAGE_MATRIX.md",
+    "/hil": "docs/LIFECYCLE_AND_HIL.md",
     "/privacy": "SECURITY.md",
     "/security": "SECURITY.md",
     "/terms": "docs/TERMS_AND_CONDITIONS.md",
     "/license": "LICENSE.md",
     "/copyright": "docs/COPYRIGHT.md",
-    "/third-party": "plugins/evidence-lane-plugin/THIRD_PARTY_NOTICES.md",
+    "/third-party": "docs/THIRD_PARTY_LICENSES.md",
     "/credits": "docs/CREDITS_AND_CONTRIBUTIONS.md",
     "/support": "README.md",
-    "/helper": "docs/USER_HELPER_GUIDE.md",
     "/tunnel": "docs/USER_TUNNEL_GUIDE.md",
 }
 
@@ -87,7 +85,6 @@ def test_primary_plugin_pages_are_first_class_routes() -> None:
         "skills",
         "mcp",
         "hooks",
-        "commands",
         "git-ci",
     ):
         assert (APP / route / "page.tsx").is_file()
@@ -119,7 +116,7 @@ def test_github_pages_complete_projection_is_current_and_receipted(
     assert refresh["status"] == "PASS"
     assert refresh["current_release"] == "3.0.0"
     assert refresh["scope"] == "ALL_GITHUB_DOCUMENTS_AND_ALL_GITHUB_PAGES_EVERY_COMMIT"
-    assert refresh["page_count"] == len(PAGES) == 29
+    assert refresh["page_count"] == len(PAGES) == 27
     assert refresh["source_paths"] == sorted({source for _, _, source in PAGES})
     assert len(refresh["source_set_sha256"]) == 64
 

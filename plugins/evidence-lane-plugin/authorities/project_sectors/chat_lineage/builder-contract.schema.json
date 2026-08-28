@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chat Lineage builder binding request",
+  "type": "object",
+  "required": [
+    "lane_id",
+    "source_paths",
+    "bundle_arguments"
+  ],
+  "properties": {
+    "lane_id": {
+      "const": "chat_lineage"
+    },
+    "source_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "bundle_arguments": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "3EE490B9C5E24B6A033EB3C93920B6871F2C6DE882D0B330881EFA7F241647D1"
+}

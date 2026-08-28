@@ -1,0 +1,12 @@
+{
+  "schema": "evidence-lane.sdk-named-authority-binding.v1",
+  "status": "PASS",
+  "authority_id": "agent_learning",
+  "authority_root": "authorities/agent_learning",
+  "authority_manifest_sha256": "87CBD3E8A913964CEA44098E6B6D51EB4B34E14852830AA4B198BA633F8E1B7B",
+  "schema_surface": "schemas/authorities/agent_learning/schema-surface.v1.json",
+  "persistent_sqlite_authority": true,
+  "linked_public_action_count": 9,
+  "merged_with_project_sector_or_peer": false,
+  "receipt_sha256": "E2FD1F46EE7C770F0087B6BE612C3A288E88E6614C81EFD76AC193E9C3B649E5"
+}

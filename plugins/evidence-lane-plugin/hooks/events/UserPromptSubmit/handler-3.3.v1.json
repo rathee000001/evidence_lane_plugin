@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 3,
+  "handler_number": 3,
+  "display_id": "3.3",
+  "event": "UserPromptSubmit",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler subhook_transport.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit subhook_transport.py",
+    "timeout": 10,
+    "statusMessage": "Preparing Evidence Lane governed turn"
+  },
+  "logical_action": "TRANSPORT_VISIBLE_PROMPT_SIGNAL",
+  "stage": "hooks/subhook_transport.py",
+  "stage_sha256": "E55AE969598601F7C8691509AA5FA9CF5BAC8A69A590EDFC431DFF7EDC1A0BA9",
+  "adapter": "hooks/prompt_submit.py",
+  "adapter_sha256": "D953BC48A6D3C41C43D00784772769083FD472DD9A7C02066B542EFA96EB8A4D",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "85F6CAFB31035ED2B512DF4ECD638F5B8142E9C7C879D2916BDCCC35ADF2E791"
+}

@@ -1,0 +1,67 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "task_confirm_source_update",
+  "title": "Confirm final host source state",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "confirmation": {
+        "title": "Confirmation",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "confirmation"
+    ],
+    "title": "task_confirm_source_updateArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "task_confirm_source_updateDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "09EBF3A10F0714875649202DC07B5B516F0F8FF949AD80848E0B949DC9C98570",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "task_confirm_source_update"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution",
+        "order": 12
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/task_confirm_source_update.action.v1.json",
+  "sdk_action_binding_sha256": "F74F5E1FA631CB828AE7BDF868CABA0F19045A3375A065BC11836AEA333A5CA0",
+  "public_action_schema": "schemas/actions/task_confirm_source_update.schema.json",
+  "public_action_schema_sha256": "54DAAB35701312824B054D28DDAFAEBB5C3A2E3DC82FFFFD4C3364FCCC127CEE",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "A894C673CF99701225FE897A392916C405F776C9C71556A156711861195C63D0"
+}

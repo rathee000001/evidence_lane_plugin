@@ -81,10 +81,9 @@ def test_governed_counts_attribute_without_reparenting_or_raw_payloads() -> None
         "installation": 1,
     }
     assert owners == {
-        "Evidence Lane": 5,
+        "Evidence Lane": 6,
         "GitHub": 1,
         "Vercel": 1,
-        "Render": 1,
         "Codex host": 2,
     }
     assert projection["source_actions_reparented"] is False

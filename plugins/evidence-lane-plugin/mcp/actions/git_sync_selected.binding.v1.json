@@ -1,0 +1,96 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "git_sync_selected",
+  "title": "Fast-forward one selected Git branch",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "source": {
+        "title": "Source",
+        "type": "string"
+      },
+      "branch": {
+        "title": "Branch",
+        "type": "string"
+      },
+      "session_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session Id"
+      },
+      "expected_commit": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Commit"
+      },
+      "replace_registered_branch": {
+        "default": false,
+        "title": "Replace Registered Branch",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "source",
+      "branch"
+    ],
+    "title": "git_sync_selectedArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "git_sync_selectedDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "56425C77068075F6AA2B638053C16057BE0F3F4FE667A1ADFB00E5C98DCCB86F",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "git_sync_selected"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "governed-git-delivery",
+        "order": 16
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/git_sync_selected.action.v1.json",
+  "sdk_action_binding_sha256": "F68D71A36240150414A42B8F403F5DD546E3BE26108BF5C9A6B42938B5A44827",
+  "public_action_schema": "schemas/actions/git_sync_selected.schema.json",
+  "public_action_schema_sha256": "80573BC0E7795EA6C656B7C43D95ECA722B036D5423228C87C06C27D2684EBBB",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "3335BAF14BDF3AA8A0DA06D5997B421AEB019C7A7AB43BEC777DAD243075FE9D"
+}

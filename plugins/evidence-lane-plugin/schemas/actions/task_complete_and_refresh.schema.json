@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "task_complete_and_refresh",
+  "title": "Seal one HIL-only live-root proposal and dual presentation",
+  "description": "Confirm the exact host-specific final source boundary and immediately run the HIL-only live-root Project Overlay/proposal operation. The proposal remains unaccepted and the result stops at the conjoined Project and consolidated Learning six-way HIL, including the bounded Learning weave summary. An optional exact ordered batch can append QUEUED -> ACTIVE -> DONE for every queued Delta only when each task has bounded implementation and verification evidence. If the same pending live-root proposal predates bounded exit-side writes, archive its prior seal and finalize that exact candidate ID without clearing or rebuilding it. Accepted snapshot storage is not opened or queried. Users do not need a separate Refresh or exit command.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "confirmation": {
+        "title": "Confirmation",
+        "type": "string"
+      },
+      "batch_task_evidence": {
+        "anyOf": [
+          {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Batch Task Evidence"
+      },
+      "batch_completion_confirmation": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Batch Completion Confirmation"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "confirmation"
+    ],
+    "title": "task_complete_and_refreshArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "task_complete_and_refreshDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-refresh",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "task_complete_and_refresh"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-refresh",
+        "workflow": "hil-live-root-project-overlay-proposal",
+        "order": 3
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution",
+        "order": 15
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "F2C993909F970988445E1CF540601B29EE154405419BE61C0DD53BBF3C10E83F"
+}

@@ -1,0 +1,219 @@
+digraph lane_mode {
+  // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
+  // PYTHON_GRAPHVIZ_VERSION=0.21
+  bgcolor=white fontname=Arial rankdir=TB
+  node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
+  edge [color="#667085" fontname=Arial]
+  LANE_ROOT [label="Mode\n1 sources | 1 chunks | 4 structured facts" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
+  subgraph cluster_source_intake {
+    label="1. Source intake and exact-byte registry" rankdir=TB
+    SOURCE_REG [label="source_registry\nrows=1 | SHA-256 + parser state" color="#125cdd" fillcolor="#edf5ff" shape=box style="rounded,filled"]
+    SOURCE_TYPE_0 [label=".md\n1 sources" color="#125cdd" fillcolor="#edf5ff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_semantic_model {
+    label="2. Lane-specific semantic model from SQLite" rankdir=TB
+    FACT_INDEX [label="structured_fact\nrows=4 | kinds=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SEMANTIC_SCHEMA_HANDOFF [label="lane semantic schema\nentities=10 | exact rows projected below" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FACT_KIND_0 [label="mode_gate\nrows=1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FACT_SAMPLE_0_0 [label="six-way HIL" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FACT_KIND_1 [label="mode_rule\nrows=1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FACT_SAMPLE_1_0 [label="fixtures are not production evidence" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FACT_KIND_2 [label="mode_scope\nrows=1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FACT_SAMPLE_2_0 [label="exact commit" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FACT_KIND_3 [label="mode_source\nrows=1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FACT_SAMPLE_3_0 [label="poc-fixtures/mode.md" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_sqlite_physical_schema {
+    label="3. Additive SQLite physical schema contract" rankdir=TB
+    PHYSICAL_SCHEMA_SECTOR [label="SQLite physical schema\ncontract=28 | tables=38 | auxiliaries=10 | relations=16\nprojection_sha256=073D472462661C48E856A7114AD232478E3EE7C1B25A7E9728F06D16A167B0D8" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
+    PHYSICAL_GROUP_CORE [label="shared lane core\ntables=17 | ordered from SQLite" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_000 [label="lane_meta\nrows=16 | columns=2 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_001 [label="lane_pointer\nrows=1 | columns=4 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_002 [label="source_registry\nrows=1 | columns=10 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_003 [label="source_tombstone\nrows=0 | columns=6 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_004 [label="chunk_index\nrows=1 | columns=9 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_005 [label="chunk_content_cas\nrows=1 | columns=4 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_006 [label="chunk_history\nrows=1 | columns=9 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_007 [label="structured_fact\nrows=4 | columns=5 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_008 [label="parser_capability\nrows=10 | columns=4 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_009 [label="tfidf_term\nrows=12 | columns=4 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_010 [label="tfidf_vector\nrows=12 | columns=6 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_011 [label="refresh_receipt\nrows=1 | columns=11 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_012 [label="mutation_receipt\nrows=0 | columns=6 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_013 [label="authority_index_source\nrows=63 | columns=7 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_014 [label="authority_index_node\nrows=63 | columns=8 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_015 [label="authority_index_fts\nrows=63 | columns=7 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_016 [label="authority_index_refresh_receipt\nrows=1 | columns=12 | role=core_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_GROUP_LANE [label="lane semantic contract\ntables=11 | ordered from SQLite" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_017 [label="mode_source\nrows=1 | columns=4 | role=lane_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_018 [label="mode_scope\nrows=1 | columns=4 | role=lane_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_019 [label="mode_trigger\nrows=0 | columns=4 | role=lane_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_020 [label="mode_rule\nrows=1 | columns=4 | role=lane_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_021 [label="mode_gate\nrows=1 | columns=4 | role=lane_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_022 [label="mode_allowed_action\nrows=0 | columns=4 | role=lane_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_023 [label="mode_blocked_action\nrows=0 | columns=4 | role=lane_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_024 [label="mode_response_template\nrows=0 | columns=4 | role=lane_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_025 [label="mode_priority\nrows=0 | columns=4 | role=lane_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_026 [label="mode_supersede_ledger\nrows=0 | columns=4 | role=lane_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_027 [label="mode_fts\nrows=1 | columns=6 | role=lane_fts_contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    PHYSICAL_GROUP_AUXILIARY [label="SQLite engine auxiliaries\ntables=10 | ordered from SQLite" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_028 [label="authority_index_fts_config\nrows=1 | columns=2 | role=sqlite_engine_auxiliary" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_029 [label="authority_index_fts_content\nrows=63 | columns=6 | role=sqlite_engine_auxiliary" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_030 [label="authority_index_fts_data\nrows=5 | columns=2 | role=sqlite_engine_auxiliary" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_031 [label="authority_index_fts_docsize\nrows=63 | columns=2 | role=sqlite_engine_auxiliary" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_032 [label="authority_index_fts_idx\nrows=3 | columns=3 | role=sqlite_engine_auxiliary" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_033 [label="mode_fts_config\nrows=1 | columns=2 | role=sqlite_engine_auxiliary" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_034 [label="mode_fts_content\nrows=1 | columns=5 | role=sqlite_engine_auxiliary" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_035 [label="mode_fts_data\nrows=3 | columns=2 | role=sqlite_engine_auxiliary" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_036 [label="mode_fts_docsize\nrows=1 | columns=2 | role=sqlite_engine_auxiliary" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    PHYSICAL_TABLE_037 [label="mode_fts_idx\nrows=1 | columns=3 | role=sqlite_engine_auxiliary" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_schema_derived_topology {
+    label="4. Lane-owned SQLite entities, relations, and samples" rankdir=TB
+    SCHEMA_SECTOR [label="Mode schema sector\nentities=10 | relations=10 | samples=4" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
+    SCHEMA_ENTITY_0 [label="mode_source\nrows=1 | columns=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_SAMPLE_0 [label="sample\npoc-fixtures/mode.md" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_ENTITY_1 [label="mode_scope\nrows=1 | columns=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_SAMPLE_1 [label="sample\nexact commit" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_ENTITY_2 [label="mode_trigger\nrows=0 | columns=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_ENTITY_3 [label="mode_rule\nrows=1 | columns=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_SAMPLE_3 [label="sample\nfixtures are not production evidence" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_ENTITY_4 [label="mode_gate\nrows=1 | columns=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_SAMPLE_4 [label="sample\nsix-way HIL" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_ENTITY_5 [label="mode_allowed_action\nrows=0 | columns=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_ENTITY_6 [label="mode_blocked_action\nrows=0 | columns=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_ENTITY_7 [label="mode_response_template\nrows=0 | columns=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_ENTITY_8 [label="mode_priority\nrows=0 | columns=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SCHEMA_ENTITY_9 [label="mode_supersede_ledger\nrows=0 | columns=4" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_retrieval {
+    label="5. Retrieval and changed-section reuse" rankdir=TB
+    CHUNK_INDEX [label="chunk_index\nrows=1" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    CHUNK_CAS [label="chunk_content_cas\nrows=1" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    CHUNK_HISTORY [label="chunk_history\nrows=1" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    FTS [label="mode_fts\nrows=1" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+    TFIDF [label="tfidf_vector\nrows=12" color="#24805c" fillcolor="#eaf8f1" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_lifecycle {
+    label="6. Refresh, pointer, and mutation evidence" rankdir=TB
+    REFRESH [label="refresh classification\nunchanged_reuse=0 | changed_rebuild=0 | new_register=1 | removed_tombstone=0 | blocked_unsupported=0 | changed_section_reused=0 | changed_section_reindexed=1" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    POINTER [label="lane pointer evidence\nentered_from=None | generation=0\nproposed=PV-PUBLIC-DUMMY-1" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    MUTATION [label="append-only change evidence\ntombstones=0 | mutations=0" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_outputs {
+    label="7. Inspectable lane package" rankdir=TB
+    SQLITE_OUT [label="mode_sector_v001.sqlite\nSQLite/FK/FTS authority" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+    MMD_OUT [label="mode.mmd\nsemantic Mermaid authority" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+    DOT_OUT [label="mode.dot\nsemantic DOT authority" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+    POINTER_OUT [label="lane_pointer.json\ncandidate pointer evidence" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+    RECEIPT_OUT [label="refresh_receipt.json\nclassification + validation" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  }
+  LANE_ROOT -> SOURCE_REG
+  SOURCE_REG -> SOURCE_TYPE_0
+  SOURCE_REG -> FACT_INDEX
+  FACT_INDEX -> SEMANTIC_SCHEMA_HANDOFF [label=materializes]
+  FACT_INDEX -> FACT_KIND_0
+  FACT_KIND_0 -> FACT_SAMPLE_0_0 [label=sample]
+  FACT_INDEX -> FACT_KIND_1
+  FACT_KIND_1 -> FACT_SAMPLE_1_0 [label=sample]
+  FACT_INDEX -> FACT_KIND_2
+  FACT_KIND_2 -> FACT_SAMPLE_2_0 [label=sample]
+  FACT_INDEX -> FACT_KIND_3
+  FACT_KIND_3 -> FACT_SAMPLE_3_0 [label=sample]
+  SEMANTIC_SCHEMA_HANDOFF -> PHYSICAL_SCHEMA_SECTOR [label="derives exact SQLite schema"]
+  PHYSICAL_SCHEMA_SECTOR -> PHYSICAL_GROUP_CORE [label="ordered table group"]
+  PHYSICAL_GROUP_CORE -> PHYSICAL_TABLE_000 [label="next physical table"]
+  PHYSICAL_TABLE_000 -> PHYSICAL_TABLE_001 [label="next physical table"]
+  PHYSICAL_TABLE_001 -> PHYSICAL_TABLE_002 [label="next physical table"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_003 [label="next physical table"]
+  PHYSICAL_TABLE_003 -> PHYSICAL_TABLE_004 [label="next physical table"]
+  PHYSICAL_TABLE_004 -> PHYSICAL_TABLE_005 [label="next physical table"]
+  PHYSICAL_TABLE_005 -> PHYSICAL_TABLE_006 [label="next physical table"]
+  PHYSICAL_TABLE_006 -> PHYSICAL_TABLE_007 [label="next physical table"]
+  PHYSICAL_TABLE_007 -> PHYSICAL_TABLE_008 [label="next physical table"]
+  PHYSICAL_TABLE_008 -> PHYSICAL_TABLE_009 [label="next physical table"]
+  PHYSICAL_TABLE_009 -> PHYSICAL_TABLE_010 [label="next physical table"]
+  PHYSICAL_TABLE_010 -> PHYSICAL_TABLE_011 [label="next physical table"]
+  PHYSICAL_TABLE_011 -> PHYSICAL_TABLE_012 [label="next physical table"]
+  PHYSICAL_TABLE_012 -> PHYSICAL_TABLE_013 [label="next physical table"]
+  PHYSICAL_TABLE_013 -> PHYSICAL_TABLE_014 [label="next physical table"]
+  PHYSICAL_TABLE_014 -> PHYSICAL_TABLE_015 [label="next physical table"]
+  PHYSICAL_TABLE_015 -> PHYSICAL_TABLE_016 [label="next physical table"]
+  PHYSICAL_SCHEMA_SECTOR -> PHYSICAL_GROUP_LANE [label="ordered table group"]
+  PHYSICAL_GROUP_LANE -> PHYSICAL_TABLE_017 [label="next physical table"]
+  PHYSICAL_TABLE_017 -> PHYSICAL_TABLE_018 [label="next physical table"]
+  PHYSICAL_TABLE_018 -> PHYSICAL_TABLE_019 [label="next physical table"]
+  PHYSICAL_TABLE_019 -> PHYSICAL_TABLE_020 [label="next physical table"]
+  PHYSICAL_TABLE_020 -> PHYSICAL_TABLE_021 [label="next physical table"]
+  PHYSICAL_TABLE_021 -> PHYSICAL_TABLE_022 [label="next physical table"]
+  PHYSICAL_TABLE_022 -> PHYSICAL_TABLE_023 [label="next physical table"]
+  PHYSICAL_TABLE_023 -> PHYSICAL_TABLE_024 [label="next physical table"]
+  PHYSICAL_TABLE_024 -> PHYSICAL_TABLE_025 [label="next physical table"]
+  PHYSICAL_TABLE_025 -> PHYSICAL_TABLE_026 [label="next physical table"]
+  PHYSICAL_TABLE_026 -> PHYSICAL_TABLE_027 [label="next physical table"]
+  PHYSICAL_SCHEMA_SECTOR -> PHYSICAL_GROUP_AUXILIARY [label="ordered table group"]
+  PHYSICAL_GROUP_AUXILIARY -> PHYSICAL_TABLE_028 [label="next physical table"]
+  PHYSICAL_TABLE_028 -> PHYSICAL_TABLE_029 [label="next physical table"]
+  PHYSICAL_TABLE_029 -> PHYSICAL_TABLE_030 [label="next physical table"]
+  PHYSICAL_TABLE_030 -> PHYSICAL_TABLE_031 [label="next physical table"]
+  PHYSICAL_TABLE_031 -> PHYSICAL_TABLE_032 [label="next physical table"]
+  PHYSICAL_TABLE_032 -> PHYSICAL_TABLE_033 [label="next physical table"]
+  PHYSICAL_TABLE_033 -> PHYSICAL_TABLE_034 [label="next physical table"]
+  PHYSICAL_TABLE_034 -> PHYSICAL_TABLE_035 [label="next physical table"]
+  PHYSICAL_TABLE_035 -> PHYSICAL_TABLE_036 [label="next physical table"]
+  PHYSICAL_TABLE_036 -> PHYSICAL_TABLE_037 [label="next physical table"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_004 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_005 -> PHYSICAL_TABLE_006 [label="chunk_sha256 -> chunk_content_cas.sha256"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_007 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_009 -> PHYSICAL_TABLE_010 [label="term -> tfidf_term.term"]
+  PHYSICAL_TABLE_004 -> PHYSICAL_TABLE_010 [label="chunk_id -> chunk_index.chunk_id"]
+  PHYSICAL_TABLE_013 -> PHYSICAL_TABLE_014 [label="source_id -> authority_index_source.source_id"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_017 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_018 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_019 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_020 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_021 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_022 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_023 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_024 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_025 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_TABLE_002 -> PHYSICAL_TABLE_026 [label="source_id -> source_registry.source_id"]
+  PHYSICAL_SCHEMA_SECTOR -> SCHEMA_SECTOR [label="projects lane entities"]
+  SCHEMA_SECTOR -> SCHEMA_ENTITY_0 [label=entity]
+  SCHEMA_ENTITY_0 -> SCHEMA_SAMPLE_0 [label="row sample"]
+  SCHEMA_SECTOR -> SCHEMA_ENTITY_1 [label=entity]
+  SCHEMA_ENTITY_1 -> SCHEMA_SAMPLE_1 [label="row sample"]
+  SCHEMA_SECTOR -> SCHEMA_ENTITY_2 [label=entity]
+  SCHEMA_SECTOR -> SCHEMA_ENTITY_3 [label=entity]
+  SCHEMA_ENTITY_3 -> SCHEMA_SAMPLE_3 [label="row sample"]
+  SCHEMA_SECTOR -> SCHEMA_ENTITY_4 [label=entity]
+  SCHEMA_ENTITY_4 -> SCHEMA_SAMPLE_4 [label="row sample"]
+  SCHEMA_SECTOR -> SCHEMA_ENTITY_5 [label=entity]
+  SCHEMA_SECTOR -> SCHEMA_ENTITY_6 [label=entity]
+  SCHEMA_SECTOR -> SCHEMA_ENTITY_7 [label=entity]
+  SCHEMA_SECTOR -> SCHEMA_ENTITY_8 [label=entity]
+  SCHEMA_SECTOR -> SCHEMA_ENTITY_9 [label=entity]
+  SOURCE_REG -> SCHEMA_ENTITY_0 [label="source_id -> source_registry.source_id"]
+  SOURCE_REG -> SCHEMA_ENTITY_1 [label="source_id -> source_registry.source_id"]
+  SOURCE_REG -> SCHEMA_ENTITY_2 [label="source_id -> source_registry.source_id"]
+  SOURCE_REG -> SCHEMA_ENTITY_3 [label="source_id -> source_registry.source_id"]
+  SOURCE_REG -> SCHEMA_ENTITY_4 [label="source_id -> source_registry.source_id"]
+  SOURCE_REG -> SCHEMA_ENTITY_5 [label="source_id -> source_registry.source_id"]
+  SOURCE_REG -> SCHEMA_ENTITY_6 [label="source_id -> source_registry.source_id"]
+  SOURCE_REG -> SCHEMA_ENTITY_7 [label="source_id -> source_registry.source_id"]
+  SOURCE_REG -> SCHEMA_ENTITY_8 [label="source_id -> source_registry.source_id"]
+  SOURCE_REG -> SCHEMA_ENTITY_9 [label="source_id -> source_registry.source_id"]
+  SCHEMA_SECTOR -> CHUNK_INDEX
+  CHUNK_INDEX -> CHUNK_CAS
+  CHUNK_CAS -> CHUNK_HISTORY
+  CHUNK_HISTORY -> FTS
+  FTS -> TFIDF
+  TFIDF -> REFRESH
+  REFRESH -> POINTER
+  REFRESH -> MUTATION
+  POINTER -> SQLITE_OUT
+  SQLITE_OUT -> MMD_OUT
+  SQLITE_OUT -> DOT_OUT
+  SQLITE_OUT -> POINTER_OUT
+  SQLITE_OUT -> RECEIPT_OUT
+}

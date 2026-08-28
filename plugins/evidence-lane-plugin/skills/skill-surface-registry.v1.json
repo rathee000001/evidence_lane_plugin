@@ -1,0 +1,1530 @@
+{
+  "schema": "evidence-lane.skill-surface-registry.v1",
+  "status": "PASS",
+  "skill_count": 26,
+  "skills": [
+    {
+      "name": "evi",
+      "description": "Evidence Lane root router with user-timed State Travel and exactly six primary controls.",
+      "members": [
+        {
+          "path": "skills/evi/agents/openai.yaml",
+          "bytes": 332,
+          "sha256": "E366E4F3D57616A1C8A9EA4B026A517FDB70D885B484EE7108D75B24B5E09716"
+        },
+        {
+          "path": "skills/evi/references/mcp-tool-routing.v1.json",
+          "bytes": 32077,
+          "sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+        },
+        {
+          "path": "skills/evi/references/public-tool-conformance-release-gate.v1.json",
+          "bytes": 3110,
+          "sha256": "78163333A454D0D406C2BDFD0622D42C0A0B460853BD577E3192527CFEBB4C6D"
+        },
+        {
+          "path": "skills/evi/SKILL.md",
+          "bytes": 17851,
+          "sha256": "47EDE692225A70AB41635F6EAF99EB3F57F0273C4F776D93731107AEBC417AC8"
+        }
+      ],
+      "member_count": 4,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "pv_status"
+            ],
+            "workflow": "live-root-authority-read"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "pv_task_backlog"
+            ],
+            "workflow": "live-root-authority-read"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "pv_query",
+              "search"
+            ],
+            "workflow": "live-root-six-authority-read"
+          },
+          {
+            "order": 4,
+            "tools": [
+              "lifecycle_transition_law",
+              "pv_summary",
+              "pv_diff"
+            ],
+            "workflow": "governance-read"
+          },
+          {
+            "order": 5,
+            "tools": [
+              "pv_plan_steer_delta"
+            ],
+            "workflow": "plan-steer"
+          },
+          {
+            "order": 6,
+            "tools": [
+              "lane_catalog"
+            ],
+            "workflow": "lane-evidence-read"
+          },
+          {
+            "order": 7,
+            "tools": [
+              "lane_status"
+            ],
+            "workflow": "lane-evidence-read"
+          },
+          {
+            "order": 8,
+            "tools": [
+              "lane_search"
+            ],
+            "workflow": "lane-evidence-read"
+          },
+          {
+            "order": 9,
+            "tools": [
+              "lane_fetch"
+            ],
+            "workflow": "lane-evidence-read"
+          },
+          {
+            "order": 10,
+            "tools": [
+              "pv_fuse"
+            ],
+            "workflow": "exact-fuse"
+          },
+          {
+            "order": 11,
+            "tools": [
+              "pv_begin_next_turn"
+            ],
+            "workflow": "same-host-next-turn"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-additional-plugin",
+      "description": "Add one bounded host-specific connector or AI toolchain grant with purpose, role schema, actions, scope, runtime, and expiry.",
+      "members": [
+        {
+          "path": "skills/evi-additional-plugin/agents/openai.yaml",
+          "bytes": 338,
+          "sha256": "AD7C28A292BDD071A3B2488EB4EE85201C04B010BC15E2E235C02A354FF23B1F"
+        },
+        {
+          "path": "skills/evi-additional-plugin/SKILL.md",
+          "bytes": 1542,
+          "sha256": "EC66213738DD0A051F9789ED76BC7844131603CAD7DFB06B39329E9B84A51DF2"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "connector_plugin_catalog"
+            ],
+            "workflow": "register-connector"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "connector_plugin_register"
+            ],
+            "workflow": "register-connector"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-bigger-universe",
+      "description": "Register or explicitly link hash-only project mini-brains in the separate Evidence Lane Bigger Universe federation without merging per-project Universe or Project Truth.",
+      "members": [
+        {
+          "path": "skills/evi-bigger-universe/agents/openai.yaml",
+          "bytes": 379,
+          "sha256": "4BB28E0D89835392B08D99CBA0B974F53F66D9FE095ED8D6C97D1E141FDF7ABF"
+        },
+        {
+          "path": "skills/evi-bigger-universe/SKILL.md",
+          "bytes": 1344,
+          "sha256": "5AEBF22462918E683A0A65FCDAD70979120EA1F7F461906BB30B623430321D46"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "bigger_universe_register"
+            ],
+            "workflow": "register-changed-project-mini-brain-heads"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "bigger_universe_link"
+            ],
+            "workflow": "explicit-hash-only-cross-project-link"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-boot",
+      "description": "Evidence Lane atomic runtime doctor, ENV15/UOP15 Flash, host detection, and durable-storage Boot or resume.",
+      "members": [
+        {
+          "path": "skills/evi-boot/agents/openai.yaml",
+          "bytes": 393,
+          "sha256": "DD8A2A8F9B0F851D8161C91C509EAD9618EA77D830146CDB8A8ED2C07E8B022C"
+        },
+        {
+          "path": "skills/evi-boot/SKILL.md",
+          "bytes": 6467,
+          "sha256": "5664F2588A75E4BEC8FBB6396AEE6BF4F3FA556F12ECEC23A3D6B2CA3A6F0ADC"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "project_register"
+            ],
+            "workflow": "project-enrollment"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "pv_enroll_project"
+            ],
+            "workflow": "project-enrollment"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "runtime_doctor"
+            ],
+            "workflow": "boot-or-resume"
+          },
+          {
+            "order": 4,
+            "tools": [
+              "session_flash_status"
+            ],
+            "workflow": "boot-or-resume"
+          },
+          {
+            "order": 5,
+            "tools": [
+              "session_boot",
+              "session_resume"
+            ],
+            "workflow": "boot-or-resume"
+          },
+          {
+            "order": 6,
+            "tools": [
+              "runtime_activation_status"
+            ],
+            "workflow": "boot-or-resume"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-brain-scaling",
+      "description": "Select a deterministic bounded indexed Evidence Lane brain slice when a large authority must fit an explicit token and item budget without training or merging authorities.",
+      "members": [
+        {
+          "path": "skills/evi-brain-scaling/agents/openai.yaml",
+          "bytes": 363,
+          "sha256": "2FD8803987EE753862112177D11E26C4074A9E9B5A5AD1A0920539CE409591E2"
+        },
+        {
+          "path": "skills/evi-brain-scaling/SKILL.md",
+          "bytes": 1252,
+          "sha256": "0ACD400255F73F9631C2C5795DC92452BC6C49264C3D32A2D2295B43A0563A38"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "brain_scaling_select"
+            ],
+            "workflow": "deterministic-indexed-brain-slice-selection"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-build",
+      "description": "Evidence Lane PV0 bootstrap and unaccepted proposal construction through dual-HIL presentation.",
+      "members": [
+        {
+          "path": "skills/evi-build/agents/openai.yaml",
+          "bytes": 416,
+          "sha256": "B2F08F7902A2CA962DE0B54B37CAA37A6AFCDEE532A1BECE4A130BF781ACD8FF"
+        },
+        {
+          "path": "skills/evi-build/SKILL.md",
+          "bytes": 3858,
+          "sha256": "0BC4328FC24208B28EBB84AD7284A57DB2E7FFCCF08F95BDCAEFFA629768ABF0"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "pv_build_initial"
+            ],
+            "workflow": "source-intake-backed-pv0-bootstrap"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "render_runtime_panel",
+              "render_project_panel"
+            ],
+            "workflow": "physically-final-pv-hil-presentation-only"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-canon",
+      "description": "Govern bounded task-to-task Canon exchanges, linked top-level tasks or explicitly authorized subagents, receiver-owned Canon HIL decisions, backfire requests, result returns, and State Travel graph continuity. Use when one governed task must exchange typed evidence, requirements, corrections, plans, or results with another task without merging Project Truth, Agent Learning, task ownership, or HIL authority.",
+      "members": [
+        {
+          "path": "skills/evi-canon/agents/openai.yaml",
+          "bytes": 477,
+          "sha256": "AF844E23D272F462A778718AA8F8F1A94F9776E888D19BB8DA536A5D8A390CD5"
+        },
+        {
+          "path": "skills/evi-canon/SKILL.md",
+          "bytes": 8116,
+          "sha256": "C7D28C2459DB6206EE01E88309B49DDD35B7F8ACA889BDA8BBEF1528738E7755"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "pv_status"
+            ],
+            "workflow": "canon-authority-read"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "pv_task_backlog"
+            ],
+            "workflow": "canon-authority-read"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "pv_query"
+            ],
+            "workflow": "canon-authority-read"
+          },
+          {
+            "order": 4,
+            "tools": [
+              "canon_inspect",
+              "canon_inbox",
+              "canon_graph"
+            ],
+            "workflow": "canon-authority-read"
+          },
+          {
+            "order": 5,
+            "tools": [
+              "canon_register_contract"
+            ],
+            "workflow": "canon-contract"
+          },
+          {
+            "order": 6,
+            "tools": [
+              "canon_seal_envelope"
+            ],
+            "workflow": "canon-envelope"
+          },
+          {
+            "order": 7,
+            "tools": [
+              "canon_receive"
+            ],
+            "workflow": "canon-envelope"
+          },
+          {
+            "order": 8,
+            "tools": [
+              "canon_classify"
+            ],
+            "workflow": "canon-envelope"
+          },
+          {
+            "order": 9,
+            "tools": [
+              "canon_decide",
+              "canon_supersede"
+            ],
+            "workflow": "canon-decision"
+          },
+          {
+            "order": 10,
+            "tools": [
+              "canon_register_edge"
+            ],
+            "workflow": "canon-task-edge"
+          },
+          {
+            "order": 11,
+            "tools": [
+              "canon_bind_edge"
+            ],
+            "workflow": "canon-task-edge"
+          },
+          {
+            "order": 12,
+            "tools": [
+              "canon_dispatch_linked_task"
+            ],
+            "workflow": "canon-task-edge"
+          },
+          {
+            "order": 13,
+            "tools": [
+              "canon_backfire_hil"
+            ],
+            "workflow": "canon-backfire"
+          },
+          {
+            "order": 14,
+            "tools": [
+              "canon_seal_result"
+            ],
+            "workflow": "canon-result"
+          },
+          {
+            "order": 15,
+            "tools": [
+              "canon_seal_continuity"
+            ],
+            "workflow": "canon-state-travel-continuity"
+          },
+          {
+            "order": 16,
+            "tools": [
+              "canon_restore_continuity"
+            ],
+            "workflow": "canon-state-travel-continuity"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-drop-additional-plugin",
+      "description": "Revoke one active Evidence Lane plugin grant while preserving its append-only history.",
+      "members": [
+        {
+          "path": "skills/evi-drop-additional-plugin/agents/openai.yaml",
+          "bytes": 356,
+          "sha256": "46DBE6775A5B80448F3D2CC7EF9F1CB5CCB01E0D0C024E6A95BEA5D57D73ED67"
+        },
+        {
+          "path": "skills/evi-drop-additional-plugin/SKILL.md",
+          "bytes": 1021,
+          "sha256": "BC3BEBF14384938B9535E6019443B0334B3EDF2ED398E26398511D638DE7E92B"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "connector_plugin_drop"
+            ],
+            "workflow": "drop-connector"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-exit-boot",
+      "description": "Explicitly close one persistent Evidence Lane session and detach live Flash/capture without removing the installation or immutable evidence.",
+      "members": [
+        {
+          "path": "skills/evi-exit-boot/agents/openai.yaml",
+          "bytes": 343,
+          "sha256": "90F1B7B36CBF75442CC778363E25F585A69866948ED85F6EFBF55DE96F800FFF"
+        },
+        {
+          "path": "skills/evi-exit-boot/SKILL.md",
+          "bytes": 1315,
+          "sha256": "C5AB635FE3BBD94606C8ABC3894AA5CD6342E6E37BC87EB65DE0E0A0BAC0F777"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "session_close"
+            ],
+            "workflow": "close-session"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-formula",
+      "description": "Compile or route the separate bounded Evidence Lane ENV/UOP Formula Engine when work needs explicit operator, formula, lane, tool, or budget governance.",
+      "members": [
+        {
+          "path": "skills/evi-formula/agents/openai.yaml",
+          "bytes": 355,
+          "sha256": "33D3244AD0AE9A19C8653B8476DB8F40E679D350A77488B1ED3F4D4ED71B1A04"
+        },
+        {
+          "path": "skills/evi-formula/SKILL.md",
+          "bytes": 1443,
+          "sha256": "F659B0DC04E1684D55EDA27E7611862F4291CF1AB82CE13037EC563658CFDFE2"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "formula_engine_run"
+            ],
+            "workflow": "bounded-env-uop-formula-execution"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-fuse",
+      "description": "Govern separate Project and Learning HIL decisions and exact approved promotion.",
+      "members": [
+        {
+          "path": "skills/evi-fuse/agents/openai.yaml",
+          "bytes": 384,
+          "sha256": "A5B33F78EA2F21782F88757D66661CC79E2C83DA735497F66CB3A2DA88FA3531"
+        },
+        {
+          "path": "skills/evi-fuse/SKILL.md",
+          "bytes": 2095,
+          "sha256": "3C08DE694B69363608F28DE58FFA9073FC2414836E532751E667CA6C52D08D40"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "hil_intent_classify"
+            ],
+            "workflow": "dual-hil-intent-classification"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "hil_decide",
+              "hil_return_to_accepted"
+            ],
+            "workflow": "dual-hil-non-promotion-decision"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "pv_fuse"
+            ],
+            "workflow": "exact-learning-then-project-approval-promotion"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-instructions",
+      "description": "Resolve and use the separate AGENTS.md instruction chain and host conversation MEMORY.md recall arm under ENV/UOP without merging either into Project Memory, AI Learning, Canon, or Project Truth.",
+      "members": [
+        {
+          "path": "skills/evi-instructions/agents/openai.yaml",
+          "bytes": 403,
+          "sha256": "C7CEEAF9D0E1B0440855FC8DB9B134F07A515B717031C139ADD1B406E51BC161"
+        },
+        {
+          "path": "skills/evi-instructions/SKILL.md",
+          "bytes": 2348,
+          "sha256": "D2E9A07ECB10DC3C08C88EA9552E53B4A864CF0EEF43DAC71C731DFA72CD8532"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "pv_status"
+            ],
+            "workflow": "agents-and-host-memory-read"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "pv_task_backlog"
+            ],
+            "workflow": "agents-and-host-memory-read"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "pv_query",
+              "search"
+            ],
+            "workflow": "agents-and-host-memory-read"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-learning",
+      "description": "\"Govern the project-isolated AI Agent Learning arm: inspect and retrieve accepted lessons, seal evidence-backed learning candidates, run the separate Learning HIL, and revoke accepted learning without changing Project Truth. Use when an AI workflow proposes a reusable procedural, failure-avoidance, relational, tool-routing, or host-compatibility lesson.\"",
+      "members": [
+        {
+          "path": "skills/evi-learning/agents/openai.yaml",
+          "bytes": 320,
+          "sha256": "08B2689C54AD9C04FA30B904847E957245BA4064CB83AD5B9AAD6E14422238DF"
+        },
+        {
+          "path": "skills/evi-learning/SKILL.md",
+          "bytes": 10027,
+          "sha256": "45A0404DDEF8CC1B8531715D54485CDB698CFC52B2F7A8A689142A3BE03CF721"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "pv_status"
+            ],
+            "workflow": "learning-authority-read"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "pv_task_backlog"
+            ],
+            "workflow": "learning-authority-read"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "pv_query"
+            ],
+            "workflow": "learning-authority-read"
+          },
+          {
+            "order": 4,
+            "tools": [
+              "learning_inspect",
+              "learning_retrieve"
+            ],
+            "workflow": "learning-authority-read"
+          },
+          {
+            "order": 5,
+            "tools": [
+              "learning_record_host_memory_import"
+            ],
+            "workflow": "learning-host-memory-import"
+          },
+          {
+            "order": 6,
+            "tools": [
+              "learning_seal_candidate"
+            ],
+            "workflow": "learning-candidate"
+          },
+          {
+            "order": 7,
+            "tools": [
+              "learning_decide_candidate"
+            ],
+            "workflow": "learning-candidate"
+          },
+          {
+            "order": 8,
+            "tools": [
+              "learning_revoke"
+            ],
+            "workflow": "learning-revoke"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-memory",
+      "description": "Query and link the independent Project Memory DB through bounded FTS5/BM25 locators without merging Project Truth, AI Learning, Canon, AGENTS.md, or host MEMORY.md.",
+      "members": [
+        {
+          "path": "skills/evi-memory/agents/openai.yaml",
+          "bytes": 365,
+          "sha256": "4C4F55537F416A90194A575C43BE5087B67F3E2FA344E135D119B843DF56AEFE"
+        },
+        {
+          "path": "skills/evi-memory/SKILL.md",
+          "bytes": 2102,
+          "sha256": "7AA619FDEFC82822851AA630E55DE8903CC851B018C1E5BDE93F20BF0C5E1978"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "pv_status"
+            ],
+            "workflow": "project-memory-authority-read"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "pv_task_backlog"
+            ],
+            "workflow": "project-memory-authority-read"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "pv_query"
+            ],
+            "workflow": "project-memory-authority-read"
+          },
+          {
+            "order": 4,
+            "tools": [
+              "project_memory_query"
+            ],
+            "workflow": "project-memory-authority-read"
+          },
+          {
+            "order": 5,
+            "tools": [
+              "project_memory_record_link"
+            ],
+            "workflow": "project-memory-link"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-mode",
+      "description": "Evidence Lane Mode sidecar for ordered known intersections and explicit custom-mode schemas.",
+      "members": [
+        {
+          "path": "skills/evi-mode/agents/openai.yaml",
+          "bytes": 348,
+          "sha256": "7C3FBCFBE56621BE84E0BD63EC3E8E7B6D246FA31C72E415FE9E92996578DC6A"
+        },
+        {
+          "path": "skills/evi-mode/SKILL.md",
+          "bytes": 2295,
+          "sha256": "FFC274956C0D1B8374602A7C80C5FD5B37FB9A870F6E82DCF05A437949FDD311"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "mode_classify"
+            ],
+            "workflow": "classify-mode"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-plan",
+      "description": "Pair a finished Codex Plan-mode plan with the canonical Evidence Lane Plan Lane and Goal.",
+      "members": [
+        {
+          "path": "skills/evi-plan/agents/openai.yaml",
+          "bytes": 342,
+          "sha256": "5AFC0AE7946945729047D4BB125DB45D7C0D328CEF2BF9035C42B271F1D3CAC4"
+        },
+        {
+          "path": "skills/evi-plan/SKILL.md",
+          "bytes": 3972,
+          "sha256": "E996B2751CF14E8D76BD5B009CF1F6C73A9C6099931548E21F09198D062F6D9D"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "pv_status"
+            ],
+            "workflow": "live-plan-authority-read"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "pv_task_backlog"
+            ],
+            "workflow": "live-plan-authority-read"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "pv_query",
+              "search"
+            ],
+            "workflow": "live-six-authority-read"
+          },
+          {
+            "order": 4,
+            "tools": [
+              "mode_classify"
+            ],
+            "workflow": "classify-plan-mode"
+          },
+          {
+            "order": 5,
+            "tools": [
+              "pv_plan_tasks"
+            ],
+            "workflow": "persist-plan"
+          },
+          {
+            "order": 6,
+            "tools": [
+              "pv_plan_steer_delta"
+            ],
+            "workflow": "plan-steer"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-plugin",
+      "description": "Govern persistent connector and AI-toolchain sidecars without changing Evidence Lane lifecycle state.",
+      "members": [
+        {
+          "path": "skills/evi-plugin/agents/openai.yaml",
+          "bytes": 363,
+          "sha256": "73CFC2FE93F090190F4AC426F5ADC0F5A627AF6CD18F40FCB835D2648833EA7D"
+        },
+        {
+          "path": "skills/evi-plugin/SKILL.md",
+          "bytes": 2928,
+          "sha256": "0CA3EA25CFB1D3B0E4D27E4C3D2EE98CB4CDDFAA8933C7FD5FF159B2CE255FA5"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "connector_plugin_catalog"
+            ],
+            "workflow": "inspect-connectors"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "connector_plugin_settings"
+            ],
+            "workflow": "inspect-connectors"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "connector_plugin_register",
+              "connector_plugin_drop"
+            ],
+            "workflow": "change-connector-registration"
+          },
+          {
+            "order": 4,
+            "tools": [
+              "connector_plugin_route"
+            ],
+            "workflow": "route-connector"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-project-recipe",
+      "description": "Compile an Evidence Lane project-type recipe from exact source paths and the requested outcome during initial or explicitly reclassified work, without turning the recipe into Mode.",
+      "members": [
+        {
+          "path": "skills/evi-project-recipe/agents/openai.yaml",
+          "bytes": 379,
+          "sha256": "336061B5789C51CE1BEC127957973A9D6B52E746F06633F218F51C6ABF0F5936"
+        },
+        {
+          "path": "skills/evi-project-recipe/SKILL.md",
+          "bytes": 1401,
+          "sha256": "651C4106451C1499BCD5003B5D99BC608F15ADC34BA00C27A706D12EF65AEC01"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "project_recipe_compile"
+            ],
+            "workflow": "project-type-source-and-lane-recipe-compilation"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-refresh",
+      "description": "\"Route the three current Evidence Lane refresh workflows without merging them: Source Intake steer/prompt refresh, adaptive Delta-exit append refresh, and full-PV-HIL Project Overlay refresh.\"",
+      "members": [
+        {
+          "path": "skills/evi-refresh/agents/openai.yaml",
+          "bytes": 432,
+          "sha256": "7053E0C83866A4302BE6404A8FAD1A258F4F87B2A4B69794EE352EFC6CF2AA77"
+        },
+        {
+          "path": "skills/evi-refresh/SKILL.md",
+          "bytes": 2517,
+          "sha256": "F32DA2CDFEB8F3810233BCD3AD8621024635283559720C81375BCBE6BB189511"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "source_intake_classify"
+            ],
+            "workflow": "steer-prompt-source-intake-refresh-working-sectors"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "adaptive_delta_exit"
+            ],
+            "workflow": "adaptive-delta-exit-append-refresh"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "task_complete_and_refresh"
+            ],
+            "workflow": "hil-live-root-project-overlay-proposal"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-rollback",
+      "description": "Evidence Lane logical rollback across Plan-stamped full-PV and sub-PV states, with hard ZIP restore kept separate and explicit.",
+      "members": [
+        {
+          "path": "skills/evi-rollback/agents/openai.yaml",
+          "bytes": 401,
+          "sha256": "B31981ACFFEEDBF8DCDB0FC0095996E7AA1ADE6505280DA0C3885CAA077D81C2"
+        },
+        {
+          "path": "skills/evi-rollback/SKILL.md",
+          "bytes": 3324,
+          "sha256": "6A80795E04CCCD939C01E379EEC108E15266AB3014D9AC76ED28D2039BB4EF77"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "pv_rollback"
+            ],
+            "workflow": "pointer-rollback"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-source-intake",
+      "description": "Evidence Lane generalized ordered source intake with optional Git history, auto-detection, exact overrides, 18 lanes, Project Engulf, and Chat Lineage.",
+      "members": [
+        {
+          "path": "skills/evi-source-intake/agents/openai.yaml",
+          "bytes": 384,
+          "sha256": "765B4A30EECEBC8B6A222BB0D7536FB489380DCA6A845A40D76792A9354EF2B8"
+        },
+        {
+          "path": "skills/evi-source-intake/SKILL.md",
+          "bytes": 9303,
+          "sha256": "E3F66743E788863F6E5530E379C488D4C5A7B99F8EA3DF377145EBD75211C824"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "source_intake_classify"
+            ],
+            "workflow": "classify-source-intake"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "source_identity_register"
+            ],
+            "workflow": "source-identity-intake"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "source_sqlite_inspect"
+            ],
+            "workflow": "sqlite-source-intake"
+          },
+          {
+            "order": 4,
+            "tools": [
+              "source_git_history_build"
+            ],
+            "workflow": "git-read-intake"
+          },
+          {
+            "order": 5,
+            "tools": [
+              "source_git_commit_impact"
+            ],
+            "workflow": "git-read-intake"
+          },
+          {
+            "order": 6,
+            "tools": [
+              "source_custom_schema_compile"
+            ],
+            "workflow": "custom-schema-intake"
+          },
+          {
+            "order": 7,
+            "tools": [
+              "source_graph_build"
+            ],
+            "workflow": "source-graph-intake"
+          },
+          {
+            "order": 8,
+            "tools": [
+              "source_graph_diff",
+              "source_graph_impact"
+            ],
+            "workflow": "source-graph-intake"
+          },
+          {
+            "order": 9,
+            "tools": [
+              "lane_catalog"
+            ],
+            "workflow": "source-route-configuration"
+          },
+          {
+            "order": 10,
+            "tools": [
+              "lane_configure_routes"
+            ],
+            "workflow": "source-route-configuration"
+          },
+          {
+            "order": 11,
+            "tools": [
+              "source_intake_schema_configure"
+            ],
+            "workflow": "source-route-configuration"
+          },
+          {
+            "order": 12,
+            "tools": [
+              "lane_status"
+            ],
+            "workflow": "bounded-source-retrieval"
+          },
+          {
+            "order": 13,
+            "tools": [
+              "prompt_index_status"
+            ],
+            "workflow": "bounded-source-retrieval"
+          },
+          {
+            "order": 14,
+            "tools": [
+              "search",
+              "lane_search"
+            ],
+            "workflow": "bounded-source-retrieval"
+          },
+          {
+            "order": 15,
+            "tools": [
+              "fetch",
+              "lane_fetch"
+            ],
+            "workflow": "bounded-source-retrieval"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-state-travel",
+      "description": "Fresh-native same-project direct State Travel from the exact verified governed work boundary.",
+      "members": [
+        {
+          "path": "skills/evi-state-travel/agents/openai.yaml",
+          "bytes": 353,
+          "sha256": "644AA02783D988D457BFF4519070B54CDD1E08C7F4CB93B71A4FFC261929B295"
+        },
+        {
+          "path": "skills/evi-state-travel/SKILL.md",
+          "bytes": 5304,
+          "sha256": "CD49F7DBE81EACB3A0DEC209B77043316549D7ABEB8ECA633835DB2F786F1A6D"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "runtime_doctor"
+            ],
+            "workflow": "direct-destination-runtime-doctor"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "session_flash_status"
+            ],
+            "workflow": "direct-destination-locked-flash"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "session_resume"
+            ],
+            "workflow": "direct-destination-existing-session-attachment"
+          },
+          {
+            "order": 4,
+            "tools": [
+              "runtime_activation_status"
+            ],
+            "workflow": "direct-destination-activation-verification"
+          },
+          {
+            "order": 5,
+            "tools": [
+              "pv_state_travel_direct_force_same_worktree"
+            ],
+            "workflow": "direct-force-same-worktree-state-travel"
+          },
+          {
+            "order": 6,
+            "tools": [
+              "pv_status"
+            ],
+            "workflow": "post-entry-plan-authority-read"
+          },
+          {
+            "order": 7,
+            "tools": [
+              "pv_task_backlog"
+            ],
+            "workflow": "post-entry-plan-authority-read"
+          },
+          {
+            "order": 8,
+            "tools": [
+              "pv_query"
+            ],
+            "workflow": "post-entry-plan-authority-read"
+          },
+          {
+            "order": 9,
+            "tools": [
+              "pv_plan_steer_delta"
+            ],
+            "workflow": "state-travel-plan-steer"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-storage",
+      "description": "Inspect or select Evidence Lane primary storage routing with an append-only, secret-free receipt.",
+      "members": [
+        {
+          "path": "skills/evi-storage/agents/openai.yaml",
+          "bytes": 359,
+          "sha256": "78EE58ED92E3A05E929151DCADB30C1411702BA0919364EC2EBC368C44F32889"
+        },
+        {
+          "path": "skills/evi-storage/SKILL.md",
+          "bytes": 1981,
+          "sha256": "BB7B401498F039F5F1D4381D4C2C4BBD5FB03B009BC46EFE0FC1E771BB8B0023"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "storage_connector_inspect"
+            ],
+            "workflow": "inspect-storage"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "storage_connector_select"
+            ],
+            "workflow": "select-storage"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-toolchain",
+      "description": "Resolve and run one conditional Evidence Lane AI toolchain for an exact lane and Codex host profile, with explicit primary/fallback order and fail-visible missing dependencies.",
+      "members": [
+        {
+          "path": "skills/evi-toolchain/agents/openai.yaml",
+          "bytes": 373,
+          "sha256": "ECE3E5FBBB09EE079766AE706D4C7614F2F1FF0152AD731D428484AA960BF9BF"
+        },
+        {
+          "path": "skills/evi-toolchain/SKILL.md",
+          "bytes": 1342,
+          "sha256": "3FB01BE0B8047EFE3C5E3F64C06485E45C7519147103D2F6AAE5524D87AF7863"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "ai_toolchain_route"
+            ],
+            "workflow": "conditional-codex-toolchain-routing"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evi-universe",
+      "description": "Inspect the linked Project Universe and connector-brain integrity graph through the live ENV/UOP-governed query route without merging authority roles.",
+      "members": [
+        {
+          "path": "skills/evi-universe/agents/openai.yaml",
+          "bytes": 392,
+          "sha256": "D3B83AE1A92474F4E13D661DC7CAD0F61F2068CA25EF54A5C0AA11B8C0576D74"
+        },
+        {
+          "path": "skills/evi-universe/SKILL.md",
+          "bytes": 1681,
+          "sha256": "DBF0F755330D97025BCBA986C2107954F7694B8A90053768047375B2FFFE2147"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "pv_status"
+            ],
+            "workflow": "project-universe-authority-read"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "pv_task_backlog"
+            ],
+            "workflow": "project-universe-authority-read"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "pv_query",
+              "search"
+            ],
+            "workflow": "project-universe-authority-read"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    },
+    {
+      "name": "evidence-lane-code-lifecycle",
+      "description": "Govern one universal Evidence Lane project across user-timed fresh-host State Travel, atomic Boot and locked ENV/UOP Flash, six public controls, eighteen lanes, bounded linear work, unaccepted candidates, exact-APPROVE Fuse, Plan-stamped logical Rollback, and explicit Exit Boot.",
+      "members": [
+        {
+          "path": "skills/evidence-lane-code-lifecycle/agents/openai.yaml",
+          "bytes": 371,
+          "sha256": "27ABF78623305F299AD53901794CA1A114481849BE9D1C1AD0D8C7DA51B04641"
+        },
+        {
+          "path": "skills/evidence-lane-code-lifecycle/SKILL.md",
+          "bytes": 41261,
+          "sha256": "CF56574AF4B89A398AFD4476AE30CF58625638FFEDAE09CAC880151E0B948CB8"
+        }
+      ],
+      "member_count": 2,
+      "workflow": {
+        "ordered_tool_groups": [
+          {
+            "order": 1,
+            "tools": [
+              "pv_status"
+            ],
+            "workflow": "live-root-authority-read"
+          },
+          {
+            "order": 2,
+            "tools": [
+              "pv_task_backlog"
+            ],
+            "workflow": "live-root-authority-read"
+          },
+          {
+            "order": 3,
+            "tools": [
+              "pv_query",
+              "search"
+            ],
+            "workflow": "live-root-six-authority-read"
+          },
+          {
+            "order": 4,
+            "tools": [
+              "pv_plan_steer_delta"
+            ],
+            "workflow": "plan-steer"
+          },
+          {
+            "order": 5,
+            "tools": [
+              "task_record_activity"
+            ],
+            "workflow": "record-task-activity"
+          },
+          {
+            "order": 6,
+            "tools": [
+              "session_boot",
+              "session_resume"
+            ],
+            "workflow": "boot-or-resume"
+          },
+          {
+            "order": 7,
+            "tools": [
+              "pv_begin_next_turn"
+            ],
+            "workflow": "same-host-next-turn"
+          },
+          {
+            "order": 8,
+            "tools": [
+              "pv_fuse"
+            ],
+            "workflow": "exact-fuse"
+          },
+          {
+            "order": 9,
+            "tools": [
+              "lane_catalog"
+            ],
+            "workflow": "task-execution"
+          },
+          {
+            "order": 10,
+            "tools": [
+              "pv_plan_tasks"
+            ],
+            "workflow": "task-execution"
+          },
+          {
+            "order": 11,
+            "tools": [
+              "task_classify"
+            ],
+            "workflow": "task-execution"
+          },
+          {
+            "order": 12,
+            "tools": [
+              "task_confirm_source_update"
+            ],
+            "workflow": "task-execution"
+          },
+          {
+            "order": 13,
+            "tools": [
+              "adaptive_delta_exit"
+            ],
+            "workflow": "task-execution"
+          },
+          {
+            "order": 14,
+            "tools": [
+              "pv_task_transition"
+            ],
+            "workflow": "task-execution"
+          },
+          {
+            "order": 15,
+            "tools": [
+              "task_complete_and_refresh"
+            ],
+            "workflow": "task-execution"
+          },
+          {
+            "order": 16,
+            "tools": [
+              "git_sync_selected"
+            ],
+            "workflow": "governed-git-delivery"
+          },
+          {
+            "order": 17,
+            "tools": [
+              "remote_git_prepare_push"
+            ],
+            "workflow": "governed-git-delivery"
+          },
+          {
+            "order": 18,
+            "tools": [
+              "remote_git_execute_push"
+            ],
+            "workflow": "governed-git-delivery"
+          },
+          {
+            "order": 19,
+            "tools": [
+              "render_runtime_panel",
+              "render_project_panel"
+            ],
+            "workflow": "two-trigger-render-dispatch"
+          }
+        ],
+        "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
+      },
+      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+    }
+  ],
+  "separate_command_count": 0,
+  "legacy_command_surface_present": false,
+  "mcp_server": "evidence-lane",
+  "all_skill_members_hash_bound": true,
+  "competing_workflow_implementations_allowed": false,
+  "receipt_sha256": "A23A084EC59530699B6ED70E5989A27FA418695EADE4B48ABEB1480C641EC50F"
+}

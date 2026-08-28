@@ -1,0 +1,70 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "session_close",
+  "title": "Close governed session",
+  "description": "Close one governed session with a visible reason and release the one-session gate. Detach Flash context and prompt/response capture while preserving the installed plugin, locked Flash verification receipt, PVs, candidates, lineage, backlog, immutable store, and pointer.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "reason"
+    ],
+    "title": "session_closeArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "session_closeDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "3A747E3E780C3BF9C23624AC8EB08E045732ACE3E420DD651AA9CCBF48FD00D5",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-exit-boot",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "session_close"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-exit-boot",
+        "workflow": "close-session",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/session_close.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "C968367E1209FF5F8362EBE5EA776C9A710A90395061C00DED218B44C40DC56E"
+}

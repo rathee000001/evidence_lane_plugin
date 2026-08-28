@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.canon_consequence_graph",
+  "source_path": "src/evidence_lane_plugin/canon_consequence_graph.py",
+  "source_sha256": "AF1112AE18285A93A2308CF9E31B683EFF1D16FA5199726195CD31F25649B7F2",
+  "source_bytes": 52982,
+  "role": "PROJECT_AUTHORITIES",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "50DE59B30FE8D5DC2EDA1A90451B489F4EAA352E97E934977918E665BBE7D804"
+}

@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "render_runtime_panel",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "render_runtime_panel"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-build",
+        "workflow": "physically-final-pv-hil-presentation-only",
+        "order": 2
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "two-trigger-render-dispatch",
+        "order": 19
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "F4C8CF4D4CC1B8B70C3B3E3220C23D03189B44E21E22EAF49B22FF2382FC9597",
+  "sdk_action_binding": "sdk/actions/render_runtime_panel.action.v1.json",
+  "mcp_action_binding": "mcp/actions/render_runtime_panel.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "EDB30D51BBEE8D83BF0C3BDA8B046EE457613B138C0C73BD1036C16C8DEB9DDC"
+}

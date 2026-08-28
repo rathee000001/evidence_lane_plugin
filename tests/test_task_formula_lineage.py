@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.plan_runtime import (
+    PLAN_RUNTIME_USER_VERSION,
     append_task_formula_event,
     plan_runtime_status,
     query_plan_runtime_projection,
@@ -120,7 +121,7 @@ def test_task_formula_lineage_is_append_only_and_projected(tmp_path: Path) -> No
     write_plan_runtime_projection(projection, backlog)
     status = plan_runtime_status(projection, backlog)
     assert status["status"] == "PASS"
-    assert status["sqlite_user_version"] == 3
+    assert status["sqlite_user_version"] == PLAN_RUNTIME_USER_VERSION
     assert status["task_formula_event_count"] == 2
     assert status["task_formula_lineage_indexed"] is True
 
@@ -137,6 +138,21 @@ def test_task_formula_lineage_is_append_only_and_projected(tmp_path: Path) -> No
         projection, query="mutated entry passes", limit=10
     )
     assert any(hit["source_kind"] == "TASK_FORMULA" for hit in fts["hits"])
+    refired = query_plan_runtime_projection(
+        projection,
+        query="mutated entry passes term-that-is-not-present",
+        limit=10,
+    )
+    assert refired["query_strategy"] == "BOUNDED_OR_NO_HIT_REFIRE"
+    assert refired["primary_strict_and_hit_count"] == 0
+    assert refired["result"] == "HIT"
+    assert refired["no_hit_refire"] == {
+        "performed": True,
+        "reason": "STRICT_AND_FALSE_NO_HIT_GUARD",
+        "strategy": "SAME_FTS5_AUTHORITY_BOUNDED_OR",
+        "direct_sqlite_table_fallback_used": False,
+        "lane_refresh_required_after_continuing_no_hit": False,
+    }
     connection = sqlite3.connect(projection)
     try:
         assert (

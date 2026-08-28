@@ -1,0 +1,12 @@
+{
+  "schema": "evidence-lane.sdk-named-authority-binding.v1",
+  "status": "PASS",
+  "authority_id": "session_authority",
+  "authority_root": "authorities/session_authority",
+  "authority_manifest_sha256": "10376C794CB219D9CB6840140CD883905F6518860BBDB68CDFF684647FF7C6F8",
+  "schema_surface": "schemas/authorities/session_authority/schema-surface.v1.json",
+  "persistent_sqlite_authority": true,
+  "linked_public_action_count": 12,
+  "merged_with_project_sector_or_peer": false,
+  "receipt_sha256": "1BCA1B3D437BC8456F6A6F649F8373A0911D14E1825D3A8180B08486E588D79E"
+}

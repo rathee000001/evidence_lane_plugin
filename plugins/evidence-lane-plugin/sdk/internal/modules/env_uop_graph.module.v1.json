@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.env_uop_graph",
+  "source_path": "src/evidence_lane_plugin/env_uop_graph.py",
+  "source_sha256": "11E21F364F39526E97D52C081F5B0E264F380E53D40A5EC81DC0747A239B2E6D",
+  "source_bytes": 20719,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "C49B13D8272625F712F4B4043E3AF043C9127376D6B6CAD836961EE1538A1F62"
+}

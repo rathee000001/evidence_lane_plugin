@@ -13,9 +13,11 @@ from urllib.parse import quote
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "github-pages"
 REPOSITORY = "rathee000001/evidence_lane_plugin"
-CURRENT_ROUTE_RECEIPT = "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.json"
-CURRENT_ROUTE_RECEIPT_MARKDOWN = "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.md"
-CURRENT_ROUTE_RECEIPT_SCHEMA = "evidence-lane.current-route-file-refresh-receipt.v2"
+PUBLIC_DOCS_BINDING = (
+    "apps/evidence-lane-remote-adapter/app/_data/"
+    "public-docs-backend-binding.json"
+)
+PUBLIC_DOCS_BINDING_SCHEMA = "evidence-lane.public-docs-backend-binding.v1"
 
 PAGES = (
     ("index", "README", "README.md"),
@@ -36,18 +38,16 @@ PAGES = (
     (
         "host-matrix",
         "Host Matrix",
-        "docs/HOST_STORAGE_ENV_MODE_CONTINUITY.md",
+        "docs/HOST_AND_STORAGE_MATRIX.md",
     ),
     ("skills", "Skills", "docs/SKILLS.md"),
     ("mcp", "MCP", "docs/MCP.md"),
     ("tools", "Tools", "docs/TOOLS.md"),
-    ("commands", "Commands", "docs/COMMANDS.md"),
     ("hooks", "Hooks", "docs/HOOKS.md"),
     ("plan", "Plan and Changes", "docs/PLAN_AND_CHANGE_DISPLAY.md"),
     ("lanes", "Source Intake and Lanes", "docs/SOURCE_INTAKE_AND_LANES.md"),
-    ("helper", "Helper install", "docs/USER_HELPER_GUIDE.md"),
     ("tunnel", "Tunnel guide", "docs/USER_TUNNEL_GUIDE.md"),
-    ("installation", "Installation", "docs/INSTALLATION_AND_RECOVERY.md"),
+    ("installation", "Installation", "docs/CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md"),
     ("git-ci", "Git and CI", "docs/GIT_AND_CI_CD.md"),
     ("lifecycle", "Lifecycle and HIL", "docs/LIFECYCLE_AND_HIL.md"),
     ("release", "Release", "docs/RELEASE_AND_COMPATIBILITY.md"),
@@ -80,6 +80,10 @@ STALE_PUBLIC_DOC_PATTERNS = (
     re.compile(r"\b(?:83|87) canonical (?:actions|tools)\b", re.IGNORECASE),
     re.compile(r"\bBoot or Resume\b"),
     re.compile(r"\bpv_state_travel_(?:prepare|resume)\b"),
+    re.compile(r"\b88 (?:canonical |native )?(?:actions|tools)\b", re.IGNORECASE),
+    re.compile(r"\b27 read(?:-only)?\b", re.IGNORECASE),
+    re.compile(r"\b(?:17|19|20) (?:current |governed )?skills\b", re.IGNORECASE),
+    re.compile(r"\bgoverned-user (?:goal-recovery )?helper\b", re.IGNORECASE),
 )
 
 
@@ -129,107 +133,37 @@ def _current_commit_refresh_paths() -> set[str]:
     }
 
 
-def _git_text(*args: str) -> str:
-    return subprocess.run(
-        ["git", *args],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    ).stdout.strip()
-
-
-def _revision_tracked_paths(revision: str) -> set[str]:
-    github_sha = os.environ.get("GITHUB_SHA", "").strip()
-    command = (
-        ["git", "ls-tree", "-r", "-z", "--name-only", revision]
-        if re.fullmatch(r"[0-9a-fA-F]{40}", github_sha)
-        else ["git", "ls-files", "-z"]
-    )
-    raw = subprocess.run(
-        command,
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    ).stdout
-    return {
-        value.decode("utf-8").replace("\\", "/") for value in raw.split(b"\0") if value
-    }
-
-
-def _verify_current_route_refresh_receipt(
+def _verify_public_docs_binding(
     *,
-    revision: str,
     changed_paths: set[str],
     page_sources: set[str],
 ) -> set[str]:
-    required_receipts = {CURRENT_ROUTE_RECEIPT, CURRENT_ROUTE_RECEIPT_MARKDOWN}
-    if not required_receipts.issubset(changed_paths):
-        missing = sorted(required_receipts - changed_paths)
+    if PUBLIC_DOCS_BINDING not in changed_paths:
         raise RuntimeError(
-            "The current commit did not refresh both tracked-tree receipt files: "
-            + ", ".join(missing)
+            "The current commit did not refresh the public-docs backend binding."
         )
-    receipt = json.loads((ROOT / CURRENT_ROUTE_RECEIPT).read_text(encoding="utf-8"))
+    binding = json.loads((ROOT / PUBLIC_DOCS_BINDING).read_text(encoding="utf-8"))
     if (
-        receipt.get("schema") != CURRENT_ROUTE_RECEIPT_SCHEMA
-        or receipt.get("status") != "PASS"
+        binding.get("schema") != PUBLIC_DOCS_BINDING_SCHEMA
+        or binding.get("status") != "PASS"
     ):
-        raise RuntimeError(
-            "The current-route tracked-tree receipt is not authoritative."
-        )
-    entries = receipt.get("entries")
-    if not isinstance(entries, list) or not all(
-        isinstance(row, dict) for row in entries
-    ):
-        raise RuntimeError(
-            "The current-route tracked-tree receipt entries are malformed."
-        )
+        raise RuntimeError("The public-docs backend binding is not authoritative.")
+    entries = binding.get("documents")
+    if not isinstance(entries, list) or not all(isinstance(row, dict) for row in entries):
+        raise RuntimeError("The public-docs backend binding entries are malformed.")
     rows = {str(row.get("path") or ""): row for row in entries}
     if "" in rows or len(rows) != len(entries):
-        raise RuntimeError(
-            "The current-route tracked-tree receipt has duplicate paths."
-        )
-    tracked_paths = _revision_tracked_paths(revision)
-    if set(rows) != tracked_paths:
-        raise RuntimeError(
-            "The current-route receipt path set does not equal the exact Git tree."
-        )
-    expected_path_set_sha256 = (
-        hashlib.sha256("\n".join(sorted(tracked_paths)).encode("utf-8"))
-        .hexdigest()
-        .upper()
-    )
-    summary = receipt.get("summary")
-    if (
-        not isinstance(summary, dict)
-        or summary.get("path_count") != len(tracked_paths)
-        or summary.get("entry_path_set_sha256") != expected_path_set_sha256
-        or summary.get("tracked_path_set_equality") is not True
-    ):
-        raise RuntimeError("The current-route tracked-tree summary does not match Git.")
-    github_sha = os.environ.get("GITHUB_SHA", "").strip()
-    expected_base = (
-        _git_text("rev-parse", f"{revision}^")
-        if re.fullmatch(r"[0-9a-fA-F]{40}", github_sha)
-        else _git_text("rev-parse", "HEAD")
-    )
-    if str(receipt.get("base_commit") or "").lower() != expected_base.lower():
-        raise RuntimeError(
-            "The current-route receipt is bound to the wrong base commit."
-        )
-    for path in required_receipts:
-        if rows[path].get("disposition") != "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE":
-            raise RuntimeError(f"Receipt self-reference disposition is invalid: {path}")
-    for path in page_sources:
+        raise RuntimeError("The public-docs backend binding has duplicate paths.")
+    if set(rows) != page_sources:
+        raise RuntimeError("The public-docs binding path set does not match Pages.")
+    for path in sorted(page_sources):
+        source = ROOT / path
         row = rows[path]
         if (
-            row.get("route_refresh_verified") is not True
-            or row.get("disposition") not in {"CHANGED", "UNCHANGED_VERIFIED"}
-            or row.get("sha256") != _sha256(ROOT / path)
+            row.get("sha256") != _sha256(source)
+            or row.get("bytes") != source.stat().st_size
         ):
-            raise RuntimeError(f"Current-route document fingerprint mismatch: {path}")
+            raise RuntimeError(f"Public-document fingerprint mismatch: {path}")
     return set(page_sources)
 
 
@@ -320,8 +254,7 @@ def build(
     refreshed_paths = set(changed_paths)
     if require_current_commit_refresh:
         refreshed_paths.update(
-            _verify_current_route_refresh_receipt(
-                revision=revision,
+            _verify_public_docs_binding(
                 changed_paths=changed_paths,
                 page_sources=page_sources,
             )
@@ -399,8 +332,8 @@ def build(
             "current_commit_refresh_verified": (
                 require_current_commit_refresh and not missing_refresh
             ),
-            "tracked_tree_receipt": CURRENT_ROUTE_RECEIPT,
-            "tracked_tree_receipt_schema": CURRENT_ROUTE_RECEIPT_SCHEMA,
+            "public_docs_binding": PUBLIC_DOCS_BINDING,
+            "public_docs_binding_schema": PUBLIC_DOCS_BINDING_SCHEMA,
             "unchanged_sources_verified_by_fingerprint": True,
             "source_paths": sorted(page_sources),
             "source_set_sha256": hashlib.sha256(

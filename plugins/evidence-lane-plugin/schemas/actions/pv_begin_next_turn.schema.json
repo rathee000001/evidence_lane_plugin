@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "pv_begin_next_turn",
+  "title": "Enter next turn from latest accepted PV",
+  "description": "Enter the next accepted-PV turn. A prepared State Travel handoff remains blocking by default. When the user explicitly chooses to continue in the unchanged host, pass continue_same_host=true and the exact reason EXPLICIT_USER_CONTINUATION; the sealed receipt is preserved and visibly superseded without pointer movement.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "continue_same_host": {
+        "default": false,
+        "title": "Continue Same Host",
+        "type": "boolean"
+      },
+      "continuation_reason": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Continuation Reason"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id"
+    ],
+    "title": "pv_begin_next_turnArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_begin_next_turnDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_begin_next_turn"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "same-host-next-turn",
+        "order": 11
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "same-host-next-turn",
+        "order": 7
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "6EFB7F7D956F413B569B9E224D8F3D375CE9BE39048662258199E4808C6822E5",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "730792E70B36C37152197B09EE7A203D01A5163B0445ED40120397AC49FBB18E"
+}

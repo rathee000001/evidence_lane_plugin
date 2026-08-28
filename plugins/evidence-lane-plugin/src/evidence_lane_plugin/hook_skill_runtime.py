@@ -123,7 +123,6 @@ def consume_session_start_transport(
             root,
             host_payload=payload,
             event_name="SessionStart",
-            allow_alias_claim=True,
         )
     except TurnControlError as exc:
         receipt = gap_receipt(
@@ -215,7 +214,6 @@ def consume_prompt_transport(
             root,
             host_payload=normalized_input,
             event_name="UserPromptSubmit",
-            allow_alias_claim=True,
         )
     except TurnControlError as exc:
         receipt = gap_receipt(
@@ -334,7 +332,6 @@ def consume_pre_tool_transport(
             root,
             host_payload=payload,
             event_name="PreToolUse",
-            allow_alias_claim=True,
         )
         policy = _raw_policy(root, normalized)
         if not policy.get("strict_required"):
@@ -373,7 +370,7 @@ def consume_pre_tool_transport(
         if goal_continuation_entry is not None:
             receipt["goal_continuation_entry"] = goal_continuation_entry
         receipt["prospective_mutation_guard"] = (
-            "USERPROMPTSUBMIT_PREPARE_OR_EXACT_SEALED_GOAL_BINDING_REQUIRED"
+            "USERPROMPTSUBMIT_PREPARE_OR_EXACT_NATIVE_TASK_GOAL_BINDING_REQUIRED"
         )
         receipt["source_mutation_authorized"] = True
         return (
@@ -426,7 +423,6 @@ def consume_post_tool_transport(
             root,
             host_payload=payload,
             event_name="PostToolUse",
-            allow_alias_claim=True,
         )
     except TurnControlError as exc:
         return _owned_receipt(
@@ -539,7 +535,6 @@ def consume_optional_observer_transport(
             root,
             host_payload=payload,
             event_name=event_name,
-            allow_alias_claim=False,
         )
     except TurnControlError as exc:
         return _owned_receipt(
@@ -553,10 +548,7 @@ def consume_optional_observer_transport(
             action="BOUND_OPTIONAL_EVENT_OBSERVATION",
         )
     policy = _raw_policy(root, normalized)
-    exact_binding = policy.get("binding_match") in {
-        "EXACT_HOST_SESSION",
-        "SEALED_CODEX_HOST_ALIAS",
-    }
+    exact_binding = policy.get("binding_match") == "EXACT_HOST_SESSION"
     if not exact_binding:
         return _owned_receipt(
             {
@@ -622,7 +614,6 @@ def consume_boundary_transport(
             root,
             host_payload=payload,
             event_name=event_name,
-            allow_alias_claim=True,
         )
         receipt = record_lifecycle_boundary_event(
             root,
@@ -683,7 +674,6 @@ def consume_stop_transport(
             root,
             host_payload=payload,
             event_name="Stop",
-            allow_alias_claim=False,
         )
     except TurnControlError as exc:
         return _owned_receipt(

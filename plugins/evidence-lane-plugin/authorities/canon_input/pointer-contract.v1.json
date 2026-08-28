@@ -1,0 +1,10 @@
+{
+  "schema": "evidence-lane.installed-authority-pointer-contract.v1",
+  "status": "PASS",
+  "authority_id": "canon_input",
+  "project_relative_path": "canon/state-travel-continuity/*.json",
+  "pointer_role": "TASK_GRAPH_CONTINUITY_NOT_PROJECT_TRUTH_POINTER",
+  "project_truth_pointer_owner": false,
+  "pointer_movement_in_template": false,
+  "receipt_sha256": "D891512267BF2803848ADF0CE2E810B67FCE824D5638E300D2B26E3D284D2FEB"
+}

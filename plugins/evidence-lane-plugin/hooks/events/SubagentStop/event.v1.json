@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 9,
+  "event": "SubagentStop",
+  "matcher_groups": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_validate.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_validate.py",
+          "timeout": 10,
+          "statusMessage": "Validating and bounding Evidence Lane hook signal"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_seal.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_seal.py",
+          "timeout": 10,
+          "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_transport.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_transport.py",
+          "timeout": 10,
+          "statusMessage": "Observing a bound Evidence Lane subagent stop"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_emit.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_emit.py",
+          "timeout": 10,
+          "statusMessage": "Verifying and emitting Evidence Lane hook result"
+        }
+      ]
+    }
+  ],
+  "handler_count": 4,
+  "handlers": [
+    {
+      "display_id": "9.1",
+      "path": "hooks/events/SubagentStop/handler-9.1.v1.json",
+      "sha256": "766A8B9FCAF058DFD3DE023C5D01AE1D535D0A32CB7E628AF31240BBE9442E51"
+    },
+    {
+      "display_id": "9.2",
+      "path": "hooks/events/SubagentStop/handler-9.2.v1.json",
+      "sha256": "37A7A7C213A2C64D128E128D5D52881C3A9C212F6FF05673ED7612905CF19F31"
+    },
+    {
+      "display_id": "9.3",
+      "path": "hooks/events/SubagentStop/handler-9.3.v1.json",
+      "sha256": "5C24F45630CCD643A5DA5CCCCE12E1D29B16458A93D47F57A4FE9731A9370BC9"
+    },
+    {
+      "display_id": "9.4",
+      "path": "hooks/events/SubagentStop/handler-9.4.v1.json",
+      "sha256": "6CF4A0F1E701459D5DF58F30B8431839839CDA421A947C7736654341E868EDB5"
+    }
+  ],
+  "adapter": "hooks/subagent_stop.py",
+  "adapter_sha256": "66384595963FB09B79472A1E29EE92953D1B7182B5A5C20084410265D8A3FBED",
+  "precompact_seals_before_compaction": true,
+  "postcompact_rehydrates_after_compaction": true,
+  "receipt_sha256": "1DF0CF269302266CAAF152AA0E6B2E4A57FBC6A34470DB5B36C9FC9C0EB5E09D"
+}

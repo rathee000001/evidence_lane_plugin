@@ -1,0 +1,82 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "lane_search",
+  "title": "Search one lane with FTS5, BM25, and TF-IDF",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "lane": {
+        "title": "Lane",
+        "type": "string"
+      },
+      "query": {
+        "title": "Query",
+        "type": "string"
+      },
+      "limit": {
+        "default": 20,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "retrieval": {
+        "default": "hybrid",
+        "title": "Retrieval",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane",
+      "query"
+    ],
+    "title": "lane_searchArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "lane_searchDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "298AA70EF6AA1227B07667AA4F7EB49DB2B8155E6ED2BDF56A68DA77E9C29EC0",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "lane_search"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "lane-evidence-read",
+        "order": 8
+      },
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "bounded-source-retrieval",
+        "order": 14
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/lane_search.action.v1.json",
+  "sdk_action_binding_sha256": "050045838152D4AC0D5828686A5CAA68C6CC36D49471B94A669BD47A8465E590",
+  "public_action_schema": "schemas/actions/lane_search.schema.json",
+  "public_action_schema_sha256": "481E0DD8531AF9C55E5B1DA92DED740CD701505E0468E1B41394D43008E443B1",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "D5B6653B3A0D1489372E1887C71615F4CD7DB5B62C5BBCC55510AC1FBA18D5A1"
+}

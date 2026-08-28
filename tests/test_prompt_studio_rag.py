@@ -8,10 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "plugins" / "evidence-lane-plugin" / "evidence" / "prompt_studio"
 BROWSER = (
-    ROOT
-    / "plugins"
-    / "evidence-lane-plugin"
-    / "remote_adapter"
+    ROOT / "apps" / "evidence-lane-remote-adapter"
     / "app"
     / "_data"
     / "studio-rag-index.json"
@@ -26,7 +23,7 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     browser = json.loads(BROWSER.read_text(encoding="utf-8"))
     assert browser["schema"] == "EVIDENCE_LANE_PROMPT_STUDIO_RAG_V1"
     assert browser["release"] == "3.0.0"
-    assert browser["history_mode"] == "FROZEN_SEALED_INDEX_NO_GIT"
+    assert browser["history_mode"] == "LIVE_GIT"
     assert browser["tools"]["chunker"].startswith("llama-index-core==0.14.23")
     assert browser["tools"]["provider"].startswith("none;")
     assert browser["source_count"] >= 90
@@ -34,20 +31,20 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     source_paths = {source["path"] for source in browser["sources"]}
     assert "docs/UPSTREAM_REFERENCE_PROVENANCE.md" in source_paths
     assert (
-        "plugins/evidence-lane-plugin/remote_adapter/app/_data/upstream-references.ts"
+        "apps/evidence-lane-remote-adapter/app/_data/upstream-references.ts"
         in source_paths
     )
     assert (
-        "plugins/evidence-lane-plugin/remote_adapter/app/_data/current-execution-plan.ts"
+        "apps/evidence-lane-remote-adapter/app/_data/current-execution-plan.ts"
         in source_paths
     )
     assert "plugins/evidence-lane-plugin/src/evidence_lane_plugin/session.py" in source_paths
     assert (
-        "plugins/evidence-lane-plugin/remote_adapter/app/_components/lane-proof-explorer.tsx"
+        "apps/evidence-lane-remote-adapter/app/_components/lane-proof-explorer.tsx"
         in source_paths
     )
-    assert "plugins/evidence-lane-plugin/remote_adapter/app/readme/page.tsx" in source_paths
-    assert "plugins/evidence-lane-plugin/remote_adapter/app/security/page.tsx" in source_paths
+    assert "apps/evidence-lane-remote-adapter/app/readme/page.tsx" in source_paths
+    assert "apps/evidence-lane-remote-adapter/app/security/page.tsx" in source_paths
 
     local_outputs = {
         "manifest": EVIDENCE / "manifest.json",
@@ -63,7 +60,7 @@ def test_prompt_studio_rag_artifacts_are_hash_bound_and_queryable() -> None:
     assert manifest["schema"] == browser["schema"]
     assert manifest["release"] == browser["release"]
     assert manifest["history_mode"] == browser["history_mode"]
-    assert "no Git command is invoked" in manifest["corpus"]["boundary"]
+    assert "ancestor Git metadata" in manifest["corpus"]["boundary"]
     assert manifest["validation"]["sqlite_integrity"] == "ok"
     assert manifest["validation"]["secret_scan"] == "PASS"
     assert manifest["outputs"]["sqlite"]["sha256"] == _sha256(sqlite_path)

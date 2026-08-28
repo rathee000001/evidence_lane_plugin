@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 3,
+  "event": "UserPromptSubmit",
+  "matcher_groups": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler subhook_validate.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit subhook_validate.py",
+          "timeout": 10,
+          "statusMessage": "Validating and bounding Evidence Lane hook signal"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler subhook_seal.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit subhook_seal.py",
+          "timeout": 10,
+          "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler subhook_transport.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit subhook_transport.py",
+          "timeout": 10,
+          "statusMessage": "Preparing Evidence Lane governed turn"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event UserPromptSubmit --handler subhook_emit.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" UserPromptSubmit subhook_emit.py",
+          "timeout": 10,
+          "statusMessage": "Verifying and emitting Evidence Lane hook result"
+        }
+      ]
+    }
+  ],
+  "handler_count": 4,
+  "handlers": [
+    {
+      "display_id": "3.1",
+      "path": "hooks/events/UserPromptSubmit/handler-3.1.v1.json",
+      "sha256": "9257D5339A36C07B12D3C7DD4726D682FE005FCD3342241812FB4E04903DB2FE"
+    },
+    {
+      "display_id": "3.2",
+      "path": "hooks/events/UserPromptSubmit/handler-3.2.v1.json",
+      "sha256": "25A61406146FB4E1C91D8A8D9E9D7AE90A04A54C6F97B752885FE3AE56E37175"
+    },
+    {
+      "display_id": "3.3",
+      "path": "hooks/events/UserPromptSubmit/handler-3.3.v1.json",
+      "sha256": "FA24762DEBCE62C213D06326832231BABF4A439D6972F9C7BD5CA6E086EB7055"
+    },
+    {
+      "display_id": "3.4",
+      "path": "hooks/events/UserPromptSubmit/handler-3.4.v1.json",
+      "sha256": "DBF47395396DDA5514A04C42EF53DD26B7BF49AA80645F07B8AC8672FC56169F"
+    }
+  ],
+  "adapter": "hooks/prompt_submit.py",
+  "adapter_sha256": "D953BC48A6D3C41C43D00784772769083FD472DD9A7C02066B542EFA96EB8A4D",
+  "precompact_seals_before_compaction": true,
+  "postcompact_rehydrates_after_compaction": true,
+  "receipt_sha256": "BBA3BC61B9FFF1E6376A99FC46B50ABF3DF857E3A5FE88679736FC23EA588DB7"
+}

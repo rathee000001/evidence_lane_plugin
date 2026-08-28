@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "learning_revoke",
+  "title": "Revoke accepted Agent Learning",
+  "description": "Append one immutable revocation event for accepted project-isolated Learning without deleting history or changing Project Truth.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "candidate_id": {
+        "title": "Candidate Id",
+        "type": "string"
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string"
+      },
+      "revoked_at": {
+        "title": "Revoked At",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "candidate_id",
+      "reason",
+      "revoked_at"
+    ],
+    "title": "learning_revokeArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "learning_revokeDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-learning",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "learning_revoke"
+    },
+    "internal_sdk": {
+      "module_id": "agent_learning",
+      "operation": "revoke",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-revoke",
+        "order": 8
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "39BC006F5A3216FEC507633CEAE8645FEE6FF16E2C656867B2971DD55D5A2635",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "F468BBA1BB1E8DE6BC09B794307BEE338A94F25FED1134FB60A06CD043D2A253"
+}

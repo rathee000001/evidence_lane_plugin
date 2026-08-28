@@ -186,7 +186,7 @@ def check_ac04() -> dict[str, Any]:
             [
                 str(pnpm),
                 "--dir",
-                "plugins/evidence-lane-plugin/remote_adapter",
+                "apps/evidence-lane-remote-adapter",
                 "build",
             ],
             timeout_seconds=900,
@@ -357,10 +357,12 @@ def _postseal_candidate_context() -> dict[str, Any]:
     exit_slip = _load(candidate / "exit_slip.json")
     pointer = _load(project_root / "active_pointer.json")
     release = _sealed_receipt_path(CURRENT_RELEASE_RECEIPT)
-    source_commit = ((project_identity.get("repository") or {}).get("commit_sha"))
+    source_commit = (project_identity.get("repository") or {}).get("commit_sha")
     engine_commit = (manifest.get("engine") or {}).get("commit")
     exit_commit = (exit_slip.get("repository_exit") or {}).get("commit_sha")
-    _require(validation.get("candidate_id") == expected_candidate, "Candidate mismatch.")
+    _require(
+        validation.get("candidate_id") == expected_candidate, "Candidate mismatch."
+    )
     _require(validation.get("status") == "PASS", "Candidate validation failed.")
     _require(
         validation.get("proposed_pv") == NEXT_PROPOSED_PV,
@@ -370,7 +372,9 @@ def _postseal_candidate_context() -> dict[str, Any]:
         str(expected_candidate).startswith(f"{NEXT_PROPOSED_PV}_CANDIDATE__"),
         "The candidate identity is not in the PV10 namespace.",
     )
-    _require(expected_commit == _git("rev-parse", "HEAD"), "Live source commit mismatch.")
+    _require(
+        expected_commit == _git("rev-parse", "HEAD"), "Live source commit mismatch."
+    )
     _require(not _git("status", "--porcelain=v1"), "The post-seal source is not clean.")
     _require(
         _git("branch", "--show-current") == EXPECTED_BRANCH,
@@ -399,14 +403,11 @@ def _postseal_candidate_context() -> dict[str, Any]:
         "The accepted PV9 pointer moved.",
     )
     _require(
-        pointer.get("generation")
-        == expected_generation
-        == CURRENT_POINTER_GENERATION,
+        pointer.get("generation") == expected_generation == CURRENT_POINTER_GENERATION,
         "Pointer generation moved.",
     )
     _require(
-        pointer.get("accepted_manifest_sha256")
-        == CURRENT_ACCEPTED_MANIFEST_SHA256,
+        pointer.get("accepted_manifest_sha256") == CURRENT_ACCEPTED_MANIFEST_SHA256,
         "The accepted PV9 manifest pointer changed.",
     )
     accepted_authority = release["payload"].get("accepted_authority") or {}
@@ -457,7 +458,9 @@ def _postseal_candidate_context() -> dict[str, Any]:
         "The pre-HIL boundary claims a prohibited remote or pointer mutation.",
     )
     _require(_git("rev-parse", "main") == PRE_HIL_MAIN_COMMIT, "Local main moved.")
-    _require(_git("rev-parse", "origin/main") == PRE_HIL_MAIN_COMMIT, "Remote main moved.")
+    _require(
+        _git("rev-parse", "origin/main") == PRE_HIL_MAIN_COMMIT, "Remote main moved."
+    )
     return {
         "candidate_id": expected_candidate,
         "manifest_sha256": validation.get("manifest_sha256"),
@@ -555,18 +558,22 @@ def check_ac16() -> dict[str, Any]:
         "A prohibited pre-HIL lifecycle or publication action is claimed.",
     )
     _require(_git("rev-parse", "main") == PRE_HIL_MAIN_COMMIT, "Local main moved.")
-    _require(_git("rev-parse", "origin/main") == PRE_HIL_MAIN_COMMIT, "Remote main moved.")
+    _require(
+        _git("rev-parse", "origin/main") == PRE_HIL_MAIN_COMMIT, "Remote main moved."
+    )
     release_surfaces = "\n".join(
         path.read_text(encoding="utf-8")
         for path in (
             REPOSITORY_ROOT / "README.md",
-            PLUGIN_ROOT
-            / "remote_adapter"
+            REPOSITORY_ROOT
+            / "apps"
+            / "evidence-lane-remote-adapter"
             / "app"
             / "_data"
             / "business-guidance.ts",
-            PLUGIN_ROOT
-            / "remote_adapter"
+            REPOSITORY_ROOT
+            / "apps"
+            / "evidence-lane-remote-adapter"
             / "app"
             / "_data"
             / "current-execution-plan.ts",

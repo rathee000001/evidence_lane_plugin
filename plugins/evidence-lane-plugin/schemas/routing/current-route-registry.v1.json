@@ -1,0 +1,2296 @@
+{
+  "schema": "evidence-lane.current-implementation-registry.v1",
+  "status": "PASS",
+  "dispatch_law": "ONE_CURRENT_IMPLEMENTATION_PER_CAPABILITY",
+  "plan_history_resolution": "LATEST_NON_SUPERSEDED_EXECUTABLE_CONTRACT_WITH_IMMUTABLE_HISTORY",
+  "capability_count": 37,
+  "capabilities": [
+    {
+      "capability": "runtime_boot_and_attachment",
+      "status": "CURRENT_ROUTE",
+      "current_route": "ATOMIC_DOCTOR_FLASH_SESSION_ATTACH_ACTIVATION",
+      "owner": "evi-boot",
+      "schema": "evidence-lane.atomic-boot-receipt.v2",
+      "public_tools": [
+        "project_register",
+        "pv_enroll_project",
+        "runtime_doctor",
+        "session_flash_status",
+        "session_boot",
+        "session_resume",
+        "runtime_activation_status",
+        "session_close"
+      ],
+      "plan_families": [
+        "ENV_UOP",
+        "RUNTIME_ATTACHMENT",
+        "SESSION_LIFECYCLE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "ENV_UOP_ATTESTED",
+        "EXACT_TASK_SESSION_PROJECT_BINDING"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "project_bootstrap",
+      "status": "CURRENT_ROUTE",
+      "current_route": "SOURCE_INTAKE_BUILD_PV0_NO_HIL",
+      "owner": "evi-build",
+      "schema": "evidence-lane.pv0-build-bootstrap.v1",
+      "public_tools": [
+        "pv_build_initial"
+      ],
+      "plan_families": [
+        "PROJECT_BOOTSTRAP",
+        "SOURCE_INTAKE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "ALL_SECTOR_LANES_MATERIALIZED",
+        "NO_CANDIDATE_HIL_OVERLAY_OR_ACCEPTED_ARTIFACT"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "model_tool_compatibility",
+      "status": "CURRENT_ROUTE",
+      "current_route": "CAPABILITY_AND_INSTALLED_PROFILE_QUALIFICATION",
+      "owner": "evi-boot",
+      "schema": "evidence-lane.model-compatibility.v1",
+      "public_tools": [],
+      "plan_families": [
+        "RUNTIME_ATTACHMENT",
+        "PUBLIC_SURFACE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "OFFICIAL_MODEL_TOOL_CONTRACT",
+        "INSTALLED_HOST_PROFILE_PROOF",
+        "REASONING_EFFORT_AND_SPEED_MATRIX",
+        "STATE_TRAVEL_EXACT_PROFILE_REPLAY",
+        "CHATGPT_SURFACE_HIDDEN"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "governance_and_live_root_reads",
+      "status": "CURRENT_ROUTE",
+      "current_route": "LIVE_ROOT_POINTER_BASELINE_BOUNDED_GOVERNANCE_READS",
+      "owner": "evi",
+      "schema": "evidence-lane.live-root-governance-query.v1",
+      "public_tools": [
+        "pv_status",
+        "pv_summary",
+        "pv_diff",
+        "pv_query",
+        "lifecycle_transition_law"
+      ],
+      "plan_families": [
+        "LIVE_ROOT_QUERY",
+        "POINTER",
+        "BOUNDED_OUTPUT"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "ACCEPTED_POINTER_BASELINE_ONLY",
+        "BOUNDED_PUBLIC_RESULT"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "source_intake_and_graph_registration",
+      "status": "CURRENT_ROUTE",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "schema": "evidence-lane.source-intake.v2",
+      "public_tools": [
+        "source_intake_classify",
+        "source_identity_register",
+        "source_sqlite_inspect",
+        "source_git_history_build",
+        "source_git_commit_impact",
+        "source_custom_schema_compile",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_schema_configure"
+      ],
+      "plan_families": [
+        "SOURCE_INTAKE",
+        "CHATLINEAGE",
+        "SOURCE_GRAPH"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "CHATLINEAGE_ALWAYS_APPENDED",
+        "HOOKS_OFF_EXPLICIT_ACTION"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "code_source_and_study_brain_routing",
+      "status": "CURRENT_ROUTE",
+      "current_route": "ONE_PRIMARY_CODE_PROJECT_PLUS_LANE_SCOPED_STUDY_BRAINS",
+      "owner": "evi-source-intake",
+      "schema": "evidence-lane.code-source-routing-batch.v1",
+      "public_tools": [],
+      "plan_families": [
+        "SOURCE_INTAKE",
+        "LANES",
+        "GIT"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "PUBLIC_UNOWNED_GIT_HISTORY_DISABLED",
+        "ADDITIONAL_LOCAL_CODE_IS_LANE_STUDY_BRAIN",
+        "PRIMARY_CHANGE_REQUIRES_NEW_PROJECT_PV",
+        "BUILD_REFRESH_ARTIFACT_OWNERSHIP"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "live_sector_query",
+      "status": "CURRENT_ROUTE",
+      "current_route": "EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1",
+      "owner": "evi-source-intake",
+      "schema": "evidence-lane.live-root-env-uop-six-way-query.v1",
+      "public_tools": [
+        "lane_catalog",
+        "lane_configure_routes",
+        "lane_status",
+        "prompt_index_status",
+        "search",
+        "lane_search",
+        "fetch",
+        "lane_fetch"
+      ],
+      "plan_families": [
+        "LANES",
+        "RETRIEVAL",
+        "SIX_AUTHORITY"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "18_SECTOR_LANES",
+        "ENV_UOP_AUTHORITY_ROLE_SEPARATION"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "public_actions",
+      "status": "CURRENT_ROUTE",
+      "current_route": "CANONICAL_PUBLIC_ACTION_SCHEMA_CATALOG_V2",
+      "owner": "public_action_schema_generator",
+      "schema": "evidence-lane.public-action-schema-catalog.v2",
+      "public_tools": [],
+      "plan_families": [
+        "PUBLIC_SURFACE",
+        "MCP_SDK_SKILL_COMMAND"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "88_ACTION_HOOKS_OFF_MATRIX",
+        "MODEL_VISIBLE_SCHEMA_PARITY"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "prompt_steer_dispatch",
+      "status": "CURRENT_ROUTE",
+      "current_route": "SOURCE_INTAKE_ENV_UOP_CHATLINEAGE_THEN_IDEMPOTENT_PLAN_STEER",
+      "owner": "source_intake_and_plan_runtime",
+      "schema": "evidence-lane.prompt-steer-dispatch.v1",
+      "public_tools": [
+        "pv_plan_steer_delta"
+      ],
+      "plan_families": [
+        "PLAN",
+        "PROMPT_STEER",
+        "CHATLINEAGE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "QUESTION_NO_PLAN_STEER",
+        "EXECUTION_CHANGE_ONE_STABLE_STEER"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "delta_entry",
+      "status": "CURRENT_ROUTE",
+      "current_route": "ADAPTIVE_DELTA_ENTRY_FROM_TASK_CLASSIFY",
+      "owner": "adaptive_delta_entry",
+      "schema": "evidence-lane.adaptive-delta-entry-receipt.v1",
+      "public_tools": [
+        "task_classify"
+      ],
+      "plan_families": [
+        "DELTA_ENTRY",
+        "PLAN",
+        "SIX_AUTHORITY"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "ALL_LIVE_AUTHORITIES_CONSUMED",
+        "FULL_PV_BASELINE_SEPARATE_FROM_PROGRESSIVE_SUBPV_WATERMARK",
+        "CURRENT_ACTIVE_DELTA_ABSENT_UNTIL_EXIT",
+        "NO_ACCEPTED_ARCHIVE_QUERY"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "delta_exit_refresh",
+      "status": "CURRENT_ROUTE",
+      "current_route": "ADAPTIVE_DELTA_EXIT_CHANGED_LANES_AND_INTELLIGENCE",
+      "owner": "adaptive_delta_exit",
+      "schema": "evidence-lane.adaptive-delta-exit-receipt.v1",
+      "public_tools": [
+        "task_confirm_source_update",
+        "adaptive_delta_exit",
+        "pv_task_transition"
+      ],
+      "plan_families": [
+        "DELTA_EXIT",
+        "LANE_REFRESH",
+        "SUB_PV"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "ORDINARY_NO_PROJECT_OVERLAY",
+        "CONNECTOR_BRAIN_REFRESH",
+        "SOURCE_TEST_NOT_INSTALLED_HOST_PROOF",
+        "POSTINSTALL_EXACT_TASK_PROOF",
+        "EVERY_GIT_TRACKED_PATH_CURRENT_WORKTREE_FINGERPRINT"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "hil_project_overlay",
+      "status": "CURRENT_ROUTE",
+      "current_route": "TASK_COMPLETE_AND_REFRESH_HIL_LIVE_ROOT_OVERLAY",
+      "owner": "evi-refresh",
+      "schema": "evidence-lane.project-hil-proposal.v1",
+      "public_tools": [
+        "task_complete_and_refresh"
+      ],
+      "plan_families": [
+        "HIL",
+        "PROJECT_OVERLAY",
+        "DELTA_EXIT"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "SAME_PROPOSAL_ID_FINALIZED",
+        "HIL_ONLY_OVERLAY"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "project_sub_pv",
+      "status": "CURRENT_ROUTE",
+      "current_route": "PLAN_SQLITE_SUB_PV_ACCEPTANCE_POINT",
+      "owner": "plan_runtime",
+      "schema": "evidence-lane.sub-pv-acceptance.v1",
+      "public_tools": [],
+      "plan_families": [
+        "SUB_PV",
+        "PLAN"
+      ],
+      "consumers": [
+        "PLAN_SQLITE",
+        "DELTA_ENTRY",
+        "DELTA_EXIT",
+        "AI_LEARNING"
+      ],
+      "verification": [
+        "NO_FILESYSTEM_ARTIFACT",
+        "NO_POINTER_OR_HIL"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "learning_delta_weave",
+      "status": "CURRENT_ROUTE",
+      "current_route": "AUTO_ADMITTED_LEARNING_DELTAS_THEN_ONE_HIL_WEAVE",
+      "owner": "agent_learning",
+      "schema": "evidence-lane.learning-weave-receipt.v1",
+      "public_tools": [
+        "learning_decide_candidate",
+        "learning_inspect",
+        "learning_record_host_memory_import",
+        "learning_retrieve",
+        "learning_revoke",
+        "learning_seal_candidate"
+      ],
+      "plan_families": [
+        "AI_LEARNING",
+        "MEMORY"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "MEMBER_SET_HASH",
+        "ONE_PENDING_WEAVE"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "project_memory",
+      "status": "CURRENT_ROUTE",
+      "current_route": "INDEPENDENT_PROJECT_MEMORY_FTS5_LOCATOR_GRAPH",
+      "owner": "evi-memory",
+      "schema": "evidence-lane.project-memory.v1",
+      "public_tools": [
+        "project_memory_query",
+        "project_memory_record_link"
+      ],
+      "plan_families": [
+        "MEMORY",
+        "SIX_AUTHORITY",
+        "CHATLINEAGE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "BOUNDED_FTS5_BM25_LOCATORS",
+        "STALE_ACTIVE_TASK_SUPPRESSION",
+        "AUTHORITY_ROLE_SEPARATION",
+        "DELTA_EXIT_REFRESH_OWNER"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "agents_and_host_memory_arms",
+      "status": "CURRENT_ROUTE",
+      "current_route": "SCOPED_AGENTS_INSTRUCTIONS_PLUS_BOUNDED_HOST_MEMORY_RECALL",
+      "owner": "evi-instructions",
+      "schema": "evidence-lane.live-root-env-uop-six-way-query.v1",
+      "public_tools": [],
+      "plan_families": [
+        "SIX_AUTHORITY",
+        "MEMORY",
+        "LIVE_ROOT_QUERY"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "SCOPED_AGENTS_SOURCE_CHAIN_HASH",
+        "HOST_MEMORY_LOCATOR_HASH_ONLY",
+        "NO_AUTOMATIC_HOST_MEMORY_IMPORT",
+        "DELTA_ENTRY_AND_IN_WORK_QUERY_AVAILABLE"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "project_universe_and_connector_brain",
+      "status": "CURRENT_ROUTE",
+      "current_route": "LINKED_PROJECT_UNIVERSE_AND_CONNECTOR_BRAIN_QUERY",
+      "owner": "evi-universe",
+      "schema": "evidence-lane.live-root-env-uop-six-way-query.v1",
+      "public_tools": [],
+      "plan_families": [
+        "SIX_AUTHORITY",
+        "CONNECTOR",
+        "LIVE_ROOT_QUERY"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "BOUNDED_UNIVERSE_LOCATOR_SLICE",
+        "BOUNDED_CONNECTOR_INTEGRITY_SLICE",
+        "ADAPTIVE_DELTA_EXIT_REFRESH_OWNER",
+        "NO_ACCEPTED_STORAGE_QUERY"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "dual_hil_fuse",
+      "status": "CURRENT_ROUTE",
+      "current_route": "LEARNING_WEAVE_APPROVE_THEN_MATCHING_PROJECT_FUSE",
+      "owner": "evi-build+evi-learning",
+      "schema": "evidence-lane.dual-project-learning-hil.v1",
+      "public_tools": [
+        "pv_fuse",
+        "hil_decide",
+        "hil_intent_classify",
+        "hil_return_to_accepted"
+      ],
+      "plan_families": [
+        "HIL",
+        "AI_LEARNING",
+        "FUSE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "TWO_EXACT_HUMAN_DECISIONS",
+        "SAME_TARGET_PV",
+        "WEAVE_SUMMARY_PRESENTED",
+        "PLAN_ROW_DUAL_ACCEPTANCE_STAMP",
+        "ONE_ACCEPTED_ROOT_ZIP"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "project_candidate_storage",
+      "status": "CURRENT_ROUTE",
+      "current_route": "LIVE_PROJECT_ROOT_PLUS_SEALED_PROPOSAL_RECEIPT",
+      "owner": "project_authority",
+      "schema": "evidence-lane.project-hil-proposal.v1",
+      "public_tools": [],
+      "plan_families": [
+        "CANDIDATE",
+        "LIVE_ROOT"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "NO_CANDIDATE_FOLDER",
+        "CANDIDATE_ID_PRESERVED"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "accepted_storage",
+      "status": "CURRENT_ROUTE",
+      "current_route": "ONE_NUMBERED_FULL_ROOT_ZIP_ROTATED_AT_APPROVED_HIL",
+      "owner": "project_pv_storage",
+      "schema": "evidence-lane.project-pv-archive.v1",
+      "public_tools": [],
+      "plan_families": [
+        "ACCEPTED_STORAGE",
+        "HIL"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "EXCLUDES_ACCEPTED_DIRECTORY",
+        "EXACTLY_ONE_NUMBERED_ZIP",
+        "SNAPSHOT_ONLY_NEVER_ENTRY_QUERY_OR_STATE_TRAVEL"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "state_travel",
+      "status": "CURRENT_ROUTE",
+      "current_route": "SESSION_RESUME_THEN_SIX_FIELD_DIRECT_SAME_WORKTREE",
+      "owner": "evi-state-travel",
+      "schema": "evidence-lane.direct-forced-same-worktree-entry-receipt.v2",
+      "public_tools": [
+        "pv_state_travel_direct_force_same_worktree"
+      ],
+      "plan_families": [
+        "STATE_TRAVEL",
+        "RUNTIME_ATTACHMENT",
+        "GOAL"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "CANDIDATE_PENDING_HIL_PRESERVED",
+        "REPLAY_AND_IDENTITY_NEGATIVES",
+        "ONE_EVI_PLAN_BEFORE_IMPLEMENT_GATE",
+        "NO_SECOND_EVI_PLAN_BEFORE_GOAL_RESUME",
+        "DESTINATION_GOAL_THEN_FIXED_STEP_RELOCK",
+        "SOURCE_OPTION2_METRICS_THEN_ONE_CONSOLIDATED_STEER"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "step_task_list",
+      "status": "CURRENT_ROUTE",
+      "current_route": "CANONICAL_HEADER_PLUS_PERSISTED_FIXED_WINDOW",
+      "owner": "host_plan_rehydration",
+      "schema": "evidence-lane.host-plan-current-window.v2",
+      "public_tools": [
+        "pv_plan_tasks",
+        "pv_task_backlog"
+      ],
+      "plan_families": [
+        "PLAN",
+        "STEP_TASK_LIST",
+        "GOAL"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "IDENTICAL_REATTACHMENT_FINGERPRINT",
+        "ONE_HEADER_PLUS_ROWS"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "goal_metrics",
+      "status": "CURRENT_ROUTE",
+      "current_route": "RESET_AWARE_RICH_GOAL_COMPLETION_METRICS",
+      "owner": "goal_usage",
+      "schema": "evidence-lane.rich-goal-completion-metrics.v1",
+      "public_tools": [],
+      "plan_families": [
+        "GOAL",
+        "METRICS",
+        "CHATLINEAGE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "COUNTER_RESET_EPOCHS",
+        "NATIVE_TURN_RECONCILIATION",
+        "SUPERSESSION_IDEMPOTENCE"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "hook_control",
+      "status": "CURRENT_ROUTE",
+      "current_route": "NATIVE_HOOKS_LIST_CONFIG_READ_BATCH_WRITE_CAS",
+      "owner": "codex_native_hook_control",
+      "schema": "evidence-lane.native-hook-event-control.v1",
+      "public_tools": [],
+      "plan_families": [
+        "HOOKS",
+        "HOST_LIFECYCLE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "11_EVENT_SOURCE_MATRIX",
+        "11_EVENT_INSTALLED_HOST_MATRIX",
+        "EVENT_COUNT_SEPARATE_FROM_NESTED_HANDLER_ACTION_COUNT",
+        "HOOK_EVENT_DOT_ACTION_NUMBERING"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "local_install",
+      "status": "CURRENT_ROUTE",
+      "current_route": "PLUGIN_CREATOR_STAGE_MATERIALIZE_PREPARE_TERMINAL_USER_RESTART_REATTACH",
+      "owner": "plugin-creator",
+      "schema": "evidence-lane.codex-stable-installation.v2",
+      "public_tools": [],
+      "plan_families": [
+        "INSTALL",
+        "PACKAGE",
+        "LOCAL_SLOT"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "TARGET_RUNTIME_PREWARM",
+        "HOOK_ISOLATION_SEALED",
+        "EXACT_TASK_REATTACHMENT"
+      ],
+      "sdk_governance": {
+        "implementation_class": "SDK_GOVERNED_HOST_TRANSACTION_ADAPTER",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "restart_reattachment",
+      "status": "CURRENT_ROUTE",
+      "current_route": "TERMINAL_SAFE_PREPARATION_THEN_USER_EXACT_CHANNEL_RESTART",
+      "owner": "Prepare-EvidenceLaneCodexRestart.ps1",
+      "schema": "evidence-lane.codex-terminal-safe-restart-preparation.v1",
+      "public_tools": [],
+      "plan_families": [
+        "RESTART",
+        "RUNTIME_ATTACHMENT",
+        "GOAL"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "NO_PROGRAMMATIC_APP_STOP",
+        "NO_TURN_DRAIN_UTILITY",
+        "CURRENT_RESPONSE_TERMINAL_BEFORE_USER_RESTART",
+        "POST_RESTART_NATIVE_EXACT_TASK_READBACK",
+        "NO_HIDDEN_OVERLAY"
+      ],
+      "sdk_governance": {
+        "implementation_class": "SDK_GOVERNED_PREPARATION_ONLY_HOST_ADAPTER",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "tunnel_transport",
+      "status": "CURRENT_ROUTE",
+      "current_route": "SDK_GOVERNED_CAPABILITY_GAP_TRANSPORT",
+      "owner": "EvidenceLaneTunnelHost",
+      "schema": "evidence-lane.tunnel-runtime.v1",
+      "public_tools": [],
+      "plan_families": [
+        "HOST_LIFECYCLE",
+        "RUNTIME_ATTACHMENT"
+      ],
+      "consumers": [
+        "INTERNAL_SDK",
+        "TUNNEL_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "HOST_MATRIX_CAPABILITY_GAP_ONLY",
+        "RELEASE_AND_SLOT_FINGERPRINT",
+        "NO_PROJECT_PLAN_GOAL_HIL_EFFECT"
+      ],
+      "sdk_governance": {
+        "implementation_class": "SDK_GOVERNED_THIN_TRANSPORT_ADAPTER",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "first_class_workflows",
+      "status": "CURRENT_ROUTE",
+      "current_route": "ENV_UOP_FIRST_CLASS_WORKFLOW_EXECUTION",
+      "owner": "first_class_workflows",
+      "schema": "evidence-lane.first-class-workflows.v1",
+      "public_tools": [
+        "formula_engine_run",
+        "brain_scaling_select",
+        "project_recipe_compile",
+        "ai_toolchain_route",
+        "bigger_universe_register",
+        "bigger_universe_link"
+      ],
+      "plan_families": [
+        "ENV_UOP",
+        "AI_TOOLCHAIN",
+        "UNIVERSE_FEDERATION"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "BOUNDED_FORMULA_EXECUTION",
+        "DETERMINISTIC_BRAIN_SLICE",
+        "PROJECT_RECIPE_COMPILED",
+        "CONDITIONAL_TOOLCHAIN_ROUTE",
+        "HASH_ONLY_CROSS_PROJECT_FEDERATION"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "remote_adapter",
+      "status": "CURRENT_ROUTE",
+      "current_route": "FINGERPRINTED_READ_ONLY_PUBLIC_ACTION_PROJECTION",
+      "owner": "remote_adapter",
+      "schema": "evidence-lane.remote-public-action-registry.v1",
+      "public_tools": [],
+      "plan_families": [
+        "REMOTE_ADAPTER",
+        "PUBLIC_SURFACE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "SOURCE_CATALOG_SHA_MATCH",
+        "DERIVED_PROJECTED_ACTIONS"
+      ],
+      "sdk_governance": {
+        "implementation_class": "SDK_GOVERNED_READ_ONLY_PROJECTION_ADAPTER",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "canon_exchange",
+      "status": "CURRENT_ROUTE",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "schema": "evidence-lane.canon-consequence-graph.v1",
+      "public_tools": [
+        "canon_backfire_hil",
+        "canon_bind_edge",
+        "canon_classify",
+        "canon_decide",
+        "canon_dispatch_linked_task",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "canon_receive",
+        "canon_register_contract",
+        "canon_register_edge",
+        "canon_restore_continuity",
+        "canon_seal_continuity",
+        "canon_seal_envelope",
+        "canon_seal_result",
+        "canon_supersede"
+      ],
+      "plan_families": [
+        "CANON",
+        "CROSS_TASK",
+        "CONSEQUENCE_GRAPH"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "RECEIVER_OWNED_THREE_WAY_HIL",
+        "EXACT_TASK_OR_AUTHORIZED_SUBAGENT_EDGE_BINDING",
+        "CALLER_MEDIATED_NATIVE_HOST_DISPATCH_WHEN_NOT_INJECTED",
+        "TYPED_UPSTREAM_DOWNSTREAM_LATERAL_MESSAGE_SCHEMA",
+        "TYPED_BACKFIRE_AND_RESULT_RETURN_SCHEMA",
+        "NO_OPAQUE_PUBLIC_PAYLOAD_SCHEMA"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "connector_grants",
+      "status": "CURRENT_ROUTE",
+      "current_route": "BOUNDED_APPEND_ONLY_CONNECTOR_GRANT_REGISTRY",
+      "owner": "evi-plugin",
+      "schema": "evidence-lane.connector-plugin.v1",
+      "public_tools": [
+        "connector_plugin_catalog",
+        "connector_plugin_drop",
+        "connector_plugin_register",
+        "connector_plugin_route",
+        "connector_plugin_settings"
+      ],
+      "plan_families": [
+        "CONNECTOR",
+        "PLUGIN"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "MAX_EIGHT_ACTIVE",
+        "APPEND_ONLY_HISTORY"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "storage_routing",
+      "status": "CURRENT_ROUTE",
+      "current_route": "PROJECT_SCOPED_TRANSACTIONAL_STORAGE_SELECTION",
+      "owner": "evi-storage",
+      "schema": "evidence-lane.storage-selection.v1",
+      "public_tools": [
+        "storage_connector_inspect",
+        "storage_connector_select"
+      ],
+      "plan_families": [
+        "STORAGE",
+        "RUNTIME_CLASSIFICATION"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "LOCAL_DURABLE_PREFERRED",
+        "DRIVE_MIRROR_ONLY"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "mode_sidecar",
+      "status": "CURRENT_ROUTE",
+      "current_route": "ORDERED_MODE_INTERSECTION_WITH_CHATLINEAGE",
+      "owner": "evi-mode",
+      "schema": "evidence-lane.mode-classification.v1",
+      "public_tools": [
+        "mode_classify"
+      ],
+      "plan_families": [
+        "MODE",
+        "CHATLINEAGE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "RETURN_TO_PRIOR_LIFECYCLE",
+        "NO_POINTER_OR_CANDIDATE"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "task_activity_and_same_host_continuation",
+      "status": "CURRENT_ROUTE",
+      "current_route": "VISIBLE_ACTIVITY_LEDGER_AND_EXPLICIT_SAME_HOST_CONTINUATION",
+      "owner": "evidence-lane-code-lifecycle",
+      "schema": "evidence-lane.task-activity.v1",
+      "public_tools": [
+        "pv_begin_next_turn",
+        "task_record_activity"
+      ],
+      "plan_families": [
+        "CHATLINEAGE",
+        "TASK_LIFECYCLE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "VISIBLE_ONLY",
+        "EXPLICIT_USER_CONTINUATION"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "pointer_rollback",
+      "status": "CURRENT_ROUTE",
+      "current_route": "THREE_MODE_ROLLBACK_UNDER_ONE_EXISTING_OWNER",
+      "owner": "evi-rollback",
+      "schema": "evidence-lane.rollback-three-mode.v1",
+      "public_tools": [
+        "pv_rollback"
+      ],
+      "plan_families": [
+        "ROLLBACK",
+        "POINTER",
+        "SUB_PV",
+        "PROJECT_OVERLAY"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "PLAN_STAMPED_FULL_AND_SUB_PV_TARGETS",
+        "FULL_PV_OVERLAY_SUBPV_NO_OVERLAY",
+        "CANDIDATE_TASK_POINTER_PRESERVED",
+        "HARD_RESTORE_SEPARATE_USER_SELECTED_FULL_PV_ZIP_ONLY",
+        "GIT_RESTORE_EXACT_REPOSITORY_BRANCH_COMMIT_FRESH_WORKSPACE",
+        "HARD_AND_GIT_RESTORE_REQUIRE_FRESH_EVI_PLAN",
+        "ROLLBACK_MODES_REMAIN_ONE_EXISTING_ROUTE_OWNER"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "governed_git_delivery",
+      "status": "CURRENT_ROUTE",
+      "current_route": "EXACT_REGISTERED_BRANCH_GIT_DELIVERY",
+      "owner": "evidence-lane-code-lifecycle",
+      "schema": "evidence-lane.git-sync-receipt.v1",
+      "public_tools": [
+        "git_sync_selected",
+        "remote_git_prepare_push",
+        "remote_git_execute_push"
+      ],
+      "plan_families": [
+        "GIT",
+        "GITHUB_APP",
+        "RELEASE"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "EXACT_BRANCH_ALLOWLIST",
+        "NO_R265_GIT_INVOCATION"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    },
+    {
+      "capability": "project_and_runtime_rendering",
+      "status": "CURRENT_ROUTE",
+      "current_route": "TWO_TRIGGER_READ_ONLY_RENDER_DISPATCH",
+      "owner": "evidence-lane-code-lifecycle",
+      "schema": "evidence-lane.render-invocation-policy.v1",
+      "public_tools": [
+        "render_project_panel",
+        "render_runtime_panel"
+      ],
+      "plan_families": [
+        "RENDERER",
+        "PUBLIC_PROOF"
+      ],
+      "consumers": [
+        "PUBLIC_SCHEMA",
+        "MCP",
+        "OUTER_MCP_SCHEMA_ROUTER",
+        "INTERNAL_SDK",
+        "SERVICE",
+        "SKILL",
+        "COMMAND_OR_PROMPT_INTENT",
+        "HOOK",
+        "REMOTE_ADAPTER",
+        "PACKAGE",
+        "INSTALLED_HOST"
+      ],
+      "verification": [
+        "EXPLICIT_OR_PHYSICAL_FINAL_HIL",
+        "READ_ONLY"
+      ],
+      "sdk_governance": {
+        "implementation_class": "INTERNAL_SDK_IMPLEMENTATION",
+        "behavior_owner": "INTERNAL_SDK",
+        "outer_business_logic_allowed": false,
+        "outer_adapter_may_reason_about_lifecycle": false
+      }
+    }
+  ],
+  "public_tool_count": 91,
+  "public_tool_routes": [
+    {
+      "tool": "project_register",
+      "capability": "runtime_boot_and_attachment",
+      "current_route": "ATOMIC_DOCTOR_FLASH_SESSION_ATTACH_ACTIVATION",
+      "owner": "evi-boot",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_enroll_project",
+      "capability": "runtime_boot_and_attachment",
+      "current_route": "ATOMIC_DOCTOR_FLASH_SESSION_ATTACH_ACTIVATION",
+      "owner": "evi-boot",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "runtime_doctor",
+      "capability": "runtime_boot_and_attachment",
+      "current_route": "ATOMIC_DOCTOR_FLASH_SESSION_ATTACH_ACTIVATION",
+      "owner": "evi-boot",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "session_flash_status",
+      "capability": "runtime_boot_and_attachment",
+      "current_route": "ATOMIC_DOCTOR_FLASH_SESSION_ATTACH_ACTIVATION",
+      "owner": "evi-boot",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "session_boot",
+      "capability": "runtime_boot_and_attachment",
+      "current_route": "ATOMIC_DOCTOR_FLASH_SESSION_ATTACH_ACTIVATION",
+      "owner": "evi-boot",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "session_resume",
+      "capability": "runtime_boot_and_attachment",
+      "current_route": "ATOMIC_DOCTOR_FLASH_SESSION_ATTACH_ACTIVATION",
+      "owner": "evi-boot",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "runtime_activation_status",
+      "capability": "runtime_boot_and_attachment",
+      "current_route": "ATOMIC_DOCTOR_FLASH_SESSION_ATTACH_ACTIVATION",
+      "owner": "evi-boot",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "session_close",
+      "capability": "runtime_boot_and_attachment",
+      "current_route": "ATOMIC_DOCTOR_FLASH_SESSION_ATTACH_ACTIVATION",
+      "owner": "evi-boot",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_build_initial",
+      "capability": "project_bootstrap",
+      "current_route": "SOURCE_INTAKE_BUILD_PV0_NO_HIL",
+      "owner": "evi-build",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_status",
+      "capability": "governance_and_live_root_reads",
+      "current_route": "LIVE_ROOT_POINTER_BASELINE_BOUNDED_GOVERNANCE_READS",
+      "owner": "evi",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_summary",
+      "capability": "governance_and_live_root_reads",
+      "current_route": "LIVE_ROOT_POINTER_BASELINE_BOUNDED_GOVERNANCE_READS",
+      "owner": "evi",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_diff",
+      "capability": "governance_and_live_root_reads",
+      "current_route": "LIVE_ROOT_POINTER_BASELINE_BOUNDED_GOVERNANCE_READS",
+      "owner": "evi",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_query",
+      "capability": "governance_and_live_root_reads",
+      "current_route": "LIVE_ROOT_POINTER_BASELINE_BOUNDED_GOVERNANCE_READS",
+      "owner": "evi",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "lifecycle_transition_law",
+      "capability": "governance_and_live_root_reads",
+      "current_route": "LIVE_ROOT_POINTER_BASELINE_BOUNDED_GOVERNANCE_READS",
+      "owner": "evi",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "source_intake_classify",
+      "capability": "source_intake_and_graph_registration",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "source_identity_register",
+      "capability": "source_intake_and_graph_registration",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "source_sqlite_inspect",
+      "capability": "source_intake_and_graph_registration",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "source_git_history_build",
+      "capability": "source_intake_and_graph_registration",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "source_git_commit_impact",
+      "capability": "source_intake_and_graph_registration",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "source_custom_schema_compile",
+      "capability": "source_intake_and_graph_registration",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "source_graph_build",
+      "capability": "source_intake_and_graph_registration",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "source_graph_diff",
+      "capability": "source_intake_and_graph_registration",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "source_graph_impact",
+      "capability": "source_intake_and_graph_registration",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "source_intake_schema_configure",
+      "capability": "source_intake_and_graph_registration",
+      "current_route": "GENERALIZED_SOURCE_INTAKE_IDENTITY_GRAPH_PIPELINE",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "lane_catalog",
+      "capability": "live_sector_query",
+      "current_route": "EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "lane_configure_routes",
+      "capability": "live_sector_query",
+      "current_route": "EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "lane_status",
+      "capability": "live_sector_query",
+      "current_route": "EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "prompt_index_status",
+      "capability": "live_sector_query",
+      "current_route": "EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "search",
+      "capability": "live_sector_query",
+      "current_route": "EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "lane_search",
+      "capability": "live_sector_query",
+      "current_route": "EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "fetch",
+      "capability": "live_sector_query",
+      "current_route": "EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "lane_fetch",
+      "capability": "live_sector_query",
+      "current_route": "EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1",
+      "owner": "evi-source-intake",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_plan_steer_delta",
+      "capability": "prompt_steer_dispatch",
+      "current_route": "SOURCE_INTAKE_ENV_UOP_CHATLINEAGE_THEN_IDEMPOTENT_PLAN_STEER",
+      "owner": "source_intake_and_plan_runtime",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "task_classify",
+      "capability": "delta_entry",
+      "current_route": "ADAPTIVE_DELTA_ENTRY_FROM_TASK_CLASSIFY",
+      "owner": "adaptive_delta_entry",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "task_confirm_source_update",
+      "capability": "delta_exit_refresh",
+      "current_route": "ADAPTIVE_DELTA_EXIT_CHANGED_LANES_AND_INTELLIGENCE",
+      "owner": "adaptive_delta_exit",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "adaptive_delta_exit",
+      "capability": "delta_exit_refresh",
+      "current_route": "ADAPTIVE_DELTA_EXIT_CHANGED_LANES_AND_INTELLIGENCE",
+      "owner": "adaptive_delta_exit",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_task_transition",
+      "capability": "delta_exit_refresh",
+      "current_route": "ADAPTIVE_DELTA_EXIT_CHANGED_LANES_AND_INTELLIGENCE",
+      "owner": "adaptive_delta_exit",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "task_complete_and_refresh",
+      "capability": "hil_project_overlay",
+      "current_route": "TASK_COMPLETE_AND_REFRESH_HIL_LIVE_ROOT_OVERLAY",
+      "owner": "evi-refresh",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "learning_decide_candidate",
+      "capability": "learning_delta_weave",
+      "current_route": "AUTO_ADMITTED_LEARNING_DELTAS_THEN_ONE_HIL_WEAVE",
+      "owner": "agent_learning",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "learning_inspect",
+      "capability": "learning_delta_weave",
+      "current_route": "AUTO_ADMITTED_LEARNING_DELTAS_THEN_ONE_HIL_WEAVE",
+      "owner": "agent_learning",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "learning_record_host_memory_import",
+      "capability": "learning_delta_weave",
+      "current_route": "AUTO_ADMITTED_LEARNING_DELTAS_THEN_ONE_HIL_WEAVE",
+      "owner": "agent_learning",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "learning_retrieve",
+      "capability": "learning_delta_weave",
+      "current_route": "AUTO_ADMITTED_LEARNING_DELTAS_THEN_ONE_HIL_WEAVE",
+      "owner": "agent_learning",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "learning_revoke",
+      "capability": "learning_delta_weave",
+      "current_route": "AUTO_ADMITTED_LEARNING_DELTAS_THEN_ONE_HIL_WEAVE",
+      "owner": "agent_learning",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "learning_seal_candidate",
+      "capability": "learning_delta_weave",
+      "current_route": "AUTO_ADMITTED_LEARNING_DELTAS_THEN_ONE_HIL_WEAVE",
+      "owner": "agent_learning",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "project_memory_query",
+      "capability": "project_memory",
+      "current_route": "INDEPENDENT_PROJECT_MEMORY_FTS5_LOCATOR_GRAPH",
+      "owner": "evi-memory",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "project_memory_record_link",
+      "capability": "project_memory",
+      "current_route": "INDEPENDENT_PROJECT_MEMORY_FTS5_LOCATOR_GRAPH",
+      "owner": "evi-memory",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_fuse",
+      "capability": "dual_hil_fuse",
+      "current_route": "LEARNING_WEAVE_APPROVE_THEN_MATCHING_PROJECT_FUSE",
+      "owner": "evi-build+evi-learning",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "hil_decide",
+      "capability": "dual_hil_fuse",
+      "current_route": "LEARNING_WEAVE_APPROVE_THEN_MATCHING_PROJECT_FUSE",
+      "owner": "evi-build+evi-learning",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "hil_intent_classify",
+      "capability": "dual_hil_fuse",
+      "current_route": "LEARNING_WEAVE_APPROVE_THEN_MATCHING_PROJECT_FUSE",
+      "owner": "evi-build+evi-learning",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "hil_return_to_accepted",
+      "capability": "dual_hil_fuse",
+      "current_route": "LEARNING_WEAVE_APPROVE_THEN_MATCHING_PROJECT_FUSE",
+      "owner": "evi-build+evi-learning",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_state_travel_direct_force_same_worktree",
+      "capability": "state_travel",
+      "current_route": "SESSION_RESUME_THEN_SIX_FIELD_DIRECT_SAME_WORKTREE",
+      "owner": "evi-state-travel",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_plan_tasks",
+      "capability": "step_task_list",
+      "current_route": "CANONICAL_HEADER_PLUS_PERSISTED_FIXED_WINDOW",
+      "owner": "host_plan_rehydration",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_task_backlog",
+      "capability": "step_task_list",
+      "current_route": "CANONICAL_HEADER_PLUS_PERSISTED_FIXED_WINDOW",
+      "owner": "host_plan_rehydration",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "formula_engine_run",
+      "capability": "first_class_workflows",
+      "current_route": "ENV_UOP_FIRST_CLASS_WORKFLOW_EXECUTION",
+      "owner": "first_class_workflows",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "brain_scaling_select",
+      "capability": "first_class_workflows",
+      "current_route": "ENV_UOP_FIRST_CLASS_WORKFLOW_EXECUTION",
+      "owner": "first_class_workflows",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "project_recipe_compile",
+      "capability": "first_class_workflows",
+      "current_route": "ENV_UOP_FIRST_CLASS_WORKFLOW_EXECUTION",
+      "owner": "first_class_workflows",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "ai_toolchain_route",
+      "capability": "first_class_workflows",
+      "current_route": "ENV_UOP_FIRST_CLASS_WORKFLOW_EXECUTION",
+      "owner": "first_class_workflows",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "bigger_universe_register",
+      "capability": "first_class_workflows",
+      "current_route": "ENV_UOP_FIRST_CLASS_WORKFLOW_EXECUTION",
+      "owner": "first_class_workflows",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "bigger_universe_link",
+      "capability": "first_class_workflows",
+      "current_route": "ENV_UOP_FIRST_CLASS_WORKFLOW_EXECUTION",
+      "owner": "first_class_workflows",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_backfire_hil",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_bind_edge",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_classify",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_decide",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_dispatch_linked_task",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_graph",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_inbox",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_inspect",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_receive",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_register_contract",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_register_edge",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_restore_continuity",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_seal_continuity",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_seal_envelope",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_seal_result",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "canon_supersede",
+      "capability": "canon_exchange",
+      "current_route": "TYPED_RECEIVER_OWNED_CANON_GRAPH_EXCHANGE",
+      "owner": "evi-canon",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "connector_plugin_catalog",
+      "capability": "connector_grants",
+      "current_route": "BOUNDED_APPEND_ONLY_CONNECTOR_GRANT_REGISTRY",
+      "owner": "evi-plugin",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "connector_plugin_drop",
+      "capability": "connector_grants",
+      "current_route": "BOUNDED_APPEND_ONLY_CONNECTOR_GRANT_REGISTRY",
+      "owner": "evi-plugin",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "connector_plugin_register",
+      "capability": "connector_grants",
+      "current_route": "BOUNDED_APPEND_ONLY_CONNECTOR_GRANT_REGISTRY",
+      "owner": "evi-plugin",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "connector_plugin_route",
+      "capability": "connector_grants",
+      "current_route": "BOUNDED_APPEND_ONLY_CONNECTOR_GRANT_REGISTRY",
+      "owner": "evi-plugin",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "connector_plugin_settings",
+      "capability": "connector_grants",
+      "current_route": "BOUNDED_APPEND_ONLY_CONNECTOR_GRANT_REGISTRY",
+      "owner": "evi-plugin",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "storage_connector_inspect",
+      "capability": "storage_routing",
+      "current_route": "PROJECT_SCOPED_TRANSACTIONAL_STORAGE_SELECTION",
+      "owner": "evi-storage",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "storage_connector_select",
+      "capability": "storage_routing",
+      "current_route": "PROJECT_SCOPED_TRANSACTIONAL_STORAGE_SELECTION",
+      "owner": "evi-storage",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "mode_classify",
+      "capability": "mode_sidecar",
+      "current_route": "ORDERED_MODE_INTERSECTION_WITH_CHATLINEAGE",
+      "owner": "evi-mode",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_begin_next_turn",
+      "capability": "task_activity_and_same_host_continuation",
+      "current_route": "VISIBLE_ACTIVITY_LEDGER_AND_EXPLICIT_SAME_HOST_CONTINUATION",
+      "owner": "evidence-lane-code-lifecycle",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "task_record_activity",
+      "capability": "task_activity_and_same_host_continuation",
+      "current_route": "VISIBLE_ACTIVITY_LEDGER_AND_EXPLICIT_SAME_HOST_CONTINUATION",
+      "owner": "evidence-lane-code-lifecycle",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "pv_rollback",
+      "capability": "pointer_rollback",
+      "current_route": "THREE_MODE_ROLLBACK_UNDER_ONE_EXISTING_OWNER",
+      "owner": "evi-rollback",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "git_sync_selected",
+      "capability": "governed_git_delivery",
+      "current_route": "EXACT_REGISTERED_BRANCH_GIT_DELIVERY",
+      "owner": "evidence-lane-code-lifecycle",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "remote_git_prepare_push",
+      "capability": "governed_git_delivery",
+      "current_route": "EXACT_REGISTERED_BRANCH_GIT_DELIVERY",
+      "owner": "evidence-lane-code-lifecycle",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "remote_git_execute_push",
+      "capability": "governed_git_delivery",
+      "current_route": "EXACT_REGISTERED_BRANCH_GIT_DELIVERY",
+      "owner": "evidence-lane-code-lifecycle",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "render_project_panel",
+      "capability": "project_and_runtime_rendering",
+      "current_route": "TWO_TRIGGER_READ_ONLY_RENDER_DISPATCH",
+      "owner": "evidence-lane-code-lifecycle",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    },
+    {
+      "tool": "render_runtime_panel",
+      "capability": "project_and_runtime_rendering",
+      "current_route": "TWO_TRIGGER_READ_ONLY_RENDER_DISPATCH",
+      "owner": "evidence-lane-code-lifecycle",
+      "status": "CURRENT_ROUTE",
+      "executable": true,
+      "fallback_allowed": false
+    }
+  ],
+  "obsolete_public_tools": [],
+  "all_public_tools_have_one_route": true,
+  "obsolete_execution_allowed": false,
+  "fallback_to_historical_route_allowed": false,
+  "registry_sha256": "3AB2FD404AF96F709B74F7947AF096962C49647749E42E72DA01530ACFA6C356",
+  "receipt_sha256": "3F73185AA949FD216C270816D97668BF2F0D914BC800EA0696CF53CA615DFA58"
+}

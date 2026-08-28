@@ -5,10 +5,41 @@ import asyncio
 from evidence_lane_plugin.internal_sdk import build_local_service_adapter
 from evidence_lane_plugin.mcp_server import create_mcp_server
 
+from .conftest import build_and_approve_pv1
 from .test_internal_sdk_handler_parity import _binding, _context
 
 
 def test_public_status_route_returns_only_bounded_projection(service) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    task = {
+        "task_id": "bounded-public-status-task",
+        "task_class": "verify_result",
+        "requested_outcome": "Read the bounded public project status.",
+        "permitted_paths": [],
+        "permitted_tools": ["repository_read"],
+        "acceptance_checks": ["The public status projection is bounded."],
+        "stop_condition": "Stop after the bounded read.",
+    }
+    service.plan_tasks(
+        "book-faires",
+        tasks=[task],
+        planned_by="bounded-status-test",
+        plan_id="bounded-status-plan",
+    )
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=task["task_class"],
+        requested_outcome=task["requested_outcome"],
+        permitted_paths=task["permitted_paths"],
+        permitted_tools=task["permitted_tools"],
+        acceptance_checks=task["acceptance_checks"],
+        stop_condition=task["stop_condition"],
+        backlog_task_id=task["task_id"],
+    )
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["execution_profile"] = {"model": "gpt-test"}
+    service.sessions._save(session)
     server = create_mcp_server(service=service)
     tool = server._tool_manager.get_tool("pv_status")
     assert tool is not None

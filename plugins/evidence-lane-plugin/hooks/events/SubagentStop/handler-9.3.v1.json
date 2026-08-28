@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.hook-handler-binding.v1",
+  "status": "PASS",
+  "event_number": 9,
+  "handler_number": 3,
+  "display_id": "9.3",
+  "event": "SubagentStop",
+  "handler": {
+    "type": "command",
+    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_transport.py",
+    "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_transport.py",
+    "timeout": 10,
+    "statusMessage": "Observing a bound Evidence Lane subagent stop"
+  },
+  "logical_action": "TRANSPORT_SUBAGENT_STOP_OBSERVATION",
+  "stage": "hooks/subhook_transport.py",
+  "stage_sha256": "E55AE969598601F7C8691509AA5FA9CF5BAC8A69A590EDFC431DFF7EDC1A0BA9",
+  "adapter": "hooks/subagent_stop.py",
+  "adapter_sha256": "66384595963FB09B79472A1E29EE92953D1B7182B5A5C20084410265D8A3FBED",
+  "pipeline": "hooks/subhook_pipeline.py",
+  "pipeline_sha256": "AF93945D491898829F3B20A950742FAA3DBB9885E469A5CC61DDBAAFD4B26888",
+  "receipt_sha256": "C5F2952871B7F072570346AA085CD756BA3597FA8CDF0B7DE6BCC0BD8EEFB47D"
+}

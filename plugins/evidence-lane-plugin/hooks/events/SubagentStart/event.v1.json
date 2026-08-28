@@ -1,0 +1,68 @@
+{
+  "schema": "evidence-lane.hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 2,
+  "event": "SubagentStart",
+  "matcher_groups": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_validate.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_validate.py",
+          "timeout": 10,
+          "statusMessage": "Validating and bounding Evidence Lane hook signal"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_seal.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_seal.py",
+          "timeout": 10,
+          "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_transport.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_transport.py",
+          "timeout": 10,
+          "statusMessage": "Observing a bound Evidence Lane subagent start"
+        },
+        {
+          "type": "command",
+          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_emit.py",
+          "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_emit.py",
+          "timeout": 10,
+          "statusMessage": "Verifying and emitting Evidence Lane hook result"
+        }
+      ]
+    }
+  ],
+  "handler_count": 4,
+  "handlers": [
+    {
+      "display_id": "2.1",
+      "path": "hooks/events/SubagentStart/handler-2.1.v1.json",
+      "sha256": "E420DEB114DE71287F594AC2E6F482E31BB278A8E552A08C90F271CECDDDD497"
+    },
+    {
+      "display_id": "2.2",
+      "path": "hooks/events/SubagentStart/handler-2.2.v1.json",
+      "sha256": "B21A906876A769D306B77046273F2BCED02B91D7A9F22B9895BE385623ACEBAD"
+    },
+    {
+      "display_id": "2.3",
+      "path": "hooks/events/SubagentStart/handler-2.3.v1.json",
+      "sha256": "CBAC23BB47DF5EA0C23188558921A0DAD34D41FF756F1607EED8810C4863CFDE"
+    },
+    {
+      "display_id": "2.4",
+      "path": "hooks/events/SubagentStart/handler-2.4.v1.json",
+      "sha256": "9DFA0A09522661A1324CADE8CFC6CCBCF97672060750FF71DB2D1566D7CB565F"
+    }
+  ],
+  "adapter": "hooks/subagent_start.py",
+  "adapter_sha256": "3EA6FE46F77CBE1CE537C01E71F4332A6D12CD04E716B84E88FB03A2D73C289C",
+  "precompact_seals_before_compaction": true,
+  "postcompact_rehydrates_after_compaction": true,
+  "receipt_sha256": "6FA0F4CD7AB12B521B16CB291F896E43BAB6C875E7116AA5EB4A3E555140389F"
+}

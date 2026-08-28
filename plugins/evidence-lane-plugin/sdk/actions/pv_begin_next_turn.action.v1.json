@@ -1,0 +1,87 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "pv_begin_next_turn",
+  "title": "Enter next turn from latest accepted PV",
+  "description": "Enter the next accepted-PV turn. A prepared State Travel handoff remains blocking by default. When the user explicitly chooses to continue in the unchanged host, pass continue_same_host=true and the exact reason EXPLICIT_USER_CONTINUATION; the sealed receipt is preserved and visibly superseded without pointer movement.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "continue_same_host": {
+        "default": false,
+        "title": "Continue Same Host",
+        "type": "boolean"
+      },
+      "continuation_reason": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Continuation Reason"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id"
+    ],
+    "title": "pv_begin_next_turnArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_begin_next_turnDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "6EFB7F7D956F413B569B9E224D8F3D375CE9BE39048662258199E4808C6822E5",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_begin_next_turn"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "same-host-next-turn",
+        "order": 11
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "same-host-next-turn",
+        "order": 7
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/pv_begin_next_turn.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "31BB6CA4E207B6461E27C7AE22D385A509FF8B5F2CD821CE1F81CAA12C767949"
+}

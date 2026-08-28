@@ -9,11 +9,34 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import importlib.util
 import json
 import os
 import tomllib
 from pathlib import Path
 from typing import Any
+
+try:
+    from .current_route_registry import current_implementation_registry
+except ImportError:
+    # Installer and acceptance helpers deliberately load this file by exact
+    # path so they can validate an uninstalled package.  The current-route
+    # registry is stdlib-only and therefore safe to load beside it without
+    # manufacturing a package import context or falling back to stale counts.
+    _current_registry_path = Path(__file__).with_name("current_route_registry.py")
+    _current_registry_spec = importlib.util.spec_from_file_location(
+        "evidence_lane_current_route_registry_standalone",
+        _current_registry_path,
+    )
+    if _current_registry_spec is None or _current_registry_spec.loader is None:
+        raise
+    _current_registry_module = importlib.util.module_from_spec(
+        _current_registry_spec
+    )
+    _current_registry_spec.loader.exec_module(_current_registry_module)
+    current_implementation_registry = (
+        _current_registry_module.current_implementation_registry
+    )
 
 _PLUGIN_ROOT_ENV = "EVIDENCE_LANE_PLUGIN_ROOT"
 PUBLIC_SURFACE_SINGLE_INSTALLED_ROOT_LAW = (
@@ -25,6 +48,8 @@ _RUNTIME_PUBLIC_CATALOG_FILE = "runtime-public-catalog.v1.json"
 # Read/write is a semantic tool registry, not a hard-coded count.  The complete
 # tool-name registry remains skills/evi/references/mcp-tool-routing.v1.json.
 CODEX_READ_TOOL_NAMES = (
+    "ai_toolchain_route",
+    "brain_scaling_select",
     "canon_graph",
     "canon_inbox",
     "canon_inspect",
@@ -36,7 +61,8 @@ CODEX_READ_TOOL_NAMES = (
     "lane_search",
     "lane_status",
     "learning_inspect",
-    "learning_memory_query",
+    "project_memory_query",
+    "project_recipe_compile",
     "learning_retrieve",
     "lifecycle_transition_law",
     "prompt_index_status",
@@ -200,22 +226,97 @@ def derive_public_surface_registry(
         list((root / "skills").glob("*/SKILL.md")),
         parent_name=True,
     )
-    command_records = _file_records(list((root / "commands").glob("*.md")))
 
     hook_path = root / "hooks" / "hooks.json"
     hook_configuration = _json(hook_path)
+    if set(hook_configuration) != {"description", "hooks"}:
+        raise PublicSurfaceRegistryError("PUBLIC_SURFACE_HOST_HOOK_SCHEMA_INVALID")
     hooks = hook_configuration.get("hooks")
     if not isinstance(hooks, dict):
         raise PublicSurfaceRegistryError("PUBLIC_SURFACE_HOOK_REGISTRY_INVALID")
     hook_events = list(hooks)
+    logical_action_configuration = _json(root / "hooks" / "logical-actions.json")
+    declared_logical_actions = logical_action_configuration.get("logicalActions")
+    if (
+        logical_action_configuration.get("schema")
+        != "evidence-lane.hook-logical-action-registry.v1"
+        or
+        not isinstance(declared_logical_actions, dict)
+        or list(declared_logical_actions) != hook_events
+        or any(
+            not isinstance(declared_logical_actions.get(name), list)
+            or not declared_logical_actions[name]
+            for name in hook_events
+        )
+    ):
+        raise PublicSurfaceRegistryError(
+            "PUBLIC_SURFACE_HOOK_LOGICAL_ACTION_REGISTRY_INVALID"
+        )
     handler_count = 0
-    for groups in hooks.values():
+    hook_event_actions: list[dict[str, Any]] = []
+    for event_ordinal, (event_name, groups) in enumerate(hooks.items(), start=1):
         if not isinstance(groups, list):
             raise PublicSurfaceRegistryError("PUBLIC_SURFACE_HOOK_GROUP_INVALID")
-        for group in groups:
+        actions: list[dict[str, Any]] = []
+        for group_ordinal, group in enumerate(groups, start=1):
             if not isinstance(group, dict) or not isinstance(group.get("hooks"), list):
                 raise PublicSurfaceRegistryError("PUBLIC_SURFACE_HOOK_HANDLER_INVALID")
-            handler_count += len(group["hooks"])
+            for action_ordinal, handler in enumerate(group["hooks"], start=1):
+                if not isinstance(handler, dict):
+                    raise PublicSurfaceRegistryError(
+                        "PUBLIC_SURFACE_HOOK_HANDLER_INVALID"
+                    )
+                handler_count += 1
+                action_number = len(actions) + 1
+                command_identity = str(
+                    handler.get("commandWindows") or handler.get("command") or ""
+                )
+                actions.append(
+                    {
+                        "action_number": f"{event_ordinal}.{action_number}",
+                        "event_action_ordinal": action_number,
+                        "group_ordinal": group_ordinal,
+                        "group_action_ordinal": action_ordinal,
+                        "type": handler.get("type"),
+                        "command_sha256": _sha256_bytes(
+                            command_identity.encode("utf-8")
+                        ),
+                        "raw_command_returned": False,
+                    }
+                )
+        if not actions:
+            raise PublicSurfaceRegistryError(
+                "PUBLIC_SURFACE_HOOK_EVENT_ACTION_REQUIRED"
+            )
+        hook_event_actions.append(
+            {
+                "hook_number": event_ordinal,
+                "event_name": event_name,
+                "display_number": f"Hook {event_ordinal}",
+                "action_count": len(actions),
+                "actions": actions,
+            }
+        )
+    logical_action_inventory = [
+        {
+            "hook_number": event_ordinal,
+            "event_name": event_name,
+            "display_number": f"Hook {event_ordinal}",
+            "logical_action_count": len(declared_logical_actions[event_name]),
+            "logical_actions": [
+                {
+                    "logical_action_number": f"{event_ordinal}.L{action_ordinal}",
+                    "event_logical_action_ordinal": action_ordinal,
+                    "action": action,
+                    "project_plan_goal_hil_effect": "NONE",
+                }
+                for action_ordinal, action in enumerate(
+                    declared_logical_actions[event_name], start=1
+                )
+            ],
+        }
+        for event_ordinal, event_name in enumerate(hook_events, start=1)
+    ]
 
     provider_path = root / ".mcp.json"
     provider_configuration = _json(provider_path)
@@ -256,7 +357,6 @@ def derive_public_surface_registry(
         "read": len(read_names),
         "write": len(write_names),
         "skills": len(skill_records),
-        "commands": len(command_records),
         "hook_events": len(hook_events),
         "hook_handlers": handler_count,
         "providers": len(provider_names),
@@ -270,6 +370,27 @@ def derive_public_surface_registry(
     release_catalog_matches_derived = release_claim == {
         key: catalog[key] for key in ("tools", "read", "write", "skills")
     }
+    implementation_registry = current_implementation_registry()
+    implementation_tool_names = {
+        str(row["tool"])
+        for row in implementation_registry.get("public_tool_routes", [])
+        if isinstance(row, dict) and isinstance(row.get("tool"), str)
+    }
+    implementation_routes_match_tools = implementation_tool_names == set(tool_names)
+    routing_tombstones = routing.get("obsolete_tool_tombstones")
+    implementation_tombstones = set(
+        str(name) for name in implementation_registry.get("obsolete_public_tools", [])
+    )
+    obsolete_public_routes_purged = (
+        routing_tombstones is None
+        and not implementation_tombstones
+        and all(
+            isinstance(row, dict)
+            and row.get("status") == "CURRENT_ROUTE"
+            and row.get("executable") is True
+            for row in implementation_registry.get("public_tool_routes", [])
+        )
+    )
 
     core: dict[str, Any] = {
         "schema": "evidence-lane.public-surface-registry.v1",
@@ -279,6 +400,9 @@ def derive_public_surface_registry(
                 release_catalog_matches_derived
                 and routing_catalog_matches_derived
                 and package_identity_matches
+                and implementation_registry.get("status") == "PASS"
+                and implementation_routes_match_tools
+                and obsolete_public_routes_purged
             )
             else "BLOCKED"
         ),
@@ -310,17 +434,51 @@ def derive_public_surface_registry(
             "records": skill_records,
             "inventory_sha256": _sha256_bytes(_canonical_bytes(skill_records)),
         },
-        "commands": {
-            "records": command_records,
-            "inventory_sha256": _sha256_bytes(_canonical_bytes(command_records)),
-        },
+        "legacy_command_surface_present": False,
         "hooks": {
             "event_names": hook_events,
+            "registered_event_count": len(hook_events),
+            "handler_action_count": handler_count,
+            "count_semantics": {
+                "hook_count": "REGISTERED_EVENT_TYPE_COUNT",
+                "handler_action_count": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
+            },
+            "event_action_inventory": hook_event_actions,
+            "event_action_inventory_sha256": _sha256_bytes(
+                _canonical_bytes(hook_event_actions)
+            ),
+            "logical_action_count": sum(
+                int(row["logical_action_count"])
+                for row in logical_action_inventory
+            ),
+            "logical_action_count_semantics": (
+                "NUMBERED_SERIAL_TRANSPORT_STEPS_INSIDE_HANDLER_ACTIONS"
+            ),
+            "logical_action_inventory": logical_action_inventory,
+            "logical_action_inventory_sha256": _sha256_bytes(
+                _canonical_bytes(logical_action_inventory)
+            ),
             "configuration_sha256": _sha256_file(hook_path),
         },
         "providers": {
             "names": provider_names,
             "configuration_sha256": _sha256_file(provider_path),
+        },
+        "current_implementation_registry": {
+            "schema": implementation_registry["schema"],
+            "status": implementation_registry["status"],
+            "capability_count": implementation_registry["capability_count"],
+            "public_tool_count": implementation_registry["public_tool_count"],
+            "routes_match_tool_registry": implementation_routes_match_tools,
+            "obsolete_public_tools": sorted(implementation_tombstones),
+            "obsolete_public_routes_purged": obsolete_public_routes_purged,
+            "registry_sha256": implementation_registry["registry_sha256"],
+            "obsolete_execution_allowed": implementation_registry[
+                "obsolete_execution_allowed"
+            ],
+            "fallback_to_historical_route_allowed": implementation_registry[
+                "fallback_to_historical_route_allowed"
+            ],
         },
         "raw_paths_included": False,
     }

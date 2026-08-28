@@ -1,0 +1,48 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-toolchain",
+  "skill_sha256": "3FB01BE0B8047EFE3C5E3F64C06485E45C7519147103D2F6AAE5524D87AF7863",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "ai_toolchain_route"
+      ],
+      "workflow": "conditional-codex-toolchain-routing"
+    }
+  ],
+  "action_count": 1,
+  "actions": [
+    {
+      "name": "ai_toolchain_route",
+      "schema_sha256": "F458DEF20BB5A93761DA23F5382CBBBC1A05E54965083D40D9F6CA97A7197E72",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-toolchain",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "ai_toolchain_route"
+        },
+        "internal_sdk": {
+          "module_id": "first_class_workflows",
+          "operation": "ai_toolchain_route",
+          "read_only": true
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-toolchain",
+            "workflow": "conditional-codex-toolchain-routing",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "045C6DB5BB700DD23FE888FD3FD21871312B9A1D1FA2C9082BFD57E4CB20D7AD"
+}

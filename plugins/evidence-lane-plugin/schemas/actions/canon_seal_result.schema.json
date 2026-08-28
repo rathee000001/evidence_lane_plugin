@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "canon_seal_result",
+  "title": "Seal Canon task result",
+  "description": "Seal one bounded result for an existing Canon edge with exact evidence, schema, expiry, and source-pointer identities.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "edge_id": {
+        "title": "Edge Id",
+        "type": "string"
+      },
+      "source_pointer": {
+        "additionalProperties": true,
+        "title": "Source Pointer",
+        "type": "object"
+      },
+      "evidence_refs": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Evidence Refs",
+        "type": "array"
+      },
+      "result_payload": {
+        "additionalProperties": true,
+        "title": "Result Payload",
+        "type": "object"
+      },
+      "schema_id": {
+        "title": "Schema Id",
+        "type": "string"
+      },
+      "schema_version": {
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "schema_sha256": {
+        "title": "Schema Sha256",
+        "type": "string"
+      },
+      "created_at": {
+        "title": "Created At",
+        "type": "string"
+      },
+      "expires_at": {
+        "title": "Expires At",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "edge_id",
+      "source_pointer",
+      "evidence_refs",
+      "result_payload",
+      "schema_id",
+      "schema_version",
+      "schema_sha256",
+      "created_at",
+      "expires_at"
+    ],
+    "title": "canon_seal_resultArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "canon_seal_resultDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_seal_result"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "seal_result",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-result",
+        "order": 14
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "2BE8AFAB40C7FD7B2A750B8508EF120A9E4DC7CFAD41B7BDEC75379D698F896F",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "EBE6F9AFAA253A3D8FD8E09C624BCC8F0CF76196B784B73E39F28F096E18645B"
+}

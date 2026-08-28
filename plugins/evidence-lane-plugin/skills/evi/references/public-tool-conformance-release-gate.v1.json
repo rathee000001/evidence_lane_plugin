@@ -1,23 +1,23 @@
 {
   "schema": "evidence-lane.public-tool-conformance-release-gate.v1",
-  "status": "PASS",
-  "source_delta_task_id": "EL-CODEX-T6-PARITY-035-MCP-INSTALLED-PARITY-TASK8-REFRESH-001",
+  "status": "PASS_SOURCE_PREINSTALL",
+  "source_delta_task_id": "TASK35_R265_CURRENT_PUBLIC_SURFACE",
   "generated_from": {
-    "receipt_path": "docs/R256_PUBLIC_SURFACE_CONFORMANCE_RECEIPT.json",
-    "receipt_file_sha256": "595781C2C6D4E51EF5CA455E2E3C3BFA84BD233CC91D7475FF27E6115B6DE7D1",
-    "source_matrix_sha256": "36F72846CB3039B5106ED6A2B20C23470A8A8A57FD2703C6AF4C583F5ECB3EB9",
-    "installed_matrix_sha256": "36F72846CB3039B5106ED6A2B20C23470A8A8A57FD2703C6AF4C583F5ECB3EB9"
+    "public_catalog_path": "schemas/public-action-schemas.v001.json",
+    "public_catalog_sha256": "B571AF9EC31691C96DB0B3845ED0B7A6700D1C84A2578ABA9A2EA594982AF045",
+    "source_matrix_sha256": "0F83431BB787920448FB8B6BA017DABEBF1BE59CA21D2F84CAA102F8CF197E43",
+    "installed_matrix_sha256": null
   },
   "evaluated_catalogs": {
     "source": {
-      "tool_count": 88,
-      "case_evaluation_count": 616,
+      "tool_count": 91,
+      "case_evaluation_count": 637,
       "status": "PASS"
     },
     "exact_installed": {
-      "tool_count": 88,
-      "case_evaluation_count": 616,
-      "status": "PASS"
+      "tool_count": null,
+      "case_evaluation_count": null,
+      "status": "PENDING_POST_INSTALL"
     },
     "source_only_preinstall_tools": []
   },

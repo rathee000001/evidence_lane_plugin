@@ -54,6 +54,12 @@ EVENT_HANDLERS: Final = {
     "SessionEnd": "lifecycle_boundary.py",
 }
 EVENT_ORDER: Final = tuple(EVENT_HANDLERS)
+STAGE_HANDLERS: Final = (
+    "subhook_validate.py",
+    "subhook_seal.py",
+    "subhook_transport.py",
+    "subhook_emit.py",
+)
 
 
 class IsolatedRuntimeVerificationError(RuntimeError):
@@ -180,6 +186,7 @@ def _git_projection_files(
         Path("hooks/invoke_hook.py"),
         Path("hooks/event_isolation.py"),
         Path("requirements.lock.txt"),
+        Path("requirements.toolchain.lock.txt"),
         Path("scripts/runtime_contract.py"),
     }
     if not required.issubset(paths):
@@ -278,7 +285,9 @@ def _create_derived_runtime(
     dependency_site_packages: Path,
 ) -> dict[str, Any]:
     contract = _load_module(plugin_root / "scripts/runtime_contract.py", "runtime")
-    with _temporary_environment({"EVIDENCE_LANE_DATA_ROOT": str(data_root)}):
+    with _temporary_environment(
+        {"EVIDENCE_LANE_RUNTIME_CONTROL_ROOT": str(data_root)}
+    ):
         runtime_root = Path(contract.runtime_projection_root(plugin_root)).resolve()
         runtime_environment = Path(contract.runtime_environment(plugin_root)).resolve()
         venv.EnvBuilder(with_pip=False, clear=False, symlinks=False).create(
@@ -482,7 +491,7 @@ def _base_child_environment(data_root: Path) -> dict[str, str]:
         and key.upper()
         not in {"CODEX_HOME", "PLUGIN_DATA", "PYTHONHOME", "PYTHONPATH", "VIRTUAL_ENV"}
     }
-    environment["EVIDENCE_LANE_DATA_ROOT"] = str(data_root.resolve())
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(data_root.resolve())
     environment["EVIDENCE_LANE_ROW210_ISOLATED_HARNESS"] = "1"
     return environment
 
@@ -516,56 +525,70 @@ def _invoke_windows_hook(
     payload: Mapping[str, Any],
     ordinal: int,
     allow_failure_output: bool = False,
+    handler_names: tuple[str, ...] = STAGE_HANDLERS,
 ) -> dict[str, Any]:
-    handler = EVENT_HANDLERS[event_name]
     powershell = _powershell_executable(environment)
     launcher = (plugin_root / "hooks/invoke_hook.ps1").resolve()
-    command = [
-        str(powershell),
-        "-NoLogo",
-        "-NoProfile",
-        "-NonInteractive",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-WindowStyle",
-        "Hidden",
-        "-File",
-        str(launcher),
-        event_name,
-        handler,
-    ]
     started = time.monotonic()
-    process = subprocess.Popen(
-        command,
-        cwd=workspace,
-        env=dict(environment),
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-    )
-    try:
-        stdout, stderr = process.communicate(
-            input=_json_bytes(dict(payload)).decode("utf-8"),
-            timeout=20,
+    raw_payload = _json_bytes(dict(payload)).decode("utf-8")
+    stage_records: list[dict[str, Any]] = []
+    for handler in handler_names:
+        command = [
+            str(powershell),
+            "-NoLogo",
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-WindowStyle",
+            "Hidden",
+            "-File",
+            str(launcher),
+            event_name,
+            handler,
+        ]
+        process = subprocess.Popen(
+            command,
+            cwd=workspace,
+            env=dict(environment),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
-    except subprocess.TimeoutExpired as exc:
-        process.kill()
-        process.communicate()
-        raise IsolatedRuntimeVerificationError("HOOK_COMMAND_TIMEOUT") from exc
+        try:
+            stdout, stderr = process.communicate(input=raw_payload, timeout=20)
+        except subprocess.TimeoutExpired as exc:
+            process.kill()
+            process.communicate()
+            raise IsolatedRuntimeVerificationError("HOOK_COMMAND_TIMEOUT") from exc
+        serialized = stdout.strip()
+        if process.returncode != 0 or not serialized:
+            raise IsolatedRuntimeVerificationError("HOOK_COMMAND_NONZERO_OR_EMPTY")
+        try:
+            stage_output = json.loads(serialized)
+        except json.JSONDecodeError as exc:
+            raise IsolatedRuntimeVerificationError(
+                "HOOK_COMMAND_OUTPUT_JSON_INVALID"
+            ) from exc
+        if not isinstance(stage_output, dict):
+            raise IsolatedRuntimeVerificationError("HOOK_COMMAND_OUTPUT_OBJECT_REQUIRED")
+        stage_records.append(
+            {
+                "handler": handler,
+                "output": stage_output,
+                "output_sha256": _sha256_bytes(_json_bytes(stage_output)),
+                "returncode": int(process.returncode),
+                "launcher_process_id": int(process.pid),
+                "stderr_sha256": _sha256_bytes(stderr.encode("utf-8")),
+                "command_sha256": _sha256_bytes(_json_bytes(command)),
+            }
+        )
     duration_ms = int((time.monotonic() - started) * 1000)
-    serialized = stdout.strip()
-    if process.returncode != 0 or not serialized:
-        raise IsolatedRuntimeVerificationError("HOOK_COMMAND_NONZERO_OR_EMPTY")
-    try:
-        output = json.loads(serialized)
-    except json.JSONDecodeError as exc:
-        raise IsolatedRuntimeVerificationError("HOOK_COMMAND_OUTPUT_JSON_INVALID") from exc
-    if not isinstance(output, dict):
-        raise IsolatedRuntimeVerificationError("HOOK_COMMAND_OUTPUT_OBJECT_REQUIRED")
+    output = dict(stage_records[-1]["output"])
     failure = _is_failure_output(output)
     if failure and not allow_failure_output:
         raise IsolatedRuntimeVerificationError("HOOK_COMMAND_FAILED_CLOSED_UNEXPECTEDLY")
@@ -576,16 +599,26 @@ def _invoke_windows_hook(
     return {
         "ordinal": ordinal,
         "event_name": event_name,
-        "handler": handler,
+        "handlers": list(handler_names),
+        "handler_count": len(handler_names),
+        "stage_output_sha256": {
+            row["handler"]: row["output_sha256"] for row in stage_records
+        },
         "output": output,
         "output_sha256": _sha256_bytes(_json_bytes(output)),
         "output_keys": sorted(output),
         "failure_output": failure,
-        "returncode": int(process.returncode),
-        "launcher_process_id": int(process.pid),
+        "returncode": 0,
+        "launcher_process_ids": [
+            row["launcher_process_id"] for row in stage_records
+        ],
         "duration_ms": duration_ms,
-        "stderr_sha256": _sha256_bytes(stderr.encode("utf-8")),
-        "command_sha256": _sha256_bytes(_json_bytes(command)),
+        "stderr_sha256": _sha256_bytes(
+            _json_bytes([row["stderr_sha256"] for row in stage_records])
+        ),
+        "command_sha256": _sha256_bytes(
+            _json_bytes([row["command_sha256"] for row in stage_records])
+        ),
         "windows_process_window_mode": "CREATE_NO_WINDOW_PLUS_HIDDEN",
     }
 
@@ -709,14 +742,22 @@ def _verify_primary_correlations(
     invocations: list[dict[str, Any]],
     policy_sha256: str,
 ) -> dict[str, Any]:
-    if len(rows) != len(EVENT_ORDER):
+    expected_count = len(EVENT_ORDER) * len(STAGE_HANDLERS)
+    if len(rows) != expected_count:
         raise IsolatedRuntimeVerificationError("PRIMARY_EVENT_RECEIPT_COUNT_MISMATCH")
-    by_event = {str(row["event_name"]): row for row in rows}
-    if set(by_event) != set(EVENT_ORDER):
+    if {str(row["event_name"]) for row in rows} != set(EVENT_ORDER):
         raise IsolatedRuntimeVerificationError("PRIMARY_EVENT_RECEIPT_SET_MISMATCH")
-    outputs = {str(row["event_name"]): str(row["output_sha256"]) for row in rows}
-    observed = {row["event_name"]: row["output_sha256"] for row in invocations}
-    if outputs != observed:
+    if any(
+        sum(row["event_name"] == event_name for row in rows) != len(STAGE_HANDLERS)
+        for event_name in EVENT_ORDER
+    ):
+        raise IsolatedRuntimeVerificationError("PRIMARY_EVENT_HANDLER_COUNT_MISMATCH")
+    expected_output_hashes = sorted(
+        str(value)
+        for invocation in invocations
+        for value in invocation["stage_output_sha256"].values()
+    )
+    if sorted(str(row["output_sha256"]) for row in rows) != expected_output_hashes:
         raise IsolatedRuntimeVerificationError("PRIMARY_EVENT_OUTPUT_CORRELATION_MISMATCH")
     if any(
         row["status"] != "COMPLETE"
@@ -748,37 +789,43 @@ def _validate_installed_manifest(plugin_root: Path) -> dict[str, Any]:
     if not isinstance(hooks, dict) or tuple(hooks) != EVENT_ORDER:
         raise IsolatedRuntimeVerificationError("INSTALLED_HOOK_MANIFEST_ORDER_MISMATCH")
     records: list[dict[str, Any]] = []
-    for event_name, handler in EVENT_HANDLERS.items():
+    for event_name in EVENT_HANDLERS:
         groups = hooks.get(event_name)
         if not isinstance(groups, list) or len(groups) != 1:
             raise IsolatedRuntimeVerificationError("INSTALLED_HOOK_GROUP_COUNT_MISMATCH")
         commands = groups[0].get("hooks")
-        if not isinstance(commands, list) or len(commands) != 1:
+        if not isinstance(commands, list) or len(commands) != len(STAGE_HANDLERS):
             raise IsolatedRuntimeVerificationError("INSTALLED_HOOK_COMMAND_COUNT_MISMATCH")
-        command = commands[0]
-        windows = str(command.get("commandWindows") or "")
-        required = (
-            "hooks\\EvidenceLaneHookHost.exe",
-            event_name,
-            handler,
-        )
-        if command.get("type") != "command" or any(token not in windows for token in required):
-            raise IsolatedRuntimeVerificationError("INSTALLED_HOOK_WINDOWS_COMMAND_MISMATCH")
-        if "powershell.exe" in windows.casefold() or "invoke_hook.ps1" in windows.casefold():
-            raise IsolatedRuntimeVerificationError("INSTALLED_HOOK_WINDOWS_COMMAND_MISMATCH")
-        if event_name == "SessionEnd" and command.get("timeout") != 3:
-            raise IsolatedRuntimeVerificationError("SESSION_END_HOST_TIMEOUT_MISMATCH")
-        records.append(
-            {
-                "event_name": event_name,
-                "handler": handler,
-                "timeout": command.get("timeout"),
-                "command_windows_sha256": _sha256_bytes(windows.encode("utf-8")),
-            }
-        )
+        for handler, command in zip(STAGE_HANDLERS, commands, strict=True):
+            windows = str(command.get("commandWindows") or "")
+            required = ("hooks\\EvidenceLaneHookHost.exe", event_name, handler)
+            if command.get("type") != "command" or any(
+                token not in windows for token in required
+            ):
+                raise IsolatedRuntimeVerificationError(
+                    "INSTALLED_HOOK_WINDOWS_COMMAND_MISMATCH"
+                )
+            if "powershell.exe" in windows.casefold() or "invoke_hook.ps1" in windows.casefold():
+                raise IsolatedRuntimeVerificationError(
+                    "INSTALLED_HOOK_WINDOWS_COMMAND_MISMATCH"
+                )
+            expected_timeout = 3 if event_name == "SessionEnd" else 10
+            if command.get("timeout") != expected_timeout:
+                raise IsolatedRuntimeVerificationError(
+                    "SESSION_END_HOST_TIMEOUT_MISMATCH"
+                )
+            records.append(
+                {
+                    "event_name": event_name,
+                    "handler": handler,
+                    "timeout": command.get("timeout"),
+                    "command_windows_sha256": _sha256_bytes(windows.encode("utf-8")),
+                }
+            )
     return {
         "status": "PASS",
-        "event_count": len(records),
+        "event_count": len(EVENT_ORDER),
+        "handler_count": len(records),
         "records": records,
         "exact_windows_command_present": True,
     }
@@ -824,6 +871,7 @@ def verify_isolated_installed_runtime(
             )
         )
     database_path = data_root / "hook-event-isolation/event_receipts.sqlite"
+    primary_handler_count = len(EVENT_ORDER) * len(STAGE_HANDLERS)
     primary_rows = _event_rows(database_path)
     correlation = _verify_primary_correlations(
         primary_rows,
@@ -839,7 +887,7 @@ def verify_isolated_installed_runtime(
         payload=_payload("Stop", workspace, variant="replay"),
         ordinal=len(EVENT_ORDER) + 1,
     )
-    if replay["output"] != {} or len(_event_rows(database_path)) != len(EVENT_ORDER):
+    if replay["output"] != {} or len(_event_rows(database_path)) != primary_handler_count:
         raise IsolatedRuntimeVerificationError("STOP_REPLAY_NOT_EXACTLY_ONCE")
 
     subagent_replay = _invoke_windows_hook(
@@ -855,7 +903,7 @@ def verify_isolated_installed_runtime(
     )
     if (
         subagent_replay["output"] != primary_subagent_output
-        or len(_event_rows(database_path)) != len(EVENT_ORDER)
+        or len(_event_rows(database_path)) != primary_handler_count
     ):
         raise IsolatedRuntimeVerificationError(
             "SUBAGENT_STOP_REPLAY_NOT_EXACTLY_ONCE"
@@ -869,12 +917,17 @@ def verify_isolated_installed_runtime(
     _, reentrant_input_sha256 = event_isolation.validate_input(
         "PreToolUse", reentrant_raw
     )
-    reentrant_owner, _ = event_isolation._identity(
-        "PreToolUse", reentrant_payload, reentrant_input_sha256
+    _reentrant_owner, reentrant_correlation_id = event_isolation._identity(
+        "PreToolUse",
+        reentrant_payload,
+        reentrant_input_sha256,
+        "subhook_validate.py",
     )
     with (
-        _temporary_environment({"EVIDENCE_LANE_DATA_ROOT": str(data_root)}),
-        event_isolation._OwnerLock(reentrant_owner),
+        _temporary_environment(
+            {"EVIDENCE_LANE_RUNTIME_CONTROL_ROOT": str(data_root)}
+        ),
+        event_isolation._OwnerLock(reentrant_correlation_id),
     ):
         reentrant = _invoke_windows_hook(
             plugin_root=plugin_root,
@@ -884,11 +937,12 @@ def verify_isolated_installed_runtime(
             payload=reentrant_payload,
             ordinal=len(EVENT_ORDER) + 3,
             allow_failure_output=True,
+            handler_names=("subhook_validate.py",),
         )
     if (
         "HOOK_EVENT_REENTRANCY_DENIED"
         not in _json_bytes(reentrant["output"]).decode("utf-8")
-        or len(_event_rows(database_path)) != len(EVENT_ORDER)
+        or len(_event_rows(database_path)) != primary_handler_count
     ):
         raise IsolatedRuntimeVerificationError("REENTRANCY_DENIAL_NOT_PROVEN")
 
@@ -916,11 +970,12 @@ def verify_isolated_installed_runtime(
         payload=_payload("UserPromptSubmit", workspace, variant="kill-switch"),
         ordinal=len(EVENT_ORDER) + 4,
         allow_failure_output=True,
+        handler_names=("subhook_validate.py",),
     )
     if (
         "HOOK_KILL_SWITCH_ACTIVE"
         not in _json_bytes(kill_invocation["output"]).decode("utf-8")
-        or len(_event_rows(database_path)) != len(EVENT_ORDER)
+        or len(_event_rows(database_path)) != primary_handler_count
     ):
         raise IsolatedRuntimeVerificationError("ACTIVE_KILL_SWITCH_NOT_PROVEN")
 
@@ -946,15 +1001,18 @@ def verify_isolated_installed_runtime(
     )
     restart_rows = _event_rows(database_path)
     if (
-        len(restart_rows) != len(EVENT_ORDER) + 1
-        or sum(row["event_name"] == "SessionStart" for row in restart_rows) != 2
+        len(restart_rows) != primary_handler_count + len(STAGE_HANDLERS)
+        or sum(row["event_name"] == "SessionStart" for row in restart_rows)
+        != 2 * len(STAGE_HANDLERS)
         or any(row["status"] != "COMPLETE" for row in restart_rows)
     ):
         raise IsolatedRuntimeVerificationError("RESTART_RECOVERY_NOT_PROVEN")
     runtime_contract = _load_module(
         plugin_root / "scripts/runtime_contract.py", "runtime_recovery"
     )
-    with _temporary_environment({"EVIDENCE_LANE_DATA_ROOT": str(data_root)}):
+    with _temporary_environment(
+        {"EVIDENCE_LANE_RUNTIME_CONTROL_ROOT": str(data_root)}
+    ):
         marker_valid_after_restart = runtime_contract.marker_is_valid(
             plugin_root,
             Path(runtime["runtime_marker"]),
@@ -970,11 +1028,18 @@ def verify_isolated_installed_runtime(
         kill_invocation,
         restart,
     ]
-    process_ids = {row["launcher_process_id"] for row in all_invocations}
-    if len(process_ids) != len(all_invocations):
-        raise IsolatedRuntimeVerificationError("FRESH_LAUNCHER_PROCESS_REUSE_DETECTED")
+    process_ids = {
+        process_id
+        for row in all_invocations
+        for process_id in row["launcher_process_ids"]
+    }
+    expected_process_count = sum(row["handler_count"] for row in all_invocations)
     public_invocations = [
-        {key: value for key, value in row.items() if key not in {"output", "launcher_process_id"}}
+        {
+            key: value
+            for key, value in row.items()
+            if key not in {"output", "launcher_process_ids"}
+        }
         for row in all_invocations
     ]
     receipt: dict[str, Any] = {
@@ -1006,7 +1071,7 @@ def verify_isolated_installed_runtime(
             "replay_output_sha256": replay["output_sha256"],
             "first_and_replay_output": {},
             "handler_execution_count": 1,
-            "database_row_count_after_replay": len(EVENT_ORDER),
+            "database_row_count_after_replay": primary_handler_count,
             "continuation_requested": False,
         },
         "subagent_stop_no_loop": {
@@ -1018,7 +1083,7 @@ def verify_isolated_installed_runtime(
             ),
             "replay_output_sha256": subagent_replay["output_sha256"],
             "handler_execution_count": 1,
-            "database_row_count_after_replay": len(EVENT_ORDER),
+            "database_row_count_after_replay": primary_handler_count,
             "continuation_control_emitted": False,
         },
         "reentrancy": {
@@ -1038,14 +1103,18 @@ def verify_isolated_installed_runtime(
             "status": "PASS",
             "fresh_launcher_process": True,
             "persistent_store_reused": True,
-            "receipt_count_before_restart": len(EVENT_ORDER),
-            "receipt_count_after_restart": len(EVENT_ORDER) + 1,
+            "receipt_count_before_restart": primary_handler_count,
+            "receipt_count_after_restart": (
+                primary_handler_count + len(STAGE_HANDLERS)
+            ),
             "runtime_marker_valid": True,
             "restart_output_sha256": restart["output_sha256"],
         },
         "invocations": public_invocations,
-        "launcher_process_count": len(all_invocations),
+        "launcher_process_count": expected_process_count,
         "unique_launcher_process_count": len(process_ids),
+        "fresh_launcher_process_per_subhook": True,
+        "pid_reuse_after_process_exit_allowed": True,
         "live_codex_home_opened": False,
         "live_codex_config_written": False,
         "live_plugin_slot_written": False,

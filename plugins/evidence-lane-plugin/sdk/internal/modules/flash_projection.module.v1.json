@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.flash_projection",
+  "source_path": "src/evidence_lane_plugin/flash_projection.py",
+  "source_sha256": "9AD082003090F57CE3B14E34672C2A027C3612F2BF029372E59FD4D610D1733C",
+  "source_bytes": 14695,
+  "role": "ENV_UOP_AI_ACTION_PLANE",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "0B17708718126A94267C2674A596519EA281074B965B6A087F239E425977927A"
+}

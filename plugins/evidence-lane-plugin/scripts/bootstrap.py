@@ -77,9 +77,12 @@ def main() -> int:
         else None
     )
     lock = plugin_root / "requirements.lock.txt"
+    toolchain_lock = plugin_root / "requirements.toolchain.lock.txt"
     project = plugin_root / "pyproject.toml"
     if not lock.is_file():
         raise SystemExit(f"Missing pinned dependency lock: {lock}")
+    if not toolchain_lock.is_file():
+        raise SystemExit(f"Missing pinned full-toolchain lock: {toolchain_lock}")
     if not project.is_file():
         raise SystemExit(f"Missing self-contained plugin project: {project}")
     if identity_file is not None and identity_file.exists():
@@ -102,6 +105,20 @@ def main() -> int:
             "--require-hashes",
             "-r",
             str(lock),
+        ],
+        check=True,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
+    subprocess.run(  # nosec B603
+        [
+            str(python),
+            "-m",
+            "pip",
+            "install",
+            "--disable-pip-version-check",
+            "--require-hashes",
+            "-r",
+            str(toolchain_lock),
         ],
         check=True,
         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),

@@ -1,0 +1,382 @@
+{
+  "schema": "evidence-lane.installed-authority-surface.v1",
+  "status": "PASS",
+  "authority_id": "canon_input",
+  "database": "canon-input.sqlite",
+  "database_sha256": "68783FC35CFB5A164B76A2008512F46CF0A514863ECBF1D544AA88F2C747F42D",
+  "database_integrity": "ok",
+  "schema_sha256": "50F7CAB62DA81768659780F6199878FF1BB834D34607FAD1556994DDDE8C2DCF",
+  "table_count": 18,
+  "fts5_tables": [
+    "authority_index_fts"
+  ],
+  "members": [
+    {
+      "path": "authorities/canon_input/build-refresh-contract.schema.json",
+      "bytes": 559,
+      "sha256": "98BCBBF4AE3BC08195F41B6EF38DB66AA153FAB6B8DFA59C53E33BAF88A4CEFA"
+    },
+    {
+      "path": "authorities/canon_input/builder.py",
+      "bytes": 312,
+      "sha256": "1B81E201AC8B878D7EBA0A9BCDE7558E6C988BFB34749C4867BD5CC63C632D8D"
+    },
+    {
+      "path": "authorities/canon_input/canon-input.dot",
+      "bytes": 32754,
+      "sha256": "F2E6CAB5F3804866BA0701EACBCD0ABE3088AE1DF0A5E687EA7A89D7CE6774BF"
+    },
+    {
+      "path": "authorities/canon_input/canon-input.mmd",
+      "bytes": 24393,
+      "sha256": "7B1155632EA8B06794553374FF9EAE8969820E37272931EB0A70A51580D93AE3"
+    },
+    {
+      "path": "authorities/canon_input/canon-input.sqlite",
+      "bytes": 192512,
+      "sha256": "68783FC35CFB5A164B76A2008512F46CF0A514863ECBF1D544AA88F2C747F42D"
+    },
+    {
+      "path": "authorities/canon_input/canon-input.tools.json",
+      "bytes": 24150,
+      "sha256": "6B4B2335E3A7181940EE09CA3D6D26416F03709ED0207A1FF6BF094901264F83"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/canon-consequence-graph.dot",
+      "bytes": 26531,
+      "sha256": "C4B75AE14F8415506ED1213E1792F22B04913F882673D47F9DC228C7532D7E2B"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/canon-consequence-graph.mmd",
+      "bytes": 20002,
+      "sha256": "B3F27ED1F8B8193E70F9553E384238EF52AD01AFC552E41E5AFF1388261D863A"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/canon-consequence-graph.sqlite",
+      "bytes": 143360,
+      "sha256": "CED4C2F31BF3B203E388F71E4CCDB98C229E7050C2C1C6196A7DB32A52631F79"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/dot-artifact.schema.json",
+      "bytes": 997,
+      "sha256": "2BF0D826FEC5E97F6D46E6489114E03E2B0C27E749F3C50A3BF369CD65B4F20A"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/manifest.schema.json",
+      "bytes": 935,
+      "sha256": "F45FED6F08DA0E56E7B2DFB465D3C9590A18F55E31B46DC5DFFFA1A35BBD45C9"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/manifest.v1.json",
+      "bytes": 9237,
+      "sha256": "27AD04E1F5D2A4A59F30A1070644CD958E4D5DE8C5E37F4334F4B3DC9AB37F2B"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/mmd-artifact.schema.json",
+      "bytes": 1010,
+      "sha256": "95740908B4E33C94F5A65C79B73B75C01850E3EBAA47170C5083BB8AFFBE1BF1"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/pointer-contract.schema.json",
+      "bytes": 565,
+      "sha256": "F5AA51D37590D22ECCEF34C85565969F23DCAF9DDAE672D10B36CC5E34907FF0"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/pointer-contract.v1.json",
+      "bytes": 430,
+      "sha256": "DCF841164334F08C0FE3E5224A88797252C63E5713F298F38A521761474B27EB"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/README.md",
+      "bytes": 267,
+      "sha256": "F100F5FF82B8681F88DBE7CAEBF656E168C9E61E06103DCFA10045257E57FF5B"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/runtime-binding.schema.json",
+      "bytes": 623,
+      "sha256": "262766E5C7233BE941194F8F2C8DC3959C595FF82FB2BBD4463A7C122B5EF882"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/runtime.py",
+      "bytes": 262,
+      "sha256": "33316DBA19D29D388771C4B0DF9AF8EF4CEB4B59E7894FD1D4D5B643256B76EF"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/schema.sql",
+      "bytes": 3168,
+      "sha256": "ED2B56B43825FFB56770EAE566BCD1A84062CF767E492A82E12840DCF0352204"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/sqlite-artifact.schema.json",
+      "bytes": 991,
+      "sha256": "C333B2E3ACB22823FE8300C8C821CD6AFC6E60222EED061716659CA4FF2031EA"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/sqlite-schema.v1.json",
+      "bytes": 22571,
+      "sha256": "E1D7E4A7C5C2A277B98C01BB6BC78D7E748C2C9B44474EF68FF6D2D167214F8C"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/tools.json",
+      "bytes": 5837,
+      "sha256": "083E2A79648FD32F7CC9A29037FB33B243488FAC7671755855F7F8115F30C422"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/tools.schema.json",
+      "bytes": 549,
+      "sha256": "8D35AAB4D3C40E840EE1EB33CE45575770040323A4E4146E447728A88F059FDF"
+    },
+    {
+      "path": "authorities/canon_input/dot-artifact.schema.json",
+      "bytes": 961,
+      "sha256": "5FEFBA5FAE48B00068C0658E6CF887AF03EAD8A2D3D4554C8DC6AD837549378F"
+    },
+    {
+      "path": "authorities/canon_input/manifest.schema.json",
+      "bytes": 1033,
+      "sha256": "0E28EE5BD5ADF6FFBB08AAEAB63147BD716603FB393FA1AFFE6E73F8BC64E667"
+    },
+    {
+      "path": "authorities/canon_input/mmd-artifact.schema.json",
+      "bytes": 974,
+      "sha256": "AFD5B5D101B8DF806572EF1818BEA86E7759AF8E20BDEBE2CA245958A44C5A1B"
+    },
+    {
+      "path": "authorities/canon_input/pointer-contract.schema.json",
+      "bytes": 542,
+      "sha256": "F686110D7BBDFBCAE0A0ED1E178A3E8EB5888D3B9CFEB7CB5A4D2DF223F99447"
+    },
+    {
+      "path": "authorities/canon_input/pointer-contract.v1.json",
+      "bytes": 430,
+      "sha256": "CC962AACFFF1ABCE11EC6E103254A8ACB82764419DCE51560EA5B527DC73D8CA"
+    },
+    {
+      "path": "authorities/canon_input/reader-contract.schema.json",
+      "bytes": 761,
+      "sha256": "67FAA726D74B4A430FBE4ED0A1EB8E70A3F5E95CE3F572B83BC7AFCB1A3583C0"
+    },
+    {
+      "path": "authorities/canon_input/reader.py",
+      "bytes": 316,
+      "sha256": "E33353CBE5C9519B537CAAF55EFBB417FAB367D0D51AF19DBCF6C1D8DE2C756E"
+    },
+    {
+      "path": "authorities/canon_input/README.md",
+      "bytes": 348,
+      "sha256": "09B3AEDA51DD6A5F66C415DC4FDB4A5290934F1C209C0D20B38403E7309E8906"
+    },
+    {
+      "path": "authorities/canon_input/refresh-receipt.schema.json",
+      "bytes": 880,
+      "sha256": "785068115F9925F5D6034CC8206DDA3EB1C0C9AB42036CDBF7E847A021988B13"
+    },
+    {
+      "path": "authorities/canon_input/runtime-binding.schema.json",
+      "bytes": 592,
+      "sha256": "B52EEBC40F8119FA9D34F9CDBD4AC0E8F708B28524A36F55907A06EC94C02538"
+    },
+    {
+      "path": "authorities/canon_input/runtime.py",
+      "bytes": 330,
+      "sha256": "4B483E1616223E3C78C1E8C1D200C73EA8AEEDB19CD500308CF3D859AC7FF941"
+    },
+    {
+      "path": "authorities/canon_input/schema.sql",
+      "bytes": 5193,
+      "sha256": "60C3D12425EB36773E31E071D00488CB3411CBF78161C3908EACC9F6ADB87367"
+    },
+    {
+      "path": "authorities/canon_input/sqlite-artifact.schema.json",
+      "bytes": 952,
+      "sha256": "5C84CB46C510AC259B4E8FFB68E9846F7FB3549F692DC6FEC4CF09D315ABA502"
+    },
+    {
+      "path": "authorities/canon_input/sqlite-schema.v1.json",
+      "bytes": 28563,
+      "sha256": "4E68236BFA72B6BBD2D4B6879FDD3C5F2C82911AA50EA32DA1D2911CD9C31CA2"
+    },
+    {
+      "path": "authorities/canon_input/tools.schema.json",
+      "bytes": 529,
+      "sha256": "122B858ACC1F0136E1D184482FA1E5BB9571D9CE7B7EDEEAD4F82AAE2E5016BD"
+    }
+  ],
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/canon_task_graph.py": "95C90680AA13216504ACCDC108A3374B67FF520BC051B5A6199BAADC11673C6F",
+    "src/evidence_lane_plugin/canon_consequence_graph.py": "AF1112AE18285A93A2308CF9E31B683EFF1D16FA5199726195CD31F25649B7F2",
+    "src/evidence_lane_plugin/canon_runtime_continuity.py": "29E5972158EADAFE08E2CD16BEE93775A7ADCCE4B3FB7E76AB4DE33523116670",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [
+    {
+      "authority_id": "canon_consequence_graph",
+      "path": "authorities/canon_input/consequence_graph",
+      "manifest_sha256": "27AD04E1F5D2A4A59F30A1070644CD958E4D5DE8C5E37F4334F4B3DC9AB37F2B",
+      "database_sha256": "CED4C2F31BF3B203E388F71E4CCDB98C229E7050C2C1C6196A7DB32A52631F79",
+      "table_count": 18,
+      "separate_sqlite_authority": true
+    }
+  ],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "canon_input",
+    "source_count": 0,
+    "node_count": 0,
+    "indexed_table_count": 0,
+    "indexed_tables": [],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:50.889343Z",
+    "receipt_sha256": "AF54EB31D7FE63E337456787E06CAF584C986BF619610EAD2D3C948C30651FCE"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "canon_input_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 126,
+    "edge_count": 128,
+    "group_count": 1,
+    "semantic_topology_sha256": "19BE82DFCB40E69748D06C152B94B51E5E3EDFF42A5C28311294A1F95AE14B2C",
+    "mmd_sha256": "7B1155632EA8B06794553374FF9EAE8969820E37272931EB0A70A51580D93AE3",
+    "dot_sha256": "F2E6CAB5F3804866BA0701EACBCD0ABE3088AE1DF0A5E687EA7A89D7CE6774BF",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "BAADDDEAB5D6B180036F05C5EFC7F95874BE1BC1FEC7A2B0C6137BD071CE4023",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 126,
+      "edge_count": 128,
+      "weak_component_count": 1,
+      "strong_component_count": 126,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 18
+        },
+        {
+          "node_id": "support_table_canon_packet",
+          "in_degree": 3,
+          "out_degree": 14
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_canon_event",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_canon_contract",
+          "in_degree": 1,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_authority_index_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_canon_edge",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_canon_schema_migration",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_canon_receipt",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_canon_backfire_dedup",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_canon_continuity_receipt",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_canon_dispatch",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_authority_index_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_authority_index_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_column_authority_id",
+          "in_degree": 1,
+          "out_degree": 0
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "9DF84484F67C171C9CC2D802553FF9D0040770F98351102446EAFBA3BC1B10C5",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "9BAD63ED4820D09387E1BE2A82E56003787A0B849E8491B8FEF94709F31FDA34"
+  },
+  "live_project_bytes_in_template": false,
+  "authority_merged_with_sector_or_peer": false,
+  "receipt_sha256": "655D449E0B07EB14F6A5D2C8F65EAC4CA17C95AF2D5B0F0F7E549DF70611DFFD"
+}

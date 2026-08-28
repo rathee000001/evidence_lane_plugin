@@ -1,0 +1,96 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "formula_engine_run",
+  "title": "Run Formula Engine",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "mode_governance": {
+        "additionalProperties": true,
+        "title": "Mode Governance",
+        "type": "object"
+      },
+      "execution_budget": {
+        "additionalProperties": true,
+        "title": "Execution Budget",
+        "type": "object"
+      },
+      "route": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Route"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "mode_governance",
+      "execution_budget"
+    ],
+    "title": "formula_engine_runArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "formula_engine_runDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "060492B868630283163FA269FC5C54139DE688E9D8981DB84C05ABC7676C311E",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-formula",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "formula_engine_run"
+    },
+    "internal_sdk": {
+      "module_id": "first_class_workflows",
+      "operation": "formula_engine_run",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-formula",
+        "workflow": "bounded-env-uop-formula-execution",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/formula_engine_run.action.v1.json",
+  "sdk_action_binding_sha256": "AAA4D2249814DF0C465AC3F1A130A60D50CE12DE16348B5058350853E2F40F61",
+  "public_action_schema": "schemas/actions/formula_engine_run.schema.json",
+  "public_action_schema_sha256": "59A8A61DE166DE55307B5661C602D4B4E832723C661F6B15E7983F8829531646",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "29B8F454BB3BF004C7F0617217B63C143775E40BB04D35453D2C29EA87F88C21"
+}

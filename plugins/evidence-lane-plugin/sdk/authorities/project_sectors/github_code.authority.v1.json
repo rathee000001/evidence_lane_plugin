@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-project-sector-binding.v1",
+  "status": "PASS",
+  "lane_id": "github_code",
+  "authority_root": "authorities/project_sectors/github_code",
+  "authority_manifest_sha256": "31A2BB0886A8A335FC49BE49A9B20CE69844BB88C5AB26805A1E9D3B8411F246",
+  "schema_surface": "schemas/project-sectors/github_code/schema-surface.v1.json",
+  "builder": "authorities/project_sectors/github_code/builder.py",
+  "reader": "authorities/project_sectors/github_code/reader.py",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_binding": false,
+  "receipt_sha256": "25A52675489651D1E6F1930A72FC3C63B1CDCCCC08D02AA68EE657E49B9CCD9B"
+}

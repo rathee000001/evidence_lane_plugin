@@ -1,0 +1,444 @@
+{
+  "schema": "evidence-lane.installed-authority-tools.v1",
+  "status": "PASS",
+  "authority_id": "project_overlay",
+  "database": "project_overlay.sqlite",
+  "query_order": [
+    "project_overlay.mmd",
+    "project_overlay.dot",
+    "project_overlay.sqlite"
+  ],
+  "sqlite_query_mode": "READ_ONLY_IMMUTABLE_BOUNDED_FTS5_BM25",
+  "json_role": "BUILD_REFRESH_SCHEMA_AND_POINTER_TOOLING",
+  "runtime_binding": "runtime.py",
+  "builder_binding": "builder.py:refresh",
+  "reader_binding": "reader.py:validate",
+  "linked_public_actions": [
+    {
+      "name": "adaptive_delta_exit",
+      "schema_sha256": "BA332F64F8A745141FBA77F0F795E8DCC644152C18C9C4725E01D99101A113EB",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "adaptive_delta_exit"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-refresh",
+            "workflow": "adaptive-delta-exit-append-refresh",
+            "order": 2
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "task-execution",
+            "order": 13
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "hil_decide",
+      "schema_sha256": "47102A9AAE2F25D54DDB2AA259EFB9B822BD89125C54052833694A0F01790D53",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-fuse",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "hil_decide"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-fuse",
+            "workflow": "dual-hil-non-promotion-decision",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "hil_intent_classify",
+      "schema_sha256": "A2444E1A49943B407CFCA3ED1012B87975F6A153FF8360D6B02A571E0C80FE66",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-fuse",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "hil_intent_classify"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-fuse",
+            "workflow": "dual-hil-intent-classification",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "hil_return_to_accepted",
+      "schema_sha256": "DA91B7141620F0B01C1247056C23B49B5546F67040C5C74F1292D400A4D1575C",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-fuse",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "hil_return_to_accepted"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-fuse",
+            "workflow": "dual-hil-non-promotion-decision",
+            "order": 2
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_build_initial",
+      "schema_sha256": "3395F9793BC824F85BE443C375478EE009546D77291E61F1597F7F6EFB7E5836",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-build",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_build_initial"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-build",
+            "workflow": "source-intake-backed-pv0-bootstrap",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "pv_fuse",
+      "schema_sha256": "DC8CCDE7535966C18069B6BCE3081F18C9B0D5FCE12A5AD29A769E1729907DBF",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-fuse",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "pv_fuse"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi",
+            "workflow": "exact-fuse",
+            "order": 10
+          },
+          {
+            "owner_skill": "evi-fuse",
+            "workflow": "exact-learning-then-project-approval-promotion",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "exact-fuse",
+            "order": 8
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "render_project_panel",
+      "schema_sha256": "8C8F10765A838FA51942EC2DDBA771C0E30C963374F65BE0198164DEA74DD7FE",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "render_project_panel"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-build",
+            "workflow": "physically-final-pv-hil-presentation-only",
+            "order": 2
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "two-trigger-render-dispatch",
+            "order": 19
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "render_runtime_panel",
+      "schema_sha256": "F4C8CF4D4CC1B8B70C3B3E3220C23D03189B44E21E22EAF49B22FF2382FC9597",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "render_runtime_panel"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-build",
+            "workflow": "physically-final-pv-hil-presentation-only",
+            "order": 2
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "two-trigger-render-dispatch",
+            "order": 19
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "source_intake_classify",
+      "schema_sha256": "CBE89FF15C6A4AD750C1D4D17C6F987420D6A3946573FA2ABB4E2FD1715E0F8A",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-source-intake",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "source_intake_classify"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-refresh",
+            "workflow": "steer-prompt-source-intake-refresh-working-sectors",
+            "order": 1
+          },
+          {
+            "owner_skill": "evi-source-intake",
+            "workflow": "classify-source-intake",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    },
+    {
+      "name": "task_complete_and_refresh",
+      "schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-refresh",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "task_complete_and_refresh"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-refresh",
+            "workflow": "hil-live-root-project-overlay-proposal",
+            "order": 3
+          },
+          {
+            "owner_skill": "evidence-lane-code-lifecycle",
+            "workflow": "task-execution",
+            "order": 15
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "linked_skills": {
+    "skills/evi-build/SKILL.md": "0BC4328FC24208B28EBB84AD7284A57DB2E7FFCCF08F95BDCAEFFA629768ABF0",
+    "skills/evi-refresh/SKILL.md": "F32DA2CDFEB8F3810233BCD3AD8621024635283559720C81375BCBE6BB189511",
+    "skills/evi-fuse/SKILL.md": "3C08DE694B69363608F28DE58FFA9073FC2414836E532751E667CA6C52D08D40"
+  },
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/project_overlay.py": "E6641A9DFC739C8D822CA90B654B7472C6DE3B40697FCB7F0FAC059E01355229",
+    "src/evidence_lane_plugin/adaptive_delta_exit.py": "53F72C13E32124926516823A28AE2278C2F1B62AB28AAE389D47CD99D7316A33",
+    "src/evidence_lane_plugin/store.py": "FC868D08CAA96C2A1D5727941EDE7A827CB131CAEB9EFD38B6F075CE29C13850",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "project_overlay",
+    "source_count": 0,
+    "node_count": 0,
+    "indexed_table_count": 0,
+    "indexed_tables": [],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:51.306640Z",
+    "receipt_sha256": "A0E7AF386DF251A3BB80689D88A1CE2BAD48C4D6BE57C6FCCB2472B0E1F7C269"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "project_overlay_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 185,
+    "edge_count": 192,
+    "group_count": 1,
+    "semantic_topology_sha256": "F6FB46B346227C586E9C22E7B648493FBD5FA14992A788C11109154B33562915",
+    "mmd_sha256": "E2CE96E1A276FACD04F504A69EB96CD5C36100D5BE07FEC695D71E8D9644CA9F",
+    "dot_sha256": "A9610615267BBD5F2BBC201167BF810244BB7895D8D58674DFBF8FD57B004162",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "EA2336DE910D101F0AE0305FB1D8C1EDBD055CF20C0D235E3F170158E7E11EA2",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 185,
+      "edge_count": 192,
+      "weak_component_count": 1,
+      "strong_component_count": 185,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 28
+        },
+        {
+          "node_id": "support_table_pv_hil_transition",
+          "in_degree": 4,
+          "out_degree": 13
+        },
+        {
+          "node_id": "support_table_chat_lineage_event",
+          "in_degree": 3,
+          "out_degree": 13
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_overlay_history_baseline",
+          "in_degree": 1,
+          "out_degree": 10
+        },
+        {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_hil_transition_receipt",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_sector_candidate_snapshot",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_fusion_receipt",
+          "in_degree": 1,
+          "out_degree": 8
+        },
+        {
+          "node_id": "support_table_sector_hil_snapshot",
+          "in_degree": 1,
+          "out_degree": 8
+        },
+        {
+          "node_id": "support_table_authority_index_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_chat_lineage_sector_fanout",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_project_sector_registry",
+          "in_degree": 3,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_sector_hil_delta",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_output_link",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_overlay_fts_content",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_sector_hil_baseline_snapshot",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_overlay_fts",
+          "in_degree": 1,
+          "out_degree": 4
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "2A4783EFAF29CE4DF156016D45D43D763F3066DDC8B28530DAD2F93BC6C57043",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "24D4553453E93AD482DE17A86B0DE731C54BECA598EBC9B94172DA367C70F3DB"
+  },
+  "receipt_sha256": "AC1705862428635CAB605E7842FA66A79E92619BE0B6F165A861EA8E41FF81C6"
+}

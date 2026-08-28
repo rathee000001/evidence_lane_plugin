@@ -1,0 +1,107 @@
+{
+  "schema": "evidence-lane.installed-lane-surface.v1",
+  "status": "PASS",
+  "lane_id": "local_code",
+  "sqlite_filename": "local_code_sector_v001.sqlite",
+  "sqlite_integrity": "ok",
+  "sqlite_table_count": 73,
+  "schema_contract_table_count": 58,
+  "members": [
+    {
+      "path": "authorities/project_sectors/local_code/builder-contract.schema.json",
+      "bytes": 616,
+      "sha256": "48830AE1DB2D78397F734C756007FCB7628E185695124CEEA9E941CC5090E397"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/builder.py",
+      "bytes": 578,
+      "sha256": "97D8BCC468566E7FAFDE6567840EC769C1C6E4BB3E8C5BFD36E9DBE867A8683F"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/dot-artifact.schema.json",
+      "bytes": 950,
+      "sha256": "97A4CD4AA076719D6A4EB4CD301E6721075633BB0AABF7A0A051C92C5F12CE38"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/lane-contract.v1.json",
+      "bytes": 9866,
+      "sha256": "7A6ACB3EE98134D91D4CC2BA2888354D7C59075E679243D76D758142067EA024"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/lane-pointer.schema.json",
+      "bytes": 741,
+      "sha256": "F483BB353FEE7BACCACF644D275F87EE5AC9405173864BF341C17AA957032C2C"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/local_code.dot",
+      "bytes": 30713,
+      "sha256": "726E9E27D3FC1552A345F3859C8A10F29427CAAE3CF90C9A69038B29A34A567B"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/local_code.mmd",
+      "bytes": 24698,
+      "sha256": "28CA0762C031ADADC74A0354DE62CCAE9F0D0458E0291264A3560D3D47977BCA"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/local_code_sector_v001.sqlite",
+      "bytes": 438272,
+      "sha256": "702938E0EB7FF7334E493B4AA58F6F919197781028079001FBE321728CDA5067"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/manifest.schema.json",
+      "bytes": 980,
+      "sha256": "BBC209299282DDEB1B71222818C531E3EA93E31858279D4BD91CEE7FA310F318"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/mmd-artifact.schema.json",
+      "bytes": 967,
+      "sha256": "96A089204A2F9755B800431A7082B32A93ECBF644390E20BC19549765A804D56"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/reader-contract.schema.json",
+      "bytes": 766,
+      "sha256": "8D64185D8B1B98225654622ACD93EED3F7AE5095D1AEF3B302392B013827F5A2"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/reader.py",
+      "bytes": 440,
+      "sha256": "78E8EE7203FFB42D32E3CADF4BCF56EDF057AA2432885714F5FDA9A6D6890581"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/README.md",
+      "bytes": 366,
+      "sha256": "67EB63DCBF17782FF9520BB5BB4B1F874C81F10EFC9436780CAD2BAF649D56BD"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/refresh-receipt.schema.json",
+      "bytes": 536,
+      "sha256": "5203977D1D3D1663253002BA7873EC516E306AFAD3735DF6BD913FB6C8E205AD"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/schema.sql",
+      "bytes": 18616,
+      "sha256": "DE7C2C7A88F2CFD9743A3D5C42D508B355247EAB6399FF3F32B4334E13D277DA"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/sqlite-artifact.schema.json",
+      "bytes": 969,
+      "sha256": "619A4F27B348130BD74BA986CD14893100D4710E21F15ADE271A2DDA650C8244"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/tools.json",
+      "bytes": 1152,
+      "sha256": "85339F130B5D09A81F8D8F2A2D245B6276BBF8814C72946C7F1746AAE88DE784"
+    },
+    {
+      "path": "authorities/project_sectors/local_code/tools.schema.json",
+      "bytes": 1005,
+      "sha256": "314C5374F11027A3EC1419FCB5B6F56649B7E0039A8356E53B67BE174A115BEF"
+    }
+  ],
+  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_template": false,
+  "template_contains_identity_metadata_only": true,
+  "receipt_sha256": "51696253DDB0864A132D57E1802FB2DD0192BE59C95C22874869B0F09045C291"
+}

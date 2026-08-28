@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 
 import pytest
+from evidence_lane_plugin.constants import NATIVE_TOOL_COUNT
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.mcp_server import create_mcp_server
@@ -355,6 +356,6 @@ def test_atomic_insertion_extends_existing_mcp_tool_without_catalog_growth(
     service,
 ) -> None:
     tools = asyncio.run(create_mcp_server(service=service).list_tools())
-    assert len(tools) == 87
+    assert len(tools) == NATIVE_TOOL_COUNT
     plan_tool = next(tool for tool in tools if tool.name == "pv_plan_tasks")
     assert "atomic_insertion" in plan_tool.inputSchema["properties"]

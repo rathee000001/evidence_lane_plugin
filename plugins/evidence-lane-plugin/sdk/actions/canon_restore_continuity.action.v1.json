@@ -1,0 +1,100 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "canon_restore_continuity",
+  "title": "Restore Canon State Travel continuity",
+  "description": "Restore one sealed Canon graph snapshot after exact destination binding. This cannot replay HIL, move a pointer, or create another destination.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "snapshot": {
+        "additionalProperties": true,
+        "title": "Snapshot",
+        "type": "object"
+      },
+      "destination_task_uuid": {
+        "title": "Destination Task Uuid",
+        "type": "string"
+      },
+      "destination_task_deep_link": {
+        "title": "Destination Task Deep Link",
+        "type": "string"
+      },
+      "destination_host_session_id": {
+        "title": "Destination Host Session Id",
+        "type": "string"
+      },
+      "restored_at": {
+        "title": "Restored At",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "snapshot",
+      "destination_task_uuid",
+      "destination_task_deep_link",
+      "destination_host_session_id",
+      "restored_at"
+    ],
+    "title": "canon_restore_continuityArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "canon_restore_continuityDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "EB82B8210DA29C9EB8298EE9EAE90E12BC82C9F97B49A9E14E787345B92157A2",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_restore_continuity"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "restore_continuity",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-state-travel-continuity",
+        "order": 16
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/canon_restore_continuity.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "41D1D8B14C1F838C6D382B59104AFB2111D9D0BC16F396A25832BB658CE87F27"
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.canon_task_graph",
+  "source_path": "src/evidence_lane_plugin/canon_task_graph.py",
+  "source_sha256": "95C90680AA13216504ACCDC108A3374B67FF520BC051B5A6199BAADC11673C6F",
+  "source_bytes": 136614,
+  "role": "PROJECT_AUTHORITIES",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "CEC54A980D21F62AEBE4ABB0441709E68E4A707EC6B77BAD3EE42DD0DE887557"
+}

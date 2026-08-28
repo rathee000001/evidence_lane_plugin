@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 10,
+  "event": "Stop",
+  "handler_count": 4,
+  "event_binding": "hooks/events/Stop/event.v1.json",
+  "event_binding_sha256": "15F30D24084677189033B1BC0C66F3261F89A2CCF63A3AB80900297DDE883D2F",
+  "handlers": [
+    {
+      "display_id": "10.1",
+      "path": "hooks/events/Stop/handler-10.1.v1.json",
+      "sha256": "5D378AFB8F215B1FA8A6F1487DD7CA3C64CDE08AAE47D5D4F1F1DB433A74AE96"
+    },
+    {
+      "display_id": "10.2",
+      "path": "hooks/events/Stop/handler-10.2.v1.json",
+      "sha256": "E84B0FA76EAD0FE0E4EBBCDDB37459C15847DA9C4A4BD52382A5C51E91BE08E7"
+    },
+    {
+      "display_id": "10.3",
+      "path": "hooks/events/Stop/handler-10.3.v1.json",
+      "sha256": "AF76C840EC99515FD3B8505BFB92F116A7FC3321DD01E5F35019972CDEE7D4A4"
+    },
+    {
+      "display_id": "10.4",
+      "path": "hooks/events/Stop/handler-10.4.v1.json",
+      "sha256": "142EB2B66C8DDCFB2A23816417723157AE01ED91E20961628C888751D62FE690"
+    }
+  ],
+  "canonical_hook_manifest": "hooks/hooks.json",
+  "canonical_logical_actions": "hooks/logical-actions.json",
+  "enabled_only_after_installed_event_pass": true,
+  "receipt_sha256": "2866507926E87833BF95F0D8272A3317E3DDDD16D92A047E8C8C5B255A8FAF2A"
+}

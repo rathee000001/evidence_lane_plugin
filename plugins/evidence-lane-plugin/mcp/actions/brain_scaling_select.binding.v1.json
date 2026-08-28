@@ -1,0 +1,95 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "brain_scaling_select",
+  "title": "Select bounded brain slice",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "authority_id": {
+        "title": "Authority Id",
+        "type": "string"
+      },
+      "slices": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Slices",
+        "type": "array"
+      },
+      "token_budget": {
+        "title": "Token Budget",
+        "type": "integer"
+      },
+      "max_slices": {
+        "title": "Max Slices",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "authority_id",
+      "slices",
+      "token_budget",
+      "max_slices"
+    ],
+    "title": "brain_scaling_selectArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "brain_scaling_selectDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "8309AA1CA8FF688BB1BF5CD203F7B0F10690555BE00400525A137FA4E73F93DA",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-brain-scaling",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "brain_scaling_select"
+    },
+    "internal_sdk": {
+      "module_id": "first_class_workflows",
+      "operation": "brain_scaling_select",
+      "read_only": true
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-brain-scaling",
+        "workflow": "deterministic-indexed-brain-slice-selection",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/brain_scaling_select.action.v1.json",
+  "sdk_action_binding_sha256": "87B86985F045EDBE7CAD08062CA792D9569679B1BDCEECE1503CF49B9B624C5A",
+  "public_action_schema": "schemas/actions/brain_scaling_select.schema.json",
+  "public_action_schema_sha256": "071B2648DE1FF5F892D28A040E715AD37BE004C0B09C0145A04E937C09777BD4",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "D0FAEAB99BB9A9A46C465339E7126F897D27ABE95C3D20A15134188CDE523965"
+}

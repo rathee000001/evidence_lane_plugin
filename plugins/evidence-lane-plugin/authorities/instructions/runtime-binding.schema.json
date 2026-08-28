@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "instructions runtime modules",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "modules",
+    "source_hashes"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "instructions"
+    },
+    "modules": {
+      "const": [
+        "evidence_lane_plugin.agent_configuration",
+        "evidence_lane_plugin.conversation_memory"
+      ]
+    },
+    "source_hashes": {
+      "const": {
+        "src/evidence_lane_plugin/agent_configuration.py": "FADD455E568DCE125B8E581B028E7987D04D6E70D6A538A3FEC0D2AE793B49B3",
+        "src/evidence_lane_plugin/conversation_memory.py": "875D1CF54192647A75124A4AD43090AA37F52CA2CF68A124B9DD36316216B886"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "294E222A39F513DB6F058B4DED086DC8B140396766679D71AD873A880F06AC3F"
+}

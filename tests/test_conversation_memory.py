@@ -96,6 +96,40 @@ def test_memory_supports_bounded_configured_fallback(tmp_path: Path) -> None:
     assert resolved.receipt["memory_doc_max_bytes"] == 128
 
 
+def test_memory_accepts_model_only_profile_without_inventing_host_selectors(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    root = tmp_path / "project"
+    home.mkdir()
+    root.mkdir()
+
+    resolved = _resolve(
+        home,
+        root,
+        root,
+        execution_profile={"model": "gpt-5.6-sol"},
+    )
+
+    assert resolved.receipt["binding"]["execution_profile"] == {"model": "gpt-5.6-sol"}
+
+
+@pytest.mark.parametrize("profile", [{}, {"model": "gpt-5.6-sol", "submodel": ""}])
+def test_memory_rejects_missing_model_or_invalid_supplied_selector(
+    tmp_path: Path,
+    profile: dict[str, str],
+) -> None:
+    home = tmp_path / "home"
+    root = tmp_path / "project"
+    home.mkdir()
+    root.mkdir()
+
+    with pytest.raises(EvidenceLaneError) as blocked:
+        _resolve(home, root, root, execution_profile=profile)
+
+    assert blocked.value.code == "CONVERSATION_MEMORY_BINDING_INVALID"
+
+
 @pytest.mark.parametrize(
     ("payload", "code"),
     [

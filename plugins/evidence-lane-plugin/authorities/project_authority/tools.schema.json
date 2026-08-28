@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_authority project_authority.tools.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-tools.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "project_authority"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "84684417194E8F17C8350DCE5BF11F6B3545A28856510B741FA526E84AC8A161"
+}

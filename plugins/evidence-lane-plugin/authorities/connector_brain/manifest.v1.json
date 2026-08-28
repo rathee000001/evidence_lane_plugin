@@ -1,0 +1,288 @@
+{
+  "schema": "evidence-lane.installed-authority-surface.v1",
+  "status": "PASS",
+  "authority_id": "connector_brain",
+  "database": "connector-brain.sqlite",
+  "database_sha256": "4D98403982833735F08A73202950BDBC90644BF9A1AD3239A6EAC07A71D4F692",
+  "database_integrity": "ok",
+  "schema_sha256": "DDA01FE5B0F861C44DA06AFB8DAC35CD1D9395B69B44035ECC0C5ACFFC0CCCCB",
+  "table_count": 29,
+  "fts5_tables": [
+    "authority_index_fts",
+    "plugin_fts",
+    "universe_federation_fts"
+  ],
+  "members": [
+    {
+      "path": "authorities/connector_brain/build-refresh-contract.schema.json",
+      "bytes": 567,
+      "sha256": "B306024054650E7CC865C6E6D1C1FBDA027EDDA229A8B8D7B1BF26C8EC1ADDC4"
+    },
+    {
+      "path": "authorities/connector_brain/builder.py",
+      "bytes": 316,
+      "sha256": "ADC5E5118E8F206E20D452928BE4914B31C34B482E2808FFE984FB98512B5C2D"
+    },
+    {
+      "path": "authorities/connector_brain/connector-brain.sqlite",
+      "bytes": 196608,
+      "sha256": "4D98403982833735F08A73202950BDBC90644BF9A1AD3239A6EAC07A71D4F692"
+    },
+    {
+      "path": "authorities/connector_brain/connector_brain.dot",
+      "bytes": 49286,
+      "sha256": "2E24996BA109F3A8FFCEF4143E713AD30CDE2DAAB9A19EEFB660BE115A3CC5F8"
+    },
+    {
+      "path": "authorities/connector_brain/connector_brain.mmd",
+      "bytes": 36650,
+      "sha256": "38B23A34CC7366A0423436F3C9D9A0FEA3151D693631E60B3F284433407C68FA"
+    },
+    {
+      "path": "authorities/connector_brain/connector_brain.tools.json",
+      "bytes": 10082,
+      "sha256": "51D4D13E4239AB8DE41B6B30AC16207A4E1450161000286F6ABEBA5D3F4DAC59"
+    },
+    {
+      "path": "authorities/connector_brain/dot-artifact.schema.json",
+      "bytes": 973,
+      "sha256": "9792AFA973C5B8A6C3AB0DD531223A56BB25763DBB42DBF2388A64A09199326D"
+    },
+    {
+      "path": "authorities/connector_brain/manifest.schema.json",
+      "bytes": 1045,
+      "sha256": "5800AEE26EB69D9570D3E7E2C959F41473DA0DFB8C3218D2D9788AAF3C30A5B4"
+    },
+    {
+      "path": "authorities/connector_brain/mmd-artifact.schema.json",
+      "bytes": 986,
+      "sha256": "F6F47007DF8D0905166773E4C5CC2F0732C99452916EC2E90C247C6D12A6035A"
+    },
+    {
+      "path": "authorities/connector_brain/pointer-contract.schema.json",
+      "bytes": 550,
+      "sha256": "E4D6DA2DC54AF5BEF207D4061CFD6B00E5A8117FDE7D51ED0A04302528BC22BC"
+    },
+    {
+      "path": "authorities/connector_brain/pointer-contract.v1.json",
+      "bytes": 429,
+      "sha256": "593D1057A85C95D6C381B106242204F9C40DF8DF3AE811767AF894AB5657DB98"
+    },
+    {
+      "path": "authorities/connector_brain/reader-contract.schema.json",
+      "bytes": 769,
+      "sha256": "2E989C2A5C119903FC8800561BAF6A1155F8E26DF1EF8F33259B0206E1AEE82B"
+    },
+    {
+      "path": "authorities/connector_brain/reader.py",
+      "bytes": 320,
+      "sha256": "62172A4FC920D26031E5D216FFD0506F6B5A1FECE6DF85C924A545DA9094D9AB"
+    },
+    {
+      "path": "authorities/connector_brain/README.md",
+      "bytes": 352,
+      "sha256": "18C8236D57B195DB44114650DAC873FF504D1990B04D322C1C25E70B4661FB5C"
+    },
+    {
+      "path": "authorities/connector_brain/refresh-receipt.schema.json",
+      "bytes": 888,
+      "sha256": "F5E56231A0291C5E9B55C7BB67329F1937C0F1A9C9CC5FA977966E123E357A97"
+    },
+    {
+      "path": "authorities/connector_brain/runtime-binding.schema.json",
+      "bytes": 604,
+      "sha256": "6AF42C2027B1452A8277CDDE20EA09AD9501DEF23F440D59FD0D68245E471541"
+    },
+    {
+      "path": "authorities/connector_brain/runtime.py",
+      "bytes": 338,
+      "sha256": "4608447347D42F9A8C148F37D13BB0E0B4C26680EDB825A856BB90D3A4620B57"
+    },
+    {
+      "path": "authorities/connector_brain/schema.sql",
+      "bytes": 7269,
+      "sha256": "F6C3D8F29CD81AC1102AD6E4B62E67D33E3B23CA2C9A4B3B3457C1EE92E57457"
+    },
+    {
+      "path": "authorities/connector_brain/sqlite-artifact.schema.json",
+      "bytes": 964,
+      "sha256": "EFEACA22B5ACD1D4AC1C07BDC6099F41093D5B4734C7A0918B14483176D5DEA2"
+    },
+    {
+      "path": "authorities/connector_brain/sqlite-schema.v1.json",
+      "bytes": 42220,
+      "sha256": "6CB8E343CD6DB2A7B8ACC6FFE35A7600A49EA99E3C7B2EC58041549C42AB4AEA"
+    },
+    {
+      "path": "authorities/connector_brain/tools.schema.json",
+      "bytes": 541,
+      "sha256": "0DAC6DAA361B7A9F65692C3712DAEB36FFEE01957B74D101BE2A91CDDFDAA488"
+    }
+  ],
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/connector_governance.py": "619C78D2E2447B004F4823A6B8D2C059B271381486F1F2AE3957F0B5EACCF91E",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "connector_brain",
+    "source_count": 0,
+    "node_count": 0,
+    "indexed_table_count": 0,
+    "indexed_tables": [],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:51.863233Z",
+    "receipt_sha256": "EA6BDB76A9E7DD238DB8517FDE157FDEBAAB4CDEC58E968D6E4BFFD25027AFD3"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "connector_brain_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 186,
+    "edge_count": 194,
+    "group_count": 1,
+    "semantic_topology_sha256": "300F269BE4639193C182E7C56F7BCCBE607EFE95CD84E0DF979B058475790499",
+    "mmd_sha256": "38B23A34CC7366A0423436F3C9D9A0FEA3151D693631E60B3F284433407C68FA",
+    "dot_sha256": "2E24996BA109F3A8FFCEF4143E713AD30CDE2DAAB9A19EEFB660BE115A3CC5F8",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "B42F8E853D1EAAEDF5CFA1C3CDD8078AE3BCA8408EB079789087DF0CCB15D7EF",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 186,
+      "edge_count": 194,
+      "weak_component_count": 1,
+      "strong_component_count": 186,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 29
+        },
+        {
+          "node_id": "support_table_plugin_registration",
+          "in_degree": 4,
+          "out_degree": 19
+        },
+        {
+          "node_id": "support_table_universe_mini_brain_ref",
+          "in_degree": 4,
+          "out_degree": 11
+        },
+        {
+          "node_id": "support_table_route_decision",
+          "in_degree": 1,
+          "out_degree": 13
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_universe_cross_project_edge",
+          "in_degree": 1,
+          "out_degree": 10
+        },
+        {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_plugin_event",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_universe_project_ref",
+          "in_degree": 3,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_universe_project_lane_head",
+          "in_degree": 1,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_authority_index_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_plugin_fts_content",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_role_schema_field",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_universe_federation_fts_content",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_plugin_fts",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_universe_federation_fts",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_authority_index_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_plugin_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "C0E33F426B2C3DEA4028668B52148700848E2BA165DD3DFD7426BC7365550276",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "78FFFC1F5C8ECDDDEF7D43BB9ADDB51B832E5ABEF737DE44070A39AD5D831824"
+  },
+  "live_project_bytes_in_template": false,
+  "authority_merged_with_sector_or_peer": false,
+  "receipt_sha256": "BA8823207096DFBA16C861272F5352CFA54F88CD15C21E348513E7B219CC19B9"
+}

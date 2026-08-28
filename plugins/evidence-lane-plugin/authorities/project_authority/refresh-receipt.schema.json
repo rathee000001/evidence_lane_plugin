@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_authority support refresh receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id",
+    "database",
+    "mmd",
+    "dot",
+    "tools",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.sqlite-authority-support-system.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "project_authority"
+    },
+    "database": {
+      "type": "object"
+    },
+    "mmd": {
+      "type": "object"
+    },
+    "dot": {
+      "type": "object"
+    },
+    "tools": {
+      "type": "object"
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "F29A77B6CBABDA3F4EA416A49244897560775654627041832A058152CB233FFD"
+}

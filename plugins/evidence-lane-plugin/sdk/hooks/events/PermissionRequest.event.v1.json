@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 5,
+  "event": "PermissionRequest",
+  "handler_count": 4,
+  "event_binding": "hooks/events/PermissionRequest/event.v1.json",
+  "event_binding_sha256": "CACCFC851405606559E741F7376C1C813CC65C8F1AA44D9933461C890CFF6E81",
+  "handlers": [
+    {
+      "display_id": "5.1",
+      "path": "hooks/events/PermissionRequest/handler-5.1.v1.json",
+      "sha256": "557BFABAE2EC5EA8CA42FC941A6340895EFB35500A481B3DEE545DBBA1571E0C"
+    },
+    {
+      "display_id": "5.2",
+      "path": "hooks/events/PermissionRequest/handler-5.2.v1.json",
+      "sha256": "840576A849773FD7EF612B4D4F69F84E5954E281EFAFC7BF8F90EBD5C1524D20"
+    },
+    {
+      "display_id": "5.3",
+      "path": "hooks/events/PermissionRequest/handler-5.3.v1.json",
+      "sha256": "B22E4EC6AF9D957F3F1E4225209B9C97941724E00F670DBFB88F014D808F0D36"
+    },
+    {
+      "display_id": "5.4",
+      "path": "hooks/events/PermissionRequest/handler-5.4.v1.json",
+      "sha256": "42F5FA446917398D1AE774EA6005B25F6DAD67802555494E1D48F7FDE8AEEEAA"
+    }
+  ],
+  "canonical_hook_manifest": "hooks/hooks.json",
+  "canonical_logical_actions": "hooks/logical-actions.json",
+  "enabled_only_after_installed_event_pass": true,
+  "receipt_sha256": "9082095F2E8349B17693AF4A868727B35CAFC49B2EB324690E33B5DE5173CABF"
+}

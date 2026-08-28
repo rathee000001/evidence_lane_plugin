@@ -1,0 +1,57 @@
+{
+  "schema": "evidence-lane.sdk-delta-workflow-binding.v1",
+  "status": "PASS",
+  "workflow": {
+    "workflow": "FULL_PV_DUAL_HIL",
+    "triggers": [
+      "FULL_PV_HIL_ROW_AFTER_DELTA_EXIT"
+    ],
+    "skills": [
+      "evi-refresh",
+      "evi-learning",
+      "evi-build"
+    ],
+    "public_actions": [
+      "task_complete_and_refresh",
+      "learning_decide_candidate",
+      "pv_fuse"
+    ],
+    "sdk_modules": [
+      "hil_candidate_pointer",
+      "agent_learning",
+      "plan_delta_tasks"
+    ],
+    "hooks_required": false,
+    "two_explicit_human_decisions_required": true,
+    "public_action_sdk": {
+      "actions": [
+        "task_complete_and_refresh",
+        "learning_decide_candidate",
+        "pv_fuse"
+      ],
+      "count": 3,
+      "count_is_fixed_ceiling": false
+    },
+    "ai_action_planes": [],
+    "env_uop_operations_counted_as_public_actions": 0
+  },
+  "public_actions": [
+    {
+      "name": "task_complete_and_refresh",
+      "binding": "sdk/actions/task_complete_and_refresh.action.v1.json"
+    },
+    {
+      "name": "learning_decide_candidate",
+      "binding": "sdk/actions/learning_decide_candidate.action.v1.json"
+    },
+    {
+      "name": "pv_fuse",
+      "binding": "sdk/actions/pv_fuse.action.v1.json"
+    }
+  ],
+  "hooks_required": false,
+  "env_uop_ai_action_plane": true,
+  "accepted_archive_queried": false,
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "E9F17A2FC17C1AD02EAFC15F43F3A69DDB771E151ED8C478D2D328460F566622"
+}

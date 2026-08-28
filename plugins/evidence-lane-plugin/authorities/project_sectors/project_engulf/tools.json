@@ -1,0 +1,27 @@
+{
+  "schema": "evidence-lane.installed-lane-tooling.v1",
+  "status": "PASS",
+  "lane_id": "project_engulf",
+  "builder": "builder.py:build_lane_sources",
+  "reader": "reader.py:LaneReader",
+  "query_traversal": "pointer + manifest + MMD + DOT + tools + SQLite",
+  "retrieval_modes": [
+    "hybrid",
+    "fts5",
+    "bm25",
+    "tfidf"
+  ],
+  "json_build_refresh_tooling": [
+    "lane_pointer.json",
+    "refresh_receipt.json",
+    "lane_manifest.json"
+  ],
+  "canonical_shared_modules": {
+    "src/evidence_lane_plugin/lanes.py": "2C3F9CED754BF7850C37951ED34AC61AE1876BE7DAF0956073769F24E23CA102",
+    "src/evidence_lane_plugin/lane_engine.py": "D6DC5653373ABC936EFEB1805252686BBCB4FAA322F22980D966225939118718",
+    "src/evidence_lane_plugin/lane_reader.py": "D3AD5D9A83F59FA1D47C78E9A1C3FF9B55686FAE297D86D652D778737C61A566",
+    "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
+    "src/evidence_lane_plugin/source_intake.py": "F8B9EA79F70CC9A68D1648103F1947259F09D4AF679475291A66CB9F2B47E85B"
+  },
+  "receipt_sha256": "81589996AD149ACB92B6ECC6060D733080FDAD7DD624CF9EA49AFB80B0E5E36F"
+}

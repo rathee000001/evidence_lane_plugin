@@ -1,0 +1,117 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "pv_plan_steer_delta",
+  "title": "Append one canonical steer Delta",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "delta_text": {
+        "title": "Delta Text",
+        "type": "string"
+      },
+      "actor": {
+        "title": "Actor",
+        "type": "string"
+      },
+      "delta_id": {
+        "title": "Delta Id",
+        "type": "string"
+      },
+      "linked_task_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Linked Task Id"
+      },
+      "new_task_contract": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "New Task Contract"
+      },
+      "boundary": {
+        "default": "BEFORE_NEXT_HIL",
+        "title": "Boundary",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "delta_text",
+      "actor",
+      "delta_id"
+    ],
+    "title": "pv_plan_steer_deltaArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_plan_steer_deltaDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "16BD6C74219F7EAF6DB93FE49ACA9419D89CD703E208D107200D21FB320C2823",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-plan",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_plan_steer_delta"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "plan-steer",
+        "order": 5
+      },
+      {
+        "owner_skill": "evi-plan",
+        "workflow": "plan-steer",
+        "order": 6
+      },
+      {
+        "owner_skill": "evi-state-travel",
+        "workflow": "state-travel-plan-steer",
+        "order": 9
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "plan-steer",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/pv_plan_steer_delta.action.v1.json",
+  "sdk_action_binding_sha256": "F6EFE4ED076C40F785FA4C8981964FF8A566389F3F8374981554388D49CD21C3",
+  "public_action_schema": "schemas/actions/pv_plan_steer_delta.schema.json",
+  "public_action_schema_sha256": "E92408AB250A5621B9529235E35BD964C92A6EDA345DD0D6C6C54C8F6774D344",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "6C6E46E514069E1BC8A2DF2666DC5DA8E9196FE9611E9A27E4EAB6394D48411D"
+}

@@ -1,0 +1,289 @@
+{
+  "schema": "evidence-lane.installed-authority-surface.v1",
+  "status": "PASS",
+  "authority_id": "project_overlay",
+  "database": "project_overlay.sqlite",
+  "database_sha256": "F043D4F31EA6CC9F904BCD581FE0D1A51C8A0E3BD4FA95D98B60E7C2887BECBE",
+  "database_integrity": "ok",
+  "schema_sha256": "54DA6A2C86A1FE64F29256C2D226E9FC171BD187303BA3821BD47CE1A53C29A4",
+  "table_count": 28,
+  "fts5_tables": [
+    "authority_index_fts",
+    "overlay_fts"
+  ],
+  "members": [
+    {
+      "path": "authorities/project_overlay/build-refresh-contract.schema.json",
+      "bytes": 567,
+      "sha256": "18DD03ED1D876B9D7D2C8D4D468A94BDE2335FC33C9D518CF7C1F3D49E2B2E5E"
+    },
+    {
+      "path": "authorities/project_overlay/builder.py",
+      "bytes": 316,
+      "sha256": "8728092F3244E156EAE58F5EABAF205C09B4A9CCCF689067523F12F1866A8373"
+    },
+    {
+      "path": "authorities/project_overlay/dot-artifact.schema.json",
+      "bytes": 973,
+      "sha256": "8F740DC3204D9BA8A920F9F6A2FC6A07B26037CB7E2EA2602B4BD774C0FBE85D"
+    },
+    {
+      "path": "authorities/project_overlay/manifest.schema.json",
+      "bytes": 1045,
+      "sha256": "CEF8A3CD6DC5266B2669DD9EAB8FBC2A7A19D3357C82CB9F662816DDF308C056"
+    },
+    {
+      "path": "authorities/project_overlay/mmd-artifact.schema.json",
+      "bytes": 986,
+      "sha256": "8DB027C9B8004096B36DCC967409BA12BE9F0D2B9F897A878BA688437FE37F9E"
+    },
+    {
+      "path": "authorities/project_overlay/pointer-contract.schema.json",
+      "bytes": 550,
+      "sha256": "2197CD70658837545DD775DDB284F76E945125A963B3C7585D564C7DD2B4E2C9"
+    },
+    {
+      "path": "authorities/project_overlay/pointer-contract.v1.json",
+      "bytes": 421,
+      "sha256": "69664ED1F91EACB01738680F20A6BAC2B405D498150A07B77FBE2D858D410D71"
+    },
+    {
+      "path": "authorities/project_overlay/project_overlay.dot",
+      "bytes": 49150,
+      "sha256": "A9610615267BBD5F2BBC201167BF810244BB7895D8D58674DFBF8FD57B004162"
+    },
+    {
+      "path": "authorities/project_overlay/project_overlay.mmd",
+      "bytes": 36589,
+      "sha256": "E2CE96E1A276FACD04F504A69EB96CD5C36100D5BE07FEC695D71E8D9644CA9F"
+    },
+    {
+      "path": "authorities/project_overlay/project_overlay.sqlite",
+      "bytes": 217088,
+      "sha256": "F043D4F31EA6CC9F904BCD581FE0D1A51C8A0E3BD4FA95D98B60E7C2887BECBE"
+    },
+    {
+      "path": "authorities/project_overlay/project_overlay.tools.json",
+      "bytes": 14275,
+      "sha256": "D30814249C32D07FEE330A3D2D26CA9172190E689BB1473CB72FBCC612C2DEF2"
+    },
+    {
+      "path": "authorities/project_overlay/reader-contract.schema.json",
+      "bytes": 769,
+      "sha256": "548901D439D7A9E4A01374B842FAEA3C8ADF5E8F7938BC80D0BB4F9D1B2AD422"
+    },
+    {
+      "path": "authorities/project_overlay/reader.py",
+      "bytes": 320,
+      "sha256": "3D5D91F9F744AC814DA3773729B69A90FFA47026427645917BBE978D99A4FF6E"
+    },
+    {
+      "path": "authorities/project_overlay/README.md",
+      "bytes": 352,
+      "sha256": "C76B800BA0B006E0AA3330BBFDEAADA955A28705598AC97365E517D0278328F4"
+    },
+    {
+      "path": "authorities/project_overlay/refresh-receipt.schema.json",
+      "bytes": 888,
+      "sha256": "FAFCA0C597890C9D1B299C870F19C28CDD6EF0F5B7FB9705898CE658A690DDD2"
+    },
+    {
+      "path": "authorities/project_overlay/runtime-binding.schema.json",
+      "bytes": 599,
+      "sha256": "D33DEEBCD7316C58869412AC705EECDB6BFA802E8C7CB23BE55EDF5C3D433F39"
+    },
+    {
+      "path": "authorities/project_overlay/runtime.py",
+      "bytes": 333,
+      "sha256": "CB0DDBFBAEC91357153C50CA77C17FC6D61CDCDC981E8BA463ADF1DB080AE2F4"
+    },
+    {
+      "path": "authorities/project_overlay/schema.sql",
+      "bytes": 7892,
+      "sha256": "B0763B43518C9CA23A0ED7E87F1AFBCFF9C336BE6E05643EEF74D6AAC708C359"
+    },
+    {
+      "path": "authorities/project_overlay/sqlite-artifact.schema.json",
+      "bytes": 964,
+      "sha256": "0BC545BB51DA1C0CA97073324B9D2A9A98213721F45BBD3153D06DB4C4D54392"
+    },
+    {
+      "path": "authorities/project_overlay/sqlite-schema.v1.json",
+      "bytes": 42131,
+      "sha256": "CC4C189913609043D15B20F2D73ECCCC1E18B78929DEAA08A400CCA219F98FB5"
+    },
+    {
+      "path": "authorities/project_overlay/tools.schema.json",
+      "bytes": 541,
+      "sha256": "50BCFB5DA2E946E91CDE4354CDC3FBDE1FB376AC9C0149CB9F7277C0EE4E9DE8"
+    }
+  ],
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/project_overlay.py": "E6641A9DFC739C8D822CA90B654B7472C6DE3B40697FCB7F0FAC059E01355229",
+    "src/evidence_lane_plugin/adaptive_delta_exit.py": "53F72C13E32124926516823A28AE2278C2F1B62AB28AAE389D47CD99D7316A33",
+    "src/evidence_lane_plugin/store.py": "FC868D08CAA96C2A1D5727941EDE7A827CB131CAEB9EFD38B6F075CE29C13850",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "project_overlay",
+    "source_count": 0,
+    "node_count": 0,
+    "indexed_table_count": 0,
+    "indexed_tables": [],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:51.306640Z",
+    "receipt_sha256": "A0E7AF386DF251A3BB80689D88A1CE2BAD48C4D6BE57C6FCCB2472B0E1F7C269"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "project_overlay_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 185,
+    "edge_count": 192,
+    "group_count": 1,
+    "semantic_topology_sha256": "F6FB46B346227C586E9C22E7B648493FBD5FA14992A788C11109154B33562915",
+    "mmd_sha256": "E2CE96E1A276FACD04F504A69EB96CD5C36100D5BE07FEC695D71E8D9644CA9F",
+    "dot_sha256": "A9610615267BBD5F2BBC201167BF810244BB7895D8D58674DFBF8FD57B004162",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "EA2336DE910D101F0AE0305FB1D8C1EDBD055CF20C0D235E3F170158E7E11EA2",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 185,
+      "edge_count": 192,
+      "weak_component_count": 1,
+      "strong_component_count": 185,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 28
+        },
+        {
+          "node_id": "support_table_pv_hil_transition",
+          "in_degree": 4,
+          "out_degree": 13
+        },
+        {
+          "node_id": "support_table_chat_lineage_event",
+          "in_degree": 3,
+          "out_degree": 13
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_overlay_history_baseline",
+          "in_degree": 1,
+          "out_degree": 10
+        },
+        {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_hil_transition_receipt",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_sector_candidate_snapshot",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_fusion_receipt",
+          "in_degree": 1,
+          "out_degree": 8
+        },
+        {
+          "node_id": "support_table_sector_hil_snapshot",
+          "in_degree": 1,
+          "out_degree": 8
+        },
+        {
+          "node_id": "support_table_authority_index_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_chat_lineage_sector_fanout",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_project_sector_registry",
+          "in_degree": 3,
+          "out_degree": 4
+        },
+        {
+          "node_id": "support_table_sector_hil_delta",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_output_link",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_overlay_fts_content",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_sector_hil_baseline_snapshot",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_overlay_fts",
+          "in_degree": 1,
+          "out_degree": 4
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "2A4783EFAF29CE4DF156016D45D43D763F3066DDC8B28530DAD2F93BC6C57043",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "24D4553453E93AD482DE17A86B0DE731C54BECA598EBC9B94172DA367C70F3DB"
+  },
+  "live_project_bytes_in_template": false,
+  "authority_merged_with_sector_or_peer": false,
+  "receipt_sha256": "60A5B0D184CC64E891A5A8D347F05A390E5ECBB39E862DEAF2FF2B3870D8FB2D"
+}

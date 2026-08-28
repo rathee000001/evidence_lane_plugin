@@ -13,7 +13,7 @@ def _workflow_tools(routing: dict[str, object], workflow: str) -> list[str]:
     return [tool for group in groups for tool in group["tools"]]
 
 
-def test_project_runtime_render_has_only_three_workflow_triggers() -> None:
+def test_project_runtime_render_has_only_two_workflow_triggers() -> None:
     routing = json.loads(ROUTING.read_text(encoding="utf-8"))
     policy = routing["render_invocation_policy"]
 
@@ -21,14 +21,13 @@ def test_project_runtime_render_has_only_three_workflow_triggers() -> None:
         "schema": "evidence-lane.render-invocation-policy.v1",
         "owner": "evidence-lane-code-lifecycle",
         "allowed_triggers": [
-            "STATE_TRAVEL_EXACTLY_ONCE",
             "PHYSICALLY_FINAL_PV_HIL_PRESENTATION",
             "EXPLICIT_USER_REQUEST",
         ],
         "ordinary_boot_or_resume_allowed": False,
         "ordinary_owner_discovery_allowed": False,
         "ordinary_goal_continuation_allowed": False,
-        "state_travel_max_calls_per_render_tool": 1,
+        "state_travel_max_calls_per_render_tool": 0,
         "physical_final_hil_max_calls_per_render_tool": 1,
         "implicit_fallback_allowed": False,
     }
@@ -50,13 +49,13 @@ def test_project_runtime_render_has_only_three_workflow_triggers() -> None:
         group
         for group in state_travel_groups
         if group["workflow"] == "state-travel-final-authority-render-once"
-    ] == [
-        {
-            "order": 12,
-            "tools": ["render_runtime_panel", "render_project_panel"],
-            "workflow": "state-travel-final-authority-render-once",
-        }
-    ]
+    ] == []
+    assert "render_runtime_panel" not in {
+        tool for group in state_travel_groups for tool in group["tools"]
+    }
+    assert "render_project_panel" not in {
+        tool for group in state_travel_groups for tool in group["tools"]
+    }
 
     build_groups = routing["workflows"]["evi-build"]["ordered_tool_groups"]
     assert [
@@ -65,7 +64,7 @@ def test_project_runtime_render_has_only_three_workflow_triggers() -> None:
         if group["workflow"] == "physically-final-pv-hil-presentation-only"
     ] == [
         {
-            "order": 4,
+            "order": 2,
             "tools": ["render_runtime_panel", "render_project_panel"],
             "workflow": "physically-final-pv-hil-presentation-only",
         }
@@ -84,9 +83,9 @@ def test_owning_skills_fail_closed_outside_the_three_render_triggers() -> None:
     )
 
     assert "Ordinary Boot or Resume" in boot
-    assert "only in exactly three" in boot
-    assert "once per tool during a passed State Travel entry" in boot
+    assert "only while presenting" in boot
+    assert "State Travel uses native receipts and never invokes" in boot
     assert "physically final PV HIL" in boot
     assert "explicit user request" in boot
-    assert "single State Travel render allowance" in state_travel
+    assert "never" in state_travel and "render_runtime_panel" in state_travel
     assert "physically final PV HIL" in " ".join(build.split())

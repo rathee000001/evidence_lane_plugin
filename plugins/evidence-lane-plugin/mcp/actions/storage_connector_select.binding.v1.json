@@ -1,0 +1,94 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "storage_connector_select",
+  "title": "Select the project primary storage authority",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "mode": {
+        "enum": [
+          "AUTO",
+          "LOCAL_SQLITE",
+          "CONFIGURED_DURABLE_CONNECTOR"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "selected_by": {
+        "title": "Selected By",
+        "type": "string"
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string"
+      },
+      "confirmation": {
+        "title": "Confirmation",
+        "type": "string"
+      },
+      "connector_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Connector Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "mode",
+      "selected_by",
+      "reason",
+      "confirmation"
+    ],
+    "title": "storage_connector_selectArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "storage_connector_selectDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "6CA1E5660914849488AA0F5B7DC6FDBF88782AE0CFDE05C4C0C287A9BF225DBF",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-storage",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "storage_connector_select"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-storage",
+        "workflow": "select-storage",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/storage_connector_select.action.v1.json",
+  "sdk_action_binding_sha256": "DC6A9DA4C263087143F2ECC193C348F95A52F1D051A175CAE5AAE30CABB51FE2",
+  "public_action_schema": "schemas/actions/storage_connector_select.schema.json",
+  "public_action_schema_sha256": "0DDE3785D40E30EC8826B941AD2CA555904437944D06EDD8232691A0ACD68D54",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "F889EA6334E949E4C6D21AB3277FBC7635B73A76D58D9384AE8E15FEEAAC7DC1"
+}

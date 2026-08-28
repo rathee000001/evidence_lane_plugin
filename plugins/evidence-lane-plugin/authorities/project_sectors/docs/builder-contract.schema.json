@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Docs builder binding request",
+  "type": "object",
+  "required": [
+    "lane_id",
+    "source_paths",
+    "bundle_arguments"
+  ],
+  "properties": {
+    "lane_id": {
+      "const": "docs"
+    },
+    "source_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "bundle_arguments": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "9BCC90599D6DE452AA67C7533CB75DC8C1640D6099F32C5754A0888A5CA7D2CE"
+}

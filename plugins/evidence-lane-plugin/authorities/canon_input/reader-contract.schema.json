@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "canon_input bounded reader request",
+  "type": "object",
+  "required": [
+    "project_id",
+    "authority_id",
+    "query",
+    "retrieval",
+    "limit"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_id": {
+      "const": "canon_input"
+    },
+    "query": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieval": {
+      "enum": [
+        "fts5",
+        "bm25",
+        "hybrid"
+      ]
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "E5542BAC3FFB0DFD6C745CB51B52F5E28E9DD99EB6F0846DBE544CDA3249CBC7"
+}

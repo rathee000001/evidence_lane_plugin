@@ -1,0 +1,30 @@
+{
+  "schema": "evidence-lane.sdk-outer-action-route.v1",
+  "status": "PASS",
+  "action": "pv_enroll_project",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-boot",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_enroll_project"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-boot",
+        "workflow": "project-enrollment",
+        "order": 2
+      }
+    ],
+    "executable": true
+  },
+  "schema_sha256": "7C715CFCAAA52CF14C9EEEB7E335A8B46FE28A06C0504528550C2893762D08BF",
+  "sdk_action_binding": "sdk/actions/pv_enroll_project.action.v1.json",
+  "mcp_action_binding": "mcp/actions/pv_enroll_project.binding.v1.json",
+  "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "fallback_to_historical_route_allowed": false,
+  "receipt_sha256": "4F3EF64D5780DE9923EE459B12955543EE7DEBB83BE14FA2CBF9C57F5D346CDC"
+}

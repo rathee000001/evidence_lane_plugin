@@ -54,6 +54,18 @@ class _Service:
             "source_chain_sha256": "D" * 64,
         }
 
+    @staticmethod
+    def connector_plugin_catalog(project_id: str) -> dict[str, Any]:
+        assert project_id == "project-one"
+        return {
+            "status": "PASS",
+            "active_count": 0,
+            "routable_count": 0,
+            "integrity": ["ok"],
+            "foreign_key_errors": [],
+            "secret_values_persisted": False,
+        }
+
 
 def _binding() -> SimpleNamespace:
     return SimpleNamespace(
@@ -82,6 +94,14 @@ def _read_rows(*, retry: bool) -> list[dict[str, Any]]:
             "refresh_required": not retry,
             "data": {"hits": [{"node_id": "canon-one"}] if retry else []},
         },
+        {
+            "authority": "project_universe",
+            "refresh_required": not retry,
+            "data": {
+                "hits": [{"node_id": "universe-one"}] if retry else [],
+                "result": "HIT" if retry else "NO_HIT",
+            },
+        },
     ]
 
 
@@ -100,11 +120,19 @@ def test_live_query_keeps_six_authorities_and_never_opens_accepted(
         return _read_rows(retry=pass_number == 2), _binding()
 
     def fake_refresh(*args: Any, **kwargs: Any) -> list[dict[str, Any]]:
-        calls.extend(["learning-refresh", "canon-refresh", "memory-refresh"])
+        calls.extend(
+            [
+                "learning-refresh",
+                "canon-refresh",
+                "memory-refresh",
+                "universe-refresh",
+            ]
+        )
         return [
             {"ordinal": 1, "authority": "agent_learning", "status": "PASS"},
             {"ordinal": 2, "authority": "canon_input", "status": "PASS"},
             {"ordinal": 3, "authority": "project_memory", "status": "PASS"},
+            {"ordinal": 4, "authority": "project_universe", "status": "PASS"},
         ]
 
     monkeypatch.setattr(live_authority_query, "_read_arms", fake_read)
@@ -140,6 +168,7 @@ def test_live_query_keeps_six_authorities_and_never_opens_accepted(
         "learning-refresh",
         "canon-refresh",
         "memory-refresh",
+        "universe-refresh",
         "read-2",
     ]
     assert list(result["authorities"]) == [
@@ -147,6 +176,8 @@ def test_live_query_keeps_six_authorities_and_never_opens_accepted(
         "agent_learning",
         "canon_graph",
         "project_memory",
+        "project_universe",
+        "connector_brain",
         "agent_configuration",
         "conversation_memory",
     ]
@@ -157,3 +188,32 @@ def test_live_query_keeps_six_authorities_and_never_opens_accepted(
     assert result["accepted_archive_opened"] is False
     assert result["accepted_archive_queried"] is False
     assert (accepted / "PV12.zip").read_bytes() == b"must-not-be-opened"
+
+
+def test_project_memory_wrong_active_task_hit_is_suppressed_and_refreshed() -> None:
+    data, stale = live_authority_query._apply_active_task_freshness(
+        "project_memory",
+        {
+            "status": "PASS",
+            "result": "HIT",
+            "hits": [
+                {
+                    "locator_id": "old-active",
+                    "locator_kind": "ACTIVE_TASK",
+                    "locator_value": "plan://task/R255",
+                    "revision_sha256": "A" * 64,
+                }
+            ],
+            "suppressed": [],
+        },
+        active_task_id="R265",
+    )
+
+    assert stale is True
+    assert data["result"] == "NO_HIT"
+    assert data["hits"] == []
+    assert data["active_task_freshness"] == "STALE_HITS_SUPPRESSED"
+    assert data["stale_active_task_hit_count"] == 1
+    assert data["suppressed"][0]["reason"] == (
+        "PROJECT_MEMORY_ACTIVE_TASK_MISMATCH"
+    )

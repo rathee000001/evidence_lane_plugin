@@ -16,6 +16,19 @@ session. Boot/resume must finish with runtime activation `ACTIVE`, locked Flash
 context attached, and visible prompt/response capture enabled for the exact
 governed session.
 
+Project selection precedes ordinary Boot. In the initial workflow, call
+`project_register` only when the chosen `project_id` is unregistered and
+require three distinct identities: the task's user-selected workspace or
+repository, the user-selected external Project/PV authority root, and the
+hidden Codex plugin runtime-control root. Then collect the brief and enter
+native Plan mode; EVI Plan persists the first canonical Plan before any Source
+Intake/PV0 work. After the user explicitly accepts the Plan, host hooks bind
+the Goal and fixed Step Task List, and only then may Source Intake plus initial
+Build establish PV0 without HIL. A new ordinary task may choose the initial
+workflow and register a new project, even in an existing workspace. A State
+Travel destination is never an initial workflow: it reuses the carried project
+registration and must not ask for, infer, relocate, or create a Project/PV root.
+
 For a direct/forced same-worktree State Travel destination, the governed
 session is necessarily already active. Select `session_resume`, bind its
 `host_session_id` to the exact new destination task UUID, and never select
@@ -46,6 +59,21 @@ display the six controls, the optional `/evi-plugin` administrative sidecar,
 and the `/evi-source-intake` suggested prompt; never present an unavailable
 action as completed.
 
+At the same activation boundary, classify the exact model, model-specific
+Effort, Speed, and model-visible tool capability receipt. An optional derived
+model-variant/submodel label may be preserved but is not a separate required
+user setting. Model name
+alone never proves compatibility. The current catalog distinguishes GPT-5.6
+Sol/Terra/Luna, GPT-5.5, GPT-5.4, and GPT-5.4 Mini; every exact
+model-plus-Effort profile requires representative installed-host proof before
+governed writes. Low/Light or None stays read-only/bounded until a dedicated
+evaluation proves the full lifecycle. The installed `5.3 Codex Spark` profile
+is blocked because its plugin/right-panel action surface was absent in direct
+host observation. ChatGPT Instant/chat models and the ChatGPT surface remain out of scope. Unknown or
+historical profiles are conditional, never silently promoted to PASS. State
+Travel must replay the exact already-qualified profile rather than select or
+mutate a model setting.
+
 Every Boot and Resume must emit and validate one
 `evidence-lane.runtime-continuity.v1` receipt. It binds the host/session, exact
 accepted pointer, primary runtime route, and locked ENV/UOP Flash hashes. Entry
@@ -61,11 +89,11 @@ promotability rules introduced after acceptance. Report that compatibility
 state explicitly; every successor candidate must still pass all current rules
 before it can be promoted.
 
-`PROJECT_RUNTIME_RENDER_THREE_TRIGGER_LAW` is permanent. The lifecycle owner may
-call `render_runtime_panel` and `render_project_panel` only in exactly three
-cases: once per tool during a passed State Travel entry; once per tool while
-presenting the physically final PV HIL; or after an explicit user request for
-the renderer. Ordinary Boot/Resume, owner discovery, verification, Plan/Goal
+`PROJECT_RUNTIME_RENDER_TWO_TRIGGER_LAW` is permanent. The lifecycle owner may
+call `render_runtime_panel` and `render_project_panel` only while presenting
+the physically final PV HIL or after an explicit user request for the renderer.
+State Travel uses native receipts and never invokes either renderer. Ordinary
+Boot/Resume, owner discovery, verification, Plan/Goal
 continuation, restart, reconnect, rehydration, and status readback never call
 either renderer. A missing renderer receipt never authorizes an implicit retry
 or fallback. These tools remain read-only and use canonical bare names only; a

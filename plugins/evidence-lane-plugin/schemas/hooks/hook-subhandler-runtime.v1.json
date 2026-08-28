@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.hook-subhandler-runtime.v1",
+  "event_count": 11,
+  "handler_action_count": 44,
+  "ordered_subhandlers": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
+  "pipeline": "hooks/subhook_pipeline.py",
+  "receipt_sha256": "915CE2DF97065355A6769F3B6899CB024A3F79DF44658EBCE419079F5098D9F1"
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-project-sector-binding.v1",
+  "status": "PASS",
+  "lane_id": "sqlite_brain",
+  "authority_root": "authorities/project_sectors/sqlite_brain",
+  "authority_manifest_sha256": "803B6E806281762A8A23C16017A3ACC159D2CFFD30942B31E4E56143D5DDC819",
+  "schema_surface": "schemas/project-sectors/sqlite_brain/schema-surface.v1.json",
+  "builder": "authorities/project_sectors/sqlite_brain/builder.py",
+  "reader": "authorities/project_sectors/sqlite_brain/reader.py",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_binding": false,
+  "receipt_sha256": "E44E99D6805239BBF0B68AB2A716F7B716DE62FFD0E5315A8881E48D824FF171"
+}

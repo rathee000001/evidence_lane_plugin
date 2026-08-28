@@ -3,6 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from evidence_lane_plugin.constants import (
+    GOVERNED_SKILL_COUNT,
+    NATIVE_READ_TOOL_COUNT,
+    NATIVE_TOOL_COUNT,
+    NATIVE_WRITE_TOOL_COUNT,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 
@@ -12,7 +19,6 @@ def test_v300_declares_exact_two_role_maintainer_slots() -> None:
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
     stable = contract["stable"]
-    retired_branch_recovery = contract["retired_branch_recovery"]
     local_testing = contract["local_testing"]
     live_slots = contract["live_slot_policy"]
 
@@ -23,20 +29,11 @@ def test_v300_declares_exact_two_role_maintainer_slots() -> None:
     assert stable["install_source"] == (
         "GIT_MAIN_EXACT_COMMIT_AFTER_GOVERNED_MERGE"
     )
-    assert stable["native_tool_count"] == 88
-    assert stable["skill_count"] == 17
+    assert stable["native_tool_count"] == NATIVE_TOOL_COUNT
+    assert stable["skill_count"] == GOVERNED_SKILL_COUNT
     assert stable["direct_stdio_fallback_allowed"] is False
 
-    assert retired_branch_recovery == {
-        "slot_role": "RETIRED_PURGE_ONLY",
-        "plugin_selector": (
-            "evidence-lane-plugin@evidence-lane-v300-stable-recovery"
-        ),
-        "installation_allowed": False,
-        "migration_read_allowed": True,
-        "removal_via_supported_codex_api_required": True,
-        "direct_cache_deletion_allowed": False,
-    }
+    assert "retired_branch_recovery" not in contract
     assert local_testing["release_line"] == "3.0.0"
     assert local_testing["slot_role"] == "versioned-local-testing"
     assert local_testing["codex_marketplace_slot"] == "evidence-lane-v300-testing-new"
@@ -54,6 +51,7 @@ def test_v300_declares_exact_two_role_maintainer_slots() -> None:
     assert live_slots["max_active_tunnel_count"] == 1
     assert live_slots["inactive_slot_remains_installed"] is True
     assert live_slots["manual_loaded_cache_deletion_allowed"] is False
+    assert live_slots["obsolete_marketplace_registrations_must_be_absent"] is True
 
 
 def test_v300_pv13_pv14_sequence_blocks_early_promotion() -> None:
@@ -122,12 +120,12 @@ def test_plugin_release_cycle_never_leaks_into_downstream_project_pvs() -> None:
         "working_role_sync_required": True,
         "installed_version_must_equal_exact_package_version": True,
         "installed_catalog_must_equal": {
-            "native_actions": 88,
-            "read_actions": 27,
-            "write_actions": 61,
-            "governed_skills": 17,
+                "native_actions": NATIVE_TOOL_COUNT,
+                "read_actions": NATIVE_READ_TOOL_COUNT,
+                "write_actions": NATIVE_WRITE_TOOL_COUNT,
+                "governed_skills": GOVERNED_SKILL_COUNT,
             "hook_events": 11,
-            "migrated_command_skills": 1,
+            "migrated_command_skills": 26,
         },
         "installed_ui_readback_required_before_pv13_hil": True,
         "main_git_release_slot_mutation_allowed": True,
@@ -170,15 +168,32 @@ def test_goal_completion_is_human_owned_and_independent_of_hil() -> None:
                 "build_rich_goal_completion_metrics_receipt"
             ),
             "receipt_schema": "evidence-lane.rich-goal-completion-metrics.v1",
-            "legacy_route": "build_goal_usage_receipt",
-            "legacy_route_executable": False,
-            "legacy_fallback_allowed": False,
+            "compatibility_collector_present": False,
             "display_route_has_completion_authority": False,
             "already_complete_reuses_persisted_receipt": True,
             "incomplete_telemetry_returns_structured_missing_fields": True,
             "reasoning_output_is_subset_of_output": True,
             "host_accounted_tokens_kept_separate_from_raw_model_traffic": True,
             "unknown_host_conversion_formula_must_remain_unknown": True,
+            "reset_aware_positive_delta_epoch_accounting": True,
+            "native_turn_and_compaction_reconciliation": True,
+            "daily_timezone_reconciliation": True,
+            "first_native_complete_goal_receipt_required": True,
+            "aborted_turns_from_native_turn_aborted_only": True,
+            "duration_authorities_separate": [
+                "USER_CONFIRMED_ACTIVE_UI_RUNTIME",
+                "HOST_COMPLETED_TIME_USED",
+                "GOAL_CALENDAR_SPAN",
+                "NATIVE_COMPLETED_TURN_OVERLAP",
+            ],
+            "preferred_duration_formula": (
+                "COALESCE(USER_CONFIRMED_ACTIVE_UI_RUNTIME,HOST_COMPLETED_TIME_USED)"
+            ),
+            "active_ui_timer_class": "CLIENT_EXTRAPOLATED_PRESENTATION",
+            "duration_authority_alias_or_sum_allowed": False,
+            "full_option_2_projection_required": True,
+            "correction_supersedes_without_goal_recompletion": True,
+            "superseded_and_quarantined_excluded_from_consolidated_formula": True,
         },
     }
     for skill_name in (
@@ -192,8 +207,8 @@ def test_goal_completion_is_human_owned_and_independent_of_hil() -> None:
         assert "COMPLETE_FULLY" in text
         assert "HIL approval" in text
         assert "build_rich_goal_completion_metrics_receipt" in text
-        assert "build_goal_usage_receipt" in text
-        assert "OBSOLETE_ROUTE" in text
+        assert "build_goal_usage_receipt" not in text
+        assert "OBSOLETE_ROUTE" not in text
 
 
 def test_helper_tunnel_rotation_is_plugin_maintainer_only_and_final_hil_gated() -> None:
@@ -215,17 +230,19 @@ def test_helper_tunnel_rotation_is_plugin_maintainer_only_and_final_hil_gated() 
         "one_active_tunnel_count": 1,
         "failed_windowsapps_cli_probe_allowed": False,
         "npm_native_codex_cli_required": True,
-        "exact_task_reopen_count": 1,
+        "exact_task_reopen_count": 0,
         "black_terminal_popup_allowed": False,
     }
     assert helper["user_stable_tunnel"]["release"] == "3.0.0"
     assert helper["user_stable_tunnel"]["release_token"] == "v300"
-    assert helper["retired_branch_recovery_transport"] == {
-        "state": "PURGED",
-        "restart_or_reattach_allowed": False,
-        "installation_allowed": False,
-        "public_marketplace_user_surface": False,
-    }
+    assert helper["user_stable_tunnel"]["scheduled_task_name"] == (
+        "EvidenceLane-Tunnel-v300-stable-build"
+    )
+    assert helper["user_stable_tunnel"]["at_logon"] is True
+    assert helper["user_stable_tunnel"]["scheduled_task_transport_allowed"] is True
+    assert helper["user_stable_tunnel"]["host_wide_project_neutral"] is True
+    assert "retired_branch_recovery_transport" not in helper
+    assert "user_goal_recovery_helper" not in helper
     assert rotation["applies_to_plugin_maintainer_route_only"] is True
     assert rotation["downstream_project_inherits_rotation"] is False
     assert rotation["local_test_green_can_promote_only_through_exact_main_merge"] is True
@@ -236,100 +253,15 @@ def test_helper_tunnel_rotation_is_plugin_maintainer_only_and_final_hil_gated() 
     )
     assert rotation["stable_git_main_must_equal_exact_merged_release"] is True
     assert rotation["helper_and_tunnel_release_must_match_owning_slot"] is True
-    assert rotation["prior_versioned_helpers_and_tunnels_retained"] is True
-    assert rotation["prior_versioned_helpers_and_tunnels_disabled"] is True
-    assert rotation["prior_versioned_helpers_and_tunnels_deleted"] is False
+    assert rotation["prior_versioned_helpers_and_tunnels_retained"] is False
+    assert rotation["prior_versioned_helpers_and_tunnels_disabled"] is False
+    assert rotation["prior_versioned_helpers_and_tunnels_deleted"] is True
     assert rotation["repeat_for_each_later_plugin_release_cycle"] is True
     assert rotation["current_row_may_execute_rotation"] is False
 
 
-def test_v210_logical_integration_bundle_matrix_is_complete_and_fail_closed() -> None:
-    matrix = json.loads(
-        (ROOT / "docs" / "V210_LOGICAL_INTEGRATION_BUNDLE_MATRIX.json").read_text(
-            "utf-8"
-        )
-    )
-    assert matrix["schema"] == (
-        "evidence-lane.codex-logical-integration-bundle-matrix.v1"
-    )
-    assert matrix["delivery_cadence"] == (
-        "DEPENDENCY_COHERENT_INTEGRATION_BUNDLE"
-    )
-    assert matrix["accepted_reference"] == {
-        "pv": "PV11",
-        "role": "IMMUTABLE_FORENSIC_REFERENCE_AND_DISABLED_FALLBACK",
-        "development_base": False,
-        "stable_install_source": False,
-    }
-    assert matrix["commit_authority"] == {
-        "source": "EXACT_GIT_COMMIT_PACKAGE_ONLY",
-        "final_commit_sha": None,
-        "state": "PENDING_LOGICAL_BUNDLE_COMMIT",
-        "local_or_dirty_worktree_install_allowed": False,
-    }
-    assert matrix["plan_projection"] == {
-        "canonical_authority": "PLAN_LANE",
-        "row_start": 81,
-        "row_end": 200,
-        "task_count": 120,
-        "active_row": 164,
-        "physically_final_hil_row": 200,
-        "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
-        "executable_projection_sha256": (
-            "0968F63D7F2CE0093BCDFE98FD45AE9C9D3C23CB1F8BCBB8B05D4F684EF8070C"
-        ),
-    }
-    rows = matrix["rows"]
-    assert [row["task_id"] for row in rows] == [
-        "EL-CODEX-TURN_PREPARE_CAPTURE-PROPOSAL-04",
-        "EL-CODEX-TURN_CLASSIFY_DELTA_BIND-PROPOSAL-05",
-        "EL-CODEX-CHATLINEAGE_SQLITE_FTS_HASHCHAIN-PROPOSAL-06",
-        "EL-CODEX-GOAL_METRIC_PRIVATE_RESEARCH_METADATA-PROPOSAL-07",
-        "EL-CODEX-GOVERNED_RETRIEVAL-PROPOSAL-08",
-        "EL-CODEX-EXECUTION_EVENT_COMMIT-PROPOSAL-09",
-        "EL-CODEX-ENTRY_EXIT_RECOVERY-PROPOSAL-10",
-        "EL-CODEX-PERSISTENT_PLAN_CURRENT_CHANGE-PROPOSAL-11",
-    ]
-    required = {
-        "task_id",
-        "changed_surfaces",
-        "local_tests",
-        "remote_checks",
-        "installed_host_checks",
-        "outcome",
-        "failure_owner",
-    }
-    assert all(set(row) == required for row in rows)
-    assert all(
-        row["changed_surfaces"]
-        and row["local_tests"]
-        and row["remote_checks"]
-        and row["installed_host_checks"]
-        and row["outcome"] == "LOCAL_PASS_PENDING_REMOTE_AND_INSTALLED_HOST"
-        and row["failure_owner"]
-        for row in rows
-    )
-    assert matrix["bundle_gate"]["policy"] == (
-        "ANY_INCLUDED_ROW_FAILURE_FAILS_BUNDLE_CLOSED"
-    )
-    assert matrix["bundle_gate"]["local_outcome"] == "PASS_EXACT_TREE"
-    assert matrix["bundle_gate"]["remote_outcome"] == "PENDING_EXACT_COMMIT"
-    assert matrix["bundle_gate"]["installed_host_outcome"] == "PENDING_REMOTE_PASS"
-    assert matrix["bundle_gate"]["stable_selector_updates"] == 0
-    validation = matrix["local_validation"]
-    assert validation["pytest"] == {
-        "status": "PASS",
-        "test_count": 440,
-        "execution": "SIX_BOUNDED_SHARDS_AFTER_MONOLITHIC_15_MINUTE_TIMEOUT",
-        "stale_test_correction": "CURRENT_EXECUTION_ASSERTS_GENERATED_PLAN_AUTHORITY",
-    }
-    assert validation["website_plan_projection"]["status"] == "PASS"
-    assert validation["prompt_studio"]["sqlite_integrity"] == "ok"
-    assert set(validation["adapter_checks"].values()) == {
-        "PASS",
-        "PASS_22_ROUTES",
-    }
-    assert validation["diff_check"] == "PASS"
+def test_historical_v210_bundle_matrix_is_not_a_current_public_document() -> None:
+    assert not (ROOT / "docs" / "V210_LOGICAL_INTEGRATION_BUNDLE_MATRIX.json").exists()
 
 
 def test_promotion_requires_matching_cross_surface_receipts_and_hil() -> None:
@@ -339,10 +271,10 @@ def test_promotion_requires_matching_cross_surface_receipts_and_hil() -> None:
     promotion = contract["promotion_gate"]
     assert promotion["explicit_six_way_hil_required"] is True
     assert promotion["required_catalog"] == {
-        "tools": 88,
-        "read": 27,
-        "write": 61,
-        "skills": 17,
+        "tools": NATIVE_TOOL_COUNT,
+        "read": NATIVE_READ_TOOL_COUNT,
+        "write": NATIVE_WRITE_TOOL_COUNT,
+        "skills": GOVERNED_SKILL_COUNT,
     }
     assert promotion["fail_closed_on_version_mismatch"] is True
     assert promotion["mode"] == "CODE"
@@ -369,6 +301,17 @@ def test_v200_host_storage_tunnel_matrix_keeps_routing_axes_independent() -> Non
     assert matrix["interactive_codex_app_local_or_persistent"] == {
         "pv_storage": "DURABLE_LOCAL_SQLITE",
         "routing_basis": "MEASURED_NATIVE_MCP_CAPABILITY",
+        "host_profile": "CODEX_DESKTOP",
+        "desktop_app_variants": {
+            "stable": "OpenAI.Codex_2p2nqsd0c76g0!App",
+            "beta": "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
+            "shared_plugin_contract": True,
+            "shared_host_wide_tunnel": True,
+            "per_app_tunnel_allowed": False,
+            "per_project_or_task_tunnel_allowed": False,
+            "helper_requires_exact_requested_app_id": True,
+            "cross_app_fallback_allowed": False,
+        },
         "native_mcp_available": {
             "tunnel_requirement": "NOT_REQUIRED_NATIVE_MCP_AVAILABLE",
             "tunnel_setup_frequency": "NONE",
@@ -444,96 +387,65 @@ def test_v300_remote_git_policy_supersedes_only_historical_flash_sentence() -> N
     }
 
 
-def test_tunnel_version_history_is_append_only_and_hash_chained() -> None:
-    manager = (
-        PLUGIN / "scripts" / "windows_tunnel" / "Manage-EvidenceLaneTunnelVersions.ps1"
+def test_tunnel_is_single_active_runtime_and_purges_prior_versions() -> None:
+    installer = (
+        PLUGIN / "scripts" / "windows_tunnel" / "Install-EvidenceLaneTunnel.ps1"
     ).read_text("utf-8")
-    assert 'schema = "evidence-lane.tunnel-version-event.v1"' in manager
-    assert "previous_event_sha256" in manager
-    assert "event_sha256" in manager
-    assert 'EventType "REGISTERED_SAVED_VERSION"' in manager
-    assert 'EventType "ACTIVATION_STARTED"' in manager
-    assert 'EventType "ACTIVATED"' in manager
-    assert 'EventType "ACTIVATION_FAILED"' in manager
-    assert 'EventType "ROLLBACK_ACTIVATED"' in manager
+    assert not (
+        PLUGIN
+        / "scripts"
+        / "windows_tunnel"
+        / "Manage-EvidenceLaneTunnelVersions.ps1"
+    ).exists()
+    assert "Remove-StoppedPriorTunnelRuntimes" in installer
+    assert "Remove-StoppedPriorTunnelTasks" in installer
+    assert "prior_versioned_runtimes_retained = $false" in installer
+    assert "prior_versioned_tasks_retained = $false" in installer
+    assert "prior_versioned_runtime_deletion_required = $true" in installer
 
 
-def test_two_slot_operator_is_bounded_and_rejects_transient_auto_failover() -> None:
+
+def test_obsolete_failover_operator_is_physically_absent() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
-    policy = contract["failover_operator"]
-    operator = (
+    assert "failover_operator" not in contract
+    assert not (
         PLUGIN
         / "scripts"
         / "codex_release"
         / "Switch-EvidenceLaneCodexSlot.ps1"
+    ).exists()
+    restart = (
+        PLUGIN
+        / "scripts"
+        / "codex_release"
+        / "Prepare-EvidenceLaneCodexRestart.ps1"
     ).read_text("utf-8")
-
-    assert policy["registry_schema"] == (
-        "evidence-lane.codex-two-slot-main-local-registry.v1"
-    )
-    assert policy["failure_target_slot"] == "stable-git-main"
-    assert policy["versioned_local_failure_targets_verified_main_only"] is True
-    assert policy["deterministic_failure_minimum_consecutive_probes"] == 3
-    assert policy["deterministic_failure_minimum_window_seconds"] == 30
-    assert policy["deterministic_failure_minimum_distinct_probe_types"] == 2
-    assert policy["single_transient_error_switch_allowed"] is False
-    assert policy["stop_source_tunnel_before_start_target"] is True
-    assert policy["target_tunnel_ready_before_plugin_switch"] is True
-    assert policy["switch_failure_restores_source_slot"] is True
-    assert '"main-git-release"' in operator
-    assert '"branch-commit-recovery"' not in operator
-    assert '"versioned-local-testing"' in operator
-    assert "$ConsecutiveFailures -lt 3" in operator
-    assert "$SampleWindowSeconds -lt 30" in operator
-    assert "$DistinctProbeTypes -lt 2" in operator
-    assert "$SingleTransientError" in operator
-    assert 'Invoke-Tunnel -Slot $source -TunnelAction "Stop"' in operator
-    assert 'Invoke-Tunnel -Slot $target -TunnelAction "Start"' in operator
-    assert "Restart-EvidenceLaneCodex.ps1" in operator
-    assert "Rolled back to $sourceSlot" in operator
+    assert "TERMINAL_SAFE_RESTART_PREPARED_NOT_EXECUTED" in restart
+    assert "programmatic_process_stop_allowed = $false" in restart
 
 
-def test_goal_recovery_is_one_general_read_only_logon_manager() -> None:
+
+def test_goal_continuation_uses_native_task_binding_without_user_helper() -> None:
     contract = json.loads(
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
-    policy = contract["goal_recovery"]
+    assert "goal_recovery" not in contract
+    assert "user_goal_recovery_helper" not in contract["helper_distribution_policy"]
+    assert not (
+        PLUGIN
+        / "scripts"
+        / "codex_release"
+        / "Manage-EvidenceLaneCodexGoalRecovery.ps1"
+    ).exists()
+    turn_control = (
+        PLUGIN / "src" / "evidence_lane_plugin" / "codex_turn_control.py"
+    ).read_text("utf-8")
+    assert "NATIVE_ACTIVE_GOAL_EXACT_TASK_BINDING" in turn_control
+    assert "PRETOOLUSE_HOST_PAYLOAD" in turn_control
+    assert "codex-goal-recovery-binding" not in turn_control
 
-    assert policy == {
-        "script": "scripts/codex_release/Manage-EvidenceLaneCodexGoalRecovery.ps1",
-        "scope": (
-            "ALL_EXACT_EVIDENCE_LANE_GOVERNED_CODEX_GOAL_TASKS_"
-            "ON_THIS_WINDOWS_USER"
-        ),
-        "trigger": "AT_LOGON_CURRENT_WINDOWS_USER",
-        "exact_task_uuid_required": True,
-        "exact_host_app_binding_required": True,
-        "supported_host_app_ids": [
-            "OpenAI.Codex_2p2nqsd0c76g0!App",
-            "OpenAI.CodexBeta_2p2nqsd0c76g0!App",
-        ],
-        "persisted_goal_read_route": (
-            "CODEX_APP_SERVER_THREAD_READ_PLUS_THREAD_GOAL_GET"
-        ),
-        "thread_resume_writer_allowed": False,
-        "synthetic_prompt_allowed": False,
-        "turn_start_allowed": False,
-        "state_travel_allowed": False,
-        "candidate_hil_pointer_or_git_mutation_allowed": False,
-        "restart_task_binding_refresh_order": (
-            "TASK_BINDING_WRITE_THEN_GOAL_BINDING_REGISTER_THEN_APP_STOP"
-        ),
-        "stale_task_binding_seal_allowed": False,
-        "requires_exactly_one_enabled_allowed_two_slot_selector": True,
-        "allowed_runtime_selectors": [
-            "evidence-lane-plugin@evidence-lane-github",
-            "evidence-lane-plugin@evidence-lane-v300-testing-new",
-        ],
-        "stable_selector_growth_allowed": False,
-        "raw_goal_objective_stored": False,
-    }
 
 
 def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> None:
@@ -549,6 +461,7 @@ def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> N
             "pv_status",
             "pv_task_backlog",
             "pv_query",
+            "search",
         ],
         "query_must_use_native_mcp_route": True,
         "internal_hook_lookup_satisfies_native_query": False,
@@ -560,6 +473,8 @@ def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> N
         "plan_steer_requires_executable_goal_contract_change": True,
         "plan_steer_refreshes_full_panel_and_current_change_once": True,
         "fail_closed_when_behavior_route_unavailable": True,
+        "chat_only_execution_change_allowed": False,
+        "source_intake_may_dispatch_one_stable_idempotent_linked_steer": True,
     }
     assert contract["lifecycle_hook_matrix"] == {
         "schema": "evidence-lane.codex-hook-lifecycle-contract.v1",
@@ -624,7 +539,7 @@ def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> N
             "host_route": "thread/goal/set -> first PreToolUse boundary",
             "user_prompt_submit_observed": False,
             "pre_reasoning_dispatch_claimed": False,
-            "authority": "SEALED_ACTIVE_GOAL_RECOVERY_BINDING",
+            "authority": "NATIVE_ACTIVE_TASK_GOAL_BINDING_VERIFIED",
             "exact_task_install_plan_pointer_match_required": True,
             "raw_goal_objective_stored": False,
             "synthetic_prompt_allowed": False,
@@ -756,11 +671,12 @@ def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> No
             "scripts/codex_release/seal_external_release_receipts.py"
         ),
         "stable_install_command": "scripts/codex_release/install_codex_stable.py",
-        "stable_update_helper": "scripts/codex_release/Restart-EvidenceLaneCodex.ps1",
+        "stable_update_helper": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
         "install_completed_before_restart_helper": True,
         "restart_helper_installs_plugin": False,
-        "stable_update_reopens_same_bound_host_app": True,
-        "stable_update_rebinds_general_goal_recovery": True,
+        "stable_update_reopens_same_bound_host_app": False,
+        "stable_update_requires_user_restart_after_terminal_response": True,
+        "stable_update_rebinds_exact_task_via_native_binding": True,
         "release_authority_schema": (
             "evidence-lane.codex-git-ci-vercel-release-authority.v2"
         ),

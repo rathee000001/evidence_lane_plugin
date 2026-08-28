@@ -146,7 +146,7 @@ function commandPlan(profile, pythonExecutable, pnpmExecutable) {
         pnpmExecutable,
         [
           '--dir',
-          'plugins/evidence-lane-plugin/remote_adapter',
+          'apps/evidence-lane-remote-adapter',
           'build'
         ]
       ]

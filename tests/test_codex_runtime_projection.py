@@ -30,6 +30,10 @@ def _plugin_fixture(tmp_path: Path) -> Path:
         "mcp==1.28.1 --hash=sha256:" + "a" * 64 + "\n",
         encoding="utf-8",
     )
+    (plugin / "requirements.toolchain.lock.txt").write_text(
+        "graphviz==0.21 --hash=sha256:" + "b" * 64 + "\n",
+        encoding="utf-8",
+    )
     return plugin
 
 
@@ -42,7 +46,7 @@ def test_runtime_projection_survives_reconstructed_plugin_cache(
     )
     plugin = _plugin_fixture(tmp_path)
     durable = tmp_path / "durable"
-    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(durable))
+    monkeypatch.setenv("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", str(durable))
 
     marker = contract.runtime_marker(plugin)
     environment = contract.runtime_environment(plugin)
@@ -66,7 +70,7 @@ def test_runtime_marker_fails_closed_when_dependency_lock_changes(
         "evidence_lane_runtime_contract_drift_test", SCRIPTS / "runtime_contract.py"
     )
     plugin = _plugin_fixture(tmp_path)
-    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(tmp_path / "durable"))
+    monkeypatch.setenv("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", str(tmp_path / "durable"))
     marker = contract.runtime_marker(plugin)
     contract.write_marker(plugin, marker)
 
@@ -87,7 +91,7 @@ def test_runtime_marker_is_hash_sealed(
         "evidence_lane_runtime_contract_seal_test", SCRIPTS / "runtime_contract.py"
     )
     plugin = _plugin_fixture(tmp_path)
-    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", str(tmp_path / "durable"))
+    monkeypatch.setenv("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", str(tmp_path / "durable"))
     marker = contract.runtime_marker(plugin)
     contract.write_marker(plugin, marker)
     payload = json.loads(marker.read_text(encoding="utf-8"))
@@ -105,7 +109,7 @@ def test_empty_configured_data_root_fails_closed(
         "evidence_lane_runtime_contract_root_test", SCRIPTS / "runtime_contract.py"
     )
     plugin = _plugin_fixture(tmp_path)
-    monkeypatch.setenv("EVIDENCE_LANE_DATA_ROOT", "   ")
+    monkeypatch.setenv("EVIDENCE_LANE_RUNTIME_CONTROL_ROOT", "   ")
 
     with pytest.raises(RuntimeError, match="cannot be empty"):
         contract.runtime_environment(plugin)

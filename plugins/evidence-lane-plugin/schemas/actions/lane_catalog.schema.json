@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "lane_catalog",
+  "title": "List universal Evidence Lane sectors",
+  "description": "Return the one immutable eighteen-lane registry, aliases, command mapping, parser/chunker contracts, SQLite names, FTS tables, and mutation policies. Performs no state mutation.",
+  "input_schema": {
+    "properties": {},
+    "title": "lane_catalogArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "lane_catalogDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-source-intake",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "lane_catalog"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "lane-evidence-read",
+        "order": 6
+      },
+      {
+        "owner_skill": "evi-source-intake",
+        "workflow": "source-route-configuration",
+        "order": 9
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution",
+        "order": 9
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "3CE47DDFDC25D90856C0392F118487335EBD6D331D7D4795876F73089C3AEA61",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "52783F6DC0A640FB6DD74DF225B3732D8F9C1197A6D295A3D88141543243AB29"
+}

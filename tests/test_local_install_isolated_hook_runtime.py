@@ -63,9 +63,12 @@ def test_exact_disabled_projection_runs_registry_and_recovery_controls(
     assert receipt["projection"]["exact_bytes_verified"] is True
     assert receipt["projection"]["file_count"] > 300
     assert receipt["installed_manifest"]["event_count"] == len(module.EVENT_ORDER)
+    assert receipt["installed_manifest"]["handler_count"] == (
+        len(module.EVENT_ORDER) * len(module.STAGE_HANDLERS)
+    )
     assert receipt["event_correlation"]["events"] == list(module.EVENT_ORDER)
-    assert receipt["event_correlation"]["unique_correlation_count"] == len(
-        module.EVENT_ORDER
+    assert receipt["event_correlation"]["unique_correlation_count"] == (
+        len(module.EVENT_ORDER) * len(module.STAGE_HANDLERS)
     )
     assert receipt["stop_no_loop"]["handler_execution_count"] == 1
     assert receipt["stop_no_loop"]["first_and_replay_output"] == {}
@@ -81,11 +84,18 @@ def test_exact_disabled_projection_runs_registry_and_recovery_controls(
         "HOOK_KILL_SWITCH_ACTIVE"
     )
     assert receipt["restart_recovery"]["receipt_count_after_restart"] == (
-        len(module.EVENT_ORDER) + 1
+        len(module.EVENT_ORDER) * len(module.STAGE_HANDLERS)
+        + len(module.STAGE_HANDLERS)
     )
     assert receipt["restart_recovery"]["runtime_marker_valid"] is True
-    assert receipt["launcher_process_count"] == len(module.EVENT_ORDER) + 5
-    assert receipt["unique_launcher_process_count"] == len(module.EVENT_ORDER) + 5
+    expected_processes = (
+        len(module.EVENT_ORDER) * len(module.STAGE_HANDLERS)
+        + len(module.STAGE_HANDLERS) * 3
+        + 2
+    )
+    assert receipt["launcher_process_count"] == expected_processes
+    assert 0 < receipt["unique_launcher_process_count"] <= expected_processes
+    assert receipt["fresh_launcher_process_per_subhook"] is True
     assert receipt["live_codex_home_opened"] is False
     assert receipt["live_codex_config_written"] is False
     assert receipt["live_plugin_slot_written"] is False

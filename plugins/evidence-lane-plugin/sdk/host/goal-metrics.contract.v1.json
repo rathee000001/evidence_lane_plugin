@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-host-contract-binding.v1",
+  "status": "PASS",
+  "contract": "goal-metrics",
+  "law": "RESET_AWARE_FIRST_COMPLETE_RECEIPT_AND_DISTINCT_CLOCKS",
+  "owner": "src/evidence_lane_plugin/goal_usage.py",
+  "owner_sha256": "045284832BD8102CE43223F8EA404AEC3564AF539FC8E1C84BBBA12BA27DA564",
+  "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
+  "project_root_hardcoded": false,
+  "workspace_hardcoded": false,
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "6A772310BA613617B0455DDEB858EF2EEF67AFD6917293608E0F7F2D5A4881ED"
+}

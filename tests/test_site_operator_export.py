@@ -59,9 +59,8 @@ def test_checked_in_site_projection_is_fresh() -> None:
     repository_root = Path(__file__).resolve().parents[1]
     generated_path = (
         repository_root
-        / "plugins"
-        / "evidence-lane-plugin"
-        / "remote_adapter"
+        / "apps"
+        / "evidence-lane-remote-adapter"
         / "app"
         / "_data"
         / "mode-governance.json"

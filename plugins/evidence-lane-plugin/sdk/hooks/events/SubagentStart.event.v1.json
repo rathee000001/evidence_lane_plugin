@@ -1,0 +1,35 @@
+{
+  "schema": "evidence-lane.sdk-hook-event-binding.v1",
+  "status": "PASS",
+  "event_number": 2,
+  "event": "SubagentStart",
+  "handler_count": 4,
+  "event_binding": "hooks/events/SubagentStart/event.v1.json",
+  "event_binding_sha256": "EBB5C8C3DC74A9F775F297F3385D6073FF9E510926A2BE12BD33402331BC29C9",
+  "handlers": [
+    {
+      "display_id": "2.1",
+      "path": "hooks/events/SubagentStart/handler-2.1.v1.json",
+      "sha256": "E420DEB114DE71287F594AC2E6F482E31BB278A8E552A08C90F271CECDDDD497"
+    },
+    {
+      "display_id": "2.2",
+      "path": "hooks/events/SubagentStart/handler-2.2.v1.json",
+      "sha256": "B21A906876A769D306B77046273F2BCED02B91D7A9F22B9895BE385623ACEBAD"
+    },
+    {
+      "display_id": "2.3",
+      "path": "hooks/events/SubagentStart/handler-2.3.v1.json",
+      "sha256": "CBAC23BB47DF5EA0C23188558921A0DAD34D41FF756F1607EED8810C4863CFDE"
+    },
+    {
+      "display_id": "2.4",
+      "path": "hooks/events/SubagentStart/handler-2.4.v1.json",
+      "sha256": "9DFA0A09522661A1324CADE8CFC6CCBCF97672060750FF71DB2D1566D7CB565F"
+    }
+  ],
+  "canonical_hook_manifest": "hooks/hooks.json",
+  "canonical_logical_actions": "hooks/logical-actions.json",
+  "enabled_only_after_installed_event_pass": true,
+  "receipt_sha256": "A03DFA36640D7AA09F0AC4BDF26DCC312843380B9955BB36CBBFE3AD239E2707"
+}

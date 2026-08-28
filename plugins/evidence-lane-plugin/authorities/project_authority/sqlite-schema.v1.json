@@ -1,0 +1,1131 @@
+{
+  "schema": "evidence-lane.sqlite-authority-schema-snapshot.v1",
+  "database_sha256": "3D9F746432140CBA554713C196DD4E70FF61458EAA967275B0215F9AAEDD6A8F",
+  "objects": [
+    {
+      "type": "index",
+      "name": "authority_index_node_source_idx",
+      "tbl_name": "authority_index_node",
+      "sql": "CREATE INDEX authority_index_node_source_idx\n        ON authority_index_node(source_id, ordinal)"
+    },
+    {
+      "type": "index",
+      "name": "authority_index_source_table_idx",
+      "tbl_name": "authority_index_source",
+      "sql": "CREATE INDEX authority_index_source_table_idx\n        ON authority_index_source(authority_id, source_table, source_identity)"
+    },
+    {
+      "type": "index",
+      "name": "project_authority_member_kind_idx",
+      "tbl_name": "project_authority_member",
+      "sql": "CREATE INDEX project_authority_member_kind_idx\n            ON project_authority_member(project_id, authority_kind, authority_id)"
+    },
+    {
+      "type": "index",
+      "name": "workspace_binding_project_task_idx",
+      "tbl_name": "workspace_binding",
+      "sql": "CREATE INDEX workspace_binding_project_task_idx\n            ON workspace_binding(project_id, host_task_id, recorded_at)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts",
+      "tbl_name": "authority_index_fts",
+      "sql": "CREATE VIRTUAL TABLE authority_index_fts USING fts5(\n            node_id UNINDEXED,\n            authority_id UNINDEXED,\n            source_table,\n            source_identity,\n            text_content,\n            tokenize='unicode61'\n        )"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_config",
+      "tbl_name": "authority_index_fts_config",
+      "sql": "CREATE TABLE 'authority_index_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_content",
+      "tbl_name": "authority_index_fts_content",
+      "sql": "CREATE TABLE 'authority_index_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_data",
+      "tbl_name": "authority_index_fts_data",
+      "sql": "CREATE TABLE 'authority_index_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_docsize",
+      "tbl_name": "authority_index_fts_docsize",
+      "sql": "CREATE TABLE 'authority_index_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_fts_idx",
+      "tbl_name": "authority_index_fts_idx",
+      "sql": "CREATE TABLE 'authority_index_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_node",
+      "tbl_name": "authority_index_node",
+      "sql": "CREATE TABLE authority_index_node(\n            node_id TEXT PRIMARY KEY,\n            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)\n                ON DELETE CASCADE,\n            ordinal INTEGER NOT NULL,\n            char_start INTEGER NOT NULL,\n            char_end INTEGER NOT NULL,\n            text_content TEXT NOT NULL,\n            text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            UNIQUE(source_id, ordinal)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_refresh_receipt",
+      "tbl_name": "authority_index_refresh_receipt",
+      "sql": "CREATE TABLE authority_index_refresh_receipt(\n            sequence INTEGER PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_count INTEGER NOT NULL,\n            node_count INTEGER NOT NULL,\n            indexed_table_count INTEGER NOT NULL,\n            llama_index_core_version TEXT NOT NULL,\n            chunk_size_tokens INTEGER NOT NULL,\n            chunk_overlap_tokens INTEGER NOT NULL,\n            prior_receipt_sha256 TEXT,\n            recorded_at TEXT NOT NULL,\n            receipt_sha256 TEXT NOT NULL UNIQUE,\n            receipt_json TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "authority_index_source",
+      "tbl_name": "authority_index_source",
+      "sql": "CREATE TABLE authority_index_source(\n            source_id TEXT PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_table TEXT NOT NULL,\n            source_identity TEXT NOT NULL,\n            source_text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            recorded_at TEXT NOT NULL,\n            UNIQUE(authority_id, source_table, source_identity)\n        ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "project_authority_fts",
+      "tbl_name": "project_authority_fts",
+      "sql": "CREATE VIRTUAL TABLE project_authority_fts USING fts5(\n                record_id UNINDEXED,\n                record_kind,\n                project_id,\n                authority_id,\n                payload_text,\n                tokenize='unicode61'\n            )"
+    },
+    {
+      "type": "table",
+      "name": "project_authority_fts_config",
+      "tbl_name": "project_authority_fts_config",
+      "sql": "CREATE TABLE 'project_authority_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "project_authority_fts_content",
+      "tbl_name": "project_authority_fts_content",
+      "sql": "CREATE TABLE 'project_authority_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4)"
+    },
+    {
+      "type": "table",
+      "name": "project_authority_fts_data",
+      "tbl_name": "project_authority_fts_data",
+      "sql": "CREATE TABLE 'project_authority_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "project_authority_fts_docsize",
+      "tbl_name": "project_authority_fts_docsize",
+      "sql": "CREATE TABLE 'project_authority_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "project_authority_fts_idx",
+      "tbl_name": "project_authority_fts_idx",
+      "sql": "CREATE TABLE 'project_authority_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+    },
+    {
+      "type": "table",
+      "name": "project_authority_member",
+      "tbl_name": "project_authority_member",
+      "sql": "CREATE TABLE project_authority_member(\n                member_id TEXT PRIMARY KEY,\n                project_id TEXT NOT NULL,\n                authority_kind TEXT NOT NULL,\n                authority_id TEXT NOT NULL,\n                sqlite_path TEXT,\n                mmd_path TEXT NOT NULL,\n                dot_path TEXT NOT NULL,\n                tools_path TEXT NOT NULL,\n                authority_sha256 TEXT NOT NULL,\n                payload_json TEXT NOT NULL,\n                recorded_at TEXT NOT NULL,\n                UNIQUE(project_id, authority_kind, authority_id)\n            ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "project_authority_migration_receipt",
+      "tbl_name": "project_authority_migration_receipt",
+      "sql": "CREATE TABLE project_authority_migration_receipt(\n                sequence INTEGER PRIMARY KEY,\n                migration_id TEXT NOT NULL UNIQUE,\n                from_layout_sha256 TEXT NOT NULL,\n                to_layout_sha256 TEXT NOT NULL,\n                migrated_member_count INTEGER NOT NULL,\n                removed_redundant_file_count INTEGER NOT NULL,\n                source_bytes_preserved INTEGER NOT NULL\n                    CHECK(source_bytes_preserved IN (0,1)),\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                recorded_at TEXT NOT NULL\n            ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "project_pointer_history",
+      "tbl_name": "project_pointer_history",
+      "sql": "CREATE TABLE project_pointer_history(\n                generation INTEGER PRIMARY KEY,\n                project_id TEXT NOT NULL,\n                accepted_pv TEXT,\n                accepted_manifest_sha256 TEXT,\n                prior_generation INTEGER,\n                movement_kind TEXT NOT NULL,\n                payload_json TEXT NOT NULL,\n                payload_sha256 TEXT NOT NULL,\n                recorded_at TEXT NOT NULL\n            ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "project_registration",
+      "tbl_name": "project_registration",
+      "sql": "CREATE TABLE project_registration(\n                project_id TEXT PRIMARY KEY,\n                project_root TEXT NOT NULL,\n                project_root_identity_sha256 TEXT NOT NULL,\n                registration_state TEXT NOT NULL,\n                payload_json TEXT NOT NULL,\n                payload_sha256 TEXT NOT NULL,\n                registered_at TEXT NOT NULL,\n                updated_at TEXT NOT NULL\n            ) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "workspace_binding",
+      "tbl_name": "workspace_binding",
+      "sql": "CREATE TABLE workspace_binding(\n                binding_id TEXT PRIMARY KEY,\n                project_id TEXT NOT NULL,\n                host_task_id TEXT NOT NULL,\n                workspace_root TEXT NOT NULL,\n                repository_identity_sha256 TEXT,\n                branch TEXT,\n                commit_sha TEXT,\n                tree_sha TEXT,\n                dirty_identity_sha256 TEXT,\n                state TEXT NOT NULL,\n                payload_json TEXT NOT NULL,\n                payload_sha256 TEXT NOT NULL,\n                recorded_at TEXT NOT NULL\n            ) STRICT"
+    }
+  ],
+  "tables": [
+    {
+      "name": "authority_index_fts",
+      "virtual_fts5": true,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "node_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_table",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_identity",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_config",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_content",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "c4",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_data",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_docsize",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_fts_idx",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_node",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "char_start",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "char_end",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "text_content",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "text_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "metadata_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "source_id",
+          "table": "authority_index_source",
+          "to": "source_id"
+        }
+      ]
+    },
+    {
+      "name": "authority_index_refresh_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "indexed_table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "llama_index_core_version",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "chunk_size_tokens",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "chunk_overlap_tokens",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "prior_receipt_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "authority_index_source",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "source_table",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_identity",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "source_text_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "metadata_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_authority_fts",
+      "virtual_fts5": true,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "record_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 1,
+          "name": "record_kind",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "project_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "authority_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "payload_text",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_authority_fts_config",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_authority_fts_content",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "c4",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_authority_fts_data",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_authority_fts_docsize",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_authority_fts_idx",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_authority_member",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "member_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "authority_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "authority_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "sqlite_path",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "mmd_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "dot_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "tools_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "authority_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_authority_migration_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "migration_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "from_layout_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "to_layout_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "migrated_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "removed_redundant_file_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "source_bytes_preserved",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_pointer_history",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "accepted_pv",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "accepted_manifest_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "prior_generation",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "movement_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "payload_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "project_registration",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "project_root",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "project_root_identity_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "registration_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "payload_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "registered_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "updated_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "workspace_binding",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "binding_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "host_task_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "workspace_root",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "repository_identity_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "branch",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 7,
+          "name": "tree_sha",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 8,
+          "name": "dirty_identity_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 9,
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 10,
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 11,
+          "name": "payload_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 12,
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    }
+  ],
+  "table_count": 20,
+  "fts5_tables": [
+    "authority_index_fts",
+    "project_authority_fts"
+  ],
+  "schema_sha256": "1BEFFF7C42ED98E9F65FC78C472E51798BCC11AA87D87754A948551C8C3D48F4",
+  "receipt_sha256": "08CAB1E9E6BDB51CC81064F4FA37B7EC2E41DF4F8EF491278883D5147AB295A2"
+}

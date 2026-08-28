@@ -1,0 +1,94 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "pv_fuse",
+  "title": "Fuse candidate with exact APPROVE",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "approval": {
+        "title": "Approval",
+        "type": "string"
+      },
+      "decided_by": {
+        "title": "Decided By",
+        "type": "string"
+      },
+      "decision_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Decision Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "approval",
+      "decided_by"
+    ],
+    "title": "pv_fuseArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_fuseDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "schema_sha256": "DC8CCDE7535966C18069B6BCE3081F18C9B0D5FCE12A5AD29A769E1729907DBF",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-fuse",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_fuse"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi",
+        "workflow": "exact-fuse",
+        "order": 10
+      },
+      {
+        "owner_skill": "evi-fuse",
+        "workflow": "exact-learning-then-project-approval-promotion",
+        "order": 3
+      },
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "exact-fuse",
+        "order": 8
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/pv_fuse.action.v1.json",
+  "sdk_action_binding_sha256": "9D705EC8FCF8375ECF7CF3563FCCAFCFB60F1AD8C8B18DF8D1048F430E50FC07",
+  "public_action_schema": "schemas/actions/pv_fuse.schema.json",
+  "public_action_schema_sha256": "0622DC1702C9CAF3DCF4F6E127625F90C9E8B1D1BD5D73CCB0B38A6B5EEE775A",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "AC938491803C3A47B9FC86AC3C6D8D1762256FD0EAF1FBC8DF84D79F81D38274"
+}

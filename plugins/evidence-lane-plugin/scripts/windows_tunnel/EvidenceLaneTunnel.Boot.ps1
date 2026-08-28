@@ -25,10 +25,13 @@ if (-not (Test-Path -LiteralPath $markerFile -PathType Leaf)) {
 }
 $marker = Get-Content -LiteralPath $markerFile -Raw | ConvertFrom-Json
 if (
-    $marker.schema -ne "evidence-lane.versioned-secure-mcp-tunnel-installation.v1" -or
+    $marker.schema -ne "evidence-lane.versioned-secure-mcp-tunnel-installation.v2" -or
     [string]$marker.release_token -ne $ReleaseToken -or
     [IO.Path]::GetFullPath([string]$marker.runtime_root) -ne [IO.Path]::GetFullPath($RuntimeRoot) -or
-    [string]$marker.profile_name -ne $ProfileName
+    [string]$marker.profile_name -ne $ProfileName -or
+    [bool]$marker.host_wide_project_neutral -ne $true -or
+    [bool]$marker.per_project_or_task_tunnel_allowed -ne $false -or
+    [bool]$marker.scheduled_task_transport_used -ne $true
 ) {
     throw "The boot request does not match the exact release-bound tunnel marker."
 }
@@ -39,6 +42,20 @@ $healthUrlFile = Join-Path $RuntimeRoot "${filePrefix}_health.url"
 $pidFile = Join-Path $RuntimeRoot "${filePrefix}_tunnel.pid"
 $daemonLog = Join-Path $RuntimeRoot "${filePrefix}_tunnel.log"
 $operatorLog = Join-Path $RuntimeRoot "${filePrefix}_operator.log"
+
+function Get-Sha256 {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $stream = [IO.File]::OpenRead([IO.Path]::GetFullPath($Path))
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        return ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace("-", "")
+    }
+    finally {
+        $sha.Dispose()
+        $stream.Dispose()
+    }
+}
 
 function Write-OperatorEvent {
     param(
@@ -75,7 +92,7 @@ function Get-PinnedTunnelProcess {
         if ($processPath -ne $clientPath) {
             return $null
         }
-        if ((Get-FileHash -LiteralPath $processPath -Algorithm SHA256).Hash -ne $expectedClientSha256) {
+        if ((Get-Sha256 -Path $processPath) -ne $expectedClientSha256) {
             return $null
         }
     }
@@ -104,7 +121,7 @@ New-Item -ItemType Directory -Path $RuntimeRoot -Force | Out-Null
 if (-not (Test-Path -LiteralPath $client -PathType Leaf)) {
     throw "The stable pinned tunnel-client binary is missing: $client"
 }
-$actualClientSha256 = (Get-FileHash -LiteralPath $client -Algorithm SHA256).Hash
+$actualClientSha256 = Get-Sha256 -Path $client
 if ($actualClientSha256 -ne $expectedClientSha256) {
     throw "The stable tunnel-client binary hash does not match the pinned v0.0.10 authority."
 }

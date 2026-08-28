@@ -39,7 +39,15 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--prewarm-only", action="store_true")
+    startup_mode = parser.add_mutually_exclusive_group()
+    startup_mode.add_argument("--bootstrap-only", action="store_true")
+    startup_mode.add_argument("--prewarm-only", action="store_true")
+    parser.add_argument("--runtime-control-root")
+    parser.add_argument(
+        "--host-profile",
+        choices=("CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"),
+        default=os.environ.get("EVIDENCE_LANE_HOST_PROFILE", "CODEX_DESKTOP"),
+    )
     return parser
 
 
@@ -132,12 +140,56 @@ def _bootstrap_runtime(
         )
 
 
+def _activate_installed_runtime_authority(plugin_root: Path) -> dict[str, object]:
+    """Activate the exact installed build even when its dependency runtime is reused."""
+
+    source = plugin_root / "src"
+    sys.path.insert(0, str(source))
+    from evidence_lane_plugin.service import EvidenceLaneService
+
+    service = EvidenceLaneService()
+    installation = service.sessions.ensure_installation()
+    flash = service.flash_authority.ensure_flashed()
+    receipt = dict(flash.get("receipt") or {})
+    migration = dict(flash.get("build_migration") or {})
+    plugin_manifest = json.loads(
+        (plugin_root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+    )
+    expected_plugin_version = str(plugin_manifest.get("version") or "")
+    if (
+        flash.get("status") != "PASS"
+        or not expected_plugin_version
+        or receipt.get("plugin_version") != expected_plugin_version
+    ):
+        raise SystemExit(
+            "Installed Evidence Lane Flash authority did not activate the exact package build."
+        )
+    return {
+        "schema": "evidence-lane.codex-installed-runtime-authority-prewarm.v1",
+        "status": "PASS",
+        "installation_version": installation.get("version"),
+        "flash_plugin_version": receipt.get("plugin_version"),
+        "flash_action": flash.get("flash_action"),
+        "flash_receipt_sha256": flash.get("receipt_sha256"),
+        "flash_build_migration_receipt_sha256": migration.get("receipt_sha256"),
+        "flash_migration_scope": migration.get("migration_scope"),
+        "project_state_mutated": migration.get("project_state_mutated", False),
+        "candidate_mutated": migration.get("candidate_mutated", False),
+        "pointer_moved": migration.get("pointer_moved", False),
+    }
+
+
 def main() -> int:
     args = _parser().parse_args()
     plugin_root = Path(__file__).resolve().parents[1]
     # The launcher owns this binding. Never inherit a stale source, cache, or
     # donor-task package root into the public MCP/SDK/skill/toolchain chain.
     os.environ["EVIDENCE_LANE_PLUGIN_ROOT"] = str(plugin_root)
+    if args.runtime_control_root:
+        os.environ["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(
+            Path(args.runtime_control_root).resolve()
+        )
+    os.environ["EVIDENCE_LANE_HOST_PROFILE"] = args.host_profile
     expected_version = _expected_runtime_version(plugin_root)
     expected_pydantic_version = _expected_dependency_version(plugin_root, "pydantic")
     environment = runtime_environment(plugin_root)
@@ -161,14 +213,73 @@ def main() -> int:
         raise SystemExit(
             "Evidence Lane dependencies are unavailable after the governed bootstrap."
         )
-    if args.prewarm_only:
+    if args.bootstrap_only and Path(sys.executable).resolve() != python.resolve():
+        completed = subprocess.run(  # nosec B603
+            [
+                str(python),
+                str(Path(__file__).resolve()),
+                "--bootstrap-only",
+                "--host-profile",
+                args.host_profile,
+                *(
+                    ["--runtime-control-root", args.runtime_control_root]
+                    if args.runtime_control_root
+                    else []
+                ),
+            ],
+            check=False,
+            stdin=subprocess.DEVNULL,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        return completed.returncode
+    if args.bootstrap_only:
+        runtime_authority = _activate_installed_runtime_authority(plugin_root)
         payload = {
-            "schema": "evidence-lane.codex-native-runtime-prewarm.v1",
+            "schema": "evidence-lane.codex-runtime-bootstrap.v1",
             "status": "PASS",
             "runtime_identity": runtime_identity(plugin_root),
             "runtime_projection_root": str(runtime_projection_root(plugin_root)),
             "runtime_environment": str(environment),
             "runtime_python": str(python),
+            "toolchain_inspected": False,
+            "native_toolchain_required": False,
+            "runtime_authority": runtime_authority,
+        }
+        print(json.dumps(payload, sort_keys=True, separators=(",", ":")))
+        return 0
+    if args.prewarm_only and Path(sys.executable).resolve() != python.resolve():
+        completed = subprocess.run(  # nosec B603
+            [
+                str(python),
+                str(Path(__file__).resolve()),
+                "--prewarm-only",
+                "--host-profile",
+                args.host_profile,
+                *(
+                    ["--runtime-control-root", args.runtime_control_root]
+                    if args.runtime_control_root
+                    else []
+                ),
+            ],
+            check=False,
+            stdin=subprocess.DEVNULL,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        return completed.returncode
+    if args.prewarm_only:
+        source = plugin_root / "src"
+        sys.path.insert(0, str(source))
+        from evidence_lane_plugin.runtime_toolchain import inspect_runtime_toolchain
+
+        toolchain = inspect_runtime_toolchain(plugin_root, prewarm_native=True)
+        payload = {
+            "schema": "evidence-lane.codex-native-runtime-prewarm.v1",
+            "status": "PASS" if toolchain["status"] == "PASS" else "FAIL",
+            "runtime_identity": runtime_identity(plugin_root),
+            "runtime_projection_root": str(runtime_projection_root(plugin_root)),
+            "runtime_environment": str(environment),
+            "runtime_python": str(python),
+            "runtime_toolchain": toolchain,
         }
         print(json.dumps(payload, sort_keys=True, separators=(",", ":")))
         return 0
@@ -183,6 +294,13 @@ def main() -> int:
                 args.host,
                 "--port",
                 str(args.port),
+                "--host-profile",
+                args.host_profile,
+                *(
+                    ["--runtime-control-root", args.runtime_control_root]
+                    if args.runtime_control_root
+                    else []
+                ),
             ],
             check=False,
             # The stdio relay must remain in the MCP client's process group so

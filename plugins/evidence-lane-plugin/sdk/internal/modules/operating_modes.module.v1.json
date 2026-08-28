@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.operating_modes",
+  "source_path": "src/evidence_lane_plugin/operating_modes.py",
+  "source_sha256": "383DED99353552D3526B9370DF35E24B9A65B39DDEC7548AC070AD04A71ECAF3",
+  "source_bytes": 13937,
+  "role": "ENV_UOP_AI_ACTION_PLANE",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "A7275E43AF3F9E2AAC6F9E981A69708F7C31592C8E86FD22FED15495A978084B"
+}

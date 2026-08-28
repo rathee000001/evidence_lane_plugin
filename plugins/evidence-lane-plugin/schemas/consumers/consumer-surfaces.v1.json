@@ -1,0 +1,17 @@
+{
+  "schema": "evidence-lane.consumer-surfaces.v1",
+  "status": "PASS",
+  "consumer_surfaces": [
+    "PUBLIC_ACTION_SCHEMA",
+    "MCP",
+    "INTERNAL_SDK",
+    "SERVICE_HANDLER",
+    "SKILL",
+    "COMMAND_AND_PROMPT_INTENT",
+    "HOOK",
+    "REMOTE_ADAPTER",
+    "PACKAGED_RUNTIME",
+    "INSTALLED_MODEL_VISIBLE_CATALOG"
+  ],
+  "receipt_sha256": "70DFBC8A8954F2D97EF446BF98869796E88792640AB627DDD8F57C14D843B3AD"
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "evidence-lane.installed-lane-surface.v1",
+  "status": "PASS",
+  "lane_id": "mode",
+  "sqlite_filename": "mode_sector_v001.sqlite",
+  "sqlite_integrity": "ok",
+  "sqlite_table_count": 38,
+  "schema_contract_table_count": 28,
+  "members": [
+    {
+      "path": "authorities/project_sectors/mode/builder-contract.schema.json",
+      "bytes": 604,
+      "sha256": "80DA05BB2ED2E132C0B59B8F1F74E0263B46D0C9E19085353B703E7A6735F478"
+    },
+    {
+      "path": "authorities/project_sectors/mode/builder.py",
+      "bytes": 572,
+      "sha256": "D1D3D9701CF9AF5D6488AFE338249B9BED030E1EBAC3CA3F3EBBD17199795126"
+    },
+    {
+      "path": "authorities/project_sectors/mode/dot-artifact.schema.json",
+      "bytes": 932,
+      "sha256": "9C8C6466AFE75FDE2F72CAC80B41106F6A147A72D3B8BA01443E1312B8A9368B"
+    },
+    {
+      "path": "authorities/project_sectors/mode/lane-contract.v1.json",
+      "bytes": 7274,
+      "sha256": "6F2FACEF8A90F9C905F106B0B5131FF44D188653C3966D762D2388D7238C02EE"
+    },
+    {
+      "path": "authorities/project_sectors/mode/lane-pointer.schema.json",
+      "bytes": 729,
+      "sha256": "96972E08088C00B4C99558E85AA20830944ED0360904513E7D5228784BB414E7"
+    },
+    {
+      "path": "authorities/project_sectors/mode/manifest.schema.json",
+      "bytes": 962,
+      "sha256": "BF9056C4801466F77137E7969056111DBD4C0AD4EDAD487684796AEACEE16A07"
+    },
+    {
+      "path": "authorities/project_sectors/mode/mmd-artifact.schema.json",
+      "bytes": 949,
+      "sha256": "0BEF2D1C08801F8C68FCD0B8CEEFA50F4F71F427468880E6C4798BFAD4DF9E41"
+    },
+    {
+      "path": "authorities/project_sectors/mode/mode.dot",
+      "bytes": 18575,
+      "sha256": "7FF156BD49188CE70CDC3CAC11F3AA1A2943AD91AF7C885F8C581889C68E3F18"
+    },
+    {
+      "path": "authorities/project_sectors/mode/mode.mmd",
+      "bytes": 14756,
+      "sha256": "4B40B77F18C966A0F9ED6295C7D8E2F48B51B2003217FBEE35D6C64E5F32C781"
+    },
+    {
+      "path": "authorities/project_sectors/mode/mode_sector_v001.sqlite",
+      "bytes": 249856,
+      "sha256": "6FD2C6074E64846EB53A18B429646298DA2C8072914314F225F4EAC3FE433703"
+    },
+    {
+      "path": "authorities/project_sectors/mode/reader-contract.schema.json",
+      "bytes": 754,
+      "sha256": "99E808581537AF86E05BB7C5E9BB55CA5C00434970482B7E4CF27BBE858F968A"
+    },
+    {
+      "path": "authorities/project_sectors/mode/reader.py",
+      "bytes": 434,
+      "sha256": "B0DDD5987CB00BE7FACDCDEE75906CF92CA33D11C51B0B0951B2CF3D40CE4512"
+    },
+    {
+      "path": "authorities/project_sectors/mode/README.md",
+      "bytes": 360,
+      "sha256": "36B8AA2581E4592AB4E5D1AA46C8F663F96C5C8762051D05DF9626D78C7A9FCF"
+    },
+    {
+      "path": "authorities/project_sectors/mode/refresh-receipt.schema.json",
+      "bytes": 524,
+      "sha256": "1FC3CCB54DFC23E14DB7AA3F0D1E0CA1289FF3F26BB43C6FD719D10E97E4F410"
+    },
+    {
+      "path": "authorities/project_sectors/mode/schema.sql",
+      "bytes": 9595,
+      "sha256": "012731D4C80F2E67BA6945C905A0BCAEE0EC8FCB71C5111E192101943FB45FB2"
+    },
+    {
+      "path": "authorities/project_sectors/mode/sqlite-artifact.schema.json",
+      "bytes": 951,
+      "sha256": "24A92AB5195F84C4E0BD9878EA935493B18ABC2B4574EAD736A3CCC7B9A8BF12"
+    },
+    {
+      "path": "authorities/project_sectors/mode/tools.json",
+      "bytes": 1146,
+      "sha256": "A400141E79114642DBD7BB251B83A8A88AFAF770074BB0FB953CB9A802DC24AD"
+    },
+    {
+      "path": "authorities/project_sectors/mode/tools.schema.json",
+      "bytes": 993,
+      "sha256": "42FD90A3039B3BBF50783D6A20D874676A6E23B91094E5D42D8921E8D7AA7A9B"
+    }
+  ],
+  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
+  "separate_sqlite_authority": true,
+  "live_project_bytes_in_template": false,
+  "template_contains_identity_metadata_only": true,
+  "receipt_sha256": "7A814E3E89746C9FEA3E1D4A3AD87927C8B139E07C5327942378E7CF24092094"
+}

@@ -1,77 +1,233 @@
 <!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
 
-# Evidence Lane 3.0.0 tools
+# Evidence Lane 3.0.0 tools and execution routing
 
-This is the repository-facing inventory of the declared Evidence Lane tool
-surface. Each tool is listed once and pinned to the lanes or runtime surfaces
-that use it. The executable lane authority remains
-`plugins/evidence-lane-plugin/remote_adapter/app/_data/lane-contracts.ts` plus
-the native lane catalog; this page does not create a tool, route, or authority.
+<!-- EVIDENCE_LANE_CURRENT_BACKEND_START -->
+## Current backend contract
 
-Lane IDs: `github_code`, `local_code`, `chat_lineage`, `discussion`,
-`analysis`, `plan`, `mode`, `docs`, `data_excel`, `ppt`, `pdf_ocr`,
-`images_ocr`, `artifacts`, `custom`, `brain_loader`, `research`,
-`project_engulf`, and `sqlite_brain`.
+This public document is refreshed from the same source graph used by the installable plugin package.
 
-| Tool | Requirement | Lanes or runtime surfaces | Exact role |
-| --- | --- | --- | --- |
-| Git | required; optional for Project Engulf | `github_code`, `local_code`; optional `project_engulf`; runtime Git delivery | refs, commits, parents, blobs, changes, and reviewed delivery |
-| Python | required | `github_code`, `local_code`; package runtime | polyglot projection and native server runtime |
-| `hashlib` / `pathlib` | required | all 18 lanes; Plan, Canon, Learning, Memory, receipts | exact hashing and bounded path handling |
-| SQLite / CAS | required | all 18 lanes; Plan, Chat Lineage, Canon, Learning, Memory | durable facts, immutable content identity, and receipts |
-| SQLite FTS5 / BM25 | required | all 18 lanes and every queryable project sector | bounded indexed retrieval without loading a database or PV package into model context |
-| deterministic TF-IDF | required | all 18 lanes | explicit term statistics and retrieval parity |
-| Mermaid emitter | required | all 18 lanes; Plan/Canon topology | human-readable topology source |
-| Graphviz DOT emitter | required | all 18 lanes; Plan/Canon topology | machine-comparable topology source |
-| Mermaid CLI (`mmdc`) | optional | all 18 lanes | derived Mermaid rendering when an exact host tool is available |
-| Graphviz `dot` | optional | all 18 lanes | derived DOT rendering when an exact host tool is available |
-| Python structural parser | required | all structured lanes | bounded structural extraction |
-| Package sealer | required | all structured lanes; candidate lifecycle | four-file lane packages, candidates, manifests, and receipts |
-| Node.js / TypeScript | required | `github_code`, `local_code`; public adapter | JavaScript/TypeScript manifests, routes, and site build |
-| pytest | required for code acceptance | `github_code`, `local_code`; plugin tests | executable Python contracts |
-| Ruff | required for configured code gates | `github_code`, `local_code` | Python quality checks |
-| MyPy | required for configured code gates | `github_code`, `local_code` | typed-source checks |
-| Secret redactor | required internal component | `chat_lineage`; every source policy | credential-shaped value exclusion |
-| Hash-chain writer | required internal component | `chat_lineage`; receipts | idempotent visible-turn commit and lineage continuity |
-| ENV/UOP classifier | required internal component | `mode`; lifecycle entry | ordered law intersection and operator routing |
-| PCM / MBA operators | required internal component | `mode`; Code execution | mode-specific execution governance |
-| DOCX OpenXML | required | `docs` | hierarchy, text, relationships, and tables |
-| `defusedxml` | required | `docs`, `ppt` | hardened XML parsing |
-| OpenXML / CSV / JSON parser | required | `data_excel` | deterministic structural extraction |
-| `openpyxl` | optional | `data_excel` | workbook fidelity |
-| `pandas` | optional | `data_excel` | bounded tabular inspection |
-| `python-calamine` | optional | `data_excel` | legacy Excel extraction |
-| `pyarrow` | optional | `data_excel` | Parquet schema and bounded samples |
-| PPTX OpenXML | required | `ppt` | slides, notes, shapes, tables, and relationships |
-| `pypdf` | required | `pdf_ocr` | native PDF text and embedded-image extraction |
-| `pypdfium2` | required | `pdf_ocr` | full-page PDF raster fallback |
-| `pdfplumber` | required | `pdf_ocr` | structural PDF extraction |
-| RapidOCR + ONNX Runtime | optional | `pdf_ocr`, `images_ocr` | local OCR |
-| `pytesseract` + Tesseract | optional | `pdf_ocr`, `images_ocr` | secondary local OCR |
-| Pillow | optional/required by lane | optional `pdf_ocr`; required `images_ocr` | page/image pixels and metadata |
-| Poppler / Ghostscript | optional host tools | `pdf_ocr` | local PDF fallbacks; not bundled by this source tree |
-| OpenCV | optional host tool | `images_ocr` | image-region preprocessing |
-| Custom schema compiler | required internal component | `custom` | bounded user-defined lane contract |
-| SQLite immutable URI reader | required internal component | `brain_loader`, `sqlite_brain` | read-only database/package inspection |
-| Safe archive intake | required internal component | `brain_loader`, `project_engulf` | member, path, and manifest validation |
-| Citation binder | required internal component | `research` | claim/source/date evidence binding |
-| Project inventory | required internal component | `project_engulf` | files, components, relationships, and conflicts |
-| Git detector | optional internal component | `project_engulf` | repository identity when a readable Git worktree exists |
-| Compatibility mapper | required internal component | `sqlite_brain` | schema version and sector mapping |
-| MCP Python SDK | required | native MCP and internal SDK surfaces | typed native tool transport and results |
-| Pydantic | required | native MCP and internal SDK surfaces | request/result validation |
-| HTTPX | required | explicitly configured network adapters only | bounded HTTP client transport |
-| Cryptography + PyJWT | required by protected remote profiles | headless/API authentication | DPAPI-adjacent envelope and JWT verification primitives |
-| PowerShell + Win32 APIs | required on Windows host profiles | installer, helper, tunnel, hook host | hidden background launch, task binding, and current-user recovery |
-| ripgrep 15.2.0 | packaged pre-index helper | bounded source discovery before SQLite enrollment | exact hash-pinned file/content search; never the FTS authority |
-| Next.js / React / Three.js / Framer Motion | public-adapter dependencies | documentation adapter only | static documentation, interaction, and visual rendering; no project authority |
-| GitHub Actions | configured external service | reviewed branch CI | clean CI and release evidence |
-| Vercel Git integration | configured external service | preview/production documentation deployment | deployment evidence only; no lifecycle or pointer authority |
+- Plugin package: `3.0.0+codex.20260828064341`.
+- Native MCP: **91 actions** (**30 read / 61 write**).
+- Native skills: **26 governed skills**; the separate command layer is absent.
+- Hooks: **11 events / 44 ordered handler actions**.
+- SDK: internal action SDK and outer routing SDK remain distinct; public action count **91**.
+- ENV/UOP: separate executable authorities with **7 ENV members / 5 UOP members**.
+- Runtime control lives in the hidden Codex plugin layer; Project/PV authority and task workspace remain separate user-selected identities.
+- Public copy excludes internal receipts, task corrections, forensic reports, and historical execution documents.
 
-## License boundary
+Exact backend bindings:
+  - `plugins/evidence-lane-plugin/.codex-plugin/plugin.json` — `42A726CD910A27EF9B8987907F02D127789857C8B04E1E214A91D1F74D151A4B`
+  - `plugins/evidence-lane-plugin/schemas/public-action-schemas.v001.json` — `B571AF9EC31691C96DB0B3845ED0B7A6700D1C84A2578ABA9A2EA594982AF045`
+  - `plugins/evidence-lane-plugin/skills/skill-surface-registry.v1.json` — `38B1F95B8160E037B43B209A6D6047BF8BCA4D2599182C2F20E4606B6CBDF3A5`
+  - `plugins/evidence-lane-plugin/hooks/hooks.json` — `C37DB05DD4701087EAD0BD31203C843AAFA79ED39A081F2E9DFF313A77631EEF`
+  - `plugins/evidence-lane-plugin/sdk/sdk-manifest.v1.json` — `5BD21AEB96D7E41209E3D059D8A5296D851BDED1D453D6EF486C0CD50D745245`
+  - `plugins/evidence-lane-plugin/mcp/mcp-manifest.v1.json` — `E9E402C2F20B2BBE63B6BF91613B1C97E85E615F982D52CF6D020408251AFAFB`
+  - `plugins/evidence-lane-plugin/env/authority-manifest.v1.json` — `E4F283EC16F86995E2937288DD8A8E5623007351CBB1CA3FD01FDA5C7363B6C1`
+  - `plugins/evidence-lane-plugin/uop/authority-manifest.v1.json` — `BBA3CDAE9CC0FF981E5C6E19F83FBBCE6EB2ED8167CDBB2E9D1C557FA03CA57C`
+  - `plugins/evidence-lane-plugin/toolchains/TOOLCHAIN_EXECUTION_MATRIX.md` — `E5379D7C4B17BC9293F332216581D60F88ADF73A4B7B361D84D09B47FC4EA66F`
+<!-- EVIDENCE_LANE_CURRENT_BACKEND_END -->
 
-Internal components remain governed by the Evidence Lane proprietary license.
-License-bearing direct dependencies, packaged binaries, and host-only external
-tools are separated in [Third-party tool licenses](THIRD_PARTY_LICENSES.md)
-and the [direct dependency license audit](DEPENDENCY_LICENSE_AUDIT.md). A tool
-name in this inventory is not evidence that its executable is bundled.
+This page is regenerated from the executable toolchain matrix; it does not preserve a separate hand-maintained inventory.
+
+## Complete source-derived toolchain execution matrix
+
+Derived tool count: **95**. Public MCP action count is separate.
+
+Host plane: **Codex Desktop, Codex CLI, and Codex VM only**. ChatGPT is a separate future plane.
+
+Execution law: tools run only when the active lane/action/source type selects them. Presence never means run everything. SQLite remains durable authority; analytical, vector, graph, and web tools produce bounded evidence for SQLite persistence.
+
+## Eighteen project-sector lanes
+
+| Lane | Action classes | Ordered eligible tools |
+|---|---|---|
+| `github_code` | CODE, RETRIEVAL, GRAPH | Git, GitPython, PyGithub, TreeSitter_LanguagePack, Python_structural_parser, LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `local_code` | CODE, RETRIEVAL, GRAPH | Git, GitPython, TreeSitter_LanguagePack, Python_structural_parser, LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `docs` | DOCUMENT, RETRIEVAL, GRAPH | Docling, PyMuPDF, lxml, DOCX_OpenXML, LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `pdf_ocr` | DOCUMENT, OCR_MEDIA, RETRIEVAL, GRAPH | Docling, PyMuPDF, pdfplumber, pypdf, RapidOCR_ONNX_Runtime, pytesseract_Tesseract, Pillow, Poppler_pdftotext_pdfinfo, Ghostscript, LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `images_ocr` | OCR_MEDIA, RETRIEVAL, GRAPH | RapidOCR_ONNX_Runtime, pytesseract_Tesseract, OpenCV, Pillow, FFmpeg, LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `ppt` | DOCUMENT, OCR_MEDIA, RETRIEVAL, GRAPH | Docling, lxml, PPTX_OpenXML, LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `data_excel` | DATA, RETRIEVAL, GRAPH | DuckDB, Polars, APSW_SQLite_engine, pandas, pyarrow, openpyxl, python_calamine, Tableau_Hyper_API, SQLAlchemy, LlamaIndex_SQLite_indexer, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `research` | WEB_RESEARCH, RETRIEVAL, GRAPH | trafilatura, readability_lxml, BeautifulSoup4, markdownify, html2text, tldextract, DDGS, LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `brain_loader` | DOCUMENT, DATA, RETRIEVAL, GRAPH | APSW_SQLite_engine, Tableau_Hyper_API, LlamaIndex_SQLite_indexer, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `sqlite_brain` | DATA, RETRIEVAL, GRAPH | DuckDB, APSW_SQLite_engine, SQLAlchemy, LlamaIndex_SQLite_indexer, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `project_engulf` | CODE, DOCUMENT, DATA, WEB_RESEARCH, RETRIEVAL, GRAPH | Git, GitPython, TreeSitter_LanguagePack, Python_structural_parser, Polars, APSW_SQLite_engine, LlamaIndex_SQLite_indexer, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, RapidFuzz, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `artifacts` | DOCUMENT, OCR_MEDIA, DATA, RETRIEVAL, GRAPH | FFmpeg, Polars, APSW_SQLite_engine, LlamaIndex_SQLite_indexer, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `analysis` | DATA, RETRIEVAL, GRAPH, GOVERNANCE | DuckDB, Polars, APSW_SQLite_engine, LlamaIndex_SQLite_indexer, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, RapidFuzz, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc, SQLite_CAS |
+| `discussion` | RETRIEVAL, GOVERNANCE | LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, RapidFuzz, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, SQLite_CAS |
+| `plan` | GOVERNANCE, RETRIEVAL, GRAPH | SQLite_CAS, LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `mode` | GOVERNANCE, RETRIEVAL, GRAPH | ENV_UOP_classifier, PCM_MBA_operators, SQLite_CAS, LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `chat_lineage` | GOVERNANCE, RETRIEVAL, GRAPH | SQLite_CAS, Hash_chain_writer, LlamaIndex_SQLite_indexer, APSW_SQLite_engine, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+| `custom` | GOVERNANCE, DATA, RETRIEVAL, GRAPH | SQLite_CAS, APSW_SQLite_engine, SQLAlchemy, LlamaIndex_SQLite_indexer, SQLite_FTS5_BM25, sqlite_vec, rank_bm25, SentenceTransformers, FAISS_CPU, ChromaDB, deterministic_TFIDF, LangGraph_Mermaid_engine, rustworkx, Python_Graphviz_DOT_engine, Graphviz_dot, Mermaid_CLI_mmdc |
+
+## Named/root authority surfaces
+
+| Authority | Execution role |
+|---|---|
+| Agent Learning | Learning SQLite + MMD/DOT + LlamaIndex/FTS; vector side index only by policy |
+| Canon Input/Consequence | Canon SQLite and nested consequence graph; LangGraph, Graphviz, rustworkx |
+| Project Memory | Memory SQLite, LlamaIndex, FTS5/BM25, optional local semantic retrieval |
+| Project Overlay | HIL-only progressive blast-radius SQLite + graph analytics |
+| Source Authority | CAS/source identities, extraction, FTS, citations, changed-only refresh |
+| Project Universe | Per-project relationship graph only |
+| Connector Brain | Project-to-project mini-brain federation with explicit grants and hashes |
+| Project Authority | Registration, layout, pointer/member identities and project routing |
+| Receipt Ledger | Append-only exact receipt bytes, links, FTS and hash chain |
+| Session Authority | Sessions, attachments, State Travel and Goal projection |
+| Instructions | AGENTS.md + host MEMORY.md instruction arm; separate non-SQLite authority |
+
+## Git, search, JSON, CI, and public adapter
+
+| Tool | Requirement | Exact role | Declared surfaces | ENV-eligible lanes | Primary/fallback | Implementation owner | License/terms evidence |
+|---|---|---|---|---|---|---|---|
+| `Git` | `REQUIRED_OPTIONAL_FOR_PROJECT_ENGULF` | Refs, commits, parents, blobs, changes, and reviewed delivery. | `github_code`, `local_code`, `project_engulf`, `runtime_git_delivery` | `github_code`, `local_code`, `project_engulf` | primary: CODE | `git_optional.py + git_history.py` | GPL-2.0-only — host Git version probe; Git is not redistributed by the plugin |
+| `NodeJS_TypeScript` | `REQUIRED_REPOSITORY_ONLY` | JavaScript and TypeScript manifests, routes, and site build. | `github_code`, `local_code`, `public_adapter` | Non-lane gate | surface-owned | `repository CI and remote_adapter build` | EXTERNAL_SERVICE_OR_REPOSITORY_TERMS — validated at the repository/delivery gate; no binary redistributed |
+| `Git_detector` | `OPTIONAL_INTERNAL` | Repository identity when a readable Git worktree exists. | `project_engulf` | Non-lane gate | surface-owned | `git_optional.py` | LicenseRef-Proprietary — LICENSE.md |
+| `ripgrep_15_2_0` | `PACKAGED_PRE_INDEX_HELPER` | Exact hash-pinned file and content search; never the FTS authority. | `bounded_source_discovery` | Non-lane gate | fallback/conditional: CODE | `search_toolchain.py` | MIT OR Unlicense — toolchains/native-tools.v1.json plus the installed native-tool license receipt |
+| `SevenZip_NSIS_extractor` | `REQUIRED_HIDDEN_RUNTIME_BINARY` | Hash-pinned non-elevated extraction of the pinned Tesseract NSIS payload into the hidden plugin runtime. | `local_update_native_toolchain` | Non-lane gate | surface-owned | `install_native_toolchain.py non-elevated Tesseract extraction` | LicenseRef-7-Zip — toolchains/native-tools.v1.json plus the installed native-tool license receipt |
+| `jq` | `REQUIRED_HIDDEN_RUNTIME_BINARY` | Deterministic bounded JSON projection and verification. | `json_tooling`, `manifests`, `receipts`, `routing` | Non-lane gate | fallback/conditional: CODE | `native_toolchain.py JSON validation/projection` | MIT — toolchains/native-tools.v1.json plus the installed native-tool license receipt |
+| `PyGithub` | `REQUIRED_DEPENDENCY` | GitHub API inspection and reviewed delivery support. | `github_code`, `git_delivery` | `github_code` | fallback/conditional: CODE | `github_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `GitPython` | `REQUIRED_DEPENDENCY` | Repository graph and object inspection beside the Git CLI. | `github_code`, `local_code`, `project_engulf` | `github_code`, `local_code`, `project_engulf` | fallback/conditional: CODE | `git_optional.py parity` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `NextJS_React_ThreeJS_FramerMotion` | `REPOSITORY_PUBLIC_ADAPTER_ONLY` | Static documentation, interaction, and visual rendering; no project authority. | `documentation_adapter` | Non-lane gate | surface-owned | `remote_adapter documentation projection` | EXTERNAL_SERVICE_OR_REPOSITORY_TERMS — validated at the repository/delivery gate; no binary redistributed |
+| `GitHub_Actions` | `CONFIGURED_EXTERNAL_SERVICE` | Clean CI and release evidence. | `reviewed_branch_ci` | Non-lane gate | surface-owned | `.github/workflows delivery proof` | EXTERNAL_SERVICE_OR_REPOSITORY_TERMS — validated at the repository/delivery gate; no binary redistributed |
+| `Vercel_Git_integration` | `CONFIGURED_EXTERNAL_SERVICE` | Deployment evidence only; no lifecycle authority. | `preview_production_documentation` | Non-lane gate | surface-owned | `branch preview delivery proof` | EXTERNAL_SERVICE_OR_REPOSITORY_TERMS — validated at the repository/delivery gate; no binary redistributed |
+
+## Hidden runtime, MCP, API, and tunnel
+
+| Tool | Requirement | Exact role | Declared surfaces | ENV-eligible lanes | Primary/fallback | Implementation owner | License/terms evidence |
+|---|---|---|---|---|---|---|---|
+| `Python` | `REQUIRED` | Polyglot projection and native server runtime. | `github_code`, `local_code`, `package_runtime` | Non-lane gate | surface-owned | `scripts/bootstrap.py hidden runtime` | PSF-2.0 — exact hidden-runtime Python distribution and runtime license manifest |
+| `MCP_Python_SDK` | `REQUIRED_DEPENDENCY` | Typed native tool transport and results. | `native_mcp`, `internal_sdk` | Non-lane gate | fallback/conditional: RUNTIME_API | `mcp_server.py + internal_sdk.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Pydantic` | `REQUIRED_DEPENDENCY` | Request and result validation. | `native_mcp`, `internal_sdk` | Non-lane gate | fallback/conditional: GOVERNANCE, RUNTIME_API | `typed tool/request/result modules` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Cryptography_PyJWT` | `REQUIRED_PROTECTED_REMOTE_PROFILES` | Envelope and JWT verification primitives. | `headless_api_authentication` | Non-lane gate | surface-owned | `auth.py + protected remote profiles` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `PowerShell_Win32_APIs` | `REQUIRED_WINDOWS_HOST` | Hidden background launch, task binding, and current-user recovery. | `installer`, `maintainer_helper`, `tunnel`, `hook_host` | Non-lane gate | fallback/conditional: RUNTIME_API | `codex_release scripts + hook/tunnel hosts` | HOST_PLATFORM_TERMS — Windows host capability probe; no host binary redistributed |
+| `FastAPI` | `REQUIRED_DEPENDENCY` | Typed private runtime API host. | `tunnel`, `remote_adapter`, `headless_api` | Non-lane gate | primary: RUNTIME_API | `runtime_api.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Uvicorn` | `REQUIRED_DEPENDENCY` | Hidden runtime ASGI server. | `tunnel`, `remote_adapter`, `headless_api` | Non-lane gate | fallback/conditional: RUNTIME_API | `runtime_api.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Pydantic_Settings` | `REQUIRED_DEPENDENCY` | Typed secret-free runtime configuration. | `tunnel`, `runtime_configuration` | Non-lane gate | fallback/conditional: RUNTIME_API | `runtime_api.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `python_multipart` | `REQUIRED_DEPENDENCY` | Bounded multipart source intake. | `source_intake`, `headless_api` | Non-lane gate | fallback/conditional: RUNTIME_API | `runtime_api.py source staging` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `aiofiles` | `REQUIRED_DEPENDENCY` | Bounded asynchronous file streaming. | `tunnel`, `source_intake` | Non-lane gate | fallback/conditional: RUNTIME_API | `runtime_api.py bounded staging` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `orjson` | `REQUIRED_DEPENDENCY` | Fast deterministic JSON transport; canonical hashing still uses the internal serializer. | `tunnel`, `remote_adapter`, `manifests` | Non-lane gate | fallback/conditional: RUNTIME_API | `runtime_api.py response transport` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `python_dotenv` | `REQUIRED_DEPENDENCY` | Development configuration loader; secrets are never committed or copied into project authority. | `maintainer_development_only` | Non-lane gate | surface-owned | `runtime_api.py maintainer-only loader` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `psutil` | `REQUIRED_DEPENDENCY` | Bounded process and resource telemetry; never turn authority, interruption, or restart control. | `runtime_doctor`, `runtime_resource_telemetry` | Non-lane gate | fallback/conditional: RUNTIME_API | `runtime_toolchain.py bounded process/resource telemetry` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+
+## Authority, indexing, and retrieval
+
+| Tool | Requirement | Exact role | Declared surfaces | ENV-eligible lanes | Primary/fallback | Implementation owner | License/terms evidence |
+|---|---|---|---|---|---|---|---|
+| `hashlib_pathlib` | `REQUIRED_INTERNAL` | Exact hashing and bounded path handling. | `all_18_project_sectors`, `plan`, `canon`, `learning`, `memory`, `receipts` | Non-lane gate | surface-owned | `hashing.py` | LicenseRef-Proprietary — LICENSE.md |
+| `SQLite_CAS` | `REQUIRED` | Durable facts, immutable content identity, sessions, state travel, and receipts. | `all_18_project_sectors`, `project_authority`, `plan`, `chat_lineage`, `canon`, `learning`, `memory`, `sources`, `universe`, `project_overlay`, `connector_brain`, `receipt_ledger`, `session_authority` | `analysis`, `discussion`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: GOVERNANCE | `lane_engine.py + store.py` | LicenseRef-SQLite-Public-Domain AND LicenseRef-Proprietary — SQLite runtime identity plus LICENSE.md for Evidence Lane implementation |
+| `SQLite_FTS5_BM25` | `REQUIRED` | Bounded indexed retrieval without loading a database or PV package into model context. | `all_18_project_sectors`, `every_queryable_project_authority` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `discussion`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: RETRIEVAL | `sqlite_indexing.py + lane_reader.py` | LicenseRef-SQLite-Public-Domain AND LicenseRef-Proprietary — SQLite runtime identity plus LICENSE.md for Evidence Lane implementation |
+| `APSW_SQLite_engine` | `REQUIRED_DEPENDENCY` | Full SQLite API, backup/serialize/session/RBU/tracing, best-practice diagnostics, and per-lane benchmarked bulk-build option. | `all_18_project_sectors`, `every_sqlite_authority`, `receipt_ledger`, `session_authority` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `discussion`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: RETRIEVAL, DATA | `sqlite_execution.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `deterministic_TFIDF` | `REQUIRED_INTERNAL` | Explicit term statistics and retrieval parity. | `all_18_project_sectors` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `discussion`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: RETRIEVAL | `lane_engine.py` | LicenseRef-Proprietary — LICENSE.md |
+| `LlamaIndex_SQLite_indexer` | `REQUIRED_DEPENDENCY` | Deterministic document/node construction stored in each owning SQLite with FTS5/BM25 and append-only refresh receipts. | `all_18_project_sectors`, `project_authority`, `canon`, `learning`, `memory`, `sources`, `universe`, `project_overlay`, `connector_brain`, `receipt_ledger`, `session_authority` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `discussion`, `plan`, `mode`, `chat_lineage`, `custom` | primary: RETRIEVAL | `sqlite_indexing.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Hash_chain_writer` | `REQUIRED_INTERNAL` | Idempotent visible-turn commit and lineage continuity. | `chat_lineage`, `receipts` | `chat_lineage` | fallback/conditional: GOVERNANCE | `lineage.py + receipt_ledger.py` | LicenseRef-Proprietary — LICENSE.md |
+| `SentenceTransformers` | `REQUIRED_DEPENDENCY` | Local semantic embedding primary where the lane permits vectors. | `all_queryable_authorities`, `research`, `memory` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `discussion`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: RETRIEVAL | `semantic_retrieval.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `FAISS_CPU` | `REQUIRED_DEPENDENCY` | Local ephemeral/vector-sidecar retrieval; SQLite remains durable authority. | `all_queryable_authorities`, `research`, `memory` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `discussion`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: RETRIEVAL | `hybrid_retrieval.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `ChromaDB` | `REQUIRED_DEPENDENCY` | Persistent vector fallback only when the governing lane selects it; SQLite identities remain canonical. | `all_queryable_authorities`, `research`, `memory` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `discussion`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: RETRIEVAL | `hybrid_retrieval.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `rank_bm25` | `REQUIRED_DEPENDENCY` | Lexical parity/fallback verification beside SQLite FTS5 BM25. | `all_queryable_authorities` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `discussion`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: RETRIEVAL | `hybrid_retrieval.py + sqlite_indexing.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `sqlite_vec` | `CONDITIONAL_SQLITE_VECTOR_EXTENSION` | Optional SQLite-local vector index when extension loading and the active lane policy pass; FTS5/BM25 remains mandatory and SQLite identities remain canonical. | `every_queryable_project_authority`, `memory`, `research`, `learning` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `discussion`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: RETRIEVAL | `semantic_retrieval.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `HuggingFace_Hub_ModelSnapshot` | `REQUIRED_LOCAL_UPDATE_MODEL_ACQUISITION` | Local-update-only revision-pinned BAAI/bge-small-en-v1.5 snapshot acquisition into the hidden runtime; normal lane execution is offline and never calls the Hub. | `hidden_runtime_model_install`, `all_queryable_authorities` | Non-lane gate | surface-owned | `install_native_toolchain.py model prefetch` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+
+## Graphs, AST, and reconciliation
+
+| Tool | Requirement | Exact role | Declared surfaces | ENV-eligible lanes | Primary/fallback | Implementation owner | License/terms evidence |
+|---|---|---|---|---|---|---|---|
+| `LangGraph_Mermaid_engine` | `REQUIRED_DEPENDENCY` | System-wide semantic graph compilation and Mermaid export through langgraph==1.2.11 and its graph exporter. | `all_18_project_sectors`, `plan`, `canon_topology`, `all_named_authorities`, `all_workflows` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `plan`, `mode`, `chat_lineage`, `custom` | primary: GRAPH | `graph_pipeline.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Python_Graphviz_DOT_engine` | `REQUIRED_DEPENDENCY` | System-wide DOT construction through graphviz==0.21. | `all_18_project_sectors`, `plan`, `canon_topology`, `all_named_authorities`, `all_workflows` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: GRAPH | `graph_pipeline.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Mermaid_CLI_mmdc` | `OPTIONAL_HIDDEN_RUNTIME_RENDERER` | Derived Mermaid rendering; MMD source remains authoritative. | `all_graph_surfaces` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: GRAPH | `native_toolchain.py (optional renderer)` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Graphviz_dot` | `REQUIRED_HIDDEN_RUNTIME_BINARY` | Strict DOT parse, validation, layout, and deterministic derived rendering for every Graphviz-generated DOT. | `all_graph_surfaces` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: GRAPH | `native_toolchain.py + graph_pipeline.py` | EPL-1.0 — toolchains/native-tools.v1.json plus the installed native-tool license receipt |
+| `Python_structural_parser` | `REQUIRED_INTERNAL` | Bounded structural extraction. | `all_structured_project_sectors` | `github_code`, `local_code`, `project_engulf` | fallback/conditional: CODE | `lane_engine.py + ingest.py` | LicenseRef-Proprietary — LICENSE.md |
+| `TreeSitter_LanguagePack` | `REQUIRED_DEPENDENCY` | Multi-language concrete syntax trees, symbols, imports, calls, and syntax-error-tolerant structural extraction; deterministic parser remains fallback. | `github_code`, `local_code`, `project_engulf` | `github_code`, `local_code`, `project_engulf` | fallback/conditional: CODE | `code_toolchain.py + ingest.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `RapidFuzz` | `REQUIRED_DEPENDENCY` | Bounded candidate entity/schema/name reconciliation with scores and thresholds; never auto-merges authority identities. | `project_engulf`, `sources`, `canon`, `memory`, `analysis`, `discussion` | `project_engulf`, `analysis`, `discussion` | fallback/conditional: RETRIEVAL | `entity_reconciliation.py + project_engulf` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `rustworkx` | `REQUIRED_DEPENDENCY` | High-performance graph connectivity, cycle, component, shortest-path, and centrality analysis over SQLite-derived graphs. | `all_18_project_sectors`, `canon_topology`, `all_named_authorities`, `project_universe`, `connector_brain`, `project_overlay` | `github_code`, `local_code`, `docs`, `pdf_ocr`, `images_ocr`, `ppt`, `data_excel`, `research`, `brain_loader`, `sqlite_brain`, `project_engulf`, `artifacts`, `analysis`, `plan`, `mode`, `chat_lineage`, `custom` | fallback/conditional: GRAPH | `graph_pipeline.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+
+## Internal governance, build, and quality
+
+| Tool | Requirement | Exact role | Declared surfaces | ENV-eligible lanes | Primary/fallback | Implementation owner | License/terms evidence |
+|---|---|---|---|---|---|---|---|
+| `Package_sealer` | `REQUIRED_INTERNAL` | Four-file lane packages, candidates, manifests, and receipts. | `all_structured_project_sectors`, `candidate_lifecycle` | Non-lane gate | surface-owned | `sealing.py + pv_package.py` | LicenseRef-Proprietary — LICENSE.md |
+| `pytest` | `REQUIRED_CODE_ACCEPTANCE` | Executable Python contracts. | `github_code`, `local_code`, `plugin_tests` | Non-lane gate | surface-owned | `plugin tests + repository tests` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Ruff` | `REQUIRED_CONFIGURED_GATE` | Python quality checks. | `github_code`, `local_code` | Non-lane gate | surface-owned | `repository quality gate` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `MyPy` | `REQUIRED_CONFIGURED_GATE` | Typed-source checks. | `github_code`, `local_code` | Non-lane gate | surface-owned | `repository type gate` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Secret_redactor` | `REQUIRED_INTERNAL` | Credential-shaped value exclusion. | `chat_lineage`, `every_source_policy` | Non-lane gate | surface-owned | `redaction.py` | LicenseRef-Proprietary — LICENSE.md |
+| `ENV_UOP_classifier` | `REQUIRED_INTERNAL_AI_ACTION_PLANE` | Ordered law intersection and operator routing. | `mode`, `lifecycle_entry`, `delta_entry`, `delta_mid`, `delta_exit` | `mode` | primary: GOVERNANCE | `mode_governance.py` | LicenseRef-Proprietary — LICENSE.md |
+| `PCM_MBA_operators` | `REQUIRED_INTERNAL_AI_ACTION_PLANE` | Mode-specific execution governance. | `mode`, `code_execution` | `mode` | fallback/conditional: GOVERNANCE | `mode_governance.py + formula engine` | LicenseRef-Proprietary — LICENSE.md |
+| `Custom_schema_compiler` | `REQUIRED_INTERNAL` | Bounded user-defined lane contract. | `custom` | Non-lane gate | surface-owned | `custom_source_schema.py` | LicenseRef-Proprietary — LICENSE.md |
+| `SQLite_immutable_URI_reader` | `REQUIRED_INTERNAL` | Read-only database and package inspection. | `brain_loader`, `sqlite_brain` | Non-lane gate | surface-owned | `lane_engine.py` | LicenseRef-SQLite-Public-Domain AND LicenseRef-Proprietary — SQLite runtime identity plus LICENSE.md for Evidence Lane implementation |
+| `Safe_archive_intake` | `REQUIRED_INTERNAL` | Member, path, and manifest validation. | `brain_loader`, `project_engulf` | Non-lane gate | surface-owned | `lane_engine.py + source_authority.py` | LicenseRef-Proprietary — LICENSE.md |
+| `Project_inventory` | `REQUIRED_INTERNAL` | Files, components, relationships, and conflicts. | `project_engulf` | Non-lane gate | surface-owned | `lane_engine.py project_engulf` | LicenseRef-Proprietary — LICENSE.md |
+| `Compatibility_mapper` | `REQUIRED_INTERNAL` | Schema version and sector mapping. | `sqlite_brain` | Non-lane gate | surface-owned | `lane_engine.py sqlite_brain` | LicenseRef-Proprietary — LICENSE.md |
+
+## Documents, OCR, and media
+
+| Tool | Requirement | Exact role | Declared surfaces | ENV-eligible lanes | Primary/fallback | Implementation owner | License/terms evidence |
+|---|---|---|---|---|---|---|---|
+| `DOCX_OpenXML` | `REQUIRED_INTERNAL` | Hierarchy, text, relationships, and tables. | `docs` | `docs` | fallback/conditional: DOCUMENT | `lane_engine.py` | LicenseRef-Proprietary — LICENSE.md |
+| `defusedxml` | `REQUIRED_DEPENDENCY` | Hardened XML parsing. | `docs`, `ppt` | Non-lane gate | surface-owned | `lane_engine.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `PPTX_OpenXML` | `REQUIRED_INTERNAL` | Slides, notes, shapes, tables, and relationships. | `ppt` | `ppt` | fallback/conditional: DOCUMENT | `lane_engine.py` | LicenseRef-Proprietary — LICENSE.md |
+| `pypdf` | `REQUIRED_DEPENDENCY` | Native PDF text and embedded-image extraction. | `pdf_ocr` | `pdf_ocr` | fallback/conditional: DOCUMENT | `lane_engine.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `pypdfium2` | `REQUIRED_DEPENDENCY` | Full-page PDF raster fallback. | `pdf_ocr` | Non-lane gate | surface-owned | `lane_engine.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `pdfplumber` | `REQUIRED_DEPENDENCY` | Structural PDF extraction. | `pdf_ocr` | `pdf_ocr` | fallback/conditional: DOCUMENT | `lane_engine.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `RapidOCR_ONNX_Runtime` | `REQUIRED_DEPENDENCY` | Local OCR. | `pdf_ocr`, `images_ocr` | `pdf_ocr`, `images_ocr` | primary: OCR_MEDIA | `lane_engine.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `pytesseract_Tesseract` | `REQUIRED_HIDDEN_RUNTIME_BINARY_AND_DEPENDENCY` | Secondary local OCR. | `pdf_ocr`, `images_ocr` | `pdf_ocr`, `images_ocr` | fallback/conditional: OCR_MEDIA | `lane_engine.py + native_toolchain.py` | Apache-2.0 — toolchains/native-tools.v1.json plus the installed native-tool license receipt |
+| `Pillow` | `REQUIRED_DEPENDENCY` | Page and image pixels plus metadata. | `pdf_ocr`, `images_ocr` | `pdf_ocr`, `images_ocr` | fallback/conditional: OCR_MEDIA | `lane_engine.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Poppler_pdftotext_pdfinfo` | `REQUIRED_HIDDEN_RUNTIME_BINARY` | Local PDF text extraction and metadata fallback as separate GPL executables with exact license/source receipt. | `pdf_ocr` | `pdf_ocr` | fallback/conditional: OCR_MEDIA | `native_toolchain.py + PDF fallbacks` | GPL-2.0-or-later — toolchains/native-tools.v1.json plus the installed native-tool license receipt |
+| `Ghostscript` | `OPTIONAL_EXTERNAL_LICENSE_GATED` | PostScript/PDF fallback only when a compatible AGPL deployment or Artifex commercial-license reference is explicitly configured; never bundled into the proprietary runtime by default. | `pdf_ocr` | `pdf_ocr` | fallback/conditional: OCR_MEDIA | `native_toolchain.py license-gated PDF fallback` | AGPL-3.0-or-later OR LicenseRef-Artifex-Commercial — toolchains/native-tools.v1.json plus the installed native-tool license receipt |
+| `OpenCV` | `REQUIRED_DEPENDENCY` | Image-region preprocessing. | `images_ocr` | `images_ocr` | fallback/conditional: OCR_MEDIA | `lane_engine.py OCR preprocessing` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `FFmpeg` | `REQUIRED_HIDDEN_RUNTIME_BINARY_AND_DEPENDENCY` | Media metadata, bounded frame/audio extraction, and codec inspection through the hidden imageio-ffmpeg wheel binary. | `artifacts`, `images_ocr`, `project_engulf` | `images_ocr`, `artifacts` | fallback/conditional: OCR_MEDIA | `native_toolchain.py media probe/extraction` | BSD-2-Clause wrapper; bundled FFmpeg license reported at install — toolchains/native-tools.v1.json plus the installed native-tool license receipt |
+| `PyMuPDF` | `REQUIRED_DEPENDENCY` | Primary high-fidelity PDF extraction and page geometry. | `pdf_ocr`, `docs` | `docs`, `pdf_ocr` | fallback/conditional: DOCUMENT | `lane_engine.py PDF primary` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Docling` | `REQUIRED_DEPENDENCY` | Primary rich document structure conversion; lane-specific fallbacks remain explicit. | `docs`, `pdf_ocr`, `ppt`, `data_excel` | `docs`, `pdf_ocr`, `ppt` | primary: DOCUMENT | `document_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+
+## Data, Excel, and databases
+
+| Tool | Requirement | Exact role | Declared surfaces | ENV-eligible lanes | Primary/fallback | Implementation owner | License/terms evidence |
+|---|---|---|---|---|---|---|---|
+| `OpenXML_CSV_JSON_parser` | `REQUIRED_INTERNAL` | Deterministic structural extraction. | `data_excel` | Non-lane gate | surface-owned | `lane_engine.py` | LicenseRef-Proprietary — LICENSE.md |
+| `openpyxl` | `REQUIRED_DEPENDENCY` | Workbook fidelity. | `data_excel` | `data_excel` | fallback/conditional: DATA | `data_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `pandas` | `REQUIRED_DEPENDENCY` | Bounded tabular inspection. | `data_excel` | `data_excel` | fallback/conditional: DATA | `data_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `python_calamine` | `REQUIRED_DEPENDENCY` | Legacy Excel extraction. | `data_excel` | `data_excel` | fallback/conditional: DATA | `lane_engine.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `pyarrow` | `REQUIRED_DEPENDENCY` | Parquet schema and bounded samples. | `data_excel` | `data_excel` | fallback/conditional: DATA | `lane_engine.py + tabular_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `DuckDB` | `REQUIRED_DEPENDENCY` | Analytical SQL over tabular/Parquet sources without replacing project SQLite authority. | `data_excel`, `sqlite_brain`, `analysis` | `data_excel`, `sqlite_brain`, `analysis` | primary: DATA | `tabular_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `SQLAlchemy` | `REQUIRED_DEPENDENCY` | Typed external database inspection and dialect mediation. | `sqlite_brain`, `data_excel`, `custom` | `data_excel`, `sqlite_brain`, `custom` | fallback/conditional: DATA | `data_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Tableau_Hyper_API` | `REQUIRED_DEPENDENCY` | Tableau Hyper extraction and schema inspection. | `data_excel`, `brain_loader` | `data_excel`, `brain_loader` | fallback/conditional: DATA | `data_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Polars` | `REQUIRED_DEPENDENCY` | Lazy and streaming CSV/Parquet/NDJSON transforms with projection and predicate pushdown; DuckDB remains analytical SQL primary and results persist to owning SQLite. | `data_excel`, `analysis`, `project_engulf`, `artifacts` | `data_excel`, `project_engulf`, `artifacts`, `analysis` | fallback/conditional: DATA | `tabular_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+
+## Web, research, and source intake
+
+| Tool | Requirement | Exact role | Declared surfaces | ENV-eligible lanes | Primary/fallback | Implementation owner | License/terms evidence |
+|---|---|---|---|---|---|---|---|
+| `Citation_binder` | `REQUIRED_INTERNAL` | Claim, source, and date evidence binding. | `research` | Non-lane gate | surface-owned | `web_toolchain.py + research lane` | LicenseRef-Proprietary — LICENSE.md |
+| `HTTPX` | `REQUIRED_FOR_CONFIGURED_NETWORK_ADAPTERS` | Bounded HTTP client transport. | `explicit_network_adapters` | Non-lane gate | fallback/conditional: WEB_RESEARCH | `web_toolchain.py + persistence.py + GitHub adapter` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `lxml` | `REQUIRED_DEPENDENCY` | Hardened structured XML and HTML parsing. | `docs`, `ppt`, `web` | `docs`, `ppt` | fallback/conditional: DOCUMENT, WEB_RESEARCH | `web_toolchain.py + lane XML processing` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `BeautifulSoup4` | `REQUIRED_DEPENDENCY` | Bounded HTML DOM extraction fallback. | `docs`, `research`, `web` | `research` | fallback/conditional: WEB_RESEARCH | `web_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `markdownify` | `REQUIRED_DEPENDENCY` | HTML-to-Markdown projection. | `docs`, `research`, `web` | `research` | fallback/conditional: WEB_RESEARCH | `web_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `html2text` | `REQUIRED_DEPENDENCY` | Secondary HTML-to-text conversion. | `docs`, `research`, `web` | `research` | fallback/conditional: WEB_RESEARCH | `web_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `trafilatura` | `REQUIRED_DEPENDENCY` | Primary article/content extraction. | `research`, `web`, `source_intake` | `research` | primary: WEB_RESEARCH | `web_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Requests` | `REQUIRED_DEPENDENCY` | Synchronous bounded HTTP fallback behind HTTPX. | `configured_network_adapters` | Non-lane gate | fallback/conditional: WEB_RESEARCH | `web_toolchain.py fallback` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `Tenacity` | `REQUIRED_DEPENDENCY` | Bounded retry policy with explicit limits and receipts. | `bounded_network_adapters`, `tunnel` | Non-lane gate | fallback/conditional: RUNTIME_API | `web_toolchain.py bounded retry` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `DDGS` | `REQUIRED_DEPENDENCY` | Configured web discovery fallback; not used without the active lane and network policy. | `research`, `source_intake` | `research` | fallback/conditional: WEB_RESEARCH | `web_toolchain.py explicit discovery` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `tldextract` | `REQUIRED_DEPENDENCY` | Registrable-domain normalization. | `research`, `web`, `source_intake` | `research` | fallback/conditional: WEB_RESEARCH | `web_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `validators` | `REQUIRED_DEPENDENCY` | Typed URL and locator validation. | `source_intake`, `web`, `routing` | Non-lane gate | fallback/conditional: WEB_RESEARCH | `web_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+| `readability_lxml` | `REQUIRED_DEPENDENCY` | Readable-content extraction fallback after Trafilatura. | `research`, `web` | `research` | fallback/conditional: WEB_RESEARCH | `web_toolchain.py` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+
+## RAG and workflow composition
+
+| Tool | Requirement | Exact role | Declared surfaces | ENV-eligible lanes | Primary/fallback | Implementation owner | License/terms evidence |
+|---|---|---|---|---|---|---|---|
+| `LangChain` | `REQUIRED_DEPENDENCY` | Runnable graph/tool composition used under the Evidence Lane SDK and ENV/UOP gates. | `internal_sdk`, `workflow_graphs`, `rag` | Non-lane gate | surface-owned | `hybrid_retrieval.py + graph_pipeline.py + SDK` | EXACT_INSTALLED_DISTRIBUTION_METADATA — runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256 |
+
+## Derived control facts
+
+- Codex host profiles: CODEX_DESKTOP, CODEX_CLI, CODEX_VM.
+- ChatGPT plane mixed: false.
+- Public action count fixed by this matrix: false.
+- Skill count fixed by this matrix: false.
+- Hook class count fixed by this matrix: false.
+- Every retained tool requires a package/runtime identity and an execution test before local install.
+- License-classified tool requirements: 95 of 95.
+- Exact copied runtime distribution licenses are materialized before tunnel startup; MCP actions remain a separate inventory.
+
+## License and installation boundary
+
+Every retained dependency has a pinned package or host-runtime identity, a license/provenance entry, an owning lane or runtime surface, and a fail-visible availability contract. Presence never means unconditional execution, and no dependency is installed into a user's project workspace.

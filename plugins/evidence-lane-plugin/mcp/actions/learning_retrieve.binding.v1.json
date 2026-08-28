@@ -1,0 +1,109 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "learning_retrieve",
+  "title": "Retrieve accepted Agent Learning",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "query": {
+        "title": "Query",
+        "type": "string"
+      },
+      "scope_selectors": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Scope Selectors",
+        "type": "array"
+      },
+      "as_of": {
+        "title": "As Of",
+        "type": "string"
+      },
+      "project_truth_conflict_candidate_ids": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Project Truth Conflict Candidate Ids"
+      },
+      "limit": {
+        "default": 8,
+        "title": "Limit",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "query",
+      "scope_selectors",
+      "as_of"
+    ],
+    "title": "learning_retrieveArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "learning_retrieveDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "84B4029990990FD8E1348AD0F6D07FD1FE10056F2ADDFBDBF8A2D1209C1D5A88",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-learning",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "learning_retrieve"
+    },
+    "internal_sdk": {
+      "module_id": "agent_learning",
+      "operation": "retrieve",
+      "read_only": true
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-learning",
+        "workflow": "learning-authority-read",
+        "order": 4
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/learning_retrieve.action.v1.json",
+  "sdk_action_binding_sha256": "C8B4C46AC78B744AF82F12CBF65295B1899DAF10D254FEE594B29ECA8E36CE4F",
+  "public_action_schema": "schemas/actions/learning_retrieve.schema.json",
+  "public_action_schema_sha256": "3005501BE699B98D2C817BAE75F81B5E1AD098EB42E535C2AD2E2D4D552E52E8",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "86AD137E03F3D2F6CFEDC1C945007B9973169F8AAAEF36B8FE4177801F83ED23"
+}

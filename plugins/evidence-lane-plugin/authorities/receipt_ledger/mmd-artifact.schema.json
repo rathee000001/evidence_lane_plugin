@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "receipt_ledger MERMAID_TRAVERSAL_MAP artifact receipt",
+  "type": "object",
+  "required": [
+    "authority_id",
+    "artifact_path",
+    "artifact_role",
+    "syntax",
+    "bytes",
+    "sha256",
+    "validator",
+    "status"
+  ],
+  "properties": {
+    "authority_id": {
+      "const": "receipt_ledger"
+    },
+    "artifact_path": {
+      "const": "receipt-ledger.mmd"
+    },
+    "artifact_role": {
+      "const": "MERMAID_TRAVERSAL_MAP"
+    },
+    "syntax": {
+      "const": "MERMAID_FLOWCHART"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "validator": {
+      "const": "authority_support.validate_authority_support"
+    },
+    "status": {
+      "const": "PASS"
+    }
+  },
+  "additionalProperties": false,
+  "receipt_sha256": "0E84CFEA44EFA4EF4B475D6F369E0F5261A3E3C62D152BB0240DCF22379F9C12"
+}

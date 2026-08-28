@@ -1,110 +1,56 @@
 from __future__ import annotations
 
 import hashlib
-import io
 import json
-import subprocess
-import tarfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RECEIPT = ROOT / "docs" / "CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.json"
-OUTPUT_PATHS = {
-    "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.json",
-    "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.md",
-}
-POINTER_PATHS = {
-    ".agents/plugins/current-route-refresh.v1.json",
-    ".github/current-route-refresh.v1.json",
-    "docs/current-route-refresh.v1.json",
-    "github-pages/current-route-refresh.v1.json",
-    "plugins/current-route-refresh.v1.json",
-    "scripts/current-route-refresh.v1.json",
-    "tests/current-route-refresh.v1.json",
-}
+PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
+DOC_BINDING = (
+    ROOT / "apps" / "evidence-lane-remote-adapter"
+    / "app"
+    / "_data"
+    / "public-docs-backend-binding.json"
+)
 
 
-def _tracked_paths() -> set[str]:
-    raw = subprocess.run(
-        ["git", "ls-files", "-z"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    ).stdout
-    return {item.decode("utf-8") for item in raw.split(b"\0") if item}
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest().upper()
 
 
-def _indexed_file_bytes() -> dict[str, bytes]:
-    tree = subprocess.run(
-        ["git", "write-tree"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
-    archive = subprocess.run(
-        ["git", "archive", "--format=tar", tree],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    ).stdout
-    with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as bundle:
-        return {
-            member.name: bundle.extractfile(member).read()
-            for member in bundle.getmembers()
-            if member.isfile() and bundle.extractfile(member) is not None
-        }
+def test_historical_current_route_receipt_and_pointer_copies_are_purged() -> None:
+    for relative in (
+        "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.json",
+        "docs/CURRENT_ROUTE_FILE_REFRESH_RECEIPT_20260824.md",
+        ".agents/plugins/current-route-refresh.v1.json",
+        ".github/current-route-refresh.v1.json",
+        "docs/current-route-refresh.v1.json",
+        "github-pages/current-route-refresh.v1.json",
+        "plugins/current-route-refresh.v1.json",
+        "scripts/current-route-refresh.v1.json",
+        "tests/current-route-refresh.v1.json",
+    ):
+        assert not (ROOT / relative).exists(), relative
 
 
-def test_current_route_refresh_receipt_covers_and_hashes_every_tracked_path() -> None:
-    receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
-    assert receipt["schema"] == "evidence-lane.current-route-file-refresh-receipt.v2"
-    assert receipt["status"] == "PASS"
-    assert receipt["refresh_id"] == "TASK20_CURRENT_ROUTE_REFRESH_20260824_001"
-    rows = {row["path"]: row for row in receipt["entries"]}
-    assert set(rows) == _tracked_paths()
-    assert len(rows) == len(receipt["entries"])
-    assert receipt["summary"]["tracked_path_set_equality"] is True
-    removed = {row["path"]: row for row in receipt["removed_history"]}[
-        "TASK6_ROW231_CONTRACT_REBIND_AUTHORITY.json"
-    ]
-    assert removed["disposition"] == "OBSOLETE_REMOVED"
-    assert not (ROOT / removed["path"]).exists()
-    indexed = _indexed_file_bytes()
-    for path, row in rows.items():
-        if path in OUTPUT_PATHS:
-            assert row["disposition"] == "RECEIPT_SELF_BOUND_BY_FINAL_GIT_TREE"
-            assert row["sha256"] is None
-            continue
-        source = ROOT / path
-        assert source.is_file(), path
-        assert hashlib.sha256(indexed[path]).hexdigest().upper() == row["sha256"]
+def test_current_public_docs_binding_hashes_every_maintained_document() -> None:
+    binding = json.loads(DOC_BINDING.read_text(encoding="utf-8"))
+    assert binding["schema"] == "evidence-lane.public-docs-backend-binding.v1"
+    assert binding["status"] == "PASS"
+    assert binding["historical_internal_source_count"] == 0
+    rows = {row["path"]: row for row in binding["documents"]}
+    assert len(rows) == binding["document_count"] == 28
+    for relative, row in rows.items():
+        path = ROOT / relative
+        assert path.is_file(), relative
+        assert path.stat().st_size == row["bytes"]
+        assert _sha256(path) == row["sha256"]
 
-    for path in POINTER_PATHS:
-        pointer = json.loads((ROOT / path).read_text(encoding="utf-8"))
-        assert pointer["central_receipt"] == str(RECEIPT.relative_to(ROOT)).replace(
-            "\\", "/"
+    public = json.loads(
+        (PLUGIN / "schemas" / "public-action-schemas.v001.json").read_text(
+            encoding="utf-8"
         )
-        assert pointer["refresh_id"] == receipt["refresh_id"]
-
-
-def test_current_route_refresh_receipt_binds_current_public_contract() -> None:
-    receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
-    route = receipt["current_route"]
-    assert route["runtime_catalog"]["tools"] == 88
-    assert route["runtime_catalog"]["read"] == 27
-    assert route["runtime_catalog"]["write"] == 61
-    assert route["runtime_catalog"]["skills"] == 17
-    assert len(route["hook_events"]) == 11
-    assert route["direct_state_travel_fields"] == [
-        "project_id",
-        "session_id",
-        "authoritative_source_task_id",
-        "runtime_attachment_donor_task_id",
-        "destination_task_id",
-        "destination_task_title",
-    ]
-    assert route["github_app_commit_actor"] == "evidence-lane[bot]"
-    assert route["github_app_commit_route"] == "github_app_exact_commit_push_v1"
-    assert route["github_app_main_promotion_route"] == "github_app_main_fast_forward_v3"
-    assert route["main_live_work_allowed"] is False
+    )
+    assert public["tool_count"] == 91
+    assert public["read_tool_count"] == 30
+    assert public["write_tool_count"] == 61

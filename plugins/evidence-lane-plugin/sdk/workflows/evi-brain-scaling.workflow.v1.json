@@ -1,0 +1,48 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-brain-scaling",
+  "skill_sha256": "0ACD400255F73F9631C2C5795DC92452BC6C49264C3D32A2D2295B43A0563A38",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "brain_scaling_select"
+      ],
+      "workflow": "deterministic-indexed-brain-slice-selection"
+    }
+  ],
+  "action_count": 1,
+  "actions": [
+    {
+      "name": "brain_scaling_select",
+      "schema_sha256": "8309AA1CA8FF688BB1BF5CD203F7B0F10690555BE00400525A137FA4E73F93DA",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-brain-scaling",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "brain_scaling_select"
+        },
+        "internal_sdk": {
+          "module_id": "first_class_workflows",
+          "operation": "brain_scaling_select",
+          "read_only": true
+        },
+        "service_dispatch": "INTERNAL_SDK_REGISTRY",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-brain-scaling",
+            "workflow": "deterministic-indexed-brain-slice-selection",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "89FF03EDAC40F8DB4D993C8E1715BFFEEABD27FCB7502236283A8F7722E8730F"
+}

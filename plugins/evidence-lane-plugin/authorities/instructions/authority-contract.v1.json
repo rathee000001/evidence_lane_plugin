@@ -1,0 +1,11 @@
+{
+  "schema": "evidence-lane.installed-instruction-arms-contract.v1",
+  "status": "PASS",
+  "agents_md_role": "SCOPED_INSTRUCTION_AUTHORITY",
+  "host_memory_role": "NONAUTHORITATIVE_HELPFUL_RECALL_ONLY",
+  "project_memory_database_role": "SEPARATE_AUTHORITY",
+  "automatic_host_memory_import": false,
+  "raw_chat_history_loaded": false,
+  "sqlite_authority_owned": false,
+  "receipt_sha256": "3ECC7BBC27101CE608A33AF67A7738A1BDF40943D26BFCF6780AD7B34D5CC736"
+}

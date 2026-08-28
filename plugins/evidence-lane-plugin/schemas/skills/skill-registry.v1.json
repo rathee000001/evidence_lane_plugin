@@ -1,0 +1,164 @@
+{
+  "schema": "evidence-lane.skill-registry.v1",
+  "status": "PASS",
+  "skill_count": 26,
+  "skills": [
+    {
+      "name": "evi",
+      "description": "Evidence Lane root router with user-timed State Travel and exactly six primary controls.",
+      "skill_path": "skills/evi/SKILL.md",
+      "skill_sha256": "47EDE692225A70AB41635F6EAF99EB3F57F0273C4F776D93731107AEBC417AC8"
+    },
+    {
+      "name": "evi-additional-plugin",
+      "description": "Add one bounded host-specific connector or AI toolchain grant with purpose, role schema, actions, scope, runtime, and expiry.",
+      "skill_path": "skills/evi-additional-plugin/SKILL.md",
+      "skill_sha256": "EC66213738DD0A051F9789ED76BC7844131603CAD7DFB06B39329E9B84A51DF2"
+    },
+    {
+      "name": "evi-bigger-universe",
+      "description": "Register or explicitly link hash-only project mini-brains in the separate Evidence Lane Bigger Universe federation without merging per-project Universe or Project Truth.",
+      "skill_path": "skills/evi-bigger-universe/SKILL.md",
+      "skill_sha256": "5AEBF22462918E683A0A65FCDAD70979120EA1F7F461906BB30B623430321D46"
+    },
+    {
+      "name": "evi-boot",
+      "description": "Evidence Lane atomic runtime doctor, ENV15/UOP15 Flash, host detection, and durable-storage Boot or resume.",
+      "skill_path": "skills/evi-boot/SKILL.md",
+      "skill_sha256": "5664F2588A75E4BEC8FBB6396AEE6BF4F3FA556F12ECEC23A3D6B2CA3A6F0ADC"
+    },
+    {
+      "name": "evi-brain-scaling",
+      "description": "Select a deterministic bounded indexed Evidence Lane brain slice when a large authority must fit an explicit token and item budget without training or merging authorities.",
+      "skill_path": "skills/evi-brain-scaling/SKILL.md",
+      "skill_sha256": "0ACD400255F73F9631C2C5795DC92452BC6C49264C3D32A2D2295B43A0563A38"
+    },
+    {
+      "name": "evi-build",
+      "description": "Evidence Lane PV0 bootstrap and unaccepted proposal construction through dual-HIL presentation.",
+      "skill_path": "skills/evi-build/SKILL.md",
+      "skill_sha256": "0BC4328FC24208B28EBB84AD7284A57DB2E7FFCCF08F95BDCAEFFA629768ABF0"
+    },
+    {
+      "name": "evi-canon",
+      "description": "Govern bounded task-to-task Canon exchanges, linked top-level tasks or explicitly authorized subagents, receiver-owned Canon HIL decisions, backfire requests, result returns, and State Travel graph continuity. Use when one governed task must exchange typed evidence, requirements, corrections, plans, or results with another task without merging Project Truth, Agent Learning, task ownership, or HIL authority.",
+      "skill_path": "skills/evi-canon/SKILL.md",
+      "skill_sha256": "C7D28C2459DB6206EE01E88309B49DDD35B7F8ACA889BDA8BBEF1528738E7755"
+    },
+    {
+      "name": "evi-drop-additional-plugin",
+      "description": "Revoke one active Evidence Lane plugin grant while preserving its append-only history.",
+      "skill_path": "skills/evi-drop-additional-plugin/SKILL.md",
+      "skill_sha256": "BC3BEBF14384938B9535E6019443B0334B3EDF2ED398E26398511D638DE7E92B"
+    },
+    {
+      "name": "evi-exit-boot",
+      "description": "Explicitly close one persistent Evidence Lane session and detach live Flash/capture without removing the installation or immutable evidence.",
+      "skill_path": "skills/evi-exit-boot/SKILL.md",
+      "skill_sha256": "C5AB635FE3BBD94606C8ABC3894AA5CD6342E6E37BC87EB65DE0E0A0BAC0F777"
+    },
+    {
+      "name": "evi-formula",
+      "description": "Compile or route the separate bounded Evidence Lane ENV/UOP Formula Engine when work needs explicit operator, formula, lane, tool, or budget governance.",
+      "skill_path": "skills/evi-formula/SKILL.md",
+      "skill_sha256": "F659B0DC04E1684D55EDA27E7611862F4291CF1AB82CE13037EC563658CFDFE2"
+    },
+    {
+      "name": "evi-fuse",
+      "description": "Govern separate Project and Learning HIL decisions and exact approved promotion.",
+      "skill_path": "skills/evi-fuse/SKILL.md",
+      "skill_sha256": "3C08DE694B69363608F28DE58FFA9073FC2414836E532751E667CA6C52D08D40"
+    },
+    {
+      "name": "evi-instructions",
+      "description": "Resolve and use the separate AGENTS.md instruction chain and host conversation MEMORY.md recall arm under ENV/UOP without merging either into Project Memory, AI Learning, Canon, or Project Truth.",
+      "skill_path": "skills/evi-instructions/SKILL.md",
+      "skill_sha256": "D2E9A07ECB10DC3C08C88EA9552E53B4A864CF0EEF43DAC71C731DFA72CD8532"
+    },
+    {
+      "name": "evi-learning",
+      "description": "\"Govern the project-isolated AI Agent Learning arm: inspect and retrieve accepted lessons, seal evidence-backed learning candidates, run the separate Learning HIL, and revoke accepted learning without changing Project Truth. Use when an AI workflow proposes a reusable procedural, failure-avoidance, relational, tool-routing, or host-compatibility lesson.\"",
+      "skill_path": "skills/evi-learning/SKILL.md",
+      "skill_sha256": "45A0404DDEF8CC1B8531715D54485CDB698CFC52B2F7A8A689142A3BE03CF721"
+    },
+    {
+      "name": "evi-memory",
+      "description": "Query and link the independent Project Memory DB through bounded FTS5/BM25 locators without merging Project Truth, AI Learning, Canon, AGENTS.md, or host MEMORY.md.",
+      "skill_path": "skills/evi-memory/SKILL.md",
+      "skill_sha256": "7AA619FDEFC82822851AA630E55DE8903CC851B018C1E5BDE93F20BF0C5E1978"
+    },
+    {
+      "name": "evi-mode",
+      "description": "Evidence Lane Mode sidecar for ordered known intersections and explicit custom-mode schemas.",
+      "skill_path": "skills/evi-mode/SKILL.md",
+      "skill_sha256": "FFC274956C0D1B8374602A7C80C5FD5B37FB9A870F6E82DCF05A437949FDD311"
+    },
+    {
+      "name": "evi-plan",
+      "description": "Pair a finished Codex Plan-mode plan with the canonical Evidence Lane Plan Lane and Goal.",
+      "skill_path": "skills/evi-plan/SKILL.md",
+      "skill_sha256": "E996B2751CF14E8D76BD5B009CF1F6C73A9C6099931548E21F09198D062F6D9D"
+    },
+    {
+      "name": "evi-plugin",
+      "description": "Govern persistent connector and AI-toolchain sidecars without changing Evidence Lane lifecycle state.",
+      "skill_path": "skills/evi-plugin/SKILL.md",
+      "skill_sha256": "0CA3EA25CFB1D3B0E4D27E4C3D2EE98CB4CDDFAA8933C7FD5FF159B2CE255FA5"
+    },
+    {
+      "name": "evi-project-recipe",
+      "description": "Compile an Evidence Lane project-type recipe from exact source paths and the requested outcome during initial or explicitly reclassified work, without turning the recipe into Mode.",
+      "skill_path": "skills/evi-project-recipe/SKILL.md",
+      "skill_sha256": "651C4106451C1499BCD5003B5D99BC608F15ADC34BA00C27A706D12EF65AEC01"
+    },
+    {
+      "name": "evi-refresh",
+      "description": "\"Route the three current Evidence Lane refresh workflows without merging them: Source Intake steer/prompt refresh, adaptive Delta-exit append refresh, and full-PV-HIL Project Overlay refresh.\"",
+      "skill_path": "skills/evi-refresh/SKILL.md",
+      "skill_sha256": "F32DA2CDFEB8F3810233BCD3AD8621024635283559720C81375BCBE6BB189511"
+    },
+    {
+      "name": "evi-rollback",
+      "description": "Evidence Lane logical rollback across Plan-stamped full-PV and sub-PV states, with hard ZIP restore kept separate and explicit.",
+      "skill_path": "skills/evi-rollback/SKILL.md",
+      "skill_sha256": "6A80795E04CCCD939C01E379EEC108E15266AB3014D9AC76ED28D2039BB4EF77"
+    },
+    {
+      "name": "evi-source-intake",
+      "description": "Evidence Lane generalized ordered source intake with optional Git history, auto-detection, exact overrides, 18 lanes, Project Engulf, and Chat Lineage.",
+      "skill_path": "skills/evi-source-intake/SKILL.md",
+      "skill_sha256": "E3F66743E788863F6E5530E379C488D4C5A7B99F8EA3DF377145EBD75211C824"
+    },
+    {
+      "name": "evi-state-travel",
+      "description": "Fresh-native same-project direct State Travel from the exact verified governed work boundary.",
+      "skill_path": "skills/evi-state-travel/SKILL.md",
+      "skill_sha256": "CD49F7DBE81EACB3A0DEC209B77043316549D7ABEB8ECA633835DB2F786F1A6D"
+    },
+    {
+      "name": "evi-storage",
+      "description": "Inspect or select Evidence Lane primary storage routing with an append-only, secret-free receipt.",
+      "skill_path": "skills/evi-storage/SKILL.md",
+      "skill_sha256": "BB7B401498F039F5F1D4381D4C2C4BBD5FB03B009BC46EFE0FC1E771BB8B0023"
+    },
+    {
+      "name": "evi-toolchain",
+      "description": "Resolve and run one conditional Evidence Lane AI toolchain for an exact lane and Codex host profile, with explicit primary/fallback order and fail-visible missing dependencies.",
+      "skill_path": "skills/evi-toolchain/SKILL.md",
+      "skill_sha256": "3FB01BE0B8047EFE3C5E3F64C06485E45C7519147103D2F6AAE5524D87AF7863"
+    },
+    {
+      "name": "evi-universe",
+      "description": "Inspect the linked Project Universe and connector-brain integrity graph through the live ENV/UOP-governed query route without merging authority roles.",
+      "skill_path": "skills/evi-universe/SKILL.md",
+      "skill_sha256": "DBF0F755330D97025BCBA986C2107954F7694B8A90053768047375B2FFFE2147"
+    },
+    {
+      "name": "evidence-lane-code-lifecycle",
+      "description": "Govern one universal Evidence Lane project across user-timed fresh-host State Travel, atomic Boot and locked ENV/UOP Flash, six public controls, eighteen lanes, bounded linear work, unaccepted candidates, exact-APPROVE Fuse, Plan-stamped logical Rollback, and explicit Exit Boot.",
+      "skill_path": "skills/evidence-lane-code-lifecycle/SKILL.md",
+      "skill_sha256": "CF56574AF4B89A398AFD4476AE30CF58625638FFEDAE09CAC880151E0B948CB8"
+    }
+  ],
+  "receipt_sha256": "3EC8574F6AAA464D4058017AB5B55535F55FFA029B12672C8EA403778E1725D5"
+}

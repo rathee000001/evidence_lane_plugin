@@ -23,15 +23,15 @@ HISTORICAL_OR_DEPENDENCY_FILES = {
     "evidence/acceptance/commands.json",
     "evidence/vendor/implementation_v45/ROW170_VERCEL_PREVIEW_BOUNDARY_RECEIPT.json",
     "evidence/vendor/implementation_v45/ROW180_FULL_LOCAL_VERIFICATION_RECEIPT.json",
-    "plugins/evidence-lane-plugin/remote_adapter/app/_components/delta-ledger-explorer.tsx",
-    "plugins/evidence-lane-plugin/remote_adapter/app/_components/source-brain-lab.tsx",
-    "plugins/evidence-lane-plugin/remote_adapter/app/_data/delta-ledger.ts",
-    "plugins/evidence-lane-plugin/remote_adapter/app/_data/governed-linked-deltas.ts",
-    "plugins/evidence-lane-plugin/remote_adapter/app/_data/website-current-execution.ts",
-    "plugins/evidence-lane-plugin/remote_adapter/app/page.tsx",
-    "plugins/evidence-lane-plugin/remote_adapter/pnpm-lock.yaml",
+    "apps/evidence-lane-remote-adapter/app/_components/delta-ledger-explorer.tsx",
+    "apps/evidence-lane-remote-adapter/app/_components/source-brain-lab.tsx",
+    "apps/evidence-lane-remote-adapter/app/_data/delta-ledger.ts",
+    "apps/evidence-lane-remote-adapter/app/_data/governed-linked-deltas.ts",
+    "apps/evidence-lane-remote-adapter/app/_data/website-current-execution.ts",
+    "apps/evidence-lane-remote-adapter/app/page.tsx",
+    "apps/evidence-lane-remote-adapter/pnpm-lock.yaml",
     "plugins/evidence-lane-plugin/requirements.lock.txt",
-    "plugins/evidence-lane-plugin/scripts/windows_tunnel/Manage-EvidenceLaneTunnelVersions.ps1",
+    "plugins/evidence-lane-plugin/requirements.toolchain.lock.txt",
 }
 
 
@@ -69,10 +69,7 @@ def _tracked_text_files() -> list[Path]:
         and not any(part.endswith(".egg-info") for part in path.relative_to(ROOT).parts)
         and path != ROOT / "tests" / "test_v140_version_consistency.py"
         and path
-        != ROOT
-        / "plugins"
-        / "evidence-lane-plugin"
-        / "remote_adapter"
+        != ROOT / "apps" / "evidence-lane-remote-adapter"
         / "app"
         / "_data"
         / "studio-rag-index.json"
@@ -91,10 +88,7 @@ def test_all_active_codex_product_version_surfaces_are_v300() -> None:
     )
     adapter_manifest = json.loads(
         (
-            ROOT
-            / "plugins"
-            / "evidence-lane-plugin"
-            / "remote_adapter"
+            ROOT / "apps" / "evidence-lane-remote-adapter"
             / "package.json"
         ).read_text(encoding="utf-8")
     )
@@ -115,31 +109,33 @@ def test_current_codex_docs_and_runtime_surfaces_name_v300() -> None:
     required_fragments = {
         "README.md": [
             "# Evidence Lane 3.0.0",
-            "The current pre-HIL Codex source release is **3.0.0**",
+            "The current Codex source release is **3.0.0**",
             "## 3.0 source and historical compatibility invariants",
         ],
-        "docs/ARCHITECTURE.md": [
+        "ARCHITECTURE.md": [
             "Evidence Lane 3.0.0",
-            "built v3.0.0 candidates must pass both gates",
+            "Current backend contract",
         ],
-        "docs/VERSIONING.md": [
-            "The current pre-HIL Evidence Lane Codex source release is `3.0.0`",
+        "docs/RELEASE_AND_COMPATIBILITY.md": [
+            "Current backend contract",
+            "Plugin package: `3.0.0+codex.",
         ],
-        "docs/WINDOWS_TUNNEL_PERSISTENCE.md": [
-            "The live Codex registry and live cache contain exactly two Evidence Lane slots",
+        "docs/HOST_AND_STORAGE_MATRIX.md": [
+            "exactly two selectors",
         ],
         "plugins/evidence-lane-plugin/.codex-plugin/plugin.json": [
-            "Evidence Lane 3.0.0 is the current pre-HIL Codex source release",
+            "Evidence Lane keeps long Codex projects grounded",
         ],
         "plugins/evidence-lane-plugin/scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1": [
-            "Pinned Evidence Lane $release $SlotRole secure MCP tunnel",
+            'transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"',
+            "Pinned Evidence Lane $release $SlotRole host-wide secure MCP tunnel.",
         ],
         "plugins/evidence-lane-plugin/src/evidence_lane_plugin/mcp_server.py": [
             "3.0.0 is the Codex package",
         ],
         "plugins/evidence-lane-plugin/README.md": [
             "# Evidence Lane plugin 3.0.0",
-            "Version 3.0.0 is the current pre-HIL Codex source release",
+            "Version 3.0.0 is the current governed Codex source release",
         ],
     }
 
@@ -175,27 +171,35 @@ def test_readmes_expose_branding_and_capability_gated_windows_tunnel_setup() -> 
     )
     assert 'alt="Evidence Lane plugin icon"' in root_readme
 
+    assert "Bounded Windows tunnel setup" in root_readme
+    for fragment in (
+        "Install-EvidenceLaneTunnel.ps1",
+        "CODEX_APP_INTERACTIVE",
+        "HostLifetime Ephemeral",
+        "exact-vm-instance-id",
+        "Runtime API key",
+        "masked",
+        "DPAPI",
+        "Manage-EvidenceLaneTunnel.ps1",
+        "-Action Status",
+        "status = PASS",
+        "mcp__evidence_lane__*",
+        "Headless API",
+        "local CLI",
+        "host route lacks direct MCP transport",
+    ):
+        assert fragment in root_readme
+
     for text in (root_readme, plugin_readme):
-        assert "Bounded Windows tunnel setup" in text
-        assert "Install-EvidenceLaneTunnel.ps1" in text
-        assert "CODEX_APP_INTERACTIVE" in text
-        assert "HostLifetime Ephemeral" in text
-        assert "exact-vm-instance-id" in text
+        assert "tunnel" in text.lower()
         assert "local" in text.lower()
         assert "does not" in text.lower()
-        assert "Runtime API key" in text
+        assert "API key" in text
         assert "masked" in text
         assert "DPAPI" in text
-        assert "Manage-EvidenceLaneTunnel.ps1" in text
-        assert "-Action Status" in text
-        assert "status = PASS" in text
-        assert "mcp__evidence_lane__*" in text
-        assert "Headless API" in text
-        assert "local CLI" in text
-        assert "host route lacks direct MCP transport" in text
 
-    assert "docs/WINDOWS_TUNNEL_PERSISTENCE.md" in root_readme
-    assert "../../docs/WINDOWS_TUNNEL_PERSISTENCE.md" in plugin_readme
+    assert "docs/USER_TUNNEL_GUIDE.md" in root_readme
+    assert "../../docs/USER_TUNNEL_GUIDE.md" not in plugin_readme
 
 
 def test_root_release_configuration_has_no_active_chatgpt_adapter_claims() -> None:
@@ -220,16 +224,14 @@ def test_root_release_configuration_has_no_active_chatgpt_adapter_claims() -> No
     assert re.search(r"Vercel\s+hosts public documentation", security)
     assert "headless/API Streamable" in environment
     assert "HTTP service" in environment
-    assert "Local Codex and local CLI profiles may require the tunnel" in security
+    assert re.search(
+        r"Local\s+Codex and local CLI profiles may require the tunnel", security
+    )
     assert "Headless API requests do not require the tunnel" in security
 
 
-def test_historical_compatibility_and_traceability_versions_are_preserved() -> None:
+def test_historical_docs_are_excluded_from_public_github_docs() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    historical = (ROOT / "docs" / "DELTA_001_051_TRACEABILITY.md").read_text(
-        encoding="utf-8"
-    )
-    versioning = (ROOT / "docs" / "VERSIONING.md").read_text(encoding="utf-8")
     receipt = json.loads(
         (
             ROOT
@@ -240,9 +242,11 @@ def test_historical_compatibility_and_traceability_versions_are_preserved() -> N
     )
 
     assert "pre-v1.1" not in readme
-    assert "v1.1 correction" in historical
-    assert "Historical versions remain evidence" in versioning
-    assert "third-party dependency versions" in versioning
+    assert not (ROOT / "docs" / "DELTA_001_051_TRACEABILITY.md").exists()
+    assert not (ROOT / "docs" / "VERSIONING.md").exists()
+    assert "Current backend contract" in (
+        ROOT / "docs" / "RELEASE_AND_COMPATIBILITY.md"
+    ).read_text(encoding="utf-8")
     assert receipt["schema"] == "evidence-lane.delta080-v130-final-release-evidence-receipt.v1"
 
 
@@ -334,10 +338,7 @@ def test_remaining_v13_occurrences_are_classified() -> None:
 
     browser = json.loads(
         (
-            ROOT
-            / "plugins"
-            / "evidence-lane-plugin"
-            / "remote_adapter"
+            ROOT / "apps" / "evidence-lane-remote-adapter"
             / "app"
             / "_data"
             / "studio-rag-index.json"

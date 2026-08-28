@@ -1,0 +1,287 @@
+{
+  "schema": "evidence-lane.installed-authority-surface.v1",
+  "status": "PASS",
+  "authority_id": "project_universe",
+  "database": "project_universe.sqlite",
+  "database_sha256": "8D02CBA83CC31D64DC2312AE664132FB548F0D238E54780CD2B8A37500FEE60D",
+  "database_integrity": "ok",
+  "schema_sha256": "9EB5186DE323EF6602885326808AF419D2306AF8EE7530A826C4BC2105AB1504",
+  "table_count": 20,
+  "fts5_tables": [
+    "authority_index_fts",
+    "universe_fts"
+  ],
+  "members": [
+    {
+      "path": "authorities/project_universe/build-refresh-contract.schema.json",
+      "bytes": 569,
+      "sha256": "066572B5E3FEE3D2B90F3C6AEB2320563DE3512DA5A8B51086EDD1CAB4C87646"
+    },
+    {
+      "path": "authorities/project_universe/builder.py",
+      "bytes": 317,
+      "sha256": "1AE001C5AEB9DBDF30BC9A366899996CA62DB877D7DF1610CD03044382340DDB"
+    },
+    {
+      "path": "authorities/project_universe/dot-artifact.schema.json",
+      "bytes": 976,
+      "sha256": "0D0D2BF32C49375C13AE81BB88051D8144146586FC17448AEF8007ED263A1C74"
+    },
+    {
+      "path": "authorities/project_universe/manifest.schema.json",
+      "bytes": 1048,
+      "sha256": "53484169BE71AB1916471FD08795C809D84B756EE311225CC666CE4602D982C7"
+    },
+    {
+      "path": "authorities/project_universe/mmd-artifact.schema.json",
+      "bytes": 989,
+      "sha256": "F9C1080E466A09C71F07B6142D4A31638A4D81AEB74221B5D2B9E09860E26668"
+    },
+    {
+      "path": "authorities/project_universe/pointer-contract.schema.json",
+      "bytes": 552,
+      "sha256": "39205B3741D83BB499ADFC9215BCBE037770252524444BF1CFADA348597A6D13"
+    },
+    {
+      "path": "authorities/project_universe/pointer-contract.v1.json",
+      "bytes": 425,
+      "sha256": "9B72286A08B7601FAB6878428E27BE39242B0508B63CA44FCE170BFD8F319EE3"
+    },
+    {
+      "path": "authorities/project_universe/project_universe.dot",
+      "bytes": 28043,
+      "sha256": "5A1E8167FA685EF0EE46117EF235E83EF0DC2292762619992713191DD895808B"
+    },
+    {
+      "path": "authorities/project_universe/project_universe.mmd",
+      "bytes": 20813,
+      "sha256": "E9B2A22FC7E737BBA1175805607055FF9B58E09982B658A6161812CE9E94EF6C"
+    },
+    {
+      "path": "authorities/project_universe/project_universe.sqlite",
+      "bytes": 155648,
+      "sha256": "8D02CBA83CC31D64DC2312AE664132FB548F0D238E54780CD2B8A37500FEE60D"
+    },
+    {
+      "path": "authorities/project_universe/project_universe.tools.json",
+      "bytes": 12843,
+      "sha256": "27A1D7871C81CA7E63A4093E0E63DB6D6897F0F335AAE9722100F863F79B748E"
+    },
+    {
+      "path": "authorities/project_universe/reader-contract.schema.json",
+      "bytes": 771,
+      "sha256": "19ADE259CD2E0F2AFB16BDECE28C7DDCCD3FC3B8D01201687B213BBAB3580DEE"
+    },
+    {
+      "path": "authorities/project_universe/reader.py",
+      "bytes": 321,
+      "sha256": "0C914FD4BA54F832C5CE469E9C3DEB71D84C9B7C03E4590C9EE4EF196E126CE5"
+    },
+    {
+      "path": "authorities/project_universe/README.md",
+      "bytes": 353,
+      "sha256": "075EF70AC9D5D8FC15B6BE252F45A68849432821CAC35C5E79F2416D20F24344"
+    },
+    {
+      "path": "authorities/project_universe/refresh-receipt.schema.json",
+      "bytes": 890,
+      "sha256": "9FF99C0FFC4A67B0105E365ED4793BA2117D01841CC3854AA826037C259149AC"
+    },
+    {
+      "path": "authorities/project_universe/runtime-binding.schema.json",
+      "bytes": 602,
+      "sha256": "DCFC041EF5420920896946258A2F138ADFC047231B9E209648369E4B643AD870"
+    },
+    {
+      "path": "authorities/project_universe/runtime.py",
+      "bytes": 335,
+      "sha256": "5B41856A85238A40DA959E5FA46873286126266A4C2A9821964F1B669587DD70"
+    },
+    {
+      "path": "authorities/project_universe/schema.sql",
+      "bytes": 3602,
+      "sha256": "487D20CF7963350A76863F166CB0C6C601B74C58748A7804848C945744A9D1EA"
+    },
+    {
+      "path": "authorities/project_universe/sqlite-artifact.schema.json",
+      "bytes": 967,
+      "sha256": "61F8219F3BEA1B78F057D0350DF8392BD8CD42DD09ADAB579268EE3A63AD43E2"
+    },
+    {
+      "path": "authorities/project_universe/sqlite-schema.v1.json",
+      "bytes": 24627,
+      "sha256": "01EF22745D5C2A2744AAE9E6F28D022F656FAE0D630C07F16A7A35CBCBDA6130"
+    },
+    {
+      "path": "authorities/project_universe/tools.schema.json",
+      "bytes": 544,
+      "sha256": "7B61CABC8A072CC5E3545E678E83DC238ADB670C0D2659070EDCEAEAC160B437"
+    }
+  ],
+  "canonical_source_hashes": {
+    "src/evidence_lane_plugin/project_universe.py": "C54666A1ABA1850A46F5BF654FF009FFA387CEA8AC9CB0EEAA99CDCCF45A9649",
+    "src/evidence_lane_plugin/authority_support.py": "1F76EACAF7E7FB1F0262BF359F81B4A8A8C775C462F17B7D6096ADAF9B0AC754"
+  },
+  "linked_subauthorities": [],
+  "llama_index_refresh_receipt": {
+    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
+    "status": "PASS",
+    "sequence": 1,
+    "authority_id": "project_universe",
+    "source_count": 0,
+    "node_count": 0,
+    "indexed_table_count": 0,
+    "indexed_tables": [],
+    "llama_index_core_version": "0.14.23",
+    "node_parser": "SentenceSplitter(480,64)",
+    "sqlite_backend": "FTS5_BM25",
+    "sqlite_remains_authority": true,
+    "mmd_dot_remain_traversal_maps": true,
+    "prior_receipt_sha256": null,
+    "recorded_at": "2026-08-28T07:37:51.723604Z",
+    "receipt_sha256": "30A9E25943876FC08CD084362F72390F97EE9C141F77064A8969DB3CFE276D8F"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "project_universe_authority",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 110,
+    "edge_count": 112,
+    "group_count": 1,
+    "semantic_topology_sha256": "0E393BF4161F6F2FAB22C94EF8209EA6F3940062E0F3553CC770E932D6B4BCC1",
+    "mmd_sha256": "E9B2A22FC7E737BBA1175805607055FF9B58E09982B658A6161812CE9E94EF6C",
+    "dot_sha256": "5A1E8167FA685EF0EE46117EF235E83EF0DC2292762619992713191DD895808B",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.0",
+    "langgraph_export_sha256": "7D58A1AFA532BACF46E9015B6FA3D8375FE9ED28941AED5A906B0E21ED6D6946",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": false,
+    "native_graphviz_hidden_runtime_available": false,
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 110,
+      "edge_count": 112,
+      "weak_component_count": 1,
+      "strong_component_count": 110,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "AUTHORITY_ROOT",
+          "in_degree": 0,
+          "out_degree": 20
+        },
+        {
+          "node_id": "support_table_authority_index_refresh_receipt",
+          "in_degree": 1,
+          "out_degree": 12
+        },
+        {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 9
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 7
+        },
+        {
+          "node_id": "support_table_universe_edge",
+          "in_degree": 1,
+          "out_degree": 8
+        },
+        {
+          "node_id": "support_table_universe_node",
+          "in_degree": 3,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_universe_fts_content",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_universe_refresh",
+          "in_degree": 1,
+          "out_degree": 6
+        },
+        {
+          "node_id": "support_table_authority_index_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_universe_fts",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "support_table_authority_index_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_universe_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_authority_index_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_universe_fts_config",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_universe_fts_data",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_universe_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "support_table_universe_meta",
+          "in_degree": 1,
+          "out_degree": 2
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "B9BA84FB865F826D7F90A02E9AA18B77CE09C9254CDBF9AC2A822A860EDDFB92",
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "C18530DAA6926F08AC09825CB1494F7AA7E42B7CCF09C940D0651E57AF251410"
+  },
+  "live_project_bytes_in_template": false,
+  "authority_merged_with_sector_or_peer": false,
+  "receipt_sha256": "2CC861E0922244BEA0BD8BD25A74E0662CD1AD95871858999AB8A1C5F2C407A4"
+}

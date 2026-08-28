@@ -16,7 +16,7 @@ SCRIPT = (
     / "codex_release"
     / "fast_forward_github_app_feature_to_main.py"
 )
-TOMBSTONE = SCRIPT.with_name("merge_github_app_feature_to_main.py")
+PURGED_ROUTE = SCRIPT.with_name("merge_github_app_feature_to_main.py")
 FEATURE = "agent/evi-v300-systemwide-release-hil-v3.0.0"
 
 
@@ -128,16 +128,5 @@ def test_main_fast_forward_cli_help_names_current_route() -> None:
     assert "--commit-message" not in result.stdout
 
 
-def test_superseded_repository_merge_command_is_a_non_executing_tombstone() -> None:
-    result = subprocess.run(
-        [sys.executable, str(TOMBSTONE)],
-        cwd=ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 2
-    assert '"status": "OBSOLETE_ROUTE"' in result.stdout
-    assert (
-        '"required_current_route": "github_app_main_fast_forward_v3"' in result.stdout
-    )
+def test_superseded_repository_merge_command_is_purged() -> None:
+    assert not PURGED_ROUTE.exists()

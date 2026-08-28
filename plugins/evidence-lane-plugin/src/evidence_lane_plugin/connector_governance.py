@@ -20,6 +20,7 @@ _PLUGIN_ID = re.compile(r"[a-z][a-z0-9-]{2,63}")
 _ENV_KEY = re.compile(r"[A-Z][A-Z0-9_]{2,127}")
 _ROLE_ID = re.compile(r"[a-z][a-z0-9_-]{2,63}")
 _SCHEMA_FIELD = re.compile(r"[a-z][a-z0-9_]{0,63}")
+_SHA256 = re.compile(r"[A-F0-9]{64}")
 _SCHEMA_FIELD_TYPES = {
     "text",
     "integer",
@@ -121,6 +122,57 @@ class ConnectorGovernance:
                 name,
                 description,
                 capabilities,
+                tokenize='unicode61'
+            );
+            CREATE TABLE IF NOT EXISTS universe_project_ref(
+                project_id TEXT PRIMARY KEY,
+                project_root_identity_sha256 TEXT NOT NULL,
+                universe_head_sha256 TEXT NOT NULL,
+                pointer_generation INTEGER NOT NULL,
+                active INTEGER NOT NULL CHECK(active IN (0,1)),
+                payload_json TEXT NOT NULL,
+                recorded_at TEXT NOT NULL
+            ) STRICT;
+            CREATE TABLE IF NOT EXISTS universe_mini_brain_ref(
+                mini_brain_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL REFERENCES universe_project_ref(project_id),
+                lane_id TEXT NOT NULL,
+                database_sha256 TEXT NOT NULL,
+                mmd_sha256 TEXT NOT NULL,
+                dot_sha256 TEXT NOT NULL,
+                tools_sha256 TEXT NOT NULL,
+                content_identity_sha256 TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                recorded_at TEXT NOT NULL,
+                UNIQUE(project_id,lane_id,content_identity_sha256)
+            ) STRICT;
+            CREATE TABLE IF NOT EXISTS universe_project_lane_head(
+                project_id TEXT NOT NULL REFERENCES universe_project_ref(project_id),
+                lane_id TEXT NOT NULL,
+                mini_brain_id TEXT NOT NULL
+                    REFERENCES universe_mini_brain_ref(mini_brain_id),
+                content_identity_sha256 TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY(project_id,lane_id)
+            ) STRICT;
+            CREATE TABLE IF NOT EXISTS universe_cross_project_edge(
+                edge_id TEXT PRIMARY KEY,
+                source_mini_brain_id TEXT NOT NULL
+                    REFERENCES universe_mini_brain_ref(mini_brain_id),
+                target_mini_brain_id TEXT NOT NULL
+                    REFERENCES universe_mini_brain_ref(mini_brain_id),
+                relation TEXT NOT NULL,
+                explicit_grant_sha256 TEXT NOT NULL,
+                evidence_json TEXT NOT NULL,
+                edge_sha256 TEXT NOT NULL UNIQUE,
+                recorded_at TEXT NOT NULL,
+                CHECK(source_mini_brain_id <> target_mini_brain_id)
+            ) STRICT;
+            CREATE VIRTUAL TABLE IF NOT EXISTS universe_federation_fts USING fts5(
+                mini_brain_id UNINDEXED,
+                project_id UNINDEXED,
+                lane_id,
+                payload_text,
                 tokenize='unicode61'
             );
             """
@@ -658,6 +710,357 @@ class ConnectorGovernance:
             }
         finally:
             connection.close()
+
+    def register_universe_project(
+        self,
+        *,
+        project_id: str,
+        project_root_identity_sha256: str,
+        universe_head_sha256: str,
+        pointer_generation: int,
+        mini_brains: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Register hash-only mini-brain references without merging project truth."""
+
+        require(
+            len(mini_brains)
+            == len({str(row.get("lane_id") or "") for row in mini_brains}),
+            "UNIVERSE_MINI_BRAIN_LANE_DUPLICATE",
+            "One project registration may provide only one current mini-brain per lane.",
+            status="BLOCKED",
+        )
+        exact_time = utc_now()
+        project_body = {
+            "project_id": project_id,
+            "project_root_identity_sha256": project_root_identity_sha256,
+            "universe_head_sha256": universe_head_sha256,
+            "pointer_generation": int(pointer_generation),
+            "mini_brain_count": len(mini_brains),
+        }
+        desired: dict[str, dict[str, Any]] = {}
+        for row in mini_brains:
+            lane_id = str(row.get("lane_id") or "")
+            require(
+                lane_id in CANONICAL_LANE_IDS,
+                "UNIVERSE_MINI_BRAIN_LANE_INVALID",
+                "A Universe mini-brain reference must name one canonical lane.",
+                status="BLOCKED",
+                lane_id=lane_id or None,
+            )
+            body = {
+                "project_id": project_id,
+                "lane_id": lane_id,
+                "database_sha256": str(row["database_sha256"]).upper(),
+                "mmd_sha256": str(row["mmd_sha256"]).upper(),
+                "dot_sha256": str(row["dot_sha256"]).upper(),
+                "tools_sha256": str(row["tools_sha256"]).upper(),
+                "content_identity_sha256": str(
+                    row["content_identity_sha256"]
+                ).upper(),
+            }
+            require(
+                all(
+                    _SHA256.fullmatch(str(body[field])) is not None
+                    for field in (
+                        "database_sha256",
+                        "mmd_sha256",
+                        "dot_sha256",
+                        "tools_sha256",
+                        "content_identity_sha256",
+                    )
+                ),
+                "UNIVERSE_MINI_BRAIN_HASH_INVALID",
+                "A Universe mini-brain reference requires exact SHA-256 identities.",
+                status="BLOCKED",
+                lane_id=lane_id,
+            )
+            mini_brain_id = "mini_" + sha256_bytes(
+                canonical_json_bytes(body)
+            )[:32].lower()
+            desired[lane_id] = {"mini_brain_id": mini_brain_id, "body": body}
+
+        connection = self._connect()
+        inserted: list[str] = []
+        reused: list[str] = []
+        changed_lanes: list[str] = []
+        removed_lanes: list[str] = []
+        try:
+            existing_project = connection.execute(
+                "SELECT * FROM universe_project_ref WHERE project_id=?",
+                (project_id,),
+            ).fetchone()
+            existing_heads = {
+                str(row["lane_id"]): dict(row)
+                for row in connection.execute(
+                    "SELECT * FROM universe_project_lane_head WHERE project_id=?",
+                    (project_id,),
+                )
+            }
+            project_unchanged = bool(
+                existing_project is not None
+                and str(existing_project["project_root_identity_sha256"])
+                == project_root_identity_sha256
+                and str(existing_project["universe_head_sha256"])
+                == universe_head_sha256
+                and int(existing_project["pointer_generation"])
+                == int(pointer_generation)
+            )
+            heads_unchanged = set(existing_heads) == set(desired) and all(
+                existing_heads[lane_id]["mini_brain_id"]
+                == desired[lane_id]["mini_brain_id"]
+                for lane_id in desired
+            )
+            if project_unchanged and heads_unchanged:
+                reused = [
+                    str(desired[lane_id]["mini_brain_id"])
+                    for lane_id in sorted(desired)
+                ]
+                recorded_at = str(existing_project["recorded_at"])
+                core = {
+                    "schema": "evidence-lane.universe-project-registration.v1",
+                    "status": "PASS",
+                    "state": "REUSED_NO_WRITE",
+                    "project_id": project_id,
+                    "universe_head_sha256": universe_head_sha256,
+                    "mini_brain_ids": reused,
+                    "inserted_mini_brain_ids": [],
+                    "reused_mini_brain_ids": reused,
+                    "changed_lane_ids": [],
+                    "removed_lane_ids": [],
+                    "content_hash_reuse": True,
+                    "changed_only_refresh": True,
+                    "atomic_advancement": True,
+                    "writes_performed": False,
+                    "historical_mini_brain_refs_preserved": True,
+                    "project_truth_merged": False,
+                    "cross_project_edges_created": False,
+                    "recorded_at": recorded_at,
+                }
+                return {
+                    **core,
+                    "receipt_sha256": sha256_bytes(canonical_json_bytes(core)),
+                }
+
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                """
+                INSERT INTO universe_project_ref VALUES(?,?,?,?,?,?,?)
+                ON CONFLICT(project_id) DO UPDATE SET
+                    project_root_identity_sha256=excluded.project_root_identity_sha256,
+                    universe_head_sha256=excluded.universe_head_sha256,
+                    pointer_generation=excluded.pointer_generation,
+                    active=excluded.active,
+                    payload_json=excluded.payload_json,
+                    recorded_at=excluded.recorded_at
+                """,
+                (
+                    project_id,
+                    project_root_identity_sha256,
+                    universe_head_sha256,
+                    int(pointer_generation),
+                    1,
+                    canonical_json_bytes(project_body).decode("utf-8"),
+                    exact_time,
+                ),
+            )
+            for lane_id, row in sorted(desired.items()):
+                body = dict(row["body"])
+                mini_brain_id = str(row["mini_brain_id"])
+                prior_head = existing_heads.get(lane_id)
+                if prior_head and prior_head["mini_brain_id"] == mini_brain_id:
+                    reused.append(mini_brain_id)
+                else:
+                    changed_lanes.append(lane_id)
+                connection.execute(
+                    "INSERT OR IGNORE INTO universe_mini_brain_ref "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        mini_brain_id,
+                        project_id,
+                        lane_id,
+                        body["database_sha256"],
+                        body["mmd_sha256"],
+                        body["dot_sha256"],
+                        body["tools_sha256"],
+                        body["content_identity_sha256"],
+                        canonical_json_bytes(body).decode("utf-8"),
+                        exact_time,
+                    ),
+                )
+                stored = connection.execute(
+                    "SELECT payload_json FROM universe_mini_brain_ref "
+                    "WHERE mini_brain_id=?",
+                    (mini_brain_id,),
+                ).fetchone()
+                require(
+                    stored is not None
+                    and str(stored["payload_json"])
+                    == canonical_json_bytes(body).decode("utf-8"),
+                    "UNIVERSE_MINI_BRAIN_HASH_COLLISION",
+                    "A mini-brain content identity resolved to different bytes.",
+                    status="MISMATCH",
+                )
+                connection.execute(
+                    "INSERT INTO universe_project_lane_head VALUES(?,?,?,?,?) "
+                    "ON CONFLICT(project_id,lane_id) DO UPDATE SET "
+                    "mini_brain_id=excluded.mini_brain_id,"
+                    "content_identity_sha256=excluded.content_identity_sha256,"
+                    "updated_at=excluded.updated_at",
+                    (
+                        project_id,
+                        lane_id,
+                        mini_brain_id,
+                        body["content_identity_sha256"],
+                        exact_time,
+                    ),
+                )
+                if mini_brain_id not in reused:
+                    inserted.append(mini_brain_id)
+            removed_lanes = sorted(set(existing_heads) - set(desired))
+            if removed_lanes:
+                placeholders = ",".join("?" for _ in removed_lanes)
+                connection.execute(
+                    "DELETE FROM universe_project_lane_head WHERE project_id=? "
+                    f"AND lane_id IN ({placeholders})",
+                    (project_id, *removed_lanes),
+                )
+            connection.execute(
+                "DELETE FROM universe_federation_fts WHERE project_id=?",
+                (project_id,),
+            )
+            for lane_id, row in sorted(desired.items()):
+                connection.execute(
+                    "INSERT INTO universe_federation_fts VALUES(?,?,?,?)",
+                    (
+                        row["mini_brain_id"],
+                        project_id,
+                        lane_id,
+                        canonical_json_bytes(row["body"]).decode("utf-8"),
+                    ),
+                )
+            connection.commit()
+        finally:
+            connection.close()
+        core = {
+            "schema": "evidence-lane.universe-project-registration.v1",
+            "status": "PASS",
+            "state": "ADVANCED_ATOMICALLY",
+            "project_id": project_id,
+            "universe_head_sha256": universe_head_sha256,
+            "mini_brain_ids": [
+                str(desired[lane_id]["mini_brain_id"])
+                for lane_id in sorted(desired)
+            ],
+            "inserted_mini_brain_ids": inserted,
+            "reused_mini_brain_ids": reused,
+            "changed_lane_ids": changed_lanes,
+            "removed_lane_ids": removed_lanes,
+            "content_hash_reuse": True,
+            "changed_only_refresh": True,
+            "atomic_advancement": True,
+            "writes_performed": True,
+            "historical_mini_brain_refs_preserved": True,
+            "project_truth_merged": False,
+            "cross_project_edges_created": False,
+            "recorded_at": exact_time,
+        }
+        return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+    def link_universe_mini_brains(
+        self,
+        *,
+        source_mini_brain_id: str,
+        target_mini_brain_id: str,
+        relation: str,
+        explicit_grant_sha256: str,
+        evidence: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Append one explicitly granted cross-project hash-reference edge."""
+
+        exact_grant = str(explicit_grant_sha256).strip().upper()
+        require(
+            bool(re.fullmatch(r"[A-F0-9]{64}", exact_grant)),
+            "CROSS_PROJECT_UNIVERSE_GRANT_REQUIRED",
+            "A cross-project Universe edge requires one exact explicit grant hash.",
+            status="BLOCKED",
+        )
+        require(
+            bool(evidence)
+            and all(
+                str(key).endswith("_sha256")
+                and _SHA256.fullmatch(str(value).upper()) is not None
+                for key, value in evidence.items()
+            ),
+            "CROSS_PROJECT_UNIVERSE_EVIDENCE_HASHES_REQUIRED",
+            "Cross-project federation stores hash-only evidence references.",
+            status="BLOCKED",
+        )
+        connection = self._connect()
+        try:
+            rows = list(
+                connection.execute(
+                    "SELECT mini_brain_id,project_id FROM universe_mini_brain_ref "
+                    "WHERE mini_brain_id IN (?,?)",
+                    (source_mini_brain_id, target_mini_brain_id),
+                )
+            )
+            require(
+                len(rows) == 2 and len({str(row["project_id"]) for row in rows}) == 2,
+                "CROSS_PROJECT_UNIVERSE_EDGE_SCOPE_INVALID",
+                "A cross-project edge must connect registered mini-brains from two projects.",
+                status="BLOCKED",
+            )
+            core = {
+                "source_mini_brain_id": source_mini_brain_id,
+                "target_mini_brain_id": target_mini_brain_id,
+                "relation": str(relation).strip().upper(),
+                "explicit_grant_sha256": exact_grant,
+                "evidence": evidence,
+            }
+            edge_sha256 = sha256_bytes(canonical_json_bytes(core))
+            edge_id = "uedge_" + edge_sha256[:32].lower()
+            existing = connection.execute(
+                "SELECT recorded_at FROM universe_cross_project_edge "
+                "WHERE edge_sha256=?",
+                (edge_sha256,),
+            ).fetchone()
+            if existing is not None:
+                exact_time = str(existing["recorded_at"])
+                state = "REUSED_NO_WRITE"
+                writes_performed = False
+            else:
+                exact_time = utc_now()
+                connection.execute(
+                    "INSERT INTO universe_cross_project_edge "
+                    "VALUES(?,?,?,?,?,?,?,?)",
+                    (
+                        edge_id,
+                        source_mini_brain_id,
+                        target_mini_brain_id,
+                        core["relation"],
+                        exact_grant,
+                        canonical_json_bytes(evidence).decode("utf-8"),
+                        edge_sha256,
+                        exact_time,
+                    ),
+                )
+                connection.commit()
+                state = "APPENDED"
+                writes_performed = True
+        finally:
+            connection.close()
+        return {
+            "schema": "evidence-lane.universe-cross-project-edge.v1",
+            "status": "PASS",
+            "state": state,
+            "edge_id": edge_id,
+            "edge_sha256": edge_sha256,
+            "project_truth_merged": False,
+            "raw_cross_project_payload_copied": False,
+            "explicit_grant_sha256": exact_grant,
+            "writes_performed": writes_performed,
+            "recorded_at": exact_time,
+        }
 
     def catalog(self) -> dict[str, Any]:
         connection = self._connect()

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agent_learning agent-learning.tools.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-tools.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "agent_learning"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "3DC46E8F919DB62A5384172D21E0C21812240B56457CC4EDE50F57113A33EBAD"
+}

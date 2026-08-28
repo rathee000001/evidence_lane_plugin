@@ -13,6 +13,7 @@ from urllib.parse import quote
 from .errors import EvidenceLaneError, require
 from .freshness import evaluate_working_lane_freshness, result_status
 from .git_adapter import inspect_repository
+from .hashing import canonical_json_bytes, sha256_bytes
 from .lanes import LANE_REGISTRY
 from .store import ProjectStore
 
@@ -521,18 +522,144 @@ class PVReader:
                     "SELECT key,value FROM overlay_meta ORDER BY key"
                 ).fetchall()
             }
-            sector_snapshots = [
-                dict(row)
-                for row in connection.execute(
-                    "SELECT * FROM sector_candidate_snapshot ORDER BY sector_id"
-                ).fetchall()
-            ]
-            fusion_receipts = [
-                dict(row)
-                for row in connection.execute(
-                    "SELECT * FROM fusion_receipt ORDER BY receipt_id"
-                ).fetchall()
-            ]
+            progressive = bool(
+                connection.execute(
+                    """
+                    SELECT 1 FROM sqlite_master
+                    WHERE type='table' AND name='pv_hil_transition'
+                    """
+                ).fetchone()
+            )
+            if progressive:
+                baseline = connection.execute(
+                    "SELECT * FROM overlay_history_baseline WHERE baseline_id=1"
+                ).fetchone()
+
+                def snapshot_for(pv_id: str) -> tuple[str, dict[str, dict[str, Any]]]:
+                    if baseline is not None and str(baseline["baseline_pv"]) == pv_id:
+                        rows = connection.execute(
+                            """
+                            SELECT sector_id,lane_database_sha256,source_count,
+                                   chunk_count,fact_count
+                            FROM sector_hil_baseline_snapshot ORDER BY sector_id
+                            """
+                        ).fetchall()
+                        source = "LIVE_ROOT_MIGRATION_BASELINE"
+                    else:
+                        transition = connection.execute(
+                            """
+                            SELECT transition_id FROM pv_hil_transition
+                            WHERE proposed_pv=? ORDER BY sequence DESC LIMIT 1
+                            """,
+                            (pv_id,),
+                        ).fetchone()
+                        require(
+                            transition is not None,
+                            "PROJECT_OVERLAY_PV_NOT_IN_LIVE_HISTORY",
+                            "The requested PV is not present in the live-root Project Overlay ledger.",
+                            status="EMPTY",
+                            requested_pv=pv_id,
+                            accepted_archive_opened=False,
+                            accepted_archive_queried=False,
+                        )
+                        rows = connection.execute(
+                            """
+                            SELECT sector_id,lane_database_sha256,source_count,
+                                   chunk_count,fact_count
+                            FROM sector_hil_snapshot
+                            WHERE transition_id=? ORDER BY ordinal
+                            """,
+                            (str(transition["transition_id"]),),
+                        ).fetchall()
+                        source = str(transition["transition_id"])
+                    return source, {
+                        str(row["sector_id"]): {
+                            "lane_database_sha256": row["lane_database_sha256"],
+                            "source_count": int(row["source_count"]),
+                            "chunk_count": int(row["chunk_count"]),
+                            "fact_count": int(row["fact_count"]),
+                        }
+                        for row in rows
+                    }
+
+                left_source, left_snapshot = snapshot_for(left_pv)
+                right_source, right_snapshot = snapshot_for(right_pv)
+                overlay_delta_value: dict[str, Any] = {
+                    "schema": "evidence-lane.project-overlay-delta.v1",
+                    "added": [
+                        {"sector_id": sector_id, "after": right_snapshot[sector_id]}
+                        for sector_id in sorted(
+                            right_snapshot.keys() - left_snapshot.keys()
+                        )
+                    ],
+                    "modified": [
+                        {
+                            "sector_id": sector_id,
+                            "before": left_snapshot[sector_id],
+                            "after": right_snapshot[sector_id],
+                        }
+                        for sector_id in sorted(
+                            left_snapshot.keys() & right_snapshot.keys()
+                        )
+                        if left_snapshot[sector_id] != right_snapshot[sector_id]
+                    ],
+                    "removed": [
+                        {"sector_id": sector_id, "before": left_snapshot[sector_id]}
+                        for sector_id in sorted(
+                            left_snapshot.keys() - right_snapshot.keys()
+                        )
+                    ],
+                    "unchanged": sorted(
+                        sector_id
+                        for sector_id in left_snapshot.keys() & right_snapshot.keys()
+                        if left_snapshot[sector_id] == right_snapshot[sector_id]
+                    ),
+                }
+                overlay_delta_value["delta_sha256"] = sha256_bytes(
+                    canonical_json_bytes(overlay_delta_value)
+                )
+                overlay_delta: dict[str, Any] | None = overlay_delta_value
+                sector_snapshots = [
+                    {"sector_id": sector_id, **right_snapshot[sector_id]}
+                    for sector_id in sorted(right_snapshot)
+                ]
+                fusion_receipts = [
+                    dict(row)
+                    for row in connection.execute(
+                        """
+                        SELECT * FROM hil_transition_receipt
+                        ORDER BY rowid
+                        """
+                    ).fetchall()
+                ]
+                transition_rows = [
+                    dict(row)
+                    for row in connection.execute(
+                        """
+                        SELECT transition_id,sequence,parent_pv,proposed_pv,
+                               pointer_generation,created_at,truth_state,
+                               prior_transition_sha256,transition_sha256
+                        FROM pv_hil_transition ORDER BY sequence
+                        """
+                    ).fetchall()
+                ]
+            else:
+                left_source = metadata.get("proposed_pv") or "LEGACY_SNAPSHOT"
+                right_source = left_source
+                sector_snapshots = [
+                    dict(row)
+                    for row in connection.execute(
+                        "SELECT * FROM sector_candidate_snapshot ORDER BY sector_id"
+                    ).fetchall()
+                ]
+                fusion_receipts = [
+                    dict(row)
+                    for row in connection.execute(
+                        "SELECT * FROM fusion_receipt ORDER BY receipt_id"
+                    ).fetchall()
+                ]
+                overlay_delta = None
+                transition_rows = []
         pointer = self.store.pointer(project_id)
         return {
             "status": "PASS",
@@ -541,7 +668,12 @@ class PVReader:
             "right_pv": right_pv,
             "comparison_authority": "LIVE_ROOT_PROJECT_OVERLAY",
             "overlay_metadata": metadata,
+            "progressive_history": progressive,
+            "left_snapshot_authority": left_source,
+            "right_snapshot_authority": right_source,
             "sector_snapshots": sector_snapshots,
+            "project_overlay_delta": overlay_delta,
+            "pv_hil_transitions": transition_rows,
             "fusion_receipts": fusion_receipts,
             "accepted_pointer_baseline": pointer.as_dict(),
             "accepted_archive_opened": False,

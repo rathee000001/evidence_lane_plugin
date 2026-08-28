@@ -1,7 +1,7 @@
 interface:
   display_name: "Evidence Lane Boot"
-  short_description: "Boot or resume a governed session"
-  default_prompt: "Use $evi-boot to verify Flash and boot or resume this governed Evidence Lane session."
+  short_description: "Verify host, model, Flash, and resume"
+  default_prompt: "Use $evi-boot to verify host/storage and model-tool compatibility, lock Flash, then boot or resume the exact governed Evidence Lane session."
 dependencies:
   tools:
     - type: "mcp"

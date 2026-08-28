@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Artifacts installed surface manifest",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "lane_id",
+    "sqlite_filename",
+    "sqlite_integrity",
+    "members",
+    "separate_sqlite_authority",
+    "live_project_bytes_in_template"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-lane-surface.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "lane_id": {
+      "const": "artifacts"
+    },
+    "sqlite_filename": {
+      "const": "artifacts_sector_v001.sqlite"
+    },
+    "sqlite_integrity": {
+      "const": "ok"
+    },
+    "members": {
+      "type": "array",
+      "minItems": 1
+    },
+    "separate_sqlite_authority": {
+      "const": true
+    },
+    "live_project_bytes_in_template": {
+      "const": false
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "37FC4592E06BA7A62F4EA8D76AF775DDF8B2AF86566CD6260DB2FC52B260A920"
+}

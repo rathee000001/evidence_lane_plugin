@@ -1,0 +1,204 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "pv_rollback",
+  "title": "Select a Plan-stamped rollback state",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "decided_by": {
+        "title": "Decided By",
+        "type": "string"
+      },
+      "rollback_mode": {
+        "default": "LOGICAL_LIVE_ROOT_STATE",
+        "title": "Rollback Mode",
+        "type": "string"
+      },
+      "rollback_to": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Rollback To"
+      },
+      "decision_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Decision Id"
+      },
+      "confirmation": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Confirmation"
+      },
+      "archive_path": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Archive Path"
+      },
+      "expected_archive_sha256": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Archive Sha256"
+      },
+      "restore_root": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Restore Root"
+      },
+      "repository_path": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Repository Path"
+      },
+      "branch": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Branch"
+      },
+      "commit_sha": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Commit Sha"
+      },
+      "restore_workspace": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Restore Workspace"
+      },
+      "target_plan_task_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Target Plan Task Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "decided_by"
+    ],
+    "title": "pv_rollbackArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "pv_rollbackDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "schema_sha256": "660838FEC5545D10BA11EF3BCBB5CA8E21B77975FB9DE55772B8F6D668E385AA",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-rollback",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "pv_rollback"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-rollback",
+        "workflow": "pointer-rollback",
+        "order": 1
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/pv_rollback.action.v1.json",
+  "sdk_action_binding_sha256": "F01174116A7848B18C54C7D394E89D2C96ACE78271FE3554F1B1EB68F84A4864",
+  "public_action_schema": "schemas/actions/pv_rollback.schema.json",
+  "public_action_schema_sha256": "4D6EA09E631396E0889708382563DC0E805D9F2297B91BE1540B3F28DB11772F",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "F15A6509F21DB59288BFAD0D8FEBD9AFD784A571C0D7D1AF7E9B19D03C739FFA"
+}

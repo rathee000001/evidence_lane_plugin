@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "receipt_ledger pointer-contract.v1.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-pointer-contract.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "receipt_ledger"
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "759C64005EE2411B8C4D137B0BD9133F3C5F8BF40388DF419448F83AA9EE835F"
+}

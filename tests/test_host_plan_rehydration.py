@@ -50,7 +50,6 @@ def _tasks() -> list[dict[str, object]]:
 
 def _classified_host_plan(service) -> tuple[str, str, dict[str, object]]:
     session_id, _ = build_and_approve_pv1(service)
-    host_task_id = "host-session-state-travel-pv1"
     tasks = _tasks()
     service.plan_tasks(
         "book-faires",
@@ -59,6 +58,7 @@ def _classified_host_plan(service) -> tuple[str, str, dict[str, object]]:
         plan_id="host-plan-rehydration-plan",
     )
     session = service.sessions.load("book-faires", session_id)
+    host_task_id = str(session.metadata["current_host_session_id"])
     session.metadata["host_plan_window"] = {
         "schema": "evidence-lane.host-plan-window-state.v1",
         "window_task_ids": [str(task["task_id"]) for task in tasks],
@@ -397,6 +397,7 @@ def test_changes_loss_overrides_visible_plan_and_binds_exact_task_worktree(
         ("HOT_REATTACH", None),
         ("PRECOMPACT", None),
         ("POSTCOMPACT", None),
+        ("USER_PROMPT_TURN", True),
         ("GOAL_ACTIVE_TURN", True),
         ("NO_GOAL_TURN", False),
         ("STALE_ARTIFACT", None),
@@ -431,6 +432,9 @@ def test_all_recovery_triggers_preserve_the_same_native_projection(
     assert result["host_goal_presence_changes_projection"] is False
     assert result["candidate_created"] is False
     assert result["pointer_moved"] is False
+    if trigger in {"USER_PROMPT_TURN", "GOAL_ACTIVE_TURN"}:
+        assert result["action"] == "REACTIVATE_EXISTING_HOST_PLAN_WINDOW"
+        assert result["host_update_plan_required"] is True
 
 
 class _BacklogOnlyStore:

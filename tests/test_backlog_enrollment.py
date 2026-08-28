@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
+from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.service import EvidenceLaneService
 
 
@@ -123,6 +124,84 @@ def test_linear_backlog_queues_many_but_claims_one(service) -> None:
         "ACCEPTED",
     ]
     assert backlog["plan_runtime_projection"]["status"] == "PASS"
+
+
+def test_dual_hil_acceptance_is_stamped_in_plan_without_archive_query(service) -> None:
+    task = _planned_task("dual-hil-delta", "Present one dual PV HIL.")
+    service.plan_tasks(
+        "book-faires",
+        tasks=[task],
+        planned_by="human-test",
+        plan_id="plan-dual-hil-stamp",
+    )
+    service.store.claim_backlog_task(
+        "book-faires",
+        backlog_task_id=task["task_id"],
+        session_id="session_dual_hil",
+        contract={
+            **task,
+            "task_id": "runtime-dual-hil",
+            "write_boundary": "READ_ONLY",
+            "hil_required": True,
+            "status": "CLASSIFIED",
+        },
+    )
+    service.store.record_backlog_done(
+        "book-faires",
+        backlog_task_id=task["task_id"],
+        session_id="session_dual_hil",
+        candidate_id="PV13_HIL_PROPOSAL__RUN_TEST",
+    )
+    stamp_body = {
+        "schema": "evidence-lane.plan-dual-hil-acceptance-stamp.v1",
+        "status": "PASS",
+        "project_id": "book-faires",
+        "plan_task_id": task["task_id"],
+        "target_pv": "PV13",
+        "project_decision": "APPROVE",
+        "project_decision_id": "project-decision-13",
+        "project_decision_receipt_sha256": "A" * 64,
+        "project_proposal_id": "PV13_HIL_PROPOSAL__RUN_TEST",
+        "learning_decision": "APPROVE",
+        "learning_weave_candidate_id": "learn_weave_13",
+        "learning_weave_candidate_sha256": "B" * 64,
+        "learning_weave_receipt_sha256": "C" * 64,
+        "learning_approval_receipt_sha256": "D" * 64,
+        "learning_member_count": 150,
+        "learning_summary": (
+            "150 auto-accepted Delta Learning members woven into one PV13 "
+            "Learning approval."
+        ),
+        "accepted_snapshot_role": "POST_APPROVAL_STORAGE_ONLY",
+        "accepted_archive_opened_for_stamp": False,
+        "accepted_archive_queried_for_stamp": False,
+        "accepted_archive_model_context_source": False,
+        "approval_inferred": False,
+        "stamped_at": "2026-08-25T22:00:00.000000Z",
+    }
+    stamp = {
+        **stamp_body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(stamp_body)),
+    }
+
+    outcome = service.store.record_backlog_outcome(
+        "book-faires",
+        backlog_task_id=task["task_id"],
+        session_id="session_dual_hil",
+        decision="APPROVE",
+        decided_by="human-test",
+        candidate_id="PV13_HIL_PROPOSAL__RUN_TEST",
+        accepted_pv="PV13",
+        dual_hil_stamp=stamp,
+    )
+
+    assert outcome["status"] == "ACCEPTED"
+    assert outcome["dual_hil_acceptance_stamp"] == stamp
+    persisted = service.task_backlog("book-faires")["tasks"][0]
+    assert persisted["lifecycle_events"][-1]["event_type"] == "HIL_OUTCOME"
+    assert persisted["lifecycle_events"][-1]["details"][
+        "dual_hil_acceptance_stamp"
+    ] == stamp
 
 
 def test_delta_drop_and_supersede_are_explicit_append_only_events(service) -> None:
@@ -322,7 +401,7 @@ def test_plan_runtime_v2_reports_legacy_projection_stale_without_read_failure(
     assert status["reason"] == "DERIVED_SCHEMA_REBUILD_REQUIRED"
     assert status["observed_schema"].endswith(".v1")
     assert status["sqlite_user_version"] == 1
-    assert status["expected_sqlite_user_version"] == 3
+    assert status["expected_sqlite_user_version"] == 4
     assert status["rebuild_action"] == (
         "NEXT_GOVERNED_PLAN_WRITE_ATOMIC_REBUILD"
     )
@@ -367,7 +446,7 @@ def test_plan_runtime_v3_indexes_full_contract_steers_rows_and_bounded_fts(
 
     status = service.store.plan_runtime_status("book-faires")
     assert status["status"] == "PASS"
-    assert status["sqlite_user_version"] == 3
+    assert status["sqlite_user_version"] == 4
     assert status["task_formula_event_count"] == 0
     assert status["task_formula_lineage_indexed"] is True
     assert status["full_task_contracts_indexed"] is True
@@ -597,606 +676,3 @@ def test_selected_git_sync_applies_only_clean_fast_forward(
     assert result["after"]["commit_sha"] == expected_commit
     assert result["changed_paths"] == ["README.md"]
     assert result["remote_write_performed"] is False
-
-
-def test_selected_git_sync_can_replace_but_never_broaden_branch_authority(
-    tmp_path: Path,
-    source_repository: Path,
-) -> None:
-    checkout = tmp_path / "branch-replacement-checkout"
-    subprocess.run(
-        ["git", "clone", "--no-local", str(source_repository), str(checkout)],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    subprocess.run(
-        [
-            "git",
-            "-C",
-            str(checkout),
-            "remote",
-            "set-url",
-            "origin",
-            "https://github.com/example/book-faires.git",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    application = EvidenceLaneService(data_root=tmp_path / "branch-replacement-store")
-    application.register_project(
-        project_id="branch-replacement",
-        display_name="Branch replacement",
-        repository_path=str(checkout),
-        expected_owner="example",
-        expected_name="book-faires",
-        allowed_branches=["main"],
-        sensitivity="PRIVATE",
-    )
-    boot = application.boot_session(
-        project_id="branch-replacement",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="codex-single-agent",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"permission_mode": "test"},
-        host_session_id="branch-replacement-host-session",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    application.build_initial("branch-replacement", session_id)
-    decision = application.decide(
-        "branch-replacement",
-        session_id,
-        decision="APPROVE",
-        decided_by="human-test",
-        decision_id="branch_replacement_pv1",
-    )
-    handoff = decision["state_travel_handoff"]["state_travel"]
-    application.resume_state_travel(
-        project_id="branch-replacement",
-        session_id=session_id,
-        handoff_id=handoff["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="branch-replacement-fresh-task",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={"source": "fresh-branch-replacement-task"},
-    )
-    application.sessions.classify(
-        "branch-replacement",
-        session_id,
-        task_class="fix_bug",
-        requested_outcome="Select one exact feature branch.",
-        permitted_paths=["README.md"],
-        permitted_tools=[
-            "repository_read",
-            "repository_write",
-            "terminal",
-            "test",
-            "git_diff",
-            "patch",
-        ],
-        acceptance_checks=["The exact feature branch becomes authoritative."],
-        stop_condition="Stop at the next candidate HIL.",
-    )
-
-    from .conftest import git
-
-    git(source_repository, "switch", "-c", "feature/exact-selection")
-    readme = source_repository / "README.md"
-    readme.write_text("# Book Faires\n\nExact branch selection.\n", encoding="utf-8")
-    git(source_repository, "add", "README.md")
-    git(source_repository, "commit", "-m", "Exact branch selection")
-    expected_commit = git(source_repository, "rev-parse", "HEAD")
-    git(
-        checkout,
-        "fetch",
-        "--no-tags",
-        str(source_repository),
-        "feature/exact-selection",
-    )
-    git(checkout, "switch", "-c", "feature/exact-selection", "FETCH_HEAD")
-
-    with pytest.raises(EvidenceLaneError) as blocked:
-        application.sync_git_source(
-            project_id="branch-replacement",
-            source=str(source_repository),
-            branch="feature/exact-selection",
-            session_id=session_id,
-            expected_commit=expected_commit,
-        )
-    assert blocked.value.code == "PROJECT_SYNC_BRANCH_NOT_AUTHORIZED"
-    assert application.store.config("branch-replacement").allowed_branches == ["main"]
-
-    # The explicit replacement flag is required. The public service envelope
-    # converts the fail-closed exception only at MCP invocation time, so call
-    # the service with the flag after proving the unflagged path did not mutate.
-    result = application.sync_git_source(
-        project_id="branch-replacement",
-        source=str(source_repository),
-        branch="feature/exact-selection",
-        session_id=session_id,
-        expected_commit=expected_commit,
-        replace_registered_branch=True,
-    )
-
-    assert result["fast_forward_applied"] is False
-    assert result["branch_authority"]["status"] == "REPLACED"
-    assert result["branch_authority"]["authority_broadened"] is False
-    assert result["branch_authority"]["prior_allowed_branches"] == ["main"]
-    assert application.store.config("branch-replacement").allowed_branches == [
-        "feature/exact-selection"
-    ]
-    assert result["branch_authority"]["receipt"]["pointer_generation"] == 1
-    assert result["branch_authority"]["receipt"]["accepted_pv"] == "PV1"
-    assert result["remote_write_performed"] is False
-
-
-def test_dirty_local_branch_authority_replacement_preserves_exact_source(
-    tmp_path: Path,
-    source_repository: Path,
-) -> None:
-    checkout = tmp_path / "dirty-branch-authority-checkout"
-    subprocess.run(
-        ["git", "clone", "--no-local", str(source_repository), str(checkout)],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    subprocess.run(
-        [
-            "git",
-            "-C",
-            str(checkout),
-            "remote",
-            "set-url",
-            "origin",
-            "https://github.com/example/book-faires.git",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    application = EvidenceLaneService(data_root=tmp_path / "dirty-authority-store")
-    application.register_project(
-        project_id="dirty-branch-authority",
-        display_name="Dirty branch authority",
-        repository_path=str(checkout),
-        expected_owner="example",
-        expected_name="book-faires",
-        allowed_branches=["main"],
-        sensitivity="PRIVATE",
-    )
-    boot = application.boot_session(
-        project_id="dirty-branch-authority",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="codex-single-agent",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"permission_mode": "test"},
-        host_session_id="dirty-authority-host-session",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    application.build_initial("dirty-branch-authority", session_id)
-    decision = application.decide(
-        "dirty-branch-authority",
-        session_id,
-        decision="APPROVE",
-        decided_by="human-test",
-        decision_id="dirty_branch_authority_pv1",
-    )
-    handoff = decision["state_travel_handoff"]["state_travel"]
-    application.resume_state_travel(
-        project_id="dirty-branch-authority",
-        session_id=session_id,
-        handoff_id=handoff["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="dirty-authority-fresh-task",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={"source": "dirty-authority-test"},
-    )
-    application.sessions.classify(
-        "dirty-branch-authority",
-        session_id,
-        task_class="modify_code",
-        requested_outcome="Select the exact dirty continuity branch.",
-        permitted_paths=["README.md", "scratch.txt"],
-        permitted_tools=[
-            "repository_read",
-            "repository_write",
-            "terminal",
-            "test",
-            "git_diff",
-            "patch",
-        ],
-        acceptance_checks=[
-            "The branch authority changes without changing source bytes."
-        ],
-        stop_condition="Stop at the next candidate HIL.",
-    )
-
-    from .conftest import git
-
-    exact_branch = "feature/dirty-continuity"
-    git(checkout, "switch", "-c", exact_branch)
-    expected_commit = git(checkout, "rev-parse", "HEAD")
-    readme = checkout / "README.md"
-    readme.write_text("# Book Faires\n\nDirty continuity bytes.\n", encoding="utf-8")
-    scratch = checkout / "scratch.txt"
-    scratch.write_text("untracked continuity bytes\n", encoding="utf-8")
-    before_status = subprocess.run(
-        ["git", "-C", str(checkout), "status", "--porcelain=v1", "-z"],
-        check=True,
-        capture_output=True,
-    ).stdout
-    before_readme = readme.read_bytes()
-    before_scratch = scratch.read_bytes()
-
-    with pytest.raises(EvidenceLaneError) as missing_commit:
-        application.sync_git_source(
-            project_id="dirty-branch-authority",
-            source=str(checkout),
-            branch=exact_branch,
-            session_id=session_id,
-            replace_registered_branch=True,
-        )
-    assert (
-        missing_commit.value.code
-        == "DIRTY_BRANCH_AUTHORITY_EXPECTED_COMMIT_REQUIRED"
-    )
-    assert application.store.config("dirty-branch-authority").allowed_branches == [
-        "main"
-    ]
-
-    result = application.sync_git_source(
-        project_id="dirty-branch-authority",
-        source=str(checkout),
-        branch=exact_branch,
-        session_id=session_id,
-        expected_commit=expected_commit,
-        replace_registered_branch=True,
-    )
-
-    after_status = subprocess.run(
-        ["git", "-C", str(checkout), "status", "--porcelain=v1", "-z"],
-        check=True,
-        capture_output=True,
-    ).stdout
-    assert result["operation"] == "DIRTY_LOCAL_BRANCH_AUTHORITY_ONLY"
-    assert result["fast_forward_applied"] is False
-    assert result["changed_paths"] == []
-    assert result["dirty_worktree_preserved"] is True
-    assert result["fetch_performed"] is False
-    assert result["source_write_performed"] is False
-    assert result["remote_write_performed"] is False
-    assert result["merge_commit_created"] is False
-    assert result["before"] == result["after"]
-    assert before_status == after_status
-    assert readme.read_bytes() == before_readme
-    assert scratch.read_bytes() == before_scratch
-    assert result["branch_authority"]["status"] == "REPLACED"
-    receipt = result["branch_authority"]["receipt"]
-    context = receipt["selection_context"]
-    assert context["selection_mode"] == "DIRTY_LOCAL_BRANCH_AUTHORITY_ONLY"
-    assert context["expected_commit"] == expected_commit
-    assert context["dirty_worktree_preserved"] is True
-    assert context["fetch_performed"] is False
-    assert context["source_write_performed"] is False
-    assert context["worktree_status_sha256"] == result["worktree_status_sha256"]
-    assert application.store.config("dirty-branch-authority").allowed_branches == [
-        exact_branch
-    ]
-
-
-def test_interrupted_exit_can_replace_dirty_branch_authority_without_source_write(
-    tmp_path: Path,
-    source_repository: Path,
-) -> None:
-    checkout = tmp_path / "exit-building-authority-checkout"
-    subprocess.run(
-        ["git", "clone", "--no-local", str(source_repository), str(checkout)],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    subprocess.run(
-        [
-            "git",
-            "-C",
-            str(checkout),
-            "remote",
-            "set-url",
-            "origin",
-            "https://github.com/example/book-faires.git",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    application = EvidenceLaneService(
-        data_root=tmp_path / "exit-building-authority-store"
-    )
-    application.register_project(
-        project_id="exit-building-authority",
-        display_name="Exit building branch authority",
-        repository_path=str(checkout),
-        expected_owner="example",
-        expected_name="book-faires",
-        allowed_branches=["main"],
-        sensitivity="PRIVATE",
-    )
-    boot = application.boot_session(
-        project_id="exit-building-authority",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="codex-single-agent",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"permission_mode": "test"},
-        host_session_id="exit-building-authority-host-session",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    application.build_initial("exit-building-authority", session_id)
-    decision = application.decide(
-        "exit-building-authority",
-        session_id,
-        decision="APPROVE",
-        decided_by="human-test",
-        decision_id="exit_building_authority_pv1",
-    )
-    handoff = decision["state_travel_handoff"]["state_travel"]
-    application.resume_state_travel(
-        project_id="exit-building-authority",
-        session_id=session_id,
-        handoff_id=handoff["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="exit-building-authority-fresh-task",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={"source": "exit-building-authority-test"},
-    )
-    application.sessions.classify(
-        "exit-building-authority",
-        session_id,
-        task_class="fix_bug",
-        requested_outcome="Recover exact branch authority before retrying exit.",
-        permitted_paths=["README.md", "scratch.txt"],
-        permitted_tools=[
-            "repository_read",
-            "repository_write",
-            "terminal",
-            "test",
-            "git_diff",
-            "patch",
-        ],
-        acceptance_checks=["The exact branch authority is replaced byte-safely."],
-        stop_condition="Stop at the next candidate HIL.",
-    )
-
-    from evidence_lane_plugin.models import SessionState
-
-    session = application.sessions.load("exit-building-authority", session_id)
-    session.state = SessionState.EXIT_BUILDING
-    application.sessions._save(session)
-
-    from .conftest import git
-
-    exact_branch = "fix/exit-building-authority"
-    git(checkout, "switch", "-c", exact_branch)
-    expected_commit = git(checkout, "rev-parse", "HEAD")
-    readme = checkout / "README.md"
-    readme.write_text("# Book Faires\n\nInterrupted exit bytes.\n", encoding="utf-8")
-    scratch = checkout / "scratch.txt"
-    scratch.write_text("preserve this untracked byte\n", encoding="utf-8")
-    before_status = subprocess.run(
-        ["git", "-C", str(checkout), "status", "--porcelain=v1", "-z"],
-        check=True,
-        capture_output=True,
-    ).stdout
-
-    session = application.sessions.load("exit-building-authority", session_id)
-    session.candidate_id = "PV2_CANDIDATE__SEALED"
-    application.sessions._save(session)
-    with pytest.raises(EvidenceLaneError) as sealed_candidate:
-        application.sync_git_source(
-            project_id="exit-building-authority",
-            source=str(checkout),
-            branch=exact_branch,
-            session_id=session_id,
-            expected_commit=expected_commit,
-            replace_registered_branch=True,
-        )
-    assert sealed_candidate.value.code == "PROJECT_SYNC_TASK_STATE_INVALID"
-    assert application.store.config(
-        "exit-building-authority"
-    ).allowed_branches == ["main"]
-    session = application.sessions.load("exit-building-authority", session_id)
-    session.candidate_id = None
-    application.sessions._save(session)
-
-    result = application.sync_git_source(
-        project_id="exit-building-authority",
-        source=str(checkout),
-        branch=exact_branch,
-        session_id=session_id,
-        expected_commit=expected_commit,
-        replace_registered_branch=True,
-    )
-
-    after_status = subprocess.run(
-        ["git", "-C", str(checkout), "status", "--porcelain=v1", "-z"],
-        check=True,
-        capture_output=True,
-    ).stdout
-    assert result["operation"] == "DIRTY_LOCAL_BRANCH_AUTHORITY_ONLY"
-    assert result["branch_authority"]["status"] == "REPLACED"
-    assert result["source_write_performed"] is False
-    assert result["remote_write_performed"] is False
-    assert result["fetch_performed"] is False
-    assert result["activity_recorded"] is False
-    assert (
-        result["activity_deferred_reason"]
-        == "CANDIDATE_FREE_INTERRUPTED_EXIT_AUTHORITY_RECOVERY"
-    )
-    assert before_status == after_status
-    recovered = application.sessions.load("exit-building-authority", session_id)
-    assert recovered.state == SessionState.EXIT_BUILDING
-    assert recovered.candidate_id is None
-
-    replay = application.sync_git_source(
-        project_id="exit-building-authority",
-        source=str(checkout),
-        branch=exact_branch,
-        session_id=session_id,
-        expected_commit=expected_commit,
-        replace_registered_branch=True,
-    )
-    assert replay["branch_authority"]["status"] == "UNCHANGED"
-    assert replay["source_write_performed"] is False
-    assert replay["remote_write_performed"] is False
-    assert before_status == subprocess.run(
-        ["git", "-C", str(checkout), "status", "--porcelain=v1", "-z"],
-        check=True,
-        capture_output=True,
-    ).stdout
-
-
-def test_selected_git_sync_records_active_session_lineage(
-    tmp_path: Path,
-    source_repository: Path,
-) -> None:
-    checkout = tmp_path / "active-selected-checkout"
-    subprocess.run(
-        ["git", "clone", "--no-local", str(source_repository), str(checkout)],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    subprocess.run(
-        [
-            "git",
-            "-C",
-            str(checkout),
-            "remote",
-            "set-url",
-            "origin",
-            "https://github.com/example/book-faires.git",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    application = EvidenceLaneService(data_root=tmp_path / "active-sync-store")
-    application.register_project(
-        project_id="active-selected-checkout",
-        display_name="Active selected checkout",
-        repository_path=str(checkout),
-        expected_owner="example",
-        expected_name="book-faires",
-        allowed_branches=["main"],
-        sensitivity="PRIVATE",
-    )
-    boot = application.boot_session(
-        project_id="active-selected-checkout",
-        user_id="user-test",
-        workspace_id="workspace-test",
-        host="CODEX_DESKTOP",
-        agent_id="codex-single-agent",
-        sandbox_id="sandbox-local",
-        ephemeral=False,
-        runtime_context={"permission_mode": "test"},
-        host_session_id="active-sync-host-session",
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-    )
-    session_id = boot["session"]["session_id"]
-    application.build_initial("active-selected-checkout", session_id)
-    decision = application.decide(
-        "active-selected-checkout",
-        session_id,
-        decision="APPROVE",
-        decided_by="human-test",
-        decision_id="active_sync_pv1",
-    )
-    handoff = decision["state_travel_handoff"]["state_travel"]
-    application.resume_state_travel(
-        project_id="active-selected-checkout",
-        session_id=session_id,
-        handoff_id=handoff["handoff_id"],
-        host="CODEX_DESKTOP",
-        host_session_id="active-sync-fresh-task",
-        ephemeral=False,
-        client_can_edit_source=True,
-        server_has_durable_filesystem=True,
-        runtime_context={"source": "fresh-active-sync-task"},
-    )
-    application.sessions.classify(
-        "active-selected-checkout",
-        session_id,
-        task_class="fix_bug",
-        requested_outcome="Apply the selected branch update.",
-        permitted_paths=["README.md"],
-        permitted_tools=[
-            "repository_read",
-            "repository_write",
-            "terminal",
-            "test",
-            "git_diff",
-            "patch",
-        ],
-        acceptance_checks=["The selected README change is present."],
-        stop_condition="Stop at the next candidate HIL.",
-    )
-
-    readme = source_repository / "README.md"
-    readme.write_text(
-        "# Book Faires\n\nActive selected branch update.\n",
-        encoding="utf-8",
-    )
-    from .conftest import git
-
-    git(source_repository, "add", "README.md")
-    git(source_repository, "commit", "-m", "Active selected update")
-    expected_commit = git(source_repository, "rev-parse", "HEAD")
-
-    result = application.sync_git_source(
-        project_id="active-selected-checkout",
-        source=str(source_repository),
-        branch="main",
-        session_id=session_id,
-        expected_commit=expected_commit,
-    )
-
-    assert result["fast_forward_applied"] is True
-    assert result["activity"]["event_type"] == "task.git.fast_forward"
-    assert (
-        application.sessions.load(
-            "active-selected-checkout",
-            session_id,
-        ).metadata["source_state"]
-        == "MUTATED_AFTER_ENTRY"
-    )

@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "canon_backfire_hil",
+  "title": "Raise Canon backfire",
+  "description": "Seal a bounded Canon backfire only for execution failure, missing source information, a new source requirement, or another linked-task input; the receiving task owns its three-way Canon HIL.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "admitted_canon_id": {
+        "title": "Admitted Canon Id",
+        "type": "string"
+      },
+      "failure_class": {
+        "title": "Failure Class",
+        "type": "string"
+      },
+      "recipient": {
+        "additionalProperties": true,
+        "title": "Recipient",
+        "type": "object"
+      },
+      "requested_contract_id": {
+        "title": "Requested Contract Id",
+        "type": "string"
+      },
+      "requested_contract_version": {
+        "title": "Requested Contract Version",
+        "type": "integer"
+      },
+      "requested_contract_sha256": {
+        "title": "Requested Contract Sha256",
+        "type": "string"
+      },
+      "requested_schema_id": {
+        "title": "Requested Schema Id",
+        "type": "string"
+      },
+      "requested_schema_version": {
+        "title": "Requested Schema Version",
+        "type": "string"
+      },
+      "requested_schema_sha256": {
+        "title": "Requested Schema Sha256",
+        "type": "string"
+      },
+      "requested_revision": {
+        "title": "Requested Revision",
+        "type": "integer"
+      },
+      "evidence_refs": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Evidence Refs",
+        "type": "array"
+      },
+      "dependency_ids": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Dependency Ids",
+        "type": "array"
+      },
+      "return_route": {
+        "additionalProperties": true,
+        "title": "Return Route",
+        "type": "object"
+      },
+      "source_pointer": {
+        "additionalProperties": true,
+        "title": "Source Pointer",
+        "type": "object"
+      },
+      "expected_return_contract_sha256": {
+        "title": "Expected Return Contract Sha256",
+        "type": "string"
+      },
+      "expires_at": {
+        "title": "Expires At",
+        "type": "string"
+      },
+      "raised_at": {
+        "title": "Raised At",
+        "type": "string"
+      },
+      "backfire_trace": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Backfire Trace"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "admitted_canon_id",
+      "failure_class",
+      "recipient",
+      "requested_contract_id",
+      "requested_contract_version",
+      "requested_contract_sha256",
+      "requested_schema_id",
+      "requested_schema_version",
+      "requested_schema_sha256",
+      "requested_revision",
+      "evidence_refs",
+      "dependency_ids",
+      "return_route",
+      "source_pointer",
+      "expected_return_contract_sha256",
+      "expires_at",
+      "raised_at"
+    ],
+    "title": "canon_backfire_hilArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "canon_backfire_hilDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_backfire_hil"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "backfire_hil",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-backfire",
+        "order": 13
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "0F0D2B241D47EE7D36B0CE7FF6E420EE626C67F29C72C18450B0230F3AAFBE9F",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "80A714041797C7FE14ABAA6F279DD23FC7586B590803A7D36778001CA45072A9"
+}

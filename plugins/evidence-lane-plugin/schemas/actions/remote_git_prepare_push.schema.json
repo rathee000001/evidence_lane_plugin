@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "evidence-lane.public-action-contract.v1",
+  "name": "remote_git_prepare_push",
+  "title": "Prepare automatic exact test-branch push",
+  "description": "Prepare—but do not execute—one remote branch push bound to the current accepted PV and pointer generation. The exact sole registered non-protected test branch is preauthorized without a per-push token.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "requested_by": {
+        "title": "Requested By",
+        "type": "string"
+      },
+      "remote": {
+        "title": "Remote",
+        "type": "string"
+      },
+      "local_ref": {
+        "title": "Local Ref",
+        "type": "string"
+      },
+      "remote_branch": {
+        "title": "Remote Branch",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "requested_by",
+      "remote",
+      "local_ref",
+      "remote_branch"
+    ],
+    "title": "remote_git_prepare_pushArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "remote_git_prepare_pushDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "remote_git_prepare_push"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "governed-git-delivery",
+        "order": 17
+      }
+    ],
+    "executable": true
+  },
+  "canonical_schema_sha256": "7240F6C3A4F87E9C7382A18DBD1BEE31258D6929B6EDA4D395A53B1ED600D021",
+  "canonical_catalog": "schemas/public-action-schemas.v001.json",
+  "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
+  "receipt_sha256": "2954576B803D37F2454DDDDD9BD966442DEA2FBA6C876FA05541F295EEBF60D0"
+}

@@ -1,0 +1,85 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "task_record_activity",
+  "title": "Append visible Chat Lineage activity",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "activity_type": {
+        "title": "Activity Type",
+        "type": "string"
+      },
+      "visible_payload": {
+        "additionalProperties": true,
+        "title": "Visible Payload",
+        "type": "object"
+      },
+      "event_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Event Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "activity_type",
+      "visible_payload"
+    ],
+    "title": "task_record_activityArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "task_record_activityDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evidence-lane-code-lifecycle",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "task_record_activity"
+    },
+    "internal_sdk": null,
+    "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+    "skill_workflows": [
+      {
+        "owner_skill": "evidence-lane-code-lifecycle",
+        "workflow": "record-task-activity",
+        "order": 5
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/task_record_activity.action.v1.json",
+  "sdk_action_binding_sha256": "4CB94A32E0BB4D0BC2E3C8F3B8F7775A33AEB0C79F19520CAC474712831FB15D",
+  "public_action_schema": "schemas/actions/task_record_activity.schema.json",
+  "public_action_schema_sha256": "76BACA856A26D8A92CF70D0131DBBDD395B1F54644AA59C3C9A64C40505C62FD",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "8436BCE6CA7A5EA02BB44DA8F78EEFABD70F7FD43CA6687C7AE4F31F33C29745"
+}

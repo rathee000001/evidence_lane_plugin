@@ -1,0 +1,101 @@
+{
+  "schema": "evidence-lane.sdk-action-binding.v1",
+  "status": "PASS",
+  "action": "project_memory_record_link",
+  "title": "Record Project Memory link",
+  "description": "Append one typed, content-addressed Project Memory locator edge without storing raw source bytes, promoting a candidate, invoking HIL, or moving Project Truth.",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "source": {
+        "additionalProperties": true,
+        "title": "Source",
+        "type": "object"
+      },
+      "target": {
+        "additionalProperties": true,
+        "title": "Target",
+        "type": "object"
+      },
+      "edge_type": {
+        "title": "Edge Type",
+        "type": "string"
+      },
+      "evidence_sha256": {
+        "title": "Evidence Sha256",
+        "type": "string"
+      },
+      "recorded_at": {
+        "title": "Recorded At",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "source",
+      "target",
+      "edge_type",
+      "evidence_sha256",
+      "recorded_at"
+    ],
+    "title": "project_memory_record_linkArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "project_memory_record_linkDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "C5BF34EDAC337E5ED2F75D17CEEAFFE38EAC4CE30227B282172BCEDB621D6348",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-memory",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "project_memory_record_link"
+    },
+    "internal_sdk": {
+      "module_id": "project_memory",
+      "operation": "record_link",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-memory",
+        "workflow": "project-memory-link",
+        "order": 5
+      }
+    ],
+    "executable": true
+  },
+  "runtime_workflows": [],
+  "dispatcher": "sdk/actions/dispatcher.py",
+  "internal_registry": "sdk/internal/public-action-registry.v1.json",
+  "outer_mcp_binding": "mcp/actions/project_memory_record_link.binding.v1.json",
+  "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
+  "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
+  "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
+  "source_module_registry_sha256": "69A59CDB840B2513345439E76F89E814D8B9AB7AC443791FFBFEA0542DDC3591",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "70A04AF06C3BC0D9D7FB60B6A2E1BB47C003C54868E99DCFD370E8B43D671E45"
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.lane_traversal",
+  "source_path": "src/evidence_lane_plugin/lane_traversal.py",
+  "source_sha256": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
+  "source_bytes": 7055,
+  "role": "SECTOR_LANE_ENGINE",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "F0386B05849AE515EB7466A71B16840B1D38800DE0DB82FDEF2C00A2CCA153C7"
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "evidence-lane.mcp-action-binding.v1",
+  "status": "PASS",
+  "action": "canon_register_edge",
+  "title": "Register Canon task edge",
+  "input_schema": {
+    "properties": {
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "edge": {
+        "additionalProperties": true,
+        "title": "Edge",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "session_id",
+      "request_id",
+      "edge"
+    ],
+    "title": "canon_register_edgeArguments",
+    "type": "object"
+  },
+  "output_schema": {
+    "additionalProperties": true,
+    "title": "canon_register_edgeDictOutput",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "schema_sha256": "31CD698B6DD20BA5F1C67540113F3B20ECDDCAE45DE7E033C3D9C741F5FC74DB",
+  "route_contract": {
+    "status": "CURRENT_ROUTE",
+    "owner_skill": "evi-canon",
+    "mcp": {
+      "server_identity": "evidence-lane",
+      "tool_name": "canon_register_edge"
+    },
+    "internal_sdk": {
+      "module_id": "canon_input",
+      "operation": "register_edge",
+      "read_only": false
+    },
+    "service_dispatch": "INTERNAL_SDK_REGISTRY",
+    "skill_workflows": [
+      {
+        "owner_skill": "evi-canon",
+        "workflow": "canon-task-edge",
+        "order": 10
+      }
+    ],
+    "executable": true
+  },
+  "sdk_action_binding": "sdk/actions/canon_register_edge.action.v1.json",
+  "sdk_action_binding_sha256": "A8DE4AFEC0CA5CF412292746915294BCFD05B426F272E972A70CB22D127478B6",
+  "public_action_schema": "schemas/actions/canon_register_edge.schema.json",
+  "public_action_schema_sha256": "147E1A9845B8F32BBF5FFF46B96B7EC71A727CEFC17D9EA9A03B539CA9CD3F31",
+  "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
+  "canonical_server_sha256": "8E691259432C8E6661BEE6885A4B5EC322A55CD6EB8890F47B09D86DB16F473C",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "76BEF96DC620740CC2C04C42C951FC112FA5D822361A5DE7DE80257D2007E79E"
+}

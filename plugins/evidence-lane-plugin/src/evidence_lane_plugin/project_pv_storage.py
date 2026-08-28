@@ -46,6 +46,10 @@ _EXCLUDED_TOP_LEVEL = frozenset(
         ".build",
         ".accepted-view",
         ".accepted-staging",
+        "direct_state_travel_entries",
+        "internal_sources",
+        "profiles",
+        "runtime",
         "sessions",
         "lineage",
         "active_session.json",
@@ -80,8 +84,12 @@ def _safe_relative(value: str) -> str:
 
 def _excluded(relative: str) -> bool:
     exact = _safe_relative(relative)
-    first = PurePosixPath(exact).parts[0]
-    return first in _EXCLUDED_TOP_LEVEL or any(
+    parts = PurePosixPath(exact).parts
+    first = parts[0]
+    nested_accepted_history = (
+        len(parts) >= 3 and parts[0] == "sectors" and "accepted_history" in parts
+    )
+    return nested_accepted_history or first in _EXCLUDED_TOP_LEVEL or any(
         exact == prefix.rstrip("/") or exact.startswith(prefix)
         for prefix in _EXCLUDED_PREFIXES
     )
@@ -468,6 +476,7 @@ def validate_project_pv_archive(archive_path: str | Path) -> dict[str, Any]:
         "project_identity": manifest.get("project_identity"),
         "candidate_package_manifest": package_manifest,
         "exit_slip": manifest.get("exit_slip"),
+        "pointer": manifest.get("pointer"),
         "lanes": {
             "status": "PASS" if isinstance(universal, dict) else "UNAVAILABLE",
             "valid": isinstance(universal, dict),

@@ -51,7 +51,7 @@ def _active_rebind_receipt(session: Any) -> dict[str, Any]:
         "active_plan_row_identity_preserved": True,
         "governed_session_identity_preserved": True,
         "host_task_identity_preserved": True,
-        "recovery_binding_contract": {
+        "task_binding_contract": {
             "manager_scope": "SHARED_MULTI_PROJECT_MULTI_TASK",
             "registry_mutability": "MUTABLE_APPEND_OR_REFRESH",
             "invocation_binding_scope": "EXACT_CALLING_TASK",

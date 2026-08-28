@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_overlay installed authority manifest",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "authority_id",
+    "database",
+    "database_sha256",
+    "members",
+    "live_project_bytes_in_template",
+    "authority_merged_with_sector_or_peer"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.installed-authority-surface.v1"
+    },
+    "status": {
+      "const": "PASS"
+    },
+    "authority_id": {
+      "const": "project_overlay"
+    },
+    "database": {
+      "const": "project_overlay.sqlite"
+    },
+    "database_sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "members": {
+      "type": "array",
+      "minItems": 1
+    },
+    "live_project_bytes_in_template": {
+      "const": false
+    },
+    "authority_merged_with_sector_or_peer": {
+      "const": false
+    }
+  },
+  "additionalProperties": true,
+  "receipt_sha256": "B4F8DDC60F8331EA0FFE79A7EE8F95650DA989B5865237FA884041C1F14CC13F"
+}

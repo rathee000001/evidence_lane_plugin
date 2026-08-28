@@ -1,0 +1,24 @@
+{
+  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "status": "PASS",
+  "ordinal": 42,
+  "tool": "Safe_archive_intake",
+  "requirement": "REQUIRED_INTERNAL",
+  "classification": "EVIDENCE_LANE_INTERNAL_COMPONENT",
+  "install_mode": "package_internal",
+  "license_expression_or_terms": "LicenseRef-Proprietary",
+  "license_evidence": "LICENSE.md",
+  "evidence_paths": [
+    "LICENSE.md"
+  ],
+  "redistributed_by_source_package": true,
+  "source_package_copied_license_text_present": false,
+  "source_package_copied_license_texts": [],
+  "native_license_acquisition": null,
+  "runtime_distribution_license_required": false,
+  "runtime_distribution_license_manifest": null,
+  "runtime_distribution_license_files_must_be_copied_before_use": false,
+  "metadata_without_a_license_file_is_labeled_metadata_only": true,
+  "mcp_inventory_separate": true,
+  "receipt_sha256": "A69FD8410D7E54115992DA09B0CE9D0B179FB59F16795E7AC5EC8F7C80019E7F"
+}

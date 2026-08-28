@@ -1,0 +1,44 @@
+{
+  "schema": "evidence-lane.sdk-workflow-projection.v1",
+  "status": "PASS",
+  "skill": "evi-exit-boot",
+  "skill_sha256": "C5AB635FE3BBD94606C8ABC3894AA5CD6342E6E37BC87EB65DE0E0A0BAC0F777",
+  "ordered_tool_groups": [
+    {
+      "order": 1,
+      "tools": [
+        "session_close"
+      ],
+      "workflow": "close-session"
+    }
+  ],
+  "action_count": 1,
+  "actions": [
+    {
+      "name": "session_close",
+      "schema_sha256": "3A747E3E780C3BF9C23624AC8EB08E045732ACE3E420DD651AA9CCBF48FD00D5",
+      "route_contract": {
+        "status": "CURRENT_ROUTE",
+        "owner_skill": "evi-exit-boot",
+        "mcp": {
+          "server_identity": "evidence-lane",
+          "tool_name": "session_close"
+        },
+        "internal_sdk": null,
+        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
+        "skill_workflows": [
+          {
+            "owner_skill": "evi-exit-boot",
+            "workflow": "close-session",
+            "order": 1
+          }
+        ],
+        "executable": true
+      }
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
+  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
+  "receipt_sha256": "B345795DCFB0F952381831952B13AB1443D1C57E90B60C769E3519CCC66B57EB"
+}
