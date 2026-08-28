@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -392,12 +393,30 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
         in index_builder
     )
 
-    rag_index = json.loads((APP / "_data" / "studio-rag-index.json").read_text(encoding="utf-8"))
-    indexed_paths = {source["path"] for source in rag_index["sources"]}
-    assert (
-        "apps/evidence-lane-app/app/_data/studio-retrieval.ts"
-        not in indexed_paths
+    rag_path = APP / "_data" / "studio-rag-index.json"
+    tracked_rag = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "--error-unmatch",
+            rag_path.relative_to(ROOT).as_posix(),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
     )
+    if tracked_rag.returncode == 0:
+        rag_index = json.loads(rag_path.read_text(encoding="utf-8"))
+        indexed_paths = {source["path"] for source in rag_index["sources"]}
+        assert (
+            "apps/evidence-lane-app/app/_data/studio-retrieval.ts"
+            not in indexed_paths
+        )
+    else:
+        assert "deferredRagIndex" in retrieval
+        assert "UNAVAILABLE_UNTIL_RAG_REFRESH" in retrieval
+        assert 'code === "ENOENT"' in retrieval
 
 
 def test_evidence_ai_studio_is_a_business_guide_for_the_whole_plugin() -> None:

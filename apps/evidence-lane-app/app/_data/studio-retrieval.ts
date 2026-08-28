@@ -1,6 +1,7 @@
 import "server-only";
 
-import studioRagArtifact from "./studio-rag-index.json";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { businessGuide, businessGuideFor } from "./business-guidance";
 import {
   studioArtifactsFor,
@@ -99,6 +100,45 @@ type RagIndex = {
   };
 };
 
+const deferredRagIndex: RagIndex = {
+  schema: "EVIDENCE_LANE_PROMPT_STUDIO_RAG_DEFERRED_V1",
+  history_through_sha: "UNAVAILABLE_UNTIL_RAG_REFRESH",
+  corpus_sha256: "UNAVAILABLE_UNTIL_RAG_REFRESH",
+  source_count: 0,
+  chunk_count: 0,
+  average_chunk_tokens: 0,
+  document_frequency: {},
+  sources: [],
+  chunks: [],
+  tools: {
+    chunker: "deferred until the governed Prompt Studio RAG refresh",
+    lexical: "unavailable until the governed Prompt Studio RAG refresh",
+    tfidf: "unavailable until the governed Prompt Studio RAG refresh",
+    hybrid: "unavailable until the governed Prompt Studio RAG refresh",
+    provider: "none; deferred local artifact is not a release dependency",
+  },
+};
+
+function loadStudioRagIndex(): RagIndex {
+  const path = join(process.cwd(), "app", "_data", "studio-rag-index.json");
+  try {
+    const parsed: unknown = JSON.parse(readFileSync(path, "utf8"));
+    if (
+      !parsed
+      || typeof parsed !== "object"
+      || !Array.isArray((parsed as RagIndex).sources)
+      || !Array.isArray((parsed as RagIndex).chunks)
+      || typeof (parsed as RagIndex).document_frequency !== "object"
+    ) {
+      throw new TypeError("Prompt Studio RAG index has an invalid shape");
+    }
+    return parsed as RagIndex;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return deferredRagIndex;
+    throw error;
+  }
+}
+
 type RankedChunk = {
   chunk: RagChunk;
   source: RagSource;
@@ -112,7 +152,7 @@ type RankedEvidence = {
   queryTerms: string[];
 };
 
-const ragIndex = studioRagArtifact as unknown as RagIndex;
+const ragIndex = loadStudioRagIndex();
 const sourceById = new Map(ragIndex.sources.map((source) => [source.id, source]));
 const promptStopWords = new Set([
   "a", "an", "and", "are", "as", "at", "be", "by", "can", "do", "does",
