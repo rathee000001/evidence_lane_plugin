@@ -56,6 +56,10 @@ do not install Codex, persist project truth, create a candidate, or move a
 pointer. Production Vercel publication remains a separately governed later
 action.
 
+The linked Vercel project builds from `apps/evidence-lane-app`. Retired
+`remote_adapter` roots are invalid deployment configuration and must fail before
+the build rather than silently selecting historical website code.
+
 Evidence Lane does not invoke GitHub Sandbox or imply paid coding-agent usage.
 Local agent work stays in its bounded workspace; GitHub Actions supplies the
 clean-checkout execution environment.
