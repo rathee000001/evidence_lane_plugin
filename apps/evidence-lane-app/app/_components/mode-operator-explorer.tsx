@@ -72,7 +72,7 @@ type OperatorGuide = {
   export_sha256: string;
   mode_count: number;
   modes: ModeGuide[];
-  six_way_token_vocabulary: string[];
+  authority_hil_token_vocabulary: string[];
   source_files: Record<string, string>;
   universal_boundary: string;
 };
@@ -129,7 +129,7 @@ export function ModeOperatorExplorer({ data }: { data: OperatorGuide }) {
         </div>
         <dl className="operatorExportSeal">
           <div><dt>Export</dt><dd>{data.export_sha256.slice(0, 16)}</dd></div>
-          <div><dt>Tokens</dt><dd>{data.six_way_token_vocabulary.length} exact</dd></div>
+          <div><dt>Tokens</dt><dd>{data.authority_hil_token_vocabulary.length} exact</dd></div>
           <div><dt>Sources</dt><dd>{Object.keys(data.source_files).length} hashed</dd></div>
         </dl>
       </header>

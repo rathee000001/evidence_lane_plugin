@@ -91,6 +91,27 @@ def test_public_action_schema_catalog_is_canonical_and_complete() -> None:
     assert remote["tool_count"] == NATIVE_TOOL_COUNT
     assert len(remote["actions"]) == NATIVE_TOOL_COUNT
     assert remote["execution_authority"] is False
+    product_contract = (
+        ROOT
+        / "apps"
+        / "evidence-lane-app"
+        / "app"
+        / "_data"
+        / "current-product-contract.ts"
+    ).read_text(encoding="utf-8")
+    assert "ordinary_live_authority_count" not in product_contract
+    assert "env_uop_governed_six_way_arms" not in product_contract
+    assert "env_uop_governed_current_authority_classes.length" in product_contract
+    operator_explorer = (
+        ROOT
+        / "apps"
+        / "evidence-lane-app"
+        / "app"
+        / "_components"
+        / "mode-operator-explorer.tsx"
+    ).read_text(encoding="utf-8")
+    assert "six_way_token_vocabulary" not in operator_explorer
+    assert "authority_hil_token_vocabulary" in operator_explorer
 
     live_authority = json.loads(LIVE_AUTHORITY.read_text(encoding="utf-8"))
     contract = live_authority["x-evidence-lane-contract"]

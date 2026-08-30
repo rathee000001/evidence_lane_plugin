@@ -125,3 +125,8 @@ def test_pages_workflow_fetches_receipt_feature_and_baseline_commits() -> None:
     ).read_text(encoding="utf-8")
     assert "fetch-depth: 3" in workflow
     assert "Receipt HEAD -> feature commit -> baseline commit" in workflow
+    governed = (
+        ROOT / ".github" / "workflows" / "evidence-lane-ci.yml"
+    ).read_text(encoding="utf-8")
+    assert "fetch-depth: 3" in governed
+    assert "Receipt HEAD -> feature commit -> baseline commit" in governed

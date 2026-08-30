@@ -29,8 +29,8 @@ export const currentProductContract = {
   hooksRequiredForExplicitActions: false,
   hooksTrustedAndEnabledAreSeparate: true,
   canonicalLaneCount: 18,
-  ordinaryLiveAuthorityCount: publicActionRegistry.ordinary_live_authority_count,
-  envUopGovernedSixWayArms: publicActionRegistry.env_uop_governed_six_way_arms,
+  ordinaryLiveAuthorityCount:
+    publicActionRegistry.env_uop_governed_current_authority_classes.length,
   linkedOperationalAuthorities: publicActionRegistry.linked_operational_authorities,
   hilOnlyAuthorities: publicActionRegistry.hil_only_authorities,
   sourceContracts: {
