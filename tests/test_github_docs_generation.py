@@ -117,3 +117,11 @@ def test_maintained_markdown_local_links_resolve() -> None:
             if not (page.parent / clean).resolve().exists():
                 failures.append(f"{page.relative_to(ROOT).as_posix()} -> {target}")
     assert failures == []
+
+
+def test_pages_workflow_fetches_receipt_feature_and_baseline_commits() -> None:
+    workflow = (
+        ROOT / ".github" / "workflows" / "evidence-lane-github-pages.yml"
+    ).read_text(encoding="utf-8")
+    assert "fetch-depth: 3" in workflow
+    assert "Receipt HEAD -> feature commit -> baseline commit" in workflow
