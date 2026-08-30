@@ -37,6 +37,7 @@ def test_current_public_docs_binding_hashes_every_maintained_document() -> None:
     binding = json.loads(DOC_BINDING.read_text(encoding="utf-8"))
     assert binding["schema"] == "evidence-lane.public-docs-backend-binding.v1"
     assert binding["status"] == "PASS"
+    assert binding["refreshed_at_utc"].endswith("Z")
     assert binding["historical_internal_source_count"] == 0
     rows = {row["path"]: row for row in binding["documents"]}
     assert len(rows) == binding["document_count"] == len(binding["documents"])

@@ -3,11 +3,13 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
 import tempfile
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -77,6 +79,12 @@ def _remove_backend_block(path: Path) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--refreshed-at")
+    args = parser.parse_args()
+    refreshed_at = args.refreshed_at or datetime.now(UTC).isoformat(
+        timespec="seconds"
+    ).replace("+00:00", "Z")
     validate()
     plugin_manifest_path = PLUGIN / ".codex-plugin" / "plugin.json"
     public_schema_path = PLUGIN / "schemas" / "public-action-schemas.v001.json"
@@ -117,6 +125,7 @@ def main() -> int:
         "schema": "evidence-lane.public-docs-backend-binding.v1",
         "status": "PASS",
         "plugin_version": plugin_manifest["version"],
+        "refreshed_at_utc": refreshed_at,
         "document_count": len(rows),
         "documents": rows,
         "backend_sources": {
