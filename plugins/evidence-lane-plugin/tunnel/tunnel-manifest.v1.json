@@ -35,9 +35,9 @@
     }
   ],
   "runtime_toolchain": "toolchains/tunnel-runtime-toolchain.v1.json",
-  "runtime_toolchain_sha256": "DF793DCE1BE4C93542DE49CDD21448F11B6A3821A0B8A7EABDFEB2841DECAB78",
+  "runtime_toolchain_sha256": "23027693F389A79951194DE4BFA9A64A96F787DB52D302E39D98432679E0AFB1",
   "license_policy": "toolchains/license-policy.v1.json",
-  "license_policy_sha256": "D7322F28642DC122F3081FECE62B1562B856131EB06D08E9E173BBB05876A580",
+  "license_policy_sha256": "F1F9F1D4B611D7F8C33A02679B1E0799BBF532A1E9E459F09DC3E8E024BB7F4F",
   "installed_runtime_license_bundle_required": true,
   "tunnel_client_license_source_and_sha256_required": true,
   "installer_runtime_prewarm_required": true,
@@ -53,5 +53,5 @@
   "restart_preparation_only": true,
   "programmatic_app_stop_allowed": false,
   "turn_drain_utility_present": false,
-  "receipt_sha256": "97C918702045ADAD87667BAD1F0ED45A0B3D2C468459C48344BB0AA73B6A168E"
+  "receipt_sha256": "1D2118A51EBA9D12FAC8D560BE419DE9756F14BC710A4DA8D8AF7EDB15613CC9"
 }

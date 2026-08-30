@@ -14,6 +14,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
+from .compact_storage import compress_exact_bytes, decompress_exact_bytes
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .sqlite_indexing import rebuild_connection_authority_index
 from .timeutil import utc_now
@@ -30,9 +31,17 @@ def initialize_receipt_ledger(database: str | Path) -> None:
         connection.executescript(
             """
             PRAGMA foreign_keys=ON;
+            CREATE TABLE IF NOT EXISTS receipt_content_cas(
+                receipt_sha256 TEXT PRIMARY KEY,
+                byte_count INTEGER NOT NULL CHECK(byte_count >= 0),
+                compression TEXT NOT NULL,
+                compressed_bytes BLOB NOT NULL,
+                first_recorded_at TEXT NOT NULL
+            ) STRICT;
             CREATE TABLE IF NOT EXISTS receipt_record(
                 sequence INTEGER PRIMARY KEY,
-                receipt_sha256 TEXT NOT NULL UNIQUE,
+                receipt_sha256 TEXT NOT NULL UNIQUE
+                    REFERENCES receipt_content_cas(receipt_sha256),
                 logical_path TEXT NOT NULL UNIQUE,
                 receipt_kind TEXT NOT NULL,
                 schema_id TEXT,
@@ -41,7 +50,6 @@ def initialize_receipt_ledger(database: str | Path) -> None:
                 host_task_id TEXT,
                 media_type TEXT NOT NULL,
                 byte_count INTEGER NOT NULL CHECK(byte_count >= 0),
-                exact_bytes BLOB NOT NULL,
                 payload_json TEXT,
                 prior_receipt_sha256 TEXT,
                 supersedes_receipt_sha256 TEXT,
@@ -78,6 +86,8 @@ def initialize_receipt_ledger(database: str | Path) -> None:
                 receipt_kind,
                 schema_id,
                 payload_text,
+                content='',
+                contentless_delete=1,
                 tokenize='unicode61'
             );
             CREATE INDEX IF NOT EXISTS receipt_record_kind_idx
@@ -153,14 +163,24 @@ def append_receipt_bytes(
     ).fetchone()
     sequence = int(sequence_row[0])
     exact_time = recorded_at or utc_now()
+    compression, compressed_bytes = compress_exact_bytes(data)
+    connection.execute(
+        """
+        INSERT OR IGNORE INTO receipt_content_cas(
+            receipt_sha256,byte_count,compression,compressed_bytes,
+            first_recorded_at
+        ) VALUES(?,?,?,?,?)
+        """,
+        (receipt_sha256, len(data), compression, compressed_bytes, exact_time),
+    )
     connection.execute(
         """
         INSERT INTO receipt_record(
             sequence,receipt_sha256,logical_path,receipt_kind,schema_id,
             project_id,session_id,host_task_id,media_type,byte_count,
-            exact_bytes,payload_json,prior_receipt_sha256,
+            payload_json,prior_receipt_sha256,
             supersedes_receipt_sha256,recorded_at
-        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """,
         (
             sequence,
@@ -173,7 +193,6 @@ def append_receipt_bytes(
             host_task_id,
             exact_media,
             len(data),
-            data,
             payload_json,
             prior_receipt_sha256,
             supersedes_receipt_sha256,
@@ -181,8 +200,10 @@ def append_receipt_bytes(
         ),
     )
     connection.execute(
-        "INSERT INTO receipt_fts VALUES(?,?,?,?,?)",
+        "INSERT INTO receipt_fts(rowid,receipt_sha256,logical_path,receipt_kind,"
+        "schema_id,payload_text) VALUES(?,?,?,?,?,?)",
         (
+            sequence,
             receipt_sha256,
             exact_path,
             receipt_kind,
@@ -255,17 +276,35 @@ def read_receipt(
     try:
         if logical_path:
             row = connection.execute(
-                "SELECT exact_bytes FROM receipt_record WHERE logical_path=?",
+                """
+                SELECT r.receipt_sha256,r.byte_count,c.compression,c.compressed_bytes
+                FROM receipt_record AS r
+                JOIN receipt_content_cas AS c
+                  ON c.receipt_sha256=r.receipt_sha256
+                WHERE r.logical_path=?
+                """,
                 (str(logical_path).replace("\\", "/").lstrip("/"),),
             ).fetchone()
         else:
             row = connection.execute(
-                "SELECT exact_bytes FROM receipt_record WHERE receipt_sha256=?",
+                """
+                SELECT r.receipt_sha256,r.byte_count,c.compression,c.compressed_bytes
+                FROM receipt_record AS r
+                JOIN receipt_content_cas AS c
+                  ON c.receipt_sha256=r.receipt_sha256
+                WHERE r.receipt_sha256=?
+                """,
                 (str(receipt_sha256).upper(),),
             ).fetchone()
         if row is None:
             raise KeyError("Receipt not found.")
-        value = json.loads(bytes(row[0]).decode("utf-8"))
+        data = decompress_exact_bytes(
+            compression=str(row[2]),
+            payload=bytes(row[3]),
+            expected_size=int(row[1]),
+            expected_sha256=str(row[0]),
+        )
+        value = json.loads(data.decode("utf-8"))
         if not isinstance(value, dict):
             raise TypeError("Receipt row is not one JSON object.")
         return value

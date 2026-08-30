@@ -13,11 +13,25 @@
     "statusMessage": "Guarding Evidence Lane governed tool use"
   },
   "logical_action": "TRANSPORT_PROSPECTIVE_TOOL_SIGNAL",
+  "handler_stage_role": "TRANSPORT_PROSPECTIVE_TOOL_SIGNAL",
+  "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
+  "workflow_contract": {
+    "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
+    "action_scope": "PUBLIC_ACTION_BOUNDARY",
+    "skill_action": "PROSPECTIVE_TOOL_BOUNDARY",
+    "skill_consumer": "consume_pre_tool_transport",
+    "workflow_phases": [
+      "UOP_PRECONDITION",
+      "ACTIVE_DELTA_EXECUTION"
+    ],
+    "public_action_boundary": true
+  },
+  "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
   "stage": "hooks/subhook_transport.py",
   "stage_sha256": "E55AE969598601F7C8691509AA5FA9CF5BAC8A69A590EDFC431DFF7EDC1A0BA9",
   "adapter": "hooks/pre_tool_use.py",
   "adapter_sha256": "1D5EE052FD282B7DB09B56EA534762E4ABF49E5DC52A2F7D97B8B82EE97E746C",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "B7DFC7CD48C3E811074FD0E226CE8FF6D688228650AB79C8F8F8D3141983D892"
+  "receipt_sha256": "35208F9C23CE0FFA1C4609CDCEF61EC48579E404CF88B91F865EF1673F2585C8"
 }

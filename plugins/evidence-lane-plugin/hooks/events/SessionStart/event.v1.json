@@ -43,27 +43,40 @@
     {
       "display_id": "1.1",
       "path": "hooks/events/SessionStart/handler-1.1.v1.json",
-      "sha256": "6EACF2874842C0CAEC5B3EBCB284D4D3A647E1B91F4FF3DB65BFD03C06E4D090"
+      "sha256": "4A64CF972771DD36573CB4615C9BD49EE09698F5A61855E3DE6177E36002314C"
     },
     {
       "display_id": "1.2",
       "path": "hooks/events/SessionStart/handler-1.2.v1.json",
-      "sha256": "56E6C70B713737B4E7B539A0B8EE2813F72778B2347D0C30743EE4FBB4554BF0"
+      "sha256": "FFC25ACDB100C6F8E41EE9D70B1483192E135BB72DCDA85A8CA16F326F9D0D0E"
     },
     {
       "display_id": "1.3",
       "path": "hooks/events/SessionStart/handler-1.3.v1.json",
-      "sha256": "F0EE927FBE4D3A689CAA36E9BB7D505FC0ED2F22A394975B3BDB38845C8785EC"
+      "sha256": "CCB5091C0AB7A329222042CAF07E10F4DD470889603579E61243E7DEFC9FEA01"
     },
     {
       "display_id": "1.4",
       "path": "hooks/events/SessionStart/handler-1.4.v1.json",
-      "sha256": "4D377D8EE7AA107F48154C33DA33E9F491AD27C0095E0503677EDCF744892FFB"
+      "sha256": "F873C1B7A4AA60C1F2493F3E1D9796D561F656DC58579E47242A040C24D26ADE"
     }
   ],
   "adapter": "hooks/session_start.py",
-  "adapter_sha256": "CCDF7A49E91BF9BFD693F80648B1894413293C6EE627E4E956B1E119F56D77A6",
+  "adapter_sha256": "0A06790B822F1743FC0141EE74628676FFA8C1E8D4752BF488DFD6BF879C169A",
+  "workflow_contract": {
+    "host_timing": "SESSION_ENTRY_BEFORE_VISIBLE_INPUT",
+    "action_scope": "WORKFLOW_LIFECYCLE",
+    "skill_action": "SESSION_START_BIND_OR_REENTRY",
+    "skill_consumer": "consume_session_start_transport",
+    "workflow_phases": [
+      "BOOT_OR_RESUME",
+      "STATE_TRAVEL_REENTRY",
+      "PANEL_REENTRY"
+    ],
+    "public_action_boundary": false
+  },
+  "workflow_contract_sha256": "AAD3E9BEFA841E047EE639E0014A7F0464BE91B81754F2002263E9E505BE8A2E",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "7DCB50102B595D054A15102E2DC7586D322F621D055DEC7CED4F97BECCA60C4A"
+  "receipt_sha256": "E0166488545DB4206EDDD6A6965C1BB79D0FAF1EC2BF3AB273A2D017B9EB1925"
 }

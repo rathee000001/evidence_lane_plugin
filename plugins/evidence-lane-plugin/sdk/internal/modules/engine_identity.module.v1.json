@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.engine_identity",
   "source_path": "src/evidence_lane_plugin/engine_identity.py",
-  "source_sha256": "7E52FE584F1C7FDE6E5E0AE7B65006259A0D0EEF0E73780BB7E76BF4BFB3AE90",
-  "source_bytes": 8774,
+  "source_sha256": "32A82A97B09A2E62C1C5AD7F5EABF1889F02B2F8ACCAB256D5E97E60F40232CD",
+  "source_bytes": 8825,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "C1D151D49C8A6F9D8C01F52070BA4E458963A609735A7F8994C016506596B923"
+  "receipt_sha256": "37D4A68BBACF0345F00E9015B52F8608A02558EB6EEB09AFB4B74A93678FB43B"
 }

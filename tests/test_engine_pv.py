@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from evidence_lane_plugin import database
+from evidence_lane_plugin.compact_storage import decompress_exact_bytes
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import (
     atomic_write_bytes,
@@ -161,14 +162,14 @@ def test_database_context_closes_connection_and_wal_handles(tmp_path: Path) -> N
     assert not Path(f"{path}-shm").exists()
 
 
-def test_initial_pv_captures_svelte_exact_bytes_and_fts(
+def test_initial_pv_captures_svelte_compact_exact_bytes_and_fts(
     service,
     source_repository: Path,
 ) -> None:
     boot = boot_local(service)
     session_id = boot["session"]["session_id"]
     result = service.build_initial("book-faires", session_id)
-    assert result["next_action"] == "PRESENT_SIX_WAY_HIL"
+    assert result["next_action"] == "PRESENT_PROJECT_AUTHORITY_HIL"
     assert result["suggested_next_prompt"].startswith("/evi-build ")
     assert result["next_action_contract"] == result["candidate"]["next_action"]
     assert not (service.store.project_root("book-faires") / ".build").exists()
@@ -188,17 +189,22 @@ def test_initial_pv_captures_svelte_exact_bytes_and_fts(
         connection.row_factory = sqlite3.Row
         svelte = connection.execute(
             """
-            SELECT path, exact_bytes, sha256, code_family, ingestion_status
-            FROM files WHERE path = 'src/Counter.svelte'
+            SELECT f.path, f.size_bytes, f.sha256, f.code_family,
+                   f.ingestion_status, cas.compression, cas.compressed_bytes
+            FROM files AS f
+            JOIN file_content_cas AS cas ON cas.sha256=f.sha256
+            WHERE f.path = 'src/Counter.svelte'
             """
         ).fetchone()
         assert svelte is not None
         assert svelte["code_family"] == "svelte"
         assert svelte["ingestion_status"] == "EXACT_TEXT_CHUNKED"
-        assert (
-            bytes(svelte["exact_bytes"])
-            == (source_repository / "src" / "Counter.svelte").read_bytes()
-        )
+        assert decompress_exact_bytes(
+            compression=str(svelte["compression"]),
+            payload=bytes(svelte["compressed_bytes"]),
+            expected_size=int(svelte["size_bytes"]),
+            expected_sha256=str(svelte["sha256"]),
+        ) == (source_repository / "src" / "Counter.svelte").read_bytes()
         chunks = connection.execute(
             """
             SELECT COUNT(*)

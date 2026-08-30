@@ -21,17 +21,13 @@ assert.equal(publicBackendContract.runtime_routing_boundary.toolchain_http_api_e
 const readiness = publicBackendReadiness({
   EVIDENCE_LANE_GITHUB_APP_CLIENT_ID: "configured",
   EVIDENCE_LANE_GITHUB_APP_CLIENT_SECRET: "secret-value",
-  EVIDENCE_LANE_GENERAL_AI_ENABLED: "true",
-  OPENROUTER_API_KEY: "provider-secret",
 });
 assert.equal(readiness.runtime_configuration.github_client_id_configured, true);
 assert.equal(readiness.runtime_configuration.github_client_secret_configured, true);
 assert.equal(readiness.runtime_configuration.github_webhook_secret_configured, false);
-assert.equal(readiness.runtime_configuration.optional_general_provider_enabled, true);
-assert.equal(readiness.runtime_configuration.optional_general_provider_key_configured, true);
+assert.equal(readiness.runtime_configuration.public_provider_proxy_present, false);
 assert.equal(readiness.runtime_configuration.secret_values_returned, false);
 assert.equal(JSON.stringify(readiness).includes("secret-value"), false);
-assert.equal(JSON.stringify(readiness).includes("provider-secret"), false);
 
 console.log(JSON.stringify({
   status: "PASS",

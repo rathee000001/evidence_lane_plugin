@@ -5,31 +5,42 @@
   "event": "SubagentStart",
   "handler_count": 4,
   "event_binding": "hooks/events/SubagentStart/event.v1.json",
-  "event_binding_sha256": "E71E2C1E1E599A664615B10B75F279BC313347902CC24F8FB81888D4156B0C2A",
+  "event_binding_sha256": "FCFF4C6AD6947325B698D8D69D493A48C578C7BCA551F28DB4C13F30E33045C2",
   "handlers": [
     {
       "display_id": "2.1",
       "path": "hooks/events/SubagentStart/handler-2.1.v1.json",
-      "sha256": "1404404D061A912152A66609694D64F0ABD527E75631716BF22A9705079C98CA"
+      "sha256": "023B4B3A4B9D163CAB1659DED9D982B68E12794268F62E60DB70CBDC8E26D0F3"
     },
     {
       "display_id": "2.2",
       "path": "hooks/events/SubagentStart/handler-2.2.v1.json",
-      "sha256": "6CE2912EB5FB0BB0B39DB04E98746F2050ACFBE8C258239BC7F4A020EE39CCEF"
+      "sha256": "2EC8A025773FC7A7134CE593396766EECDB12C757A062CB145B25315A9A2EF65"
     },
     {
       "display_id": "2.3",
       "path": "hooks/events/SubagentStart/handler-2.3.v1.json",
-      "sha256": "6FE8D547D6DD0931805E698574B75ABD83DC02DCBD1F54CAE4491536C30551E9"
+      "sha256": "FC4899229685A621AC2C0BA70DD1D6E1D1D24391E3281D20075DA3BE6E70A7EE"
     },
     {
       "display_id": "2.4",
       "path": "hooks/events/SubagentStart/handler-2.4.v1.json",
-      "sha256": "B4B330A675B8FC7452B458ED7F443F018E957B0D982E52F87D981C266C464F62"
+      "sha256": "E1DD0695C2C2F02969FDB5C1949038043939E5A83A68B5E2CC21A37071F59760"
     }
   ],
+  "workflow_contract": {
+    "host_timing": "OPTIONAL_SUBAGENT_ENTRY_OBSERVATION",
+    "action_scope": "BOUND_OBSERVATION_ONLY",
+    "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
+    "skill_consumer": "consume_optional_observer_transport",
+    "workflow_phases": [
+      "OPTIONAL_LINKED_TASK_OBSERVATION"
+    ],
+    "public_action_boundary": false
+  },
+  "workflow_contract_sha256": "C606EE1C7D8C575A7ECF0A668C5CFEC89469E2A7C9D5FEB6DB0D55F552954962",
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "76DD7B5C1F692A285E53942CD76AA984225905EA7C3650D992F584FF2D6FB169"
+  "receipt_sha256": "3DDAD263C1CC1707269F5B6E7F8BA5CED615210AD4D05D167B2CC74F4DA4EA4C"
 }

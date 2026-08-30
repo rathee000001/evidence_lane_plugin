@@ -1,329 +1,172 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / registry-derived-v1 -->
 
 # Evidence Lane 3.0.0 architecture
 
-Evidence Lane is a Codex-native, local-first evidence lifecycle. Version 3.0.0
-is the current source line. Accepted Project Truth remains PV12 at
-generation 12 until a fresh six-way Project HIL authorizes a different result.
-Source, installed package slots, candidate identity, and accepted PV identity
-remain separate measured facts.
+Evidence Lane is a registry-driven Codex execution and evidence architecture. It keeps environment selection, governance, project authorities, sector lanes, tools, transports, hooks, results, and human decisions distinct while connecting them through typed receipts.
 
-## Authority model
-
-Evidence Lane keeps these authorities independent:
-
-1. **Project Truth** owns accepted source claims, immutable PVs, the accepted
-   pointer, candidates, the Project HIL, Plan Lane, tasks, and Deltas.
-2. **Canon Input** carries typed, bounded communication between exact governed
-   tasks. It supports upstream, downstream, lateral, fan-out, fan-in, result,
-   conditional backfire, and State Travel context, but cannot promote Project
-   Truth or Agent Learning.
-3. **AI/Agent Learning** owns project-isolated semantic, episodic, and
-   procedural learning candidates plus its own decisions and pointer. It never
-   overwrites Project Truth.
-4. **Project Memory** owns content-addressed locators, typed cross-authority
-   relationships, bounded retrieval receipts, and compaction checkpoint and
-   rehydration continuity. It stores no raw source payloads and cannot promote
-   Project Truth or Agent Learning.
-5. **ChatLineage** stores secret-redacted visible prompts, steers, responses,
-   operational events, locators, receipts, and hash-chain provenance. It never
-   stores private reasoning.
-6. **Host-entry continuity** moves exact unfinished context into a bound host
-   entry without replaying HIL, accepting Canon, promoting Learning, or moving
-   a Project pointer.
-
-Each authority has its own schema, namespace, replay ledger, receipts, tests,
-and failure states. Shared hashes or vocabulary do not merge authority.
-
-## Source, evidence, candidate, and accepted flow
-
-```text
-Authorized source + visible task lineage
-                  |
-                  v
-        policy, redaction, hashing
-                  |
-                  v
-      bounded 18-lane evidence build
-                  |
-                  v
-      immutable unaccepted candidate
-                  |
-                  v
-          exact six-way Project HIL
-                  |
-                  +-- APPROVE -> exact Fuse -> accepted PV pointer
-                  +-- every other decision -> no implicit promotion
-```
-
-Lane computation may run concurrently behind one deterministic source-hash
-barrier. Candidate sealing, HIL, Fuse, pointer movement, Git writes,
-installation, and publication remain serial governed operations. A test,
-commit, push, package, install, preview, or polished website is evidence only;
-none implies acceptance.
+Current counts are derived release facts, not permanent ceilings.
 
 ## Plugin-maintainer release cycle and downstream projects
 
-Evidence Lane's own release route is scoped to an authorized logical plugin
-release commit batch: exact branch commit and governed push, clean CI/security,
-Git-triggered preview, exact package build, Stable-slot install/hot reattach,
-and persistent-or-no-window Evidence Lane helper/tunnel proof. Its intermediate
-or final plugin PV gate follows that evidence. A full public-site narrative,
-navigation, page, or animation refresh still belongs only to its assigned
-website Delta; updating the live Plan/PV projection is not that delivery.
+A downstream user's project PV does not reinstall, cache-bust, restart, promote, or otherwise inherit the plugin-maintainer release cycle. Downstream Project/PV work consumes an already verified installed contract and preserves its own Plan, Goal, HIL, pointer, and accepted-state authorities.
 
-An intermediate branch checkpoint binds the complete reviewed v3.0 source
-scope, exact commit and tree, governed push, Actions head, deterministic
-package, and branch-commit recovery slot. It creates no candidate, invokes no
-HIL, moves no accepted pointer, and does not merge `main`. A later release HIL
-may be presented only after the exact package is installed and native readback
-proves 91 actions (30 read/61 write), 26 native skills, no separate command
-surface, and eleven distinct hook events.
-
-A downstream user's project PV does not reinstall or release Evidence Lane and
-does not inherit the plugin maintainer's tunnel or CI topology. The project may
-choose, replace, or implement its own Git/CI/deploy workflow, evolve its
-governed schemas or lanes, add bounded plugins, and select storage connectors.
-ENV/UOP may be inspected, routed, offloaded, or evolved through a new sealed
-identity. An already accepted locked ENV/UOP identity cannot be edited in
-place.
-
-This maintainer route also owns version-bound Windows support processes. The
-release updater, children-first drain utility, and dumb same-task restart helper
-are private to Evidence Lane development. Governed users receive one plugin
-version and, only when host classification requires transport, one matching
-tunnel. Removed executable helper and slot routes are absent rather than
-retained as fallbacks. Only an exact final human release approval and Fuse may
-begin the serial rotation that proves main equals the accepted commit and
-leaves one active runtime. The same rule repeats for later plugin-maintainer
-releases, never for downstream project PVs.
-
-Goal lifetime is a different human authority. `MARK GOAL COMPLETE` with
-`COMPLETE_THIS_TASK_AND_STATE_TRAVEL` closes only the current task boundary and
-requests an exact successor; `COMPLETE_FULLY` closes the whole Goal. No HIL,
-candidate, test, Plan transition, automation, pause, or stall may complete a
-Goal, and Goal completion grants no HIL, Fuse, pointer, Git, install, merge, or
-deployment authority.
-
-State Travel is strictly a no-restart task transition. The destination first
-uses Codex host-native context to verify its exact UUID/deep link, title,
-project, session, workspace, execution profile, and same dirty worktree. After
-Boot/Flash, the public same-worktree route executes exactly once with only the
-project/session plus authoritative source, runtime donor, destination task, and
-destination-title identities. The server derives and validates all runtime,
-dirty-byte, Plan, pointer-baseline, and replay evidence; callers never compose
-bindings, nonces, PIDs, runtime IDs, hashes, PV/pointer payloads, or compatibility
-handoff payloads. On PASS it returns the small whole-authority Plan prompt and stops at
-the native **Implement this plan** gate. Only a distinct host acceptance event
-plus bounded Plan verification may reattach the carried Goal and fixed Plan
-projection.
-
-Destination entry and panel recovery use canonical Plan Lane, never full
-chat-history hydration. Unbounded `thread/read`, collaboration/avatar-overlay
-hydration, or a React-root rerender is a first-class continuity failure even
-when the Codex root process remains alive. The critical section is serialized
-to one active task and zero subagents; on a renderer reset it fails closed,
-revalidates the complete native ledger, and reactivates the exact current host
-window before work. The maintainer release helper, separate drain utility,
-tunnel helper, scheduled recovery task, and subagents are not State
-Travel executors.
-The plugin can enforce and attest this boundary but cannot guarantee survival
-of host-owned renderer state.
-
-The host Step Task List and exact task/worktree-bound Changes surface remain a
-durable visible pair while the Goal is human-active. Every missing, partial,
-stale, compacted, or renderer-dropped observation triggers exact native Plan
-rehydration and task binding before work. If the host cannot perform or attest
-that action, fail closed rather than treating native backlog or Sources presence
-as UI proof. The pair may be released only when the human completes the Goal or
-an exact task-completion-and-State-Travel handoff passes to its successor.
-
-The Step Task List is a bounded execution projection, not the whole ledger. Its
-host explanation carries a compact continuity header: accepted PV/pointer
-generation, absolute ACTIVE row, current ten-row-or-smaller window, total
-executable rows, next HIL boundary, and physical-final row.
-Each visible task is a maximum three-line UI projection. The full Plan row,
-description, metadata, linked Deltas, dependencies, and evidence remain in the
-canonical Plan authority and are retrieved by exact task identity plus bounded
-FTS only when needed; UI wrapping or overflow never creates a canonical row.
-Detailed next and queued HIL records, proposed PV identities, six-way choices,
-and exact dependency/continuation connections live only in the Evidence Lane
-project renderer. Neither surface can accept HIL or move a pointer.
-
-## Plan, Canon, and task coordination
-
-Plan Lane is the sole row and lifecycle-status authority. The host Step Task
-List contains only the aligned current window of at most ten executable rows,
-with exact task ID and description plus derived class/group/batch/commit/
-version/dependency markers. Earlier windows remain sealed completed-window
-history and the next window activates only after the current one is terminal;
-the final window contains the exact remainder. The full native ledger retains
-exactly one active row and one physically final HIL as its last row. Linked
-steers append immutable Deltas; completed and superseded history is never
-silently reopened.
-
-Canon links exact project/task UUIDs and deep links, contracts, revisions,
-source PV seals, expiry, route trace, and result requirements. Exact expected
-input may auto-admit. Undefined or incompatible input stops only the receiving
-top-level task at the three-way Canon Input HIL: `ACCEPT`, `REJECT`, or
-`MORE_RESEARCH`. A linked top-level task may own its own independent HIL;
-subagents never own HIL. Canon backfire is conditional, deduplicated, bounded,
-and addressed to the exact task that can supply the missing input.
-
-## Full internal SDK
-
-The private internal Codex SDK is the full engine-and-contract layer, not a
-small retrieval wrapper. Its independently namespaced arms cover Project
-Truth, Canon Input, AI/Agent Learning, Project Memory, ChatLineage,
-host-entry continuity,
-lifecycle and hooks, Plan/Delta/tasks, source and lane retrieval, ENV/UOP plus
-Formula/PCM/MBA routing, storage/connectors, candidate/HIL/pointer operations,
-and provider/host adapters. Unsupported provider capabilities return
-`HOST_CAPABILITY_UNAVAILABLE`; one arm is never used as a substitute for
-another.
-
-## Native plugin surface
+## Current executable topology
 
 ```mermaid
 flowchart TB
-    subgraph Host["Codex host boundary"]
-      Task["Exact task UUID + worktree + host session"]
-      Hooks["11 hooks\nSessionStart | SubagentStart | UserPromptSubmit | PreToolUse | PermissionRequest | PostToolUse | PreCompact | PostCompact | SubagentStop | Stop | SessionEnd"]
-      PlanUI["Host Plan / Goal / governed console projection"]
-    end
-
-    subgraph Plugin["Evidence Lane 3.0 package"]
-      Skills["25 governed skills\n6 primary controls + routers and sidecars"]
-      MCP["Native evidence-lane MCP\n91 actions = 30 read + 61 write"]
-      SDK["Full internal SDK\nengine + contracts + provider/host adapters"]
-      Search["SQLite FTS5 authority\nverified rg pre-index fallback"]
-    end
-
-    subgraph Authorities["Independent authority planes"]
-      PT["Project Truth\nPV | pointer | candidate | Plan | Delta | HIL"]
-      Canon["Canon Input\ntask graph | bounded messages | 3-way Canon HIL"]
-      Learn["AI/Agent Learning\nproject-isolated candidates + pointer"]
-      Memory["Project Memory\nlocators | edges | bounded compaction continuity"]
-      Lineage["ChatLineage\nvisible events + FTS + hash chain"]
-      Entry["Host-entry continuity\nexact unfinished-work envelope"]
-    end
-
-    subgraph Evidence["Evidence compilation"]
-      Intake["Authorized Source Intake"]
-      Lanes["18 canonical lanes"]
-      Four["SQLite | MMD | DOT | tools JSON"]
-      Candidate["Immutable unaccepted candidate"]
-      PHIL["Exact six-way Project HIL"]
-      Accepted["Exact Fuse + accepted PV pointer"]
-    end
-
-    Task --> Hooks --> Skills
-    Task --> Skills
-    Skills --> MCP --> SDK
-    SDK --> Search
-    SDK --> PT
-    SDK --> Canon
-    SDK --> Learn
-    SDK --> Memory
-    SDK --> Lineage
-    SDK --> Entry
-    Skills --> PlanUI
-    PT --> PlanUI
-    Intake --> Lanes --> Four --> Candidate --> PHIL
-    PT --> Lanes
-    Canon -. "bounded input only" .-> Lanes
-    Learn -. "separate retrieval slice" .-> SDK
-    Memory -. "bounded labeled locators" .-> SDK
-    Lineage --> Lanes
-    Entry --> Task
-    PHIL -->|"exact APPROVE then Fuse"| Accepted --> PT
-    PHIL -->|"all other choices"| Candidate
+    Prompt["Prompt or steer"] --> Slip["Entry Slip"]
+    Slip --> Intake["Source Intake + project recipe + Mode"]
+    Intake --> Action["Typed action + schema"]
+    Action --> SDK["Internal SDK owner"]
+    SDK --> ENV["ENV selection"]
+    ENV --> UOP["UOP governance"]
+    UOP --> Accelerator["Eligible CPU / NVIDIA / AMD execution provider"]
+    Accelerator --> Surface["Authority + sector lane"]
+    Surface --> Tools["Condition-true tools"]
+    Tools --> Transport["Local / outer SDK / MCP / tunnel"]
+    Transport --> Hooks["Ordered emitted hooks"]
+    Hooks --> Result["Validate + receipt + direct stale-route purge"]
+    Result --> Delta["Adaptive Delta-exit append"]
+    Result --> Exit["Exit Slip: Goal option 2 or State Travel only"]
 ```
 
-The arrows show data and control flow, not merged authority. Canon cannot
-promote Project Truth, Learning cannot overwrite it, hooks cannot govern it,
-the website cannot execute it, and the host Plan surface cannot accept a PV.
+| Registry surface | Current value |
+| --- | ---: |
+| Public actions | 91 |
+| Skills | 26 |
+| Hook events / handlers | 11 / 44 |
+| Sector lanes | 18 |
+| Named authorities | 11 |
+| Source modules | 145 |
+| Schemas | 165 |
+| Tool requirements | 119 |
 
-The 3.0.0 package contains one package-local MCP server named
-`evidence-lane`, exactly 91 canonical actions (30 read-only and 61
-write-capable), 25 governed skills, six primary controls, and eleven lifecycle
-events. The six controls are Boot, Rollback, Build, Refresh, Mode, and Source
-Intake. State Travel is a conditional exact-resume path; it is not a seventh
-primary control.
+## Routing stages
 
-Hooks transport `SessionStart`, `SubagentStart`, `UserPromptSubmit`,
-`PreToolUse`, `PermissionRequest`, `PostToolUse`, `PreCompact`, `PostCompact`,
-`SubagentStop`, `Stop`, and main-thread-only best-effort `SessionEnd`. Skills
-own prompt-intake sealing, native reads, classification, Plan refresh, and HIL behavior. The
-host owns UI rendering and permission prompts.
+1. `intent_and_skill_resolution` from `skill_surface_registry`
+2. `typed_action_resolution` from `public_and_internal_action_schemas`
+3. `internal_execution_owner` from `internal_sdk_registry`
+4. `environment_decision` from `env_authority`
+5. `operator_and_gate_decision` from `uop_authority`
+6. `authority_and_lane_resolution` from `authority_and_sector_registries`
+7. `conditional_tool_resolution` from `tool_execution_routing`
+8. `outer_transport_resolution` from `outer_sdk_and_mcp_bindings`
+9. `ordered_hook_handling` from `hook_event_registry`
+10. `result_validation_and_receipt` from `schemas_and_receipt_ledger`
 
-SQLite FTS5/BM25 is the indexed query authority for Plan, lane, ChatLineage,
-and project-sector data. Queries return only bounded rows carrying pointer and
-locator provenance; full PV packages and databases never enter model context.
-Package-owned ripgrep 15.2.0 is only the bounded pre-index file/content helper,
-with an exact configured-host route and deterministic Python fallback. PATH
-guessing, shell execution, and downloads during MCP startup are forbidden.
+## ENV and UOP
 
-## Host and storage boundary
+ENV is the environment decision authority: host profile, context, locality, availability, grants, Mode, project recipe, and eligible ordered pipeline. UOP is the governance authority: operators, formulas, project-class HIL, work/privacy/disclosure gates, and declared same-class fallback. UOP cannot override ENV, Project Truth, Plan, Goal, or HIL.
 
-Durable Codex Desktop, local CLI, and persistent workspaces use project-scoped
-local SQLite. Ephemeral hosts require a durable mount or explicitly configured
-transactional storage connector. Google Drive is at most an optional sealed
-artifact carrier or mirror. The eight additional-plugin slots are a different
-surface and never select storage.
+Both are clean Codex-native schema-version-17 SQLite action planes with bounded FTS and MMD/DOT traversal maps. They store no prompt corpus, discussion history, ChatLineage payload, uploaded artifact packet, foreign path, or external-model agent authority.
 
-Project authority and plugin runtime are physically distinct. The user-selected
-project root owns the accepted pointer, current accepted PV, Plan, ChatLineage,
-Learning, Canon, Memory, Universe, source registry, receipts, and exactly the 18
-registry-defined sector directories. Study Brain is a bounded routing profile
-over those sectors, not a nineteenth stored lane. ENV/UOP, tunnel, MCP/SDK
-runtime, installed-selector controls, and generated Python dependencies remain
-host-managed runtime state. `F:\SOURCES` is immutable evidence intake and can
-never become project authority.
+ENV selects CPU, NVIDIA CUDA, AMD ROCm, or AMD DirectML only from an explicit user-enabled provider grant and compatible runtime probe. UOP independently enforces action eligibility, telemetry, throttle state, configured VRAM budget, and visible CPU fallback. Accelerators are execution providers, not tools, MCP actions, models, or authorities.
 
-Initial project registration records three separate identities: the hidden
-Codex plugin runtime/control root, the user-selected external Project/PV root,
-and the task's user-selected workspace. State Travel reuses that registered
-project mapping across tasks and never creates or asks for another root.
+## Named authorities
 
-Stable/current and Beta desktop packages may expose multiple product surfaces.
-Evidence Lane 3.0.0 governs only a positively proven Codex layer. A package
-name, process, title, or current working directory alone cannot prove that
-surface. Local durable Codex uses the package-local MCP and does not need an
-Evidence Lane network tunnel. Any separately classified interactive ephemeral
-tunnel helper must remain persistently hidden and cannot become lifecycle
-authority.
+| Authority | Role |
+| --- | --- |
+| `agent_learning` | Project-isolated learning candidates, decisions, accepted lessons, and revocations. |
+| `canon_input` | Typed task contracts, envelopes, receiver decisions, edges, and results. |
+| `project_memory` | Bounded memory locators and typed cross-authority links. |
+| `project_overlay` | Full-PV proposal overlay at the owning Project HIL only. |
+| `source_authority` | Exact source identities, occurrences, provenance, and source graph. |
+| `project_universe` | Per-project relationship graph. |
+| `connector_brain` | Connector grants and hash-only federated mini-brain links. |
+| `project_authority` | Project root, layout, membership, pointer, and registration. |
+| `receipt_ledger` | Exact input, route, result, provenance, and linkage receipts. |
+| `session_authority` | Session, host, attachment, State Travel, and Goal continuity. |
+| `instructions` | AGENTS.md and host MEMORY.md instruction chain. |
 
-## Git, install, and release topology
+## Project-sector lanes
 
-The current source branch is
-`agent/evi-v300-systemwide-release-hil-v3.0.0`. A bounded exact-commit route
-may push that branch, run governed Python CI, CodeQL, dependency checks, a
-Vercel Git preview, package verification, and stable-slot verification before
-the final HIL. Main promotion, fallback replacement, production publication,
-and Project Truth acceptance remain separate post-HIL operations.
+| Lane | Role |
+| --- | --- |
+| `github_code` | Git refs, commits, trees, blobs, changes, and repository history. |
+| `local_code` | Working-tree files, code structure, chunks, and dependencies. |
+| `chat_lineage` | Prompts, responses, steers, and task entry/exit evidence. |
+| `discussion` | Bounded discussion claims and decisions. |
+| `analysis` | Source-backed findings, relationships, and uncertainty. |
+| `plan` | Canonical Plan rows, dependencies, transitions, and projections. |
+| `mode` | Operating-mode classification and intersection. |
+| `docs` | Documentation hierarchy, text, relationships, and citations. |
+| `data_excel` | Tabular and spreadsheet structure, formulas, and typed facts. |
+| `ppt` | Slides, notes, shapes, tables, and media references. |
+| `pdf_ocr` | PDF structure, native text, page geometry, and OCR fallback. |
+| `images_ocr` | Image metadata, OCR, and visual locators. |
+| `artifacts` | Generated deliverables and exact artifact identities. |
+| `custom` | Explicit user-defined source schemas. |
+| `brain_loader` | Imported Evidence Lane/SQLite brain packages. |
+| `research` | Web and research evidence, citations, and provenance. |
+| `project_engulf` | Initial project classification and lane registration plan. |
+| `sqlite_brain` | Existing SQLite schema, relationships, and bounded queries. |
 
-Selector names are labels, not package authority. Exact package, cache,
-registry, helper, tunnel, hook, and native-runtime readback determines each
-slot's identity. A maintainer may use separately named local-test and recovery
-slots, but no local installation changes accepted Project Truth. Slot rotation
-or duplicate-registration cleanup requires its own exact receipt and never
-deletes immutable evidence.
+## Tool roles
 
-## Public documentation source law
+| Role class | Count | Boundary |
+| --- | ---: | --- |
+| `TASK_EXECUTION` | 82 | Selected only when the exact action phase makes the condition true |
+| `TRANSPORT_OR_ORCHESTRATION` | 12 | Selected only when the exact action phase makes the condition true |
+| `OBSERVABILITY_OR_EVALUATION_ATTACHMENT` | 8 | Selected only when the exact action phase makes the condition true |
+| `EXTERNAL_SERVICE_OR_STORE` | 17 | Selected only when the exact action phase makes the condition true |
 
-Every public website route exposes the exact Git-tracked Markdown authority
-from which its current story is derived. The website is a projection, never a
-lifecycle authority. Route coverage and source-file existence are tested in
-clean CI. See the [public repository map](docs/REPOSITORY_MAP.md).
+FastMCP, native/domain MCP, the outer SDK, and the tunnel are transport or composition layers. They never become the acting agent or project authority. OpenAI Agents SDK is a subordinate Codex-owned function-tool/MCP client library only.
 
-## Detailed contracts
+## Storage and refresh
 
-- [Canon task graph and Canon Input HIL](docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md)
-- [SDK, MCP, and tool surfaces](docs/TOOLS.md)
-- [Host, storage, ENV/UOP, and Agent Learning](docs/HOST_AND_STORAGE_MATRIX.md)
-- [Skills](docs/SKILLS.md)
-- [Native MCP](docs/MCP.md)
-- [Hooks](docs/HOOKS.md)
-- [Public repository map](docs/REPOSITORY_MAP.md)
-- [Security](SECURITY.md)
+Project/PV roots own or link project authorities. Source bytes and chunks are content-addressed once; SQLite/FTS indexes, lane facts, and graphs are refreshed atomically; unchanged atoms are reused. A replacement route directly purges superseded executable/schema/generated/test/doc references in the same Delta while immutable receipts remain non-executable history.
+
+## Source-bound workflow map
+
+This page is projected from the same current executable snapshot as the rest of the documentation set. The map is deliberately two-directional: each horizontal district shows peer stages while vertical edges show ownership and state progression.
+
+```mermaid
+flowchart TB
+    subgraph InputDistrict["Input and classification"]
+      direction LR
+      A["Authorized prompt or source"] --> B["Entry Slip and Source Intake"] --> C["Typed action and internal SDK"]
+    end
+    subgraph ExecutionDistrict["Selection and execution"]
+      direction TB
+      D["ENV then UOP"] --> E["Authority, lane, and selected tools"] --> F["Hooks and effect validation"]
+    end
+    subgraph EvidenceDistrict["Evidence and outcome"]
+      direction LR
+      G["Content-addressed receipt"] --> H["Delta exit, HIL, or Exit Slip"]
+      G -. mismatch .-> I["Fail closed with no authority effect"]
+    end
+    C --> D
+    F --> G
+```
+
+## Contract and readback
+
+| Phase | Current contract | Required readback |
+| --- | --- | --- |
+| Input | Authorized prompt or source | Exact identity, provenance, and scope |
+| Classification | Entry Slip and Source Intake | Owning schema, action, lane, skill, or authority |
+| Owner | Typed action and internal SDK | One canonical implementation owner |
+| Route | ENV then UOP | Condition-true ordered route with no hidden alias |
+| Execution | Authority, lane, and selected tools | Real execution or a visible fail-closed result |
+| Validation | Hooks and effect validation | Hash, schema, authority-effect, and negative-case checks |
+| Receipt | Content-addressed receipt | Content-addressed result and provenance receipt |
+| Downstream | Delta exit, HIL, or Exit Slip | Only the explicitly eligible next state |
+| Failure | Fail closed with no authority effect | No inferred HIL, candidate acceptance, or pointer movement |
+
+## Canonical source owners
+
+- `toolchains/universal-plugin-architecture.v1.json`
+- `sdk/sdk-manifest.v1.json`
+- `authorities/authority-surface-registry.v1.json`
+
+## Cross-surface invariants
+
+- The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.
+- Executable ownership stays one-way: skills select, MCP exposes, the outer SDK routes, the internal SDK executes, ENV selects, UOP governs, tools perform bounded work, hooks emit receipts, and the owning authority validates effects.
+- Any missing identity, schema, grant, capability, dependency, receipt, or authority proof must fail closed at its owning phase; a later green check cannot retroactively authorize the skipped boundary.
+- A changed route refreshes every dependent schema, manifest, generator, test, diagram, and documentation reference; the superseded executable route is directly purged in the same Delta.
+- Tests, Git, CI, installation, restart, deployment, discussion, or a rendered page never imply Project HIL, Learning HIL, Goal completion, or pointer movement.
+
+---
+
+This page is a Git-tracked documentation projection. Executable source, SQLite authorities, installed-runtime receipts, and explicit human gates remain the governing evidence.

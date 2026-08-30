@@ -1,6 +1,6 @@
 {
   "schema": "evidence-lane.sqlite-authority-schema-snapshot.v1",
-  "database_sha256": "55B227A2A672F1F25C45DE2E5C1D0C2F41C74D58E1AD3EB34CD1A99EFFACD98E",
+  "database_sha256": "7EEDC0DD02519D2C5AC24E60161150EBA4AD1AA29CDF71DAF36EB1B889750787",
   "objects": [
     {
       "type": "index",
@@ -28,21 +28,21 @@
     },
     {
       "type": "table",
+      "name": "authority_index_content_cas",
+      "tbl_name": "authority_index_content_cas",
+      "sql": "CREATE TABLE authority_index_content_cas(\n            sha256 TEXT PRIMARY KEY,\n            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),\n            compression TEXT NOT NULL,\n            compressed_bytes BLOB NOT NULL,\n            first_seen_at TEXT NOT NULL\n        ) STRICT"
+    },
+    {
+      "type": "table",
       "name": "authority_index_fts",
       "tbl_name": "authority_index_fts",
-      "sql": "CREATE VIRTUAL TABLE authority_index_fts USING fts5(\n            node_id UNINDEXED,\n            authority_id UNINDEXED,\n            source_table,\n            source_identity,\n            text_content,\n            tokenize='unicode61'\n        )"
+      "sql": "CREATE VIRTUAL TABLE authority_index_fts USING fts5(\n            node_id UNINDEXED,\n            authority_id UNINDEXED,\n            source_table UNINDEXED,\n            source_identity UNINDEXED,\n            text_content,\n            content='',\n            contentless_delete=1,\n            tokenize='unicode61'\n        )"
     },
     {
       "type": "table",
       "name": "authority_index_fts_config",
       "tbl_name": "authority_index_fts_config",
       "sql": "CREATE TABLE 'authority_index_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
-    },
-    {
-      "type": "table",
-      "name": "authority_index_fts_content",
-      "tbl_name": "authority_index_fts_content",
-      "sql": "CREATE TABLE 'authority_index_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4)"
     },
     {
       "type": "table",
@@ -54,7 +54,7 @@
       "type": "table",
       "name": "authority_index_fts_docsize",
       "tbl_name": "authority_index_fts_docsize",
-      "sql": "CREATE TABLE 'authority_index_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+      "sql": "CREATE TABLE 'authority_index_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB, origin INTEGER)"
     },
     {
       "type": "table",
@@ -66,7 +66,7 @@
       "type": "table",
       "name": "authority_index_node",
       "tbl_name": "authority_index_node",
-      "sql": "CREATE TABLE authority_index_node(\n            node_id TEXT PRIMARY KEY,\n            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)\n                ON DELETE CASCADE,\n            ordinal INTEGER NOT NULL,\n            char_start INTEGER NOT NULL,\n            char_end INTEGER NOT NULL,\n            text_content TEXT NOT NULL,\n            text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            UNIQUE(source_id, ordinal)\n        ) STRICT"
+      "sql": "CREATE TABLE authority_index_node(\n            node_id TEXT PRIMARY KEY,\n            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)\n                ON DELETE CASCADE,\n            ordinal INTEGER NOT NULL,\n            char_start INTEGER NOT NULL,\n            char_end INTEGER NOT NULL,\n            text_sha256 TEXT NOT NULL\n                REFERENCES authority_index_content_cas(sha256),\n            metadata_sha256 TEXT NOT NULL\n                REFERENCES authority_index_content_cas(sha256),\n            UNIQUE(source_id, ordinal)\n        ) STRICT"
     },
     {
       "type": "table",
@@ -78,7 +78,7 @@
       "type": "table",
       "name": "authority_index_source",
       "tbl_name": "authority_index_source",
-      "sql": "CREATE TABLE authority_index_source(\n            source_id TEXT PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_table TEXT NOT NULL,\n            source_identity TEXT NOT NULL,\n            source_text_sha256 TEXT NOT NULL,\n            metadata_json TEXT NOT NULL,\n            recorded_at TEXT NOT NULL,\n            UNIQUE(authority_id, source_table, source_identity)\n        ) STRICT"
+      "sql": "CREATE TABLE authority_index_source(\n            source_id TEXT PRIMARY KEY,\n            authority_id TEXT NOT NULL,\n            source_table TEXT NOT NULL,\n            source_identity TEXT NOT NULL,\n            source_text_sha256 TEXT NOT NULL,\n            metadata_sha256 TEXT NOT NULL\n                REFERENCES authority_index_content_cas(sha256),\n            recorded_at TEXT NOT NULL,\n            UNIQUE(authority_id, source_table, source_identity)\n        ) STRICT"
     },
     {
       "type": "table",
@@ -136,6 +136,48 @@
     }
   ],
   "tables": [
+    {
+      "name": "authority_index_content_cas",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "compression",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "compressed_bytes",
+          "type": "BLOB",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "first_seen_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": []
+    },
     {
       "name": "authority_index_fts",
       "virtual_fts5": true,
@@ -200,55 +242,6 @@
       "foreign_keys": []
     },
     {
-      "name": "authority_index_fts_content",
-      "virtual_fts5": false,
-      "columns": [
-        {
-          "cid": 0,
-          "name": "id",
-          "type": "INTEGER",
-          "not_null": false,
-          "primary_key": 1
-        },
-        {
-          "cid": 1,
-          "name": "c0",
-          "type": "",
-          "not_null": false,
-          "primary_key": 0
-        },
-        {
-          "cid": 2,
-          "name": "c1",
-          "type": "",
-          "not_null": false,
-          "primary_key": 0
-        },
-        {
-          "cid": 3,
-          "name": "c2",
-          "type": "",
-          "not_null": false,
-          "primary_key": 0
-        },
-        {
-          "cid": 4,
-          "name": "c3",
-          "type": "",
-          "not_null": false,
-          "primary_key": 0
-        },
-        {
-          "cid": 5,
-          "name": "c4",
-          "type": "",
-          "not_null": false,
-          "primary_key": 0
-        }
-      ],
-      "foreign_keys": []
-    },
-    {
       "name": "authority_index_fts_data",
       "virtual_fts5": false,
       "columns": [
@@ -284,6 +277,13 @@
           "cid": 1,
           "name": "sz",
           "type": "BLOB",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "origin",
+          "type": "INTEGER",
           "not_null": false,
           "primary_key": 0
         }
@@ -359,27 +359,30 @@
         },
         {
           "cid": 5,
-          "name": "text_content",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "cid": 6,
           "name": "text_sha256",
           "type": "TEXT",
           "not_null": true,
           "primary_key": 0
         },
         {
-          "cid": 7,
-          "name": "metadata_json",
+          "cid": 6,
+          "name": "metadata_sha256",
           "type": "TEXT",
           "not_null": true,
           "primary_key": 0
         }
       ],
       "foreign_keys": [
+        {
+          "from": "metadata_sha256",
+          "table": "authority_index_content_cas",
+          "to": "sha256"
+        },
+        {
+          "from": "text_sha256",
+          "table": "authority_index_content_cas",
+          "to": "sha256"
+        },
         {
           "from": "source_id",
           "table": "authority_index_source",
@@ -519,7 +522,7 @@
         },
         {
           "cid": 5,
-          "name": "metadata_json",
+          "name": "metadata_sha256",
           "type": "TEXT",
           "not_null": true,
           "primary_key": 0
@@ -532,7 +535,13 @@
           "primary_key": 0
         }
       ],
-      "foreign_keys": []
+      "foreign_keys": [
+        {
+          "from": "metadata_sha256",
+          "table": "authority_index_content_cas",
+          "to": "sha256"
+        }
+      ]
     },
     {
       "name": "consequence_edge",
@@ -852,6 +861,6 @@
     "authority_index_fts",
     "consequence_graph_fts"
   ],
-  "schema_sha256": "88E4E7AC138350BAF76469CB0D5EBA0787972ECC300782FD305CDB5D8D8DB630",
-  "receipt_sha256": "3529C061C2822EF22200D66E6C822ED61314BE24DFB2FBF491113B5F92D4314F"
+  "schema_sha256": "88FDE8F8AD32175C3221C450A9A71A9E5336E363D608F263F9180A1C08080AF5",
+  "receipt_sha256": "6F1C293F2F6239BEF8D726AFB00A583597E6343A50B0EF28E4486158FC9FDC06"
 }

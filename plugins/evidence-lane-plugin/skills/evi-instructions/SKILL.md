@@ -6,8 +6,8 @@ description: Resolve and use the separate AGENTS.md instruction chain and host c
 # Evidence Lane Instructions and Host Recall
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`. That automatic lifecycle controller
-owns the complete six-way entry, in-Delta query, and exit sequence; this skill
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`. The lifecycle controller
+owns the complete registry-derived entry, in-Delta query, and exit sequence; this skill
 owns the two host-facing arms only.
 
 The resolved project/worktree `AGENTS.md` chain is instruction authority. Host

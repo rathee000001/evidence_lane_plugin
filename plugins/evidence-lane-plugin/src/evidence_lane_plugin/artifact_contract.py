@@ -115,6 +115,18 @@ def _tool_identity_core(tools: dict[str, Any]) -> dict[str, Any]:
     # parser implementation seal and retain their original identity bytes.
     if "parser_implementation" in tools:
         core["parser_implementation"] = tools.get("parser_implementation")
+    if "registry_linked_workflow" in tools:
+        core["registry_linked_workflow"] = tools.get("registry_linked_workflow")
+    if "source_conditioned_tool_identity" in tools:
+        core["source_conditioned_tool_identity"] = tools.get(
+            "source_conditioned_tool_identity"
+        )
+    elif "source_conditioned_toolchain" in tools:
+        # Pre-v4 compatibility is validation-only; new bytes never emit this
+        # dynamic per-build receipt as part of the stable tool identity.
+        core["source_conditioned_toolchain"] = tools.get(
+            "source_conditioned_toolchain"
+        )
     return core
 
 

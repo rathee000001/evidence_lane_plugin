@@ -824,7 +824,7 @@ def run_adaptive_delta_exit(
         live_authority_query.get("status") in {"PASS", "EMPTY"}
         and live_authority_query.get("accepted_archive_opened") is False,
         "ADAPTIVE_DELTA_EXIT_DECISION_SUPPORT_FAILED",
-        "Adaptive exit requires the shared live-root six-authority query route.",
+        "Adaptive exit requires the shared live-root current-authority query route.",
         status="FAIL",
     )
     decision_support = list(live_authority_query["initial_reads"])

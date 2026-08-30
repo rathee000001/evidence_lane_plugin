@@ -11,7 +11,9 @@
   "evidence_paths": [
     "LICENSE.md",
     "requirements.lock.txt",
-    "requirements.torch-cpu.lock.txt"
+    "requirements.onnx-directml.lock.txt",
+    "requirements.torch-cpu.lock.txt",
+    "requirements.torch-nvidia.lock.txt"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -22,5 +24,5 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "9DC99E4F8AA4E51329EE3571646F8F2C186DE4FB6D9C07E23E274B1FC7E5E4D8"
+  "receipt_sha256": "20FEA68E7C0D0FAE5657313C3A7A8A2BDC68DB0F83D209FC47417EF45A84E017"
 }

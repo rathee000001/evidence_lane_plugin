@@ -156,7 +156,7 @@
     },
     {
       "name": "lifecycle_transition_law",
-      "schema_sha256": "DC8F592786038F171CBBFC65A1A884DD7E5E670D57313DD5F1AA026891F28BA3",
+      "schema_sha256": "867E13F514924481E33B548D50636E2F99A1DD3F5FD778B1DA7E6344A38D7070",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi",
@@ -296,7 +296,7 @@
     },
     {
       "name": "pv_query",
-      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi",
@@ -309,7 +309,7 @@
         "skill_workflows": [
           {
             "owner_skill": "evi",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           },
           {
@@ -334,7 +334,7 @@
           },
           {
             "owner_skill": "evi-plan",
-            "workflow": "live-six-authority-read",
+            "workflow": "live-current-authority-read",
             "order": 3
           },
           {
@@ -349,7 +349,7 @@
           },
           {
             "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           }
         ],
@@ -504,7 +504,7 @@
     },
     {
       "name": "search",
-      "schema_sha256": "1D4C303C7B3FE4AC1E729A6D7B45EA0A082FE57585D1C3251874A5BBE9769691",
+      "schema_sha256": "76F9448249D205764772262F4B673798BE5724E2F6B7162B34E3A8F8F8BE6FC1",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi-source-intake",
@@ -517,7 +517,7 @@
         "skill_workflows": [
           {
             "owner_skill": "evi",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           },
           {
@@ -527,7 +527,7 @@
           },
           {
             "owner_skill": "evi-plan",
-            "workflow": "live-six-authority-read",
+            "workflow": "live-current-authority-read",
             "order": 3
           },
           {
@@ -542,7 +542,7 @@
           },
           {
             "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           }
         ],
@@ -578,7 +578,7 @@
     },
     {
       "name": "task_complete_and_refresh",
-      "schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570",
+      "schema_sha256": "DDCC0D86F2CB504F7BD9B6CAE92C275E6792507B47C67E86EE6C83462F65FC19",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi-refresh",
@@ -605,11 +605,11 @@
     }
   ],
   "linked_skills": {
-    "skills/evi/SKILL.md": "47EDE692225A70AB41635F6EAF99EB3F57F0273C4F776D93731107AEBC417AC8",
-    "skills/evi-refresh/SKILL.md": "F32DA2CDFEB8F3810233BCD3AD8621024635283559720C81375BCBE6BB189511"
+    "skills/evi/SKILL.md": "5AEC8A11200B1800BB2FC46C262E20064A306DCE0C01CBF266519FE3502C43D7",
+    "skills/evi-refresh/SKILL.md": "6C9954C69DC21407DA694405EC7E6CB35FF099D64917E001E556452CB1F64F31"
   },
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/receipt_ledger.py": "BC586182254337D7901DEBD5CC1C2FC83D8AA0767FC27DF2083A63F9993340B8",
+    "src/evidence_lane_plugin/receipt_ledger.py": "5A3A6AEFCA1ABB95FEA3C5FBD6A05A75434E63EC867D147D50F45C7A7A8B7F4C",
     "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
@@ -628,24 +628,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:07.057389Z",
-    "receipt_sha256": "06D02DDC64C6076053529F2F62257752EDDACA637E4B7847D0793CE8F4B40F93"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "A4DC1FF9463C4E78DCA946C6F0573D0AFA7AE69875EB9A01E706A1A9DD601742"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "receipt_ledger_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 118,
-    "edge_count": 119,
+    "node_count": 116,
+    "edge_count": 121,
     "group_count": 1,
-    "semantic_topology_sha256": "DF0725468B9DB1CA71D8866BE5847ED9116975961846EF18B545AB8885BFDACF",
-    "mmd_sha256": "191CAD9A7C59CE073AE3A0209DA0123DF3DD7FA6AF7441EDD63B476541DE29EE",
-    "dot_sha256": "07B95939F4EA72A3B3FB1ED05F687B7A0E371DE55B042B9C4EA70ABE6A6DEDCC",
+    "semantic_topology_sha256": "CE2576F61E3433A331F623F9A971649EE96F8169A7837568004A91FD66B21990",
+    "mmd_sha256": "C4067AEDD37F82F77CC9D09861DA401E3939F75843DD045C029EBC0D9A24DB48",
+    "dot_sha256": "0B7EAFF1E344660F590194819E6B1083D38273223B60DF22D356549B743CCD04",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "137275DC321CFB651BAA7EAAD0280191F068CDEE4D6814FF7A2D02C925D07268",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "A1E920B0A38D810B23B86ABAFE5013436AA06A86D46BFF972B31398446B3CCF9",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -655,10 +655,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 118,
-      "edge_count": 119,
+      "node_count": 116,
+      "edge_count": 121,
       "weak_component_count": 1,
-      "strong_component_count": 118,
+      "strong_component_count": 116,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -684,22 +684,22 @@
         {
           "node_id": "support_table_authority_index_node",
           "in_degree": 1,
-          "out_degree": 9
+          "out_degree": 10
         },
         {
           "node_id": "support_table_authority_index_source",
           "in_degree": 2,
-          "out_degree": 7
+          "out_degree": 8
         },
         {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
-          "node_id": "support_table_receipt_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
+          "node_id": "support_table_receipt_content_cas",
+          "in_degree": 2,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_receipt_link",
@@ -717,7 +717,17 @@
           "out_degree": 5
         },
         {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
           "node_id": "support_table_authority_index_fts_idx",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
+          "node_id": "support_table_receipt_fts_docsize",
           "in_degree": 1,
           "out_degree": 3
         },
@@ -737,11 +747,6 @@
           "out_degree": 2
         },
         {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
           "node_id": "support_table_receipt_fts_config",
           "in_degree": 1,
           "out_degree": 2
@@ -752,12 +757,7 @@
           "out_degree": 2
         },
         {
-          "node_id": "support_table_receipt_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_column_authority_id",
+          "node_id": "support_table_authority_index_content_cas_column_compressed_bytes",
           "in_degree": 1,
           "out_degree": 0
         }
@@ -765,11 +765,24 @@
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "A0BB83DEABF1392F94958E735807D2147349C97E5E9328DA554E3E746E6CF6BF",
+    "graph_analysis_sha256": "93F4B35DE7C4FA4CB46BA2FCFCCA12F65B25C54368EEC8BF792ABED9575A24E9",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 69,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "B2B5C8BD9B1219655D2DACF2BA340BE2E2FF1B9D63475AF2AC4845A9AAD7F583"
+    "receipt_sha256": "995A7252CC5606AFFEC47AB8AC1F7AE737FA2F7CFA7FBE4A823D9C4D3F54C926"
   },
-  "receipt_sha256": "D02CE0B0F47022C452A32C11221A564C669C1CD28816C3F2B0F81F86B2520108"
+  "dedicated_workflow": {
+    "json": "authorities/receipt_ledger/workflow.v1.json",
+    "mmd": "authorities/receipt_ledger/workflow.mmd",
+    "dot": "authorities/receipt_ledger/workflow.dot",
+    "json_sha256": "B8D1B4152E82C2001270267145D67857CAFDCB762F13AC00A36EA8A4B0083E43",
+    "mmd_sha256": "B00EDFA680A0664EDFB3A2F940588426EF0DF89DBD60CC2A539DE1EFA78F3A4B",
+    "dot_sha256": "BF08B19DBED142019D376DE7A09252611236F13D4268ACF3F0D64D2E5BA9384E"
+  },
+  "receipt_sha256": "745EF16E13E7CA36CB18709E0FAD23408C46237A1F7F9E30871A56843FBD50CB"
 }

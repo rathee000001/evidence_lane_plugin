@@ -1,0 +1,95 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=5619479D28C1AA9C675AB706E88E7018329F502B0611D76C9B59B1D21054516D
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  ENTRY["PROJECT_SECTOR data_excel exact identity"]:::root
+  EXIT["Result / explicit stop / next refresh"]:::output
+  subgraph FLOW["Current surface execution flow"]
+    direction TB
+    SCHEMA["Resolve current surface + action schemas"]:::semantic
+    SKILLS["Resolve 79 current skill workflows"]:::semantic
+    ACTIONS["Resolve 40 current typed actions"]:::semantic
+    INTERNAL_SDK["Internal SDK execution owner"]:::semantic
+    ENV["ENV15 environment selection"]:::semantic
+    UOP["UOP15 governance and gates"]:::warn
+    TOOLS["Conditional tool role resolution"]:::semantic
+    OUTER["Outer SDK / FastMCP / native MCP / local route"]:::semantic
+    HOOKS["Only emitted ordered hooks"]:::semantic
+    VALIDATE["Validate result, authority and HIL effects"]:::warn
+    RECEIPT["Exact refresh and provenance receipt"]:::output
+  end
+  subgraph PROJECT_PV_BASELINE["Project/PV baseline connection (identity only)"]
+    direction TB
+    BASELINE_01["PROJECT_PV_ROOT"]:::semantic
+    BASELINE_02["AUTHORITY_REGISTRY"]:::semantic
+    BASELINE_03["PROJECT_SECTOR:data_excel"]:::semantic
+  end
+  subgraph SURFACE_PHASES["data_excel lane specific execution"]
+    direction TB
+    PHASE_SOURCE_CLASSIFY["Classify prompt/content/override into this lane"]:::semantic
+    PHASE_EXACT_SOURCE_CAS["Hash and store exact source bytes once"]:::semantic
+    PHASE_LANE_PARSE["Parse with office_data_structural_v1"]:::semantic
+    PHASE_LANE_CHUNK["Chunk once with table_structure_v1"]:::semantic
+    PHASE_STRUCTURED_FACTS["Project lane facts into 23 lane tables"]:::semantic
+    PHASE_SQLITE_COMMIT["Write owning SQLite generation atomically"]:::semantic
+    PHASE_RETRIEVAL_INDEX["Refresh data_fts and reusable indexes"]:::semantic
+    PHASE_TOPOLOGY_GRAPH["Derive lane-specific MMD and DOT topology"]:::semantic
+    PHASE_RESULT_VALIDATE["Validate schema, tools, hashes and authority effects"]:::semantic
+    PHASE_ATOMIC_REFRESH["Swap changed generation; reuse unchanged atoms"]:::semantic
+  end
+  subgraph TOOL_ROLES["Mutually exclusive tool roles"]
+    direction TB
+    ROLE_TASK_EXECUTION["task execution: 24 current rows"]:::semantic
+    ROLE_TRANSPORT_ORCHESTRATION["transport orchestration: 0 current rows"]:::semantic
+    ROLE_EXTERNAL_SERVICES_OR_STORES["external services or stores: 5 current rows"]:::semantic
+    ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS["observability evaluation attachments: 2 current rows"]:::semantic
+  end
+  ENTRY --> SCHEMA
+  SCHEMA --> SKILLS
+  SKILLS --> ACTIONS
+  ACTIONS --> INTERNAL_SDK
+  INTERNAL_SDK --> ENV
+  ENV --> UOP
+  UOP --> TOOLS
+  TOOLS --> OUTER
+  BASELINE_01 --> BASELINE_02
+  BASELINE_02 --> BASELINE_03
+  BASELINE_03 -->|"bind current surface identity"| ENTRY
+  OUTER -->|"surface-local route"| PHASE_SOURCE_CLASSIFY
+  PHASE_SOURCE_CLASSIFY --> PHASE_EXACT_SOURCE_CAS
+  PHASE_EXACT_SOURCE_CAS --> PHASE_LANE_PARSE
+  PHASE_LANE_PARSE --> PHASE_LANE_CHUNK
+  PHASE_LANE_CHUNK --> PHASE_STRUCTURED_FACTS
+  PHASE_STRUCTURED_FACTS --> PHASE_SQLITE_COMMIT
+  PHASE_SQLITE_COMMIT --> PHASE_RETRIEVAL_INDEX
+  PHASE_SQLITE_COMMIT --> PHASE_TOPOLOGY_GRAPH
+  PHASE_RETRIEVAL_INDEX --> PHASE_RESULT_VALIDATE
+  PHASE_TOPOLOGY_GRAPH --> PHASE_RESULT_VALIDATE
+  PHASE_RESULT_VALIDATE -->|"conditional: when applicable"| PHASE_ATOMIC_REFRESH
+  PHASE_RESULT_VALIDATE -->|"conditional: read/no-change result"| HOOKS
+  PHASE_ATOMIC_REFRESH -->|"changed generation"| HOOKS
+  HOOKS --> VALIDATE
+  VALIDATE --> RECEIPT
+  RECEIPT --> EXIT
+  RECEIPT -->|"conditional: next conditional refresh"| ENTRY
+  TOOLS --> ROLE_TASK_EXECUTION
+  ROLE_TASK_EXECUTION -->|"conditional: selected when condition true"| OUTER
+  TOOLS --> ROLE_TRANSPORT_ORCHESTRATION
+  ROLE_TRANSPORT_ORCHESTRATION -->|"conditional: selected when condition true"| OUTER
+  TOOLS --> ROLE_EXTERNAL_SERVICES_OR_STORES
+  ROLE_EXTERNAL_SERVICES_OR_STORES -->|"conditional: selected when condition true"| OUTER
+  TOOLS --> ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS
+  ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS -->|"conditional: selected when condition true"| OUTER

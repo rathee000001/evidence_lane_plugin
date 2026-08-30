@@ -68,7 +68,8 @@ def test_runtime_behavior_stays_with_sdk_mcp_and_conditional_tunnel() -> None:
         PLUGIN_ROOT / "toolchains" / "tool-requirement-matrix.v1.json"
     )["requirements"]
     tunnel = _json(PLUGIN_ROOT / "toolchains" / "tunnel-runtime-toolchain.v1.json")
-    assert len(requirements) == tunnel["requirement_count"] == 95
+    assert len(requirements) == tunnel["requirement_count"]
+    assert tunnel["full_matrix_requirement_count"] == len(requirements)
     assert [row["tool"] for row in requirements] == [
         row["tool"] for row in tunnel["requirements"]
     ]

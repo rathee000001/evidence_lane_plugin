@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 from evidence_lane_plugin.next_actions import (
-    PUBLIC_CONTROLS,
     boot_next_action,
     direct_command_map,
+    human_entrypoints,
     resolve_direct_command_route,
 )
 
 
-def test_direct_command_map_binds_all_six_controls_to_their_existing_skills() -> None:
+def test_direct_command_map_binds_current_entrypoints_to_existing_skills() -> None:
     command_map = direct_command_map()
-    assert command_map["ordered_controls"] == list(PUBLIC_CONTROLS)
+    assert command_map["ordered_entrypoints"] == list(human_entrypoints())
+    assert command_map["entrypoint_count_is_behavior_ceiling"] is False
     assert [row["command"] for row in command_map["routes"]] == list(
-        PUBLIC_CONTROLS
+        human_entrypoints()
     )
     assert [row["skill"] for row in command_map["routes"]] == [
         "evi-boot",

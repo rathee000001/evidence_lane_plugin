@@ -1852,7 +1852,7 @@ def seal_exact_task_project_session_binding(
         active_plan.get("task_id") == expected_active_task_id
         and active_plan.get("status") == "in_progress"
         and active_plan.get("lifecycle_status") == "ACTIVE"
-        and active_plan.get("persistent_until") == "NEXT_SIX_WAY_HIL_PRESENTED",
+        and active_plan.get("persistent_until") == "NEXT_GOVERNED_HIL_PRESENTED",
         "CODEX_EXACT_BINDING_ACTIVE_PLAN_MISMATCH",
         "The requested task is not the sole current executable Plan row.",
         expected_active_task_id=expected_active_task_id,

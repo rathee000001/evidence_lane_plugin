@@ -6,7 +6,9 @@ import sqlite3
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin import lane_engine as lane_engine_module
 from evidence_lane_plugin import project_authority
+from evidence_lane_plugin.compact_storage import compress_exact_bytes
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS
@@ -103,7 +105,7 @@ def test_accepted_lane_schema_binding_compatibility_is_narrow() -> None:
                 "lane_schema_binding": {},
                 "integrity": ["ok"],
                 "foreign_key_errors": [],
-                "schema_version": "evidence-lane.universal-lane.v2",
+                "schema_version": "evidence-lane.universal-lane.v4",
                 "lane_schema_builder_projection": {"status": "PASS"},
                 "lane_schema_evolution": {"valid": True},
                 "counts": {"chunk_index": 7},
@@ -244,33 +246,70 @@ def _materialize_working_sectors_for_external_test(
 
 def test_root_nested_history_filter_runs_before_limit(tmp_path: Path) -> None:
     database = tmp_path / "root-nested-history-docs.sqlite"
-    fts_table = project_authority.LANE_REGISTRY["docs"].fts_table
+    lane = project_authority.LANE_REGISTRY["docs"]
+    fts_table = lane.fts_table
     connection = sqlite3.connect(database)
-    connection.execute(
-        f"""
-        CREATE VIRTUAL TABLE {fts_table} USING fts5(
-            path,
-            locator,
-            text_content,
-            chunk_id UNINDEXED,
-            tokenize='unicode61'
-        )
-        """
-    )
+    connection.row_factory = sqlite3.Row
+    lane_engine_module._create_lane_schema(connection, lane)
     current_paths = {f"current-{index:03d}.md" for index in range(100)}
-    connection.executemany(
-        f"INSERT INTO {fts_table}(path, locator, text_content, chunk_id) "
-        "VALUES (?, ?, ?, ?)",
-        [
-            (path, "line:1", "current route marker", index + 1)
-            for index, path in enumerate(sorted(current_paths))
-        ],
-    )
+    text = "current route marker"
+    text_bytes = text.encode("utf-8")
+    text_sha256 = sha256_bytes(text_bytes)
+    compression, compressed_text = compress_exact_bytes(text_bytes)
     connection.execute(
-        f"INSERT INTO {fts_table}(path, locator, text_content, chunk_id) "
-        "VALUES (?, ?, ?, ?)",
-        ("historical-only.md", "line:1", "current route marker", 1001),
+        "INSERT INTO chunk_content_cas VALUES(?,?,?,?,?)",
+        (text_sha256, len(text_bytes), compression, compressed_text, "fixture"),
     )
+    for path in [*sorted(current_paths), "historical-only.md"]:
+        source_bytes = path.encode("utf-8")
+        source_sha256 = sha256_bytes(source_bytes)
+        source_compression, compressed_source = compress_exact_bytes(source_bytes)
+        connection.execute(
+            "INSERT OR IGNORE INTO source_content_cas VALUES(?,?,?,?,?)",
+            (
+                source_sha256,
+                len(source_bytes),
+                source_compression,
+                compressed_source,
+                "fixture",
+            ),
+        )
+        source_id = int(
+            connection.execute(
+                """
+                INSERT INTO source_registry(
+                    path,size_bytes,sha256,mime_type,extension,encoding,
+                    parser_state,registered_at
+                ) VALUES(?,?,?,?,?,?,?,?)
+                RETURNING source_id
+                """,
+                (
+                    path,
+                    len(source_bytes),
+                    source_sha256,
+                    "text/markdown",
+                    ".md",
+                    "utf-8",
+                    "PARSED_TEXT",
+                    "fixture",
+                ),
+            ).fetchone()[0]
+        )
+        chunk_id = int(
+            connection.execute(
+                """
+                INSERT INTO chunk_index(
+                    source_id,locator,ordinal,char_start,char_end,sha256,metadata_json
+                ) VALUES(?,?,?,?,?,?,?) RETURNING chunk_id
+                """,
+                (source_id, "line:1", 0, 0, len(text), text_sha256, "{}"),
+            ).fetchone()[0]
+        )
+        connection.execute(
+            f"INSERT INTO {fts_table}(rowid,path,locator,text_content,chunk_id) "
+            "VALUES (?,?,?,?,?)",
+            (chunk_id, path, "line:1", text, chunk_id),
+        )
     connection.commit()
     connection.close()
 
@@ -1502,6 +1541,10 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
     )
     assert any(
         row["build_mode"] == "UNCHANGED_REUSE"
+        for row in refreshed_manifest["reports"]
+    )
+    assert any(
+        row["lane_id"] == "docs" and row["build_mode"] == "INCREMENTAL_REFRESH"
         for row in refreshed_manifest["reports"]
     )
     migration_receipt = json.loads(

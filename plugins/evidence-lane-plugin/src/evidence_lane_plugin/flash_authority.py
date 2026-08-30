@@ -24,7 +24,7 @@ FLASH_MANIFEST_SCHEMA = "evidence-lane.session-flash-manifest.v1"
 FLASH_RECEIPT_SCHEMA = "evidence-lane.session-flash-receipt.v1"
 FLASH_AUTHORITY_VERSION = "ENV15_UOP15_PUBLIC_LOCKED_20260807"
 FLASH_MANIFEST_SHA256 = (
-    "0F8463AEDCA9E079AB849B481E64928BAC3D95B4D407BFCA6CD92023B24A5E8D"
+    "7F2914854E1A3325E44FA44F585C4A09FEFD1240D5235E9B42B8EF82565B7AD2"
 )
 NESTED_SOURCE_LAYOUT_FLASH_MANIFEST_SHA256 = (
     "4585D703515D2DE245F688E3047F192C6BD3D507475B57855918561933C5293A"
@@ -42,10 +42,10 @@ _MIGRATABLE_NEW_BUILD_FLASH_ERRORS = {
     "SESSION_FLASH_BUILD_IDENTITY_CHANGED",
     "SESSION_FLASH_AUTHORITY_CHANGED",
 }
-ENV_MMD_SHA256 = "4FDE450BB73D470440C40DD8EA4E7C67BBEB7C0B123B7796BE23E41A9E03E9A4"
-UOP_MMD_SHA256 = "D67946A53F3A323CCDCB63B7E2DBC88F72743E620F930E5F82240B3EE5638C43"
-ENV_DOT_SHA256 = "B873DCD12B6B0880A67A79D2D228053AECE63C81C56D73D972EF904D141E708C"
-UOP_DOT_SHA256 = "8A56801CCA46BF4F4D11F105B532FBB4082758B8371D9141C347EB142837E2D8"
+ENV_MMD_SHA256 = "B6C4053914AFDB9DEA3F6E5A4A844E0EAB6108BAEF3CC118E22CCC0F2126C7EA"
+UOP_MMD_SHA256 = "6F4FB299BECD2B775B8259D50633DE65ABF4611C4F378B3E70535E3186416FD2"
+ENV_DOT_SHA256 = "B2BA7E6E7CCEC16B142DEEC3AEB23802B52078681626ABB8475EDF23A7B51A9D"
+UOP_DOT_SHA256 = "50E47D933B9F3A128FC79621FEAA14E440CC3775451F76C99B87A05927AC386C"
 
 
 class SessionFlashAuthority:
@@ -59,9 +59,7 @@ class SessionFlashAuthority:
     ) -> None:
         self.data_root = Path(data_root).resolve()
         self.asset_root = (
-            Path(asset_root).resolve()
-            if asset_root
-            else resolve_plugin_root(__file__)
+            Path(asset_root).resolve() if asset_root else resolve_plugin_root(__file__)
         )
         self.manifest_path = self.asset_root / "env" / "SESSION_FLASH_MANIFEST.json"
         self.receipt_path = (
@@ -266,13 +264,23 @@ class SessionFlashAuthority:
             sqlite_path = self._safe_member(self.asset_root, authority["sqlite"])
             lock_path = self.asset_root / authority_name / "locked_mmd_hash.txt"
             lock = self._parse_lock(lock_path)
+            expected_authority_version = "ENV15" if authority_name == "env" else "UOP15"
             require(
-                lock.get("final_mmd_sha256", "").upper() == sha256_file(mmd_path)
-                and lock.get("final_dot_sha256", "").upper() == sha256_file(dot_path)
-                and lock.get("final_sqlite_sha256", "").upper()
-                == sha256_file(sqlite_path),
+                lock.get("authority_version") == expected_authority_version
+                and lock.get("mmd_sha256", "").upper() == sha256_file(mmd_path)
+                and lock.get("dot_sha256", "").upper() == sha256_file(dot_path)
+                and lock.get("sqlite_sha256", "").upper() == sha256_file(sqlite_path),
                 "SESSION_FLASH_MMD_LOCK_MISMATCH",
                 "A locked ENV/UOP SQLite, Mermaid, or DOT source does not match its lock.",
+                status="MISMATCH",
+                authority=authority_name,
+            )
+            require(
+                lock.get("predecessor_database_copied") == "false"
+                and lock.get("action_plane_build_receipt_sha256", "").upper()
+                == str(authority["action_plane_build_receipt_sha256"]).upper(),
+                "SESSION_FLASH_ACTION_PLANE_LOCK_MISMATCH",
+                "The clean ENV/UOP action-plane build is not lock-bound.",
                 status="MISMATCH",
                 authority=authority_name,
             )
@@ -292,12 +300,12 @@ class SessionFlashAuthority:
             )
         )
         require(
-            source_audit.get("overall_status") == "PARTIAL_INTEGRITY"
-            and source_audit.get("whole_packet_accepted") is False
+            source_audit.get("overall_status") == "PASS"
+            and source_audit.get("whole_packet_accepted") is True
             and source_audit.get("usable_boundary")
-            == "INDEPENDENTLY_VERIFIED_ENV15_UOP15_SUBSET_ONLY",
+            == "CURRENT_CODEX_ACTION_PLANE_ONLY",
             "SESSION_FLASH_SOURCE_AUDIT_INVALID",
-            "The source packet audit does not preserve the partial-integrity boundary.",
+            "The source audit does not bind the clean current Codex action plane.",
             status="FAIL",
         )
         manifest_sha256 = sha256_file(self.manifest_path)
@@ -328,7 +336,7 @@ class SessionFlashAuthority:
             "environment_operator_data_inside_pv": False,
             "source_packet": {
                 "status": source_audit["overall_status"],
-                "whole_packet_accepted": False,
+                "whole_packet_accepted": bool(source_audit["whole_packet_accepted"]),
                 "usable_boundary": source_audit["usable_boundary"],
             },
             "authorities": authority_reports,
@@ -339,7 +347,7 @@ class SessionFlashAuthority:
                 "purpose": "SESSION_BEHAVIOR_ONLY",
                 "inside_pv": False,
             },
-            "warnings": [manifest["warning"]],
+            "warnings": [manifest["warning"]] if manifest["warning"] else [],
             "dual_identity": dual_identity,
         }
         result["runtime_projection"] = FlashRuntimeProjection(

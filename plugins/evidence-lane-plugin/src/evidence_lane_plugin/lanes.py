@@ -59,13 +59,13 @@ SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256 = (
 # current lane database intentionally keeps its richer physical schema; both
 # code modes must still expose this exact seven-entity contract in MMD and DOT.
 CODE_LOGICAL_TOPOLOGY = (
-    ("code_repo", "Repo", "code_source_registry"),
+    ("code_repo", "Repo", "lane_meta"),
     ("git_commit", "Commit", "git_commit_registry"),
-    ("code_file", "File", "code_file_snapshot"),
+    ("code_file", "File", "source_registry"),
     ("code_symbol", "Symbol", "code_symbol"),
     ("app_route", "Route", "code_route"),
     ("dependency_item", "Dependency", "code_dependency"),
-    ("project_artifact", "Artifact", "artifact_registry"),
+    ("project_artifact", "Artifact", "structured_fact"),
 )
 
 
@@ -140,8 +140,8 @@ class LaneDefinition:
 _CORE_SCHEMA = (
     "lane_meta",
     "lane_pointer",
+    "source_content_cas",
     "source_registry",
-    "source_tombstone",
     "chunk_index",
     "chunk_content_cas",
     "chunk_history",
@@ -151,6 +151,7 @@ _CORE_SCHEMA = (
     "tfidf_vector",
     "refresh_receipt",
     "mutation_receipt",
+    "authority_index_content_cas",
     "authority_index_source",
     "authority_index_node",
     "authority_index_fts",
@@ -159,13 +160,6 @@ _CORE_SCHEMA = (
 CORE_SCHEMA_TABLES = frozenset(_CORE_SCHEMA)
 
 _CODE_SCHEMA = _CORE_SCHEMA + (
-    "sector_meta",
-    "sector_head",
-    "artifact_registry",
-    "relation_edge",
-    "code_source_registry",
-    "code_file_snapshot",
-    "code_chunk",
     "code_symbol",
     "code_import",
     "code_call",
@@ -173,28 +167,10 @@ _CODE_SCHEMA = _CORE_SCHEMA + (
     "code_parser_diagnostic",
     "code_route",
     "code_dependency",
-    "code_route_api_boundary",
-    "code_config_build_test_chunk",
-    "code_index_checkpoint",
-    "code_source_active_head",
-    "code_workflow_edge",
-    "code_semantic_diff",
-    "code_synthetic_snapshot_file",
-    "code_snapshot_history",
-    "code_good_snapshot",
-    "snapshot_git_bridge",
     "git_commit_registry",
     "git_commit_parent",
     "git_file_change",
-    "git_patch_hunk",
-    "git_exact_line_change",
     "git_ref_registry",
-    "git_push_event",
-    "git_route_impact",
-    "git_symbol_impact",
-    "git_dependency_impact",
-    "git_test_impact",
-    "git_artifact_impact",
     "git_blob_cas",
     "git_content_chunk_cas",
     "git_chunk_occurrence",
@@ -820,7 +796,7 @@ def _lane_schema_registry_payload() -> tuple[
     if not isinstance(base, dict) or set(base) != {"schema_id", "tables", "owner"}:
         raise LaneRegistryError("Lane base-schema contract is malformed.")
     if base != {
-        "schema_id": "evidence-lane.universal-lane.v2",
+        "schema_id": "evidence-lane.universal-lane.v4",
         "tables": sorted(CORE_SCHEMA_TABLES),
         "owner": "lane_engine.py:_create_lane_schema",
     }:
@@ -868,6 +844,7 @@ def _lane_schema_registry_payload() -> tuple[
         "operation",
         "additive_only",
     }
+    rebuild_migration_keys = migration_keys | {"rebuild_required"}
     for raw in rows:
         if not isinstance(raw, dict) or set(raw) != entry_keys:
             raise LaneRegistryError("A lane schema entry has an unexpected shape.")
@@ -912,12 +889,17 @@ def _lane_schema_registry_payload() -> tuple[
         for sequence, migration in enumerate(migrations, start=1):
             if (
                 not isinstance(migration, dict)
-                or set(migration) != migration_keys
+                or frozenset(migration)
+                not in {frozenset(migration_keys), frozenset(rebuild_migration_keys)}
                 or migration.get("sequence") != sequence
                 or migration.get("from_version") != previous_version
                 or not isinstance(migration.get("to_version"), int)
                 or migration["to_version"] <= previous_version
-                or migration.get("additive_only") is not True
+                or not isinstance(migration.get("additive_only"), bool)
+                or (
+                    migration.get("additive_only") is not True
+                    and migration.get("rebuild_required") is not True
+                )
                 or not str(migration.get("migration_id") or "").startswith(
                     f"{lane_id}."
                 )
@@ -995,7 +977,7 @@ def _lane_schema_evolution_policy_payload() -> tuple[dict[str, Any], str]:
         ) from exc
     expected = {
         "schema": LANE_SCHEMA_EVOLUTION_POLICY_SCHEMA,
-        "policy_version": 1,
+        "policy_version": 3,
         "ledger": {
             "schema": "evidence-lane.lane-schema-migration-ledger.v1",
             "table": "lane_schema_migration",
@@ -1031,6 +1013,19 @@ def _lane_schema_evolution_policy_payload() -> tuple[dict[str, Any], str]:
             "before_after_content_hash_required": True,
             "before_after_row_count_required": True,
         },
+        "core_rebuild": {
+            "allowed_operations": [
+                "REBUILD_COMPACT_CONTENT_CAS_AND_CONTENTLESS_FTS",
+                "REBUILD_REFERENCE_ONLY_CHUNKS_AND_COMPACT_AUTHORITY_INDEX",
+            ],
+            "explicit_user_authorization_required": True,
+            "rebuild_from_exact_source_hashes": True,
+            "exact_byte_reconstruction_required": True,
+            "integrity_and_foreign_key_checks_required": True,
+            "accepted_artifact_in_place_mutation_allowed": False,
+            "atomic_generation_swap_required": True,
+            "superseded_storage_route_retained": False,
+        },
         "protected_lanes": {
             "lane_ids": ["github_code", "local_code"],
             "explicit_user_confirmation_required": True,
@@ -1057,7 +1052,7 @@ def _lane_schema_evolution_policy_payload() -> tuple[dict[str, Any], str]:
 
 
 def lane_schema_evolution_contract(lane_id: str) -> dict[str, Any]:
-    """Return one lane-specific detached additive-evolution contract."""
+    """Return lane extension rules plus the authorized core-rebuild boundary."""
 
     if lane_id not in _LANE_SCHEMA_ASSETS:
         raise LaneRegistryError(f"Unknown lane schema: {lane_id!r}")

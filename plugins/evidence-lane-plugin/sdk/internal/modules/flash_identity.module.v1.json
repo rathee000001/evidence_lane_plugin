@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.flash_identity",
   "source_path": "src/evidence_lane_plugin/flash_identity.py",
-  "source_sha256": "CC030DA15321107E11E3B291EF899C95292ACB22C8705F9DBF74502A6B9A74D7",
-  "source_bytes": 8821,
+  "source_sha256": "A612575DB7F21763BC24E9235D6CAEBE1A4C5649665FD689AF974DBDCBCFDBE2",
+  "source_bytes": 8719,
   "role": "ENV_UOP_AI_ACTION_PLANE",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "BE0657F5870B5A53A5FDEB2D538579228E73524CE703104D71BB63CAA7633529"
+  "receipt_sha256": "6A7577D65CE935BAAA1AB37AB68389BF6ABCEB64AA567F7932DE50403B17A883"
 }

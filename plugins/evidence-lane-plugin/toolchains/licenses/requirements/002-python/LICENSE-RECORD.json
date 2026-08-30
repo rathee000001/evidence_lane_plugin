@@ -10,7 +10,9 @@
   "license_evidence": "exact hidden-runtime Python distribution and runtime license manifest",
   "evidence_paths": [
     "requirements.lock.txt",
-    "requirements.torch-cpu.lock.txt"
+    "requirements.onnx-directml.lock.txt",
+    "requirements.torch-cpu.lock.txt",
+    "requirements.torch-nvidia.lock.txt"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -21,5 +23,5 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "129CF73F0DB3024E8A881F5C081EB00720CF3462CF969153D83DF1174E518A89"
+  "receipt_sha256": "12020AC2DEBDDD6E4B5E0C8F987AAFC4DAC5C63DE7360224AE1409836147271C"
 }

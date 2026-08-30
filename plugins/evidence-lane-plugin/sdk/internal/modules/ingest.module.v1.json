@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.ingest",
   "source_path": "src/evidence_lane_plugin/ingest.py",
-  "source_sha256": "465E1CDEE213E121148372B56B09F8A0910A1EDFBEBAFE8492A49174BC895E74",
-  "source_bytes": 35353,
+  "source_sha256": "A9B4981A20140D89E79137C01C34ABF28F8218E949F521BC8EA744C44CDB786C",
+  "source_bytes": 35964,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "7A1288BC069F00036BCF5FE5CD12C595C04D20DCC8981CCFBFEB2CED2A090424"
+  "receipt_sha256": "09B1CF8E0A302D2FE7015E34ABA5913D46675495FE0BACEE03335BDBB8C1202C"
 }

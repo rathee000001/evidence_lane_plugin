@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from .bounded_io import IOBudget, bounded_file_identity
+from .bounded_io import IOBudget, bounded_existing_path, bounded_file_identity
 from .errors import EvidenceLaneError, require
 from .git_optional import normalize_git_arm_mode, probe_git_arm
 from .hashing import canonical_json_bytes, sha256_bytes
@@ -202,9 +202,11 @@ def _bounded_directory_members(
                 if reason is not None:
                     excluded_counts[reason] = excluded_counts.get(reason, 0) + 1
                     continue
-                if item.is_symlink():
-                    excluded_counts["SYMLINK_PATH_EXCLUDED"] = (
-                        excluded_counts.get("SYMLINK_PATH_EXCLUDED", 0) + 1
+                if item.is_symlink() or (
+                    hasattr(item, "is_junction") and item.is_junction()
+                ):
+                    excluded_counts["REPARSE_POINT_PATH_EXCLUDED"] = (
+                        excluded_counts.get("REPARSE_POINT_PATH_EXCLUDED", 0) + 1
                     )
                     continue
                 if item.is_dir():
@@ -226,9 +228,8 @@ def _bounded_directory_members(
             excluded_counts[reason] = excluded_counts.get(reason, 0) + 1
             continue
         try:
-            lexical = Path(os.path.abspath(item))
-            lexical.relative_to(path.resolve())
-        except (OSError, ValueError):
+            item = bounded_existing_path(item, root=path)
+        except (EvidenceLaneError, OSError, ValueError):
             excluded_counts["PATH_ESCAPE_EXCLUDED"] = (
                 excluded_counts.get("PATH_ESCAPE_EXCLUDED", 0) + 1
             )

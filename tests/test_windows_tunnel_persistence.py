@@ -63,7 +63,7 @@ def test_installer_uses_current_user_dpapi_and_resilient_host_task() -> None:
     assert "exact_visible_tool_count = $exactVisibleToolCount" in installer
     assert "exact_active_read_tool_count = $exactActiveReadToolCount" in installer
     assert "exact_fail_closed_write_tool_count = $exactFailClosedWriteToolCount" in installer
-    assert "exact_command_count = $exactCommandCount" in installer
+    assert "exact_command_count" not in installer
     assert "exact_hook_event_count = $exactHookEventCount" in installer
     assert "exact_provider_count = $exactProviderCount" in installer
     assert "codex_platform_tunnel_setup_required_once = $true" in installer
@@ -169,7 +169,7 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert "[int]$marker.exact_visible_tool_count" in manager
     assert "[int]$marker.exact_active_read_tool_count" in manager
     assert "[int]$marker.exact_fail_closed_write_tool_count" in manager
-    assert "[int]$marker.exact_command_count" in manager
+    assert "exact_command_count" not in manager
     assert "[int]$marker.exact_hook_event_count" in manager
     assert "[int]$marker.exact_provider_count" in manager
     assert "runtime_key_plaintext_reported = $false" in manager

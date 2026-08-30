@@ -5,7 +5,7 @@
   "skills": [
     {
       "name": "evi",
-      "description": "Evidence Lane root router with user-timed State Travel and exactly six primary controls.",
+      "description": "Evidence Lane registry-driven root router with user-timed State Travel and current registry-derived human entrypoints over every first-class workflow.",
       "members": [
         {
           "path": "skills/evi/agents/openai.yaml",
@@ -14,18 +14,18 @@
         },
         {
           "path": "skills/evi/references/mcp-tool-routing.v1.json",
-          "bytes": 32077,
-          "sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+          "bytes": 32089,
+          "sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
         },
         {
           "path": "skills/evi/references/public-tool-conformance-release-gate.v1.json",
           "bytes": 3110,
-          "sha256": "B440A1A1F8F23589E0935BC20F7D8C876B1DB6D543111EF6F27FCA8421C6D5B2"
+          "sha256": "BF5F109EDC982386C605DCC5443C7B064E9C5BDEA1BE91452EC6FCA98CD0E916"
         },
         {
           "path": "skills/evi/SKILL.md",
-          "bytes": 17851,
-          "sha256": "47EDE692225A70AB41635F6EAF99EB3F57F0273C4F776D93731107AEBC417AC8"
+          "bytes": 18609,
+          "sha256": "5AEC8A11200B1800BB2FC46C262E20064A306DCE0C01CBF266519FE3502C43D7"
         }
       ],
       "member_count": 4,
@@ -51,7 +51,7 @@
               "pv_query",
               "search"
             ],
-            "workflow": "live-root-six-authority-read"
+            "workflow": "live-root-current-authority-read"
           },
           {
             "order": 4,
@@ -114,7 +114,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-additional-plugin",
@@ -127,8 +127,8 @@
         },
         {
           "path": "skills/evi-additional-plugin/SKILL.md",
-          "bytes": 1542,
-          "sha256": "EC66213738DD0A051F9789ED76BC7844131603CAD7DFB06B39329E9B84A51DF2"
+          "bytes": 1582,
+          "sha256": "DD6534D77622D83B42F3C9AF01866A16745086E4853B09F778CF647C792490BF"
         }
       ],
       "member_count": 2,
@@ -151,7 +151,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-bigger-universe",
@@ -164,8 +164,8 @@
         },
         {
           "path": "skills/evi-bigger-universe/SKILL.md",
-          "bytes": 1344,
-          "sha256": "5AEBF22462918E683A0A65FCDAD70979120EA1F7F461906BB30B623430321D46"
+          "bytes": 1367,
+          "sha256": "E95EBC5C8F430DC184435E0AC3A1C12BDB234341B4E92F8DFBD45C3D3F03F4C0"
         }
       ],
       "member_count": 2,
@@ -188,7 +188,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-boot",
@@ -201,8 +201,8 @@
         },
         {
           "path": "skills/evi-boot/SKILL.md",
-          "bytes": 6467,
-          "sha256": "5664F2588A75E4BEC8FBB6396AEE6BF4F3FA556F12ECEC23A3D6B2CA3A6F0ADC"
+          "bytes": 6507,
+          "sha256": "0CE1F67BB03DA4A875EB2E47DC142E148226EED34E3C8C19E11E5C757DF71447"
         }
       ],
       "member_count": 2,
@@ -254,7 +254,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-brain-scaling",
@@ -267,8 +267,8 @@
         },
         {
           "path": "skills/evi-brain-scaling/SKILL.md",
-          "bytes": 1252,
-          "sha256": "0ACD400255F73F9631C2C5795DC92452BC6C49264C3D32A2D2295B43A0563A38"
+          "bytes": 1275,
+          "sha256": "1DEB94DBDDAB77FF175FC3694713FB7F587EB4B6D3FD49D53D017AD970600D3C"
         }
       ],
       "member_count": 2,
@@ -284,7 +284,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-build",
@@ -297,8 +297,8 @@
         },
         {
           "path": "skills/evi-build/SKILL.md",
-          "bytes": 3858,
-          "sha256": "0BC4328FC24208B28EBB84AD7284A57DB2E7FFCCF08F95BDCAEFFA629768ABF0"
+          "bytes": 3895,
+          "sha256": "B26461568F52B27B916DAD0DA6DB68A47A28CD1313D917A4391CE48CB7536B4E"
         }
       ],
       "member_count": 2,
@@ -322,7 +322,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-canon",
@@ -335,8 +335,8 @@
         },
         {
           "path": "skills/evi-canon/SKILL.md",
-          "bytes": 8116,
-          "sha256": "C7D28C2459DB6206EE01E88309B49DDD35B7F8ACA889BDA8BBEF1528738E7755"
+          "bytes": 8166,
+          "sha256": "EB55EF2290E1CC1ABC4D79FD719E897FA626B849EB500CC7083102C67310E653"
         }
       ],
       "member_count": 2,
@@ -460,7 +460,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-drop-additional-plugin",
@@ -473,8 +473,8 @@
         },
         {
           "path": "skills/evi-drop-additional-plugin/SKILL.md",
-          "bytes": 1021,
-          "sha256": "BC3BEBF14384938B9535E6019443B0334B3EDF2ED398E26398511D638DE7E92B"
+          "bytes": 1044,
+          "sha256": "39421769BBCF7565FE35E1AD72291B25511D79BE1D69B773CEFA008E615B6824"
         }
       ],
       "member_count": 2,
@@ -490,7 +490,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-exit-boot",
@@ -503,8 +503,8 @@
         },
         {
           "path": "skills/evi-exit-boot/SKILL.md",
-          "bytes": 1315,
-          "sha256": "C5AB635FE3BBD94606C8ABC3894AA5CD6342E6E37BC87EB65DE0E0A0BAC0F777"
+          "bytes": 1338,
+          "sha256": "DE61C37AD8B1839C22ECACDBBEECB7A928BA9E576CD563C81606D8CB4760C2F9"
         }
       ],
       "member_count": 2,
@@ -520,7 +520,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-formula",
@@ -533,8 +533,8 @@
         },
         {
           "path": "skills/evi-formula/SKILL.md",
-          "bytes": 1443,
-          "sha256": "F659B0DC04E1684D55EDA27E7611862F4291CF1AB82CE13037EC563658CFDFE2"
+          "bytes": 1466,
+          "sha256": "2312D3B960B70FFF918E34DD1FB223E3D0A02E75418E7BAE479A65046F69BB35"
         }
       ],
       "member_count": 2,
@@ -550,7 +550,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-fuse",
@@ -563,8 +563,8 @@
         },
         {
           "path": "skills/evi-fuse/SKILL.md",
-          "bytes": 2095,
-          "sha256": "3C08DE694B69363608F28DE58FFA9073FC2414836E532751E667CA6C52D08D40"
+          "bytes": 2235,
+          "sha256": "F8F9FBB1851EA274160FB017F20061BDD2DF7416FD7BFE30E6C28A32714EF247"
         }
       ],
       "member_count": 2,
@@ -595,7 +595,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-instructions",
@@ -608,8 +608,8 @@
         },
         {
           "path": "skills/evi-instructions/SKILL.md",
-          "bytes": 2348,
-          "sha256": "D2E9A07ECB10DC3C08C88EA9552E53B4A864CF0EEF43DAC71C731DFA72CD8532"
+          "bytes": 2369,
+          "sha256": "E809865F1946D47E77253F4E9FA13F064A3417ECEA8F31C14C20FFDC35279366"
         }
       ],
       "member_count": 2,
@@ -640,11 +640,11 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-learning",
-      "description": "\"Govern the project-isolated AI Agent Learning arm: inspect and retrieve accepted lessons, seal evidence-backed learning candidates, run the separate Learning HIL, and revoke accepted learning without changing Project Truth. Use when an AI workflow proposes a reusable procedural, failure-avoidance, relational, tool-routing, or host-compatibility lesson.\"",
+      "description": "Govern the project-isolated AI Agent Learning arm: inspect and retrieve accepted lessons, seal evidence-backed learning candidates, run the separate Learning HIL, and revoke accepted learning without changing Project Truth. Use when an AI workflow proposes a reusable procedural, failure-avoidance, relational, tool-routing, or host-compatibility lesson.",
       "members": [
         {
           "path": "skills/evi-learning/agents/openai.yaml",
@@ -653,8 +653,8 @@
         },
         {
           "path": "skills/evi-learning/SKILL.md",
-          "bytes": 10027,
-          "sha256": "45A0404DDEF8CC1B8531715D54485CDB698CFC52B2F7A8A689142A3BE03CF721"
+          "bytes": 10124,
+          "sha256": "42AB4B361F38BD7744078B647190D28FB642D1F701CC90D79C53BEA12913E8E5"
         }
       ],
       "member_count": 2,
@@ -720,7 +720,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-memory",
@@ -733,8 +733,8 @@
         },
         {
           "path": "skills/evi-memory/SKILL.md",
-          "bytes": 2102,
-          "sha256": "7AA619FDEFC82822851AA630E55DE8903CC851B018C1E5BDE93F20BF0C5E1978"
+          "bytes": 2153,
+          "sha256": "6617AD64BDA4ABF6E4FA5EB62EAA614D5C609DF1332101420F32233181E7DC09"
         }
       ],
       "member_count": 2,
@@ -778,7 +778,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-mode",
@@ -791,8 +791,8 @@
         },
         {
           "path": "skills/evi-mode/SKILL.md",
-          "bytes": 2295,
-          "sha256": "FFC274956C0D1B8374602A7C80C5FD5B37FB9A870F6E82DCF05A437949FDD311"
+          "bytes": 2422,
+          "sha256": "48B86EF5B1BF9F5D1D0C093C6D4E41B6C4F93105B32D7141FEE1893DBD94643E"
         }
       ],
       "member_count": 2,
@@ -808,7 +808,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-plan",
@@ -821,8 +821,8 @@
         },
         {
           "path": "skills/evi-plan/SKILL.md",
-          "bytes": 3972,
-          "sha256": "E996B2751CF14E8D76BD5B009CF1F6C73A9C6099931548E21F09198D062F6D9D"
+          "bytes": 3996,
+          "sha256": "EFE51ACA320F6E9B6BE96FE77F76351A9B31F103578FC66EEB10DF2A1B476C03"
         }
       ],
       "member_count": 2,
@@ -848,7 +848,7 @@
               "pv_query",
               "search"
             ],
-            "workflow": "live-six-authority-read"
+            "workflow": "live-current-authority-read"
           },
           {
             "order": 4,
@@ -874,7 +874,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-plugin",
@@ -887,8 +887,8 @@
         },
         {
           "path": "skills/evi-plugin/SKILL.md",
-          "bytes": 2928,
-          "sha256": "0CA3EA25CFB1D3B0E4D27E4C3D2EE98CB4CDDFAA8933C7FD5FF159B2CE255FA5"
+          "bytes": 3007,
+          "sha256": "35119DF90CE822CF567C5715EE811C42066CF1F5E56BB4F38CC0173F5323787F"
         }
       ],
       "member_count": 2,
@@ -926,7 +926,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-project-recipe",
@@ -939,8 +939,8 @@
         },
         {
           "path": "skills/evi-project-recipe/SKILL.md",
-          "bytes": 1401,
-          "sha256": "651C4106451C1499BCD5003B5D99BC608F15ADC34BA00C27A706D12EF65AEC01"
+          "bytes": 1424,
+          "sha256": "7AD589A1F37E54750F6F6ECEDE87ED19527CF125A383A39E6A46A2BB7ECA3DB7"
         }
       ],
       "member_count": 2,
@@ -956,11 +956,11 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-refresh",
-      "description": "\"Route the three current Evidence Lane refresh workflows without merging them: Source Intake steer/prompt refresh, adaptive Delta-exit append refresh, and full-PV-HIL Project Overlay refresh.\"",
+      "description": "Route the three current Evidence Lane refresh workflows without merging them: Source Intake steer/prompt refresh, adaptive Delta-exit append refresh, and full-PV-HIL Project Overlay refresh.",
       "members": [
         {
           "path": "skills/evi-refresh/agents/openai.yaml",
@@ -969,8 +969,8 @@
         },
         {
           "path": "skills/evi-refresh/SKILL.md",
-          "bytes": 2517,
-          "sha256": "F32DA2CDFEB8F3810233BCD3AD8621024635283559720C81375BCBE6BB189511"
+          "bytes": 2540,
+          "sha256": "6C9954C69DC21407DA694405EC7E6CB35FF099D64917E001E556452CB1F64F31"
         }
       ],
       "member_count": 2,
@@ -1000,7 +1000,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-rollback",
@@ -1013,8 +1013,8 @@
         },
         {
           "path": "skills/evi-rollback/SKILL.md",
-          "bytes": 3324,
-          "sha256": "6A80795E04CCCD939C01E379EEC108E15266AB3014D9AC76ED28D2039BB4EF77"
+          "bytes": 3347,
+          "sha256": "E70CC4E5690E7D6EA37D9775C7B51E6B41895B25FD1B1B97DEF768183778C6B4"
         }
       ],
       "member_count": 2,
@@ -1030,11 +1030,11 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-source-intake",
-      "description": "Evidence Lane generalized ordered source intake with optional Git history, auto-detection, exact overrides, 18 lanes, Project Engulf, and Chat Lineage.",
+      "description": "Evidence Lane generalized ordered source intake with optional Git history, auto-detection, exact overrides, registry-derived sector lanes, and Chat Lineage.",
       "members": [
         {
           "path": "skills/evi-source-intake/agents/openai.yaml",
@@ -1043,8 +1043,8 @@
         },
         {
           "path": "skills/evi-source-intake/SKILL.md",
-          "bytes": 9303,
-          "sha256": "E3F66743E788863F6E5530E379C488D4C5A7B99F8EA3DF377145EBD75211C824"
+          "bytes": 9386,
+          "sha256": "D44181F373D2CD235D43818AC06FBC10928E996BAA97C17FD9DB8A30C43F6E88"
         }
       ],
       "member_count": 2,
@@ -1161,7 +1161,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-state-travel",
@@ -1174,8 +1174,8 @@
         },
         {
           "path": "skills/evi-state-travel/SKILL.md",
-          "bytes": 5304,
-          "sha256": "CD49F7DBE81EACB3A0DEC209B77043316549D7ABEB8ECA633835DB2F786F1A6D"
+          "bytes": 5384,
+          "sha256": "2038B6C8525309E09282214F6ADE698E18043D287F3893B64D16BBC6A9DB702D"
         }
       ],
       "member_count": 2,
@@ -1247,7 +1247,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-storage",
@@ -1260,8 +1260,8 @@
         },
         {
           "path": "skills/evi-storage/SKILL.md",
-          "bytes": 1981,
-          "sha256": "BB7B401498F039F5F1D4381D4C2C4BBD5FB03B009BC46EFE0FC1E771BB8B0023"
+          "bytes": 2008,
+          "sha256": "5A2F680FCBBCA6538DC75CBB4330BDCDBA9E3FDCA9434307D80259F19C8CF9BA"
         }
       ],
       "member_count": 2,
@@ -1284,7 +1284,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-toolchain",
@@ -1297,8 +1297,8 @@
         },
         {
           "path": "skills/evi-toolchain/SKILL.md",
-          "bytes": 1342,
-          "sha256": "3FB01BE0B8047EFE3C5E3F64C06485E45C7519147103D2F6AAE5524D87AF7863"
+          "bytes": 1387,
+          "sha256": "2FB29AF220DBDFD670D4827B2D3A9767DAE864227F00FC64809FD78A1CA5BD2F"
         }
       ],
       "member_count": 2,
@@ -1314,7 +1314,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evi-universe",
@@ -1327,8 +1327,8 @@
         },
         {
           "path": "skills/evi-universe/SKILL.md",
-          "bytes": 1681,
-          "sha256": "DBF0F755330D97025BCBA986C2107954F7694B8A90053768047375B2FFFE2147"
+          "bytes": 1717,
+          "sha256": "B4B3965295CB68BE8060B800B98F582C383A36BD2154972FF22CA9855286889F"
         }
       ],
       "member_count": 2,
@@ -1359,11 +1359,11 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     },
     {
       "name": "evidence-lane-code-lifecycle",
-      "description": "Govern one universal Evidence Lane project across user-timed fresh-host State Travel, atomic Boot and locked ENV/UOP Flash, six public controls, eighteen lanes, bounded linear work, unaccepted candidates, exact-APPROVE Fuse, Plan-stamped logical Rollback, and explicit Exit Boot.",
+      "description": "Govern one universal Evidence Lane project across user-timed fresh-host State Travel, atomic Boot and locked ENV/UOP Flash, registry-derived public skill entrypoints and sector lanes, bounded linear work, unaccepted candidates, exact-APPROVE Fuse, Plan-stamped logical Rollback, and explicit Exit Boot.",
       "members": [
         {
           "path": "skills/evidence-lane-code-lifecycle/agents/openai.yaml",
@@ -1371,12 +1371,17 @@
           "sha256": "27ABF78623305F299AD53901794CA1A114481849BE9D1C1AD0D8C7DA51B04641"
         },
         {
+          "path": "skills/evidence-lane-code-lifecycle/references/shared-boundaries.md",
+          "bytes": 4790,
+          "sha256": "D66916F9D202076734318F44F8B025455C6C2E63C13F95A5A04C7E6CE5E9FB1E"
+        },
+        {
           "path": "skills/evidence-lane-code-lifecycle/SKILL.md",
-          "bytes": 41261,
-          "sha256": "CF56574AF4B89A398AFD4476AE30CF58625638FFEDAE09CAC880151E0B948CB8"
+          "bytes": 41631,
+          "sha256": "A4AA856D1FE094F7DF17FF65492F77CB0F5095F0CB40E8C9E186068B1DE102FA"
         }
       ],
-      "member_count": 2,
+      "member_count": 3,
       "workflow": {
         "ordered_tool_groups": [
           {
@@ -1399,7 +1404,7 @@
               "pv_query",
               "search"
             ],
-            "workflow": "live-root-six-authority-read"
+            "workflow": "live-root-current-authority-read"
           },
           {
             "order": 4,
@@ -1518,7 +1523,7 @@
         ],
         "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE"
       },
-      "routing_manifest_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867"
+      "routing_manifest_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8"
     }
   ],
   "separate_command_count": 0,
@@ -1526,5 +1531,5 @@
   "mcp_server": "evidence-lane",
   "all_skill_members_hash_bound": true,
   "competing_workflow_implementations_allowed": false,
-  "receipt_sha256": "A365B75EE34375437EF524060C615D78A56C701B8308EFF977C612C8A4149E16"
+  "receipt_sha256": "F0DC6A1BAA7F51CE51F62224E6A263E967E73155674B7E890BE4C75F0349F900"
 }

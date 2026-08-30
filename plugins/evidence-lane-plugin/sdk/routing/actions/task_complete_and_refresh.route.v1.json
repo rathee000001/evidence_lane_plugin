@@ -25,11 +25,11 @@
     ],
     "executable": true
   },
-  "schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570",
+  "schema_sha256": "DDCC0D86F2CB504F7BD9B6CAE92C275E6792507B47C67E86EE6C83462F65FC19",
   "sdk_action_binding": "sdk/actions/task_complete_and_refresh.action.v1.json",
   "mcp_action_binding": "mcp/actions/task_complete_and_refresh.binding.v1.json",
   "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "fallback_to_historical_route_allowed": false,
-  "receipt_sha256": "E52765D850221A911A7927096555322906691B54ACEE010FB24075E4FDC71F4C"
+  "receipt_sha256": "0BD9A18F02E25080DD860298EDC5B700D98858D5A43535343015B58FDCF41905"
 }

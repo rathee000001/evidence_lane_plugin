@@ -42,27 +42,38 @@
     {
       "display_id": "10.1",
       "path": "hooks/events/Stop/handler-10.1.v1.json",
-      "sha256": "BCB86714CCDBC5FF67678AF45091413A6E9387F853118A6CE0543448C1B68DFC"
+      "sha256": "373914AA324452F63118EF7B3EBE50EA91C1844E3FEBA1CCFBEBBD88254B5C78"
     },
     {
       "display_id": "10.2",
       "path": "hooks/events/Stop/handler-10.2.v1.json",
-      "sha256": "85F90F91A7463CDC96A6D642E031A7B02D61AF6033B134AC296587D2077F1BA7"
+      "sha256": "0FB4096995F6ACC97B7FC5C384436ECB4730BB3EF991250146F18B481DD28DAD"
     },
     {
       "display_id": "10.3",
       "path": "hooks/events/Stop/handler-10.3.v1.json",
-      "sha256": "144512DFE303AB40279E143F19A91299E3BC628EB80A047E7A8F98682D22E3C7"
+      "sha256": "8ACF72E2B8E74B2C8D3D5A15D04376855F71293E5D1AABDB97D93D474F8583FC"
     },
     {
       "display_id": "10.4",
       "path": "hooks/events/Stop/handler-10.4.v1.json",
-      "sha256": "C1717F99D2B29429A3FCD3145D88E67DA01731C0B510C9B41A7774428F7EF30D"
+      "sha256": "D65DCB0B003301530BDDF7A62940BA3FB0DD218BABCD8FEB639A5427185CE3B8"
     }
   ],
   "adapter": "hooks/stop_response.py",
   "adapter_sha256": "4ED8A253818A22B83631FA13DF95CCA176B4C14CE4BD8E3F46CE0CE258CC375B",
+  "workflow_contract": {
+    "host_timing": "AFTER_VISIBLE_RESPONSE_BEFORE_NEXT_TURN",
+    "action_scope": "WORKFLOW_EXIT",
+    "skill_action": "COMMIT",
+    "skill_consumer": "consume_stop_transport",
+    "workflow_phases": [
+      "ORDINARY_TURN_COMMIT"
+    ],
+    "public_action_boundary": false
+  },
+  "workflow_contract_sha256": "BA134A158786419D7D6AA9D8395897C445ACA2DD257D5C8E1F72BA68305D8F38",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "65C096A34ABE2024C4E7BBCAB70DA0FA8AEED3F7D4C783FA2F54DDF075518EDD"
+  "receipt_sha256": "B941C732C82C7B45CD11617F4B991472CFDA9BB9E24D3876C61CEB9F9EA66380"
 }

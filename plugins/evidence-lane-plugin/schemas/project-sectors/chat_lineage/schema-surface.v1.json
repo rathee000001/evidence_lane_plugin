@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "chat_lineage",
   "authority_root": "authorities/project_sectors/chat_lineage",
-  "authority_manifest_sha256": "B0E097746BF39E5E64CAE570DB2D064E0CEA1BBBBB8206658663572E49216741",
+  "authority_manifest_sha256": "8065DD24AF89EAAA8EABF11CF3349847953B37BAC14DFE5B041E7AD37D368020",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -43,8 +43,8 @@
     },
     {
       "path": "authorities/project_sectors/chat_lineage/schema.sql",
-      "bytes": 11679,
-      "sha256": "991D1A8AE30F8856B764636A1429736FE4641C2BE37D96FDCE6382B53DBE3CE9"
+      "bytes": 12266,
+      "sha256": "C1AFA7F9477EF7851B0BDE452D32852B3F13E149C582FE70B79BD9FBCA322B46"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/sqlite-artifact.schema.json",
@@ -53,12 +53,12 @@
     },
     {
       "path": "authorities/project_sectors/chat_lineage/tools.schema.json",
-      "bytes": 1009,
-      "sha256": "CBBD2015345D8CBC2E9C044DA7B68628C3269C297DF21A84A4ED44E06BF6A8D9"
+      "bytes": 1455,
+      "sha256": "8C19F092F7C92210762DEE2E0F12B1D787D4EC570E53F0FEE276466DC1F7188A"
     }
   ],
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
-  "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "canonical_lane_contract_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "1F2BEB1ADFED2890F8CD5EEAE254D3DD55834AA1E5D4AE25F13F54736B0C2998"
+  "receipt_sha256": "E72C26C7A3E0554E070A5F6A235025796BCC4E29E647450147BF83041A4D4D9D"
 }

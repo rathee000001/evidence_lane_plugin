@@ -27,7 +27,7 @@ from evidence_lane_plugin.hashing import (
     canonical_json_bytes,
     sha256_bytes,
 )
-from evidence_lane_plugin.mcp_server import SDK_NATIVE_ACTIONS
+from evidence_lane_plugin.mcp_server import SPECIALIZED_NATIVE_ACTIONS
 from evidence_lane_plugin.project_memory import MEMORY_SECTOR_LOCATOR_PREFIXES
 
 PROJECT_ID = "learning-fixture"
@@ -220,9 +220,7 @@ def _bootstrap_plan_projection(root: Path) -> Path:
     return path
 
 
-def _evidence(
-    label: str = "source", *, project_id: str = PROJECT_ID
-) -> dict[str, str]:
+def _evidence(label: str = "source", *, project_id: str = PROJECT_ID) -> dict[str, str]:
     return {
         "project_id": project_id,
         "task_id": "task-fixture",
@@ -317,9 +315,9 @@ def test_candidate_is_immutable_provenanced_and_idempotent(tmp_path: Path) -> No
     assert first["private_reasoning_stored"] is False
     assert second["idempotent_reuse"] is True
     assert second["candidate"] == first["candidate"]
-    assert inspect_learning_authority(root, project_id=PROJECT_ID)[
-        "candidate_count"
-    ] == 1
+    assert (
+        inspect_learning_authority(root, project_id=PROJECT_ID)["candidate_count"] == 1
+    )
 
 
 def test_verified_history_bootstrap_is_bounded_idempotent_and_pointer_neutral(
@@ -361,12 +359,15 @@ def test_verified_history_bootstrap_is_bounded_idempotent_and_pointer_neutral(
     inspected = inspect_learning_authority(root, project_id=PROJECT_ID)
     assert inspected["candidate_count"] == 3
     assert inspected["event_count"] == 5
-    assert list(inspected["candidate_states"].values()).count(
-        "AUTO_ACCEPTED_DELTA_LEARNING"
-    ) == 2
-    assert list(inspected["candidate_states"].values()).count(
-        "PENDING_LEARNING_HIL"
-    ) == 1
+    assert (
+        list(inspected["candidate_states"].values()).count(
+            "AUTO_ACCEPTED_DELTA_LEARNING"
+        )
+        == 2
+    )
+    assert (
+        list(inspected["candidate_states"].values()).count("PENDING_LEARNING_HIL") == 1
+    )
     assert inspected["auto_accepted_delta_count"] == 2
     assert inspected["pending_weave_count"] == 1
     assert inspected["learning_weaves"] == [
@@ -376,9 +377,7 @@ def test_verified_history_bootstrap_is_bounded_idempotent_and_pointer_neutral(
             "member_count": 2,
             "member_set_sha256": first["weave_receipt"]["member_set_sha256"],
             "weave_candidate_id": first["weave_candidate"]["candidate_id"],
-            "weave_candidate_sha256": first["weave_candidate"][
-                "candidate_sha256"
-            ],
+            "weave_candidate_sha256": first["weave_candidate"]["candidate_sha256"],
             "weave_candidate_state": "PENDING_LEARNING_HIL",
             "receipt_sha256": first["weave_receipt"]["receipt_sha256"],
             "acceptance_decision_receipt_sha256": None,
@@ -444,18 +443,18 @@ def test_only_woven_learning_candidate_is_human_decidable(tmp_path: Path) -> Non
     assert accepted["receipt"]["learning_pointer_moved"] is True
     inspected = inspect_learning_authority(root, project_id=PROJECT_ID)
     assert inspected["current_pointer"]["generation"] == 1
-    assert inspected["current_pointer"]["accepted_candidate_id"] == weave[
-        "candidate_id"
-    ]
-    assert inspected["learning_weaves"][0][
-        "acceptance_decision_receipt_sha256"
-    ] == accepted["receipt"]["receipt_sha256"]
-    assert inspected["learning_weaves"][0]["acceptance_decided_at"] == accepted[
-        "receipt"
-    ]["decided_at"]
-    assert inspected["candidate_states"][member_id] == (
-        "AUTO_ACCEPTED_DELTA_LEARNING"
+    assert (
+        inspected["current_pointer"]["accepted_candidate_id"] == weave["candidate_id"]
     )
+    assert (
+        inspected["learning_weaves"][0]["acceptance_decision_receipt_sha256"]
+        == accepted["receipt"]["receipt_sha256"]
+    )
+    assert (
+        inspected["learning_weaves"][0]["acceptance_decided_at"]
+        == accepted["receipt"]["decided_at"]
+    )
+    assert inspected["candidate_states"][member_id] == ("AUTO_ACCEPTED_DELTA_LEARNING")
 
 
 def test_verified_history_bootstrap_prevalidates_before_any_learning_write(
@@ -500,9 +499,12 @@ def test_exact_approve_moves_learning_pointer_only(tmp_path: Path) -> None:
     assert result["receipt"]["project_truth_pointer_moved"] is False
     assert result["receipt"]["project_hil_invoked"] is False
     assert (root / "active_pointer.json").read_bytes() == project_before
-    assert inspect_learning_authority(root, project_id=PROJECT_ID)[
-        "current_pointer"
-    ]["generation"] == 1
+    assert (
+        inspect_learning_authority(root, project_id=PROJECT_ID)["current_pointer"][
+            "generation"
+        ]
+        == 1
+    )
 
     replay = _decide(root, sealed, "APPROVE")
     assert replay["idempotent_reuse"] is True
@@ -578,14 +580,17 @@ def test_supersession_and_learning_only_rollback_preserve_history(
         "SUPERSEDED"
     )
 
-    rollback = _decide(root, second, "ROLLBACK: LGEN1", decided_at="2026-08-13T16:00:00Z")
+    rollback = _decide(
+        root, second, "ROLLBACK: LGEN1", decided_at="2026-08-13T16:00:00Z"
+    )
     after_rollback = inspect_learning_authority(root, project_id=PROJECT_ID)
 
     assert rollback["receipt"]["state_after"] == "ROLLED_BACK"
     assert after_rollback["current_pointer"]["generation"] == 3
-    assert after_rollback["current_pointer"]["accepted_candidate_id"] == first[
-        "candidate"
-    ]["candidate_id"]
+    assert (
+        after_rollback["current_pointer"]["accepted_candidate_id"]
+        == first["candidate"]["candidate_id"]
+    )
     assert after_rollback["candidate_states"][first["candidate"]["candidate_id"]] == (
         "ACCEPTED"
     )
@@ -600,13 +605,16 @@ def test_expiry_and_revocation_remove_lessons_from_retrieval(tmp_path: Path) -> 
         expires_at="2026-08-13T14:30:00+00:00",
     )
     _decide(root, expiring, "APPROVE", decided_at=T2)
-    assert retrieve_accepted_learning(
-        root,
-        project_id=PROJECT_ID,
-        query="expiry retry",
-        scope_selectors=[PROJECT_ID],
-        as_of="2026-08-13T14:15:00+00:00",
-    )["result"] == "HIT"
+    assert (
+        retrieve_accepted_learning(
+            root,
+            project_id=PROJECT_ID,
+            query="expiry retry",
+            scope_selectors=[PROJECT_ID],
+            as_of="2026-08-13T14:15:00+00:00",
+        )["result"]
+        == "HIT"
+    )
 
     expired = expire_learning_candidates(
         root,
@@ -617,13 +625,16 @@ def test_expiry_and_revocation_remove_lessons_from_retrieval(tmp_path: Path) -> 
     assert expired["expired_candidate_ids"] == [expiring["candidate"]["candidate_id"]]
     assert expired["receipt"]["expiry_owner"] == LEARNING_EXPIRY_OWNER
     assert expired["receipt"]["learning_pointer_moved"] is False
-    assert retrieve_accepted_learning(
-        root,
-        project_id=PROJECT_ID,
-        query="expiry retry",
-        scope_selectors=[PROJECT_ID],
-        as_of="2026-08-13T14:31:00+00:00",
-    )["result"] == "NO_HIT"
+    assert (
+        retrieve_accepted_learning(
+            root,
+            project_id=PROJECT_ID,
+            query="expiry retry",
+            scope_selectors=[PROJECT_ID],
+            as_of="2026-08-13T14:31:00+00:00",
+        )["result"]
+        == "NO_HIT"
+    )
 
     revocable = _seal(root, statement="Revocable tool routing lesson.")
     _decide(root, revocable, "APPROVE", decided_at="2026-08-13T16:00:00Z")
@@ -634,13 +645,16 @@ def test_expiry_and_revocation_remove_lessons_from_retrieval(tmp_path: Path) -> 
         reason="new counterevidence",
         revoked_at="2026-08-13T17:00:00Z",
     )
-    assert retrieve_accepted_learning(
-        root,
-        project_id=PROJECT_ID,
-        query="revocable routing",
-        scope_selectors=[PROJECT_ID],
-        as_of="2026-08-13T17:01:00Z",
-    )["result"] == "NO_HIT"
+    assert (
+        retrieve_accepted_learning(
+            root,
+            project_id=PROJECT_ID,
+            query="revocable routing",
+            scope_selectors=[PROJECT_ID],
+            as_of="2026-08-13T17:01:00Z",
+        )["result"]
+        == "NO_HIT"
+    )
 
 
 def test_project_truth_conflict_is_suppressed_with_receipt(tmp_path: Path) -> None:
@@ -684,7 +698,9 @@ def test_cross_project_secret_and_tamper_guards_fail_closed(tmp_path: Path) -> N
     assert tampered.value.code == "LEARNING_CANDIDATE_FILE_LEDGER_MISMATCH"
 
 
-def test_runtime_contract_has_six_learning_routes_and_first_class_memory_boundary() -> None:
+def test_runtime_contract_has_six_learning_routes_and_first_class_memory_boundary() -> (
+    None
+):
     contract = learning_runtime_contract()
 
     assert contract["public_actions"] == [
@@ -709,7 +725,9 @@ def test_runtime_contract_has_six_learning_routes_and_first_class_memory_boundar
         "learning_memory_query",
         "learning_memory_record_link",
     ]
-    assert contract["memory_graph"]["obsolete_compatibility_actions_executable"] is False
+    assert (
+        contract["memory_graph"]["obsolete_compatibility_actions_executable"] is False
+    )
     assert contract["memory_graph"]["legacy_learning_tables"] == (
         "IMMUTABLE_MIGRATION_SOURCE_ONLY"
     )
@@ -732,15 +750,13 @@ def test_runtime_contract_has_six_learning_routes_and_first_class_memory_boundar
     assert contract["public_action_count"] == 6
     assert contract["search"]["engine"] == "SQLITE_FTS5"
     assert contract["search"]["full_ledger_loaded_into_model_context"] is False
-    assert contract["expiry"]["event_materialization_owner"] == (
-        LEARNING_EXPIRY_OWNER
-    )
+    assert contract["expiry"]["event_materialization_owner"] == (LEARNING_EXPIRY_OWNER)
     assert contract["expiry"]["public_action"] is None
     assert contract["expiry"]["hook_owned"] is False
     routing = {
         name: (module, operation)
         for name, _title, _description, module, operation, _read_only in (
-            SDK_NATIVE_ACTIONS
+            SPECIALIZED_NATIVE_ACTIONS
         )
         if name in contract["public_actions"]
     }
@@ -748,7 +764,7 @@ def test_runtime_contract_has_six_learning_routes_and_first_class_memory_boundar
     memory_routing = {
         name: (module, operation)
         for name, _title, _description, module, operation, _read_only in (
-            SDK_NATIVE_ACTIONS
+            SPECIALIZED_NATIVE_ACTIONS
         )
         if name in contract["memory_graph"]["current_action_names"]
     }
@@ -976,9 +992,12 @@ def test_retrieval_excludes_expired_before_event_materialization(
     assert result["suppressed"][0]["state"] == "SUPPRESSED_TEMPORAL_EXPIRY"
     assert result["suppressed"][0]["expiry_event_materialized"] is False
     assert result["search_engine"] == "SQLITE_FTS5_BM25"
-    assert inspect_learning_authority(root, project_id=PROJECT_ID)[
-        "candidate_states"
-    ][sealed["candidate"]["candidate_id"]] == "ACCEPTED"
+    assert (
+        inspect_learning_authority(root, project_id=PROJECT_ID)["candidate_states"][
+            sealed["candidate"]["candidate_id"]
+        ]
+        == "ACCEPTED"
+    )
 
 
 def test_expiry_materialization_rejects_every_other_owner(tmp_path: Path) -> None:
@@ -999,9 +1018,12 @@ def test_expiry_materialization_rejects_every_other_owner(tmp_path: Path) -> Non
         )
 
     assert blocked.value.code == "LEARNING_EXPIRY_OWNER_REQUIRED"
-    assert inspect_learning_authority(root, project_id=PROJECT_ID)[
-        "candidate_states"
-    ][sealed["candidate"]["candidate_id"]] == "ACCEPTED"
+    assert (
+        inspect_learning_authority(root, project_id=PROJECT_ID)["candidate_states"][
+            sealed["candidate"]["candidate_id"]
+        ]
+        == "ACCEPTED"
+    )
 
 
 def test_v0_ledger_migrates_additively_and_rebuilds_fts(tmp_path: Path) -> None:
@@ -1105,11 +1127,9 @@ def test_legacy_learning_root_migrates_once_to_single_ai_learning_authority(
     assert (canonical / "agent-learning.sqlite").read_bytes() == ledger_before
     assert (canonical / "authority.ref.json").is_file()
     receipt = json.loads(
-        (
-            canonical
-            / "receipts"
-            / "authority-layout-migration-v1.json"
-        ).read_text(encoding="utf-8")
+        (canonical / "receipts" / "authority-layout-migration-v1.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert receipt["status"] == "PASS"
     assert receipt["canonical_directory"] == "ai_learning"

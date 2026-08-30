@@ -141,7 +141,7 @@ export const floatingStudioSuggestions = {
     "How does Studio use the current page without treating it as truth?",
     "Which artifact formats can I inspect here?",
     "What happens when retrieval finds no supporting project evidence?",
-    "What roles do OpenRouter, SQL, and vector retrieval play?",
+    "What roles do SQL and vector retrieval play?",
     "What is the difference between business guidance and the audit receipt?",
   ],
   proof: [

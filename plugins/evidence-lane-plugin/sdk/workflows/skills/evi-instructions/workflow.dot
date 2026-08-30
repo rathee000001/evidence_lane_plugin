@@ -1,0 +1,49 @@
+digraph skill_evi_instructions {
+  // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
+  // PYTHON_GRAPHVIZ_VERSION=0.21
+  bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
+  node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
+  edge [color="#667085" fontname=Arial]
+  ENTRY [label="evi-instructions intent" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
+  EXIT [label="Exact result / stop / next workflow" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  subgraph cluster_wf_agents_and_host_memory_read {
+    label="agents-and-host-memory-read" rankdir=TB
+    WF_AGENTS_AND_HOST_MEMORY_READ_START [label="agents-and-host-memory-read" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_001 [label="1. pv_status [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_002 [label="2. pv_task_backlog [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_003 [label="3. pv_query [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_004 [label="3. search [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_execution {
+    label="Shared typed execution contract" rankdir=TB
+    SCHEMA [label="Current input/output schema" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    INTERNAL_SDK [label="Internal SDK execution owner" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ENV [label="ENV15 environment selection" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    UOP [label="UOP15 governance and gates" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+    AUTHORITY [label="Owning authority and lane" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    TOOLS [label="Conditional tool role resolution" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    OUTER [label="Outer SDK / FastMCP / native compatibility" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    HOOKS [label="Only emitted ordered hooks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    VALIDATE [label="Validate schema, result and effects" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+    RECEIPT [label="Exact receipt" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  }
+  ENTRY -> WF_AGENTS_AND_HOST_MEMORY_READ_START
+  WF_AGENTS_AND_HOST_MEMORY_READ_START -> WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_001
+  WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_001 -> WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_002 [label="ordered action"]
+  WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_002 -> WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_003 [label="ordered action"]
+  WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_003 -> WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_004 [label="ordered action"]
+  SCHEMA -> INTERNAL_SDK
+  INTERNAL_SDK -> ENV
+  ENV -> UOP
+  UOP -> AUTHORITY
+  AUTHORITY -> TOOLS
+  TOOLS -> OUTER
+  OUTER -> HOOKS
+  HOOKS -> VALIDATE
+  VALIDATE -> RECEIPT
+  WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_002 -> SCHEMA [label="typed execution"]
+  WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_003 -> SCHEMA [label="typed execution"]
+  WF_AGENTS_AND_HOST_MEMORY_READ_ACTION_004 -> SCHEMA [label="typed execution"]
+  RECEIPT -> EXIT
+}

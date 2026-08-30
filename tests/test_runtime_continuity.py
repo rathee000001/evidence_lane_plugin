@@ -110,7 +110,7 @@ def test_resume_upgrades_legacy_receipt_without_rewriting_it(service) -> None:
     assert current["continuity_receipt_sha256"] != legacy[
         "continuity_receipt_sha256"
     ]
-    assert current["invocation"]["six_way_hil_preserved"] is True
+    assert current["invocation"]["authority_hil_policy_preserved"] is True
     stored = service.sessions.load("book-faires", session_id)
     archived = stored.metadata["runtime_continuity_receipt_archive"]
     assert archived[-1]["continuity_receipt_sha256"] == legacy[
@@ -379,5 +379,5 @@ def test_headless_boot_seals_api_invocation_and_local_pv_continuity(service) -> 
     assert invocation["exit_slip_next_prompt_label"] == (
         "PV_EXIT_SUGGESTED_NEXT_PROMPT"
     )
-    assert invocation["six_way_hil_preserved"] is True
+    assert invocation["authority_hil_policy_preserved"] is True
     assert invocation["durable_runtime_survives_client_process"] is True

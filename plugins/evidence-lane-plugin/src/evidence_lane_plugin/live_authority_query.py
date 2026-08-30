@@ -1,4 +1,4 @@
-"""Single live-root, six-authority query route for prompts, SDK, MCP, and exit."""
+"""Single live-root, current-authority query route for prompts, SDK, MCP, and exit."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from .lanes import CANONICAL_LANE_IDS
 from .project_authority import query_working_project_sectors
 from .timeutil import utc_now
 
-LIVE_AUTHORITY_QUERY_SCHEMA = "evidence-lane.live-root-env-uop-six-way-query.v1"
+LIVE_AUTHORITY_QUERY_SCHEMA = "evidence-lane.live-root-current-authority-query.v2"
 _READ_OPERATIONS = (
     ("agent_learning", "retrieve"),
     ("project_memory", "query"),
@@ -199,7 +199,7 @@ def _read_arms(
             and response.get("module_id") == module_id
             and response.get("operation") == operation,
             "LIVE_AUTHORITY_ARM_QUERY_FAILED",
-            "A six-authority query arm failed its exact SDK route.",
+            "A current-authority query arm failed its exact SDK route.",
             status="FAIL",
             module_id=module_id,
             operation=operation,
@@ -306,7 +306,7 @@ def query_live_authorities(
     session_id: str | None = None,
     refresh_on_miss: bool = True,
 ) -> dict[str, Any]:
-    """Query all six authorities without opening accepted HIL archives."""
+    """Query current governed authorities without opening accepted archives."""
 
     exact_query = str(query or "").strip()
     require(
@@ -436,18 +436,17 @@ def query_live_authorities(
         },
         "env_uop_governance": {
             "role": "GOVERNING_CONTROL_PLANE_NOT_AUTHORITY_ARMS",
-            "six_way_arms": [
+            "current_authority_classes": [
                 "PROJECT_SECTORS_AND_ROOT_FILES",
                 "AI_LEARNING",
                 "CANON_GRAPH",
                 "PROJECT_MEMORY_DB",
                 "HOST_CONVERSATION_MEMORY_MD",
                 "AGENTS_MD",
-            ],
-            "linked_operational_layers": [
                 "PROJECT_UNIVERSE",
                 "CONNECTOR_BRAIN",
             ],
+            "authority_class_set_derived_from_current_runtime": True,
             "hil_only_layers": ["PROJECT_OVERLAY"],
             "authority_merge_allowed": False,
         },
@@ -461,7 +460,7 @@ def query_live_authorities(
         },
         "authorities": {
             "sector_lanes": {
-                "authority": "ALL_18_LIVE_ROOT_SECTORS",
+                "authority": "ALL_CURRENT_LIVE_ROOT_SECTORS",
                 "result": sectors,
                 "authority_merge_allowed": False,
             },

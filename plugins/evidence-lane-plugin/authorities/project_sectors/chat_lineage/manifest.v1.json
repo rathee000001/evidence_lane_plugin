@@ -4,8 +4,8 @@
   "lane_id": "chat_lineage",
   "sqlite_filename": "chat_lineage_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 45,
-  "schema_contract_table_count": 35,
+  "sqlite_table_count": 44,
+  "schema_contract_table_count": 36,
   "members": [
     {
       "path": "authorities/project_sectors/chat_lineage/builder-contract.schema.json",
@@ -19,18 +19,18 @@
     },
     {
       "path": "authorities/project_sectors/chat_lineage/chat_lineage.dot",
-      "bytes": 22938,
-      "sha256": "90D1328B899B47690F458BD1BCDF415020039F1EF6190353AEB13A0D0B1ABB1C"
+      "bytes": 24359,
+      "sha256": "53E8E1BC7878DD5F692285172B4F7A7F6999BA1A1DCD732B65A42EC44613FBAC"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/chat_lineage.mmd",
-      "bytes": 18236,
-      "sha256": "D379201EDC1EB51C498946D3CFC47981A7EB06276E39D5E17C834F8A235A5B4C"
+      "bytes": 19216,
+      "sha256": "062BD041609DB9D8E7E0F80E0016C2610523338A04FA9ADA2212EFC9FD91A58C"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/chat_lineage_sector_v001.sqlite",
-      "bytes": 278528,
-      "sha256": "694DD3DD200DB392CA016D76C00232F510A21247FC389585C82966317CECE802"
+      "bytes": 286720,
+      "sha256": "7769E1BE0379403988622C38681F1170A104DC135E5C5350ED8B32BE465345EF"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/dot-artifact.schema.json",
@@ -39,8 +39,8 @@
     },
     {
       "path": "authorities/project_sectors/chat_lineage/lane-contract.v1.json",
-      "bytes": 8195,
-      "sha256": "696818A460F6216AA0406F4F7CFCB503036A3022D8D333B5DA13B4CCAFD887EA"
+      "bytes": 9175,
+      "sha256": "F134AA506EA9D420D261FF524593282B6FD15E0423313B46F86D94FA9C140A50"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/lane-pointer.schema.json",
@@ -79,8 +79,8 @@
     },
     {
       "path": "authorities/project_sectors/chat_lineage/schema.sql",
-      "bytes": 11679,
-      "sha256": "991D1A8AE30F8856B764636A1429736FE4641C2BE37D96FDCE6382B53DBE3CE9"
+      "bytes": 12266,
+      "sha256": "C1AFA7F9477EF7851B0BDE452D32852B3F13E149C582FE70B79BD9FBCA322B46"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/sqlite-artifact.schema.json",
@@ -89,19 +89,34 @@
     },
     {
       "path": "authorities/project_sectors/chat_lineage/tools.json",
-      "bytes": 1154,
-      "sha256": "0729AB9431C0AF6ABC0F866995FC7345B22F9504AE4DDE90598D2C3EF32E01C2"
+      "bytes": 16267,
+      "sha256": "BECF81AF9E8D7F5ED2BBA27AFB90293380B2E9AF4C5E6A2E4AEB69DAE732C495"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/tools.schema.json",
-      "bytes": 1009,
-      "sha256": "CBBD2015345D8CBC2E9C044DA7B68628C3269C297DF21A84A4ED44E06BF6A8D9"
+      "bytes": 1455,
+      "sha256": "8C19F092F7C92210762DEE2E0F12B1D787D4EC570E53F0FEE276466DC1F7188A"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/workflow.dot",
+      "bytes": 6471,
+      "sha256": "D8CDB72EEF8A4A8CAF7F7F59AB081A2593EC0F0A532B19437A26DC99D03F9866"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/workflow.mmd",
+      "bytes": 5032,
+      "sha256": "B79244763E64A0D25B941821AC0BA3F54EC793F35F5C4F1947183DD64BF6DED1"
+    },
+    {
+      "path": "authorities/project_sectors/chat_lineage/workflow.v1.json",
+      "bytes": 30675,
+      "sha256": "968A8BC60F21C3A0D10B0774C3C3E0B551B8971CB987EDD4815E5D7C927D2316"
     }
   ],
-  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "DFDC1F654653C6EACC1448CF38C3A49175D4B24623EFA6188F55636749FCFE9F"
+  "receipt_sha256": "9E401462226E7321C0B752D098AFB75A37A633893B3DCDA22D1462C5D56F7D3D"
 }

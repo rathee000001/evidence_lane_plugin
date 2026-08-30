@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import sqlite3
 import time
+from collections import Counter
 from collections.abc import Callable
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from pathlib import Path
 from threading import Event
 from typing import Any, cast
 
+from .compact_storage import decompress_exact_bytes, read_source_record
 from .errors import EvidenceLaneError, require
 from .freshness import (
     evaluate_freshness,
@@ -277,51 +280,70 @@ class LaneReader:
             uri=True,
         )
         connection.row_factory = sqlite3.Row
-        bm25_rows = []
-        if retrieval in {"hybrid", "fts5", "bm25"}:
+        bm25_rows: list[dict[str, Any]] = []
+        if retrieval in {"hybrid", "fts5", "bm25", "tfidf"}:
             # The table identifier comes from the immutable validated registry.
             bm25_sql = (
-                "SELECT f.chunk_id AS chunk_id, f.path AS path, "  # nosec B608
-                "f.locator AS locator, "
-                f"snippet({fts_table}, 2, '[', ']', ' ... ', 24) AS snippet, "
+                "SELECT c.chunk_id AS chunk_id, s.path AS path, "  # nosec B608
+                "c.locator AS locator, c.sha256 AS chunk_sha256, "
+                "cas.size_bytes AS chunk_size_bytes, "
+                "cas.compression AS chunk_compression, "
+                "cas.compressed_text AS chunk_compressed_text, "
                 f"bm25({fts_table}) AS bm25_rank, "
-                "c.sha256 AS chunk_sha256, s.sha256 AS source_sha256, "
+                "s.sha256 AS source_sha256, "
                 "s.parser_state AS parser_state "
                 f"FROM {fts_table} f "
-                "JOIN chunk_index c ON c.chunk_id=CAST(f.chunk_id AS INTEGER) "
+                "JOIN chunk_index c ON c.chunk_id="
+                "COALESCE(CAST(f.chunk_id AS INTEGER),f.rowid) "
+                "JOIN chunk_content_cas cas ON cas.sha256=c.sha256 "
                 "JOIN source_registry s ON s.source_id=c.source_id "
                 f"WHERE {fts_table} MATCH ? "
                 "ORDER BY bm25_rank, path, locator, chunk_id LIMIT ?"
             )
-            bm25_rows = [
-                dict(row)
-                for row in connection.execute(
-                    bm25_sql,
-                    (fts_query, limit * 3),
+            bm25_rows = []
+            for raw_row in connection.execute(
+                bm25_sql,
+                (fts_query, min(1_000, max(limit * 8, 100))),
+            ):
+                row = dict(raw_row)
+                full_text = decompress_exact_bytes(
+                    compression=str(row.pop("chunk_compression")),
+                    payload=bytes(row.pop("chunk_compressed_text")),
+                    expected_size=int(row.pop("chunk_size_bytes")),
+                    expected_sha256=str(row["chunk_sha256"]),
+                ).decode("utf-8")
+                bm25_rows.append(
+                    {
+                        **row,
+                        "snippet": full_text[:1000],
+                        "full_text": full_text,
+                    }
                 )
-            ]
         tfidf_rows = []
         if retrieval in {"hybrid", "tfidf"}:
-            placeholders = ",".join("?" for _ in terms)
-            tfidf_sql = (
-                "SELECT c.chunk_id AS chunk_id, s.path AS path, "  # nosec B608
-                "c.locator AS locator, substr(c.text_content, 1, 1000) AS snippet, "
-                "SUM(v.tfidf) AS tfidf_score, c.sha256 AS chunk_sha256, "
-                "s.sha256 AS source_sha256, s.parser_state AS parser_state "
-                "FROM tfidf_vector v JOIN chunk_index c ON c.chunk_id=v.chunk_id "
-                "JOIN source_registry s ON s.source_id=c.source_id "
-                f"WHERE v.term IN ({placeholders}) "
-                "GROUP BY c.chunk_id, s.path, c.locator, c.sha256, "
-                "s.sha256, s.parser_state "
-                "ORDER BY tfidf_score DESC, path, locator, c.chunk_id LIMIT ?"
-            )
-            tfidf_rows = [
-                dict(row)
-                for row in connection.execute(
-                    tfidf_sql,
-                    (*terms, limit * 3),
+            counters = []
+            document_frequency: Counter[str] = Counter()
+            for row in bm25_rows:
+                counter = Counter(
+                    token.lower()
+                    for token in _TOKEN_RE.findall(str(row["full_text"]))
                 )
-            ]
+                counters.append((row, counter))
+                document_frequency.update(term for term in terms if counter[term])
+            document_count = len(counters)
+            scored = []
+            for row, counter in counters:
+                token_count = max(sum(counter.values()), 1)
+                score = sum(
+                    (counter[term] / token_count)
+                    * (math.log((1 + document_count) / (1 + document_frequency[term])) + 1.0)
+                    for term in terms
+                )
+                scored.append({**row, "tfidf_score": score})
+            tfidf_rows = sorted(
+                scored,
+                key=lambda row: (-float(row["tfidf_score"]), row["path"], row["chunk_id"]),
+            )[: limit * 3]
         connection.close()
 
         merged: dict[int, dict[str, Any]] = {}
@@ -347,6 +369,7 @@ class LaneReader:
             target["tfidf_score"] = row["tfidf_score"]
             target.setdefault("snippet", row["snippet"])
         for row in merged.values():
+            row.pop("full_text", None)
             positions = [
                 position
                 for position in (row.get("bm25_position"), row.get("tfidf_position"))
@@ -400,7 +423,11 @@ class LaneReader:
                     "term normalization and BM25 ordering"
                 ),
                 "bm25": "SQLite FTS5 bm25; lower raw rank is better",
-                "tfidf": "tf=count/tokens; idf=ln((1+N)/(1+df))+1",
+                "tfidf": (
+                    "bounded query-time tf=count/tokens; "
+                    "idf=ln((1+candidate_N)/(1+candidate_df))+1 over FTS candidates"
+                ),
+                "tfidf_materialized_vector_rows": False,
                 "hybrid": "reciprocal-rank fusion with k=60",
                 "bm25_mislabeled_as_tfidf": False,
             },
@@ -2098,21 +2125,17 @@ class LaneReader:
             uri=True,
         )
         connection.row_factory = sqlite3.Row
-        row = connection.execute(
-            """
-            SELECT source_id, path, size_bytes, sha256, mime_type, extension,
-                   encoding, parser_state, exact_bytes
-            FROM source_registry WHERE path=?
-            """,
-            (path.replace("\\", "/"),),
-        ).fetchone()
-        require(
-            row is not None,
-            "LANE_SOURCE_NOT_FOUND",
-            "The requested source is not registered in this lane.",
-            status="EMPTY",
-            path=path,
+        row, data = read_source_record(
+            connection,
+            path=path.replace("\\", "/"),
         )
+        if row is None or data is None:
+            raise EvidenceLaneError(
+                code="LANE_SOURCE_NOT_FOUND",
+                message="The requested source is not registered in this lane.",
+                status="EMPTY",
+                details={"path": path},
+            )
         facts = [
             {
                 **dict(fact),
@@ -2128,7 +2151,6 @@ class LaneReader:
             )
         ]
         connection.close()
-        data = bytes(row["exact_bytes"])
         if row["encoding"]:
             content = data[:max_bytes].decode(row["encoding"], errors="replace")
             representation = "text"

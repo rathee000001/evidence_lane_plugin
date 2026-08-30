@@ -4,8 +4,8 @@
   "lane_id": "discussion",
   "sqlite_filename": "discussion_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 36,
-  "schema_contract_table_count": 26,
+  "sqlite_table_count": 35,
+  "schema_contract_table_count": 27,
   "members": [
     {
       "path": "authorities/project_sectors/discussion/builder-contract.schema.json",
@@ -19,18 +19,18 @@
     },
     {
       "path": "authorities/project_sectors/discussion/discussion.dot",
-      "bytes": 17545,
-      "sha256": "167692E9CFFA92960D55376C1F9F174C1D41BA420A16891DA24651B1352D6EB2"
+      "bytes": 18326,
+      "sha256": "FB1A972AE853244FD95338F3F29655C28DEC4C6CBA4071CDE64B4288D4F44A4F"
     },
     {
       "path": "authorities/project_sectors/discussion/discussion.mmd",
-      "bytes": 13970,
-      "sha256": "78E175C98BB834F71E2F170AF7CC49BA9DC682DFD66D6BFAFFF812F1E9464329"
+      "bytes": 14629,
+      "sha256": "CB4E17E2C5E565C5609800AD83526014BF5E03ED366E09AA80B4E606F2339229"
     },
     {
       "path": "authorities/project_sectors/discussion/discussion_sector_v001.sqlite",
-      "bytes": 241664,
-      "sha256": "ACBD214A6868E458BA9016B3F796D3E36A12CFC793B77BAB73CAF0E20E6D5FB8"
+      "bytes": 245760,
+      "sha256": "18BF0EBE01EB71BF3907B664F2F6892956DA1FCF99141D41983E0236A246F735"
     },
     {
       "path": "authorities/project_sectors/discussion/dot-artifact.schema.json",
@@ -39,8 +39,8 @@
     },
     {
       "path": "authorities/project_sectors/discussion/lane-contract.v1.json",
-      "bytes": 7584,
-      "sha256": "2B52972CE7D561837EF867DDB08C4E52E4CF3C86B6BDD0CF54B8C7AD197CE0AE"
+      "bytes": 8558,
+      "sha256": "E707E8DC57AD2559A6CFBAE5DCF8E3C301CD4042320F2D5158B507E230E26FAC"
     },
     {
       "path": "authorities/project_sectors/discussion/lane-pointer.schema.json",
@@ -79,8 +79,8 @@
     },
     {
       "path": "authorities/project_sectors/discussion/schema.sql",
-      "bytes": 9067,
-      "sha256": "7C75EFFDE12734163A3D6F3F1286E217572696EDE144A5CAF8AF9686B58049AB"
+      "bytes": 9654,
+      "sha256": "933FA0BEB97B4F2ABB056E74BD292D2A0C77CB7C02D1FBAAC3978A1CA421E0D8"
     },
     {
       "path": "authorities/project_sectors/discussion/sqlite-artifact.schema.json",
@@ -89,19 +89,34 @@
     },
     {
       "path": "authorities/project_sectors/discussion/tools.json",
-      "bytes": 1152,
-      "sha256": "D676A78F22E63980F4BAE2D755E3F90512A8C9A523254BCBFA8BDD16618B33B5"
+      "bytes": 15952,
+      "sha256": "E6C1506FAACCE0AC6CC13FB624C912B77B53CE4A446A5E19E299511AD0657463"
     },
     {
       "path": "authorities/project_sectors/discussion/tools.schema.json",
-      "bytes": 1005,
-      "sha256": "38B6427A89C2E82681151D03711D3BF1844E4ED8816D7C29A25DF7A34A9ED5AE"
+      "bytes": 1451,
+      "sha256": "A1BCCA4BD7A26B5685327D456B36B652C89133E888DC78047147DACA806F1A3A"
+    },
+    {
+      "path": "authorities/project_sectors/discussion/workflow.dot",
+      "bytes": 6455,
+      "sha256": "917AA6AFC4580F16C1267C1CAED31FF524EC7964399264C4AD1CDD4F97CD6BD9"
+    },
+    {
+      "path": "authorities/project_sectors/discussion/workflow.mmd",
+      "bytes": 5018,
+      "sha256": "9EF655ECE61AB531B21B94A3FF46AB2B330DB2FFD9C90B5CE57F1FC927604657"
+    },
+    {
+      "path": "authorities/project_sectors/discussion/workflow.v1.json",
+      "bytes": 28675,
+      "sha256": "E64992AC53563B928344641317DAF44DAF11553273539AFC3B474B2059D59BD1"
     }
   ],
-  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "2590258165742C664AD99B8E456D91B9BA5BC0D91BD916331D0DBD2F8AE1E411"
+  "receipt_sha256": "FB4D000B7A2E129C9822BA3450AEBF6D23DDC205222E36DC14190E06740C62FC"
 }

@@ -6,7 +6,7 @@ description: "Route the three current Evidence Lane refresh workflows without me
 # Evidence Lane Refresh Router
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its hook/skill ownership
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its hook/skill ownership
 contract and Delta entry/exit laws.
 
 This skill routes three separate current refresh operations. It never treats

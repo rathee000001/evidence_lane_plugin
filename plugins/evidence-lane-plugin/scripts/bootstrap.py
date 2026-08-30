@@ -15,7 +15,7 @@ from pathlib import Path
 _SCRIPT_ROOT = Path(__file__).resolve().parent
 if str(_SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_ROOT))
-from runtime_contract import write_marker
+from runtime_contract import accelerator_profile, write_marker
 
 
 def _authoritative_runtime_environment(plugin_root: Path) -> dict[str, str]:
@@ -78,7 +78,11 @@ def main() -> int:
     )
     lock = plugin_root / "requirements.lock.txt"
     torch_lock = plugin_root / "requirements.torch-cpu.lock.txt"
+    nvidia_torch_lock = plugin_root / "requirements.torch-nvidia.lock.txt"
+    directml_lock = plugin_root / "requirements.onnx-directml.lock.txt"
     toolchain_lock = plugin_root / "requirements.toolchain.lock.txt"
+    profile = accelerator_profile()
+    selected_torch_lock = nvidia_torch_lock if profile == "nvidia" else torch_lock
     project = plugin_root / "pyproject.toml"
     if not lock.is_file():
         raise SystemExit(f"Missing pinned dependency lock: {lock}")
@@ -86,6 +90,10 @@ def main() -> int:
         raise SystemExit(f"Missing pinned CPU Torch dependency lock: {torch_lock}")
     if not toolchain_lock.is_file():
         raise SystemExit(f"Missing pinned full-toolchain lock: {toolchain_lock}")
+    if not nvidia_torch_lock.is_file():
+        raise SystemExit(f"Missing pinned NVIDIA Torch lock: {nvidia_torch_lock}")
+    if not directml_lock.is_file():
+        raise SystemExit(f"Missing pinned DirectML lock: {directml_lock}")
     if not project.is_file():
         raise SystemExit(f"Missing self-contained plugin project: {project}")
     if identity_file is not None and identity_file.exists():
@@ -108,7 +116,7 @@ def main() -> int:
             "--require-hashes",
             "--no-deps",
             "-r",
-            str(torch_lock),
+            str(selected_torch_lock),
         ],
         check=True,
         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
@@ -141,6 +149,32 @@ def main() -> int:
         check=True,
         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
+    if profile == "amd":
+        if os.name != "nt":
+            raise SystemExit(
+                "AMD acceleration outside Windows requires an externally provisioned "
+                "ROCm runtime selected by the exact AMD compatibility matrix."
+            )
+        subprocess.run(  # nosec B603
+            [str(python), "-m", "pip", "uninstall", "--yes", "onnxruntime"],
+            check=False,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        subprocess.run(  # nosec B603
+            [
+                str(python),
+                "-m",
+                "pip",
+                "install",
+                "--disable-pip-version-check",
+                "--require-hashes",
+                "--no-deps",
+                "-r",
+                str(directml_lock),
+            ],
+            check=True,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
     _cleanup_generated_build_artifacts(plugin_root)
     try:
         subprocess.run(  # nosec B603
@@ -180,7 +214,7 @@ def main() -> int:
     )
     if identity_file is not None:
         write_marker(plugin_root, identity_file)
-    print(f"Evidence Lane ready: {environment}")
+    print(f"Evidence Lane ready: {environment} accelerator={profile.upper()}")
     return 0
 
 

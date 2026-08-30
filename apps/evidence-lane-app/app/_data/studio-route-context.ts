@@ -22,7 +22,7 @@ export const studioRouteContexts: readonly StudioRouteContext[] = [
     path: "/",
     title: "Evidence Lane overview",
     purpose: "Explain the product problem, governed lifecycle, current release, and human authority boundary.",
-    currentCapability: "The public site explains the current 3.0.0 pre-HIL Codex source, its 18 evidence lanes, 25 governed skills, six primary controls, derived 91-action native Codex catalog, and separate accepted-PV boundary.",
+    currentCapability: "The public site explains the current 3.0.0 pre-HIL Codex source, its 18 evidence lanes, 26 governed skills, six primary controls, derived 91-action native Codex catalog, and separate accepted-PV boundary.",
     evidenceBoundary: "The site does not prove adoption, customer value, production readiness, or human acceptance.",
     artifactIds: ["project-readme", "release-identity", "delta-ledger"],
     suggestions: [
@@ -141,14 +141,14 @@ export const studioRouteContexts: readonly StudioRouteContext[] = [
     title: "Evidence AI Studio",
     purpose: "Provide whole-project and page-aware business explanations backed by the committed public-safe corpus.",
     currentCapability: "Deterministic reviewed synthesis, BM25 plus TF-IDF plus RRF retrieval, source chips, bounded history, route context, and inspectable artifact views are available without making a model the evidence authority.",
-    evidenceBoundary: "OpenRouter is optional generation only. Unsupported project claims refuse, and optional live SQL or vector layers must report their real configuration state.",
+    evidenceBoundary: "The public route performs committed-corpus retrieval only and never forwards a visitor prompt under a server-owned provider credential. Optional live SQL or vector layers must report their real configuration state.",
     artifactIds: ["studio-rag-json", "sqlite-brain", "capability-matrix-csv"],
     suggestions: [
       ...sharedSuggestions,
       "How does Studio use the current page without treating it as truth?",
       "Which artifact formats can I inspect here?",
       "What happens when retrieval finds no supporting project evidence?",
-      "What roles do OpenRouter, SQL, and vector retrieval play?",
+      "What roles do SQL and vector retrieval play?",
     ],
   },
   {

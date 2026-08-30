@@ -953,7 +953,7 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         != EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
         or promotion.get("mode") != "CODE"
         or promotion.get("ci_cd_law") != "CONTROLLED_REQUIRED"
-        or promotion.get("explicit_six_way_hil_required") is not True
+        or promotion.get("explicit_authority_hil_required") is not True
         or remote_git.get("per_push_confirmation_token_required") is not False
         or remote_git.get("automatic_push_scope")
         != "GITHUB_APP_GOVERNED_FEATURE_BRANCH_THEN_EXACT_MAIN_MERGE"

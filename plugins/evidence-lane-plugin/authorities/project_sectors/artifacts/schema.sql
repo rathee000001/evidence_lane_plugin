@@ -2,10 +2,12 @@
 -- Canonical implementation: src/evidence_lane_plugin/lane_engine.py
 
 CREATE VIRTUAL TABLE artifact_fts USING fts5(
-            path,
-            locator,
+            path UNINDEXED,
+            locator UNINDEXED,
             text_content,
             chunk_id UNINDEXED,
+            content='',
+            contentless_delete=1,
             tokenize='unicode61'
         );
 
@@ -49,12 +51,22 @@ CREATE TABLE artifact_text_extract(
             ) STRICT
             ;
 
+CREATE TABLE authority_index_content_cas(
+            sha256 TEXT PRIMARY KEY,
+            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
+            compression TEXT NOT NULL,
+            compressed_bytes BLOB NOT NULL,
+            first_seen_at TEXT NOT NULL
+        ) STRICT;
+
 CREATE VIRTUAL TABLE authority_index_fts USING fts5(
             node_id UNINDEXED,
             authority_id UNINDEXED,
-            source_table,
-            source_identity,
+            source_table UNINDEXED,
+            source_identity UNINDEXED,
             text_content,
+            content='',
+            contentless_delete=1,
             tokenize='unicode61'
         );
 
@@ -65,9 +77,10 @@ CREATE TABLE authority_index_node(
             ordinal INTEGER NOT NULL,
             char_start INTEGER NOT NULL,
             char_end INTEGER NOT NULL,
-            text_content TEXT NOT NULL,
-            text_sha256 TEXT NOT NULL,
-            metadata_json TEXT NOT NULL,
+            text_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
+            metadata_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
             UNIQUE(source_id, ordinal)
         ) STRICT;
 
@@ -92,7 +105,8 @@ CREATE TABLE authority_index_source(
             source_table TEXT NOT NULL,
             source_identity TEXT NOT NULL,
             source_text_sha256 TEXT NOT NULL,
-            metadata_json TEXT NOT NULL,
+            metadata_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
             recorded_at TEXT NOT NULL,
             UNIQUE(authority_id, source_table, source_identity)
         ) STRICT;
@@ -100,7 +114,8 @@ CREATE TABLE authority_index_source(
 CREATE TABLE chunk_content_cas(
             sha256 TEXT PRIMARY KEY,
             size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            text_content TEXT NOT NULL,
+            compression TEXT NOT NULL,
+            compressed_text BLOB NOT NULL,
             first_seen_at TEXT NOT NULL
         ) STRICT;
 
@@ -124,7 +139,6 @@ CREATE TABLE chunk_index(
             ordinal INTEGER NOT NULL,
             char_start INTEGER NOT NULL,
             char_end INTEGER NOT NULL,
-            text_content TEXT NOT NULL,
             sha256 TEXT NOT NULL,
             metadata_json TEXT NOT NULL,
             UNIQUE(source_id, locator, ordinal)
@@ -174,32 +188,30 @@ CREATE TABLE refresh_receipt(
             unchanged_reuse INTEGER NOT NULL,
             changed_rebuild INTEGER NOT NULL,
             new_register INTEGER NOT NULL,
-            removed_tombstone INTEGER NOT NULL,
+            removed_purge INTEGER NOT NULL,
             blocked_unsupported INTEGER NOT NULL,
             details_json TEXT NOT NULL,
             recorded_at TEXT NOT NULL
+        ) STRICT;
+
+CREATE TABLE source_content_cas(
+            sha256 TEXT PRIMARY KEY,
+            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
+            compression TEXT NOT NULL,
+            compressed_bytes BLOB NOT NULL,
+            first_seen_at TEXT NOT NULL
         ) STRICT;
 
 CREATE TABLE source_registry(
             source_id INTEGER PRIMARY KEY,
             path TEXT NOT NULL UNIQUE,
             size_bytes INTEGER NOT NULL,
-            sha256 TEXT NOT NULL,
+            sha256 TEXT NOT NULL REFERENCES source_content_cas(sha256),
             mime_type TEXT NOT NULL,
             extension TEXT NOT NULL,
             encoding TEXT,
             parser_state TEXT NOT NULL,
-            exact_bytes BLOB NOT NULL,
             registered_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE source_tombstone(
-            tombstone_id INTEGER PRIMARY KEY,
-            path TEXT NOT NULL,
-            prior_sha256 TEXT NOT NULL,
-            prior_size_bytes INTEGER NOT NULL,
-            removed_at TEXT NOT NULL,
-            parent_pv TEXT
         ) STRICT;
 
 CREATE TABLE structured_fact(

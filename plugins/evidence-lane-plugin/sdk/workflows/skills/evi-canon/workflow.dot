@@ -1,0 +1,129 @@
+digraph skill_evi_canon {
+  // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
+  // PYTHON_GRAPHVIZ_VERSION=0.21
+  bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
+  node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
+  edge [color="#667085" fontname=Arial]
+  ENTRY [label="evi-canon intent" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
+  EXIT [label="Exact result / stop / next workflow" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  subgraph cluster_wf_canon_authority_read {
+    label="canon-authority-read" rankdir=TB
+    WF_CANON_AUTHORITY_READ_START [label="canon-authority-read" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_CANON_AUTHORITY_READ_ACTION_001 [label="1. pv_status [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_AUTHORITY_READ_ACTION_002 [label="2. pv_task_backlog [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_AUTHORITY_READ_ACTION_003 [label="3. pv_query [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_AUTHORITY_READ_ACTION_004 [label="4. canon_inspect [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_AUTHORITY_READ_ACTION_005 [label="4. canon_inbox [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_AUTHORITY_READ_ACTION_006 [label="4. canon_graph [['GOVERNANCE', 'RETRIEVAL', 'GRAPH']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_canon_contract {
+    label="canon-contract" rankdir=TB
+    WF_CANON_CONTRACT_START [label="canon-contract" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_CANON_CONTRACT_ACTION_001 [label="5. canon_register_contract [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_canon_envelope {
+    label="canon-envelope" rankdir=TB
+    WF_CANON_ENVELOPE_START [label="canon-envelope" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_CANON_ENVELOPE_ACTION_001 [label="6. canon_seal_envelope [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_ENVELOPE_ACTION_002 [label="7. canon_receive [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_ENVELOPE_ACTION_003 [label="8. canon_classify [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_canon_decision {
+    label="canon-decision" rankdir=TB
+    WF_CANON_DECISION_START [label="canon-decision" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_CANON_DECISION_ACTION_001 [label="9. canon_decide [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_DECISION_ACTION_002 [label="9. canon_supersede [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_canon_task_edge {
+    label="canon-task-edge" rankdir=TB
+    WF_CANON_TASK_EDGE_START [label="canon-task-edge" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_CANON_TASK_EDGE_ACTION_001 [label="10. canon_register_edge [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_TASK_EDGE_ACTION_002 [label="11. canon_bind_edge [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_TASK_EDGE_ACTION_003 [label="12. canon_dispatch_linked_task [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_canon_backfire {
+    label="canon-backfire" rankdir=TB
+    WF_CANON_BACKFIRE_START [label="canon-backfire" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_CANON_BACKFIRE_ACTION_001 [label="13. canon_backfire_hil [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_canon_result {
+    label="canon-result" rankdir=TB
+    WF_CANON_RESULT_START [label="canon-result" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_CANON_RESULT_ACTION_001 [label="14. canon_seal_result [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_canon_state_travel_continuity {
+    label="canon-state-travel-continuity" rankdir=TB
+    WF_CANON_STATE_TRAVEL_CONTINUITY_START [label="canon-state-travel-continuity" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_CANON_STATE_TRAVEL_CONTINUITY_ACTION_001 [label="15. canon_seal_continuity [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_CANON_STATE_TRAVEL_CONTINUITY_ACTION_002 [label="16. canon_restore_continuity [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_execution {
+    label="Shared typed execution contract" rankdir=TB
+    SCHEMA [label="Current input/output schema" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    INTERNAL_SDK [label="Internal SDK execution owner" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ENV [label="ENV15 environment selection" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    UOP [label="UOP15 governance and gates" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+    AUTHORITY [label="Owning authority and lane" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    TOOLS [label="Conditional tool role resolution" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    OUTER [label="Outer SDK / FastMCP / native compatibility" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    HOOKS [label="Only emitted ordered hooks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    VALIDATE [label="Validate schema, result and effects" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+    RECEIPT [label="Exact receipt" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  }
+  ENTRY -> WF_CANON_AUTHORITY_READ_START
+  WF_CANON_AUTHORITY_READ_START -> WF_CANON_AUTHORITY_READ_ACTION_001
+  WF_CANON_AUTHORITY_READ_ACTION_001 -> WF_CANON_AUTHORITY_READ_ACTION_002 [label="ordered action"]
+  WF_CANON_AUTHORITY_READ_ACTION_002 -> WF_CANON_AUTHORITY_READ_ACTION_003 [label="ordered action"]
+  WF_CANON_AUTHORITY_READ_ACTION_003 -> WF_CANON_AUTHORITY_READ_ACTION_004 [label="ordered action"]
+  WF_CANON_AUTHORITY_READ_ACTION_004 -> WF_CANON_AUTHORITY_READ_ACTION_005 [label="ordered action"]
+  WF_CANON_AUTHORITY_READ_ACTION_005 -> WF_CANON_AUTHORITY_READ_ACTION_006 [label="ordered action"]
+  ENTRY -> WF_CANON_CONTRACT_START
+  WF_CANON_CONTRACT_START -> WF_CANON_CONTRACT_ACTION_001
+  ENTRY -> WF_CANON_ENVELOPE_START
+  WF_CANON_ENVELOPE_START -> WF_CANON_ENVELOPE_ACTION_001
+  WF_CANON_ENVELOPE_ACTION_001 -> WF_CANON_ENVELOPE_ACTION_002 [label="ordered action"]
+  WF_CANON_ENVELOPE_ACTION_002 -> WF_CANON_ENVELOPE_ACTION_003 [label="ordered action"]
+  ENTRY -> WF_CANON_DECISION_START
+  WF_CANON_DECISION_START -> WF_CANON_DECISION_ACTION_001
+  WF_CANON_DECISION_ACTION_001 -> WF_CANON_DECISION_ACTION_002 [label="ordered action"]
+  ENTRY -> WF_CANON_TASK_EDGE_START
+  WF_CANON_TASK_EDGE_START -> WF_CANON_TASK_EDGE_ACTION_001
+  WF_CANON_TASK_EDGE_ACTION_001 -> WF_CANON_TASK_EDGE_ACTION_002 [label="ordered action"]
+  WF_CANON_TASK_EDGE_ACTION_002 -> WF_CANON_TASK_EDGE_ACTION_003 [label="ordered action"]
+  ENTRY -> WF_CANON_BACKFIRE_START
+  WF_CANON_BACKFIRE_START -> WF_CANON_BACKFIRE_ACTION_001
+  ENTRY -> WF_CANON_RESULT_START
+  WF_CANON_RESULT_START -> WF_CANON_RESULT_ACTION_001
+  ENTRY -> WF_CANON_STATE_TRAVEL_CONTINUITY_START
+  WF_CANON_STATE_TRAVEL_CONTINUITY_START -> WF_CANON_STATE_TRAVEL_CONTINUITY_ACTION_001
+  WF_CANON_STATE_TRAVEL_CONTINUITY_ACTION_001 -> WF_CANON_STATE_TRAVEL_CONTINUITY_ACTION_002 [label="ordered action"]
+  SCHEMA -> INTERNAL_SDK
+  INTERNAL_SDK -> ENV
+  ENV -> UOP
+  UOP -> AUTHORITY
+  AUTHORITY -> TOOLS
+  TOOLS -> OUTER
+  OUTER -> HOOKS
+  HOOKS -> VALIDATE
+  VALIDATE -> RECEIPT
+  WF_CANON_AUTHORITY_READ_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_CANON_AUTHORITY_READ_ACTION_002 -> SCHEMA [label="typed execution"]
+  WF_CANON_AUTHORITY_READ_ACTION_003 -> SCHEMA [label="typed execution"]
+  WF_CANON_AUTHORITY_READ_ACTION_004 -> SCHEMA [label="typed execution"]
+  WF_CANON_AUTHORITY_READ_ACTION_005 -> SCHEMA [label="typed execution"]
+  WF_CANON_AUTHORITY_READ_ACTION_006 -> SCHEMA [label="typed execution"]
+  WF_CANON_CONTRACT_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_CANON_ENVELOPE_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_CANON_ENVELOPE_ACTION_002 -> SCHEMA [label="typed execution"]
+  WF_CANON_ENVELOPE_ACTION_003 -> SCHEMA [label="typed execution"]
+  WF_CANON_DECISION_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_CANON_DECISION_ACTION_002 -> SCHEMA [label="typed execution"]
+  WF_CANON_TASK_EDGE_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_CANON_TASK_EDGE_ACTION_002 -> SCHEMA [label="typed execution"]
+  WF_CANON_TASK_EDGE_ACTION_003 -> SCHEMA [label="typed execution"]
+  WF_CANON_BACKFIRE_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_CANON_RESULT_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_CANON_STATE_TRAVEL_CONTINUITY_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_CANON_STATE_TRAVEL_CONTINUITY_ACTION_002 -> SCHEMA [label="typed execution"]
+  RECEIPT -> EXIT
+}

@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "connector_brain",
   "authority_root": "authorities/connector_brain",
-  "authority_manifest_sha256": "66C66AEABD85D6F6C25D084E8EF095E09C4C40FF4BF3D3E8FA8D1C3CF1826667",
+  "authority_manifest_sha256": "415A3B09465890547B0C34EA5A966A7A34D92E723287CC447F1BE785B5935A57",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -45,12 +45,12 @@
     {
       "path": "authorities/connector_brain/runtime-binding.schema.json",
       "bytes": 604,
-      "sha256": "6AF42C2027B1452A8277CDDE20EA09AD9501DEF23F440D59FD0D68245E471541"
+      "sha256": "600457FE70B92860C2019D8C35A37708DEB73964F2CBA6AC859816AA2B6CAB1C"
     },
     {
       "path": "authorities/connector_brain/schema.sql",
-      "bytes": 7269,
-      "sha256": "F6C3D8F29CD81AC1102AD6E4B62E67D33E3B23CA2C9A4B3B3457C1EE92E57457"
+      "bytes": 7785,
+      "sha256": "20A0C592F0334666C817A2CE7AD195DF012D5E53985E607F1D87BB6DE47355BA"
     },
     {
       "path": "authorities/connector_brain/sqlite-artifact.schema.json",
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "7DCF2F6F7615BFE291DDE6A533D96BD996DF580487A23ED389B682697C5E3FD5"
+  "receipt_sha256": "5BF5F15AB5195F8DA7E9D1D109C20C0EFBBA94D2C0101D8553263011EECF4D56"
 }

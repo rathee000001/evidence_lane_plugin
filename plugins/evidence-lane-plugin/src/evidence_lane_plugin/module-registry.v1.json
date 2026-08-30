@@ -3,7 +3,7 @@
   "status": "PASS",
   "package_namespace": "evidence_lane_plugin",
   "python_source_root": "src",
-  "module_count": 131,
+  "module_count": 145,
   "modules": [
     {
       "module": "evidence_lane_plugin.__init__",
@@ -22,15 +22,15 @@
     {
       "module": "evidence_lane_plugin.adaptive_delta_entry",
       "path": "src/evidence_lane_plugin/adaptive_delta_entry.py",
-      "bytes": 41648,
-      "sha256": "A16191209905BA07CADC3D9664807F2079AD80C7F53984833F813981F44FAF0C",
+      "bytes": 41652,
+      "sha256": "4D79B0F8F07FC2BDB993749F522E66D01B794EFD6258A70F9E75A4C06BC11853",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.adaptive_delta_exit",
       "path": "src/evidence_lane_plugin/adaptive_delta_exit.py",
-      "bytes": 40575,
-      "sha256": "480467D59E86DF7293EB2C3CEA5D80CCC5670F9B2A08BF21074C323524B14AE0",
+      "bytes": 40579,
+      "sha256": "36847646D49534C0649CE9D15C806A9A52890A1B90BADE3F30E5FEA0B35D6149",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -43,22 +43,22 @@
     {
       "module": "evidence_lane_plugin.agent_learning",
       "path": "src/evidence_lane_plugin/agent_learning.py",
-      "bytes": 150169,
-      "sha256": "38D89683C25EA536392E2EC9816B26F4B94E1561057791EAEF792104C3A54331",
+      "bytes": 150171,
+      "sha256": "BF75C699067155F4C0CD3E757954F9BC99372B485F400811AC4C659F0D3A9572",
       "role": "PROJECT_AUTHORITIES"
     },
     {
       "module": "evidence_lane_plugin.ai_toolchain",
       "path": "src/evidence_lane_plugin/ai_toolchain.py",
-      "bytes": 23708,
-      "sha256": "B60D8AC9282E0C990AE76735E65B19FC94160ACA46B2E2575276F2E1FE80DC2B",
+      "bytes": 14481,
+      "sha256": "B65D153C15ADDFEC507FCE27B6814398D8E2DFB0FA6E5C39B0AA84926E9EFD1E",
       "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
       "module": "evidence_lane_plugin.artifact_contract",
       "path": "src/evidence_lane_plugin/artifact_contract.py",
-      "bytes": 6616,
-      "sha256": "35FA5641AE05C15DB4AB40AB26A7B263C4FBD6D183AB2837E10FC7C9F7007049",
+      "bytes": 7223,
+      "sha256": "5FFC789BF918B726536B3E073360F610E35C8A21E38BF2EFF4BF8F55583B7ACB",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -78,8 +78,8 @@
     {
       "module": "evidence_lane_plugin.bounded_io",
       "path": "src/evidence_lane_plugin/bounded_io.py",
-      "bytes": 11598,
-      "sha256": "B272C29F261E32949964AA96C464DE27BD9037580A54626C51C26924F9E83AD0",
+      "bytes": 12877,
+      "sha256": "021E9AB2463CA310E81BA176BFAC5446877B7752B84088C20D02A545D61A8930",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -125,17 +125,31 @@
       "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
+      "module": "evidence_lane_plugin.codex_action_plane",
+      "path": "src/evidence_lane_plugin/codex_action_plane.py",
+      "bytes": 59844,
+      "sha256": "1C21E65F12C55183D895B1DCF40D5B7440EB2AE703BF286A59B0B6C64F247A2F",
+      "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
+    },
+    {
       "module": "evidence_lane_plugin.codex_turn_control",
       "path": "src/evidence_lane_plugin/codex_turn_control.py",
-      "bytes": 368034,
-      "sha256": "DFCF49EF6B4DB8866056E1746CEB4F2B172B4C741CEEE5146C3BB7E4B164D423",
+      "bytes": 368035,
+      "sha256": "E391DC6F25E6FB38F0EF98A4BFA47BF67B9FD46ADF4A56C1EFC23D28B91800CC",
       "role": "HOST_RUNTIME_AND_CONTINUITY"
+    },
+    {
+      "module": "evidence_lane_plugin.compact_storage",
+      "path": "src/evidence_lane_plugin/compact_storage.py",
+      "bytes": 7320,
+      "sha256": "0872D60628DAB1C5BB90D546568C40A592FFA8AB7D82526BE1269EC737CA4245",
+      "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.connector_governance",
       "path": "src/evidence_lane_plugin/connector_governance.py",
-      "bytes": 69607,
-      "sha256": "619C78D2E2447B004F4823A6B8D2C059B271381486F1F2AE3957F0B5EACCF91E",
+      "bytes": 69728,
+      "sha256": "6406AA6E41C8D8ECD030A16BFC3325B4E198770F8505E50E833FA5EA63577ECD",
       "role": "PROJECT_AUTHORITIES"
     },
     {
@@ -144,6 +158,13 @@
       "bytes": 2025,
       "sha256": "31E12A97A2C1019879B1093C3D87142E2BF00E173B649BE582CC9DA0A802D955",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
+    },
+    {
+      "module": "evidence_lane_plugin.context_index_routing",
+      "path": "src/evidence_lane_plugin/context_index_routing.py",
+      "bytes": 5495,
+      "sha256": "ECD8F54289B91A6C08A4B46E36F772AC24B755A6E30058FC688C5455D5F812B9",
+      "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
       "module": "evidence_lane_plugin.conversation_memory",
@@ -155,8 +176,8 @@
     {
       "module": "evidence_lane_plugin.current_route_registry",
       "path": "src/evidence_lane_plugin/current_route_registry.py",
-      "bytes": 23691,
-      "sha256": "B3E10EEB3B4C0643DCFA9A38661D66B09A98999F508BC16CDF00C836B75A5B63",
+      "bytes": 24881,
+      "sha256": "BA89267121923CBF6E4DE66598B466811F8D13EB34F28A76595A4C30CF66115E",
       "role": "SDK_AND_ROUTING"
     },
     {
@@ -176,8 +197,8 @@
     {
       "module": "evidence_lane_plugin.database",
       "path": "src/evidence_lane_plugin/database.py",
-      "bytes": 6783,
-      "sha256": "63FD49F3498F436EC3F30B1FFC5ECC3F6EA17BCFACC49CF258753728636FE908",
+      "bytes": 6895,
+      "sha256": "C9744F2F98E0829C2AE37D8ED902241E261868DE98BFBC3C559AC555669E522C",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -188,6 +209,13 @@
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
+      "module": "evidence_lane_plugin.deployment_toolchain",
+      "path": "src/evidence_lane_plugin/deployment_toolchain.py",
+      "bytes": 4283,
+      "sha256": "6FC4CFE45FF8B649B8D51917CA7FA6931B4729CD198BA9403C001FFC52ADC5D6",
+      "role": "AI_TOOLCHAIN_EXECUTION"
+    },
+    {
       "module": "evidence_lane_plugin.document_toolchain",
       "path": "src/evidence_lane_plugin/document_toolchain.py",
       "bytes": 3193,
@@ -195,24 +223,31 @@
       "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
+      "module": "evidence_lane_plugin.ecosystem_toolchain",
+      "path": "src/evidence_lane_plugin/ecosystem_toolchain.py",
+      "bytes": 16081,
+      "sha256": "168653FE7862470927062FB3641F40E182463C8A90F422F95D59211768FBED5F",
+      "role": "AI_TOOLCHAIN_EXECUTION"
+    },
+    {
       "module": "evidence_lane_plugin.engine",
       "path": "src/evidence_lane_plugin/engine.py",
-      "bytes": 50607,
-      "sha256": "A59408CC2CC11A5B7D444E4CB0DB99208F38F16EC64D4D50B0AE058FEB1E149D",
+      "bytes": 50740,
+      "sha256": "138FF914B627C7FF8A6B11DC36FBF6654D1DF8F69EEB11B253E48B146EDCF4E1",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.engine_identity",
       "path": "src/evidence_lane_plugin/engine_identity.py",
-      "bytes": 8774,
-      "sha256": "7E52FE584F1C7FDE6E5E0AE7B65006259A0D0EEF0E73780BB7E76BF4BFB3AE90",
+      "bytes": 8825,
+      "sha256": "32A82A97B09A2E62C1C5AD7F5EABF1889F02B2F8ACCAB256D5E97E60F40232CD",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.enrollment",
       "path": "src/evidence_lane_plugin/enrollment.py",
-      "bytes": 17862,
-      "sha256": "86EB6C935E68A76FB3C57915330A9F459DA908AA8F77CE4507CA250AF54F9C1B",
+      "bytes": 17682,
+      "sha256": "27A54342F57205E2CC31ED990C0259A25D39A2446E8F6ED096F9074A68D2BF0B",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -225,9 +260,16 @@
     {
       "module": "evidence_lane_plugin.env_uop_graph",
       "path": "src/evidence_lane_plugin/env_uop_graph.py",
-      "bytes": 20836,
-      "sha256": "17D6D6E73F5408BC02D3AD7B3038CBE0507A287ABF68E4C9769D337D6D2CA219",
+      "bytes": 12296,
+      "sha256": "5312696442E2917F15ACBD2E6E829AB08FB8CF7F7DC2A8C8AA96BC9E8C72C15E",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
+    },
+    {
+      "module": "evidence_lane_plugin.env_uop_tool_routing",
+      "path": "src/evidence_lane_plugin/env_uop_tool_routing.py",
+      "bytes": 4780,
+      "sha256": "4B2310132015C240B81793EA4D498EE111D943BE567FDD6E7EEC2367FCEC5AA4",
+      "role": "ENV_UOP_AI_ACTION_PLANE"
     },
     {
       "module": "evidence_lane_plugin.errors",
@@ -237,24 +279,31 @@
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
+      "module": "evidence_lane_plugin.evaluation_toolchain",
+      "path": "src/evidence_lane_plugin/evaluation_toolchain.py",
+      "bytes": 4717,
+      "sha256": "819BE5F12354B7FA346EBEECE34998229305D59C5DB1A07D53A18AA42B043ACF",
+      "role": "AI_TOOLCHAIN_EXECUTION"
+    },
+    {
       "module": "evidence_lane_plugin.first_class_workflows",
       "path": "src/evidence_lane_plugin/first_class_workflows.py",
-      "bytes": 10356,
-      "sha256": "502A1FE9EC27E8ECA9BD9A794716B7FAC7228DB59BDAD5F2A9C90C4CE2FB11CC",
+      "bytes": 13895,
+      "sha256": "F8235E974107BD14F8320219795AA7F952DAB1B84FE2B48223468BC94A22D301",
       "role": "FIRST_CLASS_WORKFLOWS"
     },
     {
       "module": "evidence_lane_plugin.flash_authority",
       "path": "src/evidence_lane_plugin/flash_authority.py",
-      "bytes": 27002,
-      "sha256": "46F659A66E779614338B4ED4E0C998C83E6B2042CA4797C5C9BFEDA48E90D7F8",
+      "bytes": 27620,
+      "sha256": "2AC3C072FA4F2901B5B9526828419AEB18661F5C7815EECE67DC0C4A67C6657A",
       "role": "ENV_UOP_AI_ACTION_PLANE"
     },
     {
       "module": "evidence_lane_plugin.flash_identity",
       "path": "src/evidence_lane_plugin/flash_identity.py",
-      "bytes": 8821,
-      "sha256": "CC030DA15321107E11E3B291EF899C95292ACB22C8705F9DBF74502A6B9A74D7",
+      "bytes": 8719,
+      "sha256": "A612575DB7F21763BC24E9235D6CAEBE1A4C5649665FD689AF974DBDCBCFDBE2",
       "role": "ENV_UOP_AI_ACTION_PLANE"
     },
     {
@@ -288,22 +337,22 @@
     {
       "module": "evidence_lane_plugin.git_adapter",
       "path": "src/evidence_lane_plugin/git_adapter.py",
-      "bytes": 22804,
-      "sha256": "EBA09BF8D6A7A8AE91CCFF2853CB4A6FD3C6661CAD77DDD7544CE00B05CBA7D5",
+      "bytes": 24008,
+      "sha256": "BF5424078C30961CCC341F7003AA2AB903BB9FDB493CB2857392F1E57DF5915F",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.git_history",
       "path": "src/evidence_lane_plugin/git_history.py",
-      "bytes": 23124,
-      "sha256": "90EB1446E9C48846D08F41AA087FA1C4E26DF1394B152BED60F7FADAB136B05F",
+      "bytes": 24929,
+      "sha256": "8F581DC837C88F5E85AD0ADB0A7EE5BB4F80DBEB945527A053D6E83D96520FA0",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.git_optional",
       "path": "src/evidence_lane_plugin/git_optional.py",
-      "bytes": 7868,
-      "sha256": "60854A9E2641113CBE12F5A93283F0D06DABAB2100AA671FA22047505FDCB2B8",
+      "bytes": 7932,
+      "sha256": "AA00BBD499FDD1FCF1DA635D595575941EC6332DA645F1CC1236F09FA65FE0A7",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -337,9 +386,16 @@
     {
       "module": "evidence_lane_plugin.graph_pipeline",
       "path": "src/evidence_lane_plugin/graph_pipeline.py",
-      "bytes": 27879,
-      "sha256": "0C4F0AE5A1ABFCE7C9A585C7121B78454E83B5D260F5FF60AED0B00537ED29FE",
+      "bytes": 33124,
+      "sha256": "EB33857821E131D7808E768D2BD469C49015B9C66D19D4442CEFC97D8EF06A40",
       "role": "AI_TOOLCHAIN_EXECUTION"
+    },
+    {
+      "module": "evidence_lane_plugin.hardware_acceleration",
+      "path": "src/evidence_lane_plugin/hardware_acceleration.py",
+      "bytes": 14437,
+      "sha256": "543FEE269A141C00FB6C167060D842C2684A4C3B1A92CC4803967A39EE5A441A",
+      "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.hashing",
@@ -351,15 +407,15 @@
     {
       "module": "evidence_lane_plugin.hil_intent",
       "path": "src/evidence_lane_plugin/hil_intent.py",
-      "bytes": 2852,
-      "sha256": "43C786051D3CC8ED72E3CD522C80DC45E8A97E26A5493427C8DEAD9D8BEF9CEB",
+      "bytes": 2898,
+      "sha256": "76763FA0EB9EB29AF0A1B7C7D0C289FD1183059D7CD9C3FD11C357541167CAD0",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.hook_contract",
       "path": "src/evidence_lane_plugin/hook_contract.py",
-      "bytes": 22814,
-      "sha256": "1610FA7C9B978FDA24CDAB3312CD6D34EBEE96EFBCDEF8B6F8BB9714F2E6E2D4",
+      "bytes": 27212,
+      "sha256": "E1B83A7D0F6B0BEE629E0F47A2A5B46A51BD2EEEB69B2C9EA599ED25085B138D",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -386,8 +442,8 @@
     {
       "module": "evidence_lane_plugin.hybrid_retrieval",
       "path": "src/evidence_lane_plugin/hybrid_retrieval.py",
-      "bytes": 6849,
-      "sha256": "FA81E91F4AF234A13CB522896CB72E57A46CEBBA50CE4DE85D62E597453F8E79",
+      "bytes": 5453,
+      "sha256": "D9AB225AA763568B1CD20C921ACE75CCFA1B4996A49D25D8BAEC08B6340A35BD",
       "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
@@ -400,8 +456,8 @@
     {
       "module": "evidence_lane_plugin.ingest",
       "path": "src/evidence_lane_plugin/ingest.py",
-      "bytes": 35353,
-      "sha256": "465E1CDEE213E121148372B56B09F8A0910A1EDFBEBAFE8492A49174BC895E74",
+      "bytes": 35964,
+      "sha256": "A9B4981A20140D89E79137C01C34ABF28F8218E949F521BC8EA744C44CDB786C",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -421,8 +477,8 @@
     {
       "module": "evidence_lane_plugin.internal_sdk",
       "path": "src/evidence_lane_plugin/internal_sdk.py",
-      "bytes": 137389,
-      "sha256": "325507599FE988330585BDB1DE8B19FEDC6E487DF5F734C55C906CAC9E4EF30B",
+      "bytes": 138262,
+      "sha256": "901D2E1D7B1C83AB2B05E4EAE88FCDE616DCC0C6514D0909E871CB044AA8D373",
       "role": "SDK_AND_ROUTING"
     },
     {
@@ -435,15 +491,15 @@
     {
       "module": "evidence_lane_plugin.lane_engine",
       "path": "src/evidence_lane_plugin/lane_engine.py",
-      "bytes": 318713,
-      "sha256": "606278B437DC3C1E4F9D7AD703122294C369F745FB28C5F3F7149EF69D773AE4",
+      "bytes": 346593,
+      "sha256": "3789EFE347EA0EADDA54520E67F42B2FC88218F94A345D98892A0D928701FD96",
       "role": "SECTOR_LANE_ENGINE"
     },
     {
       "module": "evidence_lane_plugin.lane_reader",
       "path": "src/evidence_lane_plugin/lane_reader.py",
-      "bytes": 89816,
-      "sha256": "D3AD5D9A83F59FA1D47C78E9A1C3FF9B55686FAE297D86D652D778737C61A566",
+      "bytes": 90849,
+      "sha256": "E131620487F19CC2E6B3188F0B53A3483D7179F9AC4BA7BE87249750097BE7E7",
       "role": "SECTOR_LANE_ENGINE"
     },
     {
@@ -456,8 +512,8 @@
     {
       "module": "evidence_lane_plugin.lanes",
       "path": "src/evidence_lane_plugin/lanes.py",
-      "bytes": 48737,
-      "sha256": "D6270B812093ACFDDC6D8D7B165A6757ACED153FEE2D38193BA500285A6E8AC7",
+      "bytes": 49073,
+      "sha256": "1FE3EF29F00CD144566BB72E74B8059B6DA51A0CC138AD97B6FCD609133A3FC3",
       "role": "SECTOR_LANE_ENGINE"
     },
     {
@@ -470,29 +526,36 @@
     {
       "module": "evidence_lane_plugin.live_authority_query",
       "path": "src/evidence_lane_plugin/live_authority_query.py",
-      "bytes": 19142,
-      "sha256": "83E4B6FE59BEE1BEC7D31692803AB52CA187C8F29E4E6B6FE03E60664F6EA613",
+      "bytes": 19187,
+      "sha256": "E9AC05942857685B64E52A648D360F6F0E96C2FCF03EFD46A09B4F6D45E3B916",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.live_root_normalization",
       "path": "src/evidence_lane_plugin/live_root_normalization.py",
-      "bytes": 22355,
-      "sha256": "3D8B101D84E194715A55045D669B52E4C882BC63168753B09C79BC6A8DB90FA6",
+      "bytes": 24065,
+      "sha256": "492474850896062539237BBF405D61C8FAA9A9FE8FBC8464D61CD8FF7809F4D3",
       "role": "PROJECT_AUTHORITIES"
+    },
+    {
+      "module": "evidence_lane_plugin.mcp_adapter_routing",
+      "path": "src/evidence_lane_plugin/mcp_adapter_routing.py",
+      "bytes": 6565,
+      "sha256": "4B158DCB800B70A7B3C09565C9908284214CDA0550FCAB28CBB6D64C7153FF17",
+      "role": "SDK_AND_ROUTING"
     },
     {
       "module": "evidence_lane_plugin.mcp_apps",
       "path": "src/evidence_lane_plugin/mcp_apps.py",
-      "bytes": 30988,
-      "sha256": "95C0F1CE45344AB35C526DCA6E0A57DE799BECDF19BD434857C1CA6A09F8BB36",
+      "bytes": 31020,
+      "sha256": "9E5D08A92125D3ED207ADFC5332B10881DEA9DE957AEE8D79A7AB2DEE730F20F",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.mcp_server",
       "path": "src/evidence_lane_plugin/mcp_server.py",
-      "bytes": 178089,
-      "sha256": "20C15301DF15DA7E93ACE79DD54707C8A17E1340BA33123832FB46BCB1A4042A",
+      "bytes": 179173,
+      "sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
       "role": "SDK_AND_ROUTING"
     },
     {
@@ -505,8 +568,8 @@
     {
       "module": "evidence_lane_plugin.mode_governance",
       "path": "src/evidence_lane_plugin/mode_governance.py",
-      "bytes": 76640,
-      "sha256": "B21CD8E434E5DE904E639C36312E926818A5F64E55BAD775616EF7365E4176CD",
+      "bytes": 77412,
+      "sha256": "7A7E0A41827302ABBD9B93754E0BC95E984B89A695555BB85A0A1BC3FA1E50CD",
       "role": "ENV_UOP_AI_ACTION_PLANE"
     },
     {
@@ -533,9 +596,16 @@
     {
       "module": "evidence_lane_plugin.next_actions",
       "path": "src/evidence_lane_plugin/next_actions.py",
-      "bytes": 12672,
-      "sha256": "42297E47041A9293FDE479F4BDEE3DCD77436D06822DEB8EA609916304B47768",
+      "bytes": 14225,
+      "sha256": "B36CEF2A1733053ACC06BD7EDFCF7645C7047A8ECC262F964CFEB538C576EAC4",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
+    },
+    {
+      "module": "evidence_lane_plugin.observability_toolchain",
+      "path": "src/evidence_lane_plugin/observability_toolchain.py",
+      "bytes": 4438,
+      "sha256": "36A0F7A10AD4AADFD3B98BED1D851ADAE265BBFD50F0D50A87D6E899386B5CCA",
+      "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
       "module": "evidence_lane_plugin.operating_modes",
@@ -566,11 +636,25 @@
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
+      "module": "evidence_lane_plugin.plugin_architecture",
+      "path": "src/evidence_lane_plugin/plugin_architecture.py",
+      "bytes": 81657,
+      "sha256": "585A434DDD7A2176294607D030910D29FEE7F3CFBAEA62FDA46CC2A0B2D0C1F8",
+      "role": "SDK_AND_ROUTING"
+    },
+    {
       "module": "evidence_lane_plugin.project_authority",
       "path": "src/evidence_lane_plugin/project_authority.py",
-      "bytes": 165074,
-      "sha256": "4E1AE7CD926B8AF06D6069AAA3B9BCE35E5CA651A5E146BFB10AD44F08E6C090",
+      "bytes": 166958,
+      "sha256": "46B0EA806C2CBA4BB54652E2BEA3894EF28FC77A7AC8265376F30A311EA43F1B",
       "role": "PROJECT_AUTHORITIES"
+    },
+    {
+      "module": "evidence_lane_plugin.project_execution_profile",
+      "path": "src/evidence_lane_plugin/project_execution_profile.py",
+      "bytes": 7130,
+      "sha256": "E06129CF2DD99961E48D84A346E973E6E63BBA715B8F9E6EF0F034A266EC05F6",
+      "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.project_memory",
@@ -610,8 +694,8 @@
     {
       "module": "evidence_lane_plugin.public_surface_registry",
       "path": "src/evidence_lane_plugin/public_surface_registry.py",
-      "bytes": 24160,
-      "sha256": "DED234C48ED8FB86B58B26191D69F419412160CA6CEE0048A78EEC448012E263",
+      "bytes": 24183,
+      "sha256": "353475AC47443D1B85F827B41B21290BC29D0E1408C44F28A07B3D1DCE84422A",
       "role": "SDK_AND_ROUTING"
     },
     {
@@ -624,22 +708,22 @@
     {
       "module": "evidence_lane_plugin.reader",
       "path": "src/evidence_lane_plugin/reader.py",
-      "bytes": 28941,
-      "sha256": "8CF55A8F61876A6A1C331BE83A4A7EBF7DE0E5FD9F318B31BF350FBEC87FD449",
+      "bytes": 29776,
+      "sha256": "1F50937D861D8DC602302069BE19B3E7DCA93947C0BB066DCBC100A5FAAE3378",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.receipt_ledger",
       "path": "src/evidence_lane_plugin/receipt_ledger.py",
-      "bytes": 13830,
-      "sha256": "BC586182254337D7901DEBD5CC1C2FC83D8AA0767FC27DF2083A63F9993340B8",
+      "bytes": 15431,
+      "sha256": "5A3A6AEFCA1ABB95FEA3C5FBD6A05A75434E63EC867D147D50F45C7A7A8B7F4C",
       "role": "PROJECT_AUTHORITIES"
     },
     {
       "module": "evidence_lane_plugin.redaction",
       "path": "src/evidence_lane_plugin/redaction.py",
-      "bytes": 1621,
-      "sha256": "0C9D739D28E027879F3C5FCF465B07728A87FECE49ED6B4F1F47082DA195A17E",
+      "bytes": 1337,
+      "sha256": "704FAAD0720B8D9477234FF27BB593F6C2DF2F45A19DD45433B9FFB22D439FC3",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -666,8 +750,8 @@
     {
       "module": "evidence_lane_plugin.runtime_continuity",
       "path": "src/evidence_lane_plugin/runtime_continuity.py",
-      "bytes": 22068,
-      "sha256": "CEEF28DB1006CA36DE3EA07ACC2A97C219E8C9CC402DACE68AAAA04F45DB77C4",
+      "bytes": 22087,
+      "sha256": "8C7793D52555EE2BB0023D4F6533F05177EDE6620554CC6CC8D2C40FF9D1810B",
       "role": "HOST_RUNTIME_AND_CONTINUITY"
     },
     {
@@ -680,8 +764,8 @@
     {
       "module": "evidence_lane_plugin.runtime_toolchain",
       "path": "src/evidence_lane_plugin/runtime_toolchain.py",
-      "bytes": 14024,
-      "sha256": "013507EE5ADE57F4D82F8A571817233492690A3EB143577C780E13E09823DCBA",
+      "bytes": 15772,
+      "sha256": "A88E283BB4CA5136AB891AF965DA383595D7B2A69E841D3FA5E87F6E05E3F240",
       "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
@@ -706,6 +790,13 @@
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
+      "module": "evidence_lane_plugin.secret_patterns",
+      "path": "src/evidence_lane_plugin/secret_patterns.py",
+      "bytes": 953,
+      "sha256": "32C5E677D514601550C97792A6C30F9794482AF891CC523877F0A45336D19EE4",
+      "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
+    },
+    {
       "module": "evidence_lane_plugin.semantic_retrieval",
       "path": "src/evidence_lane_plugin/semantic_retrieval.py",
       "bytes": 8903,
@@ -715,15 +806,15 @@
     {
       "module": "evidence_lane_plugin.service",
       "path": "src/evidence_lane_plugin/service.py",
-      "bytes": 224574,
-      "sha256": "35EF64C0B181437EC7726B3DC59CDFD35DE4701D1B858A49E8DE6E5D825D6DF4",
+      "bytes": 225224,
+      "sha256": "1CFC867F347607D02669FA3751D15D1B4C16FA1A7626F5134971DDEDD971163C",
       "role": "SDK_AND_ROUTING"
     },
     {
       "module": "evidence_lane_plugin.session",
       "path": "src/evidence_lane_plugin/session.py",
-      "bytes": 395652,
-      "sha256": "30DF22C6F6852F018558808B5712544C6299156825A8D3FE6F6D52E5C5A6C277",
+      "bytes": 395659,
+      "sha256": "C405910271B416137FCE223448E4D01DD8B96E06D88F6FD0552BF53F18E3B0B7",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -736,8 +827,8 @@
     {
       "module": "evidence_lane_plugin.site_operator_export",
       "path": "src/evidence_lane_plugin/site_operator_export.py",
-      "bytes": 6382,
-      "sha256": "2D3527F8300DDC1A9A3FA12AC439594263501840B440D778C8E052373332C71D",
+      "bytes": 6623,
+      "sha256": "89E86279A5B19383F2AEE2D9C22EC20ADCA97183D964477997CABCF468CB26F3",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -757,15 +848,15 @@
     {
       "module": "evidence_lane_plugin.source_fingerprint",
       "path": "src/evidence_lane_plugin/source_fingerprint.py",
-      "bytes": 6617,
-      "sha256": "4CF6F19B60190C1D75ED39B2A5533974566FE3FA9B4F576F0544510493203119",
+      "bytes": 6916,
+      "sha256": "EA31A7B001B85E2D8C19679D50004E88831C8E8635E032E012420F0588D33D16",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.source_git_history",
       "path": "src/evidence_lane_plugin/source_git_history.py",
-      "bytes": 62542,
-      "sha256": "F36832D0B522AE9253306B109A840B13AEB8460768A3A2F67D6ADE0758C77F07",
+      "bytes": 62418,
+      "sha256": "DD37FDA11721249BE3E4CA6A2164C3F77201793742A827951A64750A08BA34E4",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -785,15 +876,15 @@
     {
       "module": "evidence_lane_plugin.source_intake",
       "path": "src/evidence_lane_plugin/source_intake.py",
-      "bytes": 33357,
-      "sha256": "F8B9EA79F70CC9A68D1648103F1947259F09D4AF679475291A66CB9F2B47E85B",
+      "bytes": 33466,
+      "sha256": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
       "module": "evidence_lane_plugin.source_policy",
       "path": "src/evidence_lane_plugin/source_policy.py",
-      "bytes": 6258,
-      "sha256": "39B1F4E3690A5D9FCD546278C91BA9936B34D426EFB93253D1F9754EE60C1A71",
+      "bytes": 5902,
+      "sha256": "C30BA49841D3AE8C303EB1CD352C23623C7CDD40C0C21DC76600DDF3445B726F",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -813,8 +904,8 @@
     {
       "module": "evidence_lane_plugin.sqlite_indexing",
       "path": "src/evidence_lane_plugin/sqlite_indexing.py",
-      "bytes": 17643,
-      "sha256": "AA90B75BA0B8A4F9A9F4332BEB9D2701A530C2A9FD4BC579FB13D0F0825D7E41",
+      "bytes": 21171,
+      "sha256": "B127B94C01452FA83E13EF87261348A633D101EF1E03FFEDA093EFED3737E50B",
       "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
@@ -841,8 +932,8 @@
     {
       "module": "evidence_lane_plugin.store",
       "path": "src/evidence_lane_plugin/store.py",
-      "bytes": 412147,
-      "sha256": "C20836BBA55DE7C3AB5A38C3AEC0988A0B4BF2FB1C50CAA33E63DBF5A1B98F96",
+      "bytes": 412255,
+      "sha256": "CB9E657ED52938A40B5C3E60EC346A2007ED78CB62771B57100227E166551A17",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -855,8 +946,8 @@
     {
       "module": "evidence_lane_plugin.systemwide_route_audit",
       "path": "src/evidence_lane_plugin/systemwide_route_audit.py",
-      "bytes": 57472,
-      "sha256": "251A0658ACF5295F5F5744BFBF1EAD005015BDA318A4705262F542FC04370C10",
+      "bytes": 57923,
+      "sha256": "FC8ED21B263D7687FAF1B0A1C0DAA4BBC8F8588376F3C23C2D2D027CEFC3B313",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -904,9 +995,16 @@
     {
       "module": "evidence_lane_plugin.topology_reconciliation",
       "path": "src/evidence_lane_plugin/topology_reconciliation.py",
-      "bytes": 33589,
-      "sha256": "D3A400A6CCD50FFACCFD2CE2A5B1143C4736A7A9424196D24DAA0F50BD1220CE",
+      "bytes": 34095,
+      "sha256": "D9BD0323CEF09D85382B522BC8F6AFEB5A4BCFDB68A122168DF071900D5FBD62",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
+    },
+    {
+      "module": "evidence_lane_plugin.tunnel_identity_routing",
+      "path": "src/evidence_lane_plugin/tunnel_identity_routing.py",
+      "bytes": 3915,
+      "sha256": "00E8E2BB23045481A9444CDDFF0B2CF4470F112BF8B59A9E4996FB30B6C00719",
+      "role": "SDK_AND_ROUTING"
     },
     {
       "module": "evidence_lane_plugin.web_toolchain",
@@ -918,8 +1016,8 @@
     {
       "module": "evidence_lane_plugin.website_plan_projection",
       "path": "src/evidence_lane_plugin/website_plan_projection.py",
-      "bytes": 17757,
-      "sha256": "B0D1A39C8EF0B17B2516B2F6D7FF26ABFDA7FE73566B2EEA2EF5680D8E32100D",
+      "bytes": 17759,
+      "sha256": "0240FAEE761E8406B8842453281249DD699C989A5D13845BE138122B398A56ED",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     }
   ],
@@ -942,5 +1040,5 @@
   ],
   "root_surfaces_duplicated_inside_python_namespace": false,
   "loose_python_modules_directly_under_src_allowed": false,
-  "receipt_sha256": "194FF3E95D1060F20F850B884599006E7A2010050272B167D3482DDDE60AF3F2"
+  "receipt_sha256": "2EC655BD6795C8D7265FCB1F297BE077DE99520D8B26EE2739293D2547085511"
 }

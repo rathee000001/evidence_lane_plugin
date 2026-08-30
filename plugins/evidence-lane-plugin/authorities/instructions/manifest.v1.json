@@ -21,13 +21,13 @@
     },
     {
       "path": "authorities/instructions/instructions.dot",
-      "bytes": 725,
-      "sha256": "D92A1DE1DFC7A24B1DDECEB49904EBA35EA1CC74C14C9F4112111DBCBAE70A92"
+      "bytes": 795,
+      "sha256": "2882598004FF4CD996B9FD364C2901CC46F5EAA7BB2668F7D015DACCC6C507F5"
     },
     {
       "path": "authorities/instructions/instructions.mmd",
-      "bytes": 1101,
-      "sha256": "B28FB3AF3FCB4068C117973C9C6C7DD2DD2D929FE84B9B2E96EBE08813FE2971"
+      "bytes": 1203,
+      "sha256": "98E76DBF3F2D5985C65EA2B9BA15896EFC841D79F65E057F6B0037FBBFE7A9CD"
     },
     {
       "path": "authorities/instructions/manifest.schema.json",
@@ -61,13 +61,28 @@
     },
     {
       "path": "authorities/instructions/tools.json",
-      "bytes": 9509,
-      "sha256": "8FBE258672D8963AC8F5D53BB08A0058784ACBDB4A1F1D9D08874B75FC7E5C39"
+      "bytes": 10252,
+      "sha256": "7E28833B0C1353A0CFFF0206534FF4C00948E63C2858746DAC3E8572E7009411"
     },
     {
       "path": "authorities/instructions/tools.schema.json",
       "bytes": 530,
       "sha256": "A78F2ECDF1B45BA6F8601F042636591C94723C8EA071C972F9D5C766432B37A7"
+    },
+    {
+      "path": "authorities/instructions/workflow.dot",
+      "bytes": 5880,
+      "sha256": "3A489B38EE048A3F7709A372C6D5E37FA134021DC18D530431F7373CF86A3F95"
+    },
+    {
+      "path": "authorities/instructions/workflow.mmd",
+      "bytes": 4678,
+      "sha256": "0C4CB802BA979C80EF5879B2EA8E57087753DB70B832BD855781DBDF5F4F2CFF"
+    },
+    {
+      "path": "authorities/instructions/workflow.v1.json",
+      "bytes": 12936,
+      "sha256": "96D7D82FABAF3EBD391A88F1DBFA2795DAECB6CEB65B7315D2E92199C3B31777"
     }
   ],
   "canonical_source_hashes": {
@@ -83,11 +98,11 @@
     "edge_count": 2,
     "group_count": 0,
     "semantic_topology_sha256": "58FC9E2BBA93074ED5A6166273BF7C6D1BFDEE72E9C413DD1715E47696D98CF0",
-    "mmd_sha256": "B28FB3AF3FCB4068C117973C9C6C7DD2DD2D929FE84B9B2E96EBE08813FE2971",
-    "dot_sha256": "D92A1DE1DFC7A24B1DDECEB49904EBA35EA1CC74C14C9F4112111DBCBAE70A92",
+    "mmd_sha256": "98E76DBF3F2D5985C65EA2B9BA15896EFC841D79F65E057F6B0037FBBFE7A9CD",
+    "dot_sha256": "2882598004FF4CD996B9FD364C2901CC46F5EAA7BB2668F7D015DACCC6C507F5",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
+    "langchain_core_version": "1.6.1",
     "langgraph_export_sha256": "28F35FCC10312D614ED5FE6686EEF681F2F2B8AA4279F0EE6B54D56D5A64608F",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
@@ -124,11 +139,16 @@
       "authority_replaced": false
     },
     "graph_analysis_sha256": "9FA4DDE3A552BD36920357B42D013A5236CCBA0219D0F97F5E4B4F73026B744D",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "62AFA01D7ED4E1DB43B6958BCD70C1063DFA96D82DAC45D6EF5D45A3F701425A"
+    "receipt_sha256": "7F87F3511EE29DECF1A357FB97E73C62537B83AB64E9F521BA05B446EC4C948C"
   },
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "9390F4C8CF418B1ADD47228DBA25ADAE5D69FCFFFFF973B6A9298E0292F3B709"
+  "receipt_sha256": "6AB03D98BCF6DED095AFB9A00FE7EEA1D877528D0F83A401A0D2BB917F52E6BF"
 }

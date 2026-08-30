@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.mcp_adapter_routing",
+  "source_path": "src/evidence_lane_plugin/mcp_adapter_routing.py",
+  "source_sha256": "4B158DCB800B70A7B3C09565C9908284214CDA0550FCAB28CBB6D64C7153FF17",
+  "source_bytes": 6565,
+  "role": "SDK_AND_ROUTING",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "E5510248598B521492BBA89D4B2DC89280965E3A25B4A2F954F1BE09E3160ED7"
+}

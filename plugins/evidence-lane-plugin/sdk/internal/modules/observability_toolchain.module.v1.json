@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.observability_toolchain",
+  "source_path": "src/evidence_lane_plugin/observability_toolchain.py",
+  "source_sha256": "36A0F7A10AD4AADFD3B98BED1D851ADAE265BBFD50F0D50A87D6E899386B5CCA",
+  "source_bytes": 4438,
+  "role": "AI_TOOLCHAIN_EXECUTION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "713E5C0555B77FC9AD814EBF68F886FCFA034BD6CAA82C025330A0CBD70862A5"
+}

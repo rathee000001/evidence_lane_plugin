@@ -26,8 +26,8 @@ export type LaneRuntimeContract = {
 export const universalLaneSchema = [
   "lane_meta",
   "lane_pointer",
+  "source_content_cas",
   "source_registry",
-  "source_tombstone",
   "chunk_index",
   "chunk_content_cas",
   "chunk_history",
@@ -37,6 +37,11 @@ export const universalLaneSchema = [
   "tfidf_vector",
   "refresh_receipt",
   "mutation_receipt",
+  "authority_index_content_cas",
+  "authority_index_source",
+  "authority_index_node",
+  "authority_index_fts",
+  "authority_index_refresh_receipt",
 ] as const;
 
 const coreTools: readonly LaneTool[] = [
@@ -56,15 +61,9 @@ const structuredTools: readonly LaneTool[] = [
 ];
 
 const codeSchemaAdditions = [
-  "sector_meta", "sector_head", "artifact_registry", "relation_edge",
-  "code_source_registry", "code_file_snapshot", "code_chunk", "code_symbol",
-  "code_import", "code_route", "code_dependency", "code_route_api_boundary",
-  "code_config_build_test_chunk", "code_index_checkpoint", "code_source_active_head",
-  "code_workflow_edge", "code_semantic_diff", "code_synthetic_snapshot_file",
-  "code_snapshot_history", "code_good_snapshot", "snapshot_git_bridge",
-  "git_commit_registry", "git_commit_parent", "git_file_change", "git_patch_hunk",
-  "git_exact_line_change", "git_ref_registry", "git_push_event", "git_route_impact",
-  "git_symbol_impact", "git_dependency_impact", "git_test_impact", "git_artifact_impact",
+  "code_symbol", "code_import", "code_call", "code_parser_receipt",
+  "code_parser_diagnostic", "code_route", "code_dependency",
+  "git_commit_registry", "git_commit_parent", "git_file_change", "git_ref_registry",
   "git_blob_cas", "git_content_chunk_cas", "git_chunk_occurrence", "git_history_fts",
   "code_chunk_fts",
 ] as const;

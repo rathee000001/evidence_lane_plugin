@@ -45,7 +45,7 @@
       "env_uop_operations_counted_as_public_actions": 0
     },
     {
-      "workflow": "DELTA_ENTRY_AND_SIX_WAY_QUERY",
+      "workflow": "DELTA_ENTRY_AND_CURRENT_AUTHORITY_QUERY",
       "triggers": [
         "ACTIVE_PLAN_ROW_ENTRY"
       ],
@@ -385,17 +385,43 @@
     "internal_support_bindings": {
       "schema": "evidence-lane.internal-sdk-support-bindings.v1",
       "status": "PASS",
-      "component_count": 4,
+      "component_count": 6,
       "components": [
         {
           "component": "env_uop_graph",
           "owner_module": "env_uop_operator_runtime",
           "functions": [
-            "migrate_and_render_env_uop_graph",
+            "rebuild_codex_action_planes",
             "rebuild_flash_manifest"
           ],
           "function_modules": [
+            "evidence_lane_plugin.codex_action_plane",
             "evidence_lane_plugin.env_uop_graph"
+          ],
+          "public_action": false
+        },
+        {
+          "component": "env_uop_tool_routing",
+          "owner_module": "env_uop_operator_runtime",
+          "functions": [
+            "env_uop_tool_routing_catalog",
+            "route_env_uop_data_touch"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.env_uop_tool_routing"
+          ],
+          "public_action": false
+        },
+        {
+          "component": "evaluation_toolchain",
+          "owner_module": "first_class_workflows",
+          "functions": [
+            "build_evaluation_plan",
+            "evaluation_tool_catalog",
+            "seal_evaluation_result"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.evaluation_toolchain"
           ],
           "public_action": false
         },
@@ -438,9 +464,9 @@
       ],
       "all_components_have_one_sdk_owner": true,
       "support_components_inflate_public_action_count": false,
-      "receipt_sha256": "E4164C883105EA654CF4850B1725FF9AE9C9C8B5B61E82317507B17A34740C85"
+      "receipt_sha256": "991F7C7B40A28148EE9D0177AC695E620422C11C82485B1152CF7B4E2D857D11"
     },
-    "receipt_sha256": "23315DD0EDAB5454E3F1CD4838EC0612C59AB0011E2BDFFA655FB1CF70332FC1"
+    "receipt_sha256": "28452E9665E8269E878CCFCADB3011A06E395ED8E65D577D2FD5C0340D6A9416"
   },
   "public_action_and_env_uop_planes_separate": true,
   "missing_public_actions": [],
@@ -449,5 +475,5 @@
   "host_skill_auto_selection_is_prompt_trigger": true,
   "sdk_claims_pre_reasoning_prompt_interception": false,
   "counts_are_derived_not_fixed": true,
-  "receipt_sha256": "D0B418D46AC2AED6ED6FFF0C8E5C6CEA75F18EC8FAE2371F706BBA4A853900D8"
+  "receipt_sha256": "E2106C2D9AC365462E9D847475BB5EF1D5792817C64A62A7D970322B2802D7A7"
 }

@@ -1,7 +1,9 @@
-flowchart TD
+flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=86587B42DCF8D13857BB7886EE7712FA4787ED43D2D5A026582332EE66F118E3
+%% LANGGRAPH_EXPORT_SHA256=833548A85FF4A5B73786D48AB9B55853601DD2278A3A857F95E4A87A612CE6DC
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=28
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -13,152 +15,143 @@ flowchart TD
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
-  START["Prompt enters"]:::root
-  PROFILE[".uepc_profile"]:::semantic
-  UOPSQL["uop/uop_sqlite.sqlite"]:::semantic
-  UOPLAW["uop/uop_law.md"]:::semantic
-  UOPLOCK["UOP write lock"]:::semantic
-  FU["mode == flash_uop?"]:::warn
-  UOPMUTATE["scoped UOP mutation allowed"]:::semantic
-  UOPRO["read-only UOP governance"]:::semantic
-  SPATIAL["spatial route operators"]:::semantic
-  ROUTE["source -&gt; gate -&gt; actor -&gt; constraint -&gt; action -&gt; output -&gt; validation -&gt; delta -&gt; next"]:::semantic
-  COMPRESS["knowledge compression operators"]:::semantic
-  DBFORM["operators stored as relational rows / no private story"]:::semantic
-  SRCSTATE["source-state operators"]:::semantic
-  PRECEDENCE["direct / lineage-derived / telemetry / temp topology"]:::semantic
-  DISC["disclosure boundary operators"]:::semantic
-  BLOCK["block private personal/family/health/recruiter payload"]:::semantic
-  MODE["mode-cluster operators"]:::semantic
-  LANE["guide lane/formula selection"]:::semantic
-  DELTA["delta preservation operators"]:::semantic
-  HUMAN["human gate operators"]:::semantic
-  NOENV["CAN_OVERRIDE_ENV=false"]:::semantic
-  NOPROJ["CAN_OVERRIDE_PROJECT=false"]:::semantic
-  RECEIPT["operator receipt written to exit slip"]:::semantic
-  UOP14_PROMPT_OVERRIDE["UOP14_PROMPT_OVERRIDE"]:::default
-  UOP14_DEEPRESEARCH["UOP14_DEEPRESEARCH"]:::default
-  UOP14_FUTURE_LAYER["UOP14_FUTURE_LAYER"]:::default
-  UOP15_PUBLIC_LOCK["UOP15_PUBLIC_LOCK"]:::default
-  UOP15_SECTOR_GUIDANCE["UOP15_SECTOR_GUIDANCE"]:::default
-  UOP15_RESEARCH["UOP15_RESEARCH"]:::default
-  UOP15_LEGACY["UOP15_LEGACY"]:::default
-  subgraph UOP14_PROMPT_OVERRIDE["UOP14 PROMPT OVERRIDE INTERPRETATION"]
+  INPUT["ENV-selected Codex action context"]:::root
+  SOURCE["Source and authority precedence"]:::semantic
+  GATES["Work, privacy, disclosure, direct-purge and HIL gates"]:::warn
+  OPERATOR["Applicable governance operators only"]:::semantic
+  FALLBACK["Declared same-class fallback only"]:::semantic
+  OUTPUT["Governed result + receipt; cannot override ENV or Project Truth"]:::output
+  subgraph OPERATORS["Operators"]
     direction TB
-    UOP14PO["uop_prompt_override_operator_v14"]:::semantic
-    UOP14DETECT["PROMPT_OVERRIDE_ATTEMPT_DETECTED"]:::semantic
-    UOP14LOCAL["local display preference only"]:::semantic
-    UOP14PROCESS["process law remains mandatory"]:::semantic
-    UOP14RECEIPT["full internal receipt preserved"]:::semantic
-    UOP14NOEXCUSE["NO_NARRATIVE_EXCUSE_FOR_GATE_FAILURE"]:::semantic
+    OPERATORS_ACCELERATOR_BUDGET_GATE["ACCELERATOR_BUDGET_GATE: Require user vendor-plugin grant, compatible runtime, bounded telemetry, no throttle, configured VRAM budget, and visible CPU fallback"]:::semantic
+    OPERATORS_DIRECT_PURGE_GATE["DIRECT_PURGE_GATE: Remove replaced route and references in the same Delta"]:::semantic
+    OPERATORS_DISCLOSURE_GATE["DISCLOSURE_GATE: Emit only user-visible result and receipt"]:::semantic
+    OPERATORS_ENTRY_SLIP_GATE["ENTRY_SLIP_GATE: Entry Slip classifies intent and focus; it is not an Exit Slip"]:::semantic
+    OPERATORS_EXIT_SLIP_GATE["EXIT_SLIP_GATE: Delta-exit append never emits an Exit Slip"]:::semantic
+    OPERATORS_FALLBACK_GATE["FALLBACK_GATE: Only declared same-class fallback may run and failure remains visible"]:::semantic
+    OPERATORS_LEARNING_HIL_GATE["LEARNING_HIL_GATE: Learning approval remains separate from Project approval"]:::semantic
+    OPERATORS_PRIVACY_GATE["PRIVACY_GATE: Secrets and private reasoning never leave their authority"]:::semantic
+    OPERATORS_PROJECT_HIL_GATE["PROJECT_HIL_GATE: Only exact owning Project token may promote"]:::semantic
+    OPERATORS_SOURCE_PRECEDENCE["SOURCE_PRECEDENCE: No source payload changes authority by itself"]:::semantic
+    OPERATORS_WORK_GATE["WORK_GATE: Only condition-true bounded work may run"]:::semantic
   end
-  subgraph UOP14_DEEPRESEARCH["UOP14 READ AUDIT ACCESS"]
+  subgraph HIL_POLICIES["Hil_Policies"]
     direction TB
-    UOP14DR["uop_deep_research_access_operator_v14"]:::semantic
-    UOP14READ["READ_LOCK_MUST_NOT_BLOCK_AUDIT"]:::semantic
-    UOP14NOPASS["PASSWORD_NEVER_REQUIRED_FOR_READ_ONLY_AUDIT"]:::semantic
-    UOP14SIDE["read-only sidecar mirror allowed"]:::semantic
-    UOP14NOAUTH["sidecar is not env law"]:::semantic
+    HIL_POLICIES_CODE_REPOSITORY["CODE_REPOSITORY: PROJECT_AND_LEARNING"]:::warn
+    HIL_POLICIES_CUSTOM_PROJECT["CUSTOM_PROJECT: EXPLICIT_CUSTOM_SCHEMA"]:::warn
+    HIL_POLICIES_DATA_PROJECT["DATA_PROJECT: PROJECT_AND_LEARNING"]:::warn
+    HIL_POLICIES_DOCUMENT_PROJECT["DOCUMENT_PROJECT: PROJECT_AND_LEARNING"]:::warn
+    HIL_POLICIES_MEDIA_PROJECT["MEDIA_PROJECT: PROJECT_AND_LEARNING"]:::warn
+    HIL_POLICIES_MIXED_PROJECT["MIXED_PROJECT: PROJECT_AND_LEARNING"]:::warn
+    HIL_POLICIES_RESEARCH_STUDY["RESEARCH_STUDY: PROJECT_AND_LEARNING"]:::warn
   end
-  subgraph UOP14_FUTURE_LAYER["UOP14 FUTURE GOVERNANCE ADDITION LEDGER"]
+  subgraph HOST_POLICIES["Host_Policies"]
     direction TB
-    UOP14ADD["uop_future_addition_ledger_v14"]:::semantic
-    UOP14FLASH["mode=flash_uop required"]:::semantic
-    UOP14NOENV["can_override_env=false"]:::semantic
-    UOP14NOPROJ["can_override_project=false"]:::semantic
-    UOP14EMPTY["private payload blocked in clean package"]:::semantic
+    HOST_POLICIES_CODEX_CLI["CODEX_CLI: CODEX_HOST_VARIANT_BOUND_TO_CURRENT_RUNTIME"]:::semantic
+    HOST_POLICIES_CODEX_DESKTOP_BETA["CODEX_DESKTOP_BETA: CODEX_HOST_VARIANT_BOUND_TO_CURRENT_RUNTIME"]:::semantic
+    HOST_POLICIES_CODEX_DESKTOP_STABLE["CODEX_DESKTOP_STABLE: CODEX_HOST_VARIANT_BOUND_TO_CURRENT_RUNTIME"]:::semantic
+    HOST_POLICIES_CODEX_VM_EPHEMERAL["CODEX_VM_EPHEMERAL: CODEX_HOST_VARIANT_BOUND_TO_CURRENT_RUNTIME"]:::semantic
+    HOST_POLICIES_CODEX_VM_PERSISTENT["CODEX_VM_PERSISTENT: CODEX_HOST_VARIANT_BOUND_TO_CURRENT_RUNTIME"]:::semantic
   end
-  subgraph UOP15_PUBLIC_LOCK["UOP15 PUBLIC GOVERNANCE LOCK"]
+  subgraph ACCELERATOR_POLICIES["Accelerator_Policies"]
     direction TB
-    U15BASE["Env14 UOP governance base retained"]:::semantic
-    U15RO["mode=ro&amp;immutable=1 by default"]:::semantic
-    U15FLASH["only mode=flash_uop may mutate UOP"]:::semantic
-    U15NOPRIVATE["no private profile/story payload"]:::semantic
-    U15BOUND["public governance-only boundary"]:::semantic
+    ACCELERATOR_POLICIES_AMD_DIRECTML["AMD_DIRECTML: 80"]:::semantic
+    ACCELERATOR_POLICIES_AMD_ROCM["AMD_ROCM: 80"]:::semantic
+    ACCELERATOR_POLICIES_CPU["CPU: 100"]:::semantic
+    ACCELERATOR_POLICIES_NVIDIA_CUDA["NVIDIA_CUDA: 80"]:::semantic
   end
-  subgraph UOP15_SECTOR_GUIDANCE["UOP15 PROJECT SECTOR GUIDANCE WITHOUT OVERRIDE"]
+  subgraph FALLBACKS["Fallbacks"]
     direction TB
-    U15SECTOR["read 14-sector registry"]:::semantic
-    U15CLASS["classify active lane and write scope"]:::semantic
-    U15CHAT["chat_lineage automatic append"]:::semantic
-    U15GRANT["other sector requires explicit one-turn grant"]:::semantic
-    U15RELOCK["human gate + immediate relock"]:::semantic
-    U15NOOVERRIDE["CAN_OVERRIDE_PROJECT=false"]:::semantic
+    FALLBACKS_CODE["CODE: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_DATA["DATA: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_DEPLOYMENT["DEPLOYMENT: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_DOCUMENT["DOCUMENT: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_EVALUATION["EVALUATION: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_FORMULA["FORMULA: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_GOVERNANCE["GOVERNANCE: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_GRAPH["GRAPH: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_MCP_TRANSPORT["MCP_TRANSPORT: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_OBSERVABILITY["OBSERVABILITY: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_OCR_MEDIA["OCR_MEDIA: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_RETRIEVAL["RETRIEVAL: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_RUNTIME["RUNTIME: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_SOURCE_ROUTING["SOURCE_ROUTING: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    FALLBACKS_WEB_RESEARCH["WEB_RESEARCH: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
   end
-  subgraph UOP15_RESEARCH["UOP15 RESEARCH RECEIPT OPERATORS"]
-    direction TB
-    U15TOKEN["credit token estimate operator"]:::semantic
-    U15ASSUME["record assumptions + confidence"]:::semantic
-    U15RQ["answer five constant research questions"]:::semantic
-    U15VISIBLE["visible two-line answers only"]:::semantic
-    U15NOHIDDEN["no hidden chain-of-thought storage"]:::semantic
-  end
-  subgraph UOP15_LEGACY["UOP15 LEGACY CARRY-FORWARD CLASSIFICATION"]
-    direction TB
-    U15LEG["older Env active project state"]:::semantic
-    U15HISTORY["PROJECT_HISTORY_SOURCE"]:::semantic
-    U15NOTENV["NOT_ENV_LAW"]:::semantic
-    U15NOTUOP["NOT_UOP_TRUTH"]:::semantic
-    U15LINEAGE["allowed chat-lineage mirror"]:::semantic
-  end
-  START --> PROFILE
-  PROFILE --> UOPSQL
-  PROFILE --> UOPLAW
-  PROFILE --> UOPLOCK
-  UOPLOCK --> FU
-  FU -->|"yes"| UOPMUTATE
-  FU -->|"no"| UOPRO
-  UOPSQL --> SPATIAL
-  SPATIAL --> ROUTE
-  UOPSQL --> COMPRESS
-  COMPRESS --> DBFORM
-  UOPSQL --> SRCSTATE
-  SRCSTATE --> PRECEDENCE
-  UOPSQL --> DISC
-  DISC --> BLOCK
-  UOPSQL --> MODE
-  MODE --> LANE
-  UOPSQL --> DELTA
-  UOPSQL --> HUMAN
-  UOPSQL --> NOENV
-  UOPSQL --> NOPROJ
-  LANE --> RECEIPT
-  UOP14PO --> UOP14DETECT
-  UOP14DETECT --> UOP14LOCAL
-  UOP14LOCAL --> UOP14PROCESS
-  UOP14PROCESS --> UOP14RECEIPT
-  UOP14DETECT --> UOP14NOEXCUSE
-  UOP14DR --> UOP14READ
-  UOP14READ --> UOP14NOPASS
-  UOP14DR --> UOP14SIDE
-  UOP14SIDE --> UOP14NOAUTH
-  UOP14ADD --> UOP14FLASH
-  UOP14FLASH --> UOP14NOENV
-  UOP14FLASH --> UOP14NOPROJ
-  UOP14FLASH --> UOP14EMPTY
-  PROFILE --> UOP14_PROMPT_OVERRIDE
-  PROFILE --> UOP14_DEEPRESEARCH
-  PROFILE --> UOP14_FUTURE_LAYER
-  UOP14RECEIPT --> RECEIPT
-  U15BASE --> U15RO
-  U15RO --> U15FLASH
-  U15RO --> U15NOPRIVATE
-  U15NOPRIVATE --> U15BOUND
-  U15SECTOR --> U15CLASS
-  U15CLASS --> U15CHAT
-  U15CLASS --> U15GRANT
-  U15GRANT --> U15RELOCK
-  U15CLASS --> U15NOOVERRIDE
-  U15TOKEN --> U15ASSUME
-  U15ASSUME --> U15RQ
-  U15RQ --> U15VISIBLE
-  U15VISIBLE --> U15NOHIDDEN
-  U15LEG --> U15HISTORY
-  U15HISTORY --> U15NOTENV
-  U15HISTORY --> U15NOTUOP
-  U15HISTORY --> U15LINEAGE
-  PROFILE --> UOP15_PUBLIC_LOCK
-  PROFILE --> UOP15_SECTOR_GUIDANCE
-  PROFILE --> UOP15_RESEARCH
-  PROFILE --> UOP15_LEGACY
-  U15VISIBLE --> RECEIPT
+  INPUT --> SOURCE
+  SOURCE --> GATES
+  GATES --> OPERATOR
+  OPERATOR --> FALLBACK
+  FALLBACK --> OUTPUT
+  OPERATOR -->|"conditional: governed member"| OPERATORS_ACCELERATOR_BUDGET_GATE
+  OPERATOR -->|"conditional: governed member"| OPERATORS_DIRECT_PURGE_GATE
+  OPERATOR -->|"conditional: governed member"| OPERATORS_DISCLOSURE_GATE
+  OPERATOR -->|"conditional: governed member"| OPERATORS_ENTRY_SLIP_GATE
+  OPERATOR -->|"conditional: governed member"| OPERATORS_EXIT_SLIP_GATE
+  OPERATOR -->|"conditional: governed member"| OPERATORS_FALLBACK_GATE
+  OPERATOR -->|"conditional: governed member"| OPERATORS_LEARNING_HIL_GATE
+  OPERATOR -->|"conditional: governed member"| OPERATORS_PRIVACY_GATE
+  OPERATOR -->|"conditional: governed member"| OPERATORS_PROJECT_HIL_GATE
+  OPERATOR -->|"conditional: governed member"| OPERATORS_SOURCE_PRECEDENCE
+  OPERATOR -->|"conditional: governed member"| OPERATORS_WORK_GATE
+  GATES -->|"conditional: governed member"| HIL_POLICIES_CODE_REPOSITORY
+  GATES -->|"conditional: governed member"| HIL_POLICIES_CUSTOM_PROJECT
+  GATES -->|"conditional: governed member"| HIL_POLICIES_DATA_PROJECT
+  GATES -->|"conditional: governed member"| HIL_POLICIES_DOCUMENT_PROJECT
+  GATES -->|"conditional: governed member"| HIL_POLICIES_MEDIA_PROJECT
+  GATES -->|"conditional: governed member"| HIL_POLICIES_MIXED_PROJECT
+  GATES -->|"conditional: governed member"| HIL_POLICIES_RESEARCH_STUDY
+  INPUT -->|"conditional: governed member"| HOST_POLICIES_CODEX_CLI
+  INPUT -->|"conditional: governed member"| HOST_POLICIES_CODEX_DESKTOP_BETA
+  INPUT -->|"conditional: governed member"| HOST_POLICIES_CODEX_DESKTOP_STABLE
+  INPUT -->|"conditional: governed member"| HOST_POLICIES_CODEX_VM_EPHEMERAL
+  INPUT -->|"conditional: governed member"| HOST_POLICIES_CODEX_VM_PERSISTENT
+  GATES -->|"conditional: governed member"| ACCELERATOR_POLICIES_AMD_DIRECTML
+  GATES -->|"conditional: governed member"| ACCELERATOR_POLICIES_AMD_ROCM
+  GATES -->|"conditional: governed member"| ACCELERATOR_POLICIES_CPU
+  GATES -->|"conditional: governed member"| ACCELERATOR_POLICIES_NVIDIA_CUDA
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_CODE
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_DATA
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_DEPLOYMENT
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_DOCUMENT
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_EVALUATION
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_FORMULA
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_GOVERNANCE
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_GRAPH
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_MCP_TRANSPORT
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_OBSERVABILITY
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_OCR_MEDIA
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_RETRIEVAL
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_RUNTIME
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_SOURCE_ROUTING
+  FALLBACK -->|"conditional: governed member"| FALLBACKS_WEB_RESEARCH
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  HOST_POLICIES_CODEX_CLI ~~~ HOST_POLICIES_CODEX_DESKTOP_BETA
+  HOST_POLICIES_CODEX_DESKTOP_BETA ~~~ HOST_POLICIES_CODEX_DESKTOP_STABLE
+  HOST_POLICIES_CODEX_DESKTOP_STABLE ~~~ HOST_POLICIES_CODEX_VM_EPHEMERAL
+  HIL_POLICIES_CODE_REPOSITORY ~~~ HIL_POLICIES_CUSTOM_PROJECT
+  HIL_POLICIES_CUSTOM_PROJECT ~~~ HIL_POLICIES_DATA_PROJECT
+  HIL_POLICIES_DOCUMENT_PROJECT ~~~ HIL_POLICIES_MEDIA_PROJECT
+  HIL_POLICIES_MEDIA_PROJECT ~~~ HIL_POLICIES_MIXED_PROJECT
+  OPERATORS_ACCELERATOR_BUDGET_GATE ~~~ OPERATORS_DIRECT_PURGE_GATE
+  OPERATORS_DIRECT_PURGE_GATE ~~~ OPERATORS_DISCLOSURE_GATE
+  OPERATORS_DISCLOSURE_GATE ~~~ OPERATORS_ENTRY_SLIP_GATE
+  OPERATORS_ENTRY_SLIP_GATE ~~~ OPERATORS_EXIT_SLIP_GATE
+  OPERATORS_EXIT_SLIP_GATE ~~~ OPERATORS_FALLBACK_GATE
+  OPERATORS_LEARNING_HIL_GATE ~~~ OPERATORS_PRIVACY_GATE
+  OPERATORS_PRIVACY_GATE ~~~ OPERATORS_PROJECT_HIL_GATE
+  OPERATORS_PROJECT_HIL_GATE ~~~ OPERATORS_SOURCE_PRECEDENCE
+  OPERATORS_SOURCE_PRECEDENCE ~~~ OPERATORS_WORK_GATE
+  FALLBACKS_CODE ~~~ FALLBACKS_DATA
+  FALLBACKS_DATA ~~~ FALLBACKS_DEPLOYMENT
+  FALLBACKS_DEPLOYMENT ~~~ FALLBACKS_DOCUMENT
+  FALLBACKS_DOCUMENT ~~~ FALLBACKS_EVALUATION
+  FALLBACKS_EVALUATION ~~~ FALLBACKS_FORMULA
+  FALLBACKS_GOVERNANCE ~~~ FALLBACKS_GRAPH
+  FALLBACKS_GRAPH ~~~ FALLBACKS_MCP_TRANSPORT
+  FALLBACKS_MCP_TRANSPORT ~~~ FALLBACKS_OBSERVABILITY
+  FALLBACKS_OBSERVABILITY ~~~ FALLBACKS_OCR_MEDIA
+  FALLBACKS_OCR_MEDIA ~~~ FALLBACKS_RETRIEVAL
+  FALLBACKS_RUNTIME ~~~ FALLBACKS_SOURCE_ROUTING
+  FALLBACKS_SOURCE_ROUTING ~~~ FALLBACKS_WEB_RESEARCH
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

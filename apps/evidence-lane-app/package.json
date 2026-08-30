@@ -11,8 +11,8 @@
     "test:batch-a": "node --experimental-strip-types tests/test-batch-a-backend-parity.mjs",
     "test:github-app-backend": "node --experimental-strip-types tests/test-github-app-backend.mjs",
     "test:backend-readiness": "node --experimental-strip-types tests/test-backend-readiness.mjs",
-    "test:studio-query": "node --experimental-strip-types scripts/test-openrouter-boundary.mjs",
-    "test:studio-gold-parity": "node --experimental-strip-types scripts/test-studio-gold-parity.mjs"
+    "test:studio-gold-parity": "node --experimental-strip-types scripts/test-studio-gold-parity.mjs",
+    "test:studio-boundary": "node scripts/test-studio-no-provider-proxy.mjs"
   },
   "dependencies": {
     "framer-motion": "12.38.0",

@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.env_uop_graph",
   "source_path": "src/evidence_lane_plugin/env_uop_graph.py",
-  "source_sha256": "17D6D6E73F5408BC02D3AD7B3038CBE0507A287ABF68E4C9769D337D6D2CA219",
-  "source_bytes": 20836,
+  "source_sha256": "5312696442E2917F15ACBD2E6E829AB08FB8CF7F7DC2A8C8AA96BC9E8C72C15E",
+  "source_bytes": 12296,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "6106E13C7F5EEA4620D450116456EA04E3AE2063A26D23D3DA5717B95F1BD493"
+  "receipt_sha256": "85C9F02006A28DBE42DE97F65FFF134F2EC348C652B013BB5445D5BFD29501BF"
 }

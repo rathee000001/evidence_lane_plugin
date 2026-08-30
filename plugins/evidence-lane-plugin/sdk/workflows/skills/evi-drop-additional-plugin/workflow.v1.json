@@ -1,0 +1,132 @@
+{
+  "schema": "evidence-lane.dedicated-skill-workflow.v1",
+  "status": "PASS",
+  "skill": "evi-drop-additional-plugin",
+  "description": "Revoke one active Evidence Lane plugin grant while preserving its append-only history.",
+  "workflow_names": [
+    "drop-connector"
+  ],
+  "workflow_count": 1,
+  "ordered_group_count": 1,
+  "action_step_count": 1,
+  "steps": [
+    {
+      "workflow": "drop-connector",
+      "order": 1,
+      "action": "connector_plugin_drop",
+      "action_class": "['GOVERNANCE', 'RUNTIME']",
+      "schema_path": "schemas/actions/connector_plugin_drop.schema.json",
+      "schema_sha256": "98F2DF9E5424ECD9A1FF29FED02140D78A0F886E7B0F07D3B0CE8D6B9CCC6DE8",
+      "sdk_binding": "sdk/actions/connector_plugin_drop.action.v1.json",
+      "mcp_binding": "mcp/actions/connector_plugin_drop.binding.v1.json",
+      "current_route": {
+        "tool": "connector_plugin_drop",
+        "capability": "connector_grants",
+        "current_route": "BOUNDED_APPEND_ONLY_CONNECTOR_GRANT_REGISTRY",
+        "owner": "evi-plugin",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "Cryptography_PyJWT",
+          "ENV_UOP_classifier",
+          "Hash_chain_writer",
+          "HuggingFace_Hub_ModelSnapshot",
+          "NextJS_React_ThreeJS_FramerMotion",
+          "NodeJS_TypeScript",
+          "PCM_MBA_operators",
+          "Python",
+          "SQLite_CAS",
+          "SevenZip_NSIS_extractor",
+          "psutil",
+          "python_dotenv",
+          "python_multipart"
+        ],
+        "transport_orchestration": [
+          "FastAPI",
+          "FastMCP",
+          "MCP_Python_SDK",
+          "OpenAI_Agents_SDK",
+          "PowerShell_Win32_APIs",
+          "Pydantic",
+          "Pydantic_Settings",
+          "Tenacity",
+          "Uvicorn",
+          "aiofiles",
+          "orjson"
+        ],
+        "external_services_or_stores": [
+          "AWS",
+          "AWS_Lambda",
+          "Azure",
+          "Docker",
+          "Filesystem_MCP_Server",
+          "GitHub_Actions",
+          "GitHub_MCP_Server",
+          "Google_Cloud",
+          "Google_Cloud_Run",
+          "Kubernetes",
+          "PostgreSQL_MCP_Server",
+          "Slack_MCP_Server",
+          "Vercel_Git_integration"
+        ],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "internal_sdk_is_execution_owner": true,
+  "env_and_uop_are_distinct": true,
+  "outer_sdk_and_mcp_are_transport_only": true,
+  "authority_and_lane_resolve_per_action_and_state": true,
+  "every_condition_true_step_runs_or_fails_visible": true,
+  "workflow_or_count_ceiling": false,
+  "receipt_sha256": "4A1B62EBBCB80B5BE4598B87FCACF98FE3A14F287FA1E3E0A8E2E65FDA261D77"
+}

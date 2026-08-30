@@ -9,35 +9,35 @@
     {
       "path": "uop/locked_mmd_hash.txt",
       "canonical_path": "uop/locked_mmd_hash.txt",
-      "bytes": 622,
-      "sha256": "CF7D08A299B6B40774B18DA4CD0EF6B775C9C968F03CB613FF1B8848ACB431D1"
+      "bytes": 609,
+      "sha256": "E6BB44434E6EDDEBB20BB8FE0391ADF63DAF6B4B8E063CF71AD0C3D59D7C21B2"
     },
     {
       "path": "uop/uop_law.md",
       "canonical_path": "uop/uop_law.md",
-      "bytes": 1619,
-      "sha256": "C4CB11039D3ECF1861FAE04654897CF25962905A8F5A8ACBC99439D3ED0B03CF"
+      "bytes": 2197,
+      "sha256": "5E1F7E35EA10973D7F488A643AB9A663F5A45AA4791B2EB8E3A50C3F7B63EBB8"
     },
     {
       "path": "uop/uop_mmd.dot",
       "canonical_path": "uop/uop_mmd.dot",
-      "bytes": 10567,
-      "sha256": "8A56801CCA46BF4F4D11F105B532FBB4082758B8371D9141C347EB142837E2D8"
+      "bytes": 14524,
+      "sha256": "50E47D933B9F3A128FC79621FEAA14E440CC3775451F76C99B87A05927AC386C"
     },
     {
       "path": "uop/uop_mmd.mmd",
       "canonical_path": "uop/uop_mmd.mmd",
-      "bytes": 6824,
-      "sha256": "D67946A53F3A323CCDCB63B7E2DBC88F72743E620F930E5F82240B3EE5638C43"
+      "bytes": 10653,
+      "sha256": "6F4FB299BECD2B775B8259D50633DE65ABF4611C4F378B3E70535E3186416FD2"
     },
     {
       "path": "uop/uop_sqlite.sqlite",
       "canonical_path": "uop/uop_sqlite.sqlite",
-      "bytes": 1044480,
-      "sha256": "1D683820439D35DA8773217097F9772D9602956FDFD2A92518630E9CF8F9F66A"
+      "bytes": 937984,
+      "sha256": "E295F8592799784EFF8BB63C31F27331BDBA0EA8092A63E307E0C9FBF80ACF1D"
     }
   ],
   "canonical_packaged_authority": true,
   "duplicate_authority_copy_present": false,
-  "receipt_sha256": "9D98C8DB52F046A6C8D36E87973A0278EA5E6ECC170A83F3FC9C7F22264DB335"
+  "receipt_sha256": "034A557959ED9C9B1A83A6A1B32BD2A6E0848608EAC668A952BEABF8E3F995F3"
 }

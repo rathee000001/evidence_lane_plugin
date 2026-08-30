@@ -193,10 +193,4 @@ export const documentationReferences = [
     use: "Code-scanning configuration and honest scan-status research.",
     boundary: "No scan claim exists without an executable CodeQL receipt.",
   },
-  {
-    name: "OpenRouter free-model router",
-    href: "https://openrouter.ai/docs/guides/routing/routers/free-router",
-    use: "Optional zero-cost route for visibly non-project general questions after a governed corpus no-hit.",
-    boundary: "No project context, no paid fallback, no evidence authority, and unavailable until separately enabled with a host-managed key.",
-  },
 ] as const;

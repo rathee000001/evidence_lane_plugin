@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.connector_governance",
   "source_path": "src/evidence_lane_plugin/connector_governance.py",
-  "source_sha256": "619C78D2E2447B004F4823A6B8D2C059B271381486F1F2AE3957F0B5EACCF91E",
-  "source_bytes": 69607,
+  "source_sha256": "6406AA6E41C8D8ECD030A16BFC3325B4E198770F8505E50E833FA5EA63577ECD",
+  "source_bytes": 69728,
   "role": "PROJECT_AUTHORITIES",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "F2D82D564381BDEDEF195558EFE444C2F5AB3BDE7F360B0DF34623C42C4D8678"
+  "receipt_sha256": "84F9B1FFBF66EE4CAD53CF08A86A006DE4FBBB86F6CFD966F8CA28ED3BD1D2C5"
 }

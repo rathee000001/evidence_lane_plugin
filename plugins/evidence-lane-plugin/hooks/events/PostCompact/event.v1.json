@@ -42,27 +42,39 @@
     {
       "display_id": "8.1",
       "path": "hooks/events/PostCompact/handler-8.1.v1.json",
-      "sha256": "CCE2D557CC9E042E01AF6872298B3555F1285AADAFF67448F532FD570DBED9F1"
+      "sha256": "509C798323AACEB3F2A9D7894087F0084C4E98FD73726CA1B5167F5926B25254"
     },
     {
       "display_id": "8.2",
       "path": "hooks/events/PostCompact/handler-8.2.v1.json",
-      "sha256": "FCA111ADFE1DB37C9E23E31E6C22CF10FF819D23D2EE022C0EA8B48979922B1C"
+      "sha256": "E9DC406277C5C9747F6AEA80F88C7BCEF5F2724E2D1FDD1AC317A148E676ED65"
     },
     {
       "display_id": "8.3",
       "path": "hooks/events/PostCompact/handler-8.3.v1.json",
-      "sha256": "C4FD5D5A7804C8026527D47A4FDC913BFBA8E65A1478C6CDA5C6D8470EB38EA9"
+      "sha256": "FA2B31351F006E6CBBC5F0EE0D0E267CCD22E60E711A9EC49DDE88159B98E989"
     },
     {
       "display_id": "8.4",
       "path": "hooks/events/PostCompact/handler-8.4.v1.json",
-      "sha256": "F5AD080B91292A87493BC2AEDA2439203C06885F4B68658C93F3649CDE61BCE1"
+      "sha256": "CA8C4F38BC26F6AEFDBF31FF459ACBF1463D7C13DD794380B5B0BBC5D9E34A4A"
     }
   ],
   "adapter": "hooks/lifecycle_boundary.py",
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
+  "workflow_contract": {
+    "host_timing": "AFTER_CONTEXT_COMPACTION_BEFORE_NEXT_ACTION",
+    "action_scope": "WORKFLOW_LIFECYCLE",
+    "skill_action": "COMPACTION_OR_SESSION_BOUNDARY",
+    "skill_consumer": "consume_boundary_transport",
+    "workflow_phases": [
+      "CONTINUITY_REENTRY",
+      "HOST_STEP_LIST_RELOCK"
+    ],
+    "public_action_boundary": false
+  },
+  "workflow_contract_sha256": "43E7DEE69980B7596D9ECA9746C51537DA2F27FFB68AE87C27C5FF5129D508B5",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "EA94FFFD54C70745F52321A45660E4597D964E72FE0A3AEC8CF74B41C69E5909"
+  "receipt_sha256": "EB076ED33C997229EC749E30FBD3C1956789F8E7DB34D9FD913E32544C564B18"
 }

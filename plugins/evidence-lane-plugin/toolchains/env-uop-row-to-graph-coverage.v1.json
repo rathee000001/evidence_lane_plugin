@@ -1,0 +1,47 @@
+{
+  "schema": "evidence-lane.codex-action-plane-graph-coverage.v1",
+  "status": "PASS",
+  "counts": {
+    "tools": 119,
+    "actions": 91,
+    "lanes": 18,
+    "skills": 26,
+    "hooks": 11,
+    "hosts": 5
+  },
+  "codex_is_sole_agent": true,
+  "chatgpt_surface_rows": 0,
+  "foreign_absolute_paths": 0,
+  "discussion_or_chatlineage_authority_rows": 0,
+  "predecessor_database_copied": false,
+  "final_graphs": {
+    "env": {
+      "node_count": 148,
+      "edge_count": 147,
+      "group_count": 6,
+      "semantic_topology_sha256": "5E4A6278FD43C158795F144CEF07D75211BAD5B180C9217D3E57B4DBEADBDE1A",
+      "mmd_sha256": "B6C4053914AFDB9DEA3F6E5A4A844E0EAB6108BAEF3CC118E22CCC0F2126C7EA",
+      "dot_sha256": "B2BA7E6E7CCEC16B142DEEC3AEB23802B52078681626ABB8475EDF23A7B51A9D"
+    },
+    "uop": {
+      "node_count": 48,
+      "edge_count": 47,
+      "group_count": 5,
+      "semantic_topology_sha256": "6ACC7F5DCEB822C919D7938364BD431BF05F150BDFAE99469BCCA9E9C1125245",
+      "mmd_sha256": "6F4FB299BECD2B775B8259D50633DE65ABF4611C4F378B3E70535E3186416FD2",
+      "dot_sha256": "50E47D933B9F3A128FC79621FEAA14E440CC3775451F76C99B87A05927AC386C"
+    }
+  },
+  "graph_tool_execution_evidence": {
+    "LangGraph_Mermaid_engine": {
+      "state": "EXECUTED"
+    },
+    "Python_Graphviz_DOT_engine": {
+      "state": "EXECUTED"
+    },
+    "rustworkx": {
+      "state": "EXECUTED"
+    }
+  },
+  "receipt_sha256": "D7118E3B91768677482155D6251171C7D69C42EC73E1136526E4EDF043A46571"
+}

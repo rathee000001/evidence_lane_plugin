@@ -1,0 +1,632 @@
+{
+  "schema": "evidence-lane.dedicated-skill-workflow.v1",
+  "status": "PASS",
+  "skill": "evi-plan",
+  "description": "Pair a finished Codex Plan-mode plan with the canonical Evidence Lane Plan Lane and Goal.",
+  "workflow_names": [
+    "live-plan-authority-read",
+    "live-current-authority-read",
+    "classify-plan-mode",
+    "persist-plan",
+    "plan-steer"
+  ],
+  "workflow_count": 5,
+  "ordered_group_count": 6,
+  "action_step_count": 7,
+  "steps": [
+    {
+      "workflow": "live-plan-authority-read",
+      "order": 1,
+      "action": "pv_status",
+      "action_class": "['GOVERNANCE', 'RETRIEVAL']",
+      "schema_path": "schemas/actions/pv_status.schema.json",
+      "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA",
+      "sdk_binding": "sdk/actions/pv_status.action.v1.json",
+      "mcp_binding": "mcp/actions/pv_status.binding.v1.json",
+      "current_route": {
+        "tool": "pv_status",
+        "capability": "governance_and_live_root_reads",
+        "current_route": "LIVE_ROOT_POINTER_BASELINE_BOUNDED_GOVERNANCE_READS",
+        "owner": "evi",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "APSW_SQLite_engine",
+          "ENV_UOP_classifier",
+          "FAISS_CPU",
+          "Hash_chain_writer",
+          "LlamaIndex_SQLite_indexer",
+          "PCM_MBA_operators",
+          "RapidFuzz",
+          "SQLite_CAS",
+          "SQLite_FTS5_BM25",
+          "SentenceTransformers",
+          "deterministic_TFIDF",
+          "rank_bm25",
+          "sqlite_vec"
+        ],
+        "transport_orchestration": [
+          "LangChain",
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [
+          "Milvus",
+          "OpenSearch",
+          "Pinecone",
+          "Weaviate"
+        ],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "live-plan-authority-read",
+      "order": 2,
+      "action": "pv_task_backlog",
+      "action_class": "['GOVERNANCE', 'RETRIEVAL']",
+      "schema_path": "schemas/actions/pv_task_backlog.schema.json",
+      "schema_sha256": "C2746023576A61362CEE3340EF2BC090F6779067BEB16749F9AFDA15185AA6A9",
+      "sdk_binding": "sdk/actions/pv_task_backlog.action.v1.json",
+      "mcp_binding": "mcp/actions/pv_task_backlog.binding.v1.json",
+      "current_route": {
+        "tool": "pv_task_backlog",
+        "capability": "step_task_list",
+        "current_route": "CANONICAL_HEADER_PLUS_PERSISTED_FIXED_WINDOW",
+        "owner": "host_plan_rehydration",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "APSW_SQLite_engine",
+          "ENV_UOP_classifier",
+          "FAISS_CPU",
+          "Hash_chain_writer",
+          "LlamaIndex_SQLite_indexer",
+          "PCM_MBA_operators",
+          "RapidFuzz",
+          "SQLite_CAS",
+          "SQLite_FTS5_BM25",
+          "SentenceTransformers",
+          "deterministic_TFIDF",
+          "rank_bm25",
+          "sqlite_vec"
+        ],
+        "transport_orchestration": [
+          "LangChain",
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [
+          "Milvus",
+          "OpenSearch",
+          "Pinecone",
+          "Weaviate"
+        ],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "live-current-authority-read",
+      "order": 3,
+      "action": "pv_query",
+      "action_class": "['GOVERNANCE', 'RETRIEVAL']",
+      "schema_path": "schemas/actions/pv_query.schema.json",
+      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
+      "sdk_binding": "sdk/actions/pv_query.action.v1.json",
+      "mcp_binding": "mcp/actions/pv_query.binding.v1.json",
+      "current_route": {
+        "tool": "pv_query",
+        "capability": "governance_and_live_root_reads",
+        "current_route": "LIVE_ROOT_POINTER_BASELINE_BOUNDED_GOVERNANCE_READS",
+        "owner": "evi",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "APSW_SQLite_engine",
+          "ENV_UOP_classifier",
+          "FAISS_CPU",
+          "Hash_chain_writer",
+          "LlamaIndex_SQLite_indexer",
+          "PCM_MBA_operators",
+          "RapidFuzz",
+          "SQLite_CAS",
+          "SQLite_FTS5_BM25",
+          "SentenceTransformers",
+          "deterministic_TFIDF",
+          "rank_bm25",
+          "sqlite_vec"
+        ],
+        "transport_orchestration": [
+          "LangChain",
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [
+          "Milvus",
+          "OpenSearch",
+          "Pinecone",
+          "Weaviate"
+        ],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "live-current-authority-read",
+      "order": 3,
+      "action": "search",
+      "action_class": "['GOVERNANCE', 'RETRIEVAL']",
+      "schema_path": "schemas/actions/search.schema.json",
+      "schema_sha256": "76F9448249D205764772262F4B673798BE5724E2F6B7162B34E3A8F8F8BE6FC1",
+      "sdk_binding": "sdk/actions/search.action.v1.json",
+      "mcp_binding": "mcp/actions/search.binding.v1.json",
+      "current_route": {
+        "tool": "search",
+        "capability": "live_sector_query",
+        "current_route": "EVIDENCE_LANE_LIVE_ROOT_CURRENT_AUTHORITY_QUERY_V2",
+        "owner": "evi-source-intake",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "APSW_SQLite_engine",
+          "ENV_UOP_classifier",
+          "FAISS_CPU",
+          "Hash_chain_writer",
+          "LlamaIndex_SQLite_indexer",
+          "PCM_MBA_operators",
+          "RapidFuzz",
+          "SQLite_CAS",
+          "SQLite_FTS5_BM25",
+          "SentenceTransformers",
+          "deterministic_TFIDF",
+          "rank_bm25",
+          "sqlite_vec"
+        ],
+        "transport_orchestration": [
+          "LangChain",
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [
+          "Milvus",
+          "OpenSearch",
+          "Pinecone",
+          "Weaviate"
+        ],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "classify-plan-mode",
+      "order": 4,
+      "action": "mode_classify",
+      "action_class": "['GOVERNANCE']",
+      "schema_path": "schemas/actions/mode_classify.schema.json",
+      "schema_sha256": "AF16028F18B7715D41B3F13B2AB597B1C8076F2ACA083DB4A45A5FD9DE1396A3",
+      "sdk_binding": "sdk/actions/mode_classify.action.v1.json",
+      "mcp_binding": "mcp/actions/mode_classify.binding.v1.json",
+      "current_route": {
+        "tool": "mode_classify",
+        "capability": "mode_sidecar",
+        "current_route": "ORDERED_MODE_INTERSECTION_WITH_CHATLINEAGE",
+        "owner": "evi-mode",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "ENV_UOP_classifier",
+          "Hash_chain_writer",
+          "PCM_MBA_operators",
+          "SQLite_CAS"
+        ],
+        "transport_orchestration": [
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "persist-plan",
+      "order": 5,
+      "action": "pv_plan_tasks",
+      "action_class": "['GOVERNANCE']",
+      "schema_path": "schemas/actions/pv_plan_tasks.schema.json",
+      "schema_sha256": "B08DAEEE7B5443CF31FF76A662CEF4A912759DD4D8ECF0E89C1A1891EFDF982D",
+      "sdk_binding": "sdk/actions/pv_plan_tasks.action.v1.json",
+      "mcp_binding": "mcp/actions/pv_plan_tasks.binding.v1.json",
+      "current_route": {
+        "tool": "pv_plan_tasks",
+        "capability": "step_task_list",
+        "current_route": "CANONICAL_HEADER_PLUS_PERSISTED_FIXED_WINDOW",
+        "owner": "host_plan_rehydration",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "ENV_UOP_classifier",
+          "Hash_chain_writer",
+          "PCM_MBA_operators",
+          "SQLite_CAS"
+        ],
+        "transport_orchestration": [
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "plan-steer",
+      "order": 6,
+      "action": "pv_plan_steer_delta",
+      "action_class": "['GOVERNANCE']",
+      "schema_path": "schemas/actions/pv_plan_steer_delta.schema.json",
+      "schema_sha256": "16BD6C74219F7EAF6DB93FE49ACA9419D89CD703E208D107200D21FB320C2823",
+      "sdk_binding": "sdk/actions/pv_plan_steer_delta.action.v1.json",
+      "mcp_binding": "mcp/actions/pv_plan_steer_delta.binding.v1.json",
+      "current_route": {
+        "tool": "pv_plan_steer_delta",
+        "capability": "prompt_steer_dispatch",
+        "current_route": "SOURCE_INTAKE_ENV_UOP_CHATLINEAGE_THEN_IDEMPOTENT_PLAN_STEER",
+        "owner": "source_intake_and_plan_runtime",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "ENV_UOP_classifier",
+          "Hash_chain_writer",
+          "PCM_MBA_operators",
+          "SQLite_CAS"
+        ],
+        "transport_orchestration": [
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "internal_sdk_is_execution_owner": true,
+  "env_and_uop_are_distinct": true,
+  "outer_sdk_and_mcp_are_transport_only": true,
+  "authority_and_lane_resolve_per_action_and_state": true,
+  "every_condition_true_step_runs_or_fails_visible": true,
+  "workflow_or_count_ceiling": false,
+  "receipt_sha256": "E1147AB108315BE1C012AE9E34C5EBE80934507ED581EE6D7F31D481EF80FFA3"
+}

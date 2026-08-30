@@ -48,7 +48,12 @@ from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from .lineage import ProjectChatLineage
 from .model_compatibility import model_compatibility_catalog
 from .models import ProjectConfig, SessionState, normalize_host_kind
-from .next_actions import HIL_CHOICES, HIL_SUGGESTED_PROMPT
+from .next_actions import (
+    HIL_SUGGESTED_PROMPT,
+    LEARNING_HIL_DECISION_TOKENS,
+    PROJECT_HIL_DECISION_TOKENS,
+    authority_hil_decision_registry,
+)
 from .operating_modes import classify_operating_modes
 from .persistence import (
     GoogleDrivePersistence,
@@ -3378,7 +3383,7 @@ class EvidenceLaneService:
         session_id: str | None = None,
         refresh_on_miss: bool = True,
     ) -> dict[str, Any]:
-        """Run the ENV/UOP-governed live-root six-way prompt/query route."""
+        """Run the ENV/UOP-governed current live-authority query route."""
 
         from .live_authority_query import query_live_authorities
 
@@ -4818,10 +4823,14 @@ class EvidenceLaneService:
             )
             return result
         result = self.sessions.build_initial_entry(project_id, session_id)
-        result["next_action"] = "PRESENT_SIX_WAY_HIL"
+        result["next_action"] = "PRESENT_PROJECT_AUTHORITY_HIL"
         result["suggested_next_prompt"] = HIL_SUGGESTED_PROMPT
         result["next_action_contract"] = result["candidate"]["next_action"]
-        result["hil_choices"] = list(HIL_CHOICES)
+        result["hil_choices"] = list(PROJECT_HIL_DECISION_TOKENS)
+        result["authority_hil_decision_registry"] = {
+            authority: list(tokens)
+            for authority, tokens in authority_hil_decision_registry().items()
+        }
         result["agent_configuration"] = self._active_agent_configuration_authority(
             project_id
         )
@@ -4857,10 +4866,14 @@ class EvidenceLaneService:
             batch_task_evidence=batch_task_evidence,
             batch_completion_confirmation=batch_completion_confirmation,
         )
-        result["next_action"] = "PRESENT_SIX_WAY_HIL"
+        result["next_action"] = "PRESENT_PROJECT_AUTHORITY_HIL"
         result["suggested_next_prompt"] = HIL_SUGGESTED_PROMPT
         result["next_action_contract"] = result["candidate"]["next_action"]
-        result["hil_choices"] = list(HIL_CHOICES)
+        result["hil_choices"] = list(PROJECT_HIL_DECISION_TOKENS)
+        result["authority_hil_decision_registry"] = {
+            authority: list(tokens)
+            for authority, tokens in authority_hil_decision_registry().items()
+        }
         if self.store.uses_external_project_authority(project_id):
             result["dual_hil_presentation"] = self._dual_hil_presentation(
                 project_id,
@@ -4944,8 +4957,9 @@ class EvidenceLaneService:
                     f"woven into one {proposed_pv} Learning HIL candidate."
                 ),
             },
-            "project_choices": list(HIL_CHOICES),
-            "learning_choices": list(HIL_CHOICES),
+            "project_choices": list(PROJECT_HIL_DECISION_TOKENS),
+            "learning_choices": list(LEARNING_HIL_DECISION_TOKENS),
+            "decision_count_is_behavior_ceiling": False,
             "required_exact_approval_tokens": {
                 "project": f"PROJECT {proposed_pv}: APPROVE",
                 "learning": f"AI LEARNING {proposed_pv}: APPROVE",
@@ -5009,10 +5023,10 @@ class EvidenceLaneService:
                 "candidate_history_preserved": True,
                 "user_refresh_command_required": False,
                 "source_confirmation": confirmed,
-                "next_action": "PRESENT_SIX_WAY_HIL",
+                "next_action": "PRESENT_PROJECT_AUTHORITY_HIL",
                 "suggested_next_prompt": HIL_SUGGESTED_PROMPT,
                 "next_action_contract": reconciled["candidate"]["next_action"],
-                "hil_choices": list(HIL_CHOICES),
+                "hil_choices": list(PROJECT_HIL_DECISION_TOKENS),
                 **(
                     {
                         "dual_hil_presentation": self._dual_hil_presentation(
@@ -5035,10 +5049,10 @@ class EvidenceLaneService:
             "automatic_refresh": True,
             "user_refresh_command_required": False,
             "source_confirmation": confirmed,
-            "next_action": "PRESENT_SIX_WAY_HIL",
+            "next_action": "PRESENT_PROJECT_AUTHORITY_HIL",
             "suggested_next_prompt": HIL_SUGGESTED_PROMPT,
             "next_action_contract": refreshed["candidate"]["next_action"],
-            "hil_choices": list(HIL_CHOICES),
+            "hil_choices": list(PROJECT_HIL_DECISION_TOKENS),
         }
 
     def decide(

@@ -94,7 +94,6 @@ OWNER: dict[str, str] = {
     "LangChain": "hybrid_retrieval.py + graph_pipeline.py + SDK",
     "SentenceTransformers": "semantic_retrieval.py",
     "FAISS_CPU": "hybrid_retrieval.py",
-    "ChromaDB": "hybrid_retrieval.py",
     "rank_bm25": "hybrid_retrieval.py + sqlite_indexing.py",
     "FastAPI": "runtime_api.py",
     "Uvicorn": "runtime_api.py",
@@ -121,6 +120,31 @@ OWNER: dict[str, str] = {
     "NextJS_React_ThreeJS_FramerMotion": "remote_adapter documentation projection",
     "GitHub_Actions": ".github/workflows delivery proof",
     "Vercel_Git_integration": "branch preview delivery proof",
+    "OpenAI_Agents_SDK": "ecosystem_toolchain.py + internal_sdk.py",
+    "FastMCP": "ecosystem_toolchain.py + mcp_server.py",
+    "GitHub_MCP_Server": "mcp_adapter_routing.py + outer SDK tunnel route",
+    "Filesystem_MCP_Server": "mcp_adapter_routing.py + root-scoped outer SDK route",
+    "PostgreSQL_MCP_Server": "mcp_adapter_routing.py + database outer SDK route",
+    "Slack_MCP_Server": "mcp_adapter_routing.py + approved-message outer SDK route",
+    "Pinecone": "context_index_routing.py + hybrid_retrieval.py",
+    "Weaviate": "context_index_routing.py + hybrid_retrieval.py",
+    "Milvus": "context_index_routing.py + hybrid_retrieval.py",
+    "OpenSearch": "context_index_routing.py + hybrid_retrieval.py",
+    "LangSmith": "evaluation_toolchain.py + ai_toolchain.py",
+    "TruLens": "evaluation_toolchain.py + ai_toolchain.py",
+    "DeepEval": "evaluation_toolchain.py + ai_toolchain.py",
+    "Promptfoo": "evaluation_toolchain.py + repository evaluation gate",
+    "Langfuse": "observability_toolchain.py + runtime_toolchain.py",
+    "Helicone": "observability_toolchain.py + runtime_toolchain.py",
+    "OpenTelemetry": "observability_toolchain.py + runtime trace correlation",
+    "Grafana": "observability_toolchain.py + runtime evidence route",
+    "Docker": "deployment_toolchain.py + delivery gate",
+    "Kubernetes": "deployment_toolchain.py + delivery gate",
+    "AWS_Lambda": "deployment_toolchain.py + deployment evidence route",
+    "Google_Cloud_Run": "deployment_toolchain.py + deployment evidence route",
+    "AWS": "deployment_toolchain.py + deployment evidence route",
+    "Azure": "deployment_toolchain.py + deployment evidence route",
+    "Google_Cloud": "deployment_toolchain.py + deployment evidence route",
 }
 
 NAMED_AUTHORITIES = {
@@ -142,9 +166,10 @@ def group_for(tool: str, surfaces: list[str]) -> str:
     if tool in {
         "SQLite_CAS", "SQLite_FTS5_BM25", "APSW_SQLite_engine",
         "deterministic_TFIDF", "LlamaIndex_SQLite_indexer", "sqlite_vec",
-        "SentenceTransformers", "FAISS_CPU", "ChromaDB", "rank_bm25",
+        "SentenceTransformers", "FAISS_CPU", "rank_bm25",
         "hashlib_pathlib", "Hash_chain_writer",
         "HuggingFace_Hub_ModelSnapshot",
+        "Pinecone", "Weaviate", "Milvus", "OpenSearch",
     }:
         return "Authority, indexing, and retrieval"
     if tool in {
@@ -174,16 +199,24 @@ def group_for(tool: str, surfaces: list[str]) -> str:
         "FastAPI", "Uvicorn", "Pydantic", "Pydantic_Settings", "python_multipart",
         "aiofiles", "orjson", "python_dotenv", "psutil", "MCP_Python_SDK",
         "PowerShell_Win32_APIs", "Cryptography_PyJWT", "Python",
+        "OpenAI_Agents_SDK", "FastMCP", "GitHub_MCP_Server",
+        "Filesystem_MCP_Server", "PostgreSQL_MCP_Server", "Slack_MCP_Server",
     }:
         return "Hidden runtime, MCP, API, and tunnel"
     if tool in {
         "Git", "GitPython", "PyGithub", "Git_detector", "ripgrep_15_2_0", "SevenZip_NSIS_extractor", "jq",
         "NodeJS_TypeScript", "GitHub_Actions", "Vercel_Git_integration",
         "NextJS_React_ThreeJS_FramerMotion",
+        "Docker", "Kubernetes", "AWS_Lambda", "Google_Cloud_Run",
+        "AWS", "Azure", "Google_Cloud",
     }:
         return "Git, search, JSON, CI, and public adapter"
     if tool in {"LangChain"}:
         return "RAG and workflow composition"
+    if tool in {"LangSmith", "TruLens", "DeepEval", "Promptfoo"}:
+        return "Evaluation and testing"
+    if tool in {"Langfuse", "Helicone", "OpenTelemetry", "Grafana"}:
+        return "Observability and telemetry"
     return "Internal governance, build, and quality"
 
 

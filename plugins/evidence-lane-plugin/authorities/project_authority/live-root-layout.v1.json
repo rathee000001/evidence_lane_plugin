@@ -35,8 +35,7 @@
     "runtime/**": "hidden plugin runtime"
   },
   "obsolete_paths_removed_after_hash_readback": true,
-  "obsolete_paths_tombstoned": false,
   "accepted_folder_queried": false,
   "accepted_folder_role": "SOLE GOVERNED ROOT-PV SNAPSHOT ZIP",
-  "receipt_sha256": "ACC60534A5511F1B41D8C386C574C97BF44435594DF09ED35CCE85EAC04B0D1C"
+  "receipt_sha256": "2CD3F475BAD91B8795BEEC969AA219C3C2E2D224849CC5EC977307B2B5BFE070"
 }

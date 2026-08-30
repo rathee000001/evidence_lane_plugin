@@ -45,7 +45,7 @@ def test_bounded_step_task_list_reentry_is_skill_owned_and_goal_independent() ->
 
     assert "canonical_authority=PLAN_LANE" in contract
     assert "exactly\n   one active row" in contract
-    assert "persistent_until=NEXT_SIX_WAY_HIL_PRESENTED" in contract
+    assert "persistent_until=NEXT_GOVERNED_HIL_PRESENTED" in contract
     assert "PHYSICALLY_FINAL_HIL" in contract
     assert "one\ncompact header plus the persisted fixed batch of up to nine Delta rows" in contract
     assert "complete native Plan Lane/Delta ledger is durable authority" in contract

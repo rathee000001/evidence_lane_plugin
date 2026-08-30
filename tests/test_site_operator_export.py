@@ -14,7 +14,7 @@ def test_site_operator_projection_is_source_backed_and_lane_specific() -> None:
     payload = build_mode_operator_site_payload()
     assert payload["mode_count"] == 16
     assert payload["selection_variants"] == ["plugin", "prompt"]
-    assert payload["six_way_token_vocabulary"] == [
+    assert payload["authority_hil_token_vocabulary"] == [
         "APPROVE",
         "APPROVE_WITH_DELTA",
         "MORE_RESEARCH",
@@ -22,13 +22,13 @@ def test_site_operator_projection_is_source_backed_and_lane_specific() -> None:
         "REJECT",
         "FAIL",
     ]
+    assert payload["decision_count_is_behavior_ceiling"] is False
     modes = {row["id"]: row for row in payload["modes"]}
     code = modes["CD"]["variants"]["plugin"]
     analysis = modes["AL"]["variants"]["plugin"]
     assert code["ci_cd"]["required"] is True
-    assert code["formula"]["rule"] == (
-        "plan -> sandbox build -> test -> hash -> package"
-    )
+    assert code["formula"]["rule"] == "ALL_REQUIRED_GATES == PASS"
+    assert code["ci_cd"]["loop"] == "ALL_REQUIRED_GATES == PASS"
     assert {row["family"] for row in code["operators"]} >= {"MBA", "CHEMISTRY"}
     assert analysis["ci_cd"]["required"] is False
     assert code["hil"]["accepted_object"] != analysis["hil"]["accepted_object"]

@@ -5,18 +5,14 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .secret_patterns import PRIVATE_KEY_PATTERN, TOKEN_PATTERNS
+
 _PATTERNS: tuple[re.Pattern[str], ...] = (
-    re.compile(r"\bgh[opusr]_[A-Za-z0-9_]{20,}\b"),
-    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
-    re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b"),
-    re.compile(r"\bya29\.[A-Za-z0-9_-]{20,}\b"),
-    re.compile(r"\bAIza[A-Za-z0-9_-]{20,}\b"),
+    *TOKEN_PATTERNS,
     re.compile(
         r"(?i)\b(authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|password)\b\s*[:=]\s*[^\s,;]+"
     ),
-    re.compile(
-        r"-----BEGIN (?:RSA |EC |OPENSSH |)PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |OPENSSH |)PRIVATE KEY-----"
-    ),
+    PRIVATE_KEY_PATTERN,
 )
 
 

@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.systemwide_route_audit",
   "source_path": "src/evidence_lane_plugin/systemwide_route_audit.py",
-  "source_sha256": "251A0658ACF5295F5F5744BFBF1EAD005015BDA318A4705262F542FC04370C10",
-  "source_bytes": 57472,
+  "source_sha256": "FC8ED21B263D7687FAF1B0A1C0DAA4BBC8F8588376F3C23C2D2D027CEFC3B313",
+  "source_bytes": 57923,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "75C348B92FC5AEAB931E71B05E405E05C06642E5CE4EA11E766E7148E4F8B13C"
+  "receipt_sha256": "288D33E3F41DFBB91AAB699D727926A36F14D1185B05A15C37C6BC8EF7609E9B"
 }

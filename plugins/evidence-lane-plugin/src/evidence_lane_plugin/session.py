@@ -1,4 +1,4 @@
-"""Persistent governed session and explicit six-outcome HIL state machine."""
+"""Persistent governed session and authority-owned HIL state machine."""
 
 from __future__ import annotations
 
@@ -1598,7 +1598,7 @@ class SessionManager:
         require(
             not final_roles or final_roles == [len(tasks)],
             "PLAN_NORMALIZATION_FINAL_HIL_POSITION_INVALID",
-            "The normalized six-way HIL must remain physically final.",
+            "The normalized governed HIL must remain physically final.",
             status="BLOCKED",
             final_role_positions=final_roles,
             task_count=len(tasks),
@@ -4660,7 +4660,7 @@ class SessionManager:
         require(
             backlog.get("status") == "PASS"
             and goal.get("canonical_authority") == "PLAN_LANE"
-            and goal.get("persistent_until") == "NEXT_SIX_WAY_HIL_PRESENTED"
+            and goal.get("persistent_until") == "NEXT_GOVERNED_HIL_PRESENTED"
             and numbers == list(range(numbers[0], numbers[0] + len(numbers)))
             and len(active) == 1
             and active[0].get("task_id") == completed_backlog_task_id
@@ -6718,7 +6718,7 @@ class SessionManager:
                 "proposed_pv": validation.get("proposed_pv"),
                 "manifest_sha256": validation.get("manifest_sha256"),
                 "package_sha256": validation.get("package_sha256"),
-                "next_action": "PRESENT_SIX_WAY_HIL",
+                "next_action": "PRESENT_PROJECT_AUTHORITY_HIL",
                 "stored_validation": validation,
                 "candidate_id_preserved": True,
                 "candidate_rebuilt": False,

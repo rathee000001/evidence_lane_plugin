@@ -62,7 +62,7 @@
     "skill_workflows": [
       {
         "owner_skill": "evi",
-        "workflow": "live-root-six-authority-read",
+        "workflow": "live-root-current-authority-read",
         "order": 3
       },
       {
@@ -87,7 +87,7 @@
       },
       {
         "owner_skill": "evi-plan",
-        "workflow": "live-six-authority-read",
+        "workflow": "live-current-authority-read",
         "order": 3
       },
       {
@@ -102,14 +102,14 @@
       },
       {
         "owner_skill": "evidence-lane-code-lifecycle",
-        "workflow": "live-root-six-authority-read",
+        "workflow": "live-root-current-authority-read",
         "order": 3
       }
     ],
     "executable": true
   },
-  "canonical_schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+  "canonical_schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
   "canonical_catalog": "schemas/public-action-schemas.v001.json",
   "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
-  "receipt_sha256": "D129F342FE52F650CAF70C4BD2AA8006CA4B17D5AB2F137E659F589D5A3F902B"
+  "receipt_sha256": "71D01EC818393F1552B4E2FC12563EDE5F0AFEC35B86E07B744F08E8E54AA2AF"
 }

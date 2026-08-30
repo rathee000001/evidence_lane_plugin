@@ -126,8 +126,17 @@ def parse_mermaid(text: str) -> ParsedGraph:
         graph.errors.append("mermaid does not begin with 'flowchart '")
         return graph
     depth = 0
+    in_layout_constraints = False
     for number, line in enumerate(text.splitlines(), start=1):
         stripped = line.strip()
+        if stripped == "%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN":
+            in_layout_constraints = True
+            continue
+        if stripped == "%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END":
+            in_layout_constraints = False
+            continue
+        if in_layout_constraints:
+            continue
         if not stripped or stripped.startswith(("classDef ", "direction ", "%%")):
             continue
         if stripped.startswith("flowchart "):
@@ -192,6 +201,9 @@ def parse_dot(text: str) -> ParsedGraph:
             continue
         match = _DOT_EDGE.match(line)
         if match:
+            attributes = str(match.group("attrs") or "")
+            if re.search(r"(?:^|[,\s])style=invis(?:[,\s]|$)", attributes):
+                continue
             graph.edges.append(
                 (
                     match.group("src").strip('"'),

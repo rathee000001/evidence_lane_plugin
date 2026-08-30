@@ -25,7 +25,7 @@ WEBSITE_PUBLIC_METADATA_PATH = (
     "apps/evidence-lane-app/public/.well-known/"
     "evidence-lane-plugin.json"
 )
-PERSISTENT_UNTIL = "NEXT_SIX_WAY_HIL_PRESENTED"
+PERSISTENT_UNTIL = "NEXT_GOVERNED_HIL_PRESENTED"
 
 _PUBLIC_STATUS_BY_GOAL_STATUS = {
     "completed": "COMPLETED",
@@ -155,7 +155,7 @@ def build_website_plan_projection(payload: Mapping[str, Any]) -> dict[str, Any]:
     require(
         goal.get("persistent_until") == PERSISTENT_UNTIL,
         "WEBSITE_PLAN_PERSISTENCE_LAW_MISMATCH",
-        "The public Plan must retain the native NEXT_SIX_WAY_HIL_PRESENTED law.",
+        "The public Plan must retain the native NEXT_GOVERNED_HIL_PRESENTED law.",
         status="MISMATCH",
     )
 

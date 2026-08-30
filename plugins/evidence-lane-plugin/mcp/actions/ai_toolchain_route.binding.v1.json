@@ -39,6 +39,70 @@
         ],
         "default": null,
         "title": "Available Tools"
+      },
+      "capability": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Capability"
+      },
+      "granted_tools": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Granted Tools"
+      },
+      "accelerator_profile": {
+        "default": "cpu",
+        "title": "Accelerator Profile",
+        "type": "string"
+      },
+      "enabled_accelerator_plugins": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Enabled Accelerator Plugins"
+      },
+      "accelerator_memory_budget_percent": {
+        "default": 80,
+        "title": "Accelerator Memory Budget Percent",
+        "type": "integer"
+      },
+      "accelerator_temperature_limit_c": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Accelerator Temperature Limit C"
       }
     },
     "required": [
@@ -62,7 +126,7 @@
     "idempotentHint": true,
     "openWorldHint": false
   },
-  "schema_sha256": "F458DEF20BB5A93761DA23F5382CBBBC1A05E54965083D40D9F6CA97A7197E72",
+  "schema_sha256": "51AA7B19847327264F9DED47FF39C70032767AA078D99291895B119A4F485AB0",
   "route_contract": {
     "status": "CURRENT_ROUTE",
     "owner_skill": "evi-toolchain",
@@ -86,11 +150,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/ai_toolchain_route.action.v1.json",
-  "sdk_action_binding_sha256": "93EED92395328CDF9E69C0AF5E8D67BE2AE2FA745DBFFE9F1A3F20DD4D7319AE",
+  "sdk_action_binding_sha256": "8AD081154D3BA01C1C1EF331A2AD77211C70A2AA31673D18D95597C9EBE5BB50",
   "public_action_schema": "schemas/actions/ai_toolchain_route.schema.json",
-  "public_action_schema_sha256": "5FEF1FA28D46D91156DA76E79164832966E246B23E8EC77D16859AF1CE63B563",
+  "public_action_schema_sha256": "BC9DC8514250DFC01A1071AE3DE28E2AE40E4C887ABEA549F241E7787252EC2F",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "20C15301DF15DA7E93ACE79DD54707C8A17E1340BA33123832FB46BCB1A4042A",
+  "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "F0FCC549CEE5CD68543F5774FF0F915413DDFE4F779EC0DB551040BE5FF3D523"
+  "receipt_sha256": "D9A63729C912B6AD31AE6F410ECD691C09EADDF599B45546159AFDAE6BF98E36"
 }

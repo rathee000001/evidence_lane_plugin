@@ -75,7 +75,7 @@ def _prepared_normalization(service) -> tuple[str, list[dict], dict]:
         ),
         _task(
             "normalized-final-hil",
-            "Present the physically final six-way HIL.",
+            "Present the physically final governed HIL.",
             panel_role="PHYSICALLY_FINAL_HIL",
         ),
     ]

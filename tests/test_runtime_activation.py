@@ -473,7 +473,7 @@ def test_exit_boot_detaches_flash_context_and_later_boot_reattaches(service) -> 
         service.store.root,
         "host-session-test",
     )
-    assert "# Evidence Lane universal session flash" in active_context
+    assert "# Codex ENV15/UOP15 Flash Contract" in active_context
     assert '"state":"ACTIVE"' in active_context
 
     closed = service.sessions.close(
@@ -488,7 +488,7 @@ def test_exit_boot_detaches_flash_context_and_later_boot_reattaches(service) -> 
         "host-session-after-exit",
     )
     assert "EVIDENCE_LANE_RUNTIME=DETACHED" in detached_context
-    assert "# Evidence Lane universal session flash" not in detached_context
+    assert "# Codex ENV15/UOP15 Flash Contract" not in detached_context
     assert '"state":"DETACHED"' in detached_context
 
     second = boot_local(service)
@@ -500,7 +500,7 @@ def test_exit_boot_detaches_flash_context_and_later_boot_reattaches(service) -> 
         service.store.root,
         "host-session-test",
     )
-    assert "# Evidence Lane universal session flash" in reattached_context
+    assert "# Codex ENV15/UOP15 Flash Contract" in reattached_context
 
 
 def test_prompt_hook_fails_closed_when_bound_runtime_is_detached(

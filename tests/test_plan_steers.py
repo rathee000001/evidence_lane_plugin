@@ -49,7 +49,7 @@ def test_codex_plan_mode_bridge_and_canonical_steer_classification(service) -> N
     goal = planned["goal_projection"]
     assert goal["canonical_authority"] == "PLAN_LANE"
     assert goal["task_count"] == 2
-    assert goal["persistent_until"] == "NEXT_SIX_WAY_HIL_PRESENTED"
+    assert goal["persistent_until"] == "NEXT_GOVERNED_HIL_PRESENTED"
     assert goal["host_projections"]["CODEX"]["plan_mode_shortcut"] == "/pl"
     assert planned["host_plan_bridge"]["copy_paste_required"] is True
     assert "as this Codex task's Goal" in goal["goal_start_prompt"]
@@ -569,7 +569,7 @@ def test_unlinked_steers_insert_before_physically_final_hil_and_all_persist(
 ) -> None:
     final_hil = _task(
         "row-final-hil",
-        "Present the physically final six-way HIL.",
+        "Present the physically final governed HIL.",
     )
     final_hil["panel_role"] = "PHYSICALLY_FINAL_HIL"
     service.plan_tasks(
@@ -640,7 +640,7 @@ def test_universal_host_plan_labels_preserve_structured_execution_metadata(
     final_hil = {
         **_task(
             "metadata-final-hil",
-            "Present the physically final six-way HIL.",
+            "Present the physically final governed HIL.",
         ),
         "panel_role": "PHYSICALLY_FINAL_HIL",
     }
@@ -711,7 +711,7 @@ def test_current_plan_hydration_marks_conflicts_until_exact_linked_resolution(
             {
                 **_task(
                     "release-final-hil",
-                    "Present the physically final six-way HIL.",
+                    "Present the physically final governed HIL.",
                 ),
                 "panel_role": "PHYSICALLY_FINAL_HIL",
             },
@@ -789,7 +789,7 @@ def test_active_release_context_hydrates_only_current_and_future_rows(service) -
             {
                 **_task(
                     "release-final-hil",
-                    "Present the physically final six-way HIL.",
+                    "Present the physically final governed HIL.",
                 ),
                 "panel_role": "PHYSICALLY_FINAL_HIL",
             },

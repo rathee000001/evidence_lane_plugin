@@ -5,19 +5,19 @@ description: Pair a finished Codex Plan-mode plan with the canonical Evidence La
 
 # Evidence Lane Plan Lane
 
-Use this native skill sidecar only for Codex Plan mode. It is not a seventh
-primary Evidence Lane lifecycle control and it owns no workflow outside the
-internal SDK.
+Use this native skill sidecar only for Codex Plan mode. It is a first-class
+workflow in the mutable skill registry and owns no workflow outside the internal
+SDK.
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its Codex hook/skill
 ownership contract. This skill owns host reasoning and projection behavior;
 MCP is the native action transport and hooks provide lifecycle receipts only.
 
 ## Preflight
 
 1. Read native `pv_status`, `pv_task_backlog`, one bounded prompt-relevant
-   `pv_query`, and the prompt-relevant six-authority `search`. Preserve the
+   `pv_query`, and the prompt-relevant current-authority `search`. Preserve the
    active lifecycle position and verify their paired `agent_configuration`
    authority/source-chain hashes. These explicit routes must work with hooks
    disabled.
@@ -62,7 +62,7 @@ the exact MCP actions only.
 
 Require `goal_projection.canonical_authority=PLAN_LANE`, contiguous row numbers,
 exactly one in-progress row for an active executable Goal, an exact projection
-hash, and `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`. Verify that MCP cannot
+hash, and `persistent_until=NEXT_GOVERNED_HIL_PRESENTED`. Verify that MCP cannot
 change the native Goal or model/mode selectors.
 
 The host projection is one compact continuity header plus at most nine

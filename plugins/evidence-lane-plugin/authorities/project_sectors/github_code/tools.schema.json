@@ -10,7 +10,9 @@
     "reader",
     "query_traversal",
     "retrieval_modes",
-    "canonical_shared_modules"
+    "canonical_shared_modules",
+    "registry_linked_workflow",
+    "dedicated_workflow"
   ],
   "properties": {
     "schema": {
@@ -42,8 +44,24 @@
     },
     "canonical_shared_modules": {
       "type": "object"
+    },
+    "registry_linked_workflow": {
+      "type": "object",
+      "required": [
+        "schema",
+        "status",
+        "lane_id",
+        "eligible_tools",
+        "eligible_public_actions",
+        "eligible_skill_workflows",
+        "current_registry_counts",
+        "counts_are_current_snapshot_not_ceiling"
+      ]
+    },
+    "dedicated_workflow": {
+      "type": "object"
     }
   },
   "additionalProperties": true,
-  "receipt_sha256": "8C2914360425A5CFB1ACF4422633F5643240791665F15A9203456AA9E33145C1"
+  "receipt_sha256": "B226B38E0651D4028B727B75AAAE0E4F6A4146B770BC12B41BA7EE1BF5361BBC"
 }

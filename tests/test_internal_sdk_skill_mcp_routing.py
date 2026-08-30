@@ -191,7 +191,14 @@ def test_mcp_construction_uses_explicit_plugin_root(
     assert review["tool_count"] == NATIVE_TOOL_COUNT
 
 
-def test_public_mcp_call_enters_internal_sdk_dispatcher() -> None:
+def test_public_mcp_call_enters_internal_sdk_dispatcher(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(
+        "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT",
+        str(tmp_path / "runtime-control"),
+    )
     server = create_mcp_server()
     tool = next(
         item
@@ -207,12 +214,8 @@ def test_public_mcp_call_enters_internal_sdk_dispatcher() -> None:
         {item.name for item in server._tool_manager.list_tools()}  # type: ignore[attr-defined]
     )
 
-    assert result["execution_status"] in {"PASS", "FAIL"}
-    if result["execution_status"] == "FAIL":
-        assert result["error"]["code"] == "SESSION_FLASH_PROJECTION_BUILD_CHANGED"
-        expected_dispatch_count = 0
-    else:
-        expected_dispatch_count = 1
+    assert result["execution_status"] == "PASS"
+    expected_dispatch_count = 1
     assert review["status"] == "PASS"
     assert review["dispatch_call_counts"]["runtime_doctor"] == expected_dispatch_count
 

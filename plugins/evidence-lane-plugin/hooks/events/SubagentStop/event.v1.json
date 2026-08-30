@@ -42,27 +42,38 @@
     {
       "display_id": "9.1",
       "path": "hooks/events/SubagentStop/handler-9.1.v1.json",
-      "sha256": "CAB7E06B6C5F890C78FE965790601DF12DBD9B7CF2957BAD98CA74ECAF43E4DF"
+      "sha256": "B5FCF54AD0C80D0A2C9DF3178C22A263B3ACE85BC432FCD45B14E3731365D955"
     },
     {
       "display_id": "9.2",
       "path": "hooks/events/SubagentStop/handler-9.2.v1.json",
-      "sha256": "8CDB4C0F41CC2C9526D4874B376ED7381DE83B0E3EEB642379BD98761D8F51B3"
+      "sha256": "1F6CEAFE3548ABD2A497D1CD0C76233FFC0C4FE4B0EED03F00DACD5A9B8D9F17"
     },
     {
       "display_id": "9.3",
       "path": "hooks/events/SubagentStop/handler-9.3.v1.json",
-      "sha256": "BEEB0AE0EA8DE7F1FE99367FCB5B1DAF43DB99FB3935FDC5645D0C42E40A502D"
+      "sha256": "4D50D49A16C0C70869120A57CB85D504EC99EE1F7DBA50089BF3FFBF54461166"
     },
     {
       "display_id": "9.4",
       "path": "hooks/events/SubagentStop/handler-9.4.v1.json",
-      "sha256": "FA3CBC5AC3D9A85AFC6B4A00A63A4E1908B49CB616148A8ECD9BCA89BD64DD69"
+      "sha256": "405952F04FA15CC4AB6473CDA546202DC868A5182C46B7CED38598080A831423"
     }
   ],
   "adapter": "hooks/subagent_stop.py",
   "adapter_sha256": "66384595963FB09B79472A1E29EE92953D1B7182B5A5C20084410265D8A3FBED",
+  "workflow_contract": {
+    "host_timing": "OPTIONAL_SUBAGENT_EXIT_OBSERVATION",
+    "action_scope": "BOUND_OBSERVATION_ONLY",
+    "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
+    "skill_consumer": "consume_optional_observer_transport",
+    "workflow_phases": [
+      "OPTIONAL_LINKED_TASK_OBSERVATION"
+    ],
+    "public_action_boundary": false
+  },
+  "workflow_contract_sha256": "8E882CABEA45F7ED2229B4A1A0523F7FD669363A039C8C290D8F7A09986CD7AA",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "201543034412D42687F5A2585167714C65AFB8D37C61003924ED0B526475DB7C"
+  "receipt_sha256": "12F4BF1A12A9067C8581689E1E1276799C9D16D7B4627E7EE6375BD55EA04323"
 }

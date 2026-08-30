@@ -3,7 +3,7 @@
   "schema": "evidence-lane.public-action-contract.v1",
   "name": "learning_decide_candidate",
   "title": "Decide Agent Learning candidate",
-  "description": "Record one exact Learning six-way HIL decision against the Learning pointer only; Project Truth and the Project six-way HIL remain untouched.",
+  "description": "Record one exact Learning governed HIL decision against the Learning pointer only; Project Truth and the Project governed HIL remain untouched.",
   "input_schema": {
     "properties": {
       "project_id": {
@@ -90,8 +90,8 @@
     ],
     "executable": true
   },
-  "canonical_schema_sha256": "991154FE28FF2E4108C4587D2CFF30E29772E1F299B7573D5C0FDCF49D652A60",
+  "canonical_schema_sha256": "A6FAAF7B15F4D7DB515C88F391F851013079998BE3E57105732684A420EF1459",
   "canonical_catalog": "schemas/public-action-schemas.v001.json",
   "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
-  "receipt_sha256": "0AE3395E1DA92538CF346731C56B59FF8574CCF85FAC2D1A6CC80F5547540569"
+  "receipt_sha256": "CFEDF34E52E16C68D0FA5A1D6DC591128D8EAAF4F58E12D6A9034F3C636DE5B7"
 }

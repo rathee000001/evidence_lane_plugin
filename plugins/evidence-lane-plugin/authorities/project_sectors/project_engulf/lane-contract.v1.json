@@ -26,8 +26,8 @@
     "schema_contract": [
       "lane_meta",
       "lane_pointer",
+      "source_content_cas",
       "source_registry",
-      "source_tombstone",
       "chunk_index",
       "chunk_content_cas",
       "chunk_history",
@@ -37,6 +37,7 @@
       "tfidf_vector",
       "refresh_receipt",
       "mutation_receipt",
+      "authority_index_content_cas",
       "authority_index_source",
       "authority_index_node",
       "authority_index_fts",
@@ -61,20 +62,20 @@
     "mmd_filename": "project_engulf.mmd",
     "dot_filename": "project_engulf.dot",
     "mmd_node_id": "lane_project_engulf",
-    "lane_schema_id": "evidence-lane.lane-schema.project_engulf.v001",
-    "lane_schema_version": 1,
-    "lane_schema_contract_sha256": "953A7177F4526A908E31C62A13357B66A66335E4D12A9D9F52268C07CC18E62D",
-    "lane_schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+    "lane_schema_id": "evidence-lane.lane-schema.project_engulf.v004",
+    "lane_schema_version": 4,
+    "lane_schema_contract_sha256": "5B291C4935B6B904FD4AFEB798A59BD3C51C96467A0003EBD6AFE16761C7D4D1",
+    "lane_schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
     "extension_namespace": "evidence_lane.project_engulf.extensions",
-    "migration_head": "project_engulf.bootstrap.v001",
-    "lane_schema_evolution_policy_sha256": "9E02DF9B8533417623E470FCDE64A70E7287A261B84A6348E1B1009B333A67D4",
+    "migration_head": "project_engulf.direct-purge-current-only.v004",
+    "lane_schema_evolution_policy_sha256": "D86688543BE69A14A8FD4F34FEAAA84593A032C1BCF25655DBAE3483B35E3F30",
     "lane_schema_evolution_user_gate": false,
     "lane_artifact_contract_sha256": "D4AE17937301CF414A886AE34CBBC6446770DBA48D420242E2C7ED8C3D891453",
     "lane_artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2"
   },
   "schema_asset": {
-    "base_schema_id": "evidence-lane.universal-lane.v2",
-    "contract_sha256": "953A7177F4526A908E31C62A13357B66A66335E4D12A9D9F52268C07CC18E62D",
+    "base_schema_id": "evidence-lane.universal-lane.v4",
+    "contract_sha256": "5B291C4935B6B904FD4AFEB798A59BD3C51C96467A0003EBD6AFE16761C7D4D1",
     "extension_namespace": "evidence_lane.project_engulf.extensions",
     "fts_table": "project_engulf_fts",
     "lane_id": "project_engulf",
@@ -87,17 +88,44 @@
         "operation": "BASELINE_BIND_EXISTING_SCHEMA",
         "sequence": 1,
         "to_version": 1
+      },
+      {
+        "additive_only": false,
+        "from_version": 1,
+        "migration_id": "project_engulf.compact-storage.v002",
+        "operation": "REBUILD_COMPACT_CONTENT_CAS_AND_CONTENTLESS_FTS",
+        "rebuild_required": true,
+        "sequence": 2,
+        "to_version": 2
+      },
+      {
+        "additive_only": false,
+        "from_version": 2,
+        "migration_id": "project_engulf.reference-only-index.v003",
+        "operation": "REBUILD_REFERENCE_ONLY_CHUNKS_AND_COMPACT_AUTHORITY_INDEX",
+        "rebuild_required": true,
+        "sequence": 3,
+        "to_version": 3
+      },
+      {
+        "additive_only": false,
+        "from_version": 3,
+        "migration_id": "project_engulf.direct-purge-current-only.v004",
+        "operation": "REBUILD_WITH_DIRECT_PURGE_CURRENT_ONLY",
+        "rebuild_required": true,
+        "sequence": 4,
+        "to_version": 4
       }
     ],
     "mutation_policy": "explicit_named_one_turn_grant_receipt_snapshot_relock",
-    "schema_id": "evidence-lane.lane-schema.project_engulf.v001",
-    "schema_version": 1,
-    "sqlite_master_projection_sha256": "15EB18AF74B4410BFB31B9B9CC2DA460F87FDC185DC9E27C309D11F40641FCAA",
+    "schema_id": "evidence-lane.lane-schema.project_engulf.v004",
+    "schema_version": 4,
+    "sqlite_master_projection_sha256": "9237CC1EBD75DEB6796B2832A3BF9246E6EDA5A8AEF37F0A71A6C460D58B1F9C",
     "tables": [
       "lane_meta",
       "lane_pointer",
+      "source_content_cas",
       "source_registry",
-      "source_tombstone",
       "chunk_index",
       "chunk_content_cas",
       "chunk_history",
@@ -107,6 +135,7 @@
       "tfidf_vector",
       "refresh_receipt",
       "mutation_receipt",
+      "authority_index_content_cas",
       "authority_index_source",
       "authority_index_node",
       "authority_index_fts",
@@ -223,13 +252,13 @@
     "contract_sha256": "D4AE17937301CF414A886AE34CBBC6446770DBA48D420242E2C7ED8C3D891453"
   },
   "shared_engine_source_hashes": {
-    "src/evidence_lane_plugin/lanes.py": "D6270B812093ACFDDC6D8D7B165A6757ACED153FEE2D38193BA500285A6E8AC7",
-    "src/evidence_lane_plugin/lane_engine.py": "606278B437DC3C1E4F9D7AD703122294C369F745FB28C5F3F7149EF69D773AE4",
-    "src/evidence_lane_plugin/lane_reader.py": "D3AD5D9A83F59FA1D47C78E9A1C3FF9B55686FAE297D86D652D778737C61A566",
+    "src/evidence_lane_plugin/lanes.py": "1FE3EF29F00CD144566BB72E74B8059B6DA51A0CC138AD97B6FCD609133A3FC3",
+    "src/evidence_lane_plugin/lane_engine.py": "3789EFE347EA0EADDA54520E67F42B2FC88218F94A345D98892A0D928701FD96",
+    "src/evidence_lane_plugin/lane_reader.py": "E131620487F19CC2E6B3188F0B53A3483D7179F9AC4BA7BE87249750097BE7E7",
     "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
-    "src/evidence_lane_plugin/source_intake.py": "F8B9EA79F70CC9A68D1648103F1947259F09D4AF679475291A66CB9F2B47E85B"
+    "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
   },
   "authority_is_separate_per_project_lane": true,
   "shared_engine_does_not_merge_lane_sqlite": true,
-  "receipt_sha256": "1192634C0B1918124A3205FF8D34AE8E2814790C1B34CBC12FDA4B3423F7DFBF"
+  "receipt_sha256": "35EC4634C1DA534D46A0BBC4C3E45406BE2E63E8D9AE625D802A238B2C632DA7"
 }

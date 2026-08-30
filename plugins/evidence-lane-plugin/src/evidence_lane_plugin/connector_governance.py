@@ -13,6 +13,7 @@ from .errors import EvidenceLaneError, require
 from .hashing import canonical_json_bytes, sha256_bytes
 from .ids import prefixed_id
 from .lanes import CANONICAL_LANE_IDS
+from .mcp_adapter_routing import mcp_adapter_catalog
 from .timeutil import utc_now
 
 MAX_ADDITIONAL_PERSISTENT_PLUGINS = 8
@@ -1131,6 +1132,7 @@ class ConnectorGovernance:
                 - sum(1 for row in rows if row["status"] == "ACTIVE"),
                 "host_profiles": list(_HOST_PROFILE_ORDER),
                 "supported_backend_runtimes": sorted(_BACKEND_RUNTIMES),
+                "builtin_mcp_adapter_types": mcp_adapter_catalog(),
                 "backend_execution_authorized": False,
             }
         finally:

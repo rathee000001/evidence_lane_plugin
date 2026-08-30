@@ -13,11 +13,25 @@
     "statusMessage": "Validating and bounding Evidence Lane hook signal"
   },
   "logical_action": "VALIDATE_REDACT_AND_BOUND_VISIBLE_SIGNAL",
+  "handler_stage_role": "VALIDATE_REDACT_AND_BOUND_VISIBLE_SIGNAL",
+  "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
+  "workflow_contract": {
+    "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
+    "action_scope": "PUBLIC_ACTION_BOUNDARY",
+    "skill_action": "PROSPECTIVE_TOOL_BOUNDARY",
+    "skill_consumer": "consume_pre_tool_transport",
+    "workflow_phases": [
+      "UOP_PRECONDITION",
+      "ACTIVE_DELTA_EXECUTION"
+    ],
+    "public_action_boundary": true
+  },
+  "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
   "stage": "hooks/subhook_validate.py",
   "stage_sha256": "D218BB6F4923746A558FB1E70F9B8E32AE14EB0002D5EC13AAA042377066B874",
   "adapter": "hooks/pre_tool_use.py",
   "adapter_sha256": "1D5EE052FD282B7DB09B56EA534762E4ABF49E5DC52A2F7D97B8B82EE97E746C",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "EC1D5CADAC72E2A8321080234318F569E36FD1ACFAA63E5F10063C3D30A053E2"
+  "receipt_sha256": "5F3749B58C8A492FC48D1A7E4F2307A676CBE1B462229DAC462355F2D9D926EE"
 }

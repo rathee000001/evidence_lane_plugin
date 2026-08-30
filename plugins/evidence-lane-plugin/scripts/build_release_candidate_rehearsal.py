@@ -242,6 +242,8 @@ DEPENDENCY_FILENAMES = frozenset(
         "pnpm-lock.yaml",
         "pyproject.toml",
         "requirements.torch-cpu.lock.txt",
+        "requirements.torch-nvidia.lock.txt",
+        "requirements.onnx-directml.lock.txt",
         "requirements.lock.txt",
         "requirements.toolchain.lock.txt",
         "skills/evi-plan/SKILL.md",
@@ -299,6 +301,8 @@ REQUIRED_MEMBERS = frozenset(
         "assets/evidence-lane-icon.png",
         "pyproject.toml",
         "requirements.torch-cpu.lock.txt",
+        "requirements.torch-nvidia.lock.txt",
+        "requirements.onnx-directml.lock.txt",
         "requirements.lock.txt",
         "requirements.toolchain.lock.txt",
         "scripts/codex-release-channel.json",
@@ -329,6 +333,8 @@ REQUIRED_MEMBERS = frozenset(
 COHERENCE_REQUIRED_MEMBERS = frozenset(
     {
         "requirements.torch-cpu.lock.txt",
+        "requirements.torch-nvidia.lock.txt",
+        "requirements.onnx-directml.lock.txt",
         "authorities/authority-surface-registry.v1.json",
         "skills/evi-plan/SKILL.md",
         "skills/evi-plan/agents/openai.yaml",
@@ -387,6 +393,9 @@ SYNTHETIC_BASE_REQUIRED_MEMBERS = frozenset(
     }
 )
 SYNTHETIC_SYSTEMWIDE_AUDIT_MEMBER = "manifests/package/systemwide-route-audit.json"
+SYNTHETIC_EXECUTABLE_FINGERPRINT_MEMBER = (
+    "manifests/package/executable-fingerprint-refresh.json"
+)
 
 SECRET_PATTERNS = (
     ("private_key", re.compile(rb"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
@@ -770,7 +779,7 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
     tunnel_rows = list(tunnel_toolchain.get("requirements") or [])
     tool_names = {str(row.get("tool")) for row in tool_rows}
     if (
-        len(tool_rows) != 95
+        not tool_rows
         or tool_routing.get("status") != "PASS"
         or tool_routing.get("primary_and_fallback_order_explicit") is not True
         or len(routing_rows) != len(tool_rows)
@@ -799,7 +808,7 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
         or {str(row.get("tool")) for row in tunnel_rows} != tool_names
     ):
         raise PackageBoundaryError(
-            "The 95-tool routing, license, or tunnel-prewarm surface is incomplete."
+            "The derived tool routing, license, or tunnel-prewarm surface is incomplete."
         )
 
     executable_registry_path = (
@@ -962,9 +971,17 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
                 "The packaged ENV/UOP authority manifest contains stale members."
             )
     sqlite_tables: dict[str, list[str]] = {}
-    for authority, relative, required_table in (
-        ("ENV", "env/env_sqlite.sqlite", "operator_activation_run"),
-        ("UOP", "uop/uop_sqlite.sqlite", "uop_delta_operator"),
+    for authority, relative, required_tables in (
+        (
+            "ENV",
+            "env/env_sqlite.sqlite",
+            {"env_action_binding_v17", "env_accelerator_profile_v17"},
+        ),
+        (
+            "UOP",
+            "uop/uop_sqlite.sqlite",
+            {"uop_action_policy_v17", "uop_accelerator_policy_v17"},
+        ),
     ):
         database = flash_root / relative
         connection = sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True)
@@ -980,7 +997,7 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
             ]
         finally:
             connection.close()
-        if integrity != ["ok"] or required_table not in tables:
+        if integrity != ["ok"] or not required_tables.issubset(tables):
             raise PackageBoundaryError(
                 f"The {authority} executable SQLite authority is incomplete."
             )
@@ -1084,9 +1101,12 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
             "mmd-artifact.schema.json",
             "refresh-receipt.schema.json",
             "sqlite-artifact.schema.json",
-            "tools.json",
-            "tools.schema.json",
-            lane.sqlite_filename,
+                "tools.json",
+                "tools.schema.json",
+                "workflow.dot",
+                "workflow.mmd",
+                "workflow.v1.json",
+                lane.sqlite_filename,
             lane.mmd_filename,
             lane.dot_filename,
         }
@@ -1816,6 +1836,72 @@ def _load_systemwide_route_audit(
     return compact, content
 
 
+def _load_executable_fingerprint_refresh(
+    path: Path | None,
+    *,
+    expected_version: str,
+) -> tuple[dict[str, Any] | None, bytes | None]:
+    if path is None:
+        return None, None
+    exact = path.resolve()
+    try:
+        content = exact.read_bytes()
+        receipt = json.loads(content.decode("utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise PackageBoundaryError(
+            "The executable fingerprint Refresh receipt is invalid."
+        ) from exc
+    full = dict(receipt.get("full_regression") or {})
+    closure = dict(receipt.get("targeted_closure") or {})
+    surface = dict(receipt.get("executable_surface") or {})
+    repository = dict(receipt.get("repository_fingerprints") or {})
+    impact = dict(receipt.get("source_impact") or {})
+    negative = dict(receipt.get("negative_proofs") or {})
+    if (
+        receipt.get("schema") != "evidence-lane.executable-fingerprint-refresh.v1"
+        or receipt.get("status") != "PASS"
+        or receipt.get("plugin_version") != expected_version
+        or full.get("status") != "PASS_WITH_TARGETED_FAILURE_CLOSURE"
+        or full.get("authorized_run_count") != 1
+        or closure.get("status") != "PASS"
+        or closure.get("failed") != 0
+        or closure.get("full_suite_rerun") is not False
+        or surface.get("status") != "PASS"
+        or surface.get("all_hash_bound") is not True
+        or surface.get("local_cache_or_output_included") is not False
+        or surface.get("historical_fallback_used") is not False
+        or repository.get("status") != "PASS"
+        or impact.get("status") != "PASS"
+        or impact.get("all_changed_paths_mapped") is not True
+        or impact.get("all_replacements_directly_purged") is not True
+        or impact.get("orphaned_generated_member_count") != 0
+        or any(negative.get(key) is not False for key in negative)
+        or re.fullmatch(r"[A-F0-9]{64}", str(receipt.get("receipt_sha256") or "")) is None
+    ):
+        raise PackageBoundaryError(
+            "The package requires a passing project-neutral executable fingerprint Refresh."
+        )
+    compact = {
+        "schema": receipt["schema"],
+        "status": "PASS",
+        "plugin_version": receipt["plugin_version"],
+        "receipt_sha256": receipt["receipt_sha256"],
+        "file_sha256": _sha256_bytes(content),
+        "full_regression_status": full["status"],
+        "authorized_run_count": 1,
+        "targeted_closure_status": closure["status"],
+        "executable_member_count": surface["member_count"],
+        "executable_registry_receipt_sha256": surface["receipt_sha256"],
+        "repository_fingerprint_receipt_sha256": repository["receipt_sha256"],
+        "source_impact_receipt_sha256": impact["receipt_sha256"],
+        "accepted_archive_queried": False,
+        "candidate_created_or_cleared": False,
+        "pointer_moved": False,
+        "project_or_pv_mutated": False,
+    }
+    return compact, content
+
+
 def build_rehearsal(
     *,
     plugin_root: Path,
@@ -1825,6 +1911,7 @@ def build_rehearsal(
     expected_version: str,
     package_version: str | None = None,
     systemwide_route_audit_receipt: Path | None = None,
+    executable_fingerprint_refresh_receipt: Path | None = None,
     surface_coherence_required: bool = True,
 ) -> dict[str, Any]:
     plugin_root = plugin_root.resolve()
@@ -1936,7 +2023,7 @@ def build_rehearsal(
         != "./assets/evidence-lane-icon.png"
         or not brand_icon.is_file()
         or _sha256_file(brand_icon) != brand_identity.get("icon_sha256")
-        or promotion.get("explicit_six_way_hil_required") is not True
+        or promotion.get("explicit_authority_hil_required") is not True
         or promotion.get("fail_closed_on_version_mismatch") is not True
         or release_channels.get("host_storage_tunnel_matrix")
         != EXPECTED_HOST_STORAGE_TUNNEL_MATRIX
@@ -1967,6 +2054,16 @@ def build_rehearsal(
     route_audit, route_audit_bytes = _load_systemwide_route_audit(
         systemwide_route_audit_receipt
     )
+    fingerprint_refresh, fingerprint_refresh_bytes = (
+        _load_executable_fingerprint_refresh(
+            executable_fingerprint_refresh_receipt,
+            expected_version=expected_version,
+        )
+    )
+    if surface_coherence_required and ((route_audit is None) == (fingerprint_refresh is None)):
+        raise PackageBoundaryError(
+            "Supply exactly one passing Plan-history audit or executable fingerprint Refresh."
+        )
     source_records, source_paths = _source_inventory(plugin_root)
     surface_coherence = (
         _package_surface_coherence(plugin_root)
@@ -2040,6 +2137,8 @@ def build_rehearsal(
     }
     if route_audit_bytes is not None:
         synthetic[f"{SYNTHETIC_ROOT}/systemwide-route-audit.json"] = route_audit_bytes
+    if fingerprint_refresh_bytes is not None:
+        synthetic[SYNTHETIC_EXECUTABLE_FINGERPRINT_MEMBER] = fingerprint_refresh_bytes
     synthetic_hashes = {
         name: _sha256_bytes(content) for name, content in sorted(synthetic.items())
     }
@@ -2057,6 +2156,7 @@ def build_rehearsal(
         "canonical_lane_count": EXPECTED_LANE_COUNT,
         "search_toolchain": search_toolchain,
         "systemwide_route_audit": route_audit,
+        "executable_fingerprint_refresh": fingerprint_refresh,
         "synthetic_metadata_sha256": synthetic_hashes,
         "negative_proofs": {
             "cache_or_runtime_members": 0,
@@ -2077,7 +2177,11 @@ def build_rehearsal(
     all_names = sorted([*source_paths, *synthetic])
     required_synthetic = set(SYNTHETIC_BASE_REQUIRED_MEMBERS)
     if surface_coherence_required:
-        required_synthetic.add(SYNTHETIC_SYSTEMWIDE_AUDIT_MEMBER)
+        required_synthetic.add(
+            SYNTHETIC_SYSTEMWIDE_AUDIT_MEMBER
+            if route_audit is not None
+            else SYNTHETIC_EXECUTABLE_FINGERPRINT_MEMBER
+        )
     if not required_synthetic.issubset(synthetic):
         raise PackageBoundaryError(
             "The canonical installed package-proof manifest set is incomplete."
@@ -2156,6 +2260,7 @@ def build_rehearsal(
         "canonical_lane_count": EXPECTED_LANE_COUNT,
         "search_toolchain": search_toolchain,
         "systemwide_route_audit": route_audit,
+        "executable_fingerprint_refresh": fingerprint_refresh,
         "exclusion_policy": source_manifest["exclusion_policy"],
         "governed_candidate_created": False,
         "git_invoked": False,
@@ -2191,6 +2296,14 @@ def _parser() -> argparse.ArgumentParser:
             "package; R265 local installation requires this bound receipt."
         ),
     )
+    parser.add_argument(
+        "--executable-fingerprint-refresh-receipt",
+        type=Path,
+        help=(
+            "Passing project-neutral executable fingerprint Refresh sealed into "
+            "the local package instead of a Plan-history audit."
+        ),
+    )
     return parser
 
 
@@ -2204,6 +2317,9 @@ def main() -> int:
         expected_version=args.expected_version,
         package_version=args.package_version,
         systemwide_route_audit_receipt=args.systemwide_route_audit_receipt,
+        executable_fingerprint_refresh_receipt=(
+            args.executable_fingerprint_refresh_receipt
+        ),
     )
     print(json.dumps(receipt, indent=2, sort_keys=True))
     return 0

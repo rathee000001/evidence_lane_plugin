@@ -14,7 +14,7 @@
     "skill_workflows": [
       {
         "owner_skill": "evi",
-        "workflow": "live-root-six-authority-read",
+        "workflow": "live-root-current-authority-read",
         "order": 3
       },
       {
@@ -24,7 +24,7 @@
       },
       {
         "owner_skill": "evi-plan",
-        "workflow": "live-six-authority-read",
+        "workflow": "live-current-authority-read",
         "order": 3
       },
       {
@@ -39,17 +39,17 @@
       },
       {
         "owner_skill": "evidence-lane-code-lifecycle",
-        "workflow": "live-root-six-authority-read",
+        "workflow": "live-root-current-authority-read",
         "order": 3
       }
     ],
     "executable": true
   },
-  "schema_sha256": "1D4C303C7B3FE4AC1E729A6D7B45EA0A082FE57585D1C3251874A5BBE9769691",
+  "schema_sha256": "76F9448249D205764772262F4B673798BE5724E2F6B7162B34E3A8F8F8BE6FC1",
   "sdk_action_binding": "sdk/actions/search.action.v1.json",
   "mcp_action_binding": "mcp/actions/search.binding.v1.json",
   "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "fallback_to_historical_route_allowed": false,
-  "receipt_sha256": "5FC7EB97F9FBF04DD996A1482EFC49B2201D3B397A327C972C7BBCF1CDEF4236"
+  "receipt_sha256": "1D1D8D4EFCE2507AB063F5321C554E251F6A56159CBCC0DDD5319046EB57BA01"
 }

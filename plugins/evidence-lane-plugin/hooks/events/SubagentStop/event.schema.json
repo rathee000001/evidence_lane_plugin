@@ -8,7 +8,8 @@
     "event_number",
     "event",
     "handlers",
-    "adapter_sha256"
+    "adapter_sha256",
+    "workflow_contract"
   ],
   "properties": {
     "schema": {
@@ -27,11 +28,14 @@
       "type": "array",
       "minItems": 1
     },
+    "workflow_contract": {
+      "type": "object"
+    },
     "adapter_sha256": {
       "type": "string",
       "pattern": "^[A-F0-9]{64}$"
     }
   },
   "additionalProperties": true,
-  "receipt_sha256": "DD4677A5ADD820F68F39035261613D8A4280EA871C5A5092877AFEDF8B73541D"
+  "receipt_sha256": "23F78C73E92FA9C219A807346C395C1221AFBF14397F216D0974C6D197E5FC69"
 }

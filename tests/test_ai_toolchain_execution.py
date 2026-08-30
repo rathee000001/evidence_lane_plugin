@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-import importlib.util
 import os
 from pathlib import Path
 
@@ -20,7 +19,6 @@ from evidence_lane_plugin.graph_pipeline import SemanticGraph
 from evidence_lane_plugin.hybrid_retrieval import (
     RetrievalCandidate,
     VectorRetrievalRequest,
-    chroma_vector_rank,
     faiss_vector_rank,
     langchain_retrieval_pipeline,
     rank_bm25_candidates,
@@ -59,7 +57,7 @@ def test_lane_toolchain_is_codex_only_and_conditional() -> None:
         "APSW_SQLite_engine",
         "pandas",
     ]
-    with pytest.raises(ValueError, match="CHATGPT_TOOLCHAIN_PLANE_NOT_IMPLEMENTED"):
+    with pytest.raises(ValueError, match="Unsupported Codex host profile"):
         resolve_lane_toolchain(
             lane_id="data_excel",
             host_profile="CHATGPT",
@@ -283,11 +281,6 @@ def test_faiss_and_sqlite_vec_keep_sqlite_ids_canonical() -> None:
     faiss_receipt = faiss_vector_rank(request)
     assert faiss_receipt["results"][0]["candidate_id"] == "node-a"
     assert faiss_receipt["persistent_authority"] is False
-
-    if importlib.util.find_spec("chromadb") is not None:
-        chroma_receipt = chroma_vector_rank(request)
-        assert chroma_receipt["results"][0]["candidate_id"] == "node-a"
-        assert chroma_receipt["persistent_authority"] is False
 
     import sqlite3
 

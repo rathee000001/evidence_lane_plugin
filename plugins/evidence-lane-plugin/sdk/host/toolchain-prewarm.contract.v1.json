@@ -4,10 +4,10 @@
   "contract": "toolchain-prewarm",
   "law": "ALL_REQUIRED_RUNTIME_DEPENDENCIES_BEFORE_TUNNEL_OR_REOPEN",
   "owner": "src/evidence_lane_plugin/runtime_toolchain.py",
-  "owner_sha256": "013507EE5ADE57F4D82F8A571817233492690A3EB143577C780E13E09823DCBA",
+  "owner_sha256": "A88E283BB4CA5136AB891AF965DA383595D7B2A69E841D3FA5E87F6E05E3F240",
   "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
   "project_root_hardcoded": false,
   "workspace_hardcoded": false,
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "8E0393AC25806B2EA73173CFC001F56FDF0547D1AB48DA443834456E3D463BD8"
+  "receipt_sha256": "54B6DC413623E61CC5D84AFABBAC5777264E939263772EC79D6F73FFBBBAD860"
 }

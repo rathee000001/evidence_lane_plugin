@@ -21,12 +21,8 @@ from .redaction import contains_secret, redact
 HOOK_CONTRACT_SCHEMA = "evidence-lane.codex-hook-lifecycle-contract.v1"
 HOOK_TRANSPORT_SCHEMA = "evidence-lane.codex-hook-transport-envelope.v1"
 HOOK_CAPABILITY_SCHEMA = "evidence-lane.codex-hook-capability-receipt.v1"
-HOOK_LOGICAL_ACTION_REGISTRY_SCHEMA = (
-    "evidence-lane.hook-logical-action-registry.v1"
-)
-HOOK_LAUNCH_DIAGNOSTIC_SCHEMA = (
-    "evidence-lane.codex-hook-launch-diagnostic.v1"
-)
+HOOK_LOGICAL_ACTION_REGISTRY_SCHEMA = "evidence-lane.hook-logical-action-registry.v1"
+HOOK_LAUNCH_DIAGNOSTIC_SCHEMA = "evidence-lane.codex-hook-launch-diagnostic.v1"
 HOOK_CONTRACT_VERSION = 1
 MAX_HOOK_TRANSPORT_BYTES = 65_536
 MAX_VISIBLE_INPUT_CHARS = 32_768
@@ -210,6 +206,104 @@ HOOK_EVENT_LOGICAL_ACTIONS = {
     ),
 }
 
+# One source-owned semantic map binds each host event to its exact timing,
+# lifecycle consumer, and workflow scope.  Generated hook, SDK, architecture,
+# and documentation surfaces consume this map instead of asserting generic
+# ``paired=True`` flags that cannot prove the event is connected correctly.
+HOOK_EVENT_WORKFLOW_CONTRACTS: dict[str, dict[str, Any]] = {
+    "SessionStart": {
+        "host_timing": "SESSION_ENTRY_BEFORE_VISIBLE_INPUT",
+        "action_scope": "WORKFLOW_LIFECYCLE",
+        "skill_action": "SESSION_START_BIND_OR_REENTRY",
+        "skill_consumer": "consume_session_start_transport",
+        "workflow_phases": ["BOOT_OR_RESUME", "STATE_TRAVEL_REENTRY", "PANEL_REENTRY"],
+        "public_action_boundary": False,
+    },
+    "SubagentStart": {
+        "host_timing": "OPTIONAL_SUBAGENT_ENTRY_OBSERVATION",
+        "action_scope": "BOUND_OBSERVATION_ONLY",
+        "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
+        "skill_consumer": "consume_optional_observer_transport",
+        "workflow_phases": ["OPTIONAL_LINKED_TASK_OBSERVATION"],
+        "public_action_boundary": False,
+    },
+    "UserPromptSubmit": {
+        "host_timing": "BEFORE_MODEL_REASONING_AND_TOOL_SELECTION",
+        "action_scope": "WORKFLOW_ENTRY",
+        "skill_action": "PREPARE",
+        "skill_consumer": "consume_prompt_transport",
+        "workflow_phases": ["ENTRY_SLIP", "SOURCE_INTAKE", "ADAPTIVE_DELTA_ENTRY"],
+        "public_action_boundary": False,
+    },
+    "PreToolUse": {
+        "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
+        "action_scope": "PUBLIC_ACTION_BOUNDARY",
+        "skill_action": "PROSPECTIVE_TOOL_BOUNDARY",
+        "skill_consumer": "consume_pre_tool_transport",
+        "workflow_phases": ["UOP_PRECONDITION", "ACTIVE_DELTA_EXECUTION"],
+        "public_action_boundary": True,
+    },
+    "PermissionRequest": {
+        "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
+        "action_scope": "BOUND_OBSERVATION_ONLY",
+        "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
+        "skill_consumer": "consume_optional_observer_transport",
+        "workflow_phases": ["HOST_PERMISSION_OBSERVATION"],
+        "public_action_boundary": True,
+    },
+    "PostToolUse": {
+        "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
+        "action_scope": "PUBLIC_ACTION_BOUNDARY",
+        "skill_action": "TOOL_RECEIPT_AND_CURRENT_CHANGE_PROJECTION",
+        "skill_consumer": "consume_post_tool_transport",
+        "workflow_phases": ["TOOL_RECEIPT", "CURRENT_PLAN_ROW_AND_CHANGE_DISPLAY"],
+        "public_action_boundary": True,
+    },
+    "PreCompact": {
+        "host_timing": "BEFORE_CONTEXT_COMPACTION",
+        "action_scope": "WORKFLOW_LIFECYCLE",
+        "skill_action": "COMPACTION_OR_SESSION_BOUNDARY",
+        "skill_consumer": "consume_boundary_transport",
+        "workflow_phases": ["CONTINUITY_SEAL"],
+        "public_action_boundary": False,
+    },
+    "PostCompact": {
+        "host_timing": "AFTER_CONTEXT_COMPACTION_BEFORE_NEXT_ACTION",
+        "action_scope": "WORKFLOW_LIFECYCLE",
+        "skill_action": "COMPACTION_OR_SESSION_BOUNDARY",
+        "skill_consumer": "consume_boundary_transport",
+        "workflow_phases": ["CONTINUITY_REENTRY", "HOST_STEP_LIST_RELOCK"],
+        "public_action_boundary": False,
+    },
+    "SubagentStop": {
+        "host_timing": "OPTIONAL_SUBAGENT_EXIT_OBSERVATION",
+        "action_scope": "BOUND_OBSERVATION_ONLY",
+        "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
+        "skill_consumer": "consume_optional_observer_transport",
+        "workflow_phases": ["OPTIONAL_LINKED_TASK_OBSERVATION"],
+        "public_action_boundary": False,
+    },
+    "Stop": {
+        "host_timing": "AFTER_VISIBLE_RESPONSE_BEFORE_NEXT_TURN",
+        "action_scope": "WORKFLOW_EXIT",
+        "skill_action": "COMMIT",
+        "skill_consumer": "consume_stop_transport",
+        "workflow_phases": ["ORDINARY_TURN_COMMIT"],
+        "public_action_boundary": False,
+    },
+    "SessionEnd": {
+        "host_timing": "BEST_EFFORT_AFTER_SESSION_END",
+        "action_scope": "TRANSPORT_ONLY",
+        "skill_action": "BEST_EFFORT_SESSION_END_TRANSPORT",
+        "skill_consumer": None,
+        "workflow_phases": ["SESSION_END_BOUNDARY"],
+        "public_action_boundary": False,
+    },
+}
+
+if tuple(HOOK_EVENT_WORKFLOW_CONTRACTS) != HOOK_EVENT_NAMES:
+    raise RuntimeError("HOOK_EVENT_WORKFLOW_CONTRACT_ORDER_MISMATCH")
+
 
 def load_hook_logical_action_registry(
     plugin_root: Path | None = None,
@@ -246,6 +340,8 @@ def load_hook_logical_action_registry(
     if normalized != HOOK_EVENT_LOGICAL_ACTIONS:
         raise HookContractError("HOOK_LOGICAL_ACTION_REGISTRY_MISMATCH")
     return normalized
+
+
 _FORBIDDEN_PAYLOAD_KEYS = {
     "chain_of_thought",
     "credentials",
@@ -268,9 +364,10 @@ def lifecycle_hook_contract() -> dict[str, Any]:
         "events": [
             {
                 **asdict(row),
-                "logical_action_count": len(
-                    HOOK_EVENT_LOGICAL_ACTIONS[row.event_name]
+                "workflow_contract": dict(
+                    HOOK_EVENT_WORKFLOW_CONTRACTS[row.event_name]
                 ),
+                "logical_action_count": len(HOOK_EVENT_LOGICAL_ACTIONS[row.event_name]),
                 "logical_actions": [
                     {
                         "logical_action_number": f"{row.ordinal}.L{action_ordinal}",
@@ -304,9 +401,7 @@ def lifecycle_hook_contract() -> dict[str, Any]:
             "ENTRY_PREPARE_TOOL_BOUNDARIES_COMPACTION_COMMIT_NATIVE_READS_"
             "CLASSIFICATION_PLAN_REFRESH_GOAL_AND_HIL"
         ),
-        "skill_runtime_consumer": (
-            "evidence_lane_plugin.hook_skill_runtime"
-        ),
+        "skill_runtime_consumer": ("evidence_lane_plugin.hook_skill_runtime"),
         "windows_interpreter_resolution": "SEALED_DERIVED_RUNTIME_ONLY",
         "windows_process_window_mode": "HOST_MANAGED_NO_CHILD_WINDOW",
         "windows_command_launcher": "EvidenceLaneHookHost.exe",
@@ -417,9 +512,7 @@ def validate_hook_configuration(configuration: Mapping[str, Any]) -> dict[str, A
         "handler_count": len(handler_records),
         "handler_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
         "event_action_counts": {
-            event_name: sum(
-                row["event_name"] == event_name for row in handler_records
-            )
+            event_name: sum(row["event_name"] == event_name for row in handler_records)
             for event_name in event_names
         },
         "logical_action_count": lifecycle_contract["logical_action_count"],
@@ -436,9 +529,7 @@ def validate_hook_configuration(configuration: Mapping[str, Any]) -> dict[str, A
             for row in lifecycle_contract["events"]
         ],
         "handler_records": handler_records,
-        "configuration_sha256": sha256_bytes(
-            canonical_json_bytes(dict(configuration))
-        ),
+        "configuration_sha256": sha256_bytes(canonical_json_bytes(dict(configuration))),
     }
 
 
@@ -508,9 +599,7 @@ def build_hook_transport_envelope(
         "tool_use_id_sha256": sha256_bytes(
             str(payload.get("tool_use_id") or "").encode("utf-8")
         ),
-        "cwd_sha256": sha256_bytes(
-            str(payload.get("cwd") or "").encode("utf-8")
-        ),
+        "cwd_sha256": sha256_bytes(str(payload.get("cwd") or "").encode("utf-8")),
         "transcript_path_sha256": sha256_bytes(
             str(
                 payload.get("transcript_path")
@@ -588,10 +677,8 @@ def hook_capability_receipt(
                 else "HOST_CAPABILITY_UNAVAILABLE"
             ),
             "caller_capability_hint_matched": (
-                permission_request_supported
-                is None
-                or permission_request_supported
-                == ("PermissionRequest" in supported)
+                permission_request_supported is None
+                or permission_request_supported == ("PermissionRequest" in supported)
             ),
             "control_policy": "OBSERVE_ONLY_NEVER_GRANT_OR_DENY",
         },

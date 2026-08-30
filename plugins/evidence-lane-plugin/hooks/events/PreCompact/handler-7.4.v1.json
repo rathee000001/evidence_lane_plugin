@@ -13,11 +13,24 @@
     "statusMessage": "Verifying and emitting Evidence Lane hook result"
   },
   "logical_action": "VERIFY_AND_EMIT_EVENT_RESULT",
+  "handler_stage_role": "VERIFY_AND_EMIT_EVENT_RESULT",
+  "host_timing": "BEFORE_CONTEXT_COMPACTION",
+  "workflow_contract": {
+    "host_timing": "BEFORE_CONTEXT_COMPACTION",
+    "action_scope": "WORKFLOW_LIFECYCLE",
+    "skill_action": "COMPACTION_OR_SESSION_BOUNDARY",
+    "skill_consumer": "consume_boundary_transport",
+    "workflow_phases": [
+      "CONTINUITY_SEAL"
+    ],
+    "public_action_boundary": false
+  },
+  "workflow_contract_sha256": "2791DDDAEB56111F9F967B3C4AA9D5EEA8E9E4C2A1D4749CFD649AFAA1B199CD",
   "stage": "hooks/subhook_emit.py",
   "stage_sha256": "58483422B501DA08226BF4292310A9328F438EB1D8F0AC127178264844D816D0",
   "adapter": "hooks/lifecycle_boundary.py",
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "2F2CB23D73E0FC5277B075160CD5DE6E8592EB24BC82B07B68B4D1446135D120"
+  "receipt_sha256": "BC2649ABF884D233E4C690B71F0B2F25E5399EC179A63124EE5D9F680F830F76"
 }

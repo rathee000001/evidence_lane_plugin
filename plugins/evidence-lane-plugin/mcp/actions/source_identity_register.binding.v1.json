@@ -91,11 +91,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/source_identity_register.action.v1.json",
-  "sdk_action_binding_sha256": "5F3663ED3C7154B66F63A85221D4FEED4FEF02DC83500A6F8332642E57638F37",
+  "sdk_action_binding_sha256": "822C4C5E0A429E891A7439794C25A3D441DBFDB579707CF74803B72FDA8998AB",
   "public_action_schema": "schemas/actions/source_identity_register.schema.json",
   "public_action_schema_sha256": "A14B62EF28662371EB5C9AA387B4AA58B2D83EB6962ADA5F167CB1A315071144",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "20C15301DF15DA7E93ACE79DD54707C8A17E1340BA33123832FB46BCB1A4042A",
+  "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "BD9BA8D72E4DBF126BB171B204895557A9A8CE3BD8BDD74809178AE04C2F2017"
+  "receipt_sha256": "94C9A3317466AADD8CF4570B2D1700A3982A9CC71FB3870AAFB73150AA0CF2C4"
 }

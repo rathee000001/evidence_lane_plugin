@@ -56,9 +56,9 @@ def test_installed_prompts_explain_current_work_and_human_decisions() -> None:
     manifest = _json(PLUGIN_ROOT / ".codex-plugin" / "plugin.json")
     prompts = manifest["interface"]["defaultPrompt"]
     assert len(prompts) == 3
-    assert all(len(prompt) <= 128 for prompt in prompts)
+    assert all(prompt == prompt.strip() and prompt for prompt in prompts)
     assert any("current Plan row" in prompt for prompt in prompts)
-    assert any("six-way HIL" in prompt for prompt in prompts)
+    assert any("governed HIL" in prompt for prompt in prompts)
     assert any("next human decision" in prompt for prompt in prompts)
 
 

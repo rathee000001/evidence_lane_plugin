@@ -13,8 +13,13 @@ import time
 from pathlib import Path
 from typing import Any
 
+from .compact_storage import decompress_exact_bytes
 from .errors import EvidenceLaneError, require
-from .git_adapter import calculate_worktree_change_identity, inspect_repository
+from .git_adapter import (
+    calculate_worktree_change_identity,
+    inspect_repository,
+    resolve_git_executable,
+)
 from .hashing import (
     atomic_write_bytes,
     atomic_write_json,
@@ -1530,7 +1535,7 @@ def materialize_project_authority_layout(
 
 def _git_bytes(repository: Path, *arguments: str) -> bytes:
     completed = subprocess.run(  # nosec B603
-        ["git", *arguments],
+        [resolve_git_executable(repository), *arguments],
         cwd=repository,
         stdin=subprocess.DEVNULL,
         capture_output=True,
@@ -1663,7 +1668,7 @@ def _working_delta_inventory(
                     if exists and not metadata_only
                     else "HASH_LOCATOR_ONLY"
                     if exists
-                    else "DELETION_TOMBSTONE"
+                    else "DELETION_PURGE_RECEIPT"
                 ),
                 "content_policy_reason": (
                     "ARCHIVED_EVIDENCE_METADATA_ONLY"
@@ -2378,7 +2383,7 @@ def _accepted_lane_schema_binding_compatibility(
             and report.get("integrity") == ["ok"]
             and not report.get("foreign_key_errors")
             and str(report.get("schema_version") or "").strip()
-            == "evidence-lane.universal-lane.v2"
+            == "evidence-lane.universal-lane.v4"
             and dict(report.get("lane_schema_builder_projection") or {}).get(
                 "status"
             )
@@ -3716,21 +3721,44 @@ def _query_root_nested_pv_history(
         )
         rows = connection.execute(
             (
-                "SELECT CAST(chunk_id AS INTEGER), path, locator, "
-                f"snippet({lane.fts_table}, 2, '[', ']', ' ... ', 24), "
-                f"bm25({lane.fts_table}) FROM {lane.fts_table} "
+                "SELECT c.chunk_id,s.path,c.locator,"
+                f"bm25({lane.fts_table}),c.sha256,cas.size_bytes,"
+                "cas.compression,cas.compressed_text "
+                f"FROM {lane.fts_table} AS f "
+                "JOIN chunk_index AS c ON c.chunk_id="
+                "COALESCE(CAST(f.chunk_id AS INTEGER),f.rowid) "
+                "JOIN chunk_content_cas AS cas ON cas.sha256=c.sha256 "
+                "JOIN source_registry AS s ON s.source_id=c.source_id "
                 f"WHERE {lane.fts_table} MATCH ? "
-                "AND evi_is_current_path(path)=0 "
-                "ORDER BY 5, path, locator LIMIT ?"
+                "AND evi_is_current_path(s.path)=0 "
+                "ORDER BY 4,s.path,c.locator LIMIT ?"
             ),
             (fts_query, int(limit)),
         ).fetchall()
+        decoded_rows = [
+            (
+                int(row[0]),
+                str(row[1]),
+                str(row[2]),
+                decompress_exact_bytes(
+                    compression=str(row[6]),
+                    payload=bytes(row[7]),
+                    expected_size=int(row[5]),
+                    expected_sha256=str(row[4]),
+                ).decode("utf-8")[:1000],
+                float(row[3]),
+            )
+            for row in rows
+        ]
         excluded_current_path_count = int(
             connection.execute(
                 (
-                    f"SELECT COUNT(*) FROM {lane.fts_table} "
+                    f"SELECT COUNT(*) FROM {lane.fts_table} AS f "
+                    "JOIN chunk_index AS c ON c.chunk_id="
+                    "COALESCE(CAST(f.chunk_id AS INTEGER),f.rowid) "
+                    "JOIN source_registry AS s ON s.source_id=c.source_id "
                     f"WHERE {lane.fts_table} MATCH ? "
-                    "AND evi_is_current_path(path)=1"
+                    "AND evi_is_current_path(s.path)=1"
                 ),
                 (fts_query,),
             ).fetchone()[0]
@@ -3738,7 +3766,7 @@ def _query_root_nested_pv_history(
     finally:
         connection.close()
     return {
-        "rows": rows,
+        "rows": decoded_rows,
         "excluded_current_path_count": excluded_current_path_count,
     }
 
@@ -3914,17 +3942,37 @@ def query_working_project_sectors(
         try:
             rows = connection.execute(
                 (
-                    "SELECT CAST(chunk_id AS INTEGER), path, locator, "
-                    f"snippet({fts_table}, 2, '[', ']', ' ... ', 24), "
-                    f"bm25({fts_table}) FROM {fts_table} "
+                    "SELECT c.chunk_id,s.path,c.locator,"
+                    f"bm25({fts_table}),c.sha256,cas.size_bytes,"
+                    "cas.compression,cas.compressed_text "
+                    f"FROM {fts_table} AS f "
+                    "JOIN chunk_index AS c ON c.chunk_id="
+                    "COALESCE(CAST(f.chunk_id AS INTEGER),f.rowid) "
+                    "JOIN chunk_content_cas AS cas ON cas.sha256=c.sha256 "
+                    "JOIN source_registry AS s ON s.source_id=c.source_id "
                     f"WHERE {fts_table} MATCH ? "
-                    "ORDER BY 5, path, locator LIMIT ?"
+                    "ORDER BY 4,s.path,c.locator LIMIT ?"
                 ),
                 (fts, per_lane_limit),
             ).fetchall()
         finally:
             connection.close()
-        for chunk_id, path, locator, snippet, rank in rows:
+        for (
+            chunk_id,
+            path,
+            locator,
+            rank,
+            chunk_sha256,
+            chunk_size_bytes,
+            chunk_compression,
+            chunk_compressed_text,
+        ) in rows:
+            snippet = decompress_exact_bytes(
+                compression=str(chunk_compression),
+                payload=bytes(chunk_compressed_text),
+                expected_size=int(chunk_size_bytes),
+                expected_sha256=str(chunk_sha256),
+            ).decode("utf-8")[:1000]
             hits.append(
                 {
                     "lane_id": lane_id,
@@ -4063,7 +4111,7 @@ def query_working_project_sectors(
     return {
         "status": "PASS",
         "schema": "evidence-lane.working-sector-query.v2",
-        "authority": "LIVE_PROJECT_ROOT_SIX_AUTHORITY_SECTOR_ARM",
+        "authority": "LIVE_PROJECT_ROOT_CURRENT_AUTHORITY_SECTOR_ARM",
         "project_id": project_id,
         "historical_parent_pv": accepted_pv,
         "pointer_generation": pointer_generation,

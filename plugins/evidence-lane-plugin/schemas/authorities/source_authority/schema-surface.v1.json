@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "source_authority",
   "authority_root": "authorities/source_authority",
-  "authority_manifest_sha256": "3667F0AC862411D93DD305C5D07B4BAF5CD58EE4FFED159FE8DC7EEC29A75AA9",
+  "authority_manifest_sha256": "DBC8F7BD0ED9A0E50AB744C88AC463129E18FF794BF77C9B70217E12D8F92004",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -49,8 +49,8 @@
     },
     {
       "path": "authorities/source_authority/schema.sql",
-      "bytes": 28923,
-      "sha256": "E81DCE1C6B96F55F66AED422C34A10B780F3FC3FE9B704ED53784307B709F2BD"
+      "bytes": 29439,
+      "sha256": "20B1DC2B5E5B7FCBFC3DC338DB53373EB8FA442889A55F2CC5CDB9713136D1D6"
     },
     {
       "path": "authorities/source_authority/sqlite-artifact.schema.json",
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "E0328FB2F3C7F6BA1FB15870791CA32A1C096C5E4A499D87860FF6CD75AC2789"
+  "receipt_sha256": "F421160E6764B7F99FD120EB6E275ADF90A89B70F0B32B31BD8E5E077A0AD0A9"
 }

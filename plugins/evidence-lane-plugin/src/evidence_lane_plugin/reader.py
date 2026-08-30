@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+from .compact_storage import decompress_exact_bytes, read_source_record
 from .errors import EvidenceLaneError, require
 from .freshness import evaluate_working_lane_freshness, result_status
 from .git_adapter import inspect_repository
@@ -160,27 +161,38 @@ class PVReader:
         with self._live_connect(database_path) as connection:
             rows = connection.execute(
                 (
-                    "SELECT f.path,f.chunk_id,f.locator,"
-                    f"snippet({lane.fts_table},2,'[',']',' ... ',24) AS snippet,"
+                    "SELECT s.path,c.chunk_id,c.locator,"
                     f"bm25({lane.fts_table}) AS rank,c.sha256 AS chunk_sha256,"
-                    "s.sha256 AS file_sha256 "
+                    "s.sha256 AS file_sha256,cas.size_bytes AS chunk_size_bytes,"
+                    "cas.compression AS chunk_compression,"
+                    "cas.compressed_text AS chunk_compressed_text "
                     f"FROM {lane.fts_table} AS f "
-                    "JOIN chunk_index AS c ON c.chunk_id=CAST(f.chunk_id AS INTEGER) "
+                    "JOIN chunk_index AS c ON c.chunk_id="
+                    "COALESCE(CAST(f.chunk_id AS INTEGER),f.rowid) "
+                    "JOIN chunk_content_cas AS cas ON cas.sha256=c.sha256 "
                     "JOIN source_registry AS s ON s.source_id=c.source_id "
                     f"WHERE {lane.fts_table} MATCH ? "
-                    "ORDER BY rank,f.path,f.locator LIMIT ?"
+                    "ORDER BY rank,s.path,c.locator LIMIT ?"
                 ),
                 (self._fts_query(query), limit),
             ).fetchall()
-        results = [
-            {
+        results = []
+        for raw in rows:
+            row = dict(raw)
+            full_text = decompress_exact_bytes(
+                compression=str(row.pop("chunk_compression")),
+                payload=bytes(row.pop("chunk_compressed_text")),
+                expected_size=int(row.pop("chunk_size_bytes")),
+                expected_sha256=str(row["chunk_sha256"]),
+            ).decode("utf-8")
+            results.append({
                 "id": f"chunk:{row['chunk_id']}",
                 "ref_id": f"chunk:{row['chunk_id']}",
                 "title": f"{row['path']} {row['locator']}",
                 "url": self._blob_url(context, str(row["path"])),
                 "path": row["path"],
                 "locator": row["locator"],
-                "snippet": row["snippet"],
+                "snippet": full_text[:1000],
                 "rank": row["rank"],
                 "metadata": {
                     "kind": "chunk",
@@ -196,9 +208,7 @@ class PVReader:
                     "source_commit": context["source_commit"],
                     "accepted_archive_opened": False,
                 },
-            }
-            for row in rows
-        ]
+            })
         return {
             "status": result_status("PASS", context["freshness"]),
             "result_state": "HITS" if results else "EMPTY",
@@ -250,8 +260,10 @@ class PVReader:
                 row = connection.execute(
                     """
                     SELECT s.path,s.sha256 AS file_sha256,c.chunk_id,c.locator,
-                           c.text_content,c.sha256 AS chunk_sha256
+                           c.sha256 AS chunk_sha256,cas.size_bytes,
+                           cas.compression,cas.compressed_text
                     FROM chunk_index AS c
+                    JOIN chunk_content_cas AS cas ON cas.sha256=c.sha256
                     JOIN source_registry AS s ON s.source_id=c.source_id
                     WHERE c.chunk_id=?
                     """,
@@ -263,7 +275,12 @@ class PVReader:
                     "The requested live-root chunk does not exist.",
                     status="EMPTY",
                 )
-                encoded = str(row["text_content"]).encode("utf-8")
+                encoded = decompress_exact_bytes(
+                    compression=str(row["compression"]),
+                    payload=bytes(row["compressed_text"]),
+                    expected_size=int(row["size_bytes"]),
+                    expected_sha256=str(row["chunk_sha256"]),
+                )
                 content = encoded[:max_bytes].decode("utf-8", errors="replace")
                 return {
                     "status": result_status("PASS", context["freshness"]),
@@ -295,21 +312,16 @@ class PVReader:
                     "File references must be repository-relative paths.",
                     status="BLOCKED",
                 )
-                row = connection.execute(
-                    """
-                    SELECT path,size_bytes,sha256,mime_type,extension,encoding,
-                           parser_state,exact_bytes
-                    FROM source_registry WHERE path=?
-                    """,
-                    (path,),
-                ).fetchone()
-                require(
-                    row is not None,
-                    "FILE_NOT_FOUND",
-                    "The requested source file does not exist in live-root Local Code.",
-                    status="EMPTY",
-                )
-                data = bytes(row["exact_bytes"])
+                row, data = read_source_record(connection, path=path)
+                if row is None or data is None:
+                    raise EvidenceLaneError(
+                        code="FILE_NOT_FOUND",
+                        message=(
+                            "The requested source file does not exist in live-root "
+                            "Local Code."
+                        ),
+                        status="EMPTY",
+                    )
                 encoding = row["encoding"]
                 if encoding:
                     decoded = data.decode(str(encoding), errors="replace")
@@ -478,7 +490,7 @@ class PVReader:
                 (value, value, limit),
             ),
             "receipts": (
-                "SELECT receipt_id,build_mode,parent_pv,proposed_pv,unchanged_reuse,changed_rebuild,new_register,removed_tombstone,blocked_unsupported,length(details_json) AS details_size_bytes,recorded_at FROM refresh_receipt ORDER BY recorded_at DESC LIMIT ?",
+                "SELECT receipt_id,build_mode,parent_pv,proposed_pv,unchanged_reuse,changed_rebuild,new_register,removed_purge,blocked_unsupported,length(details_json) AS details_size_bytes,recorded_at FROM refresh_receipt ORDER BY recorded_at DESC LIMIT ?",
                 (limit,),
             ),
         }

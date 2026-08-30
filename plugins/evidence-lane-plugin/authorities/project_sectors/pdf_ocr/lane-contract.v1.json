@@ -25,8 +25,8 @@
     "schema_contract": [
       "lane_meta",
       "lane_pointer",
+      "source_content_cas",
       "source_registry",
-      "source_tombstone",
       "chunk_index",
       "chunk_content_cas",
       "chunk_history",
@@ -36,6 +36,7 @@
       "tfidf_vector",
       "refresh_receipt",
       "mutation_receipt",
+      "authority_index_content_cas",
       "authority_index_source",
       "authority_index_node",
       "authority_index_fts",
@@ -57,20 +58,20 @@
     "mmd_filename": "pdf_ocr.mmd",
     "dot_filename": "pdf_ocr.dot",
     "mmd_node_id": "lane_pdf_ocr",
-    "lane_schema_id": "evidence-lane.lane-schema.pdf_ocr.v001",
-    "lane_schema_version": 1,
-    "lane_schema_contract_sha256": "CB747EDFD9921901C6F0072662BB78598C3D7A48AF642C6E317DBBC92E918F2E",
-    "lane_schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+    "lane_schema_id": "evidence-lane.lane-schema.pdf_ocr.v004",
+    "lane_schema_version": 4,
+    "lane_schema_contract_sha256": "7E7035DE58503F3CDD40C12707F903FB35C747162C7CB67B7E9C9C554E505CAE",
+    "lane_schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
     "extension_namespace": "evidence_lane.pdf_ocr.extensions",
-    "migration_head": "pdf_ocr.bootstrap.v001",
-    "lane_schema_evolution_policy_sha256": "9E02DF9B8533417623E470FCDE64A70E7287A261B84A6348E1B1009B333A67D4",
+    "migration_head": "pdf_ocr.direct-purge-current-only.v004",
+    "lane_schema_evolution_policy_sha256": "D86688543BE69A14A8FD4F34FEAAA84593A032C1BCF25655DBAE3483B35E3F30",
     "lane_schema_evolution_user_gate": false,
     "lane_artifact_contract_sha256": "0DA75FD810A7F147189BFF7BA30EFE690C3CAA8B2EFE30D95A2B894664DD39C8",
     "lane_artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2"
   },
   "schema_asset": {
-    "base_schema_id": "evidence-lane.universal-lane.v2",
-    "contract_sha256": "CB747EDFD9921901C6F0072662BB78598C3D7A48AF642C6E317DBBC92E918F2E",
+    "base_schema_id": "evidence-lane.universal-lane.v4",
+    "contract_sha256": "7E7035DE58503F3CDD40C12707F903FB35C747162C7CB67B7E9C9C554E505CAE",
     "extension_namespace": "evidence_lane.pdf_ocr.extensions",
     "fts_table": "pdf_fts",
     "lane_id": "pdf_ocr",
@@ -83,17 +84,44 @@
         "operation": "BASELINE_BIND_EXISTING_SCHEMA",
         "sequence": 1,
         "to_version": 1
+      },
+      {
+        "additive_only": false,
+        "from_version": 1,
+        "migration_id": "pdf_ocr.compact-storage.v002",
+        "operation": "REBUILD_COMPACT_CONTENT_CAS_AND_CONTENTLESS_FTS",
+        "rebuild_required": true,
+        "sequence": 2,
+        "to_version": 2
+      },
+      {
+        "additive_only": false,
+        "from_version": 2,
+        "migration_id": "pdf_ocr.reference-only-index.v003",
+        "operation": "REBUILD_REFERENCE_ONLY_CHUNKS_AND_COMPACT_AUTHORITY_INDEX",
+        "rebuild_required": true,
+        "sequence": 3,
+        "to_version": 3
+      },
+      {
+        "additive_only": false,
+        "from_version": 3,
+        "migration_id": "pdf_ocr.direct-purge-current-only.v004",
+        "operation": "REBUILD_WITH_DIRECT_PURGE_CURRENT_ONLY",
+        "rebuild_required": true,
+        "sequence": 4,
+        "to_version": 4
       }
     ],
     "mutation_policy": "explicit_named_one_turn_grant_receipt_snapshot_relock",
-    "schema_id": "evidence-lane.lane-schema.pdf_ocr.v001",
-    "schema_version": 1,
-    "sqlite_master_projection_sha256": "B63A8204D72A17076CE0432865E0D0A64569DF932C17E480C4E350CF7FF82C52",
+    "schema_id": "evidence-lane.lane-schema.pdf_ocr.v004",
+    "schema_version": 4,
+    "sqlite_master_projection_sha256": "B35FCE769F2C8A37429ECFC01A91B3D069AC10813400C986090DB39A62D53697",
     "tables": [
       "lane_meta",
       "lane_pointer",
+      "source_content_cas",
       "source_registry",
-      "source_tombstone",
       "chunk_index",
       "chunk_content_cas",
       "chunk_history",
@@ -103,6 +131,7 @@
       "tfidf_vector",
       "refresh_receipt",
       "mutation_receipt",
+      "authority_index_content_cas",
       "authority_index_source",
       "authority_index_node",
       "authority_index_fts",
@@ -216,13 +245,13 @@
     "contract_sha256": "0DA75FD810A7F147189BFF7BA30EFE690C3CAA8B2EFE30D95A2B894664DD39C8"
   },
   "shared_engine_source_hashes": {
-    "src/evidence_lane_plugin/lanes.py": "D6270B812093ACFDDC6D8D7B165A6757ACED153FEE2D38193BA500285A6E8AC7",
-    "src/evidence_lane_plugin/lane_engine.py": "606278B437DC3C1E4F9D7AD703122294C369F745FB28C5F3F7149EF69D773AE4",
-    "src/evidence_lane_plugin/lane_reader.py": "D3AD5D9A83F59FA1D47C78E9A1C3FF9B55686FAE297D86D652D778737C61A566",
+    "src/evidence_lane_plugin/lanes.py": "1FE3EF29F00CD144566BB72E74B8059B6DA51A0CC138AD97B6FCD609133A3FC3",
+    "src/evidence_lane_plugin/lane_engine.py": "3789EFE347EA0EADDA54520E67F42B2FC88218F94A345D98892A0D928701FD96",
+    "src/evidence_lane_plugin/lane_reader.py": "E131620487F19CC2E6B3188F0B53A3483D7179F9AC4BA7BE87249750097BE7E7",
     "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
-    "src/evidence_lane_plugin/source_intake.py": "F8B9EA79F70CC9A68D1648103F1947259F09D4AF679475291A66CB9F2B47E85B"
+    "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
   },
   "authority_is_separate_per_project_lane": true,
   "shared_engine_does_not_merge_lane_sqlite": true,
-  "receipt_sha256": "2A0ED555BD3E140AC1E74BFF9823CC58B31B2F71B665D0CDA79A4D70EA22D552"
+  "receipt_sha256": "BECDC181F03364476B2B9B98F4F7349164F02A3B6D7657F374C3C87418FA94C4"
 }

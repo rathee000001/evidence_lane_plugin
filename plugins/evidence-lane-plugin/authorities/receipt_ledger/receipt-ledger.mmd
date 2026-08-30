@@ -1,7 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=137275DC321CFB651BAA7EAAD0280191F068CDEE4D6814FF7A2D02C925D07268
+%% LANGGRAPH_EXPORT_SHA256=A1E920B0A38D810B23B86ABAFE5013436AA06A86D46BFF972B31398446B3CCF9
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=69
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -16,6 +18,12 @@ flowchart TB
   AUTHORITY_ROOT["receipt_ledger SQLite authority"]:::root
   subgraph SUPPORT_receipt_ledger["receipt_ledger SQLite schema"]
     direction TB
+    support_table_authority_index_content_cas["authority_index_content_cas"]:::table
+    support_table_authority_index_content_cas_column_sha256["sha256 : TEXT"]:::column
+    support_table_authority_index_content_cas_column_size_bytes["size_bytes : INTEGER"]:::column
+    support_table_authority_index_content_cas_column_compression["compression : TEXT"]:::column
+    support_table_authority_index_content_cas_column_compressed_bytes["compressed_bytes : BLOB"]:::column
+    support_table_authority_index_content_cas_column_first_seen_at["first_seen_at : TEXT"]:::column
     support_table_authority_index_fts["authority_index_fts [FTS5]"]:::table
     support_table_authority_index_fts_column_node_id["node_id : ANY"]:::column
     support_table_authority_index_fts_column_authority_id["authority_id : ANY"]:::column
@@ -25,19 +33,13 @@ flowchart TB
     support_table_authority_index_fts_config["authority_index_fts_config"]:::table
     support_table_authority_index_fts_config_column_k["k : ANY"]:::column
     support_table_authority_index_fts_config_column_v["v : ANY"]:::column
-    support_table_authority_index_fts_content["authority_index_fts_content"]:::table
-    support_table_authority_index_fts_content_column_id["id : INTEGER"]:::column
-    support_table_authority_index_fts_content_column_c0["c0 : ANY"]:::column
-    support_table_authority_index_fts_content_column_c1["c1 : ANY"]:::column
-    support_table_authority_index_fts_content_column_c2["c2 : ANY"]:::column
-    support_table_authority_index_fts_content_column_c3["c3 : ANY"]:::column
-    support_table_authority_index_fts_content_column_c4["c4 : ANY"]:::column
     support_table_authority_index_fts_data["authority_index_fts_data"]:::table
     support_table_authority_index_fts_data_column_id["id : INTEGER"]:::column
     support_table_authority_index_fts_data_column_block["block : BLOB"]:::column
     support_table_authority_index_fts_docsize["authority_index_fts_docsize"]:::table
     support_table_authority_index_fts_docsize_column_id["id : INTEGER"]:::column
     support_table_authority_index_fts_docsize_column_sz["sz : BLOB"]:::column
+    support_table_authority_index_fts_docsize_column_origin["origin : INTEGER"]:::column
     support_table_authority_index_fts_idx["authority_index_fts_idx"]:::table
     support_table_authority_index_fts_idx_column_segid["segid : ANY"]:::column
     support_table_authority_index_fts_idx_column_term["term : ANY"]:::column
@@ -48,9 +50,8 @@ flowchart TB
     support_table_authority_index_node_column_ordinal["ordinal : INTEGER"]:::column
     support_table_authority_index_node_column_char_start["char_start : INTEGER"]:::column
     support_table_authority_index_node_column_char_end["char_end : INTEGER"]:::column
-    support_table_authority_index_node_column_text_content["text_content : TEXT"]:::column
     support_table_authority_index_node_column_text_sha256["text_sha256 : TEXT"]:::column
-    support_table_authority_index_node_column_metadata_json["metadata_json : TEXT"]:::column
+    support_table_authority_index_node_column_metadata_sha256["metadata_sha256 : TEXT"]:::column
     support_table_authority_index_refresh_receipt["authority_index_refresh_receipt"]:::table
     support_table_authority_index_refresh_receipt_column_sequence["sequence : INTEGER"]:::column
     support_table_authority_index_refresh_receipt_column_authority_id["authority_id : TEXT"]:::column
@@ -70,8 +71,14 @@ flowchart TB
     support_table_authority_index_source_column_source_table["source_table : TEXT"]:::column
     support_table_authority_index_source_column_source_identity["source_identity : TEXT"]:::column
     support_table_authority_index_source_column_source_text_sha256["source_text_sha256 : TEXT"]:::column
-    support_table_authority_index_source_column_metadata_json["metadata_json : TEXT"]:::column
+    support_table_authority_index_source_column_metadata_sha256["metadata_sha256 : TEXT"]:::column
     support_table_authority_index_source_column_recorded_at["recorded_at : TEXT"]:::column
+    support_table_receipt_content_cas["receipt_content_cas"]:::table
+    support_table_receipt_content_cas_column_receipt_sha256["receipt_sha256 : TEXT"]:::column
+    support_table_receipt_content_cas_column_byte_count["byte_count : INTEGER"]:::column
+    support_table_receipt_content_cas_column_compression["compression : TEXT"]:::column
+    support_table_receipt_content_cas_column_compressed_bytes["compressed_bytes : BLOB"]:::column
+    support_table_receipt_content_cas_column_first_recorded_at["first_recorded_at : TEXT"]:::column
     support_table_receipt_fts["receipt_fts [FTS5]"]:::table
     support_table_receipt_fts_column_receipt_sha256["receipt_sha256 : ANY"]:::column
     support_table_receipt_fts_column_logical_path["logical_path : ANY"]:::column
@@ -81,19 +88,13 @@ flowchart TB
     support_table_receipt_fts_config["receipt_fts_config"]:::table
     support_table_receipt_fts_config_column_k["k : ANY"]:::column
     support_table_receipt_fts_config_column_v["v : ANY"]:::column
-    support_table_receipt_fts_content["receipt_fts_content"]:::table
-    support_table_receipt_fts_content_column_id["id : INTEGER"]:::column
-    support_table_receipt_fts_content_column_c0["c0 : ANY"]:::column
-    support_table_receipt_fts_content_column_c1["c1 : ANY"]:::column
-    support_table_receipt_fts_content_column_c2["c2 : ANY"]:::column
-    support_table_receipt_fts_content_column_c3["c3 : ANY"]:::column
-    support_table_receipt_fts_content_column_c4["c4 : ANY"]:::column
     support_table_receipt_fts_data["receipt_fts_data"]:::table
     support_table_receipt_fts_data_column_id["id : INTEGER"]:::column
     support_table_receipt_fts_data_column_block["block : BLOB"]:::column
     support_table_receipt_fts_docsize["receipt_fts_docsize"]:::table
     support_table_receipt_fts_docsize_column_id["id : INTEGER"]:::column
     support_table_receipt_fts_docsize_column_sz["sz : BLOB"]:::column
+    support_table_receipt_fts_docsize_column_origin["origin : INTEGER"]:::column
     support_table_receipt_fts_idx["receipt_fts_idx"]:::table
     support_table_receipt_fts_idx_column_segid["segid : ANY"]:::column
     support_table_receipt_fts_idx_column_term["term : ANY"]:::column
@@ -127,13 +128,18 @@ flowchart TB
     support_table_receipt_record_column_host_task_id["host_task_id : TEXT"]:::column
     support_table_receipt_record_column_media_type["media_type : TEXT"]:::column
     support_table_receipt_record_column_byte_count["byte_count : INTEGER"]:::column
-    support_table_receipt_record_column_exact_bytes["exact_bytes : BLOB"]:::column
     support_table_receipt_record_column_payload_json["payload_json : TEXT"]:::column
     support_table_receipt_record_column_prior_receipt_sha256["prior_receipt_sha256 : TEXT"]:::column
     support_table_receipt_record_column_supersedes_receipt_sha256["supersedes_receipt_sha256 : TEXT"]:::column
     support_table_receipt_record_column_recorded_at["recorded_at : TEXT"]:::column
     support_table_receipt_record_column_source_file_removed["source_file_removed : INTEGER"]:::column
   end
+  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_content_cas
+  support_table_authority_index_content_cas -->|"column"| support_table_authority_index_content_cas_column_sha256
+  support_table_authority_index_content_cas -->|"column"| support_table_authority_index_content_cas_column_size_bytes
+  support_table_authority_index_content_cas -->|"column"| support_table_authority_index_content_cas_column_compression
+  support_table_authority_index_content_cas -->|"column"| support_table_authority_index_content_cas_column_compressed_bytes
+  support_table_authority_index_content_cas -->|"column"| support_table_authority_index_content_cas_column_first_seen_at
   AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts
   support_table_authority_index_fts -->|"column"| support_table_authority_index_fts_column_node_id
   support_table_authority_index_fts -->|"column"| support_table_authority_index_fts_column_authority_id
@@ -143,19 +149,13 @@ flowchart TB
   AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts_config
   support_table_authority_index_fts_config -->|"column"| support_table_authority_index_fts_config_column_k
   support_table_authority_index_fts_config -->|"column"| support_table_authority_index_fts_config_column_v
-  AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts_content
-  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_id
-  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_c0
-  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_c1
-  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_c2
-  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_c3
-  support_table_authority_index_fts_content -->|"column"| support_table_authority_index_fts_content_column_c4
   AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts_data
   support_table_authority_index_fts_data -->|"column"| support_table_authority_index_fts_data_column_id
   support_table_authority_index_fts_data -->|"column"| support_table_authority_index_fts_data_column_block
   AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts_docsize
   support_table_authority_index_fts_docsize -->|"column"| support_table_authority_index_fts_docsize_column_id
   support_table_authority_index_fts_docsize -->|"column"| support_table_authority_index_fts_docsize_column_sz
+  support_table_authority_index_fts_docsize -->|"column"| support_table_authority_index_fts_docsize_column_origin
   AUTHORITY_ROOT -->|"owns"| support_table_authority_index_fts_idx
   support_table_authority_index_fts_idx -->|"column"| support_table_authority_index_fts_idx_column_segid
   support_table_authority_index_fts_idx -->|"column"| support_table_authority_index_fts_idx_column_term
@@ -166,9 +166,10 @@ flowchart TB
   support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_ordinal
   support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_char_start
   support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_char_end
-  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_text_content
   support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_text_sha256
-  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_metadata_json
+  support_table_authority_index_node -->|"column"| support_table_authority_index_node_column_metadata_sha256
+  support_table_authority_index_node -->|"FK metadata_sha256-&gt;sha256"| support_table_authority_index_content_cas
+  support_table_authority_index_node -->|"FK text_sha256-&gt;sha256"| support_table_authority_index_content_cas
   support_table_authority_index_node -->|"FK source_id-&gt;source_id"| support_table_authority_index_source
   AUTHORITY_ROOT -->|"owns"| support_table_authority_index_refresh_receipt
   support_table_authority_index_refresh_receipt -->|"column"| support_table_authority_index_refresh_receipt_column_sequence
@@ -189,8 +190,15 @@ flowchart TB
   support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_source_table
   support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_source_identity
   support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_source_text_sha256
-  support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_metadata_json
+  support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_metadata_sha256
   support_table_authority_index_source -->|"column"| support_table_authority_index_source_column_recorded_at
+  support_table_authority_index_source -->|"FK metadata_sha256-&gt;sha256"| support_table_authority_index_content_cas
+  AUTHORITY_ROOT -->|"owns"| support_table_receipt_content_cas
+  support_table_receipt_content_cas -->|"column"| support_table_receipt_content_cas_column_receipt_sha256
+  support_table_receipt_content_cas -->|"column"| support_table_receipt_content_cas_column_byte_count
+  support_table_receipt_content_cas -->|"column"| support_table_receipt_content_cas_column_compression
+  support_table_receipt_content_cas -->|"column"| support_table_receipt_content_cas_column_compressed_bytes
+  support_table_receipt_content_cas -->|"column"| support_table_receipt_content_cas_column_first_recorded_at
   AUTHORITY_ROOT -->|"owns"| support_table_receipt_fts
   support_table_receipt_fts -->|"column"| support_table_receipt_fts_column_receipt_sha256
   support_table_receipt_fts -->|"column"| support_table_receipt_fts_column_logical_path
@@ -200,19 +208,13 @@ flowchart TB
   AUTHORITY_ROOT -->|"owns"| support_table_receipt_fts_config
   support_table_receipt_fts_config -->|"column"| support_table_receipt_fts_config_column_k
   support_table_receipt_fts_config -->|"column"| support_table_receipt_fts_config_column_v
-  AUTHORITY_ROOT -->|"owns"| support_table_receipt_fts_content
-  support_table_receipt_fts_content -->|"column"| support_table_receipt_fts_content_column_id
-  support_table_receipt_fts_content -->|"column"| support_table_receipt_fts_content_column_c0
-  support_table_receipt_fts_content -->|"column"| support_table_receipt_fts_content_column_c1
-  support_table_receipt_fts_content -->|"column"| support_table_receipt_fts_content_column_c2
-  support_table_receipt_fts_content -->|"column"| support_table_receipt_fts_content_column_c3
-  support_table_receipt_fts_content -->|"column"| support_table_receipt_fts_content_column_c4
   AUTHORITY_ROOT -->|"owns"| support_table_receipt_fts_data
   support_table_receipt_fts_data -->|"column"| support_table_receipt_fts_data_column_id
   support_table_receipt_fts_data -->|"column"| support_table_receipt_fts_data_column_block
   AUTHORITY_ROOT -->|"owns"| support_table_receipt_fts_docsize
   support_table_receipt_fts_docsize -->|"column"| support_table_receipt_fts_docsize_column_id
   support_table_receipt_fts_docsize -->|"column"| support_table_receipt_fts_docsize_column_sz
+  support_table_receipt_fts_docsize -->|"column"| support_table_receipt_fts_docsize_column_origin
   AUTHORITY_ROOT -->|"owns"| support_table_receipt_fts_idx
   support_table_receipt_fts_idx -->|"column"| support_table_receipt_fts_idx_column_segid
   support_table_receipt_fts_idx -->|"column"| support_table_receipt_fts_idx_column_term
@@ -247,9 +249,80 @@ flowchart TB
   support_table_receipt_record -->|"column"| support_table_receipt_record_column_host_task_id
   support_table_receipt_record -->|"column"| support_table_receipt_record_column_media_type
   support_table_receipt_record -->|"column"| support_table_receipt_record_column_byte_count
-  support_table_receipt_record -->|"column"| support_table_receipt_record_column_exact_bytes
   support_table_receipt_record -->|"column"| support_table_receipt_record_column_payload_json
   support_table_receipt_record -->|"column"| support_table_receipt_record_column_prior_receipt_sha256
   support_table_receipt_record -->|"column"| support_table_receipt_record_column_supersedes_receipt_sha256
   support_table_receipt_record -->|"column"| support_table_receipt_record_column_recorded_at
   support_table_receipt_record -->|"column"| support_table_receipt_record_column_source_file_removed
+  support_table_receipt_record -->|"FK receipt_sha256-&gt;receipt_sha256"| support_table_receipt_content_cas
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  support_table_authority_index_content_cas ~~~ support_table_authority_index_fts
+  support_table_authority_index_fts ~~~ support_table_authority_index_fts_config
+  support_table_authority_index_fts_config ~~~ support_table_authority_index_fts_data
+  support_table_authority_index_fts_data ~~~ support_table_authority_index_fts_docsize
+  support_table_authority_index_fts_idx ~~~ support_table_authority_index_node
+  support_table_authority_index_node ~~~ support_table_authority_index_refresh_receipt
+  support_table_authority_index_refresh_receipt ~~~ support_table_authority_index_source
+  support_table_authority_index_source ~~~ support_table_receipt_content_cas
+  support_table_receipt_fts ~~~ support_table_receipt_fts_config
+  support_table_receipt_fts_config ~~~ support_table_receipt_fts_data
+  support_table_receipt_fts_data ~~~ support_table_receipt_fts_docsize
+  support_table_receipt_fts_docsize ~~~ support_table_receipt_fts_idx
+  support_table_receipt_link ~~~ support_table_receipt_migration_batch
+  support_table_receipt_migration_batch ~~~ support_table_receipt_record
+  support_table_authority_index_content_cas_column_sha256 ~~~ support_table_authority_index_content_cas_column_size_bytes
+  support_table_authority_index_content_cas_column_size_bytes ~~~ support_table_authority_index_content_cas_column_compression
+  support_table_authority_index_content_cas_column_compressed_bytes ~~~ support_table_authority_index_content_cas_column_first_seen_at
+  support_table_authority_index_fts_column_node_id ~~~ support_table_authority_index_fts_column_authority_id
+  support_table_authority_index_fts_column_authority_id ~~~ support_table_authority_index_fts_column_source_table
+  support_table_authority_index_fts_column_source_identity ~~~ support_table_authority_index_fts_column_text_content
+  support_table_authority_index_node_column_node_id ~~~ support_table_authority_index_node_column_source_id
+  support_table_authority_index_node_column_source_id ~~~ support_table_authority_index_node_column_ordinal
+  support_table_authority_index_node_column_char_start ~~~ support_table_authority_index_node_column_char_end
+  support_table_authority_index_node_column_char_end ~~~ support_table_authority_index_node_column_text_sha256
+  support_table_authority_index_node_column_metadata_sha256 ~~~ support_table_authority_index_content_cas
+  support_table_authority_index_refresh_receipt_column_sequence ~~~ support_table_authority_index_refresh_receipt_column_authority_id
+  support_table_authority_index_refresh_receipt_column_authority_id ~~~ support_table_authority_index_refresh_receipt_column_source_count
+  support_table_authority_index_refresh_receipt_column_source_count ~~~ support_table_authority_index_refresh_receipt_column_node_count
+  support_table_authority_index_refresh_receipt_column_indexed_table_count ~~~ support_table_authority_index_refresh_receipt_column_llama_index_core_version
+  support_table_authority_index_refresh_receipt_column_llama_index_core_version ~~~ support_table_authority_index_refresh_receipt_column_chunk_size_tokens
+  support_table_authority_index_refresh_receipt_column_chunk_size_tokens ~~~ support_table_authority_index_refresh_receipt_column_chunk_overlap_tokens
+  support_table_authority_index_refresh_receipt_column_prior_receipt_sha256 ~~~ support_table_authority_index_refresh_receipt_column_recorded_at
+  support_table_authority_index_refresh_receipt_column_recorded_at ~~~ support_table_authority_index_refresh_receipt_column_receipt_sha256
+  support_table_authority_index_refresh_receipt_column_receipt_sha256 ~~~ support_table_authority_index_refresh_receipt_column_receipt_json
+  support_table_authority_index_source_column_source_id ~~~ support_table_authority_index_source_column_authority_id
+  support_table_authority_index_source_column_authority_id ~~~ support_table_authority_index_source_column_source_table
+  support_table_authority_index_source_column_source_identity ~~~ support_table_authority_index_source_column_source_text_sha256
+  support_table_authority_index_source_column_source_text_sha256 ~~~ support_table_authority_index_source_column_metadata_sha256
+  support_table_authority_index_source_column_recorded_at ~~~ support_table_authority_index_content_cas
+  support_table_receipt_content_cas_column_receipt_sha256 ~~~ support_table_receipt_content_cas_column_byte_count
+  support_table_receipt_content_cas_column_byte_count ~~~ support_table_receipt_content_cas_column_compression
+  support_table_receipt_content_cas_column_compressed_bytes ~~~ support_table_receipt_content_cas_column_first_recorded_at
+  support_table_receipt_fts_column_receipt_sha256 ~~~ support_table_receipt_fts_column_logical_path
+  support_table_receipt_fts_column_logical_path ~~~ support_table_receipt_fts_column_receipt_kind
+  support_table_receipt_fts_column_schema_id ~~~ support_table_receipt_fts_column_payload_text
+  support_table_receipt_link_column_link_id ~~~ support_table_receipt_link_column_source_receipt_sha256
+  support_table_receipt_link_column_source_receipt_sha256 ~~~ support_table_receipt_link_column_relation
+  support_table_receipt_link_column_target_receipt_sha256 ~~~ support_table_receipt_link_column_metadata_json
+  support_table_receipt_link_column_metadata_json ~~~ support_table_receipt_record
+  support_table_receipt_migration_batch_column_batch_id ~~~ support_table_receipt_migration_batch_column_source_root
+  support_table_receipt_migration_batch_column_source_root ~~~ support_table_receipt_migration_batch_column_source_file_count
+  support_table_receipt_migration_batch_column_source_file_count ~~~ support_table_receipt_migration_batch_column_source_bytes
+  support_table_receipt_migration_batch_column_ingested_count ~~~ support_table_receipt_migration_batch_column_duplicate_count
+  support_table_receipt_migration_batch_column_duplicate_count ~~~ support_table_receipt_migration_batch_column_removed_count
+  support_table_receipt_migration_batch_column_removed_count ~~~ support_table_receipt_migration_batch_column_source_removal_authorized
+  support_table_receipt_migration_batch_column_receipt_sha256 ~~~ support_table_receipt_migration_batch_column_receipt_json
+  support_table_receipt_migration_batch_column_receipt_json ~~~ support_table_receipt_migration_batch_column_recorded_at
+  support_table_receipt_record_column_sequence ~~~ support_table_receipt_record_column_receipt_sha256
+  support_table_receipt_record_column_receipt_sha256 ~~~ support_table_receipt_record_column_logical_path
+  support_table_receipt_record_column_logical_path ~~~ support_table_receipt_record_column_receipt_kind
+  support_table_receipt_record_column_schema_id ~~~ support_table_receipt_record_column_project_id
+  support_table_receipt_record_column_project_id ~~~ support_table_receipt_record_column_session_id
+  support_table_receipt_record_column_session_id ~~~ support_table_receipt_record_column_host_task_id
+  support_table_receipt_record_column_media_type ~~~ support_table_receipt_record_column_byte_count
+  support_table_receipt_record_column_byte_count ~~~ support_table_receipt_record_column_payload_json
+  support_table_receipt_record_column_payload_json ~~~ support_table_receipt_record_column_prior_receipt_sha256
+  support_table_receipt_record_column_supersedes_receipt_sha256 ~~~ support_table_receipt_record_column_recorded_at
+  support_table_receipt_record_column_recorded_at ~~~ support_table_receipt_record_column_source_file_removed
+  support_table_receipt_record_column_source_file_removed ~~~ support_table_receipt_content_cas
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

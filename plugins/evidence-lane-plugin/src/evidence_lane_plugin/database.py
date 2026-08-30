@@ -19,6 +19,7 @@ from .errors import EvidenceLaneError, require
 
 _COUNT_QUERIES = {
     "repositories": 'SELECT COUNT(*) AS count FROM "repositories"',
+    "file_content_cas": 'SELECT COUNT(*) AS count FROM "file_content_cas"',
     "files": 'SELECT COUNT(*) AS count FROM "files"',
     "chunks": 'SELECT COUNT(*) AS count FROM "chunks"',
     "chunk_content_cas": 'SELECT COUNT(*) AS count FROM "chunk_content_cas"',
@@ -140,6 +141,7 @@ def integrity_report(path: str | Path) -> dict[str, Any]:
             connection,
             (
                 "repositories",
+                "file_content_cas",
                 "files",
                 "chunks",
                 "chunk_content_cas",

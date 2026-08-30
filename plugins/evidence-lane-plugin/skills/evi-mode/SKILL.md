@@ -6,7 +6,7 @@ description: Evidence Lane Mode sidecar for ordered known intersections and expl
 # Evidence Lane Mode
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its Codex hook/skill
 ownership contract. This skill owns behavior; hooks provide lifecycle receipts
 only.
 
@@ -25,9 +25,11 @@ and Exit Slips and the candidate's next-action contract. Code mode always shows
 `PCM + MBA`, uses the controlled CI/CD receipt returned by ENV, and reports an
 open/failed approve gate when its executable evidence is incomplete. Never
 infer autonomous build, Fuse, deployment, or HIL approval from mode selection.
-At a HIL stop, preserve the universal six exact decision tokens but render each
-selected lane's returned accepted object, gate, rollback target, and lane
-effect. Do not reuse Code-mode HIL meanings for a non-Code lane.
+At a HIL stop, resolve the current decision vocabulary from the owning
+authority, then render each selected lane's returned accepted object, gate,
+rollback target, and lane effect. Do not reuse Project or Code-mode meanings
+for another authority or lane, and do not treat the current vocabulary size as
+a workflow ceiling.
 
 For Planning mode in Codex, route to the native `$evi-plan` skill after mode
 classification. `evi-mode` does not own Plan persistence, Plan steering, host

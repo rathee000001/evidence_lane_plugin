@@ -18,28 +18,7 @@ from evidence_lane_plugin.flash_identity import (
     SOURCE_AUTHORITY_MEMBER_PATHS,
     build_flash_dual_identity,
 )
-from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
-
-EXPECTED_SOURCE_HASHES = {
-    "env/env_mmd.mmd": (
-        "4FDE450BB73D470440C40DD8EA4E7C67BBEB7C0B123B7796BE23E41A9E03E9A4"
-    ),
-    "env/env_mmd.dot": (
-        "B873DCD12B6B0880A67A79D2D228053AECE63C81C56D73D972EF904D141E708C"
-    ),
-    "env/env_sqlite.sqlite": (
-        "2E771E34EEEA89CCC44A8B5607B1AE3287E9721389AC53A87BF5FA42347D44EB"
-    ),
-    "uop/uop_mmd.mmd": (
-        "D67946A53F3A323CCDCB63B7E2DBC88F72743E620F930E5F82240B3EE5638C43"
-    ),
-    "uop/uop_mmd.dot": (
-        "8A56801CCA46BF4F4D11F105B532FBB4082758B8371D9141C347EB142837E2D8"
-    ),
-    "uop/uop_sqlite.sqlite": (
-        "62D6DEB337B387E06DA40DD054941355ECBD80548F2D1C9728E6A9C4EDDC0480"
-    ),
-}
+from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes, sha256_file
 
 
 def _identity_inputs(
@@ -55,7 +34,7 @@ def _identity_inputs(
     return manifest, audit, manifest_sha256
 
 
-def test_dual_identity_preserves_source_hashes_and_partial_boundary(
+def test_dual_identity_preserves_clean_current_codex_action_plane(
     tmp_path: Path,
 ) -> None:
     authority = SessionFlashAuthority(data_root=tmp_path / "store")
@@ -64,21 +43,16 @@ def test_dual_identity_preserves_source_hashes_and_partial_boundary(
     source = dual["source_authority"]["manifest"]
     projection = dual["codex_projection"]["manifest"]
 
-    assert source["source_packet_status"] == "PARTIAL_INTEGRITY"
-    assert source["whole_packet_accepted"] is False
-    assert source["usable_boundary"] == (
-        "INDEPENDENTLY_VERIFIED_ENV15_UOP15_SUBSET_ONLY"
-    )
-    assert source["missing_declared_members"] == [
-        "codex/CODEX_EXPECTED_FILE_MAP.json",
-        "codex/CODEX_PUBLIC_SECTION_PATCH_SCOPE.md",
-        "codex/UEPC_ENV15_CODEX_PUBLIC_SECTION_UPDATE_HANDOFF.md",
-        "codex/UEPC_ENV15_CODEX_PUBLIC_SECTION_UPDATE_PROMPT.md",
-        "codex/codex_update_flow.mmd",
-        "codex/codex_update_flow.svg",
-    ]
+    assert source["source_packet_status"] == "PASS"
+    assert source["whole_packet_accepted"] is True
+    assert source["usable_boundary"] == "CURRENT_CODEX_ACTION_PLANE_ONLY"
+    assert source["missing_declared_members"] == []
     source_hashes = {row["path"]: row["sha256"] for row in source["members"]}
-    assert source_hashes == EXPECTED_SOURCE_HASHES
+    expected_source_hashes = {
+        path: sha256_file(authority.asset_root / path)
+        for path in SOURCE_AUTHORITY_MEMBER_PATHS
+    }
+    assert source_hashes == expected_source_hashes
     assert set(source_hashes) == SOURCE_AUTHORITY_MEMBER_PATHS
     projection_paths = {row["path"] for row in projection["members"]}
     assert SOURCE_AUTHORITY_MEMBER_PATHS.isdisjoint(projection_paths)

@@ -69,16 +69,50 @@ def _bounded_target(path: str | Path, *, root: str | Path | None) -> Path:
     target = Path(path).expanduser()
     lexical = Path(os.path.abspath(target))
     if root is not None:
-        authority_root = Path(root).expanduser().resolve()
+        lexical_root = Path(os.path.abspath(Path(root).expanduser()))
+        authority_root = lexical_root.resolve(strict=True)
         try:
-            lexical.relative_to(authority_root)
+            relative = lexical.relative_to(lexical_root)
         except ValueError as exc:
             raise EvidenceLaneError(
                 "BOUNDED_IO_PATH_ESCAPE",
                 "A bounded file path escaped its authority root.",
                 status="BLOCKED",
             ) from exc
+        cursor = lexical_root
+        reparse_flag = int(getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
+        for component in relative.parts:
+            cursor /= component
+            metadata = cursor.lstat()
+            if cursor.is_symlink() or (
+                reparse_flag
+                and int(getattr(metadata, "st_file_attributes", 0)) & reparse_flag
+            ):
+                raise EvidenceLaneError(
+                    "BOUNDED_IO_REPARSE_PATH_BLOCKED",
+                    "A bounded file path crossed a symlink or reparse point.",
+                    status="BLOCKED",
+                )
+        resolved = lexical.resolve(strict=True)
+        try:
+            resolved.relative_to(authority_root)
+        except ValueError as exc:
+            raise EvidenceLaneError(
+                "BOUNDED_IO_RESOLVED_PATH_ESCAPE",
+                "A bounded file path resolved outside its authority root.",
+                status="BLOCKED",
+            ) from exc
     return lexical
+
+
+def bounded_existing_path(
+    path: str | Path,
+    *,
+    root: str | Path,
+) -> Path:
+    """Return an existing path only when every descendant component is in-root."""
+
+    return _bounded_target(path, root=root)
 
 
 def bounded_file_identity(

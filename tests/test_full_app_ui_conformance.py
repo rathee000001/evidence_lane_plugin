@@ -336,15 +336,9 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     studio = (COMPONENTS / "evidence-prompt-studio.tsx").read_text(encoding="utf-8")
     retrieval = (APP / "_data" / "studio-retrieval.ts").read_text(encoding="utf-8")
     query_route = (APP / "api" / "studio-query" / "route.ts").read_text(encoding="utf-8")
-    openrouter = (
-        APP / "api" / "studio-query" / "openrouter-general.ts"
-    ).read_text(encoding="utf-8")
     adapter_root = ROOT / "apps" / "evidence-lane-app"
     adapter_package = json.loads((adapter_root / "package.json").read_text(encoding="utf-8"))
     adapter_readme = (adapter_root / "README.md").read_text(encoding="utf-8")
-    openrouter_test = (
-        adapter_root / "scripts" / "test-openrouter-boundary.mjs"
-    ).read_text(encoding="utf-8")
     floating = (COMPONENTS / "floating-evidence-studio.tsx").read_text(encoding="utf-8")
     layout = (APP / "layout.tsx").read_text(encoding="utf-8")
     css = (APP / "globals.css").read_text(encoding="utf-8")
@@ -364,21 +358,22 @@ def test_prompt_studio_is_full_width_grounded_and_refuses_unknowns() -> None:
     assert ".promptSuggestionCluster .promptSuggestionCard" in css
     assert "FloatingEvidenceStudio" in layout and "floatingStudioPanel" in floating
     assert 'fetch("/api/studio-query"' in floating
-    assert 'OPENROUTER_FREE_MODEL = "openrouter/free"' in openrouter
     assert "NO_EXTERNAL_PROJECT_CLAIMS_NO_PAID_MODEL_FALLBACK" in query_route
-    assert "EVIDENCE_LANE_GENERAL_AI_ENABLED" in openrouter
-    assert "OPENROUTER_API_KEY" in openrouter
+    assert 'publicProviderProxyPresent: false' in query_route
+    assert "requestFreeGeneralAnswer" not in query_route
+    assert not (APP / "api" / "studio-query" / "openrouter-general.ts").exists()
     assert not (adapter_root / ".env.example").exists()
-    assert "NEXT_PUBLIC_OPENROUTER" not in query_route + openrouter
+    assert "OPENROUTER" not in query_route
     assert "does not expose an MCP endpoint" in adapter_readme
-    assert "real_provider_calls: 0" in openrouter_test
-    assert adapter_package["scripts"]["test:studio-query"] == (
-        "node --experimental-strip-types scripts/test-openrouter-boundary.mjs"
+    assert not (adapter_root / "scripts" / "test-openrouter-boundary.mjs").exists()
+    assert "test:studio-query" not in adapter_package["scripts"]
+    assert adapter_package["scripts"]["test:studio-boundary"] == (
+        "node scripts/test-studio-no-provider-proxy.mjs"
     )
     post_body = query_route.split("export async function POST", 1)[1]
     assert post_body.index("answerFromEvidence(question, { pagePath, history })") < post_body.index(
         "isEvidenceLaneQuestion(question)"
-    ) < post_body.index("requestFreeGeneralAnswer")
+    ) < post_body.index('return noHitAnswer(\n    "external_unavailable"')
     assert "verifyStudioRetrievalConfidence" in retrieval
     assert 'id: "general-no-hit"' in retrieval
     assert 'id: "project-nonsense-no-hit"' in retrieval

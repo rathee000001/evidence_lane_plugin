@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import shutil
 
 # Required for bounded Git argv; shell is never used.
 from collections.abc import Iterable
@@ -36,15 +35,41 @@ class GitResult:
     stderr: str
 
 
-def _git_executable() -> str:
-    executable = shutil.which("git")
-    require(
-        bool(executable),
+def resolve_git_executable(repository: str | Path | None = None) -> str:
+    """Resolve Git only from an absolute PATH directory outside the repository."""
+
+    forbidden = Path(repository).resolve() if repository is not None else None
+    executable_name = "git.exe" if os.name == "nt" else "git"
+    for raw_directory in os.get_exec_path():
+        exact_directory = str(raw_directory or "").strip().strip('"')
+        if not exact_directory:
+            continue
+        directory = Path(os.path.expandvars(exact_directory)).expanduser()
+        if not directory.is_absolute():
+            continue
+        try:
+            resolved = (directory / executable_name).resolve(strict=True)
+        except OSError:
+            continue
+        if not resolved.is_file() or resolved.is_symlink():
+            continue
+        if forbidden is not None and (
+            resolved == forbidden or resolved.is_relative_to(forbidden)
+        ):
+            continue
+        return str(resolved)
+    raise EvidenceLaneError(
         "GIT_EXECUTABLE_NOT_FOUND",
-        "Git is required for the governed code lane.",
+        "Git is required from an absolute host PATH directory outside the governed repository.",
         status="BLOCKED",
     )
-    return str(executable)
+
+
+def try_resolve_git_executable(repository: str | Path | None = None) -> str | None:
+    try:
+        return resolve_git_executable(repository)
+    except (EvidenceLaneError, OSError):
+        return None
 
 
 def _sanitize_remote(remote: str) -> str:
@@ -89,7 +114,12 @@ def run_git(
         status="MISMATCH",
         repository=str(repo),
     )
-    command = [_git_executable(), "-C", str(repo), *[str(arg) for arg in args]]
+    command = [
+        resolve_git_executable(repo),
+        "-C",
+        str(repo),
+        *[str(arg) for arg in args],
+    ]
     safe_env = os.environ.copy()
     safe_env.update(
         {
@@ -191,7 +221,7 @@ def _run_git_bytes(
         status="MISMATCH",
         repository=str(repo),
     )
-    command = [_git_executable(), "-C", str(repo), *args]
+    command = [resolve_git_executable(repo), "-C", str(repo), *args]
     safe_env = os.environ.copy()
     safe_env.update(
         {
@@ -237,7 +267,7 @@ def run_git_digest(
     timeout: int = 120,
 ) -> tuple[str, int]:
     repo = repository.resolve()
-    command = [_git_executable(), "-C", str(repo), *args]
+    command = [resolve_git_executable(repo), "-C", str(repo), *args]
     safe_env = os.environ.copy()
     safe_env.update(
         {
@@ -303,7 +333,7 @@ def _dirty_path_content_identity(
         size_bytes = int(bounded["size_bytes"])
         content_sha256 = str(bounded["sha256"])
     elif not target.exists():
-        content_kind = "DELETION_TOMBSTONE"
+        content_kind = "DELETION_PURGE_RECEIPT"
         size_bytes = None
         content_sha256 = None
     else:
@@ -537,7 +567,7 @@ def diff_patch(repository: str | Path) -> str:
         # The command is fixed; the repository-relative path was bounded above.
         completed = run_bounded_process(
             [
-                _git_executable(),
+                resolve_git_executable(repo),
                 "diff",
                 "--no-index",
                 "--binary",

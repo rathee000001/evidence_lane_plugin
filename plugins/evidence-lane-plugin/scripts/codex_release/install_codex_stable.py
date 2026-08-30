@@ -548,6 +548,12 @@ def _source_inventory(root: Path) -> dict[str, Any]:
 
     rows = []
     ignored_python_runtime_artifacts = 0
+    ignored_runtime_cache_directories = {
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        "__pycache__",
+    }
     for path in sorted(row for row in root.rglob("*") if row.is_file()):
         relative = path.relative_to(root).as_posix()
         if relative.startswith("_evidence_lane_rehearsal/"):
@@ -557,10 +563,10 @@ def _source_inventory(root: Path) -> dict[str, Any]:
             for retired in RETIRED_COMMAND_ROOTS
         ):
             raise InstallationError("The package contains the retired command layer.")
-        if "__pycache__" in relative.split("/") or path.suffix.lower() in {
-            ".pyc",
-            ".pyo",
-        }:
+        if (
+            set(relative.split("/")) & ignored_runtime_cache_directories
+            or path.suffix.lower() in {".pyc", ".pyo"}
+        ):
             ignored_python_runtime_artifacts += 1
             continue
         rows.append(
@@ -1168,33 +1174,35 @@ def _catalog(plugin_root: Path) -> dict[str, Any]:
                     "Every native tool needs a literal name and annotation."
                 )
             rows.append({"name": name_node.value, "annotation": annotation_node.id})
-    sdk_actions: Any = None
+    specialized_actions: Any = None
     for node in tree.body:
         if not isinstance(node, (ast.Assign, ast.AnnAssign)):
             continue
         targets = node.targets if isinstance(node, ast.Assign) else [node.target]
         if not any(
-            isinstance(target, ast.Name) and target.id == "SDK_NATIVE_ACTIONS"
+            isinstance(target, ast.Name) and target.id == "SPECIALIZED_NATIVE_ACTIONS"
             for target in targets
         ):
             continue
         try:
-            sdk_actions = ast.literal_eval(node.value)
+            specialized_actions = ast.literal_eval(node.value)
         except (TypeError, ValueError, SyntaxError) as exc:
             raise InstallationError(
-                "SDK_NATIVE_ACTIONS must be one literal immutable catalog."
+                "SPECIALIZED_NATIVE_ACTIONS must be one literal immutable subset catalog."
             ) from exc
         break
-    if sdk_actions is not None and not isinstance(sdk_actions, tuple):
-        raise InstallationError("The SDK native action catalog is invalid.")
-    for action in sdk_actions or ():
+    if specialized_actions is not None and not isinstance(specialized_actions, tuple):
+        raise InstallationError("The specialized native action subset is invalid.")
+    for action in specialized_actions or ():
         if not (
             isinstance(action, tuple)
             and len(action) == 6
             and all(isinstance(value, str) for value in action[:5])
             and isinstance(action[5], bool)
         ):
-            raise InstallationError("An SDK native action declaration is invalid.")
+            raise InstallationError(
+                "A specialized native action declaration is invalid."
+            )
         rows.append(
             {
                 "name": action[0],
@@ -1556,6 +1564,40 @@ def _require_local_systemwide_route_audit(receipt: dict[str, Any]) -> dict[str, 
     return dict(audit)
 
 
+def _require_local_executable_fingerprint_refresh(
+    receipt: dict[str, Any],
+) -> dict[str, Any]:
+    audit = receipt.get("executable_fingerprint_refresh")
+    if (
+        not isinstance(audit, dict)
+        or audit.get("schema") != "evidence-lane.executable-fingerprint-refresh.v1"
+        or audit.get("status") != "PASS"
+        or audit.get("full_regression_status")
+        != "PASS_WITH_TARGETED_FAILURE_CLOSURE"
+        or audit.get("authorized_run_count") != 1
+        or audit.get("targeted_closure_status") != "PASS"
+        or int(audit.get("executable_member_count", 0)) <= 0
+        or audit.get("accepted_archive_queried") is not False
+        or audit.get("candidate_created_or_cleared") is not False
+        or audit.get("pointer_moved") is not False
+        or audit.get("project_or_pv_mutated") is not False
+        or any(
+            re.fullmatch(r"[A-F0-9]{64}", str(audit.get(key) or "")) is None
+            for key in (
+                "receipt_sha256",
+                "file_sha256",
+                "executable_registry_receipt_sha256",
+                "repository_fingerprint_receipt_sha256",
+                "source_impact_receipt_sha256",
+            )
+        )
+    ):
+        raise InstallationError(
+            "The configured local slot requires a passing executable fingerprint Refresh."
+        )
+    return dict(audit)
+
+
 def _load_release_authority(
     *,
     authority_path: Path,
@@ -1846,7 +1888,6 @@ def _validate_package_proof_manifests(plugin_root: Path) -> dict[str, Any]:
         "package-surface-coherence.json": (
             "evidence-lane.package-surface-coherence.v1"
         ),
-        "systemwide-route-audit.json": "evidence-lane.systemwide-route-audit.v1",
         "exit-slip.json": (
             "evidence-lane.non-lifecycle-local-package-rehearsal.v1.exit-slip"
         ),
@@ -1863,7 +1904,6 @@ def _validate_package_proof_manifests(plugin_root: Path) -> dict[str, Any]:
             name
             in {
                 "package-surface-coherence.json",
-                "systemwide-route-audit.json",
             }
             and value.get("status") != "PASS"
         ):
@@ -1875,6 +1915,33 @@ def _validate_package_proof_manifests(plugin_root: Path) -> dict[str, Any]:
                 "sha256": _sha256(path),
             }
         )
+    audit_members = {
+        "systemwide-route-audit.json": "evidence-lane.systemwide-route-audit.v1",
+        "executable-fingerprint-refresh.json": (
+            "evidence-lane.executable-fingerprint-refresh.v1"
+        ),
+    }
+    present_audits = [name for name in audit_members if (root / name).is_file()]
+    if len(present_audits) != 1:
+        raise InstallationError(
+            "The package must contain exactly one current-route or executable "
+            "fingerprint proof."
+        )
+    audit_name = present_audits[0]
+    audit_path = root / audit_name
+    audit_value = json.loads(audit_path.read_text(encoding="utf-8"))
+    if (
+        audit_value.get("schema") != audit_members[audit_name]
+        or audit_value.get("status") != "PASS"
+    ):
+        raise InstallationError(f"Required package proof drifted: {audit_name}")
+    records.append(
+        {
+            "path": audit_path.relative_to(plugin_root).as_posix(),
+            "bytes": audit_path.stat().st_size,
+            "sha256": _sha256(audit_path),
+        }
+    )
     return {
         "status": "PASS",
         "proof_count": len(records),
@@ -2023,7 +2090,7 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         or remote_git.get("force_push_allowed") is not False
         or promotion.get("mode") != "CODE"
         or promotion.get("ci_cd_law") != "CONTROLLED_REQUIRED"
-        or promotion.get("explicit_six_way_hil_required") is not True
+        or promotion.get("explicit_authority_hil_required") is not True
         or not all(path.is_file() for path in release_helpers)
         or package_proofs["proof_count"] != 5
         or package_proofs["rehearsal_root_present"] is not False
@@ -2758,8 +2825,22 @@ def _prewarm_installed_runtime(
     runtime_identity = dict(bootstrap_result.get("runtime_identity") or {})
     expected_runtime_parent = (data_root / "runtime" / "codex").resolve()
     expected_lock_sha256 = _sha256(plugin_root / "requirements.lock.txt")
-    expected_torch_lock_sha256 = _sha256(
+    expected_torch_cpu_lock_sha256 = _sha256(
         plugin_root / "requirements.torch-cpu.lock.txt"
+    )
+    expected_torch_nvidia_lock_sha256 = _sha256(
+        plugin_root / "requirements.torch-nvidia.lock.txt"
+    )
+    expected_onnx_directml_lock_sha256 = _sha256(
+        plugin_root / "requirements.onnx-directml.lock.txt"
+    )
+    expected_accelerator_profile = str(
+        runtime_identity.get("accelerator_profile") or ""
+    )
+    expected_selected_torch_lock_sha256 = (
+        expected_torch_nvidia_lock_sha256
+        if expected_accelerator_profile == "NVIDIA"
+        else expected_torch_cpu_lock_sha256
     )
     expected_toolchain_lock_sha256 = _sha256(
         plugin_root / "requirements.toolchain.lock.txt"
@@ -2773,7 +2854,13 @@ def _prewarm_installed_runtime(
         or runtime_identity.get("schema") != "evidence-lane.codex-native-runtime.v1"
         or runtime_identity.get("requirements_lock_sha256") != expected_lock_sha256
         or runtime_identity.get("requirements_torch_cpu_lock_sha256")
-        != expected_torch_lock_sha256
+        != expected_torch_cpu_lock_sha256
+        or runtime_identity.get("requirements_torch_nvidia_lock_sha256")
+        != expected_torch_nvidia_lock_sha256
+        or runtime_identity.get("requirements_onnx_directml_lock_sha256")
+        != expected_onnx_directml_lock_sha256
+        or runtime_identity.get("selected_torch_lock_sha256")
+        != expected_selected_torch_lock_sha256
         or runtime_identity.get("requirements_toolchain_lock_sha256")
         != expected_toolchain_lock_sha256
         or re.fullmatch(r"[A-F0-9]{64}", str(runtime_identity.get("runtime_key") or ""))
@@ -2809,10 +2896,16 @@ def _prewarm_installed_runtime(
             existing_runtime_licenses.get("schema")
             == "evidence-lane.installed-runtime-license-bundle.v1"
             and existing_runtime_licenses.get("status") == "PASS"
+            and existing_runtime_licenses.get("accelerator_profile")
+            == expected_accelerator_profile
             and existing_runtime_licenses.get("requirements_lock_sha256")
             == expected_lock_sha256
             and existing_runtime_licenses.get("requirements_torch_cpu_lock_sha256")
-            == expected_torch_lock_sha256
+            == expected_torch_cpu_lock_sha256
+            and existing_runtime_licenses.get("requirements_torch_nvidia_lock_sha256")
+            == expected_torch_nvidia_lock_sha256
+            and existing_runtime_licenses.get("requirements_onnx_directml_lock_sha256")
+            == expected_onnx_directml_lock_sha256
             and existing_runtime_licenses.get("requirements_toolchain_lock_sha256")
             == expected_toolchain_lock_sha256
             and existing_runtime_licenses.get("tool_license_inventory_sha256")
@@ -2891,9 +2984,14 @@ def _prewarm_installed_runtime(
         runtime_licenses.get("schema")
         != "evidence-lane.installed-runtime-license-bundle.v1"
         or runtime_licenses.get("status") != "PASS"
+        or runtime_licenses.get("accelerator_profile") != expected_accelerator_profile
         or runtime_licenses.get("requirements_lock_sha256") != expected_lock_sha256
         or runtime_licenses.get("requirements_torch_cpu_lock_sha256")
-        != expected_torch_lock_sha256
+        != expected_torch_cpu_lock_sha256
+        or runtime_licenses.get("requirements_torch_nvidia_lock_sha256")
+        != expected_torch_nvidia_lock_sha256
+        or runtime_licenses.get("requirements_onnx_directml_lock_sha256")
+        != expected_onnx_directml_lock_sha256
         or runtime_licenses.get("requirements_toolchain_lock_sha256")
         != expected_toolchain_lock_sha256
         or runtime_licenses.get("tool_license_inventory_sha256")
@@ -3209,9 +3307,7 @@ def _prewarm_installed_runtime(
     initialize_response = next(
         (row for row in mcp_responses if row.get("id") == 1), None
     )
-    tools_response = next(
-        (row for row in mcp_responses if row.get("id") == 2), None
-    )
+    tools_response = next((row for row in mcp_responses if row.get("id") == 2), None)
     initialize_result = (
         dict(initialize_response.get("result") or {})
         if isinstance(initialize_response, dict)
@@ -3257,9 +3353,9 @@ def _prewarm_installed_runtime(
         "server_name": server_info["name"],
         "server_version": server_info["version"],
         "tool_count": len(listed_tool_names),
-        "tool_names_sha256": hashlib.sha256(
-            _json_bytes(sorted(listed_tool_names))
-        ).hexdigest().upper(),
+        "tool_names_sha256": hashlib.sha256(_json_bytes(sorted(listed_tool_names)))
+        .hexdigest()
+        .upper(),
         "runtime_doctor_present": True,
         "process_returncode": int(mcp_process.returncode),
         "stdout_sha256": hashlib.sha256(mcp_process.stdout).hexdigest().upper(),
@@ -3268,9 +3364,9 @@ def _prewarm_installed_runtime(
         "same_task_restart_eligible": True,
         "new_task_required": False,
     }
-    mcp_stdio_readiness["receipt_sha256"] = hashlib.sha256(
-        _json_bytes(mcp_stdio_readiness)
-    ).hexdigest().upper()
+    mcp_stdio_readiness["receipt_sha256"] = (
+        hashlib.sha256(_json_bytes(mcp_stdio_readiness)).hexdigest().upper()
+    )
     cache_hygiene_after = _require_no_plugin_cache_artifacts(plugin_root)
     core = {
         "schema": "evidence-lane.codex-installed-runtime-prewarm.v1",
@@ -4995,13 +5091,21 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
                 "The local testing selector cannot use the Git-stable activation route."
             )
         marketplace_name = LOCAL_TESTING_MARKETPLACE_NAME
-        systemwide_route_audit = _require_local_systemwide_route_audit(rehearsal)
+        if rehearsal.get("executable_fingerprint_refresh") is not None:
+            executable_fingerprint_refresh = (
+                _require_local_executable_fingerprint_refresh(rehearsal)
+            )
+            systemwide_route_audit = None
+        else:
+            systemwide_route_audit = _require_local_systemwide_route_audit(rehearsal)
+            executable_fingerprint_refresh = None
     else:
         marketplace_name = _resolve_stable_marketplace_name(
             requested_name=requested_marketplace_name,
             two_slot_authority=two_slot_authority,
         )
         systemwide_route_audit = None
+        executable_fingerprint_refresh = None
     plugin_selector = f"{PLUGIN_NAME}@{marketplace_name}"
     marketplace_root = codex_home / "local-marketplaces" / marketplace_name
     extracted_inventory: dict[str, Any]
@@ -5232,6 +5336,7 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         "catalog_expected": dict(EXPECTED_CATALOG),
         "package_receipt_sha256": _sha256(receipt_path),
         "systemwide_route_audit": systemwide_route_audit,
+        "executable_fingerprint_refresh": executable_fingerprint_refresh,
         "activation_authority": (
             {
                 "status": release_authority["status"],

@@ -4,8 +4,8 @@
   "lane_id": "sqlite_brain",
   "sqlite_filename": "sqlite_brain_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 41,
-  "schema_contract_table_count": 31,
+  "sqlite_table_count": 40,
+  "schema_contract_table_count": 32,
   "members": [
     {
       "path": "authorities/project_sectors/sqlite_brain/builder-contract.schema.json",
@@ -24,8 +24,8 @@
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/lane-contract.v1.json",
-      "bytes": 8325,
-      "sha256": "93A247A76EAC79D5B0F77DE4270FAA82F193B406B8A1A64F0D9770B764F77371"
+      "bytes": 9305,
+      "sha256": "198EF72183A1829935E30656139D2E795D75E63DC88631CE46ABFD10BE4CC938"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/lane-pointer.schema.json",
@@ -64,8 +64,8 @@
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/schema.sql",
-      "bytes": 10680,
-      "sha256": "E7BE8D287905BD1713D9244C3E3473B7586357038DF0E859C127D85D0F39426D"
+      "bytes": 11267,
+      "sha256": "C0705809A69EBB32E13A1765381C7DA1B9DA124F671FC4CFEB14645F2B51AEDF"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/sqlite-artifact.schema.json",
@@ -74,34 +74,49 @@
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/sqlite_brain.dot",
-      "bytes": 20931,
-      "sha256": "90873B11BF8CEFA8F45B737D1EBCDD4C4BFF63B5719DD239F28808DA408FDF99"
+      "bytes": 22018,
+      "sha256": "AD1EEBFA5706305824CB722ACC759D868C5EDDB50CA61F88F675915E9497723C"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/sqlite_brain.mmd",
-      "bytes": 16729,
-      "sha256": "62819580221BD3FCEB520BEEFC74515E74D603F5471122B6B478EAEA13000556"
+      "bytes": 17535,
+      "sha256": "7ACE0BDA7AE4FC7145F9E0742700AEE368DFE309257AC7F2067DC231006E7515"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/sqlite_brain_sector_v001.sqlite",
-      "bytes": 262144,
-      "sha256": "EE33D895618AAF02CA1276C6595663FB4979F1E73786CFA8E968103AC91901ED"
+      "bytes": 270336,
+      "sha256": "30598BFA9C25F30D71E31B82E8DDF75B981575EE784B80F40276502B85A5923F"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/tools.json",
-      "bytes": 1154,
-      "sha256": "57913AB8DAE454A8F47D2EBB4F2359F9F18C625DFA8672AF81A1A64C6C593C0A"
+      "bytes": 14886,
+      "sha256": "620AD1BCE618FB4C2DFB99636939828648E04ABE8F95D00D09D3968FE4192740"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/tools.schema.json",
-      "bytes": 1009,
-      "sha256": "F024D8847EE281AA66EC90292F13AB5E3B2FECED358007061E673663AD29BFC3"
+      "bytes": 1455,
+      "sha256": "EA5788BB9C596FC2F8C9F4BEE0D767203EE86CDB0477ECF78A6F21BBDCA1DBF7"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/workflow.dot",
+      "bytes": 6476,
+      "sha256": "301023FB9D60117EE3DC94C185B6C962DF9C63F2860E2DCF4210677490EA1769"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/workflow.mmd",
+      "bytes": 5037,
+      "sha256": "4D233D7B56006F3E2D2A12FEBDE68BCD4F8C92AB90A42872C9DBA570D31D3C1A"
+    },
+    {
+      "path": "authorities/project_sectors/sqlite_brain/workflow.v1.json",
+      "bytes": 30362,
+      "sha256": "B59BC0BE4B96F24C824AC4A959B0284788FA18A24004CB45F562B53A211A2061"
     }
   ],
-  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "F6B972AD72DDC776D448F4B524EDC6B7D175C655DC487F8D4F7FD30ECEA43887"
+  "receipt_sha256": "502D05409802CDF7C7A8785D452B1FF3D0CF4F6AA21E46A1B906B493069B055B"
 }

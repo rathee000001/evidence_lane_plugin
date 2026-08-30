@@ -7,7 +7,7 @@ from evidence_lane_plugin.current_route_registry import (
 from evidence_lane_plugin.service import EvidenceLaneService
 
 
-def test_current_registry_has_one_route_and_no_compatibility_tombstones() -> None:
+def test_current_registry_has_one_route_and_no_compatibility_routes() -> None:
     registry = current_implementation_registry()
     assert registry["status"] == "PASS"
     assert registry["obsolete_execution_allowed"] is False

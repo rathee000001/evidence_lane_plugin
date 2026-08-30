@@ -11,12 +11,8 @@ from .flash_projection import FLASH_PROJECTION_SCHEMA
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .package_root import resolve_plugin_root
 
-SOURCE_AUTHORITY_MANIFEST_SCHEMA = (
-    "evidence-lane.env-uop-source-authority-manifest.v1"
-)
-CODEX_PROJECTION_MANIFEST_SCHEMA = (
-    "evidence-lane.env-uop-codex-projection-manifest.v1"
-)
+SOURCE_AUTHORITY_MANIFEST_SCHEMA = "evidence-lane.env-uop-source-authority-manifest.v1"
+CODEX_PROJECTION_MANIFEST_SCHEMA = "evidence-lane.env-uop-codex-projection-manifest.v1"
 FLASH_BUILD_IDENTITY_SCHEMA = "evidence-lane.env-uop-build-identity.v1"
 FLASH_DUAL_IDENTITY_SCHEMA = "evidence-lane.env-uop-dual-identity.v1"
 FLASH_IDENTITY_GENERATOR_VERSION = "1"
@@ -139,19 +135,18 @@ def build_flash_dual_identity(
         missing=missing_projection_members,
     )
     require(
-        source_audit.get("overall_status") == "PARTIAL_INTEGRITY"
-        and source_audit.get("whole_packet_accepted") is False
-        and source_audit.get("usable_boundary")
-        == "INDEPENDENTLY_VERIFIED_ENV15_UOP15_SUBSET_ONLY",
+        source_audit.get("overall_status") == "PASS"
+        and source_audit.get("whole_packet_accepted") is True
+        and source_audit.get("usable_boundary") == "CURRENT_CODEX_ACTION_PLANE_ONLY",
         "SESSION_FLASH_DUAL_IDENTITY_SOURCE_BOUNDARY_INVALID",
-        "Dual identity must retain the accepted partial-integrity boundary.",
+        "Dual identity must bind the clean current Codex action-plane boundary.",
         status="FAIL",
     )
     missing_declared = source_audit.get("missing_declared_files")
     require(
-        isinstance(missing_declared, list) and bool(missing_declared),
+        isinstance(missing_declared, list) and not missing_declared,
         "SESSION_FLASH_MISSING_DECLARED_MEMBERS_NOT_VISIBLE",
-        "Missing parent-packet members must remain visible in dual identity.",
+        "The clean current action-plane audit cannot retain missing predecessor members.",
         status="FAIL",
     )
     missing_declared = cast(list[Any], missing_declared)
@@ -160,10 +155,10 @@ def build_flash_dual_identity(
     subset_members_sha256 = sha256_bytes(canonical_json_bytes(source_members))
     source_manifest = {
         "schema": SOURCE_AUTHORITY_MANIFEST_SCHEMA,
-        "status": "VERIFIED_SUBSET_ONLY",
-        "source_packet_status": "PARTIAL_INTEGRITY",
-        "whole_packet_accepted": False,
-        "usable_boundary": "INDEPENDENTLY_VERIFIED_ENV15_UOP15_SUBSET_ONLY",
+        "status": "PASS",
+        "source_packet_status": "PASS",
+        "whole_packet_accepted": True,
+        "usable_boundary": "CURRENT_CODEX_ACTION_PLANE_ONLY",
         "member_count": len(source_members),
         "members": source_members,
         "subset_members_sha256": subset_members_sha256,
@@ -172,14 +167,15 @@ def build_flash_dual_identity(
     source_manifest_sha256 = sha256_bytes(canonical_json_bytes(source_manifest))
 
     package_root = resolve_plugin_root(__file__)
-    resolved_plugin_manifest = Path(plugin_manifest_path).resolve() if (
-        plugin_manifest_path is not None
-    ) else package_root / ".codex-plugin" / "plugin.json"
+    resolved_plugin_manifest = (
+        Path(plugin_manifest_path).resolve()
+        if (plugin_manifest_path is not None)
+        else package_root / ".codex-plugin" / "plugin.json"
+    )
     plugin_build = _plugin_build(resolved_plugin_manifest)
     generator = _generator_identity()
     projection_members = [
-        by_path[path]
-        for path in sorted(by_path.keys() - SOURCE_AUTHORITY_MEMBER_PATHS)
+        by_path[path] for path in sorted(by_path.keys() - SOURCE_AUTHORITY_MEMBER_PATHS)
     ]
     projection_manifest = {
         "schema": CODEX_PROJECTION_MANIFEST_SCHEMA,
@@ -192,9 +188,7 @@ def build_flash_dual_identity(
         "generator": generator,
         "derived_projection_is_source_authority": False,
     }
-    projection_identity_sha256 = sha256_bytes(
-        canonical_json_bytes(projection_manifest)
-    )
+    projection_identity_sha256 = sha256_bytes(canonical_json_bytes(projection_manifest))
     cache_identity_sha256 = sha256_bytes(
         canonical_json_bytes(
             {
@@ -212,9 +206,7 @@ def build_flash_dual_identity(
         "codex_projection_identity_sha256": projection_identity_sha256,
         "projection_cache_identity_sha256": cache_identity_sha256,
     }
-    build_identity_sha256 = sha256_bytes(
-        canonical_json_bytes(build_identity_body)
-    )
+    build_identity_sha256 = sha256_bytes(canonical_json_bytes(build_identity_body))
     return {
         "schema": FLASH_DUAL_IDENTITY_SCHEMA,
         "source_authority": {

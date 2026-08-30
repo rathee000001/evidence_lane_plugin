@@ -126,13 +126,13 @@
     "canonical_plan_sha256": "9BF24776F502A7465E4065475C0FA135800CF692ED0FFF52C7FEFE255DF99EE5",
     "history_projection_sha256": "0EDCCBB2665F3E531011CF0D2C22E25BCC3C57A4BFEE6239AE8E16A40C8D8C50",
     "executable_projection_sha256": "2E244F37777A1F1B1848CF9B78D89F6DC35016AE0597643A5375F5620EADF74C",
-    "website_plan_snapshot_sha256": "F4A5AAC00F162FD90DD7EC0D15CF184645EDFA28B11418D9961153C0B30D84C8",
+    "website_plan_snapshot_sha256": "9374CE050C36D8AF4CE82A488B9D04A0EABE6A41A1CCF283856952C623484C57",
     "native_plan_event_count": 1362,
     "native_plan_event_head_sha256": "5BE05C28722915DD05598BEE042860FA853754AA9B6595E5F852FF6F326475B8",
     "planning_event_count": 23,
     "planning_event_head_sha256": "C215D2791C72CC97FC30BE3E34ECC432172E0FB8DED7187B6B5311F165B58B3C",
     "runtime_projection_content_sha256": "ADE4AE327E550A44E63E525B2F7D6382C23D16C498227044DF7F27BC6A6A3181",
-    "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED"
+    "persistent_until": "NEXT_GOVERNED_HIL_PRESENTED"
   },
   "release_propagation": "GitHub Markdown, all relevant website pages and footers, the website Delta table, Vercel production from main, and existing Devpost project 1348634/evidence_os must resolve from the same accepted release evidence.",
   "publication_state": "CANDIDATE_PENDING_VERIFICATION"

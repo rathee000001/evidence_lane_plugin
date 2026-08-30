@@ -4,9 +4,9 @@
   "authority_id": "canon_consequence_graph",
   "parent_authority_id": "canon_input",
   "database": "canon-consequence-graph.sqlite",
-  "database_sha256": "55B227A2A672F1F25C45DE2E5C1D0C2F41C74D58E1AD3EB34CD1A99EFFACD98E",
+  "database_sha256": "7EEDC0DD02519D2C5AC24E60161150EBA4AD1AA29CDF71DAF36EB1B889750787",
   "database_integrity": "ok",
-  "schema_sha256": "88E4E7AC138350BAF76469CB0D5EBA0787972ECC300782FD305CDB5D8D8DB630",
+  "schema_sha256": "88FDE8F8AD32175C3221C450A9A71A9E5336E363D608F263F9180A1C08080AF5",
   "table_count": 18,
   "fts5_tables": [
     "authority_index_fts",
@@ -15,18 +15,18 @@
   "members": [
     {
       "path": "authorities/canon_input/consequence_graph/canon-consequence-graph.dot",
-      "bytes": 26531,
-      "sha256": "C4B75AE14F8415506ED1213E1792F22B04913F882673D47F9DC228C7532D7E2B"
+      "bytes": 35003,
+      "sha256": "099ED93ECAC4A0B7507B89060B4FCFA8436711D172FE809EDC9F55D84027D132"
     },
     {
       "path": "authorities/canon_input/consequence_graph/canon-consequence-graph.mmd",
-      "bytes": 20002,
-      "sha256": "B3F27ED1F8B8193E70F9553E384238EF52AD01AFC552E41E5AFF1388261D863A"
+      "bytes": 26491,
+      "sha256": "6792DBFA6C82F721C10C188B6F91162833FBE2382F8B9DD56FC4F8CE92AC7F5B"
     },
     {
       "path": "authorities/canon_input/consequence_graph/canon-consequence-graph.sqlite",
-      "bytes": 143360,
-      "sha256": "55B227A2A672F1F25C45DE2E5C1D0C2F41C74D58E1AD3EB34CD1A99EFFACD98E"
+      "bytes": 147456,
+      "sha256": "7EEDC0DD02519D2C5AC24E60161150EBA4AD1AA29CDF71DAF36EB1B889750787"
     },
     {
       "path": "authorities/canon_input/consequence_graph/dot-artifact.schema.json",
@@ -70,8 +70,8 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/schema.sql",
-      "bytes": 3168,
-      "sha256": "ED2B56B43825FFB56770EAE566BCD1A84062CF767E492A82E12840DCF0352204"
+      "bytes": 3684,
+      "sha256": "D14886309C70F80E7936F19CD23FBB625024781C8F9AA27476D489A18C2D4891"
     },
     {
       "path": "authorities/canon_input/consequence_graph/sqlite-artifact.schema.json",
@@ -80,13 +80,13 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/sqlite-schema.v1.json",
-      "bytes": 22571,
-      "sha256": "5553E76B74C254FB00F9C6D87076A8E6C99DF4DBC5D2B22655581E9CD9048370"
+      "bytes": 23341,
+      "sha256": "3EE97F77A50121C8EAD2B59CDBDD7E05E35A64AF131579E643698824C2703F95"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.json",
-      "bytes": 5837,
-      "sha256": "991F05AC234CC29352766F7D73E7CBBA08982B1EC8EF2152490F383A4C84F5EE"
+      "bytes": 6110,
+      "sha256": "F0AC2BAE1A28C045CD67EAB2A92AE82A872815F50EFF28CC75090B6C342253F1"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.schema.json",
@@ -113,24 +113,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:05.243149Z",
-    "receipt_sha256": "968214A0FE6A8F2043A2895A88D5EE2FA3FF39AD29DC976A73319A79914DE9D4"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "D928E22212A6FF2A69C8F320899F24E0302F69A327C93C00AC6ABD5439517317"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "canon_consequence_graph_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 100,
-    "edge_count": 102,
+    "node_count": 99,
+    "edge_count": 104,
     "group_count": 1,
-    "semantic_topology_sha256": "8485E40944113FC0A85D0874CFF5196E2F604367EC408843E449FA4ED6F560CD",
-    "mmd_sha256": "B3F27ED1F8B8193E70F9553E384238EF52AD01AFC552E41E5AFF1388261D863A",
-    "dot_sha256": "C4B75AE14F8415506ED1213E1792F22B04913F882673D47F9DC228C7532D7E2B",
+    "semantic_topology_sha256": "315D641B427CF397AE2DD6EBBC59168E1E4A058397BD35787912923F3AE6C108",
+    "mmd_sha256": "6792DBFA6C82F721C10C188B6F91162833FBE2382F8B9DD56FC4F8CE92AC7F5B",
+    "dot_sha256": "099ED93ECAC4A0B7507B89060B4FCFA8436711D172FE809EDC9F55D84027D132",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "1DBC786BE1A9542045A107699E07D23D35D157B3930A20C9156FF30E7CF6A5D1",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "B4FCF98B368F9E86B38DDCE4FB272491580D9D98839A2B32D44A26EE19D35EDB",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -140,10 +140,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 100,
-      "edge_count": 102,
+      "node_count": 99,
+      "edge_count": 104,
       "weak_component_count": 1,
-      "strong_component_count": 100,
+      "strong_component_count": 99,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -159,7 +159,12 @@
         {
           "node_id": "support_table_authority_index_node",
           "in_degree": 1,
-          "out_degree": 9
+          "out_degree": 10
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 8
         },
         {
           "node_id": "support_table_consequence_edge",
@@ -167,19 +172,14 @@
           "out_degree": 9
         },
         {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 7
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_consequence_node",
           "in_degree": 3,
           "out_degree": 5
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
         },
         {
           "node_id": "support_table_consequence_graph_fts_content",
@@ -195,6 +195,11 @@
           "node_id": "support_table_consequence_graph_fts",
           "in_degree": 1,
           "out_degree": 5
+        },
+        {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 3
         },
         {
           "node_id": "support_table_authority_index_fts_idx",
@@ -213,11 +218,6 @@
         },
         {
           "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
           "in_degree": 1,
           "out_degree": 2
         },
@@ -242,7 +242,7 @@
           "out_degree": 2
         },
         {
-          "node_id": "support_table_authority_index_fts_column_authority_id",
+          "node_id": "support_table_authority_index_content_cas_column_compressed_bytes",
           "in_degree": 1,
           "out_degree": 0
         }
@@ -250,13 +250,18 @@
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "9274498BFC1ED16530566FA6B01192C1B0EA6198251C2E48DD3060E7587731BA",
+    "graph_analysis_sha256": "6409B792382589E526E25BC49BC77F7B787D7CB982E6D3C96CBF33D6FA5D6CC6",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 54,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "085C47ECFDF2C88680F5329570EE9DDC37BCEB7DC38644625667CCEEB57DE86B"
+    "receipt_sha256": "D60EABB749B002810485A48E4C7648D38E19937F8ECFFAA7F7470726918DFC34"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_parent_or_peer": false,
-  "receipt_sha256": "39A389B3E7A7172804747711936D8B826BEE89A4147026E14F7B8B05DD7148A4"
+  "receipt_sha256": "3AA04EEC1F9523753820EBB5BC69F6E11801E5DD59462F01500F732EB2EA56D2"
 }

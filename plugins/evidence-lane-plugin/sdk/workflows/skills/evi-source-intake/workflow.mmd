@@ -1,0 +1,210 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=E5116B90F6FA4DDF977BC42AF3B28363C45A40BAC06B971E725953AD3EEBC5D0
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=15
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  ENTRY["evi-source-intake intent"]:::root
+  EXIT["Exact result / stop / next workflow"]:::output
+  subgraph WF_CLASSIFY_SOURCE_INTAKE["classify-source-intake"]
+    direction TB
+    WF_CLASSIFY_SOURCE_INTAKE_START["classify-source-intake"]:::lifecycle
+    WF_CLASSIFY_SOURCE_INTAKE_ACTION_001["1. source_intake_classify [['GOVERNANCE', 'SOURCE_ROUTING']]"]:::semantic
+  end
+  subgraph WF_SOURCE_IDENTITY_INTAKE["source-identity-intake"]
+    direction TB
+    WF_SOURCE_IDENTITY_INTAKE_START["source-identity-intake"]:::lifecycle
+    WF_SOURCE_IDENTITY_INTAKE_ACTION_001["2. source_identity_register [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_SQLITE_SOURCE_INTAKE["sqlite-source-intake"]
+    direction TB
+    WF_SQLITE_SOURCE_INTAKE_START["sqlite-source-intake"]:::lifecycle
+    WF_SQLITE_SOURCE_INTAKE_ACTION_001["3. source_sqlite_inspect [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+  end
+  subgraph WF_GIT_READ_INTAKE["git-read-intake"]
+    direction TB
+    WF_GIT_READ_INTAKE_START["git-read-intake"]:::lifecycle
+    WF_GIT_READ_INTAKE_ACTION_001["4. source_git_history_build [['GOVERNANCE']]"]:::semantic
+    WF_GIT_READ_INTAKE_ACTION_002["5. source_git_commit_impact [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_CUSTOM_SCHEMA_INTAKE["custom-schema-intake"]
+    direction TB
+    WF_CUSTOM_SCHEMA_INTAKE_START["custom-schema-intake"]:::lifecycle
+    WF_CUSTOM_SCHEMA_INTAKE_ACTION_001["6. source_custom_schema_compile [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_SOURCE_GRAPH_INTAKE["source-graph-intake"]
+    direction TB
+    WF_SOURCE_GRAPH_INTAKE_START["source-graph-intake"]:::lifecycle
+    WF_SOURCE_GRAPH_INTAKE_ACTION_001["7. source_graph_build [['GOVERNANCE', 'GRAPH']]"]:::semantic
+    WF_SOURCE_GRAPH_INTAKE_ACTION_002["8. source_graph_diff [['GOVERNANCE', 'GRAPH']]"]:::semantic
+    WF_SOURCE_GRAPH_INTAKE_ACTION_003["8. source_graph_impact [['GOVERNANCE', 'GRAPH']]"]:::semantic
+  end
+  subgraph WF_SOURCE_ROUTE_CONFIGURATION["source-route-configuration"]
+    direction TB
+    WF_SOURCE_ROUTE_CONFIGURATION_START["source-route-configuration"]:::lifecycle
+    WF_SOURCE_ROUTE_CONFIGURATION_ACTION_001["9. lane_catalog [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_SOURCE_ROUTE_CONFIGURATION_ACTION_002["10. lane_configure_routes [['GOVERNANCE']]"]:::semantic
+    WF_SOURCE_ROUTE_CONFIGURATION_ACTION_003["11. source_intake_schema_configure [['GOVERNANCE', 'SOURCE_ROUTING']]"]:::semantic
+  end
+  subgraph WF_BOUNDED_SOURCE_RETRIEVAL["bounded-source-retrieval"]
+    direction TB
+    WF_BOUNDED_SOURCE_RETRIEVAL_START["bounded-source-retrieval"]:::lifecycle
+    WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_001["12. lane_status [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_002["13. prompt_index_status [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_003["14. search [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_004["14. lane_search [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_005["15. fetch [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_006["15. lane_fetch [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+  end
+  subgraph EXECUTION["Shared typed execution contract"]
+    direction TB
+    SCHEMA["Current input/output schema"]:::semantic
+    INTERNAL_SDK["Internal SDK execution owner"]:::semantic
+    ENV["ENV15 environment selection"]:::semantic
+    UOP["UOP15 governance and gates"]:::warn
+    AUTHORITY["Owning authority and lane"]:::semantic
+    TOOLS["Conditional tool role resolution"]:::semantic
+    OUTER["Outer SDK / FastMCP / native compatibility"]:::semantic
+    HOOKS["Only emitted ordered hooks"]:::semantic
+    VALIDATE["Validate schema, result and effects"]:::warn
+    RECEIPT["Exact receipt"]:::output
+  end
+  subgraph LANE_DISPATCH["Prompt/content-driven registered lane dispatch"]
+    direction TB
+    LANE_GITHUB_CODE["github_code: github_code_reverse_history_v2 -&gt; tiered_git_history_v2_incremental -&gt; code_chunk_fts"]:::semantic
+    LANE_LOCAL_CODE["local_code: local_code_snapshot_v2 -&gt; tiered_git_history_v2_incremental -&gt; code_chunk_fts"]:::semantic
+    LANE_CHAT_LINEAGE["chat_lineage: chat_lineage_state_travel_v57 -&gt; prepare_response_commit_v1 -&gt; turn_fts"]:::semantic
+    LANE_DISCUSSION["discussion: discussion_structured_v1 -&gt; semantic_blocks_v1 -&gt; discussion_fts"]:::semantic
+    LANE_ANALYSIS["analysis: analysis_structured_v1 -&gt; semantic_blocks_v1 -&gt; analysis_fts"]:::semantic
+    LANE_PLAN["plan: plan_structured_v1 -&gt; semantic_blocks_v1 -&gt; plan_fts"]:::semantic
+    LANE_MODE["mode: mode_contract_v1 -&gt; rule_blocks_v1 -&gt; mode_fts"]:::semantic
+    LANE_DOCS["docs: document_structure_v1 -&gt; document_hierarchy_v1 -&gt; doc_fts"]:::semantic
+    LANE_DATA_EXCEL["data_excel: office_data_structural_v1 -&gt; table_structure_v1 -&gt; data_fts"]:::semantic
+    LANE_PPT["ppt: presentation_structure_v1 -&gt; slide_structure_v1 -&gt; ppt_fts"]:::semantic
+    LANE_PDF_OCR["pdf_ocr: pdf_ocr_structural_v2 -&gt; page_block_v1 -&gt; pdf_fts"]:::semantic
+    LANE_IMAGES_OCR["images_ocr: image_ocr_structural_v2 -&gt; ocr_region_v1 -&gt; image_ocr_fts"]:::semantic
+    LANE_ARTIFACTS["artifacts: artifact_structure_v1 -&gt; artifact_blocks_v1 -&gt; artifact_fts"]:::semantic
+    LANE_CUSTOM["custom: custom_best_effort_v1 -&gt; bounded_text_v1 -&gt; custom_fts"]:::semantic
+    LANE_BRAIN_LOADER["brain_loader: brain_package_loader_v1 -&gt; package_member_v1 -&gt; brain_loader_fts"]:::semantic
+    LANE_RESEARCH["research: research_evidence_v1 -&gt; claim_evidence_v1 -&gt; research_fts"]:::semantic
+    LANE_PROJECT_ENGULF["project_engulf: project_engulf_v1 -&gt; project_structure_v1 -&gt; project_engulf_fts"]:::semantic
+    LANE_SQLITE_BRAIN["sqlite_brain: sqlite_brain_inspector_v1 -&gt; sqlite_schema_row_v1 -&gt; loaded_sqlite_brain_fts"]:::semantic
+  end
+  ENTRY --> WF_CLASSIFY_SOURCE_INTAKE_START
+  WF_CLASSIFY_SOURCE_INTAKE_START --> WF_CLASSIFY_SOURCE_INTAKE_ACTION_001
+  ENTRY --> WF_SOURCE_IDENTITY_INTAKE_START
+  WF_SOURCE_IDENTITY_INTAKE_START --> WF_SOURCE_IDENTITY_INTAKE_ACTION_001
+  ENTRY --> WF_SQLITE_SOURCE_INTAKE_START
+  WF_SQLITE_SOURCE_INTAKE_START --> WF_SQLITE_SOURCE_INTAKE_ACTION_001
+  ENTRY --> WF_GIT_READ_INTAKE_START
+  WF_GIT_READ_INTAKE_START --> WF_GIT_READ_INTAKE_ACTION_001
+  WF_GIT_READ_INTAKE_ACTION_001 -->|"ordered action"| WF_GIT_READ_INTAKE_ACTION_002
+  ENTRY --> WF_CUSTOM_SCHEMA_INTAKE_START
+  WF_CUSTOM_SCHEMA_INTAKE_START --> WF_CUSTOM_SCHEMA_INTAKE_ACTION_001
+  ENTRY --> WF_SOURCE_GRAPH_INTAKE_START
+  WF_SOURCE_GRAPH_INTAKE_START --> WF_SOURCE_GRAPH_INTAKE_ACTION_001
+  WF_SOURCE_GRAPH_INTAKE_ACTION_001 -->|"ordered action"| WF_SOURCE_GRAPH_INTAKE_ACTION_002
+  WF_SOURCE_GRAPH_INTAKE_ACTION_002 -->|"ordered action"| WF_SOURCE_GRAPH_INTAKE_ACTION_003
+  ENTRY --> WF_SOURCE_ROUTE_CONFIGURATION_START
+  WF_SOURCE_ROUTE_CONFIGURATION_START --> WF_SOURCE_ROUTE_CONFIGURATION_ACTION_001
+  WF_SOURCE_ROUTE_CONFIGURATION_ACTION_001 -->|"ordered action"| WF_SOURCE_ROUTE_CONFIGURATION_ACTION_002
+  WF_SOURCE_ROUTE_CONFIGURATION_ACTION_002 -->|"ordered action"| WF_SOURCE_ROUTE_CONFIGURATION_ACTION_003
+  ENTRY --> WF_BOUNDED_SOURCE_RETRIEVAL_START
+  WF_BOUNDED_SOURCE_RETRIEVAL_START --> WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_001
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_001 -->|"ordered action"| WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_002
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_002 -->|"ordered action"| WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_003
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_003 -->|"ordered action"| WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_004
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_004 -->|"ordered action"| WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_005
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_005 -->|"ordered action"| WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_006
+  SCHEMA --> INTERNAL_SDK
+  INTERNAL_SDK --> ENV
+  ENV --> UOP
+  UOP --> AUTHORITY
+  AUTHORITY --> TOOLS
+  TOOLS --> OUTER
+  OUTER --> HOOKS
+  HOOKS --> VALIDATE
+  VALIDATE --> RECEIPT
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_GITHUB_CODE
+  LANE_GITHUB_CODE -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_LOCAL_CODE
+  LANE_LOCAL_CODE -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_CHAT_LINEAGE
+  LANE_CHAT_LINEAGE -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_DISCUSSION
+  LANE_DISCUSSION -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_ANALYSIS
+  LANE_ANALYSIS -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_PLAN
+  LANE_PLAN -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_MODE
+  LANE_MODE -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_DOCS
+  LANE_DOCS -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_DATA_EXCEL
+  LANE_DATA_EXCEL -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_PPT
+  LANE_PPT -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_PDF_OCR
+  LANE_PDF_OCR -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_IMAGES_OCR
+  LANE_IMAGES_OCR -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_ARTIFACTS
+  LANE_ARTIFACTS -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_CUSTOM
+  LANE_CUSTOM -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_BRAIN_LOADER
+  LANE_BRAIN_LOADER -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_RESEARCH
+  LANE_RESEARCH -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_PROJECT_ENGULF
+  LANE_PROJECT_ENGULF -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"conditional: selected from prompt/content/override"| LANE_SQLITE_BRAIN
+  LANE_SQLITE_BRAIN -->|"lane-owned execution"| SCHEMA
+  WF_CLASSIFY_SOURCE_INTAKE_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_SOURCE_IDENTITY_INTAKE_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_SQLITE_SOURCE_INTAKE_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_GIT_READ_INTAKE_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_GIT_READ_INTAKE_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_CUSTOM_SCHEMA_INTAKE_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_SOURCE_GRAPH_INTAKE_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_SOURCE_GRAPH_INTAKE_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_SOURCE_GRAPH_INTAKE_ACTION_003 -->|"typed execution"| SCHEMA
+  WF_SOURCE_ROUTE_CONFIGURATION_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_SOURCE_ROUTE_CONFIGURATION_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_SOURCE_ROUTE_CONFIGURATION_ACTION_003 -->|"typed execution"| SCHEMA
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_003 -->|"typed execution"| SCHEMA
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_004 -->|"typed execution"| SCHEMA
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_005 -->|"typed execution"| SCHEMA
+  WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_006 -->|"typed execution"| SCHEMA
+  RECEIPT --> EXIT
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  LANE_GITHUB_CODE ~~~ LANE_LOCAL_CODE
+  LANE_LOCAL_CODE ~~~ LANE_CHAT_LINEAGE
+  LANE_CHAT_LINEAGE ~~~ LANE_DISCUSSION
+  LANE_DISCUSSION ~~~ LANE_ANALYSIS
+  LANE_ANALYSIS ~~~ LANE_PLAN
+  LANE_PLAN ~~~ LANE_MODE
+  LANE_DOCS ~~~ LANE_DATA_EXCEL
+  LANE_DATA_EXCEL ~~~ LANE_PPT
+  LANE_PPT ~~~ LANE_PDF_OCR
+  LANE_PDF_OCR ~~~ LANE_IMAGES_OCR
+  LANE_IMAGES_OCR ~~~ LANE_ARTIFACTS
+  LANE_ARTIFACTS ~~~ LANE_CUSTOM
+  LANE_BRAIN_LOADER ~~~ LANE_RESEARCH
+  LANE_RESEARCH ~~~ LANE_PROJECT_ENGULF
+  LANE_PROJECT_ENGULF ~~~ LANE_SQLITE_BRAIN
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

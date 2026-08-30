@@ -13,11 +13,24 @@
     "statusMessage": "Validating and bounding Evidence Lane hook signal"
   },
   "logical_action": "VALIDATE_REDACT_AND_BOUND_VISIBLE_SIGNAL",
+  "handler_stage_role": "VALIDATE_REDACT_AND_BOUND_VISIBLE_SIGNAL",
+  "host_timing": "BEST_EFFORT_AFTER_SESSION_END",
+  "workflow_contract": {
+    "host_timing": "BEST_EFFORT_AFTER_SESSION_END",
+    "action_scope": "TRANSPORT_ONLY",
+    "skill_action": "BEST_EFFORT_SESSION_END_TRANSPORT",
+    "skill_consumer": null,
+    "workflow_phases": [
+      "SESSION_END_BOUNDARY"
+    ],
+    "public_action_boundary": false
+  },
+  "workflow_contract_sha256": "06D747FA7B497048205FE80F1EDF4399BFABF9512B30F57EB995EAF3C6B56011",
   "stage": "hooks/subhook_validate.py",
   "stage_sha256": "D218BB6F4923746A558FB1E70F9B8E32AE14EB0002D5EC13AAA042377066B874",
   "adapter": "hooks/lifecycle_boundary.py",
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "FC125D2A86B8EB1CC16A4372114039C6C8931BBE317EAEFC7D845356111B98CA"
+  "receipt_sha256": "9656EF643D8E43BC635577CCF1A066C951210175AA9BD2DC94EF20CCC3C78B52"
 }

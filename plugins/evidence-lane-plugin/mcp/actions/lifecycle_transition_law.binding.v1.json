@@ -19,7 +19,7 @@
     "idempotentHint": true,
     "openWorldHint": false
   },
-  "schema_sha256": "DC8F592786038F171CBBFC65A1A884DD7E5E670D57313DD5F1AA026891F28BA3",
+  "schema_sha256": "867E13F514924481E33B548D50636E2F99A1DD3F5FD778B1DA7E6344A38D7070",
   "route_contract": {
     "status": "CURRENT_ROUTE",
     "owner_skill": "evi",
@@ -39,11 +39,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/lifecycle_transition_law.action.v1.json",
-  "sdk_action_binding_sha256": "95E2C8FCD61C2C02F7033884C7A97273141223A89BF63C79DA15D5A87A61BD7F",
+  "sdk_action_binding_sha256": "F055518F70382103D3CAEE65A0F41465EA1CE00DF416AB2FAE56C90BE9A1BD48",
   "public_action_schema": "schemas/actions/lifecycle_transition_law.schema.json",
-  "public_action_schema_sha256": "F3D23888328A6592B370D9BE5712DB1BC7CC43D0E6D90DC56CBA7E59DC6A55AA",
+  "public_action_schema_sha256": "63C0E741C352C2566A32247FD5E07B4F00824337593D82DDD354EA02F146636D",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "20C15301DF15DA7E93ACE79DD54707C8A17E1340BA33123832FB46BCB1A4042A",
+  "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "1C85792C866CD263054743626BEF538DB8F8BAFE351292AD1C569730F5E0E206"
+  "receipt_sha256": "71364E00E8520B15B44DCAFCF1250A0974A8B3D7C9CD8DB58D21A24DE683ADD7"
 }

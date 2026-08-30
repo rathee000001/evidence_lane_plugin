@@ -6,7 +6,6 @@ import csv
 import importlib.util
 import io
 import json
-import math
 import mimetypes
 import posixpath
 import re
@@ -14,10 +13,9 @@ import shutil
 import sqlite3
 import subprocess
 import zipfile
-from collections import Counter
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from functools import lru_cache
+from functools import cache
 from pathlib import Path, PurePosixPath
 from threading import Lock
 from typing import Any, cast
@@ -31,6 +29,11 @@ from .artifact_contract import (
     build_four_file_contract,
     stable_artifact_names,
     validate_four_file_contract,
+)
+from .compact_storage import (
+    compress_exact_bytes,
+    decompress_exact_bytes,
+    verify_lane_compact_storage,
 )
 from .data_toolchain import (
     DataInspectionRequest,
@@ -121,7 +124,7 @@ from .topology_reconciliation import (
 )
 from .web_toolchain import extract_web_document
 
-LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v2"
+LANE_SCHEMA_VERSION = "evidence-lane.universal-lane.v4"
 LEGACY_LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v1"
 LANE_BUNDLE_SCHEMA = "evidence-lane.universal-lane-bundle.v2"
 TOPOLOGY_GENERATOR_SCHEMA = "evidence-lane.lane-topology-generator.v5"
@@ -188,7 +191,10 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
             "capability": "tfidf",
             "state": "ACTIVE",
             "tool": "deterministic Python term statistics",
-            "detail": "Materialized TF, document frequency, IDF, and TF-IDF values.",
+            "detail": (
+                "Bounded query-time TF/DF/IDF over FTS candidates; no duplicate "
+                "materialized vector table."
+            ),
         },
         {
             "capability": "mermaid_source",
@@ -238,7 +244,9 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
         rows.append(
             {
                 "capability": "ocr_tesseract_binary",
-                "state": "ACTIVE" if try_resolve_native_tool("tesseract") else "UNAVAILABLE",
+                "state": "ACTIVE"
+                if try_resolve_native_tool("tesseract")
+                else "UNAVAILABLE",
                 "tool": "tesseract",
                 "detail": "Required by pytesseract for local OCR.",
             }
@@ -276,7 +284,9 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
         rows.append(
             {
                 "capability": "ocr_tesseract_binary",
-                "state": "ACTIVE" if try_resolve_native_tool("tesseract") else "UNAVAILABLE",
+                "state": "ACTIVE"
+                if try_resolve_native_tool("tesseract")
+                else "UNAVAILABLE",
                 "tool": "tesseract",
                 "detail": "Required only for the pytesseract OCR route.",
             }
@@ -384,13 +394,31 @@ def _capability_rows(lane: LaneDefinition) -> list[dict[str, str]]:
     return rows
 
 
-def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
+def _tool_identity(
+    lane: LaneDefinition,
+    *,
+    source_paths: Iterable[str] = (),
+) -> dict[str, Any]:
     capabilities = _capability_rows(lane)
     topology_generator = _topology_generator_identity(lane)
     schema_asset = lane_schema_asset(lane.canonical_lane_id)
     artifact_contract_module = Path(
         bind_tools_to_artifacts.__code__.co_filename
     ).resolve()
+    registry_workflow = _registry_linked_lane_workflow(lane.canonical_lane_id)
+    source_conditioned = _source_conditioned_lane_toolchain(
+        lane,
+        source_paths=tuple(source_paths),
+        registry_workflow=registry_workflow,
+    )
+    source_conditioned_identity = {
+        "lane_id": source_conditioned["lane_id"],
+        "detected_source_lanes": source_conditioned["detected_source_lanes"],
+        "eligible_tools": source_conditioned["eligible_tools"],
+        "routing_registry": source_conditioned["routing_registry"],
+        "pairing_registry": source_conditioned["pairing_registry"],
+        "source_path_count_affects_tool_identity": False,
+    }
     payload = {
         "lane": lane.as_dict(),
         "capabilities": capabilities,
@@ -418,7 +446,9 @@ def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
                 Path(stage_tabular_source.__code__.co_filename).resolve()
             ),
             "sqlite_execution_sha256": sha256_file(
-                Path(verify_and_optimize_sqlite_authority.__code__.co_filename).resolve()
+                Path(
+                    verify_and_optimize_sqlite_authority.__code__.co_filename
+                ).resolve()
             ),
             "code_ingest_sha256": sha256_file(
                 Path(extract_code_lane_facts.__code__.co_filename).resolve()
@@ -427,6 +457,9 @@ def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
                 Path(parse_pnpm_lock_dependencies.__code__.co_filename).resolve()
             ),
         },
+        "registry_linked_workflow": registry_workflow,
+        "source_conditioned_toolchain": source_conditioned,
+        "source_conditioned_tool_identity": source_conditioned_identity,
     }
     # The four-file contract deliberately hashes the established tool-identity
     # core.  ``lane_schema_asset`` is an additive public projection; its exact
@@ -440,10 +473,619 @@ def _tool_identity(lane: LaneDefinition) -> dict[str, Any]:
             "topology_generator",
             "artifact_contract",
             "parser_implementation",
+            "registry_linked_workflow",
+            "source_conditioned_tool_identity",
         )
     }
     payload["sha256"] = sha256_bytes(canonical_json_bytes(identity_core))
     return payload
+
+
+@cache
+def _registry_linked_lane_workflow(lane_id: str) -> dict[str, Any]:
+    """Resolve every current tool/action/skill/hook binding for one lane."""
+
+    plugin_root = Path(__file__).resolve().parents[2]
+    relative_paths = {
+        "tool_requirements": "toolchains/tool-requirement-matrix.v1.json",
+        "tool_routing": "toolchains/tool-execution-routing.v1.json",
+        "unified_pairing": "toolchains/unified-tool-workflow-pairing.v1.json",
+        "public_actions": "schemas/public-action-schemas.v001.json",
+        "skills": "skills/skill-surface-registry.v1.json",
+        "hooks": "hooks/hook-event-registry.v1.json",
+        "sdk": "sdk/sdk-manifest.v1.json",
+        "mcp": "mcp/mcp-manifest.v1.json",
+    }
+    paths = {name: plugin_root / relative for name, relative in relative_paths.items()}
+    missing = [name for name, path in paths.items() if not path.is_file()]
+    if missing:
+        raise ValueError(f"Lane workflow registries are missing: {missing}")
+    values = {
+        name: json.loads(path.read_text(encoding="utf-8"))
+        for name, path in paths.items()
+    }
+    linked_tools = [
+        dict(row)
+        for row in values["unified_pairing"]["rows"]
+        if lane_id in {str(value) for value in row["eligible_lanes"]}
+    ]
+    task_execution_tools = [
+        str(row["tool"])
+        for row in linked_tools
+        if row.get("role_class", "TASK_EXECUTION") == "TASK_EXECUTION"
+    ]
+    transport_adapters = [
+        str(row["tool"])
+        for row in linked_tools
+        if row.get("role_class") == "TRANSPORT_OR_ORCHESTRATION"
+    ]
+    external_services = [
+        str(row["tool"])
+        for row in linked_tools
+        if row.get("role_class") == "EXTERNAL_SERVICE_OR_STORE"
+    ]
+    cross_cutting_attachments = [
+        str(row["tool"])
+        for row in linked_tools
+        if row.get("role_class") == "OBSERVABILITY_OR_EVALUATION_ATTACHMENT"
+    ]
+    execution_rows = [
+        row for row in linked_tools if row.get("role_class") == "TASK_EXECUTION"
+    ]
+    actions = sorted(
+        {
+            str(action)
+            for row in execution_rows
+            for action in row["eligible_public_actions"]
+        }
+    )
+    workflows = sorted(
+        {
+            (str(item["skill"]), str(item["workflow"]))
+            for row in execution_rows
+            for item in row["eligible_skill_workflows"]
+        }
+    )
+    action_classes = sorted(
+        {
+            str(action_class)
+            for row in execution_rows
+            for action_class in row["action_classes"]
+        }
+    )
+    core = {
+        "schema": "evidence-lane.lane-registry-linked-workflow.v1",
+        "status": "PASS",
+        "lane_id": lane_id,
+        "eligible_tools": task_execution_tools,
+        "eligible_tool_count": len(task_execution_tools),
+        "task_execution_tools": task_execution_tools,
+        "transport_orchestration_adapters": transport_adapters,
+        "external_services_or_stores": external_services,
+        "observability_evaluation_attachments": cross_cutting_attachments,
+        "tool_role_classes_are_mutually_exclusive": True,
+        "action_classes": action_classes,
+        "eligible_public_actions": actions,
+        "eligible_public_action_count": len(actions),
+        "eligible_skill_workflows": [
+            {"skill": skill, "workflow": workflow} for skill, workflow in workflows
+        ],
+        "eligible_skill_workflow_count": len(workflows),
+        "current_registry_counts": {
+            "tool_requirements": len(values["tool_requirements"]["requirements"]),
+            "mcp_actions": len(values["public_actions"]["tools"]),
+            "governed_skills": len(values["skills"]["skills"]),
+            "hook_events": len(values["hooks"]["events"]),
+        },
+        "counts_are_current_snapshot_not_ceiling": True,
+        "all_required_linked_steps_run": True,
+        "unrelated_tools_run": False,
+        "env_selects_applicable_capabilities": True,
+        "uop_governs_operators_gates_and_fallbacks": True,
+        "internal_sdk_owns_execution": True,
+        "outer_sdk_selects_local_or_transport_route": True,
+        "mcp_action_inventory_is_not_tool_requirement_inventory": True,
+        "source_registries": {
+            name: (
+                {
+                    "path": relative_paths[name],
+                    "hash_authority": "manifests/executable-surface-registry.v1.json",
+                    "direct_hash_embedded": False,
+                    "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE",
+                }
+                if name in {"unified_pairing", "sdk", "mcp"}
+                else {
+                    "path": relative_paths[name],
+                    "sha256": sha256_file(path),
+                    "direct_hash_embedded": True,
+                }
+            )
+            for name, path in paths.items()
+        },
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def _source_conditioned_lane_toolchain(
+    lane: LaneDefinition,
+    *,
+    source_paths: tuple[str, ...],
+    registry_workflow: dict[str, Any],
+) -> dict[str, Any]:
+    """Expand a lane route only for source shapes and executable-plane needs."""
+
+    detected_lanes = (
+        sorted(
+            {
+                route_source(path, code_mode=lane.canonical_lane_id)
+                for path in source_paths
+            }
+        )
+        if source_paths and lane.canonical_lane_id in PRIMARY_CODE_LANES
+        else [lane.canonical_lane_id]
+    )
+    plugin_root = Path(__file__).resolve().parents[2]
+    routing_path = plugin_root / "toolchains" / "tool-execution-routing.v1.json"
+    routing = json.loads(routing_path.read_text(encoding="utf-8"))
+    pairing_path = plugin_root / "toolchains" / "unified-tool-workflow-pairing.v1.json"
+    pairing = json.loads(pairing_path.read_text(encoding="utf-8"))
+    pairing_by_tool = {str(row["tool"]): row for row in pairing["rows"]}
+    base_tools = {str(value) for value in registry_workflow["eligible_tools"]}
+    executable_surfaces = {
+        "local_code",
+        "github_code",
+        "git_delivery",
+        "native_mcp",
+        "all_18_project_sectors",
+    }
+    selected_rows = []
+    for row in routing["rows"]:
+        row_lanes = {str(value) for value in row["lanes"]}
+        surfaces = {str(value) for value in row["surfaces"]}
+        tool = str(row["tool"])
+        if (
+            tool in base_tools
+            or bool(row_lanes & set(detected_lanes))
+            or bool(surfaces & executable_surfaces)
+        ):
+            selected_rows.append(
+                {
+                    "tool": tool,
+                    "role_class": str(pairing_by_tool[tool]["role_class"]),
+                    "requirement": str(row["requirement"]),
+                    "action_classes": [str(value) for value in row["action_classes"]],
+                    "primary": [str(value) for value in row["primary"]],
+                    "fallback": [str(value) for value in row["fallback"]],
+                    "eligible_lanes": [str(value) for value in row["lanes"]],
+                    "surfaces": [str(value) for value in row["surfaces"]],
+                    "implementation_owner": str(row["implementation_owner"]),
+                    "runs_only_when_selected": bool(row["runs_only_when_selected"]),
+                }
+            )
+    core = {
+        "schema": "evidence-lane.source-conditioned-lane-toolchain.v1",
+        "status": "PASS",
+        "lane_id": lane.canonical_lane_id,
+        "source_path_count": len(source_paths),
+        "detected_source_lanes": detected_lanes,
+        "eligible_tools": [row["tool"] for row in selected_rows],
+        "eligible_tool_count": len(selected_rows),
+        "rows": selected_rows,
+        "all_linked_required_steps_must_run_or_fail_visible": True,
+        "all_registry_tools_run": False,
+        "selection_is_source_shape_action_workflow_env_uop_dependent": True,
+        "outside_project_root_execution_surfaces_included": True,
+        "counts_are_current_snapshot_not_ceiling": True,
+        "routing_registry": {
+            "path": routing_path.relative_to(plugin_root).as_posix(),
+            "sha256": sha256_file(routing_path),
+        },
+        "pairing_registry": {
+            "path": pairing_path.relative_to(plugin_root).as_posix(),
+            "sha256": sha256_file(pairing_path),
+        },
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def _lane_tool_execution_evidence(
+    *,
+    lane: LaneDefinition,
+    tools: dict[str, Any],
+    database: Path,
+    mmd_path: Path,
+    dot_path: Path,
+    history_report: dict[str, Any] | None,
+    sqlite_execution: dict[str, Any],
+    recorded_at: str,
+) -> dict[str, Any]:
+    """Classify every eligible tool from evidence produced by this lane build."""
+
+    connection = sqlite3.connect(
+        f"file:{database.resolve().as_posix()}?mode=ro&immutable=1",
+        uri=True,
+    )
+    try:
+        counts = {
+            table: _table_count(connection, table)
+            for table in (
+                "source_registry",
+                "source_content_cas",
+                "chunk_index",
+                "chunk_content_cas",
+                lane.fts_table,
+                "authority_index_refresh_receipt",
+                "code_parser_receipt",
+                "structured_fact",
+            )
+        }
+        parser_states = [
+            str(row[0])
+            for row in connection.execute(
+                "SELECT DISTINCT parser_state FROM source_registry "
+                "ORDER BY parser_state"
+            )
+        ]
+        code_parser_statuses: dict[str, int] = {}
+        unresolved_source_cas = int(
+            connection.execute(
+                """
+                SELECT COUNT(*)
+                FROM source_registry AS source
+                LEFT JOIN source_content_cas AS content
+                  ON content.sha256 = source.sha256
+                WHERE content.sha256 IS NULL
+                   OR content.size_bytes != source.size_bytes
+                """
+            ).fetchone()[0]
+        )
+        distinct_source_hashes = int(
+            connection.execute(
+                "SELECT COUNT(DISTINCT sha256) FROM source_registry"
+            ).fetchone()[0]
+        )
+        if counts["code_parser_receipt"]:
+            for row in connection.execute(
+                "SELECT payload_json FROM code_parser_receipt"
+            ):
+                status = str(json.loads(str(row[0])).get("status") or "UNKNOWN")
+                code_parser_statuses[status] = code_parser_statuses.get(status, 0) + 1
+    finally:
+        connection.close()
+
+    capability_by_tool = {
+        str(row["tool"]).casefold(): dict(row) for row in tools["capabilities"]
+    }
+    core_proofs: dict[str, tuple[bool, str]] = {
+        "Python": (True, "current Python lane builder process"),
+        "hashlib_pathlib": (
+            counts["source_registry"] > 0
+            and unresolved_source_cas == 0
+            and distinct_source_hashes == counts["source_content_cas"],
+            (
+                "every source hash resolves to one exact-size CAS row; "
+                f"sources={counts['source_registry']}; "
+                f"distinct_hashes={distinct_source_hashes}; "
+                f"cas_rows={counts['source_content_cas']}; "
+                f"unresolved={unresolved_source_cas}"
+            ),
+        ),
+        "SQLite_CAS": (
+            counts["source_content_cas"] > 0 and counts["chunk_content_cas"] > 0,
+            "compressed source/chunk CAS rows",
+        ),
+        "SQLite_FTS5_BM25": (
+            counts[lane.fts_table] == counts["chunk_index"],
+            f"{lane.fts_table} row parity with chunk_index",
+        ),
+        "APSW_SQLite_engine": (
+            str(sqlite_execution.get("status") or "").upper() == "PASS",
+            "verify_and_optimize_sqlite_authority PASS",
+        ),
+        "LlamaIndex_SQLite_indexer": (
+            counts["authority_index_refresh_receipt"] > 0,
+            "authority_index_refresh_receipt",
+        ),
+        "LangGraph_Mermaid_engine": (
+            mmd_path.is_file(),
+            mmd_path.name,
+        ),
+        "Python_Graphviz_DOT_engine": (
+            dot_path.is_file(),
+            dot_path.name,
+        ),
+        "Pydantic": (
+            str(sqlite_execution.get("status") or "").upper() == "PASS",
+            "typed SQLite execution receipt",
+        ),
+        "Python_structural_parser": (
+            counts["code_parser_receipt"] > 0,
+            "code_parser_receipt rows",
+        ),
+    }
+    parser_state_markers = {
+        "DuckDB": ("DUCKDB",),
+        "Polars": ("POLARS",),
+        "pandas": ("PANDAS",),
+        "pyarrow": ("PYARROW", "PARQUET"),
+        "openpyxl": ("OPENPYXL",),
+        "python_calamine": ("CALAMINE",),
+        "Tableau_Hyper_API": ("TABLEAU", "HYPER"),
+        "SQLAlchemy": ("SQLALCHEMY",),
+        "RapidOCR_ONNX_Runtime": ("OCR_LOCAL", "RAPIDOCR"),
+        "pytesseract_Tesseract": ("PYTESSERACT", "TESSERACT"),
+        "Pillow": ("PILLOW", "IMAGE_METADATA", "OCR_LOCAL"),
+        "OpenCV": ("OPENCV",),
+        "PyMuPDF": ("PYMUPDF",),
+        "pdfplumber": ("PDFPLUMBER",),
+        "pypdf": ("PYPDF",),
+        "Docling": ("DOCLING",),
+        "lxml": ("LXML", "OPENXML"),
+        "BeautifulSoup4": ("BEAUTIFULSOUP",),
+        "markdownify": ("MARKDOWNIFY",),
+        "html2text": ("HTML2TEXT",),
+        "trafilatura": ("TRAFILATURA",),
+        "DOCX_OpenXML": ("DOCX", "OPENXML"),
+        "PPTX_OpenXML": ("PPTX", "OPENXML"),
+    }
+    query_phase_tools = {
+        "deterministic_TFIDF",
+        "rank_bm25",
+        "SentenceTransformers",
+        "FAISS_CPU",
+        "sqlite_vec",
+        "RapidFuzz",
+    }
+    render_on_request_tools = {"Mermaid_CLI_mmdc", "Graphviz_dot"}
+    rows = []
+    for eligible in tools["source_conditioned_toolchain"]["rows"]:
+        tool = str(eligible["tool"])
+        role_class = str(eligible["role_class"])
+        phases = sorted(
+            {
+                phase
+                for action_class in eligible["action_classes"]
+                for phase in (
+                    "BUILD_OR_PARSE"
+                    if action_class
+                    in {"CODE", "DOCUMENT", "OCR_MEDIA", "DATA", "WEB_RESEARCH"}
+                    else "INDEX_OR_QUERY"
+                    if action_class == "RETRIEVAL"
+                    else "TOPOLOGY"
+                    if action_class == "GRAPH"
+                    else "VALIDATE"
+                    if action_class == "EVALUATION"
+                    else "OBSERVE"
+                    if action_class == "OBSERVABILITY"
+                    else "DELIVER"
+                    if action_class == "DEPLOYMENT"
+                    else "TRANSPORT"
+                    if action_class in {"RUNTIME_API", "MCP_COMPOSITION"}
+                    else "GOVERN",
+                )
+            }
+        )
+        condition_state = "CONDITION_FALSE"
+        execution_state = "NOT_EXECUTED"
+        evidence = ""
+        if role_class == "EXTERNAL_SERVICE_OR_STORE":
+            evidence = "no explicit project grant/action/credential for this lane build"
+        elif role_class == "TRANSPORT_OR_ORCHESTRATION":
+            evidence = "package-local lane build required no outer transport"
+        elif role_class == "OBSERVABILITY_OR_EVALUATION_ATTACHMENT":
+            evidence = "no explicit evaluation or observability export requested"
+        elif tool in core_proofs:
+            condition_state = "CONDITION_TRUE"
+            passed, evidence = core_proofs[tool]
+            execution_state = "EXECUTED" if passed else "BLOCKED_MISSING_PROOF"
+        elif tool == "TreeSitter_LanguagePack":
+            condition_state = (
+                "CONDITION_TRUE" if code_parser_statuses else "CONDITION_FALSE"
+            )
+            passed = any(
+                status not in {"RUNTIME_NOT_PREWARMED", "UNSUPPORTED_LANGUAGE"}
+                for status in code_parser_statuses
+            )
+            execution_state = (
+                ("EXECUTED" if passed else "BLOCKED_RUNTIME_NOT_PREWARMED")
+                if code_parser_statuses
+                else "NOT_EXECUTED"
+            )
+            evidence = json.dumps(code_parser_statuses, sort_keys=True)
+        elif tool in parser_state_markers:
+            matching = [
+                state
+                for state in parser_states
+                if any(marker in state.upper() for marker in parser_state_markers[tool])
+            ]
+            if matching:
+                condition_state = "CONDITION_TRUE"
+                execution_state = "EXECUTED"
+                evidence = ",".join(matching)
+            else:
+                evidence = "alternate parser not selected by current source/path"
+        elif tool in query_phase_tools:
+            evidence = "query phase not requested during lane build"
+        elif tool in render_on_request_tools:
+            capability = capability_by_tool.get(
+                "mmdc" if tool == "Mermaid_CLI_mmdc" else "dot"
+            )
+            evidence = "derived visual render not requested; availability=" + str(
+                (capability or {}).get("state") or "UNKNOWN"
+            )
+        elif tool in {"Git", "GitPython", "PyGithub"}:
+            if history_report and history_report.get("status") == "PASS":
+                condition_state = "CONDITION_TRUE"
+                execution_state = "EXECUTED"
+                evidence = "git_history receipt PASS"
+            else:
+                evidence = "Git history/sync phase not requested for this lane build"
+        else:
+            evidence = "eligible capability not selected by the current build phase"
+        rows.append(
+            {
+                "tool": tool,
+                "role_class": role_class,
+                "phases": phases,
+                "eligibility_state": "ELIGIBLE",
+                "selection_state": (
+                    "SELECTED_FOR_CURRENT_ACTION_PHASE"
+                    if condition_state == "CONDITION_TRUE"
+                    else "NOT_SELECTED"
+                ),
+                "condition_state": condition_state,
+                "execution_state": execution_state,
+                "evidence": evidence,
+                "network_call_performed": False,
+                "credential_value_read": False,
+            }
+        )
+    condition_true = [row for row in rows if row["condition_state"] == "CONDITION_TRUE"]
+    valid = all(
+        row["execution_state"]
+        in {"EXECUTED", "BLOCKED_RUNTIME_NOT_PREWARMED", "BLOCKED_MISSING_PROOF"}
+        for row in condition_true
+    )
+    core = {
+        "schema": "evidence-lane.lane-tool-execution-evidence.v1",
+        "status": "PASS" if valid else "FAIL",
+        "lane_id": lane.canonical_lane_id,
+        "rows": rows,
+        "eligible_tool_count": len(rows),
+        "condition_true_tool_count": len(condition_true),
+        "selected_tool_count": len(condition_true),
+        "executed_tool_count": sum(
+            row["execution_state"] == "EXECUTED" for row in rows
+        ),
+        "blocked_tool_count": sum(
+            str(row["execution_state"]).startswith("BLOCKED_") for row in rows
+        ),
+        "condition_false_tool_count": sum(
+            row["condition_state"] == "CONDITION_FALSE" for row in rows
+        ),
+        "all_condition_true_tools_executed_or_failed_visible": valid,
+        "presence_or_eligibility_is_execution_proof": False,
+        "multiple_compatible_tools_may_form_one_pipeline": True,
+        "recorded_at": recorded_at,
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
+def _empty_table_classification(
+    *,
+    database: Path,
+    lane: LaneDefinition,
+    history_enabled: bool,
+    recorded_at: str,
+) -> dict[str, Any]:
+    """Classify zero-row contract tables without treating emptiness as success."""
+
+    connection = sqlite3.connect(
+        f"file:{database.resolve().as_posix()}?mode=ro&immutable=1",
+        uri=True,
+    )
+    connection.row_factory = sqlite3.Row
+    try:
+        counts = {
+            table: _required_table_count(connection, table)
+            for table in lane.schema_contract
+        }
+        fact_counts = {
+            str(row["kind"]): int(row["row_count"])
+            for row in connection.execute(
+                "SELECT kind, COUNT(*) AS row_count FROM structured_fact GROUP BY kind"
+            )
+        }
+        parser_statuses: set[str] = set()
+        if "code_parser_receipt" in counts:
+            for row in connection.execute(
+                "SELECT payload_json FROM code_parser_receipt"
+            ):
+                payload = json.loads(str(row[0]))
+                parser_statuses.add(str(payload.get("status") or "UNKNOWN"))
+    finally:
+        connection.close()
+
+    source_count = counts.get("source_registry", 0)
+    chunk_count = counts.get("chunk_index", 0)
+    rows: list[dict[str, Any]] = []
+    defect_tables: list[str] = []
+    for table in lane.schema_contract:
+        if counts[table] != 0:
+            continue
+        classification = "INTENTIONALLY_EMPTY_TEMPLATE"
+        reason = "NO_ROUTED_SOURCE_IN_THIS_GENERATION"
+        if table in {"tfidf_term", "tfidf_vector"}:
+            classification = "QUERY_TIME_MATERIALIZATION"
+            reason = "TF_DF_IDF_IS_COMPUTED_OVER_BOUNDED_FTS_CANDIDATES_AT_QUERY_TIME"
+        elif table == "mutation_receipt":
+            classification = "CONDITION_FALSE"
+            reason = "NO_MUTATION_OR_SUPERSEDED_CAS_PURGE_IN_THIS_DELTA"
+        elif table.startswith("git_"):
+            classification = "CONDITION_FALSE"
+            reason = (
+                "GIT_HISTORY_PHASE_NOT_REQUESTED"
+                if not history_enabled
+                else "NO_MATCHING_GIT_HISTORY_EVENT"
+            )
+        elif (
+            table == "code_call"
+            and parser_statuses
+            and all(
+                status in {"RUNTIME_NOT_PREWARMED", "UNSUPPORTED_LANGUAGE"}
+                for status in parser_statuses
+            )
+        ):
+            classification = "BLOCKED_UPSTREAM_TOOL"
+            reason = "TREE_SITTER_RUNTIME_NOT_PREWARMED_OR_LANGUAGE_UNSUPPORTED"
+        elif table == "code_parser_diagnostic":
+            classification = "CONDITION_FALSE"
+            reason = "NO_PARSER_DIAGNOSTIC_EMITTED"
+        elif table not in CORE_SCHEMA_TABLES and table != lane.fts_table:
+            if fact_counts.get(table, 0) > 0:
+                classification = "DEFECT"
+                reason = "STRUCTURED_FACT_EXISTS_BUT_LANE_TABLE_IS_EMPTY"
+            else:
+                classification = "CONDITION_FALSE"
+                reason = "NO_MATCHING_EXTRACTED_FACT_FOR_THIS_SOURCE_SHAPE"
+        elif table in {
+            "chunk_index",
+            "chunk_content_cas",
+            "chunk_history",
+            lane.fts_table,
+        }:
+            classification = "CONDITION_FALSE"
+            reason = (
+                "NO_TEXT_CHUNK_EMITTED" if chunk_count == 0 else "NO_FTS_ROW_EMITTED"
+            )
+        elif table == "structured_fact":
+            classification = "CONDITION_FALSE"
+            reason = "NO_STRUCTURED_FACT_EMITTED"
+        elif source_count > 0:
+            classification = "DEFECT"
+            reason = "CURRENT_PHASE_REQUIRED_TABLE_IS_EMPTY"
+        if classification == "DEFECT":
+            defect_tables.append(table)
+        rows.append(
+            {
+                "table": table,
+                "row_count": 0,
+                "classification": classification,
+                "reason": reason,
+            }
+        )
+    core = {
+        "schema": "evidence-lane.empty-table-classification.v1",
+        "status": "PASS" if not defect_tables else "FAIL",
+        "lane_id": lane.canonical_lane_id,
+        "empty_table_count": len(rows),
+        "defect_table_count": len(defect_tables),
+        "defect_tables": defect_tables,
+        "rows": rows,
+        "counts_are_current_generation_facts_not_schema_requirements": True,
+        "recorded_at": recorded_at,
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
 
 
 def _topology_generator_identity(lane: LaneDefinition) -> dict[str, Any]:
@@ -1765,7 +2407,7 @@ def _extract_pptx(data: bytes) -> tuple[list[dict[str, Any]], list[dict[str, Any
     return documents, facts
 
 
-@lru_cache(maxsize=1)
+@cache
 def _rapidocr_engine() -> tuple[str, Any] | None:
     if _module_available("rapidocr"):
         from rapidocr import (
@@ -1814,7 +2456,9 @@ def _opencv_preprocess_for_ocr(image_data: bytes) -> tuple[bytes, bool]:
         import cv2  # type: ignore[import-not-found]
         import numpy as np
 
-        decoded = cv2.imdecode(np.frombuffer(image_data, dtype=np.uint8), cv2.IMREAD_COLOR)
+        decoded = cv2.imdecode(
+            np.frombuffer(image_data, dtype=np.uint8), cv2.IMREAD_COLOR
+        )
         if decoded is None:
             return image_data, False
         grayscale = cv2.cvtColor(decoded, cv2.COLOR_BGR2GRAY)
@@ -2066,7 +2710,9 @@ def _extract_pdf(
                         ]
                     )
                     if len(text.strip()) < 5:
-                        pixmap = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), alpha=False)
+                        pixmap = page.get_pixmap(
+                            matrix=pymupdf.Matrix(2, 2), alpha=False
+                        )
                         ocr_page_images.append((locator, [pixmap.tobytes("png")]))
                 parser_state = "PARSED_PYMUPDF"
             finally:
@@ -2192,8 +2838,10 @@ def _extract_pdf(
             parser_errors.append(f"PDFPLUMBER_{type(exc).__name__.upper()}")
             documents.clear()
             facts.clear()
-    if not documents and native_root is not None and try_resolve_native_tool(
-        "poppler_pdftotext"
+    if (
+        not documents
+        and native_root is not None
+        and try_resolve_native_tool("poppler_pdftotext")
     ):
         try:
             receipt = run_native_tool(
@@ -3444,7 +4092,14 @@ def _extract_source(
             receipt = run_native_tool(
                 NativeInvocationRequest(
                     tool_id="ffmpeg",
-                    arguments=["-hide_banner", "-i", str(path), "-f", "ffmetadata", "-"],
+                    arguments=[
+                        "-hide_banner",
+                        "-i",
+                        str(path),
+                        "-f",
+                        "ffmetadata",
+                        "-",
+                    ],
                     host_profile=host_profile,
                     max_output_bytes=4_000_000,
                 ),
@@ -4315,12 +4970,22 @@ def _lane_fts_content_projection(
             "rowid": int(row[0]),
             "path": str(row[1]),
             "locator": str(row[2]),
-            "text_content": str(row[3]),
-            "chunk_id": int(row[4]),
+            "text_content": decompress_exact_bytes(
+                compression=str(row[6]),
+                payload=bytes(row[7]),
+                expected_size=int(row[5]),
+                expected_sha256=str(row[4]),
+            ).decode("utf-8"),
+            "chunk_id": int(row[3]),
         }
         for row in connection.execute(
-            f"""SELECT rowid, path, locator, text_content, chunk_id
-                FROM \"{fts}\" ORDER BY rowid"""  # nosec B608
+            f"""SELECT f.rowid,s.path,c.locator,c.chunk_id,c.sha256,
+                       cas.size_bytes,cas.compression,cas.compressed_text
+                FROM \"{fts}\" AS f
+                JOIN chunk_index AS c ON c.chunk_id=f.rowid
+                JOIN chunk_content_cas AS cas ON cas.sha256=c.sha256
+                JOIN source_registry AS s ON s.source_id=c.source_id
+                ORDER BY f.rowid"""  # nosec B608
         )
     ]
     return {
@@ -4811,7 +5476,12 @@ def lane_schema_builder_projection(
     }
 
 
-def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) -> None:
+def _create_lane_schema(
+    connection: sqlite3.Connection,
+    lane: LaneDefinition,
+    *,
+    verify_schema_asset: bool = True,
+) -> None:
     schema_asset = lane_schema_asset(lane.canonical_lane_id)
     fts = lane.fts_table
     if not re.fullmatch(r"[a-z][a-z0-9_]*", fts):
@@ -4829,25 +5499,23 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
             generation INTEGER NOT NULL,
             recorded_at TEXT NOT NULL
         ) STRICT;
+        CREATE TABLE source_content_cas(
+            sha256 TEXT PRIMARY KEY,
+            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
+            compression TEXT NOT NULL,
+            compressed_bytes BLOB NOT NULL,
+            first_seen_at TEXT NOT NULL
+        ) STRICT;
         CREATE TABLE source_registry(
             source_id INTEGER PRIMARY KEY,
             path TEXT NOT NULL UNIQUE,
             size_bytes INTEGER NOT NULL,
-            sha256 TEXT NOT NULL,
+            sha256 TEXT NOT NULL REFERENCES source_content_cas(sha256),
             mime_type TEXT NOT NULL,
             extension TEXT NOT NULL,
             encoding TEXT,
             parser_state TEXT NOT NULL,
-            exact_bytes BLOB NOT NULL,
             registered_at TEXT NOT NULL
-        ) STRICT;
-        CREATE TABLE source_tombstone(
-            tombstone_id INTEGER PRIMARY KEY,
-            path TEXT NOT NULL,
-            prior_sha256 TEXT NOT NULL,
-            prior_size_bytes INTEGER NOT NULL,
-            removed_at TEXT NOT NULL,
-            parent_pv TEXT
         ) STRICT;
         CREATE TABLE chunk_index(
             chunk_id INTEGER PRIMARY KEY,
@@ -4856,7 +5524,6 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
             ordinal INTEGER NOT NULL,
             char_start INTEGER NOT NULL,
             char_end INTEGER NOT NULL,
-            text_content TEXT NOT NULL,
             sha256 TEXT NOT NULL,
             metadata_json TEXT NOT NULL,
             UNIQUE(source_id, locator, ordinal)
@@ -4864,7 +5531,8 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
         CREATE TABLE chunk_content_cas(
             sha256 TEXT PRIMARY KEY,
             size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            text_content TEXT NOT NULL,
+            compression TEXT NOT NULL,
+            compressed_text BLOB NOT NULL,
             first_seen_at TEXT NOT NULL
         ) STRICT;
         CREATE TABLE chunk_history(
@@ -4880,10 +5548,12 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
             UNIQUE(snapshot_ref, source_path, locator, ordinal, chunk_sha256)
         ) STRICT;
         CREATE VIRTUAL TABLE {fts} USING fts5(
-            path,
-            locator,
+            path UNINDEXED,
+            locator UNINDEXED,
             text_content,
             chunk_id UNINDEXED,
+            content='',
+            contentless_delete=1,
             tokenize='unicode61'
         );
         CREATE TABLE structured_fact(
@@ -4922,7 +5592,7 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
             unchanged_reuse INTEGER NOT NULL,
             changed_rebuild INTEGER NOT NULL,
             new_register INTEGER NOT NULL,
-            removed_tombstone INTEGER NOT NULL,
+            removed_purge INTEGER NOT NULL,
             blocked_unsupported INTEGER NOT NULL,
             details_json TEXT NOT NULL,
             recorded_at TEXT NOT NULL
@@ -4948,8 +5618,8 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
     shared_tables = {
         "lane_meta",
         "lane_pointer",
+        "source_content_cas",
         "source_registry",
-        "source_tombstone",
         "chunk_index",
         "chunk_content_cas",
         "chunk_history",
@@ -4979,7 +5649,7 @@ def _create_lane_schema(connection: sqlite3.Connection, lane: LaneDefinition) ->
             """
         )
     parity = lane_schema_builder_projection(connection, lane)
-    if parity["status"] != "PASS":
+    if verify_schema_asset and parity["status"] != "PASS":
         raise ValueError(
             "Lane schema builder bytes do not match the versioned asset: "
             f"{lane.canonical_lane_id}"
@@ -5034,12 +5704,27 @@ def _insert_source(
             host_profile=host_profile,
         )
     source_sha256 = sha256_bytes(data)
+    source_compression, compressed_source = compress_exact_bytes(data)
+    connection.execute(
+        """
+        INSERT OR IGNORE INTO source_content_cas(
+            sha256,size_bytes,compression,compressed_bytes,first_seen_at
+        ) VALUES(?,?,?,?,?)
+        """,
+        (
+            source_sha256,
+            len(data),
+            source_compression,
+            compressed_source,
+            registered_at,
+        ),
+    )
     cursor = connection.execute(
         """
         INSERT INTO source_registry(
             path, size_bytes, sha256, mime_type, extension, encoding,
-            parser_state, exact_bytes, registered_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            parser_state, registered_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             relative_path,
@@ -5049,7 +5734,6 @@ def _insert_source(
             path.suffix.lower(),
             encoding,
             parser_state,
-            data,
             registered_at,
         ),
     )
@@ -5087,17 +5771,20 @@ def _insert_source(
     for document in documents:
         text = str(document.get("text") or "")
         for ordinal, char_start, block in _chunks(text):
-            chunk_sha256 = sha256_bytes(block.encode("utf-8"))
+            block_bytes = block.encode("utf-8")
+            chunk_sha256 = sha256_bytes(block_bytes)
+            chunk_compression, compressed_block = compress_exact_bytes(block_bytes)
             cas_cursor = connection.execute(
                 """
                 INSERT OR IGNORE INTO chunk_content_cas(
-                    sha256, size_bytes, text_content, first_seen_at
-                ) VALUES (?, ?, ?, ?)
+                    sha256,size_bytes,compression,compressed_text,first_seen_at
+                ) VALUES(?,?,?,?,?)
                 """,
                 (
                     chunk_sha256,
-                    len(block.encode("utf-8")),
-                    block,
+                    len(block_bytes),
+                    chunk_compression,
+                    compressed_block,
                     registered_at,
                 ),
             )
@@ -5105,8 +5792,8 @@ def _insert_source(
                 """
                 INSERT INTO chunk_index(
                     source_id, locator, ordinal, char_start, char_end,
-                    text_content, sha256, metadata_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    sha256, metadata_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     source_id,
@@ -5114,7 +5801,6 @@ def _insert_source(
                     ordinal,
                     char_start,
                     char_start + len(block),
-                    block,
                     chunk_sha256,
                     json.dumps(
                         document.get("metadata") or {},
@@ -5148,61 +5834,53 @@ def _rebuild_retrieval(connection: sqlite3.Connection, lane: LaneDefinition) -> 
     fts = lane.fts_table
     connection.execute(f"DELETE FROM {fts}")  # nosec B608
     # ``fts`` is regex-validated immutable registry data.
-    insert_fts_sql = (
-        f"INSERT INTO {fts}(path, locator, text_content, chunk_id) "  # nosec B608
-        "SELECT s.path, c.locator, c.text_content, c.chunk_id "
-        "FROM chunk_index c JOIN source_registry s ON s.source_id = c.source_id "
-        "ORDER BY c.chunk_id"
-    )
-    connection.execute(insert_fts_sql)
-    connection.execute("DELETE FROM tfidf_vector")
-    connection.execute("DELETE FROM tfidf_term")
-    rows = connection.execute(
-        "SELECT chunk_id, text_content FROM chunk_index ORDER BY chunk_id"
-    ).fetchall()
-    document_count = len(rows)
-    counters: dict[int, Counter[str]] = {}
-    document_frequency: Counter[str] = Counter()
-    for row in rows:
-        counter = Counter(
-            token.lower() for token in _TOKEN_RE.findall(row["text_content"])
-        )
-        counters[int(row["chunk_id"])] = counter
-        document_frequency.update(counter.keys())
-    idf_values: dict[str, float] = {}
-    for term in sorted(document_frequency):
-        df = document_frequency[term]
-        idf = math.log((1 + document_count) / (1 + df)) + 1.0
-        idf_values[term] = idf
+    chunk_rows = list(
         connection.execute(
             """
-            INSERT INTO tfidf_term(term, document_frequency, document_count, idf)
-            VALUES (?, ?, ?, ?)
-            """,
-            (term, df, document_count, idf),
+            SELECT c.chunk_id,s.path,c.locator,c.sha256,cas.size_bytes,
+                   cas.compression,cas.compressed_text
+            FROM chunk_index AS c
+            JOIN source_registry AS s ON s.source_id=c.source_id
+            JOIN chunk_content_cas AS cas ON cas.sha256=c.sha256
+            ORDER BY c.chunk_id
+            """
         )
-    for chunk_id, counter in counters.items():
-        token_count = sum(counter.values())
-        ranked = sorted(
-            counter.items(),
-            key=lambda item: (
-                -(item[1] / max(token_count, 1)) * idf_values[item[0]],
-                item[0],
-            ),
-        )[:TFIDF_TERMS_PER_CHUNK]
-        for term, count in ranked:
-            tf = count / max(token_count, 1)
-            connection.execute(
-                """
-                INSERT INTO tfidf_vector(
-                    chunk_id, term, term_count, token_count, tf, tfidf
-                ) VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (chunk_id, term, count, token_count, tf, tf * idf_values[term]),
+    )
+    connection.executemany(
+        f"INSERT INTO {fts}(rowid,path,locator,text_content,chunk_id) "  # nosec B608
+        "VALUES(?,?,?,?,?)",
+        [
+            (
+                int(row[0]),
+                str(row[1]),
+                str(row[2]),
+                decompress_exact_bytes(
+                    compression=str(row[5]),
+                    payload=bytes(row[6]),
+                    expected_size=int(row[4]),
+                    expected_sha256=str(row[3]),
+                ).decode("utf-8"),
+                int(row[0]),
             )
+            for row in chunk_rows
+        ],
+    )
+    connection.execute("DELETE FROM tfidf_vector")
+    connection.execute("DELETE FROM tfidf_term")
+    connection.execute(
+        "INSERT OR REPLACE INTO lane_meta(key,value) VALUES(?,?)",
+        ("tfidf_execution", "BOUNDED_QUERY_TIME_OVER_FTS_CANDIDATES"),
+    )
     rebuild_connection_authority_index(
         connection,
         authority_id=f"project_sector:{lane.canonical_lane_id}",
+        table_names=(
+            "lane_meta",
+            "source_registry",
+            "parser_capability",
+            "refresh_receipt",
+            "mutation_receipt",
+        ),
     )
 
 
@@ -5240,7 +5918,7 @@ def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
         )
         for table in (
             "source_registry",
-            "source_tombstone",
+            "source_content_cas",
             "chunk_index",
             "structured_fact",
             "tfidf_term",
@@ -5256,6 +5934,10 @@ def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
     )
     builder_projection = lane_schema_builder_projection(connection, lane)
     evolution = lane_schema_evolution_status(connection, lane)
+    compact_storage = verify_lane_compact_storage(
+        connection,
+        fts_table=lane.fts_table,
+    )
     connection.close()
     valid = (
         integrity == ["ok"]
@@ -5278,6 +5960,7 @@ def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
         }
         and builder_projection["status"] == "PASS"
         and evolution["valid"]
+        and compact_storage["valid"]
         and fts_count == counts["chunk_index"]
         and counts["authority_index_refresh_receipt"] >= 1
     )
@@ -5289,6 +5972,7 @@ def _validate_lane_database(path: Path, lane: LaneDefinition) -> dict[str, Any]:
         "lane_schema_binding": schema_binding,
         "lane_schema_builder_projection": builder_projection,
         "lane_schema_evolution": evolution,
+        "compact_storage": compact_storage,
         "counts": counts,
         "fts_rows": fts_count,
         "valid": valid,
@@ -5357,17 +6041,14 @@ def _classify(
             for path in unmentioned
             if path not in forced_removed
         )
-        removed = [
-            {"path": path, **prior[path]}
-            for path in sorted(forced_removed)
-        ]
+        removed = [{"path": path, **prior[path]} for path in sorted(forced_removed)]
     else:
         removed = [{"path": path, **prior[path]} for path in unmentioned]
     return {
         "UNCHANGED_REUSE": unchanged,
         "CHANGED_REBUILD": changed,
         "NEW_REGISTER": added,
-        "REMOVED_TOMBSTONE": removed,
+        "REMOVED_PURGE": removed,
         "BLOCKED_UNSUPPORTED": [],
     }
 
@@ -5606,12 +6287,17 @@ def _emit_code_evidence_graph(
         """
     ).fetchall()
     table_specs = (
-        ("code_file_snapshot", "CODE_FILE", "snapshot", "FILE_SNAPSHOT"),
         ("code_symbol", "CODE_SYMBOL", "declares", "SYMBOL"),
         ("code_import", "CODE_FILE", "imports", "IMPORT"),
+        ("code_call", "CODE_FILE", "calls", "CALL"),
+        (
+            "code_parser_diagnostic",
+            "CODE_FILE",
+            "reports parser diagnostic",
+            "PARSER_DIAGNOSTIC",
+        ),
         ("code_route", "APP_ROUTE", "exposes", "ROUTE"),
         ("code_dependency", "DEPENDENCY_ITEM", "depends on", "DEPENDENCY"),
-        ("artifact_registry", "PROJECT_ARTIFACT", "produces", "ARTIFACT"),
     )
     counts = {
         table: _required_table_count(connection, table) for table, *_ in table_specs
@@ -5626,8 +6312,9 @@ def _emit_code_evidence_graph(
         "code evidence coverage\n"
         f"files={_table_count(connection, 'source_registry')} | "
         f"symbols={counts['code_symbol']} | imports={counts['code_import']} | "
-        f"routes={counts['code_route']} | dependencies={counts['code_dependency']} | "
-        f"artifacts={counts['artifact_registry']}\n"
+        f"calls={counts['code_call']} | routes={counts['code_route']} | "
+        f"dependencies={counts['code_dependency']} | "
+        f"facts={_table_count(connection, 'structured_fact')}\n"
         "stable nodes + stable edges | project-authored Graphify concepts",
         "root",
     )
@@ -5947,24 +6634,18 @@ def _emit_github_repository_graph(
             )
             rendered_chunks += 1
 
-    impact_tables = (
-        "git_route_impact",
-        "git_symbol_impact",
-        "git_dependency_impact",
-        "git_test_impact",
-        "git_artifact_impact",
-    )
     impact_counts = {
-        table: _required_table_count(connection, table) for table in impact_tables
+        "changed_files": totals["git_file_change"],
+        "symbols": _table_count(connection, "code_symbol"),
+        "routes": _table_count(connection, "code_route"),
+        "dependencies": _table_count(connection, "code_dependency"),
+        "structured_facts": _table_count(connection, "structured_fact"),
     }
     graph.node(
         "GITHUB_IMPACT_COVERAGE",
-        "changed-route and test impact\n"
-        + " | ".join(
-            f"{table.removeprefix('git_')}={count}"
-            for table, count in impact_counts.items()
-        )
-        + "\nEXTRACTED rows only; zero remains explicit",
+        "source-impact seed coverage\n"
+        + " | ".join(f"{table}={count}" for table, count in impact_counts.items())
+        + "\nfull affected closure is resolved by the source graph; no duplicate impact tables",
         "git",
     )
     _evidence_edge(
@@ -6423,8 +7104,8 @@ def _lane_topology(
     graph.node(
         "MUTATION",
         "append-only change evidence\n"
-        f"tombstones={_table_count(connection, 'source_tombstone')} | "
-        f"mutations={_table_count(connection, 'mutation_receipt')}",
+        f"direct_purges={len(classification.get('REMOVED_PURGE', []))} | "
+        f"mutation_receipts={_table_count(connection, 'mutation_receipt')}",
         "lifecycle",
     )
     graph.edge("TFIDF", "REFRESH")
@@ -6879,7 +7560,7 @@ def _build_one_lane(
 ) -> dict[str, Any]:
     output.mkdir(parents=True, exist_ok=False)
     schema_asset = lane_schema_asset(lane.canonical_lane_id)
-    tools = _tool_identity(lane)
+    tools = _tool_identity(lane, source_paths=paths)
     prior_db = prior_lane / lane.sqlite_filename if prior_lane else None
     prior_tools = (
         json.loads((prior_lane / "tools.json").read_text(encoding="utf-8"))
@@ -6952,12 +7633,7 @@ def _build_one_lane(
         "missing_after_replay": [],
     }
     baseline_replay_eligible = False
-    if (
-        prior_db
-        and prior_db.is_file()
-        and tool_changed
-        and preserve_parent_unmentioned
-    ):
+    if prior_db and prior_db.is_file() and tool_changed and preserve_parent_unmentioned:
         try:
             prior_validation = _validate_lane_database(prior_db, lane)
         except (OSError, ValueError, sqlite3.DatabaseError) as exc:
@@ -6979,7 +7655,7 @@ def _build_one_lane(
         or topology_rebuild_required
         or any(
             classification[key]
-            for key in ("CHANGED_REBUILD", "NEW_REGISTER", "REMOVED_TOMBSTONE")
+            for key in ("CHANGED_REBUILD", "NEW_REGISTER", "REMOVED_PURGE")
         )
     )
     db_path = output / lane.sqlite_filename
@@ -7007,8 +7683,10 @@ def _build_one_lane(
             "durable_authority": True,
         }
     else:
-        if prior_db and prior_db.is_file() and (
-            not tool_changed or baseline_replay_eligible
+        if (
+            prior_db
+            and prior_db.is_file()
+            and (not tool_changed or baseline_replay_eligible)
         ):
             atomic_write_bytes(db_path, prior_db.read_bytes())
             connection = _open_lane(db_path, lane, initialize=False)
@@ -7040,14 +7718,14 @@ def _build_one_lane(
                 replay_rows = []
 
             delete_actions: list[tuple[dict[str, Any], str]] = [
-                (row, "CHANGED_REBUILD")
-                for row in classification["CHANGED_REBUILD"]
+                (row, "CHANGED_REBUILD") for row in classification["CHANGED_REBUILD"]
             ]
             delete_actions.extend(
-                (row, "REMOVED_TOMBSTONE")
-                for row in classification["REMOVED_TOMBSTONE"]
+                (row, "REMOVED_PURGE") for row in classification["REMOVED_PURGE"]
             )
-            delete_actions.extend((row, "PARENT_BASELINE_REPLAY") for row in replay_rows)
+            delete_actions.extend(
+                (row, "PARENT_BASELINE_REPLAY") for row in replay_rows
+            )
             for row, mutation_kind in delete_actions:
                 source = connection.execute(
                     "SELECT source_id, sha256, size_bytes FROM source_registry WHERE path=?",
@@ -7056,7 +7734,7 @@ def _build_one_lane(
                 if source is None:
                     continue
                 delete_fts_sql = (
-                    f"DELETE FROM {lane.fts_table} WHERE chunk_id IN "  # nosec B608
+                    f"DELETE FROM {lane.fts_table} WHERE rowid IN "  # nosec B608
                     "(SELECT chunk_id FROM chunk_index WHERE source_id=?)"
                 )
                 connection.execute(
@@ -7082,21 +7760,6 @@ def _build_one_lane(
                         recorded_at,
                     ),
                 )
-                if mutation_kind == "REMOVED_TOMBSTONE":
-                    connection.execute(
-                        """
-                        INSERT INTO source_tombstone(
-                            path, prior_sha256, prior_size_bytes, removed_at, parent_pv
-                        ) VALUES (?, ?, ?, ?, ?)
-                        """,
-                        (
-                            row["path"],
-                            source["sha256"],
-                            source["size_bytes"],
-                            recorded_at,
-                            parent_pv,
-                        ),
-                    )
             insert_rows_by_path = {
                 str(row["path"]): row
                 for row in (
@@ -7227,6 +7890,43 @@ def _build_one_lane(
             """,
             ("entered_from", parent_pv, pointer_generation, recorded_at),
         )
+        superseded_source_cas = [
+            str(row[0])
+            for row in connection.execute(
+                """
+                SELECT content.sha256
+                FROM source_content_cas AS content
+                LEFT JOIN source_registry AS source
+                  ON source.sha256 = content.sha256
+                WHERE source.sha256 IS NULL
+                ORDER BY content.sha256
+                """
+            )
+        ]
+        for prior_sha256 in superseded_source_cas:
+            connection.execute(
+                """
+                INSERT INTO mutation_receipt(
+                    mutation_kind, source_path, prior_sha256, current_sha256,
+                    recorded_at
+                ) VALUES (?, NULL, ?, NULL, ?)
+                """,
+                (
+                    "PURGE_SUPERSEDED_SOURCE_CAS",
+                    prior_sha256,
+                    recorded_at,
+                ),
+            )
+        connection.execute(
+            """
+            DELETE FROM source_content_cas
+            WHERE NOT EXISTS (
+                SELECT 1 FROM source_registry
+                WHERE source_registry.sha256 = source_content_cas.sha256
+            )
+            """
+        )
+        classification["PURGED_SUPERSEDED_SOURCE_CAS"] = superseded_source_cas
         _rebuild_retrieval(connection, lane)
         chunk_reuse = connection.execute(
             """
@@ -7243,7 +7943,7 @@ def _build_one_lane(
             """
             INSERT INTO refresh_receipt(
                 build_mode, parent_pv, proposed_pv, unchanged_reuse,
-                changed_rebuild, new_register, removed_tombstone,
+                changed_rebuild, new_register, removed_purge,
                 blocked_unsupported, details_json, recorded_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -7254,7 +7954,7 @@ def _build_one_lane(
                 len(classification["UNCHANGED_REUSE"]),
                 len(classification["CHANGED_REBUILD"]),
                 len(classification["NEW_REGISTER"]),
-                len(classification["REMOVED_TOMBSTONE"]),
+                len(classification["REMOVED_PURGE"]),
                 len(classification["BLOCKED_UNSUPPORTED"]),
                 json.dumps(classification, sort_keys=True, separators=(",", ":")),
                 recorded_at,
@@ -7267,8 +7967,28 @@ def _build_one_lane(
             mode="json"
         )
         mmd, dot = _lane_topology(lane, db_path, classification)
-        atomic_write_bytes(output / lane.mmd_filename, mmd.encode("utf-8"))
-        atomic_write_bytes(output / lane.dot_filename, dot.encode("utf-8"))
+        mmd_path = output / lane.mmd_filename
+        dot_path = output / lane.dot_filename
+        atomic_write_bytes(mmd_path, mmd.encode("utf-8"))
+        atomic_write_bytes(dot_path, dot.encode("utf-8"))
+        tools["tool_execution_evidence"] = _lane_tool_execution_evidence(
+            lane=lane,
+            tools=tools,
+            database=db_path,
+            mmd_path=mmd_path,
+            dot_path=dot_path,
+            history_report=history_report,
+            sqlite_execution=sqlite_execution,
+            recorded_at=recorded_at,
+        )
+        tools["empty_table_classification"] = _empty_table_classification(
+            database=db_path,
+            lane=lane,
+            history_enabled=history_enabled,
+            recorded_at=recorded_at,
+        )
+        if tools["empty_table_classification"]["status"] != "PASS":
+            raise ValueError("LANE_EMPTY_TABLE_CLASSIFICATION_FAILED")
         atomic_write_json(
             output / "tools.json",
             bind_tools_to_artifacts(output, lane, tools),
@@ -7365,7 +8085,7 @@ def _bundle_graph(reports: list[dict[str, Any]]) -> tuple[str, str]:
         "root",
     )
 
-    graph.begin("CONTROL_PLANE", "1. Six public controls")
+    graph.begin("CONTROL_PLANE", "1. Registry-derived public skill entrypoints")
     controls = (
         ("BOOT", "Boot\nruntime + locked Flash + host/storage"),
         ("ROLLBACK", "Rollback\naccepted pointer only"),
@@ -7456,7 +8176,7 @@ def _bundle_graph(reports: list[dict[str, Any]]) -> tuple[str, str]:
     )
     graph.node(
         "HIL",
-        "six-way HIL\nno implicit acceptance by continuation",
+        "governed HIL\nno implicit acceptance by continuation",
         "lifecycle",
     )
     graph.node("APPROVE", "exact APPROVE\nbound to displayed candidate", "lifecycle")
@@ -7520,7 +8240,11 @@ def _lane_source_binding(
         finally:
             connection.close()
     expected = {path: str(source_snapshot[path]["sha256"]) for path in sorted(routes)}
-    compared_paths = expected.keys() if allow_observed_superset else expected.keys() | observed.keys()
+    compared_paths = (
+        expected.keys()
+        if allow_observed_superset
+        else expected.keys() | observed.keys()
+    )
     mismatches = sorted(
         path for path in compared_paths if expected.get(path) != observed.get(path)
     )
@@ -7595,14 +8319,11 @@ def build_lane_bundle(
             raise ValueError(
                 "The parent lane bundle is unreadable or invalid."
             ) from exc
-        checksum_mismatches = dict(
-            parent_validation.get("checksum_mismatches") or {}
-        )
+        checksum_mismatches = dict(parent_validation.get("checksum_mismatches") or {})
         from .project_authority import is_working_sector_operational_member
 
         operational_authority_only_drift = bool(checksum_mismatches) and all(
-            is_working_sector_operational_member(path)
-            for path in checksum_mismatches
+            is_working_sector_operational_member(path) for path in checksum_mismatches
         )
         validated_working_parent = bool(
             allow_parent_operational_authority_drift
@@ -7616,10 +8337,7 @@ def build_lane_bundle(
             and parent_validation.get("source_routes_valid") is True
             and parent_validation.get("topology_valid") is True
         )
-        if (
-            parent_validation.get("valid") is not True
-            and not validated_working_parent
-        ):
+        if parent_validation.get("valid") is not True and not validated_working_parent:
             raise ValueError("The parent lane bundle failed sealed validation.")
     git_arm = probe_git_arm(root, requested_mode=git_mode)
     git_history_available = bool(git_arm["history_index_enabled"])
@@ -7763,9 +8481,7 @@ def build_lane_bundle(
                 pointer_generation=pointer_generation,
                 recorded_at=recorded_at,
                 history_enabled=(
-                    index_git_history
-                    and lane_id == code_mode
-                    and git_history_available
+                    index_git_history and lane_id == code_mode and git_history_available
                 ),
                 source_snapshot=source_snapshot,
                 preserve_parent_unmentioned=preserve_parent_unmentioned,
@@ -7822,8 +8538,7 @@ def build_lane_bundle(
         source_snapshot,
         emitted_lane_ids,
         allow_observed_superset=(
-            preserve_parent_unmentioned
-            and not complete_source_snapshot
+            preserve_parent_unmentioned and not complete_source_snapshot
         ),
     )
     if not source_binding["valid"]:
@@ -7938,7 +8653,7 @@ def build_lane_bundle(
             len(row["classification"]["NEW_REGISTER"]) for row in reports
         ),
         "removed_sources": sum(
-            len(row["classification"]["REMOVED_TOMBSTONE"]) for row in reports
+            len(row["classification"]["REMOVED_PURGE"]) for row in reports
         ),
         "blocked_sources": sum(
             len(row["classification"]["BLOCKED_UNSUPPORTED"]) for row in reports

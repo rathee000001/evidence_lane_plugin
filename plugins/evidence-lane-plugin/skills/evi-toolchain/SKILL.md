@@ -15,7 +15,7 @@ for one exact lane or action.
    tool and never cross action classes silently.
 4. Preserve the tool, license, runtime, and receipt identities.
 
-This Codex plane excludes ChatGPT. Runtime dependency installation is allowed
+This Codex plane excludes non-Codex acting-agent routes. Runtime dependency installation is allowed
 only inside the explicit local-update route and never in a user workspace.
 ## MCP routing contract
 
@@ -24,4 +24,4 @@ and use the ordered route for `evi-toolchain`. `MCP_ROUTING_FAIL_CLOSED`: if the
 bundled `evidence-lane` dependency, an exact tool, or a required result is
 missing, stop without aliasing, prefix rewriting, or a compatibility fallback.
 Shared lifecycle, Goal, Plan, HIL, install, and State Travel boundaries remain
-owned by `../evidence-lane-code-lifecycle/SKILL.md`; this workflow cannot override them.
+owned by `../evidence-lane-code-lifecycle/references/shared-boundaries.md`; this workflow cannot override them.

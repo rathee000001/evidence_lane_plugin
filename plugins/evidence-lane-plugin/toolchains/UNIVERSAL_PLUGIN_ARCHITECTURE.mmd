@@ -1,0 +1,275 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=5DC9D5870FA82E02A351EE65CB052D6AEEF4869769588D62276A096E48B63A44
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=26
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  subgraph OPERATING_CYCLE["Operating cycle + Delta lifecycle"]
+    direction TB
+    INTENT["User intent / prompt / steer"]:::root
+    BOOT["Boot or resume exact runtime identity"]:::lifecycle
+    FLASH["Locked ENV15/UOP15 Flash"]:::lifecycle
+    STATE_TRAVEL["User-timed State Travel"]:::lifecycle
+    SOURCE_INTAKE["Source Intake and exact source identity"]:::lifecycle
+    RECIPE["Project Recipe"]:::lifecycle
+    MODE["Ordered Mode intersections"]:::lifecycle
+    PLAN_GOAL["Canonical Plan + Goal"]:::lifecycle
+    DELTA_ENTRY["Governed Delta entry"]:::lifecycle
+    ATOMIC_WORK["Atomic implementation or analysis work"]:::lifecycle
+    MID_DELTA["Mid-Delta evidence / steer / failure"]:::warn
+    DELTA_EXIT["Verified Delta exit"]:::lifecycle
+    REFRESH["Changed-hash authority refresh + CAS reuse"]:::lifecycle
+    CANDIDATE["Unaccepted candidate when required"]:::lifecycle
+    HIL["Owning HIL presentation only"]:::warn
+    FUSE["Exact approved Fuse"]:::lifecycle
+    ROLLBACK["Governed logical Rollback"]:::warn
+    EXIT_BOOT["Explicit Exit Boot"]:::lifecycle
+    NEXT["Next Delta or next-task State Travel"]:::lifecycle
+  end
+  subgraph EXECUTION_STACK["Typed skill/action execution stack"]
+    direction TB
+    SKILL["Governed skill + 127 current ordered workflow steps"]:::semantic
+    ACTION["Typed public/internal action (91 current registry rows)"]:::semantic
+    SCHEMA["Input/output schema and current route contract"]:::semantic
+    INTERNAL_SDK["Internal SDK execution owner"]:::semantic
+    ENV["ENV15 environment, host, lane, locality, availability and grant"]:::semantic
+    UOP["UOP15 operators, formulas, work/privacy/disclosure/HIL gates"]:::warn
+    AUTHORITY_RESOLVE["Owning lane or named/root authority"]:::semantic
+    TOOL_RESOLVE["Conditional tool role and ordered primary/fallback"]:::semantic
+    OUTER_SDK["Outer SDK local or transport route"]:::semantic
+    FASTMCP["FastMCP composition when compatible"]:::semantic
+    NATIVE_MCP["Pinned native MCP compatibility transport"]:::semantic
+    DOMAIN_MCP["Purpose-bound domain MCP server"]:::semantic
+    VALIDATE["Schema, result, authority and HIL-effect validation"]:::warn
+    RECEIPT["Exact input/route/result/provenance receipt"]:::semantic
+  end
+  subgraph HOSTS["Codex host variants"]
+    direction TB
+    HOST_STABLE_CODEX["Stable Codex"]:::semantic
+    HOST_CODEX_BETA["Codex Beta"]:::semantic
+    HOST_CODEX_CLI["CODEX_CLI"]:::semantic
+    HOST_CODEX_VM["CODEX_VM"]:::semantic
+  end
+  subgraph LANES["Current project sector lanes"]
+    direction TB
+    LANE_GITHUB_CODE["github_code"]:::semantic
+    LANE_LOCAL_CODE["local_code"]:::semantic
+    LANE_CHAT_LINEAGE["chat_lineage"]:::semantic
+    LANE_DISCUSSION["discussion"]:::semantic
+    LANE_ANALYSIS["analysis"]:::semantic
+    LANE_PLAN["plan"]:::semantic
+    LANE_MODE["mode"]:::semantic
+    LANE_DOCS["docs"]:::semantic
+    LANE_DATA_EXCEL["data_excel"]:::semantic
+    LANE_PPT["ppt"]:::semantic
+    LANE_PDF_OCR["pdf_ocr"]:::semantic
+    LANE_IMAGES_OCR["images_ocr"]:::semantic
+    LANE_ARTIFACTS["artifacts"]:::semantic
+    LANE_CUSTOM["custom"]:::semantic
+    LANE_BRAIN_LOADER["brain_loader"]:::semantic
+    LANE_RESEARCH["research"]:::semantic
+    LANE_PROJECT_ENGULF["project_engulf"]:::semantic
+    LANE_SQLITE_BRAIN["sqlite_brain"]:::semantic
+  end
+  subgraph AUTHORITIES["Named and root authorities"]
+    direction TB
+    AUTH_AGENT_LEARNING["agent_learning"]:::semantic
+    AUTH_CANON_INPUT["canon_input"]:::semantic
+    AUTH_PROJECT_MEMORY["project_memory"]:::semantic
+    AUTH_PROJECT_OVERLAY["project_overlay"]:::semantic
+    AUTH_SOURCE_AUTHORITY["source_authority"]:::semantic
+    AUTH_PROJECT_UNIVERSE["project_universe"]:::semantic
+    AUTH_CONNECTOR_BRAIN["connector_brain"]:::semantic
+    AUTH_PROJECT_AUTHORITY["project_authority"]:::semantic
+    AUTH_RECEIPT_LEDGER["receipt_ledger"]:::semantic
+    AUTH_SESSION_AUTHORITY["session_authority"]:::semantic
+    AUTH_INSTRUCTIONS["instructions"]:::semantic
+  end
+  subgraph MEMORY["Separate memory roles"]
+    direction TB
+    MEMORY_SENSORY_LIVE_CAPTURE["sensory live capture"]:::semantic
+    MEMORY_TASK_WORKING_CONTEXT["task working context"]:::semantic
+    MEMORY_EPISODIC_CHAT_LINEAGE["episodic chat lineage"]:::semantic
+    MEMORY_SEMANTIC_PROJECT_MEMORY["semantic project memory"]:::semantic
+    MEMORY_ACCEPTED_LEARNING["accepted learning"]:::semantic
+    MEMORY_CANON_AND_PROJECT_TRUTH["canon and project truth"]:::semantic
+    MEMORY_HOST_INSTRUCTIONS_AND_RECALL["host instructions and recall"]:::semantic
+  end
+  subgraph TOOL_ROLES["Conditional tool role classes"]
+    direction TB
+    TOOLS_TASK_EXECUTION["Task Execution: 82 current rows"]:::semantic
+    TOOLS_TRANSPORT_OR_ORCHESTRATION["Transport Or Orchestration: 12 current rows"]:::semantic
+    TOOLS_OBSERVABILITY_OR_EVALUATION_ATTACHMENT["Observability Or Evaluation Attachment: 8 current rows"]:::semantic
+    TOOLS_EXTERNAL_SERVICE_OR_STORE["External Service Or Store: 17 current rows"]:::semantic
+  end
+  subgraph HOOK_TIMING["Codex host hook timing"]
+    direction TB
+    HOOK_SESSIONSTART["SessionStart: SESSION_ENTRY_BEFORE_VISIBLE_INPUT"]:::semantic
+    HOOK_SUBAGENTSTART["SubagentStart: OPTIONAL_SUBAGENT_ENTRY_OBSERVATION"]:::semantic
+    HOOK_USERPROMPTSUBMIT["UserPromptSubmit: BEFORE_MODEL_REASONING_AND_TOOL_SELECTION"]:::semantic
+    HOOK_PRETOOLUSE["PreToolUse: AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION"]:::warn
+    HOOK_PERMISSIONREQUEST["PermissionRequest: OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION"]:::semantic
+    HOOK_POSTTOOLUSE["PostToolUse: AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION"]:::semantic
+    HOOK_PRECOMPACT["PreCompact: BEFORE_CONTEXT_COMPACTION"]:::semantic
+    HOOK_POSTCOMPACT["PostCompact: AFTER_CONTEXT_COMPACTION_BEFORE_NEXT_ACTION"]:::semantic
+    HOOK_SUBAGENTSTOP["SubagentStop: OPTIONAL_SUBAGENT_EXIT_OBSERVATION"]:::semantic
+    HOOK_STOP["Stop: AFTER_VISIBLE_RESPONSE_BEFORE_NEXT_TURN"]:::warn
+    HOOK_SESSIONEND["SessionEnd: BEST_EFFORT_AFTER_SESSION_END"]:::semantic
+  end
+  subgraph ROUND_TRIP["Generated round-trip proof"]
+    direction TB
+    REGISTRIES["Executable registries"]:::output
+    GENERATED_GRAPH["Generated MMD + DOT"]:::output
+    PARSED_GRAPH["Strict parser round trip"]:::output
+    SQLITE_GRAPH["Owning SQLite topology"]:::output
+    REGENERATED_GRAPH["Regenerated graph + hash equality"]:::output
+  end
+  INTENT --> BOOT
+  BOOT --> FLASH
+  FLASH --> STATE_TRAVEL
+  STATE_TRAVEL --> SOURCE_INTAKE
+  SOURCE_INTAKE --> RECIPE
+  RECIPE --> MODE
+  MODE --> PLAN_GOAL
+  PLAN_GOAL --> DELTA_ENTRY
+  DELTA_ENTRY --> ATOMIC_WORK
+  ATOMIC_WORK --> MID_DELTA
+  MID_DELTA --> DELTA_EXIT
+  DELTA_EXIT --> REFRESH
+  REFRESH --> CANDIDATE
+  CANDIDATE --> HIL
+  MID_DELTA -->|"conditional: continue bounded work"| ATOMIC_WORK
+  HIL -->|"conditional: exact approval"| FUSE
+  HIL -->|"conditional: rollback decision"| ROLLBACK
+  HIL -->|"conditional: retain/research/reject/fail"| NEXT
+  FUSE --> NEXT
+  ROLLBACK --> NEXT
+  NEXT -->|"conditional: next Delta"| DELTA_ENTRY
+  NEXT -->|"conditional: next task"| STATE_TRAVEL
+  NEXT -->|"conditional: explicit close"| EXIT_BOOT
+  SKILL --> ACTION
+  ACTION --> SCHEMA
+  SCHEMA --> INTERNAL_SDK
+  INTERNAL_SDK --> ENV
+  ENV --> UOP
+  UOP --> AUTHORITY_RESOLVE
+  AUTHORITY_RESOLVE --> TOOL_RESOLVE
+  OUTER_SDK -->|"conditional: composition selected"| FASTMCP
+  OUTER_SDK -->|"conditional: compatibility required"| NATIVE_MCP
+  OUTER_SDK -->|"conditional: package-local"| AUTHORITY_RESOLVE
+  FASTMCP --> DOMAIN_MCP
+  NATIVE_MCP --> DOMAIN_MCP
+  HOOK_SESSIONSTART -->|"conditional: session entry"| INTENT
+  HOOK_SUBAGENTSTART -->|"conditional: optional observation"| SKILL
+  HOOK_USERPROMPTSUBMIT -->|"conditional: prepare entry"| SKILL
+  TOOL_RESOLVE -->|"prospective boundary"| HOOK_PRETOOLUSE
+  HOOK_PRETOOLUSE -->|"conditional: permission requested"| HOOK_PERMISSIONREQUEST
+  HOOK_PRETOOLUSE -->|"conditional: execute"| OUTER_SDK
+  HOOK_PERMISSIONREQUEST -->|"conditional: observed"| OUTER_SDK
+  DOMAIN_MCP -->|"tool result"| HOOK_POSTTOOLUSE
+  AUTHORITY_RESOLVE -->|"local result"| HOOK_POSTTOOLUSE
+  HOOK_POSTTOOLUSE -->|"receipt projection"| VALIDATE
+  RECEIPT -->|"conditional: compaction requested"| HOOK_PRECOMPACT
+  HOOK_PRECOMPACT -->|"conditional: host compacts"| HOOK_POSTCOMPACT
+  HOOK_POSTCOMPACT -->|"conditional: reentry"| SKILL
+  HOOK_SUBAGENTSTOP -->|"conditional: optional observation"| RECEIPT
+  RECEIPT -->|"visible response stops"| HOOK_STOP
+  HOOK_STOP -->|"conditional: session closes"| HOOK_SESSIONEND
+  VALIDATE --> RECEIPT
+  INTENT --> SKILL
+  RECEIPT -->|"work evidence"| MID_DELTA
+  RECEIPT -->|"conditional: exit evidence"| DELTA_EXIT
+  REFRESH --> AUTHORITY_RESOLVE
+  HOST_STABLE_CODEX --> SKILL
+  HOST_CODEX_BETA --> SKILL
+  HOST_CODEX_CLI --> SKILL
+  HOST_CODEX_VM --> SKILL
+  AUTHORITY_RESOLVE --> LANE_GITHUB_CODE
+  AUTHORITY_RESOLVE --> LANE_LOCAL_CODE
+  AUTHORITY_RESOLVE --> LANE_CHAT_LINEAGE
+  AUTHORITY_RESOLVE --> LANE_DISCUSSION
+  AUTHORITY_RESOLVE --> LANE_ANALYSIS
+  AUTHORITY_RESOLVE --> LANE_PLAN
+  AUTHORITY_RESOLVE --> LANE_MODE
+  AUTHORITY_RESOLVE --> LANE_DOCS
+  AUTHORITY_RESOLVE --> LANE_DATA_EXCEL
+  AUTHORITY_RESOLVE --> LANE_PPT
+  AUTHORITY_RESOLVE --> LANE_PDF_OCR
+  AUTHORITY_RESOLVE --> LANE_IMAGES_OCR
+  AUTHORITY_RESOLVE --> LANE_ARTIFACTS
+  AUTHORITY_RESOLVE --> LANE_CUSTOM
+  AUTHORITY_RESOLVE --> LANE_BRAIN_LOADER
+  AUTHORITY_RESOLVE --> LANE_RESEARCH
+  AUTHORITY_RESOLVE --> LANE_PROJECT_ENGULF
+  AUTHORITY_RESOLVE --> LANE_SQLITE_BRAIN
+  AUTHORITY_RESOLVE --> AUTH_AGENT_LEARNING
+  AUTHORITY_RESOLVE --> AUTH_CANON_INPUT
+  AUTHORITY_RESOLVE --> AUTH_PROJECT_MEMORY
+  AUTHORITY_RESOLVE --> AUTH_PROJECT_OVERLAY
+  AUTHORITY_RESOLVE --> AUTH_SOURCE_AUTHORITY
+  AUTHORITY_RESOLVE --> AUTH_PROJECT_UNIVERSE
+  AUTHORITY_RESOLVE --> AUTH_CONNECTOR_BRAIN
+  AUTHORITY_RESOLVE --> AUTH_PROJECT_AUTHORITY
+  AUTHORITY_RESOLVE --> AUTH_RECEIPT_LEDGER
+  AUTHORITY_RESOLVE --> AUTH_SESSION_AUTHORITY
+  AUTHORITY_RESOLVE --> AUTH_INSTRUCTIONS
+  AUTHORITY_RESOLVE -->|"conditional: typed receipt link"| MEMORY_SENSORY_LIVE_CAPTURE
+  AUTHORITY_RESOLVE -->|"conditional: typed receipt link"| MEMORY_TASK_WORKING_CONTEXT
+  AUTHORITY_RESOLVE -->|"conditional: typed receipt link"| MEMORY_EPISODIC_CHAT_LINEAGE
+  AUTHORITY_RESOLVE -->|"conditional: typed receipt link"| MEMORY_SEMANTIC_PROJECT_MEMORY
+  AUTHORITY_RESOLVE -->|"conditional: typed receipt link"| MEMORY_ACCEPTED_LEARNING
+  AUTHORITY_RESOLVE -->|"conditional: typed receipt link"| MEMORY_CANON_AND_PROJECT_TRUTH
+  AUTHORITY_RESOLVE -->|"conditional: typed receipt link"| MEMORY_HOST_INSTRUCTIONS_AND_RECALL
+  TOOL_RESOLVE --> TOOLS_TASK_EXECUTION
+  TOOLS_TASK_EXECUTION --> HOOK_POSTTOOLUSE
+  TOOL_RESOLVE --> TOOLS_TRANSPORT_OR_ORCHESTRATION
+  TOOLS_TRANSPORT_OR_ORCHESTRATION --> OUTER_SDK
+  TOOL_RESOLVE --> TOOLS_OBSERVABILITY_OR_EVALUATION_ATTACHMENT
+  TOOLS_OBSERVABILITY_OR_EVALUATION_ATTACHMENT --> OUTER_SDK
+  TOOL_RESOLVE --> TOOLS_EXTERNAL_SERVICE_OR_STORE
+  TOOLS_EXTERNAL_SERVICE_OR_STORE --> OUTER_SDK
+  REGISTRIES --> GENERATED_GRAPH
+  GENERATED_GRAPH --> PARSED_GRAPH
+  PARSED_GRAPH --> SQLITE_GRAPH
+  SQLITE_GRAPH --> REGENERATED_GRAPH
+  REGENERATED_GRAPH -->|"conditional: coverage proof"| REGISTRIES
+  RECEIPT -->|"refresh source graph"| REGISTRIES
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  LANE_GITHUB_CODE ~~~ LANE_LOCAL_CODE
+  LANE_LOCAL_CODE ~~~ LANE_CHAT_LINEAGE
+  LANE_CHAT_LINEAGE ~~~ LANE_DISCUSSION
+  LANE_DISCUSSION ~~~ LANE_ANALYSIS
+  LANE_PLAN ~~~ LANE_MODE
+  LANE_MODE ~~~ LANE_DOCS
+  LANE_DOCS ~~~ LANE_DATA_EXCEL
+  LANE_DATA_EXCEL ~~~ LANE_PPT
+  LANE_PDF_OCR ~~~ LANE_IMAGES_OCR
+  LANE_IMAGES_OCR ~~~ LANE_ARTIFACTS
+  LANE_ARTIFACTS ~~~ LANE_CUSTOM
+  LANE_CUSTOM ~~~ LANE_BRAIN_LOADER
+  LANE_RESEARCH ~~~ LANE_PROJECT_ENGULF
+  LANE_PROJECT_ENGULF ~~~ LANE_SQLITE_BRAIN
+  AUTH_AGENT_LEARNING ~~~ AUTH_CANON_INPUT
+  AUTH_CANON_INPUT ~~~ AUTH_PROJECT_MEMORY
+  AUTH_PROJECT_MEMORY ~~~ AUTH_PROJECT_OVERLAY
+  AUTH_SOURCE_AUTHORITY ~~~ AUTH_PROJECT_UNIVERSE
+  AUTH_PROJECT_UNIVERSE ~~~ AUTH_CONNECTOR_BRAIN
+  AUTH_CONNECTOR_BRAIN ~~~ AUTH_PROJECT_AUTHORITY
+  AUTH_RECEIPT_LEDGER ~~~ AUTH_SESSION_AUTHORITY
+  AUTH_SESSION_AUTHORITY ~~~ AUTH_INSTRUCTIONS
+  MEMORY_SENSORY_LIVE_CAPTURE ~~~ MEMORY_TASK_WORKING_CONTEXT
+  MEMORY_TASK_WORKING_CONTEXT ~~~ MEMORY_EPISODIC_CHAT_LINEAGE
+  MEMORY_SEMANTIC_PROJECT_MEMORY ~~~ MEMORY_ACCEPTED_LEARNING
+  MEMORY_ACCEPTED_LEARNING ~~~ MEMORY_CANON_AND_PROJECT_TRUTH
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

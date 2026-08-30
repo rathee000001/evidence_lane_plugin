@@ -26,7 +26,6 @@ HISTORICAL_OR_DEPENDENCY_FILES = {
     "apps/evidence-lane-app/app/_components/delta-ledger-explorer.tsx",
     "apps/evidence-lane-app/app/_components/source-brain-lab.tsx",
     "apps/evidence-lane-app/app/_data/delta-ledger.ts",
-    "apps/evidence-lane-app/app/_data/governed-linked-deltas.ts",
     "apps/evidence-lane-app/app/_data/website-current-execution.ts",
     "apps/evidence-lane-app/app/page.tsx",
     "apps/evidence-lane-app/pnpm-lock.yaml",

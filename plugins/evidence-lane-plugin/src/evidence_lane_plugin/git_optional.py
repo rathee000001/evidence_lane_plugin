@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import importlib.util
 import os
-import shutil
 import subprocess  # nosec B404
 from pathlib import Path
 from typing import Any
 
 from .errors import EvidenceLaneError, require
+from .git_adapter import try_resolve_git_executable
 
 GIT_ARM_MODES = ("AUTO", "REQUIRED", "DISABLED")
 
@@ -83,12 +83,12 @@ def probe_git_arm(
             "status": "PASS",
             "state": "DISABLED_BY_USER",
             "history_index_enabled": False,
-            "git_executable_available": bool(shutil.which("git")),
+            "git_executable_available": bool(try_resolve_git_executable(root)),
             "repository_is_git": None,
             "reason": "The user disabled Git enrichment for this intake.",
         }
 
-    executable = shutil.which("git")
+    executable = try_resolve_git_executable(root)
     if not executable:
         if mode == "REQUIRED":
             raise EvidenceLaneError(

@@ -4,8 +4,8 @@
   "lane_id": "project_engulf",
   "sqlite_filename": "project_engulf_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 41,
-  "schema_contract_table_count": 31,
+  "sqlite_table_count": 40,
+  "schema_contract_table_count": 32,
   "members": [
     {
       "path": "authorities/project_sectors/project_engulf/builder-contract.schema.json",
@@ -24,8 +24,8 @@
     },
     {
       "path": "authorities/project_sectors/project_engulf/lane-contract.v1.json",
-      "bytes": 8070,
-      "sha256": "65E72DC89F5B313325AC60B00ACF095277ADF5502B53969ED6A5F1DA5A07D8F0"
+      "bytes": 9056,
+      "sha256": "9B4FAA4B134844CEBDC764BCE6382CD48877CF71EA0E80BCAE177D162E25B935"
     },
     {
       "path": "authorities/project_sectors/project_engulf/lane-pointer.schema.json",
@@ -44,18 +44,18 @@
     },
     {
       "path": "authorities/project_sectors/project_engulf/project_engulf.dot",
-      "bytes": 20728,
-      "sha256": "EF0D104E1D754A711048FF23CADA501AFB64B9264A4414698A650C3648694DE1"
+      "bytes": 21820,
+      "sha256": "2D5B845F496BBF44F22DC8CA361A041362A94C99E31C1F1A66839BD089B172B7"
     },
     {
       "path": "authorities/project_sectors/project_engulf/project_engulf.mmd",
-      "bytes": 16524,
-      "sha256": "CD37B0F3A93A9EDF082E055DDC550C2CF004F3B638A4A29EBA1EE78345062C05"
+      "bytes": 17335,
+      "sha256": "06E4C6660626676C2CC44068FA8C333670A6317517F3575E5E3B80829D7C6B37"
     },
     {
       "path": "authorities/project_sectors/project_engulf/project_engulf_sector_v001.sqlite",
-      "bytes": 262144,
-      "sha256": "60FA70BC044B887BA9D904164B95AE5128507B66FBC4E38A5E61E481885C57B6"
+      "bytes": 266240,
+      "sha256": "B2749DE5E55D0282815C23EDAC05FADBB175D6C0643630048EBEB3B8ECEE8FE4"
     },
     {
       "path": "authorities/project_sectors/project_engulf/reader-contract.schema.json",
@@ -79,8 +79,8 @@
     },
     {
       "path": "authorities/project_sectors/project_engulf/schema.sql",
-      "bytes": 10585,
-      "sha256": "0B6984C3E962CDFABBCB986D324AE9F2BB8C04E405AF418FE59665B01BEDB01E"
+      "bytes": 11172,
+      "sha256": "1C6452C71D36517682D2FA1A8394494B5DC6838F059DBB2960913C8A84BD2EE1"
     },
     {
       "path": "authorities/project_sectors/project_engulf/sqlite-artifact.schema.json",
@@ -89,19 +89,34 @@
     },
     {
       "path": "authorities/project_sectors/project_engulf/tools.json",
-      "bytes": 1156,
-      "sha256": "B3D8A36CA9303B24070BDE791AA71C2F28A4FB8D9B98C0964D51E0BC0058CE61"
+      "bytes": 15247,
+      "sha256": "10329F047D19EFD89F0138CA3A05FBDAE9A7A3FEB5FD3B4F03B562B113C2CDA2"
     },
     {
       "path": "authorities/project_sectors/project_engulf/tools.schema.json",
-      "bytes": 1013,
-      "sha256": "DF9605906CEDB4200C38E54DAD7F02A4D43BB8B306223810D2C5A5D9AF1AACD4"
+      "bytes": 1459,
+      "sha256": "BE2539DC8C40056DAF280002304D98B26ECC58DCD9289F1752833F9BEC7F333F"
+    },
+    {
+      "path": "authorities/project_sectors/project_engulf/workflow.dot",
+      "bytes": 6471,
+      "sha256": "192A249657C53B713488EDAA402FF37E26B1FEE1D38272E09C4179D89DB1AB17"
+    },
+    {
+      "path": "authorities/project_sectors/project_engulf/workflow.mmd",
+      "bytes": 5030,
+      "sha256": "48B44E1ED9EDBB7011B7AF8502F4F280EDBCC645D41820C380C5BB2FE690BAC1"
+    },
+    {
+      "path": "authorities/project_sectors/project_engulf/workflow.v1.json",
+      "bytes": 31734,
+      "sha256": "26C9FA5DA8663A2EF10E9CACA4CE3AD9DA783EBD0EE4FB12644CD8F7388A9FB7"
     }
   ],
-  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "33F512299C3D303C8410E68527920466C51E53E150679177DE9F61B208C51F3A"
+  "receipt_sha256": "6EA635586E8E0AAF200091A0ACEBADF54A93BF05B77D15D23E5AD4C320289001"
 }

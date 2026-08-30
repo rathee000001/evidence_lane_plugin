@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.live_root_normalization",
   "source_path": "src/evidence_lane_plugin/live_root_normalization.py",
-  "source_sha256": "3D8B101D84E194715A55045D669B52E4C882BC63168753B09C79BC6A8DB90FA6",
-  "source_bytes": 22355,
+  "source_sha256": "492474850896062539237BBF405D61C8FAA9A9FE8FBC8464D61CD8FF7809F4D3",
+  "source_bytes": 24065,
   "role": "PROJECT_AUTHORITIES",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "C022227ECC9AA107DE4862F1C4248D50DF081ECB5EA44328D72F3BBCC30FD458"
+  "receipt_sha256": "42E2887E2B4B47A6D25301224933287217DE7B543513239BBD96D25F829ABB2E"
 }

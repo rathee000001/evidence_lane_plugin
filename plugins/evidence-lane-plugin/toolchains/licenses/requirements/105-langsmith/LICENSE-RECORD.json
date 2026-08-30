@@ -1,0 +1,28 @@
+{
+  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "status": "PASS",
+  "ordinal": 105,
+  "tool": "LangSmith",
+  "requirement": "REQUIRED_DEPENDENCY",
+  "classification": "PYTHON_OR_HOST_DISTRIBUTION",
+  "install_mode": "locked_hidden_runtime_or_applicable_build_gate",
+  "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+  "license_evidence": "runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256",
+  "evidence_paths": [
+    "requirements.lock.txt",
+    "requirements.onnx-directml.lock.txt",
+    "requirements.toolchain.lock.txt",
+    "requirements.torch-cpu.lock.txt",
+    "requirements.torch-nvidia.lock.txt"
+  ],
+  "redistributed_by_source_package": false,
+  "source_package_copied_license_text_present": false,
+  "source_package_copied_license_texts": [],
+  "native_license_acquisition": null,
+  "runtime_distribution_license_required": true,
+  "runtime_distribution_license_manifest": "%RUNTIME_CONTROL_ROOT%/runtime/licenses/<runtime_key>/manifest.v1.json",
+  "runtime_distribution_license_files_must_be_copied_before_use": true,
+  "metadata_without_a_license_file_is_labeled_metadata_only": true,
+  "mcp_inventory_separate": true,
+  "receipt_sha256": "EA1C212BFB1D95DBA1229D87A682137F6195B23D5A7FCAC85CAB98706C86B6F5"
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.plugin_architecture",
+  "source_path": "src/evidence_lane_plugin/plugin_architecture.py",
+  "source_sha256": "585A434DDD7A2176294607D030910D29FEE7F3CFBAEA62FDA46CC2A0B2D0C1F8",
+  "source_bytes": 81657,
+  "role": "SDK_AND_ROUTING",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "286E24BBC28A70DDDC3AE8BC67925EB716E618DFCA1F91A52F4712C8CE0A3B79"
+}

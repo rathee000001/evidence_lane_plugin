@@ -23,6 +23,7 @@ from .authority_support import refresh_authority_support
 from .capture_routing import CaptureRouteAuthority, normalize_capture_route
 from .constants import POINTER_SCHEMA, PROJECT_REGISTRY_SCHEMA
 from .errors import EvidenceLaneError, require
+from .git_adapter import resolve_git_executable
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes, sha256_file
 from .lanes import CANONICAL_LANE_IDS
 from .models import ActivePointer, ProjectConfig
@@ -4332,7 +4333,7 @@ class ProjectStore:
             "non_executable_statuses": sorted(
                 set(DELTA_STATUSES) - set(_GOAL_STATUS_BY_LIFECYCLE)
             ),
-            "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
+            "persistent_until": "NEXT_GOVERNED_HIL_PRESENTED",
             "steer_default_boundary": "BEFORE_NEXT_HIL",
             "linked_steer_policy": "APPEND_TO_EXISTING_STEP_WITHOUT_REPLACEMENT",
             "unlinked_steer_policy": (
@@ -4377,7 +4378,7 @@ class ProjectStore:
                 "DROPPED, SUPERSEDED, REJECTED, FAILED, and ROLLED_BACK rows remain "
                 "immutable non-executable Plan history. Keep the full executable "
                 "task panel visible through every steer, and stop at the next "
-                "governed six-way HIL."
+                "governed governed HIL."
             ),
         }
         return {
@@ -9382,7 +9383,7 @@ class ProjectStore:
 
         def git(*arguments: str, cwd: Path = repository) -> subprocess.CompletedProcess[str]:
             return subprocess.run(
-                ["git", "-C", str(cwd), *arguments],
+                [resolve_git_executable(repository), "-C", str(cwd), *arguments],
                 check=True,
                 capture_output=True,
                 text=True,
@@ -9402,7 +9403,7 @@ class ProjectStore:
         workspace.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(
             [
-                "git",
+                resolve_git_executable(repository),
                 "clone",
                 "--no-hardlinks",
                 "--no-checkout",

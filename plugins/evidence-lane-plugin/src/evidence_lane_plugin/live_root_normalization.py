@@ -15,6 +15,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
+from .compact_storage import compress_exact_bytes, decompress_exact_bytes
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .lanes import LANE_REGISTRY
 from .receipt_ledger import (
@@ -259,18 +260,27 @@ def plan_live_root_normalization(project_root: str | Path) -> dict[str, Any]:
 def _initialize_exact_file_table(connection: sqlite3.Connection) -> None:
     connection.executescript(
         """
+        CREATE TABLE IF NOT EXISTS authority_file_content_cas(
+            source_sha256 TEXT PRIMARY KEY,
+            byte_count INTEGER NOT NULL CHECK(byte_count >= 0),
+            compression TEXT NOT NULL,
+            compressed_bytes BLOB NOT NULL,
+            first_migrated_at TEXT NOT NULL
+        ) STRICT;
         CREATE TABLE IF NOT EXISTS authority_file_migration(
             logical_path TEXT PRIMARY KEY,
             source_relative_path TEXT NOT NULL,
-            source_sha256 TEXT NOT NULL,
+            source_sha256 TEXT NOT NULL
+                REFERENCES authority_file_content_cas(source_sha256),
             byte_count INTEGER NOT NULL,
-            exact_bytes BLOB NOT NULL,
             migrated_at TEXT NOT NULL
         ) STRICT;
         CREATE VIRTUAL TABLE IF NOT EXISTS authority_file_migration_fts USING fts5(
             logical_path,
             source_relative_path,
             payload_text,
+            content='',
+            contentless_delete=1,
             tokenize='unicode61'
         );
         """
@@ -349,40 +359,73 @@ def _ingest_generic(
             data = source.read_bytes()
             if sha256_bytes(data) != row["sha256"] or len(data) != row["byte_count"]:
                 raise RuntimeError("LIVE_ROOT_NORMALIZATION_SOURCE_CHANGED")
+            migrated_at = utc_now()
+            compression, compressed_bytes = compress_exact_bytes(data)
             connection.execute(
-                "INSERT OR IGNORE INTO authority_file_migration VALUES(?,?,?,?,?,?)",
+                "INSERT OR IGNORE INTO authority_file_content_cas "
+                "VALUES(?,?,?,?,?)",
+                (
+                    row["sha256"],
+                    row["byte_count"],
+                    compression,
+                    compressed_bytes,
+                    migrated_at,
+                ),
+            )
+            connection.execute(
+                "INSERT OR IGNORE INTO authority_file_migration VALUES(?,?,?,?,?)",
                 (
                     row["logical_path"],
                     row["source_relative_path"],
                     row["sha256"],
                     row["byte_count"],
-                    data,
-                    utc_now(),
+                    migrated_at,
                 ),
             )
             stored = connection.execute(
-                "SELECT source_sha256,byte_count,exact_bytes "
-                "FROM authority_file_migration WHERE logical_path=?",
+                "SELECT m.source_sha256,m.byte_count,c.compression,"
+                "c.compressed_bytes FROM authority_file_migration AS m "
+                "JOIN authority_file_content_cas AS c "
+                "ON c.source_sha256=m.source_sha256 WHERE m.logical_path=?",
                 (row["logical_path"],),
             ).fetchone()
             if (
                 stored is None
                 or str(stored[0]) != row["sha256"]
                 or int(stored[1]) != row["byte_count"]
-                or sha256_bytes(bytes(stored[2])) != row["sha256"]
+                or decompress_exact_bytes(
+                    compression=str(stored[2]),
+                    payload=bytes(stored[3]),
+                    expected_size=int(stored[1]),
+                    expected_sha256=str(stored[0]),
+                )
+                != data
             ):
                 raise RuntimeError("LIVE_ROOT_NORMALIZATION_READBACK_MISMATCH")
             try:
                 payload_text = data.decode("utf-8")
             except UnicodeDecodeError:
                 payload_text = ""
-            connection.execute(
-                "DELETE FROM authority_file_migration_fts WHERE logical_path=?",
-                (row["logical_path"],),
+            fts_rowid = int(
+                connection.execute(
+                    "SELECT rowid FROM authority_file_migration WHERE logical_path=?",
+                    (row["logical_path"],),
+                ).fetchone()[0]
             )
             connection.execute(
-                "INSERT INTO authority_file_migration_fts VALUES(?,?,?)",
-                (row["logical_path"], row["source_relative_path"], payload_text),
+                "DELETE FROM authority_file_migration_fts WHERE rowid=?",
+                (fts_rowid,),
+            )
+            connection.execute(
+                "INSERT INTO authority_file_migration_fts("
+                "rowid,logical_path,source_relative_path,payload_text) "
+                "VALUES(?,?,?,?)",
+                (
+                    fts_rowid,
+                    row["logical_path"],
+                    row["source_relative_path"],
+                    payload_text,
+                ),
             )
         integrity = [str(value[0]) for value in connection.execute("PRAGMA integrity_check")]
         if integrity != ["ok"]:

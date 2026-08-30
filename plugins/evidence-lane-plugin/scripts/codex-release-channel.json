@@ -90,9 +90,9 @@
         "native_actions": 91,
         "read_actions": 30,
         "write_actions": 61,
-        "governed_skills": 25,
+        "governed_skills": 26,
         "hook_events": 11,
-        "migrated_command_skills": 26
+        "separate_command_layer_present": false
       },
       "installed_ui_readback_required_before_pv13_hil": true,
       "main_git_release_slot_mutation_allowed": true,
@@ -559,13 +559,13 @@
     "force_push_allowed": false
   },
   "promotion_gate": {
-    "explicit_six_way_hil_required": true,
+    "explicit_authority_hil_required": true,
     "fail_closed_on_version_mismatch": true,
     "required_catalog": {
       "tools": 91,
       "read": 30,
       "write": 61,
-      "skills": 25
+      "skills": 26
     },
     "mode": "CODE",
     "ci_cd_law": "CONTROLLED_REQUIRED",

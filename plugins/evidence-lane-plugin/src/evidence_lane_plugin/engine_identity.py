@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import re
-import shutil
 import sqlite3
 
 # Required for a fixed-argv Git identity probe; shell is never used.
@@ -14,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from .constants import ENGINE_VERSION, SCHEMA_VERSION
+from .git_adapter import try_resolve_git_executable
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .models import EngineIdentity
 from .search_toolchain import declared_search_toolchain_identity
@@ -218,8 +218,8 @@ def write_embedded_release_commit(
 
 
 def git_source_commit(repository_root: str | Path) -> str:
-    git_executable = shutil.which("git")
     root = Path(repository_root).resolve()
+    git_executable = try_resolve_git_executable(root)
     if git_executable:
         direct = _direct_git_commit(git_executable, root)
         if direct is not None:

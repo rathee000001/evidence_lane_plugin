@@ -1,0 +1,79 @@
+digraph skill_evi_learning {
+  // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
+  // PYTHON_GRAPHVIZ_VERSION=0.21
+  bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
+  node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
+  edge [color="#667085" fontname=Arial]
+  ENTRY [label="evi-learning intent" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
+  EXIT [label="Exact result / stop / next workflow" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  subgraph cluster_wf_learning_authority_read {
+    label="learning-authority-read" rankdir=TB
+    WF_LEARNING_AUTHORITY_READ_START [label="learning-authority-read" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_LEARNING_AUTHORITY_READ_ACTION_001 [label="1. pv_status [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_LEARNING_AUTHORITY_READ_ACTION_002 [label="2. pv_task_backlog [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_LEARNING_AUTHORITY_READ_ACTION_003 [label="3. pv_query [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_LEARNING_AUTHORITY_READ_ACTION_004 [label="4. learning_inspect [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_LEARNING_AUTHORITY_READ_ACTION_005 [label="4. learning_retrieve [['GOVERNANCE', 'RETRIEVAL']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_learning_host_memory_import {
+    label="learning-host-memory-import" rankdir=TB
+    WF_LEARNING_HOST_MEMORY_IMPORT_START [label="learning-host-memory-import" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_LEARNING_HOST_MEMORY_IMPORT_ACTION_001 [label="5. learning_record_host_memory_import [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_learning_candidate {
+    label="learning-candidate" rankdir=TB
+    WF_LEARNING_CANDIDATE_START [label="learning-candidate" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_LEARNING_CANDIDATE_ACTION_001 [label="6. learning_seal_candidate [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_LEARNING_CANDIDATE_ACTION_002 [label="7. learning_decide_candidate [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_learning_revoke {
+    label="learning-revoke" rankdir=TB
+    WF_LEARNING_REVOKE_START [label="learning-revoke" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_LEARNING_REVOKE_ACTION_001 [label="8. learning_revoke [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_execution {
+    label="Shared typed execution contract" rankdir=TB
+    SCHEMA [label="Current input/output schema" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    INTERNAL_SDK [label="Internal SDK execution owner" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ENV [label="ENV15 environment selection" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    UOP [label="UOP15 governance and gates" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+    AUTHORITY [label="Owning authority and lane" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    TOOLS [label="Conditional tool role resolution" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    OUTER [label="Outer SDK / FastMCP / native compatibility" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    HOOKS [label="Only emitted ordered hooks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    VALIDATE [label="Validate schema, result and effects" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+    RECEIPT [label="Exact receipt" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  }
+  ENTRY -> WF_LEARNING_AUTHORITY_READ_START
+  WF_LEARNING_AUTHORITY_READ_START -> WF_LEARNING_AUTHORITY_READ_ACTION_001
+  WF_LEARNING_AUTHORITY_READ_ACTION_001 -> WF_LEARNING_AUTHORITY_READ_ACTION_002 [label="ordered action"]
+  WF_LEARNING_AUTHORITY_READ_ACTION_002 -> WF_LEARNING_AUTHORITY_READ_ACTION_003 [label="ordered action"]
+  WF_LEARNING_AUTHORITY_READ_ACTION_003 -> WF_LEARNING_AUTHORITY_READ_ACTION_004 [label="ordered action"]
+  WF_LEARNING_AUTHORITY_READ_ACTION_004 -> WF_LEARNING_AUTHORITY_READ_ACTION_005 [label="ordered action"]
+  ENTRY -> WF_LEARNING_HOST_MEMORY_IMPORT_START
+  WF_LEARNING_HOST_MEMORY_IMPORT_START -> WF_LEARNING_HOST_MEMORY_IMPORT_ACTION_001
+  ENTRY -> WF_LEARNING_CANDIDATE_START
+  WF_LEARNING_CANDIDATE_START -> WF_LEARNING_CANDIDATE_ACTION_001
+  WF_LEARNING_CANDIDATE_ACTION_001 -> WF_LEARNING_CANDIDATE_ACTION_002 [label="ordered action"]
+  ENTRY -> WF_LEARNING_REVOKE_START
+  WF_LEARNING_REVOKE_START -> WF_LEARNING_REVOKE_ACTION_001
+  SCHEMA -> INTERNAL_SDK
+  INTERNAL_SDK -> ENV
+  ENV -> UOP
+  UOP -> AUTHORITY
+  AUTHORITY -> TOOLS
+  TOOLS -> OUTER
+  OUTER -> HOOKS
+  HOOKS -> VALIDATE
+  VALIDATE -> RECEIPT
+  WF_LEARNING_AUTHORITY_READ_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_LEARNING_AUTHORITY_READ_ACTION_002 -> SCHEMA [label="typed execution"]
+  WF_LEARNING_AUTHORITY_READ_ACTION_003 -> SCHEMA [label="typed execution"]
+  WF_LEARNING_AUTHORITY_READ_ACTION_004 -> SCHEMA [label="typed execution"]
+  WF_LEARNING_AUTHORITY_READ_ACTION_005 -> SCHEMA [label="typed execution"]
+  WF_LEARNING_HOST_MEMORY_IMPORT_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_LEARNING_CANDIDATE_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_LEARNING_CANDIDATE_ACTION_002 -> SCHEMA [label="typed execution"]
+  WF_LEARNING_REVOKE_ACTION_001 -> SCHEMA [label="typed execution"]
+  RECEIPT -> EXIT
+}

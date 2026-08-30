@@ -34,6 +34,18 @@ def _plugin_fixture(tmp_path: Path) -> Path:
         "graphviz==0.21 --hash=sha256:" + "b" * 64 + "\n",
         encoding="utf-8",
     )
+    (plugin / "requirements.torch-cpu.lock.txt").write_text(
+        "torch==2.10.0 --hash=sha256:" + "c" * 64 + "\n",
+        encoding="utf-8",
+    )
+    (plugin / "requirements.torch-nvidia.lock.txt").write_text(
+        "torch==2.10.0 --hash=sha256:" + "d" * 64 + "\n",
+        encoding="utf-8",
+    )
+    (plugin / "requirements.onnx-directml.lock.txt").write_text(
+        "onnxruntime-directml==1.24.4 --hash=sha256:" + "e" * 64 + "\n",
+        encoding="utf-8",
+    )
     return plugin
 
 

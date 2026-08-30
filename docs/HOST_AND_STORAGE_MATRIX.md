@@ -1,82 +1,76 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v3 -->
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / registry-derived-v1 -->
 
 # Host and storage matrix
 
-Evidence Lane classifies host capability, storage durability, interaction
-profile, VM lifetime, account tier, and billing as independent axes. Reduced
-host capability never expands lifecycle authority.
+Host profile, lifetime, storage durability, model, reasoning effort, account tier, and transport are separate axes. None changes HIL law.
 
-## Execution profiles
+Current counts are derived release facts, not permanent ceilings.
 
-| Execution profile | Primary project runtime | Native transport | Optional support tunnel |
-| --- | --- | --- | --- |
-| Durable Codex desktop on a local host | User-owned durable SQLite | Package-local native MCP | Not required |
-| Local Codex CLI | User-owned durable SQLite | Package-local native MCP | Not required |
-| Headless API/CLI on a persistent host | Durable local filesystem/SQLite | Native API/MCP route | Not required |
-| Ephemeral VM with a durable mount | SQLite on the durable mount | Native API/MCP route | Not required |
-| Ephemeral VM without a durable mount | Explicit transactional durable connector | Native API/MCP route | Not required |
-| Interactive Codex app on an ephemeral VM | Durable mount or transactional connector | Package-local native MCP | One VM-lifetime tunnel only when the capability receipt requires it |
-| Review-only client | No execution authority | Receipt reads only | None |
+| Host profile | Durable project authority | Transport |
+| --- | --- | --- |
+| Codex Desktop, persistent local host | Project-scoped local SQLite | Native/local route; tunnel only for a proven gap |
+| Codex CLI, persistent local host | Project-scoped local SQLite | Native/local route or version-bound tunnel |
+| Persistent Codex VM | Mounted/local durable SQLite | Direct transport when available |
+| Ephemeral Codex VM with durable mount | Mounted SQLite | Exact VM-lifetime route |
+| Ephemeral Codex VM without durable mount | Explicit transactional connector | Fail closed without durable storage |
 
-Stable Codex (`OpenAI.Codex_2p2nqsd0c76g0!App`) and Codex Beta
-(`OpenAI.CodexBeta_2p2nqsd0c76g0!App`) are exact app variants of the same
-`CODEX_DESKTOP` host profile. They use the same plugin contract and one
-host-wide tunnel. The tunnel is never duplicated per app, project, or task.
+The current host plane is Codex Desktop, Codex CLI, and Codex VM. ChatGPT and external model-agent planes are not mixed into this package. A caller-supplied PID, title, CWD, or host ID is not runtime attestation.
 
-A website, package name, process title, current directory, account tier, or
-running tunnel is not active-host proof. The runtime receipt binds the Codex
-surface, container channel, workspace class, model/reasoning/service profile,
-project/session/workspace/host-session namespace, storage route, and exposed
-native capabilities.
+The maintainer release registry exposes exactly two selectors: the verified Git-main stable slot and the versioned local-testing slot. Selector identity is a locator, not Project/PV, Plan, Goal, HIL, or runtime attestation.
 
-## Durable and ephemeral entry
+A storage connector owns persistence only for its explicit grant. It never becomes Project Truth, Plan, Goal, HIL, or MCP authority. Secrets remain in the host secret provider and are referenced by opaque handles only.
 
-Durable local SQLite reuses the exact project authority directly. An ephemeral
-or stateless route must consume one expiring transactional host-entry envelope
-before governed work. The envelope binds:
+## Source-bound workflow map
 
-- accepted PV and pointer generation;
-- active Plan row and task identity;
-- source/destination task UUIDs and deep links;
-- dirty and untracked worktree hashes;
-- locked ENV/UOP projection; and
-- separate Project Truth, Canon, AI Learning, ChatLineage, and Memory heads.
+This page is projected from the same current executable snapshot as the rest of the documentation set. The map is deliberately two-directional: each horizontal district shows peer stages while vertical edges show ownership and state progression.
 
-An exact retry may return the prior consumption receipt. A different consumer,
-pointer generation, worktree, candidate overlay, or authority head fails
-closed. Google Drive may carry a sealed artifact but cannot replace the
-transactional runtime, sessions, Plan, candidates, receipts, or pointer CAS.
+```mermaid
+flowchart TB
+    subgraph InputDistrict["Input and classification"]
+      direction LR
+      A["Observed Codex host"] --> B["Lifetime and capability classification"] --> C["ENV host profile"]
+    end
+    subgraph ExecutionDistrict["Selection and execution"]
+      direction TB
+      D["Durable storage selection"] --> E["Local, mounted, or connector route"] --> F["Runtime attestation and integrity"]
+    end
+    subgraph EvidenceDistrict["Evidence and outcome"]
+      direction LR
+      G["Host and storage receipt"] --> H["Boot/resume eligibility"]
+      G -. mismatch .-> I["Fail closed without durable authority"]
+    end
+    C --> D
+    F --> G
+```
 
-## Multi-project isolation
+## Contract and readback
 
-Every project-scoped operation requires an exact `project_id` and resolves
-only under `<configured-store-root>/projects/<project_id>`. The hidden runtime
-registry retains multiple project/task bindings while one project-neutral
-tunnel transports their calls. Each running task remains isolated by its exact
-app, task UUID, deep link, workspace, session, and host identity. One helper
-invocation cannot redirect another project or another running Codex app.
+| Phase | Current contract | Required readback |
+| --- | --- | --- |
+| Input | Observed Codex host | Exact identity, provenance, and scope |
+| Classification | Lifetime and capability classification | Owning schema, action, lane, skill, or authority |
+| Owner | ENV host profile | One canonical implementation owner |
+| Route | Durable storage selection | Condition-true ordered route with no hidden alias |
+| Execution | Local, mounted, or connector route | Real execution or a visible fail-closed result |
+| Validation | Runtime attestation and integrity | Hash, schema, authority-effect, and negative-case checks |
+| Receipt | Host and storage receipt | Content-addressed result and provenance receipt |
+| Downstream | Boot/resume eligibility | Only the explicitly eligible next state |
+| Failure | Fail closed without durable authority | No inferred HIL, candidate acceptance, or pointer movement |
 
-## Plugin channel matrix
+## Canonical source owners
 
-Maintainer testing uses two registered roles:
+- `env/authority-manifest.v1.json`
+- `schemas/install/local-install.v1.json`
+- `src/evidence_lane_plugin/storage_connector.py`
 
-| Role | Authority |
-| --- | --- |
-| Local verified successor | Current local source/package under active development |
-| Git release | Exact accepted/main release package |
+## Cross-surface invariants
 
-Only one role is active for one task runtime. A slot switch requires exact
-installed-byte, catalog, hook, runtime/tunnel, and task-binding readback after
-the host restart. A transient error is insufficient to switch. Historical
-packages remain provenance outside the active selectors.
+- The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.
+- Executable ownership stays one-way: skills select, MCP exposes, the outer SDK routes, the internal SDK executes, ENV selects, UOP governs, tools perform bounded work, hooks emit receipts, and the owning authority validates effects.
+- Any missing identity, schema, grant, capability, dependency, receipt, or authority proof must fail closed at its owning phase; a later green check cannot retroactively authorize the skipped boundary.
+- A changed route refreshes every dependent schema, manifest, generator, test, diagram, and documentation reference; the superseded executable route is directly purged in the same Delta.
+- Tests, Git, CI, installation, restart, deployment, discussion, or a rendered page never imply Project HIL, Learning HIL, Goal completion, or pointer movement.
 
-Downstream users receive one verified plugin release. Maintainer development
-uses exactly two selectors: verified Git main and one mutable local testing
-slot; no third recovery selector is a current execution route.
+---
 
-## ENV/UOP and storage
-
-Every Boot or supported exact-task reattachment flashes the exact locked ENV/UOP authority for the selected
-host mode. ENV/UOP may route operators and storage, but its bytes are not
-embedded in a Project PV or returned as ordinary user data. Account plan and
-API billing never choose the storage connector or change HIL law.
+This page is a Git-tracked documentation projection. Executable source, SQLite authorities, installed-runtime receipts, and explicit human gates remain the governing evidence.

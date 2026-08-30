@@ -6,18 +6,18 @@ description: Govern bounded task-to-task Canon exchanges, linked top-level tasks
 # Evidence Lane Canon
 
 First apply the shared installed lifecycle contract in
-`../evidence-lane-code-lifecycle/SKILL.md`; this skill narrows that contract to
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`; this skill narrows that contract to
 the separate Canon authority and never widens lifecycle permission.
 
 Canon is a project-isolated coordination authority. It carries immutable,
 typed input and result envelopes between exact task UUID/deep-link nodes. It is
 not Project Truth, Agent Learning, the internal SDK, ChatLineage, a Plan Delta,
-State Travel, source-write authority, or a Project six-way HIL decision.
+State Travel, source-write authority, or a Project governed HIL decision.
 
 ## Required intake
 
 Run `pv_status`, `pv_task_backlog`, one bounded live-root `pv_query`, and the
-six-authority `search` before classifying a new Canon exchange. Neither read
+current-authority `search` before classifying a new Canon exchange. Neither read
 opens the accepted HIL ZIP. Match the receiving task by exact project,
 task UUID, deep link, expected contract, schema, dependency, direction, and
 accepted-pointer identity. Never bind by title or current directory alone.
@@ -33,7 +33,7 @@ private SDK operation `canon_input:bootstrap_consequence_graph` with its exact
 write grant and an empty payload. The SDK binding supplies project, accepted
 pointer, active Plan task, host task/deep link, and ChatLineage identities; do
 not repeat or override them in payload. The operation derives Plan, steer,
-Learning, operational Canon, and all 18 sector inputs, then creates or reuses
+Learning, operational Canon, and the complete current sector input registry, then creates or reuses
 one content-addressed SQLite/Mermaid/DOT bundle. Read the bounded summary back
 through `canon_graph`. Never load or return the full graph or raw Plan/Learning
 rows to model context, and never treat projection refresh as Canon admission,

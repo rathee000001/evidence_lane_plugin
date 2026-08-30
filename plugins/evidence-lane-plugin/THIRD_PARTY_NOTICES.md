@@ -5,7 +5,8 @@ Audit date: **2026-08-15**
 Evidence Lane's proprietary license applies only to Evidence Lane material. It
 does not replace the licenses, notices, or trademarks of third-party packages.
 The exact dependency versions are pinned in `pyproject.toml`,
-`requirements.torch-cpu.lock.txt`, `requirements.lock.txt`,
+`requirements.torch-cpu.lock.txt`, `requirements.torch-nvidia.lock.txt`,
+`requirements.onnx-directml.lock.txt`, `requirements.lock.txt`,
 `requirements.toolchain.lock.txt`, and `apps/evidence-lane-app/package.json`.
 
 Direct Python runtime dependency metadata is permissive or Python Software

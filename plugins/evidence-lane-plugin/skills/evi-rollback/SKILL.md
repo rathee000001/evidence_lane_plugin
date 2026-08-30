@@ -6,7 +6,7 @@ description: Evidence Lane logical rollback across Plan-stamped full-PV and sub-
 # Evidence Lane Rollback
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its Codex hook/skill
 ownership contract. This skill owns behavior; hooks provide lifecycle receipts
 only.
 

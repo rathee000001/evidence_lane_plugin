@@ -6,7 +6,7 @@ description: Evidence Lane atomic runtime doctor, ENV15/UOP15 Flash, host detect
 # Evidence Lane Boot
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its Codex hook/skill
 ownership contract. This skill owns behavior; hooks provide lifecycle receipts
 only.
 
@@ -48,14 +48,14 @@ destination entry. Re-project all rows before source inspection, mutation,
 testing, Git activity, or another lifecycle call; keep exactly one row active;
 preserve order and every completed and pending description unabridged; retain
 the panel through every pause and HIL; and drop it only after the physically
-final six-way HIL decision and all decision-dependent work are complete.
+final governed HIL decision and all decision-dependent work are complete.
 
 Detect Codex desktop, Codex CLI, or Codex VM and record local, durable, or
 ephemeral storage capability. Prefer durable local SQLite whenever it exists.
 A host without durable storage must have a transactional runtime connector;
 Google Drive is only an optional sealed-artifact carrier for an ephemeral Codex
 VM and never primary. Fail closed if any prerequisite is missing. On success
-display the six controls, the optional `/evi-plugin` administrative sidecar,
+display the registry-derived entrypoints, the optional `/evi-plugin` administrative sidecar,
 and the `/evi-source-intake` suggested prompt; never present an unavailable
 action as completed.
 

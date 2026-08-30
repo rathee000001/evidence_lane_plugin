@@ -1,0 +1,659 @@
+{
+  "schema": "evidence-lane.surface-workflow.v1",
+  "status": "PASS",
+  "surface_kind": "NAMED_ROOT_AUTHORITY",
+  "surface_id": "project_authority",
+  "source_pairing": {
+    "authority_id": "project_authority",
+    "path": "authorities/project_authority",
+    "table_count": 20,
+    "linked_public_action_count": 21,
+    "persistent_sqlite_authority": true,
+    "eligible_tools": [
+      "APSW_SQLite_engine",
+      "LangGraph_Mermaid_engine",
+      "LlamaIndex_SQLite_indexer",
+      "Python_Graphviz_DOT_engine",
+      "SQLite_CAS",
+      "rustworkx"
+    ],
+    "eligible_tool_count": 6,
+    "task_execution_tools": [
+      "APSW_SQLite_engine",
+      "LangGraph_Mermaid_engine",
+      "LlamaIndex_SQLite_indexer",
+      "Python_Graphviz_DOT_engine",
+      "SQLite_CAS",
+      "rustworkx"
+    ],
+    "transport_orchestration_adapters": [],
+    "external_services_or_stores": [],
+    "observability_evaluation_attachments": [],
+    "tool_role_classes_are_mutually_exclusive": true,
+    "execution_action_classes": [
+      "DATA",
+      "GOVERNANCE",
+      "GRAPH",
+      "RETRIEVAL"
+    ],
+    "sqlite_mmd_dot_json_tools_pointer_manifest_paired": true,
+    "internal_sdk_paired": true,
+    "outer_sdk_paired": true,
+    "env_uop_paired": true,
+    "hook_registry_paired": true,
+    "memory_role_remains_authority_specific": true,
+    "receipt_edge_required": true
+  },
+  "tool_roles": {
+    "task_execution": [
+      "APSW_SQLite_engine",
+      "LangGraph_Mermaid_engine",
+      "LlamaIndex_SQLite_indexer",
+      "Python_Graphviz_DOT_engine",
+      "SQLite_CAS",
+      "rustworkx"
+    ],
+    "transport_orchestration": [],
+    "external_services_or_stores": [],
+    "observability_evaluation_attachments": []
+  },
+  "tool_role_counts": {
+    "task_execution": 6,
+    "transport_orchestration": 0,
+    "external_services_or_stores": 0,
+    "observability_evaluation_attachments": 0
+  },
+  "tool_phase_bindings": [
+    {
+      "tool": "APSW_SQLite_engine",
+      "role_class": "TASK_EXECUTION",
+      "action_classes": [
+        "DATA",
+        "RETRIEVAL"
+      ],
+      "phases": [
+        "INDEX_QUERY",
+        "PARSE_FACTS"
+      ],
+      "condition_true_requires_execution_or_visible_failure": true
+    },
+    {
+      "tool": "LangGraph_Mermaid_engine",
+      "role_class": "TASK_EXECUTION",
+      "action_classes": [
+        "GRAPH"
+      ],
+      "phases": [
+        "TOPOLOGY"
+      ],
+      "condition_true_requires_execution_or_visible_failure": true
+    },
+    {
+      "tool": "LlamaIndex_SQLite_indexer",
+      "role_class": "TASK_EXECUTION",
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "phases": [
+        "INDEX_QUERY"
+      ],
+      "condition_true_requires_execution_or_visible_failure": true
+    },
+    {
+      "tool": "Python_Graphviz_DOT_engine",
+      "role_class": "TASK_EXECUTION",
+      "action_classes": [
+        "GRAPH"
+      ],
+      "phases": [
+        "TOPOLOGY"
+      ],
+      "condition_true_requires_execution_or_visible_failure": true
+    },
+    {
+      "tool": "SQLite_CAS",
+      "role_class": "TASK_EXECUTION",
+      "action_classes": [
+        "GOVERNANCE"
+      ],
+      "phases": [
+        "GOVERN"
+      ],
+      "condition_true_requires_execution_or_visible_failure": true
+    },
+    {
+      "tool": "rustworkx",
+      "role_class": "TASK_EXECUTION",
+      "action_classes": [
+        "GRAPH"
+      ],
+      "phases": [
+        "TOPOLOGY"
+      ],
+      "condition_true_requires_execution_or_visible_failure": true
+    }
+  ],
+  "surface_execution_contract": {
+    "contract_kind": "AUTHORITY_SPECIFIC_EXECUTION",
+    "persistent_sqlite_authority": true,
+    "authority_role": null,
+    "memory_role": null,
+    "phases": [
+      {
+        "id": "AUTHORITY_BIND",
+        "label": "Bind exact authority identity and contract"
+      },
+      {
+        "id": "AUTHORITY_OPERATION",
+        "label": "Run the authority-owned read or write"
+      },
+      {
+        "id": "AUTHORITY_INDEX",
+        "label": "Refresh applicable SQLite/FTS/index projection"
+      },
+      {
+        "id": "AUTHORITY_GRAPH",
+        "label": "Refresh authority-specific MMD and DOT"
+      },
+      {
+        "id": "RESULT_VALIDATE",
+        "label": "Validate effects, boundaries and hashes"
+      },
+      {
+        "id": "ATOMIC_REFRESH",
+        "label": "Commit changed generation; reuse unchanged atoms"
+      }
+    ],
+    "edges": [
+      [
+        "AUTHORITY_BIND",
+        "AUTHORITY_OPERATION",
+        false
+      ],
+      [
+        "AUTHORITY_OPERATION",
+        "AUTHORITY_INDEX",
+        true
+      ],
+      [
+        "AUTHORITY_OPERATION",
+        "AUTHORITY_GRAPH",
+        true
+      ],
+      [
+        "AUTHORITY_OPERATION",
+        "RESULT_VALIDATE",
+        false
+      ],
+      [
+        "AUTHORITY_INDEX",
+        "RESULT_VALIDATE",
+        false
+      ],
+      [
+        "AUTHORITY_GRAPH",
+        "RESULT_VALIDATE",
+        false
+      ],
+      [
+        "RESULT_VALIDATE",
+        "ATOMIC_REFRESH",
+        true
+      ]
+    ]
+  },
+  "public_actions": [
+    "adaptive_delta_exit",
+    "ai_toolchain_route",
+    "bigger_universe_link",
+    "bigger_universe_register",
+    "brain_scaling_select",
+    "canon_backfire_hil",
+    "canon_bind_edge",
+    "canon_classify",
+    "canon_decide",
+    "canon_dispatch_linked_task",
+    "canon_graph",
+    "canon_inbox",
+    "canon_inspect",
+    "canon_receive",
+    "canon_register_contract",
+    "canon_register_edge",
+    "canon_restore_continuity",
+    "canon_seal_continuity",
+    "canon_seal_envelope",
+    "canon_seal_result",
+    "canon_supersede",
+    "connector_plugin_catalog",
+    "connector_plugin_drop",
+    "connector_plugin_register",
+    "connector_plugin_route",
+    "connector_plugin_settings",
+    "fetch",
+    "formula_engine_run",
+    "git_sync_selected",
+    "hil_decide",
+    "hil_intent_classify",
+    "hil_return_to_accepted",
+    "lane_catalog",
+    "lane_configure_routes",
+    "lane_fetch",
+    "lane_search",
+    "lane_status",
+    "learning_decide_candidate",
+    "learning_inspect",
+    "learning_record_host_memory_import",
+    "learning_retrieve",
+    "learning_revoke",
+    "learning_seal_candidate",
+    "lifecycle_transition_law",
+    "mode_classify",
+    "project_memory_query",
+    "project_memory_record_link",
+    "project_recipe_compile",
+    "project_register",
+    "prompt_index_status",
+    "pv_begin_next_turn",
+    "pv_build_initial",
+    "pv_diff",
+    "pv_enroll_project",
+    "pv_fuse",
+    "pv_plan_steer_delta",
+    "pv_plan_tasks",
+    "pv_query",
+    "pv_rollback",
+    "pv_state_travel_direct_force_same_worktree",
+    "pv_status",
+    "pv_summary",
+    "pv_task_backlog",
+    "pv_task_transition",
+    "remote_git_execute_push",
+    "remote_git_prepare_push",
+    "render_project_panel",
+    "render_runtime_panel",
+    "runtime_activation_status",
+    "runtime_doctor",
+    "search",
+    "session_boot",
+    "session_close",
+    "session_flash_status",
+    "session_resume",
+    "source_custom_schema_compile",
+    "source_git_commit_impact",
+    "source_git_history_build",
+    "source_graph_build",
+    "source_graph_diff",
+    "source_graph_impact",
+    "source_identity_register",
+    "source_intake_classify",
+    "source_intake_schema_configure",
+    "source_sqlite_inspect",
+    "storage_connector_inspect",
+    "storage_connector_select",
+    "task_classify",
+    "task_complete_and_refresh",
+    "task_confirm_source_update",
+    "task_record_activity"
+  ],
+  "public_action_count": 91,
+  "skill_workflows": [
+    {
+      "skill": "evi",
+      "workflow": "exact-fuse"
+    },
+    {
+      "skill": "evi",
+      "workflow": "governance-read"
+    },
+    {
+      "skill": "evi",
+      "workflow": "lane-evidence-read"
+    },
+    {
+      "skill": "evi",
+      "workflow": "live-root-authority-read"
+    },
+    {
+      "skill": "evi",
+      "workflow": "live-root-current-authority-read"
+    },
+    {
+      "skill": "evi",
+      "workflow": "plan-steer"
+    },
+    {
+      "skill": "evi",
+      "workflow": "same-host-next-turn"
+    },
+    {
+      "skill": "evi-additional-plugin",
+      "workflow": "register-connector"
+    },
+    {
+      "skill": "evi-bigger-universe",
+      "workflow": "explicit-hash-only-cross-project-link"
+    },
+    {
+      "skill": "evi-bigger-universe",
+      "workflow": "register-changed-project-mini-brain-heads"
+    },
+    {
+      "skill": "evi-boot",
+      "workflow": "boot-or-resume"
+    },
+    {
+      "skill": "evi-boot",
+      "workflow": "project-enrollment"
+    },
+    {
+      "skill": "evi-brain-scaling",
+      "workflow": "deterministic-indexed-brain-slice-selection"
+    },
+    {
+      "skill": "evi-build",
+      "workflow": "physically-final-pv-hil-presentation-only"
+    },
+    {
+      "skill": "evi-build",
+      "workflow": "source-intake-backed-pv0-bootstrap"
+    },
+    {
+      "skill": "evi-canon",
+      "workflow": "canon-authority-read"
+    },
+    {
+      "skill": "evi-canon",
+      "workflow": "canon-backfire"
+    },
+    {
+      "skill": "evi-canon",
+      "workflow": "canon-contract"
+    },
+    {
+      "skill": "evi-canon",
+      "workflow": "canon-decision"
+    },
+    {
+      "skill": "evi-canon",
+      "workflow": "canon-envelope"
+    },
+    {
+      "skill": "evi-canon",
+      "workflow": "canon-result"
+    },
+    {
+      "skill": "evi-canon",
+      "workflow": "canon-state-travel-continuity"
+    },
+    {
+      "skill": "evi-canon",
+      "workflow": "canon-task-edge"
+    },
+    {
+      "skill": "evi-drop-additional-plugin",
+      "workflow": "drop-connector"
+    },
+    {
+      "skill": "evi-exit-boot",
+      "workflow": "close-session"
+    },
+    {
+      "skill": "evi-formula",
+      "workflow": "bounded-env-uop-formula-execution"
+    },
+    {
+      "skill": "evi-fuse",
+      "workflow": "dual-hil-intent-classification"
+    },
+    {
+      "skill": "evi-fuse",
+      "workflow": "dual-hil-non-promotion-decision"
+    },
+    {
+      "skill": "evi-fuse",
+      "workflow": "exact-learning-then-project-approval-promotion"
+    },
+    {
+      "skill": "evi-instructions",
+      "workflow": "agents-and-host-memory-read"
+    },
+    {
+      "skill": "evi-learning",
+      "workflow": "learning-authority-read"
+    },
+    {
+      "skill": "evi-learning",
+      "workflow": "learning-candidate"
+    },
+    {
+      "skill": "evi-learning",
+      "workflow": "learning-host-memory-import"
+    },
+    {
+      "skill": "evi-learning",
+      "workflow": "learning-revoke"
+    },
+    {
+      "skill": "evi-memory",
+      "workflow": "project-memory-authority-read"
+    },
+    {
+      "skill": "evi-memory",
+      "workflow": "project-memory-link"
+    },
+    {
+      "skill": "evi-mode",
+      "workflow": "classify-mode"
+    },
+    {
+      "skill": "evi-plan",
+      "workflow": "classify-plan-mode"
+    },
+    {
+      "skill": "evi-plan",
+      "workflow": "live-current-authority-read"
+    },
+    {
+      "skill": "evi-plan",
+      "workflow": "live-plan-authority-read"
+    },
+    {
+      "skill": "evi-plan",
+      "workflow": "persist-plan"
+    },
+    {
+      "skill": "evi-plan",
+      "workflow": "plan-steer"
+    },
+    {
+      "skill": "evi-plugin",
+      "workflow": "change-connector-registration"
+    },
+    {
+      "skill": "evi-plugin",
+      "workflow": "inspect-connectors"
+    },
+    {
+      "skill": "evi-plugin",
+      "workflow": "route-connector"
+    },
+    {
+      "skill": "evi-project-recipe",
+      "workflow": "project-type-source-and-lane-recipe-compilation"
+    },
+    {
+      "skill": "evi-refresh",
+      "workflow": "adaptive-delta-exit-append-refresh"
+    },
+    {
+      "skill": "evi-refresh",
+      "workflow": "hil-live-root-project-overlay-proposal"
+    },
+    {
+      "skill": "evi-refresh",
+      "workflow": "steer-prompt-source-intake-refresh-working-sectors"
+    },
+    {
+      "skill": "evi-rollback",
+      "workflow": "pointer-rollback"
+    },
+    {
+      "skill": "evi-source-intake",
+      "workflow": "bounded-source-retrieval"
+    },
+    {
+      "skill": "evi-source-intake",
+      "workflow": "classify-source-intake"
+    },
+    {
+      "skill": "evi-source-intake",
+      "workflow": "custom-schema-intake"
+    },
+    {
+      "skill": "evi-source-intake",
+      "workflow": "git-read-intake"
+    },
+    {
+      "skill": "evi-source-intake",
+      "workflow": "source-graph-intake"
+    },
+    {
+      "skill": "evi-source-intake",
+      "workflow": "source-identity-intake"
+    },
+    {
+      "skill": "evi-source-intake",
+      "workflow": "source-route-configuration"
+    },
+    {
+      "skill": "evi-source-intake",
+      "workflow": "sqlite-source-intake"
+    },
+    {
+      "skill": "evi-state-travel",
+      "workflow": "direct-destination-activation-verification"
+    },
+    {
+      "skill": "evi-state-travel",
+      "workflow": "direct-destination-existing-session-attachment"
+    },
+    {
+      "skill": "evi-state-travel",
+      "workflow": "direct-destination-locked-flash"
+    },
+    {
+      "skill": "evi-state-travel",
+      "workflow": "direct-destination-runtime-doctor"
+    },
+    {
+      "skill": "evi-state-travel",
+      "workflow": "direct-force-same-worktree-state-travel"
+    },
+    {
+      "skill": "evi-state-travel",
+      "workflow": "post-entry-plan-authority-read"
+    },
+    {
+      "skill": "evi-state-travel",
+      "workflow": "state-travel-plan-steer"
+    },
+    {
+      "skill": "evi-storage",
+      "workflow": "inspect-storage"
+    },
+    {
+      "skill": "evi-storage",
+      "workflow": "select-storage"
+    },
+    {
+      "skill": "evi-toolchain",
+      "workflow": "conditional-codex-toolchain-routing"
+    },
+    {
+      "skill": "evi-universe",
+      "workflow": "project-universe-authority-read"
+    },
+    {
+      "skill": "evidence-lane-code-lifecycle",
+      "workflow": "boot-or-resume"
+    },
+    {
+      "skill": "evidence-lane-code-lifecycle",
+      "workflow": "exact-fuse"
+    },
+    {
+      "skill": "evidence-lane-code-lifecycle",
+      "workflow": "governed-git-delivery"
+    },
+    {
+      "skill": "evidence-lane-code-lifecycle",
+      "workflow": "live-root-authority-read"
+    },
+    {
+      "skill": "evidence-lane-code-lifecycle",
+      "workflow": "live-root-current-authority-read"
+    },
+    {
+      "skill": "evidence-lane-code-lifecycle",
+      "workflow": "plan-steer"
+    },
+    {
+      "skill": "evidence-lane-code-lifecycle",
+      "workflow": "record-task-activity"
+    },
+    {
+      "skill": "evidence-lane-code-lifecycle",
+      "workflow": "same-host-next-turn"
+    },
+    {
+      "skill": "evidence-lane-code-lifecycle",
+      "workflow": "task-execution"
+    },
+    {
+      "skill": "evidence-lane-code-lifecycle",
+      "workflow": "two-trigger-render-dispatch"
+    }
+  ],
+  "skill_workflow_count": 79,
+  "hook_events": [
+    "SessionStart",
+    "SubagentStart",
+    "UserPromptSubmit",
+    "PreToolUse",
+    "PermissionRequest",
+    "PostToolUse",
+    "PreCompact",
+    "PostCompact",
+    "SubagentStop",
+    "Stop",
+    "SessionEnd"
+  ],
+  "hook_event_count": 11,
+  "execution_contract": {
+    "entry": "EXACT_SURFACE_IDENTITY_AND_CURRENT_STATE",
+    "schema": "CURRENT_SURFACE_AND_ACTION_SCHEMAS",
+    "internal_sdk": "EXECUTION_OWNER",
+    "env": "SELECT_CONTEXT_HOST_LOCALITY_AVAILABILITY_AND_GRANT",
+    "uop": "APPLY_OPERATORS_FORMULAS_GATES_AND_ORDERED_FALLBACK",
+    "tools": "RUN_ALL_CONDITION_TRUE_STEPS_OR_FAIL_VISIBLE",
+    "outer_sdk_mcp": "LOCAL_OR_TRANSPORT_ONLY_NOT_AUTHORITY",
+    "hooks": "RUN_ONLY_EMITTED_ORDERED_EVENTS",
+    "write": "VALIDATE_THEN_ATOMIC_CHANGED_HASH_REFRESH",
+    "receipt": "EXACT_INPUT_ROUTE_RESULT_PROVENANCE"
+  },
+  "project_pv_baseline_connection": {
+    "path": [
+      "PROJECT_PV_ROOT",
+      "AUTHORITY_REGISTRY",
+      "NAMED_ROOT_AUTHORITY:project_authority"
+    ],
+    "connection_only": true,
+    "project_registration_or_pv_creation_performed": false
+  },
+  "sqlite_mmd_dot_json_tools_manifest_refresh_together": true,
+  "unchanged_content_addressed_atoms_reused": true,
+  "superseded_route_retained": false,
+  "hil_inference_allowed": false,
+  "workflow_or_count_ceiling": false,
+  "receipt_sha256": "1CB3014601538AFF18F45081E20029FF2AF94FDAB1F6C26B15E4117A10119F4E"
+}

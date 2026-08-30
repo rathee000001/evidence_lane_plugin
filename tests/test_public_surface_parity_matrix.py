@@ -27,7 +27,10 @@ from evidence_lane_plugin.constants import (
 )
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.hook_contract import HOOK_EVENT_NAMES
-from evidence_lane_plugin.mcp_server import SDK_NATIVE_ACTIONS, create_mcp_server
+from evidence_lane_plugin.mcp_server import (
+    SPECIALIZED_NATIVE_ACTIONS,
+    create_mcp_server,
+)
 from evidence_lane_plugin.service import EvidenceLaneService
 from pydantic import ValidationError
 
@@ -61,9 +64,7 @@ def _case_value(schema: dict[str, object], *, edge: bool) -> object:
     any_of = schema.get("anyOf")
     if isinstance(any_of, list):
         options = [
-            row
-            for row in any_of
-            if isinstance(row, dict) and row.get("type") != "null"
+            row for row in any_of if isinstance(row, dict) and row.get("type") != "null"
         ]
         if options:
             return _case_value(options[-1 if edge else 0], edge=edge)
@@ -198,10 +199,11 @@ def _evaluate_server_contracts(
                     sort_keys=True,
                     separators=(",", ":"),
                 ).encode("utf-8")
-            ).hexdigest().upper(),
+            )
+            .hexdigest()
+            .upper(),
             "cases": {
-                name: "PASS" if cases[name] else "BLOCKED"
-                for name in EVALUATION_CASES
+                name: "PASS" if cases[name] else "BLOCKED" for name in EVALUATION_CASES
             },
         }
         if not all(cases.values()):
@@ -220,7 +222,9 @@ def _evaluate_server_contracts(
                 sort_keys=True,
                 separators=(",", ":"),
             ).encode("utf-8")
-        ).hexdigest().upper(),
+        )
+        .hexdigest()
+        .upper(),
     }
 
 
@@ -251,14 +255,13 @@ def test_public_surface_matrix_matches_executable_catalog() -> None:
     assert hooks["handler_action_count"] == 44
 
     commands = sorted(path.name for path in (PLUGIN / "commands").glob("*.md"))
-    assert commands == [
-        row["name"] for row in public_surface_registry["commands"]["records"]
-    ]
-    assert public_surface_registry["catalog"]["commands"] == len(commands)
+    assert commands == []
+    assert "commands" not in public_surface_registry
+    assert "commands" not in public_surface_registry["catalog"]
     assert not MATRIX_PATH.exists()
 
 
-def test_canon_and_learning_public_actions_match_sdk_registration() -> None:
+def test_specialized_actions_are_a_30_action_subset_of_the_91_action_catalog() -> None:
     catalog = json.loads(
         (PLUGIN / "schemas" / "public-action-schemas.v001.json").read_text(
             encoding="utf-8"
@@ -266,7 +269,7 @@ def test_canon_and_learning_public_actions_match_sdk_registration() -> None:
     )
     registered = {
         name: {"module": module, "operation": operation, "read": read_only}
-        for name, _title, _description, module, operation, read_only in SDK_NATIVE_ACTIONS
+        for name, _title, _description, module, operation, read_only in SPECIALIZED_NATIVE_ACTIONS
     }
     declared = {
         row["name"]: {
@@ -278,8 +281,12 @@ def test_canon_and_learning_public_actions_match_sdk_registration() -> None:
         if row["route_contract"]["internal_sdk"] is not None
     }
     assert declared == registered
-    assert len(registered) == len(SDK_NATIVE_ACTIONS) == 30
+    assert len(registered) == len(SPECIALIZED_NATIVE_ACTIONS) == 30
     assert sum(row["read"] is True for row in registered.values()) == 9
+    assert catalog["tool_count"] == 91
+    assert catalog["read_tool_count"] == 30
+    assert catalog["write_tool_count"] == 61
+    assert set(registered).issubset({str(row["name"]) for row in catalog["tools"]})
 
 
 def test_every_current_group_declares_all_delta_surface_dimensions() -> None:
@@ -290,14 +297,18 @@ def test_every_current_group_declares_all_delta_surface_dimensions() -> None:
     )
     assert all(row["route_contract"]["owner_skill"] for row in catalog["tools"])
     assert all(row["route_contract"]["skill_workflows"] for row in catalog["tools"])
-    assert all(row["route_contract"]["status"] == "CURRENT_ROUTE" for row in catalog["tools"])
+    assert all(
+        row["route_contract"]["status"] == "CURRENT_ROUTE" for row in catalog["tools"]
+    )
 
 
 def test_row196_does_not_absorb_the_later_full_vercel_guide_refresh() -> None:
     assert not MATRIX_PATH.exists()
     binding = json.loads(
         (
-            ROOT / "apps" / "evidence-lane-app"
+            ROOT
+            / "apps"
+            / "evidence-lane-app"
             / "app"
             / "_data"
             / "public-docs-backend-binding.json"
@@ -365,8 +376,7 @@ def test_every_source_public_handler_executes_with_hooks_off(
             properties = tool.parameters.get("properties") or {}
             required = list(tool.parameters.get("required") or [])
             arguments = {
-                name: _case_value(properties[name], edge=False)
-                for name in required
+                name: _case_value(properties[name], edge=False) for name in required
             }
             if "project_id" in arguments:
                 arguments["project_id"] = "book-faires"
@@ -657,9 +667,10 @@ def test_conformance_release_gate_is_derived_from_the_current_source_matrix() ->
 
     assert gate["schema"] == "evidence-lane.public-tool-conformance-release-gate.v1"
     assert gate["status"] == "PASS_SOURCE_PREINSTALL"
-    assert generated["public_catalog_sha256"] == hashlib.sha256(
-        catalog_path.read_bytes()
-    ).hexdigest().upper()
+    assert (
+        generated["public_catalog_sha256"]
+        == hashlib.sha256(catalog_path.read_bytes()).hexdigest().upper()
+    )
     assert generated["source_matrix_sha256"] == matrix["matrix_sha256"]
     assert generated["installed_matrix_sha256"] is None
     assert gate["evaluated_catalogs"]["source"] == {
@@ -684,11 +695,7 @@ def test_conformance_gate_binds_every_release_receipt_without_authorizing_it() -
     required = set(chain["required_common_fields"])
     routing = json.loads(
         (
-            PLUGIN
-            / "skills"
-            / "evi"
-            / "references"
-            / "mcp-tool-routing.v1.json"
+            PLUGIN / "skills" / "evi" / "references" / "mcp-tool-routing.v1.json"
         ).read_text(encoding="utf-8")
     )
 
@@ -701,7 +708,9 @@ def test_conformance_gate_binds_every_release_receipt_without_authorizing_it() -
         "receipt_sha256",
     } <= required
     assert set(chain["stage_specific_fields"]) == set(chain["ordered_stages"])
-    assert all(chain["stage_specific_fields"][stage] for stage in chain["ordered_stages"])
+    assert all(
+        chain["stage_specific_fields"][stage] for stage in chain["ordered_stages"]
+    )
     assert chain["non_pass_behavior"] == "BLOCK_CURRENT_AND_DOWNSTREAM_STAGE"
     assert chain["matrix_hash_mismatch_behavior"] == "FAIL_CLOSED"
     assert gate["release_eligibility"] == (
@@ -718,9 +727,7 @@ def test_conformance_gate_binds_every_release_receipt_without_authorizing_it() -
         "candidate_created": False,
         "pointer_moved": False,
     }
-    skill_text = (PLUGIN / "skills" / "evi" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    skill_text = (PLUGIN / "skills" / "evi" / "SKILL.md").read_text(encoding="utf-8")
     assert "public-tool-conformance-release-gate.v1.json" in skill_text
     assert "CONFORMANCE_GATE_FAIL_CLOSED" in skill_text
     assert routing["catalog_contract"]["conformance_release_gate"] == {

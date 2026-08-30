@@ -30,7 +30,7 @@ def _seed_plan(service) -> dict:
             _task("seed-anchor", "Verify the insertion anchor."),
             _task(
                 "seed-final-hil",
-                "Present the physically final six-way HIL.",
+                "Present the physically final governed HIL.",
                 panel_role="PHYSICALLY_FINAL_HIL",
             ),
         ],
@@ -157,7 +157,7 @@ def test_atomic_insertion_uses_effective_linked_dependency_directive(
             ),
             _task(
                 "seed-final-hil",
-                "Present the physically final six-way HIL.",
+                "Present the physically final governed HIL.",
                 panel_role="PHYSICALLY_FINAL_HIL",
             ),
         ],

@@ -6,14 +6,15 @@ description: Govern separate Project and Learning HIL decisions and exact approv
 # Evidence Lane Fuse
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`. This skill owns dual-HIL decisions
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`. This skill owns dual-HIL decisions
 and promotion only. Build owns PV0 and unaccepted proposal construction; it
 must stop after presenting the Project and Learning decision surfaces.
 
 Require one pending full-PV proposal and its unique consolidated Learning weave
-for the same target PV. Present both six-choice surfaces together while keeping
-their decisions separate: `APPROVE`, `APPROVE_WITH_DELTA`, `MORE_RESEARCH`,
-`ROLLBACK`, `REJECT`, and `FAIL`.
+for the same target PV. Present both authority-owned decision policies together
+while keeping their decisions separate. The current Project and Learning
+policies include `APPROVE`, `APPROVE_WITH_DELTA`, `MORE_RESEARCH`, `ROLLBACK`,
+`REJECT`, and `FAIL`; their current size is not a cross-authority ceiling.
 
 Classify non-exact natural language with `hil_intent_classify`; classification
 never decides or promotes. Route the five non-promotion Project outcomes through

@@ -19,9 +19,10 @@ The practical promise is simple:
 Version 3.0.0 is the current governed Codex source release. Source, branch
 commit, package, installed runtime, live proposal, and accepted Project Truth
 remain separately proven identities. The package provides 91 native actions
-(30 read-only and 61 write-capable), 26 governed skills with no separate command layer, eleven
-lifecycle event classes with 44 ordered handlers, durable project storage,
-persistent Plan/Delta continuity, and an exact six-way HIL.
+(30 read-only and 61 write-capable), 26 governed skills with no separate command layer,
+eleven lifecycle event classes with 44 ordered handlers, 119 conditional tool
+requirements, CPU/NVIDIA/AMD execution-provider routing, durable project storage,
+persistent Plan/Delta continuity, and authority-specific governed HIL policies.
 
 ## Detailed architecture and governance
 
@@ -128,7 +129,7 @@ case-sensitive `APPROVE` at the correct HIL can authorize Fuse.
 The maintainer checkpoint route binds the complete source scope, exact branch
 commit and tree, governed push, Actions head, deterministic package, and
 branch-commit recovery slot. A later release HIL requires installed readback of
-91 actions (30 read/61 write), 25 current skills, eleven distinct hook events, and the
+91 actions (30 read/61 write), 26 current skills, eleven distinct hook events, and the
 migrated command surface. The checkpoint cannot infer HIL, move a Project
 pointer, merge `main`, or change the byte-frozen main-merge fallback. That
 plugin release/install cadence is not part of an ordinary downstream user's
@@ -210,12 +211,12 @@ identities are absent from live routing.
 - `.mcp.json` — package-local native MCP launch contract.
 - `src/evidence_lane_plugin/` — canonical Python engine, internal SDK, and native server.
 - `authorities/` — 18 separate Project Sector packages plus 11 distinct named/root authorities.
-- `schemas/` — central source-derived action, authority, lane, hook, command, skill, ENV/UOP, MCP, and SDK contracts.
+- `schemas/` — central source-derived action, authority, lane, hook, skill, ENV/UOP, MCP, and SDK contracts.
 - `sdk/` — full internal and outer routing projections, including every public action, authority, workflow, host, hook, rollback, and module binding.
 - `mcp/` — thin executable bindings for the current 91-action catalog.
 - `skills/` — 26 governed skills, including the native `evi-plan` sidecar; no separate command projections are shipped.
 - `hooks/` — eleven event classes with 44 ordered handler actions.
-- `toolchains/` and `tunnel/` — the 95-requirement conditional Codex toolchain, licenses, hidden-runtime provisioning, and one matching tunnel contract.
+- `toolchains/` and `tunnel/` — the current derived 119-requirement Codex toolchain, separate CPU/NVIDIA/AMD execution-provider routing, licenses, hidden-runtime provisioning, one identity-isolated tunnel contract, and no legacy core-plus-extension split.
 - `scripts/codex_release/` — maintainer-only package/install preparation and installed verification routes.
 
 The executable manifest excludes repository-only remote-adapter source, PoCs,
@@ -229,14 +230,15 @@ stale action, schema, SDK, skill, hook, command, and route members are removed.
 2. Use Plugin Creator for every pack and assign one fresh cachebuster version.
 3. Materialize only the existing local-testing selector into the hidden Codex
    plugin/cache layer. Do not try a generic plugin-add/cache-backup route first.
-4. Build and prewarm the derived hidden runtime from the exact dependency,
-   native-tool, model, and license locks. Normal MCP startup never installs.
+4. Build and prewarm the derived hidden runtime from the exact base/toolchain
+   locks plus the selected CPU, NVIDIA CUDA, or AMD DirectML provider lock,
+   native-tool, model, and license receipts. Normal MCP startup never installs.
 5. Produce a pre-restart installed-byte receipt; it is not installed-host proof.
-6. During this local-update path only, run the separate children-first exact-task
-   drain and prove zero stale in-progress turns.
-7. Persist and visibly complete the response, then call only the dumb
-   same-app/same-task close-and-reopen helper with the exact drain and install
-   receipts.
+6. Run the maintainer restart preflight outside plugin execution; it validates
+   the exact package, task, app channel, and install receipt but never drains
+   turns, stops processes, installs, starts the tunnel, or replays State Travel.
+7. Persist and visibly complete the response. Only then may the user close and
+   reopen the exact selected Codex app channel when restart is required.
 8. After restart, verify the installed 91/30/61 catalog, 26 skills, no command layer,
    eleven hook events/44 handlers, 18 sector packages, 11 named authorities,
    central schemas, full SDK, ENV/UOP, tunnel, task/session attachment, and
@@ -250,28 +252,27 @@ State Travel invokes no install, drain, or restart route.
 
 ## Two maintained slots
 
-The supported maintainer topology has exactly two registered roles: one mutable
-local-testing slot and one main-Git release slot. Branch checkpoints are package
+The current maintainer registry has two roles: one mutable local-testing slot
+and one main-Git release slot. This is the current supported topology rather
+than a permanent product ceiling. Branch checkpoints are package
 evidence, not a third slot. Only one plugin/MCP runtime and one matching tunnel
 may be active. Removed slot and failover executors are absent from the current
 package; immutable historical receipts remain evidence outside live routing.
 
-## Maintainer-only hidden helpers
+## Maintainer-only restart boundary
 
 The installed package has no governed-user Goal-recovery helper or service. A
 user receives one current plugin version and, when a measured host-tool gap
-requires it, one matching tunnel. The maintainer-only install, children-first
-drain, and dumb same-task restart utilities live under the hidden versioned
-plugin runtime and never become project, Plan, Goal, HIL, or State Travel
-authority.
+requires it, one matching tunnel. The maintainer restart preflight validates
+the exact package, task, app channel, root process, and install receipt. It does
+not drain turns, stop processes, install, start the tunnel, navigate tasks,
+replay State Travel, or mutate project, Plan, Goal, HIL, or pointer authority.
 
-The drain utility runs only during a local plugin update. It resolves the exact
-task's native turn tree, drains children first, and proves zero remaining stale
-in-progress turns. Only after the response is persisted and visibly complete
-may the separate dumb helper close the exact Codex app and reopen the same task.
-The restart helper contains no process-drain, installation, routing, or recovery
-logic. Removed helper routes are absent from the installed package; immutable
-historical receipts remain outside live dispatch.
+The active response must persist and visibly complete first. The user then
+closes and reopens the exact selected Codex app channel when restart is needed.
+Post-restart native readback proves the same task and new package identity.
+Removed drain, programmatic restart, and recovery-helper routes remain absent
+from live dispatch; immutable historical receipts remain non-executable evidence.
 
 ## Persistent Plan and change display
 

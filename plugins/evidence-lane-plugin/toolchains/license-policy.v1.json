@@ -1,12 +1,17 @@
 {
   "schema": "evidence-lane.toolchain-license-policy.v1",
   "status": "PASS",
-  "direct_python_dependency_count": 62,
+  "direct_python_dependency_count": 71,
   "direct_python_dependencies": [
     {
       "name": "aiofiles",
       "version": "25.1.0",
       "declaration": "aiofiles==25.1.0"
+    },
+    {
+      "name": "anyio",
+      "version": "4.14.2",
+      "declaration": "anyio==4.14.2"
     },
     {
       "name": "apsw",
@@ -17,11 +22,6 @@
       "name": "beautifulsoup4",
       "version": "4.15.0",
       "declaration": "beautifulsoup4==4.15.0"
-    },
-    {
-      "name": "chromadb",
-      "version": "1.5.9",
-      "declaration": "chromadb==1.5.9"
     },
     {
       "name": "cryptography",
@@ -59,6 +59,11 @@
       "declaration": "fastapi==0.141.1"
     },
     {
+      "name": "fastmcp",
+      "version": "3.4.7",
+      "declaration": "fastmcp==3.4.7"
+    },
+    {
       "name": "GitPython",
       "version": "3.1.60",
       "declaration": "GitPython==3.1.60"
@@ -94,9 +99,24 @@
       "declaration": "langchain==1.3.17"
     },
     {
+      "name": "langchain-core",
+      "version": "1.6.1",
+      "declaration": "langchain-core==1.6.1"
+    },
+    {
+      "name": "langfuse",
+      "version": "4.15.1",
+      "declaration": "langfuse==4.15.1"
+    },
+    {
       "name": "langgraph",
       "version": "1.2.11",
       "declaration": "langgraph==1.2.11"
+    },
+    {
+      "name": "langsmith",
+      "version": "0.11.2",
+      "declaration": "langsmith==0.11.2"
     },
     {
       "name": "llama-index-core",
@@ -139,9 +159,29 @@
       "declaration": "onnxruntime==1.28.0"
     },
     {
+      "name": "orjson",
+      "version": "3.12.0",
+      "declaration": "orjson==3.12.0"
+    },
+    {
       "name": "opencv-python-headless",
       "version": "5.0.0.93",
       "declaration": "opencv-python-headless==5.0.0.93"
+    },
+    {
+      "name": "openai-agents",
+      "version": "0.22.0",
+      "declaration": "openai-agents==0.22.0"
+    },
+    {
+      "name": "opentelemetry-exporter-otlp-proto-http",
+      "version": "1.44.0",
+      "declaration": "opentelemetry-exporter-otlp-proto-http==1.44.0"
+    },
+    {
+      "name": "opentelemetry-sdk",
+      "version": "1.44.0",
+      "declaration": "opentelemetry-sdk==1.44.0"
     },
     {
       "name": "openpyxl",
@@ -259,6 +299,11 @@
       "declaration": "sqlalchemy==2.0.52"
     },
     {
+      "name": "starlette",
+      "version": "1.6.0",
+      "declaration": "starlette==1.6.0"
+    },
+    {
       "name": "sqlite-vec",
       "version": "0.1.9",
       "declaration": "sqlite-vec==0.1.9"
@@ -314,9 +359,11 @@
       "declaration": "rustworkx==0.18.1"
     }
   ],
-  "requirements_lock_sha256": "FF1E7712601AB3416B1449004A3C596B95C39502134F70ECBEDA29581937D7C5",
-  "requirements_torch_cpu_lock_sha256": "1D2A6DF4DDCD6F07C8909B0D8FDE479C492B48BE53F2346D09C7094545AAE127",
-  "bundled_license_file_count": 98,
+  "requirements_lock_sha256": "1C86511D155A955E931EA69AC6C34D9498D7C3333A27489113625985A163038B",
+  "requirements_torch_cpu_lock_sha256": "5F39C8B9F6B42164D2FE921C0E219F47F3569FA23B486D89A002134964176A3A",
+  "requirements_torch_nvidia_lock_sha256": "67FA261D448ED2050F1E2BA13005194C505B79FEE766E4D4167DC15D0DE5D5E8",
+  "requirements_onnx_directml_lock_sha256": "A9654179BD83FC95B9216EEF95767ED5F280CC6DDC657DBD7C2C71176E2299D5",
+  "bundled_license_file_count": 122,
   "bundled_license_files": [
     {
       "path": "toolchains/licenses/7-zip-26.01/LICENSE.txt",
@@ -330,8 +377,8 @@
     },
     {
       "path": "toolchains/licenses/requirements/002-python/LICENSE-RECORD.json",
-      "bytes": 1081,
-      "sha256": "29F419A75C488F3AAC1D617CF4EDA5CE99CE06959AEFDDCF8AA9FC886746030E"
+      "bytes": 1166,
+      "sha256": "18E313DC4739CD56655A8582E90DE330016BDEEF1C5A9EDFF10DB8589815B629"
     },
     {
       "path": "toolchains/licenses/requirements/003-hashlib-pathlib/LICENSE-RECORD.json",
@@ -340,18 +387,18 @@
     },
     {
       "path": "toolchains/licenses/requirements/004-sqlite-cas/LICENSE-RECORD.json",
-      "bytes": 1193,
-      "sha256": "1FCC15F3112B45BE92AECC63CAA01A087CB4F964A165E28037514CC42507C17F"
+      "bytes": 1278,
+      "sha256": "7B38B1B1F6E160F81C0696647D04764712CCD6F712BBD9BF7D61B0C729B12751"
     },
     {
       "path": "toolchains/licenses/requirements/005-sqlite-fts5-bm25/LICENSE-RECORD.json",
-      "bytes": 1199,
-      "sha256": "A88140995CA395F5A904AF726608D1F144C6EACF05E657115ED71881E71509EF"
+      "bytes": 1284,
+      "sha256": "743AE307C1540B3C1E7BD22C5910C34115302C6E9D8B2AC27B4FD8AADC54B63E"
     },
     {
       "path": "toolchains/licenses/requirements/006-apsw-sqlite-engine/LICENSE-RECORD.json",
-      "bytes": 1262,
-      "sha256": "36C934D7915E4079DA663EDD36287E10BFD1195BD73BB0485D09257AAEC0DA1B"
+      "bytes": 1347,
+      "sha256": "4DCF24D7425BAC7365599957E8083B513F3D8B92AA4004DCA46419F2954658C0"
     },
     {
       "path": "toolchains/licenses/requirements/007-deterministic-tfidf/LICENSE-RECORD.json",
@@ -360,23 +407,23 @@
     },
     {
       "path": "toolchains/licenses/requirements/008-langgraph-mermaid-engine/LICENSE-RECORD.json",
-      "bytes": 1268,
-      "sha256": "BC3644982615AE95A8BF7470BAB3041649DEA572DE9778616DB3751189A04A21"
+      "bytes": 1353,
+      "sha256": "FCFA75D3805454609D8956F8B2FCA981776772EEAB5E6C3F8EAD88247780A1BB"
     },
     {
       "path": "toolchains/licenses/requirements/009-python-graphviz-dot-engine/LICENSE-RECORD.json",
-      "bytes": 1270,
-      "sha256": "7481643CEDC46046885924E597147F120DA3C5160CC767A8FE73F28B99AE9935"
+      "bytes": 1355,
+      "sha256": "D4A31471647826816BED73BACEC456FADCCBCCF417DF6D1E43DFD3695F31A9C9"
     },
     {
       "path": "toolchains/licenses/requirements/010-llamaindex-sqlite-indexer/LICENSE-RECORD.json",
-      "bytes": 1270,
-      "sha256": "2CF2A7B350BFB640CF5004658EA5993E8C7F1CE05AFFB1255BFB7A645D0E9078"
+      "bytes": 1355,
+      "sha256": "7AC0CAB6CA4E784468A7B2465A767D43F7107D054B3546FC69AFED7FB043AF10"
     },
     {
       "path": "toolchains/licenses/requirements/011-mermaid-cli-mmdc/LICENSE-RECORD.json",
-      "bytes": 1274,
-      "sha256": "8CDC6EA37CAA27AF1C67813936689D9A584B4A255B663C106D26A717CF9CD801"
+      "bytes": 1359,
+      "sha256": "6F70F7D5D12926D09EFABFFC278C69FCF816A159323F5A2DBCD8B36DBF27E37A"
     },
     {
       "path": "toolchains/licenses/requirements/012-graphviz-dot/LICENSE-RECORD.json",
@@ -400,18 +447,18 @@
     },
     {
       "path": "toolchains/licenses/requirements/016-pytest/LICENSE-RECORD.json",
-      "bytes": 1256,
-      "sha256": "0A52728BF0A6EA84B0F109A981953042A4A56253D7DFEAB1089CC64D8DE0C634"
+      "bytes": 1341,
+      "sha256": "C72F4DD9BDD7DA958F6B8596E4D66D9C593ABDD3A9BFEAF1D720D416C3D97CBC"
     },
     {
       "path": "toolchains/licenses/requirements/017-ruff/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "56527D41572D29D9B82690F9D48566F85E80CA0ABBB2A32CC8952098DBE58212"
+      "bytes": 1339,
+      "sha256": "0DCB19A9E3939B1B4C929D65E4CE65FEB70A721D08EDD6C2679D6540C1C2DE57"
     },
     {
       "path": "toolchains/licenses/requirements/018-mypy/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "8D575561A2E90D108AD6E0FDF36F3C38C762C21F68EDD6714564B735F481D6EE"
+      "bytes": 1339,
+      "sha256": "190FC64A230A0F4C5F9517DB7FC5F925C886506E8E2813A59B49DA6A2A118CF7"
     },
     {
       "path": "toolchains/licenses/requirements/019-secret-redactor/LICENSE-RECORD.json",
@@ -440,8 +487,8 @@
     },
     {
       "path": "toolchains/licenses/requirements/024-defusedxml/LICENSE-RECORD.json",
-      "bytes": 1255,
-      "sha256": "AD8384722B6701CE59AAB986CB45BCC15852A9CDFFBE5ACD95177DC31081C9C4"
+      "bytes": 1340,
+      "sha256": "D758F73EFA15A97D00635679A899140F692043B60E8364E0508EADCDB3DAA20A"
     },
     {
       "path": "toolchains/licenses/requirements/025-openxml-csv-json-parser/LICENSE-RECORD.json",
@@ -450,23 +497,23 @@
     },
     {
       "path": "toolchains/licenses/requirements/026-openpyxl/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "9058E295353C2EEF7E17933DB7E649B256B334EA3D620AEBC657BE99C634CB4C"
+      "bytes": 1338,
+      "sha256": "8580D0C42D6A4C87A8D293FC0C04221873B230D9F269CEDE965838221BD9479F"
     },
     {
       "path": "toolchains/licenses/requirements/027-pandas/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "CE93C59097DA2BE7476582E65001FAF767FC535D1E5933783A0332EB0A0B11B8"
+      "bytes": 1336,
+      "sha256": "51CEC48F0220741B4696514CA21E9CE05B892D712BD010AFB6EA08260C37501E"
     },
     {
       "path": "toolchains/licenses/requirements/028-python-calamine/LICENSE-RECORD.json",
-      "bytes": 1260,
-      "sha256": "34C35FA87AD1E0FF2BEEAB9B72C0373ACB0F66E596B33F16FB3A42C8A7EF120E"
+      "bytes": 1345,
+      "sha256": "FD43E2DA419453809F68A315B8A56D5EC761A71DF5DD489BDDC714F57A08B8CE"
     },
     {
       "path": "toolchains/licenses/requirements/029-pyarrow/LICENSE-RECORD.json",
-      "bytes": 1252,
-      "sha256": "CBA255770640A4B4E291D0BE538640E8F4396C9298D50A01C74DEEB1F90E64F6"
+      "bytes": 1337,
+      "sha256": "168D6199F2998507ADE2C5441A685299327AE9E0CDFE0A3E620FBE45F631F314"
     },
     {
       "path": "toolchains/licenses/requirements/030-pptx-openxml/LICENSE-RECORD.json",
@@ -475,23 +522,23 @@
     },
     {
       "path": "toolchains/licenses/requirements/031-pypdf/LICENSE-RECORD.json",
-      "bytes": 1250,
-      "sha256": "12182C565DE94547578BEFF3718A08FDD3438373F11225A20D073EFE1603BBEE"
+      "bytes": 1335,
+      "sha256": "F80B067844F25DB08677FEA0390EC50283109D12F96BC8E730573DE2C3C3A060"
     },
     {
       "path": "toolchains/licenses/requirements/032-pypdfium2/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "1D8895C6CBCCEF3E39B7CDB9ED25A0A04A1E9F2F44D07A57A4E306FABCD2318F"
+      "bytes": 1339,
+      "sha256": "54981D2AC1F91282D1786B81495FC3C9BFAC3213FC96D608ACC7792741368818"
     },
     {
       "path": "toolchains/licenses/requirements/033-pdfplumber/LICENSE-RECORD.json",
-      "bytes": 1255,
-      "sha256": "51F2D4CE3BA2EEFC0CEA4130B8109811D02071B0C24F40FDF7DD2DBFFF68CCA8"
+      "bytes": 1340,
+      "sha256": "7FB79EAD974801463511E54CB9308BB06F5D67CDF6C7187685041C5DFB3F6096"
     },
     {
       "path": "toolchains/licenses/requirements/034-rapidocr-onnx-runtime/LICENSE-RECORD.json",
-      "bytes": 1266,
-      "sha256": "A393F587C3FA3F7C462BA8305961BDF76B0BE20B6373C96DF5189D6E33225B4A"
+      "bytes": 1351,
+      "sha256": "A7DEEB1245260C5D71C7C7BB2EF2343C68B1A817F6EC967DA98BF2B339C2AE37"
     },
     {
       "path": "toolchains/licenses/requirements/035-pytesseract-tesseract/LICENSE-RECORD.json",
@@ -500,8 +547,8 @@
     },
     {
       "path": "toolchains/licenses/requirements/036-pillow/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "81FF47DBD7190539DBA69A9E920E17AA32DA6D039EA23C2B81F0BF7CCB07927A"
+      "bytes": 1336,
+      "sha256": "FC4346ACD476381102DF4B6E9D073C8088431D0498CD861065C8B5E6B1B8A162"
     },
     {
       "path": "toolchains/licenses/requirements/037-poppler-pdftotext-pdfinfo/LICENSE-RECORD.json",
@@ -515,8 +562,8 @@
     },
     {
       "path": "toolchains/licenses/requirements/039-opencv/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "572AC965322D0526B8E0AE2E8550C99ABFFEFE0CB0CCD4FD325D12427E839B10"
+      "bytes": 1336,
+      "sha256": "A4094CD5C2978EB7DED2EEFB1B11DD967C209A0D01672F1F80B724ECC52F3ED8"
     },
     {
       "path": "toolchains/licenses/requirements/040-custom-schema-compiler/LICENSE-RECORD.json",
@@ -525,8 +572,8 @@
     },
     {
       "path": "toolchains/licenses/requirements/041-sqlite-immutable-uri-reader/LICENSE-RECORD.json",
-      "bytes": 1220,
-      "sha256": "9DD34B34655BC88D6A2510D817205677BC78C7A405C839621F5BA89AB9493A03"
+      "bytes": 1305,
+      "sha256": "D8638084F584E9CCB2A49237C45EC4DA06AF9F223206870290135E60CAA9FE00"
     },
     {
       "path": "toolchains/licenses/requirements/042-safe-archive-intake/LICENSE-RECORD.json",
@@ -555,23 +602,23 @@
     },
     {
       "path": "toolchains/licenses/requirements/047-mcp-python-sdk/LICENSE-RECORD.json",
-      "bytes": 1259,
-      "sha256": "17204A495A76C34AD423E0D32EB48521C292CA2F53E7D24C3E5951E38D087DDC"
+      "bytes": 1344,
+      "sha256": "11A3B884647CAAA7E85097C49C85053FEB52183E098CFDD2C4F90D3907B1EC5A"
     },
     {
       "path": "toolchains/licenses/requirements/048-pydantic/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "E31E9669549B5273D06D4CCBC09B2CE8019649B6036B25763E54BEE9B6C3A1B1"
+      "bytes": 1338,
+      "sha256": "E3F4A890D68D7FEBB6B623F65063166917EB10AB6FD79E4A660B458C74267D92"
     },
     {
       "path": "toolchains/licenses/requirements/049-httpx/LICENSE-RECORD.json",
-      "bytes": 1271,
-      "sha256": "9DE790C90D71AC8EC003978087B1CA2760DBD5DEEEFAD179091F0BF6F51DFB10"
+      "bytes": 1356,
+      "sha256": "D6B0E044B10C3DE5EE60C0CE5C8330DCEA44CA5AFF6FBBCC76DB9C94DCB66811"
     },
     {
       "path": "toolchains/licenses/requirements/050-cryptography-pyjwt/LICENSE-RECORD.json",
-      "bytes": 1278,
-      "sha256": "349AE2738EAF4A3BC836050664312EE82048FD84F8060008329693CD1FB32CEA"
+      "bytes": 1363,
+      "sha256": "EA320F3231E28FB348E5A3CE3E28B290CB88742EA27C25A44B657EE7CB898AA2"
     },
     {
       "path": "toolchains/licenses/requirements/051-powershell-win32-apis/LICENSE-RECORD.json",
@@ -600,203 +647,323 @@
     },
     {
       "path": "toolchains/licenses/requirements/056-pymupdf/LICENSE-RECORD.json",
-      "bytes": 1252,
-      "sha256": "1029ABE2D04A98EFC091DDEE4AA1EDF323A5C70FF448B3259F0724227A4E2FB9"
+      "bytes": 1337,
+      "sha256": "4F008F4A7B1849F69B70B8FE4E57A0AA1EFEF1E59118D056F5D9F2846AB2DCAD"
     },
     {
       "path": "toolchains/licenses/requirements/057-docling/LICENSE-RECORD.json",
-      "bytes": 1252,
-      "sha256": "271A08C8C891BC87729555D4F32016488A0736BB1781DAC26AA54E475C6F04CA"
+      "bytes": 1337,
+      "sha256": "5C985C207A72EED2FCA10BF4DD1F66572506DD130F076819AB1E374784936E83"
     },
     {
       "path": "toolchains/licenses/requirements/058-lxml/LICENSE-RECORD.json",
-      "bytes": 1249,
-      "sha256": "4DF3FBF1CC9577708E46DCBC07988866203F1D554DCD85222A18C176388C39C9"
+      "bytes": 1334,
+      "sha256": "88CD9E3995DE68BCFB17A3838AB41C5357321CB540852A0FFADC50D26650563F"
     },
     {
       "path": "toolchains/licenses/requirements/059-beautifulsoup4/LICENSE-RECORD.json",
-      "bytes": 1259,
-      "sha256": "78EEC0E4CFDD6845B6EC3B6BA27115EECF6777662158C9DFD703E0DA0EAC7ECA"
+      "bytes": 1344,
+      "sha256": "E82398722BF409B7B478FBB41C9E8E45C1E69C46A314A19E27F36883063F4BEE"
     },
     {
       "path": "toolchains/licenses/requirements/060-markdownify/LICENSE-RECORD.json",
-      "bytes": 1256,
-      "sha256": "AE3D68DC4E261D1EEF322B2C76E72F443733F49153CF87C4341D407BD8930FB5"
+      "bytes": 1341,
+      "sha256": "F25C24AF98C138F5A46D341C09DB99FF591F5E0AE6182BDC2E8A0B93E2A943E4"
     },
     {
       "path": "toolchains/licenses/requirements/061-html2text/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "6A32FFE7AA816D3C6CB74A6BB4427B7D3A8A11A563552176A3E33B9C0629560C"
+      "bytes": 1339,
+      "sha256": "EF60ED52D6ECC7B3CAFD90CE10B4B134A9A082CF41CCF9A786915B9B077A7DFF"
     },
     {
       "path": "toolchains/licenses/requirements/062-trafilatura/LICENSE-RECORD.json",
-      "bytes": 1256,
-      "sha256": "6F52590BDC8E08EBDBF0B0A503D311B213D4B43F38DC3573BFA8E423CF01AFD7"
+      "bytes": 1341,
+      "sha256": "06866D888D85EB3868DEBFA5A68F78BA2DB35CA717A6891833D052F9FA28B47E"
     },
     {
       "path": "toolchains/licenses/requirements/063-duckdb/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "DAC1E137C825946E140F8B30D8B0C1C8DF1D65E89B5AD8E006AB13135548580F"
+      "bytes": 1336,
+      "sha256": "E06B056147EBB0919262396FDDAEF5666394F47E1D8F327A6BA8B7B5DA94D5DC"
     },
     {
       "path": "toolchains/licenses/requirements/064-sqlalchemy/LICENSE-RECORD.json",
-      "bytes": 1255,
-      "sha256": "BAD3CB1C91AFB2C7CAEDA967D583464F30F7575BD1BC317B37E411F4035D2C5D"
+      "bytes": 1340,
+      "sha256": "1C1BE1B3AAACC558E426EABC3062FAB491EF52739DCEF1924EED34A2E2E2AB12"
     },
     {
       "path": "toolchains/licenses/requirements/065-tableau-hyper-api/LICENSE-RECORD.json",
-      "bytes": 1262,
-      "sha256": "68FC7C84632431392F13BDDF11EB82055AA8EB26E243A702C2194104530932CD"
+      "bytes": 1347,
+      "sha256": "B7F061326557B5866116092C375BFC05350BE74998E608BDDB27E03996E65EE0"
     },
     {
       "path": "toolchains/licenses/requirements/066-langchain/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "29BA9353D988C966A2351FBA4A3D4590783E54B763AE9314DC64B58A98D2D805"
+      "bytes": 1339,
+      "sha256": "672DD347DD1030E37535F4E33B556C85EFCA6C269D0F55E43D477B455BE78E9E"
     },
     {
       "path": "toolchains/licenses/requirements/067-sentencetransformers/LICENSE-RECORD.json",
-      "bytes": 1265,
-      "sha256": "A8707B6C7459AD77974383BF3B8CFD55DFD9C39C348A75197B83B31E00DAC0ED"
+      "bytes": 1350,
+      "sha256": "FB1CE69193D63F84C68CDFC869A199C51202578DE40DBCC9721691617486948E"
     },
     {
       "path": "toolchains/licenses/requirements/068-faiss-cpu/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "048E7F8F7B3A56310669DCF00F21E03197525EE767A289EC013F57DCA0DE9496"
+      "bytes": 1339,
+      "sha256": "F40B72AFC2139872961BBC7BDA8B6721814DA1AA989FC9287E74A8D7554ABC73"
     },
     {
-      "path": "toolchains/licenses/requirements/069-chromadb/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "A42A425E3991CB7FA611BDE8F54DF2A49BDB84569990CB75E4C107A77295FE8D"
+      "path": "toolchains/licenses/requirements/069-rank-bm25/LICENSE-RECORD.json",
+      "bytes": 1339,
+      "sha256": "4DA8C99ECBD65BDA6A65E6F2C4EC632D6BB1EDD7419DF1D713859B5F5D9C2F56"
     },
     {
-      "path": "toolchains/licenses/requirements/070-rank-bm25/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "09A19FFE65B4A264CCEA994DE1F100BFF990E2421D1D93EC1DA4DE42CC8120B5"
+      "path": "toolchains/licenses/requirements/070-fastapi/LICENSE-RECORD.json",
+      "bytes": 1337,
+      "sha256": "3C6DADA1FB109F0E98CEAB2859A9487C4378A9CFF9F3585EBEB7EF42BE19148C"
     },
     {
-      "path": "toolchains/licenses/requirements/071-fastapi/LICENSE-RECORD.json",
-      "bytes": 1252,
-      "sha256": "C2C50D61CDD420D1EC8978341A241ED4D007B6DA91205AAFEF1FEEEE60A607C7"
+      "path": "toolchains/licenses/requirements/071-uvicorn/LICENSE-RECORD.json",
+      "bytes": 1337,
+      "sha256": "E311838F3B21742D48B8BC180B38DF9B8F79BBC3F62284EA9C612E42751CF96C"
     },
     {
-      "path": "toolchains/licenses/requirements/072-uvicorn/LICENSE-RECORD.json",
-      "bytes": 1252,
-      "sha256": "6810A4AB8A23D5BA987C4CE8F8A553610BC03AC7C1534022A7EB1F62E998DA60"
+      "path": "toolchains/licenses/requirements/072-pydantic-settings/LICENSE-RECORD.json",
+      "bytes": 1347,
+      "sha256": "348D1CCE7412D7A4B8E1575040A289F4206D9C0CE0253FEE7D54A6C6CBD036C3"
     },
     {
-      "path": "toolchains/licenses/requirements/073-pydantic-settings/LICENSE-RECORD.json",
-      "bytes": 1262,
-      "sha256": "897CA8FE4981E36A1BEB3A8C0FAC27C539EDDE9B5D045BE16D98685B8099F3FC"
+      "path": "toolchains/licenses/requirements/073-python-multipart/LICENSE-RECORD.json",
+      "bytes": 1346,
+      "sha256": "2E466B0209263ADE3CB480CA71F5D560D155108EB563DA62EEA07963522D7957"
     },
     {
-      "path": "toolchains/licenses/requirements/074-python-multipart/LICENSE-RECORD.json",
-      "bytes": 1261,
-      "sha256": "029EB4C88854E7F7DD04A7FDBB7BAB427038084B64CF58656451C1AD2FCD0B5A"
+      "path": "toolchains/licenses/requirements/074-requests/LICENSE-RECORD.json",
+      "bytes": 1338,
+      "sha256": "8D1D1D8E6D44100AED7B069F57FCB9CE85892241FA90A72B22EFABB0EEB24391"
     },
     {
-      "path": "toolchains/licenses/requirements/075-requests/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "050B554C93166ECDE521F694A72E1255F10A3CAB7619EC96D7A8216EF0F6698D"
+      "path": "toolchains/licenses/requirements/075-aiofiles/LICENSE-RECORD.json",
+      "bytes": 1338,
+      "sha256": "C5B9128E2239CC01EB0391D5973645C4B4122A5CD4567BCCC4956E239E39F60E"
     },
     {
-      "path": "toolchains/licenses/requirements/076-aiofiles/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "897A7C63E885397410EED34EFAE51E0575189F3F647310364C37AF286581CA17"
+      "path": "toolchains/licenses/requirements/076-orjson/LICENSE-RECORD.json",
+      "bytes": 1336,
+      "sha256": "E71D457A71AA0DAE4B81B1DAAAAA7443DD0078972E481EBC457325C394606FC0"
     },
     {
-      "path": "toolchains/licenses/requirements/077-orjson/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "3879E78D33C93904E3F82BC79D6BAB9BC71776D9A230DDFE753E685E1EF1FFA7"
+      "path": "toolchains/licenses/requirements/077-python-dotenv/LICENSE-RECORD.json",
+      "bytes": 1343,
+      "sha256": "93105CDB82F35E41833DA44C5F448361708D83703B9A4175E0ECA2522ABE41CA"
     },
     {
-      "path": "toolchains/licenses/requirements/078-python-dotenv/LICENSE-RECORD.json",
-      "bytes": 1258,
-      "sha256": "EE0E602C8002FE7B347F15676A956CDB825813531C0F57AB813A96F6A251DBCF"
+      "path": "toolchains/licenses/requirements/078-tenacity/LICENSE-RECORD.json",
+      "bytes": 1338,
+      "sha256": "83A40893332E44541072BC3E260E23E1CFD064656576A74C94016970FC30DFA3"
     },
     {
-      "path": "toolchains/licenses/requirements/079-tenacity/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "C610833CBBC18F46FAE9FEA8EB32CF60DEAB3B5BABBFD9E4961D9674F5ED2FF4"
+      "path": "toolchains/licenses/requirements/079-psutil/LICENSE-RECORD.json",
+      "bytes": 1336,
+      "sha256": "92450F8C0C42AAB237A0508B5BC335DB5D9ACF900DD57F9EE1028EE2C5F5958D"
     },
     {
-      "path": "toolchains/licenses/requirements/080-psutil/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "3251B718D9D615CAF733D5B8DD8DB9C036F3201B618A3EA1400BF9C1C51DFD45"
+      "path": "toolchains/licenses/requirements/080-ddgs/LICENSE-RECORD.json",
+      "bytes": 1334,
+      "sha256": "31B12807D87680B5D157616C84285B19E01E3C959DC090B8FE93EC44DB1C0545"
     },
     {
-      "path": "toolchains/licenses/requirements/081-ddgs/LICENSE-RECORD.json",
-      "bytes": 1249,
-      "sha256": "2EBC6EFBD6F1FF46DD36855566666052568239654479C9CBB171138F5221AD54"
+      "path": "toolchains/licenses/requirements/081-pygithub/LICENSE-RECORD.json",
+      "bytes": 1338,
+      "sha256": "14669D9A14E03D512A8E99C91206AA3245B956A46A3069DD919F019582CE7E45"
     },
     {
-      "path": "toolchains/licenses/requirements/082-pygithub/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "8CEB04C766EBC21581224CBEAB393F38B5ED3E1A6DE7D7E6734401ADF217C766"
+      "path": "toolchains/licenses/requirements/082-gitpython/LICENSE-RECORD.json",
+      "bytes": 1339,
+      "sha256": "883AD90D5D064565C04060D5C153F41AF655C32FB5A41D53C70F2E67FDEA9DA0"
     },
     {
-      "path": "toolchains/licenses/requirements/083-gitpython/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "769D0C543331FD91884336E8B0C21227843D91DBE012BA6384C185769E93F91A"
+      "path": "toolchains/licenses/requirements/083-tldextract/LICENSE-RECORD.json",
+      "bytes": 1340,
+      "sha256": "A74F6E74A368385BDE137FCE98AB53FC57D0FFF87637BBFADCB38B4485BD5D05"
     },
     {
-      "path": "toolchains/licenses/requirements/084-tldextract/LICENSE-RECORD.json",
-      "bytes": 1255,
-      "sha256": "9247BE17358CCF54426EE61B648573C47A77C126F13AF6386075815459B94BF1"
+      "path": "toolchains/licenses/requirements/084-validators/LICENSE-RECORD.json",
+      "bytes": 1340,
+      "sha256": "4D4A5909486346C4307B4559655EE05290193D0588B99D5483D762DA9387AE7D"
     },
     {
-      "path": "toolchains/licenses/requirements/085-validators/LICENSE-RECORD.json",
-      "bytes": 1255,
-      "sha256": "806E17354F66D04D5E3DEE8AA5CCDAEF4E9CE1CE648C7AD8E1AB3FECF24D74F2"
+      "path": "toolchains/licenses/requirements/085-readability-lxml/LICENSE-RECORD.json",
+      "bytes": 1346,
+      "sha256": "A0A98C929F77FC23A89C80B5544D93D2F1ED2A568B3A3A42601D6B4BED162CDD"
     },
     {
-      "path": "toolchains/licenses/requirements/086-readability-lxml/LICENSE-RECORD.json",
-      "bytes": 1261,
-      "sha256": "0E39DA9CB48670033D0C46FF7FAC99F333D533A5A7D2A12A5D0DE6414A2A6754"
+      "path": "toolchains/licenses/requirements/086-polars/LICENSE-RECORD.json",
+      "bytes": 1336,
+      "sha256": "7AFBED126DB17BF39C423CD98CF9E6871E0312C9895272C7061FE0A6220D9E3F"
     },
     {
-      "path": "toolchains/licenses/requirements/087-polars/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "3D928C70FBCB391AC855DA5C22A56E2969352068686DEB898FC4CA9C07CDB579"
+      "path": "toolchains/licenses/requirements/087-treesitter-languagepack/LICENSE-RECORD.json",
+      "bytes": 1353,
+      "sha256": "468F64C5FF17A80590C2C6B4FBEE6AEF95BC9007D155722C6D3F0DDC25775983"
     },
     {
-      "path": "toolchains/licenses/requirements/088-treesitter-languagepack/LICENSE-RECORD.json",
-      "bytes": 1268,
-      "sha256": "06EF05E2865F4E4C6815F732ECAE5FCA581D66E5CA70C9B9839C91960710C0AA"
+      "path": "toolchains/licenses/requirements/088-rapidfuzz/LICENSE-RECORD.json",
+      "bytes": 1339,
+      "sha256": "F00E16A18254E3E0B64620457119511BA2CB4DBA8494B5EABA32684C0B999036"
     },
     {
-      "path": "toolchains/licenses/requirements/089-rapidfuzz/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "F0C01CDD4A617C02D39F3AD7D5695881A04D2023A9248798AC638581DF01D0A2"
+      "path": "toolchains/licenses/requirements/089-rustworkx/LICENSE-RECORD.json",
+      "bytes": 1339,
+      "sha256": "19058D828E4B419668A3BAEFDE636B6F9B3AE8F9BDEBA137F7117BF733FBD06D"
     },
     {
-      "path": "toolchains/licenses/requirements/090-rustworkx/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "3AF122B046907DF00282DF379B72CB08AA2651C855378B1E7769E653E7F6C3CB"
+      "path": "toolchains/licenses/requirements/090-sqlite-vec/LICENSE-RECORD.json",
+      "bytes": 1356,
+      "sha256": "638D5306AE86924C1BE01FFCAA30FB88F5AC6D8A5A626172D84EC7D99414E454"
     },
     {
-      "path": "toolchains/licenses/requirements/091-sqlite-vec/LICENSE-RECORD.json",
-      "bytes": 1271,
-      "sha256": "BBCC8EAEF254BB51C92021BD0657631E0288541DAA3BAB804D5CDA94ACE013EC"
+      "path": "toolchains/licenses/requirements/091-huggingface-hub-modelsnapshot/LICENSE-RECORD.json",
+      "bytes": 1379,
+      "sha256": "F8F38B682576627DBA98FB0A4DCCE1CA755C4BC5D2A1AEBE78488A0553658F4F"
     },
     {
-      "path": "toolchains/licenses/requirements/092-huggingface-hub-modelsnapshot/LICENSE-RECORD.json",
-      "bytes": 1294,
-      "sha256": "FA24D82749CC8303AF701D132F7416265167CF9E292044973D26AF67AB7C18F9"
-    },
-    {
-      "path": "toolchains/licenses/requirements/093-nextjs-react-threejs-framermotion/LICENSE-RECORD.json",
+      "path": "toolchains/licenses/requirements/092-nextjs-react-threejs-framermotion/LICENSE-RECORD.json",
       "bytes": 1083,
-      "sha256": "42C08616C59986B1A4D4F24C87BD023749EB8DC271B00CF1DA73AEAA5D089629"
+      "sha256": "06D54834A2ED579ACD1989A0E50A187562BCA564CC48B3FF862BDDE1FD1CF585"
     },
     {
-      "path": "toolchains/licenses/requirements/094-github-actions/LICENSE-RECORD.json",
+      "path": "toolchains/licenses/requirements/093-github-actions/LICENSE-RECORD.json",
       "bytes": 1061,
-      "sha256": "4BFB654965CBF0FC9F43765B0F6294C041A8E42855884D0DA698FB18C3E004B3"
+      "sha256": "F4C3768DF474B090C3D189B3BD05187BEC1DF5B0BB25E7EAAD61B918041124DA"
     },
     {
-      "path": "toolchains/licenses/requirements/095-vercel-git-integration/LICENSE-RECORD.json",
+      "path": "toolchains/licenses/requirements/094-vercel-git-integration/LICENSE-RECORD.json",
       "bytes": 1069,
-      "sha256": "7C1C1DBFFE640D9E0753DEE94FD20DAED75E385EAD8136FF1DC6ADED0690E4A5"
+      "sha256": "F18005C76ED70133F02E6D0563DA9A604B1F80C4E977C13DDE5EC8072DF56C9B"
+    },
+    {
+      "path": "toolchains/licenses/requirements/095-openai-agents-sdk/LICENSE-RECORD.json",
+      "bytes": 1347,
+      "sha256": "3C7880F9C1F73ACEE186E9E06485DDABBCE977131F1C68BD2C7C98C5789EDC5A"
+    },
+    {
+      "path": "toolchains/licenses/requirements/096-fastmcp/LICENSE-RECORD.json",
+      "bytes": 1337,
+      "sha256": "64CC0819966F9F28DD8FABA26456BF4EBF23E977B007445E0E5D0E5D9530B8A4"
+    },
+    {
+      "path": "toolchains/licenses/requirements/097-github-mcp-server/LICENSE-RECORD.json",
+      "bytes": 1064,
+      "sha256": "8E0AA10FFD79AFB3B952AEC5F21BC89550E326D9EB8716BCF48A1ACC55AC9CF9"
+    },
+    {
+      "path": "toolchains/licenses/requirements/098-filesystem-mcp-server/LICENSE-RECORD.json",
+      "bytes": 1068,
+      "sha256": "6C160C55B68B3CB53D585DF85FD36757F23E57ABD7B0A6D068ABA0E454F5F00E"
+    },
+    {
+      "path": "toolchains/licenses/requirements/099-postgresql-mcp-server/LICENSE-RECORD.json",
+      "bytes": 1068,
+      "sha256": "C31E3F8E242B72ECFB9164B9EC8798C7150ABFB1ED93A25952E5C45615E3FF52"
+    },
+    {
+      "path": "toolchains/licenses/requirements/100-slack-mcp-server/LICENSE-RECORD.json",
+      "bytes": 1064,
+      "sha256": "179FBFCE2D20B5D8BF1C24334E952A9DFD4E583F51BA9E5EE59816007659EB14"
+    },
+    {
+      "path": "toolchains/licenses/requirements/101-pinecone/LICENSE-RECORD.json",
+      "bytes": 1056,
+      "sha256": "D283E17B3CFD3205DBADD23A62135AA91B0E5628FA99414665546F32CB586CFA"
+    },
+    {
+      "path": "toolchains/licenses/requirements/102-weaviate/LICENSE-RECORD.json",
+      "bytes": 1056,
+      "sha256": "1DBB2B746E92612A51D47329111D228162DCDFE2A68373BEBEA1EBE32B7229CB"
+    },
+    {
+      "path": "toolchains/licenses/requirements/103-milvus/LICENSE-RECORD.json",
+      "bytes": 1054,
+      "sha256": "982DD7ED8D9C3B1AAD6062A29B6D6FB3B7CA0622A1CA8EF52627BDFAAD83AEDC"
+    },
+    {
+      "path": "toolchains/licenses/requirements/104-opensearch/LICENSE-RECORD.json",
+      "bytes": 1058,
+      "sha256": "F7E181137DA4799657FB93A74ED9EB854B30DB3D39B4C4C7B312EE319C4CED6B"
+    },
+    {
+      "path": "toolchains/licenses/requirements/105-langsmith/LICENSE-RECORD.json",
+      "bytes": 1340,
+      "sha256": "7623AE616368ED5E35AFAB6D5DC8D92E5F7EB4A0875457CB4BCBD8501788CCA6"
+    },
+    {
+      "path": "toolchains/licenses/requirements/106-trulens/LICENSE-RECORD.json",
+      "bytes": 1055,
+      "sha256": "D67EC4FC24EFFB7F1C139D4FA7462058C3217C3F41D2402E2A7B188DBE533A59"
+    },
+    {
+      "path": "toolchains/licenses/requirements/107-deepeval/LICENSE-RECORD.json",
+      "bytes": 1056,
+      "sha256": "CDB54A5A05E6E180307CF36446CCDA30C874E97B1FAD42132646E35B782C3D1C"
+    },
+    {
+      "path": "toolchains/licenses/requirements/108-promptfoo/LICENSE-RECORD.json",
+      "bytes": 1057,
+      "sha256": "B6CBE1BCFB1BE8A8D58810F92600D76587798EFFD6F4E617C58BA1A4E4C599EB"
+    },
+    {
+      "path": "toolchains/licenses/requirements/109-langfuse/LICENSE-RECORD.json",
+      "bytes": 1339,
+      "sha256": "03A9C162A609FF82496D8693885FA11FD6DB98FBF71A82827CBDBC57AB7648BB"
+    },
+    {
+      "path": "toolchains/licenses/requirements/110-helicone/LICENSE-RECORD.json",
+      "bytes": 1056,
+      "sha256": "525C1EC3866DCD9911C245976A5EB2AD72F921A1EA24F35DC425B8073882691B"
+    },
+    {
+      "path": "toolchains/licenses/requirements/111-opentelemetry/LICENSE-RECORD.json",
+      "bytes": 1344,
+      "sha256": "F5A38FED821C9D4B91279BFF348F543D78C15FCAA0E83B28FEDDCEC0D8275BB8"
+    },
+    {
+      "path": "toolchains/licenses/requirements/112-grafana/LICENSE-RECORD.json",
+      "bytes": 1055,
+      "sha256": "5907F0D10372E6F70308B6B33E7DCA0B1D1A97084DAB563AB87ADED2C67F3CCF"
+    },
+    {
+      "path": "toolchains/licenses/requirements/113-docker/LICENSE-RECORD.json",
+      "bytes": 1054,
+      "sha256": "ECD4D02482B9428DF0B562355CE6F827C8FD80D92079BB3FC751AA773CAF175D"
+    },
+    {
+      "path": "toolchains/licenses/requirements/114-kubernetes/LICENSE-RECORD.json",
+      "bytes": 1058,
+      "sha256": "C30B46428DA54DA382008976DCC7912221CD471A779D8A65672ED7A4E332CF55"
+    },
+    {
+      "path": "toolchains/licenses/requirements/115-aws-lambda/LICENSE-RECORD.json",
+      "bytes": 1058,
+      "sha256": "EBFB3DFA0355ED450E8173617D0E0491E9CFB42EACA197768B0ED731A03872AB"
+    },
+    {
+      "path": "toolchains/licenses/requirements/116-google-cloud-run/LICENSE-RECORD.json",
+      "bytes": 1064,
+      "sha256": "712EC9BB5F4785F56EDF7A8C9C91010970F8A787286B188B4075AB57F6C78BD2"
+    },
+    {
+      "path": "toolchains/licenses/requirements/117-aws/LICENSE-RECORD.json",
+      "bytes": 1051,
+      "sha256": "7B20140387A15692A1838189EDFF03BBCA11923EBF04C8BE6F7FB31EC5D79061"
+    },
+    {
+      "path": "toolchains/licenses/requirements/118-azure/LICENSE-RECORD.json",
+      "bytes": 1053,
+      "sha256": "B7999ADF642B7E290D83A84C86135A8DAEECD75E04D443728FE5A0E02D387E42"
+    },
+    {
+      "path": "toolchains/licenses/requirements/119-google-cloud/LICENSE-RECORD.json",
+      "bytes": 1060,
+      "sha256": "8F8AD92DE6CA6337BFE40FA38A731674ACE58C8692BA65E9165E038818E84DA8"
     },
     {
       "path": "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT",
@@ -810,7 +977,7 @@
     }
   ],
   "bundled_native_license_text_count": 3,
-  "requirement_license_record_count": 95,
+  "requirement_license_record_count": 119,
   "requirement_license_records": [
     {
       "tool": "Git",
@@ -821,8 +988,8 @@
     {
       "tool": "Python",
       "path": "toolchains/licenses/requirements/002-python/LICENSE-RECORD.json",
-      "bytes": 1081,
-      "sha256": "29F419A75C488F3AAC1D617CF4EDA5CE99CE06959AEFDDCF8AA9FC886746030E"
+      "bytes": 1166,
+      "sha256": "18E313DC4739CD56655A8582E90DE330016BDEEF1C5A9EDFF10DB8589815B629"
     },
     {
       "tool": "hashlib_pathlib",
@@ -833,20 +1000,20 @@
     {
       "tool": "SQLite_CAS",
       "path": "toolchains/licenses/requirements/004-sqlite-cas/LICENSE-RECORD.json",
-      "bytes": 1193,
-      "sha256": "1FCC15F3112B45BE92AECC63CAA01A087CB4F964A165E28037514CC42507C17F"
+      "bytes": 1278,
+      "sha256": "7B38B1B1F6E160F81C0696647D04764712CCD6F712BBD9BF7D61B0C729B12751"
     },
     {
       "tool": "SQLite_FTS5_BM25",
       "path": "toolchains/licenses/requirements/005-sqlite-fts5-bm25/LICENSE-RECORD.json",
-      "bytes": 1199,
-      "sha256": "A88140995CA395F5A904AF726608D1F144C6EACF05E657115ED71881E71509EF"
+      "bytes": 1284,
+      "sha256": "743AE307C1540B3C1E7BD22C5910C34115302C6E9D8B2AC27B4FD8AADC54B63E"
     },
     {
       "tool": "APSW_SQLite_engine",
       "path": "toolchains/licenses/requirements/006-apsw-sqlite-engine/LICENSE-RECORD.json",
-      "bytes": 1262,
-      "sha256": "36C934D7915E4079DA663EDD36287E10BFD1195BD73BB0485D09257AAEC0DA1B"
+      "bytes": 1347,
+      "sha256": "4DCF24D7425BAC7365599957E8083B513F3D8B92AA4004DCA46419F2954658C0"
     },
     {
       "tool": "deterministic_TFIDF",
@@ -857,26 +1024,26 @@
     {
       "tool": "LangGraph_Mermaid_engine",
       "path": "toolchains/licenses/requirements/008-langgraph-mermaid-engine/LICENSE-RECORD.json",
-      "bytes": 1268,
-      "sha256": "BC3644982615AE95A8BF7470BAB3041649DEA572DE9778616DB3751189A04A21"
+      "bytes": 1353,
+      "sha256": "FCFA75D3805454609D8956F8B2FCA981776772EEAB5E6C3F8EAD88247780A1BB"
     },
     {
       "tool": "Python_Graphviz_DOT_engine",
       "path": "toolchains/licenses/requirements/009-python-graphviz-dot-engine/LICENSE-RECORD.json",
-      "bytes": 1270,
-      "sha256": "7481643CEDC46046885924E597147F120DA3C5160CC767A8FE73F28B99AE9935"
+      "bytes": 1355,
+      "sha256": "D4A31471647826816BED73BACEC456FADCCBCCF417DF6D1E43DFD3695F31A9C9"
     },
     {
       "tool": "LlamaIndex_SQLite_indexer",
       "path": "toolchains/licenses/requirements/010-llamaindex-sqlite-indexer/LICENSE-RECORD.json",
-      "bytes": 1270,
-      "sha256": "2CF2A7B350BFB640CF5004658EA5993E8C7F1CE05AFFB1255BFB7A645D0E9078"
+      "bytes": 1355,
+      "sha256": "7AC0CAB6CA4E784468A7B2465A767D43F7107D054B3546FC69AFED7FB043AF10"
     },
     {
       "tool": "Mermaid_CLI_mmdc",
       "path": "toolchains/licenses/requirements/011-mermaid-cli-mmdc/LICENSE-RECORD.json",
-      "bytes": 1274,
-      "sha256": "8CDC6EA37CAA27AF1C67813936689D9A584B4A255B663C106D26A717CF9CD801"
+      "bytes": 1359,
+      "sha256": "6F70F7D5D12926D09EFABFFC278C69FCF816A159323F5A2DBCD8B36DBF27E37A"
     },
     {
       "tool": "Graphviz_dot",
@@ -905,20 +1072,20 @@
     {
       "tool": "pytest",
       "path": "toolchains/licenses/requirements/016-pytest/LICENSE-RECORD.json",
-      "bytes": 1256,
-      "sha256": "0A52728BF0A6EA84B0F109A981953042A4A56253D7DFEAB1089CC64D8DE0C634"
+      "bytes": 1341,
+      "sha256": "C72F4DD9BDD7DA958F6B8596E4D66D9C593ABDD3A9BFEAF1D720D416C3D97CBC"
     },
     {
       "tool": "Ruff",
       "path": "toolchains/licenses/requirements/017-ruff/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "56527D41572D29D9B82690F9D48566F85E80CA0ABBB2A32CC8952098DBE58212"
+      "bytes": 1339,
+      "sha256": "0DCB19A9E3939B1B4C929D65E4CE65FEB70A721D08EDD6C2679D6540C1C2DE57"
     },
     {
       "tool": "MyPy",
       "path": "toolchains/licenses/requirements/018-mypy/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "8D575561A2E90D108AD6E0FDF36F3C38C762C21F68EDD6714564B735F481D6EE"
+      "bytes": 1339,
+      "sha256": "190FC64A230A0F4C5F9517DB7FC5F925C886506E8E2813A59B49DA6A2A118CF7"
     },
     {
       "tool": "Secret_redactor",
@@ -953,8 +1120,8 @@
     {
       "tool": "defusedxml",
       "path": "toolchains/licenses/requirements/024-defusedxml/LICENSE-RECORD.json",
-      "bytes": 1255,
-      "sha256": "AD8384722B6701CE59AAB986CB45BCC15852A9CDFFBE5ACD95177DC31081C9C4"
+      "bytes": 1340,
+      "sha256": "D758F73EFA15A97D00635679A899140F692043B60E8364E0508EADCDB3DAA20A"
     },
     {
       "tool": "OpenXML_CSV_JSON_parser",
@@ -965,26 +1132,26 @@
     {
       "tool": "openpyxl",
       "path": "toolchains/licenses/requirements/026-openpyxl/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "9058E295353C2EEF7E17933DB7E649B256B334EA3D620AEBC657BE99C634CB4C"
+      "bytes": 1338,
+      "sha256": "8580D0C42D6A4C87A8D293FC0C04221873B230D9F269CEDE965838221BD9479F"
     },
     {
       "tool": "pandas",
       "path": "toolchains/licenses/requirements/027-pandas/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "CE93C59097DA2BE7476582E65001FAF767FC535D1E5933783A0332EB0A0B11B8"
+      "bytes": 1336,
+      "sha256": "51CEC48F0220741B4696514CA21E9CE05B892D712BD010AFB6EA08260C37501E"
     },
     {
       "tool": "python_calamine",
       "path": "toolchains/licenses/requirements/028-python-calamine/LICENSE-RECORD.json",
-      "bytes": 1260,
-      "sha256": "34C35FA87AD1E0FF2BEEAB9B72C0373ACB0F66E596B33F16FB3A42C8A7EF120E"
+      "bytes": 1345,
+      "sha256": "FD43E2DA419453809F68A315B8A56D5EC761A71DF5DD489BDDC714F57A08B8CE"
     },
     {
       "tool": "pyarrow",
       "path": "toolchains/licenses/requirements/029-pyarrow/LICENSE-RECORD.json",
-      "bytes": 1252,
-      "sha256": "CBA255770640A4B4E291D0BE538640E8F4396C9298D50A01C74DEEB1F90E64F6"
+      "bytes": 1337,
+      "sha256": "168D6199F2998507ADE2C5441A685299327AE9E0CDFE0A3E620FBE45F631F314"
     },
     {
       "tool": "PPTX_OpenXML",
@@ -995,26 +1162,26 @@
     {
       "tool": "pypdf",
       "path": "toolchains/licenses/requirements/031-pypdf/LICENSE-RECORD.json",
-      "bytes": 1250,
-      "sha256": "12182C565DE94547578BEFF3718A08FDD3438373F11225A20D073EFE1603BBEE"
+      "bytes": 1335,
+      "sha256": "F80B067844F25DB08677FEA0390EC50283109D12F96BC8E730573DE2C3C3A060"
     },
     {
       "tool": "pypdfium2",
       "path": "toolchains/licenses/requirements/032-pypdfium2/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "1D8895C6CBCCEF3E39B7CDB9ED25A0A04A1E9F2F44D07A57A4E306FABCD2318F"
+      "bytes": 1339,
+      "sha256": "54981D2AC1F91282D1786B81495FC3C9BFAC3213FC96D608ACC7792741368818"
     },
     {
       "tool": "pdfplumber",
       "path": "toolchains/licenses/requirements/033-pdfplumber/LICENSE-RECORD.json",
-      "bytes": 1255,
-      "sha256": "51F2D4CE3BA2EEFC0CEA4130B8109811D02071B0C24F40FDF7DD2DBFFF68CCA8"
+      "bytes": 1340,
+      "sha256": "7FB79EAD974801463511E54CB9308BB06F5D67CDF6C7187685041C5DFB3F6096"
     },
     {
       "tool": "RapidOCR_ONNX_Runtime",
       "path": "toolchains/licenses/requirements/034-rapidocr-onnx-runtime/LICENSE-RECORD.json",
-      "bytes": 1266,
-      "sha256": "A393F587C3FA3F7C462BA8305961BDF76B0BE20B6373C96DF5189D6E33225B4A"
+      "bytes": 1351,
+      "sha256": "A7DEEB1245260C5D71C7C7BB2EF2343C68B1A817F6EC967DA98BF2B339C2AE37"
     },
     {
       "tool": "pytesseract_Tesseract",
@@ -1025,8 +1192,8 @@
     {
       "tool": "Pillow",
       "path": "toolchains/licenses/requirements/036-pillow/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "81FF47DBD7190539DBA69A9E920E17AA32DA6D039EA23C2B81F0BF7CCB07927A"
+      "bytes": 1336,
+      "sha256": "FC4346ACD476381102DF4B6E9D073C8088431D0498CD861065C8B5E6B1B8A162"
     },
     {
       "tool": "Poppler_pdftotext_pdfinfo",
@@ -1043,8 +1210,8 @@
     {
       "tool": "OpenCV",
       "path": "toolchains/licenses/requirements/039-opencv/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "572AC965322D0526B8E0AE2E8550C99ABFFEFE0CB0CCD4FD325D12427E839B10"
+      "bytes": 1336,
+      "sha256": "A4094CD5C2978EB7DED2EEFB1B11DD967C209A0D01672F1F80B724ECC52F3ED8"
     },
     {
       "tool": "Custom_schema_compiler",
@@ -1055,8 +1222,8 @@
     {
       "tool": "SQLite_immutable_URI_reader",
       "path": "toolchains/licenses/requirements/041-sqlite-immutable-uri-reader/LICENSE-RECORD.json",
-      "bytes": 1220,
-      "sha256": "9DD34B34655BC88D6A2510D817205677BC78C7A405C839621F5BA89AB9493A03"
+      "bytes": 1305,
+      "sha256": "D8638084F584E9CCB2A49237C45EC4DA06AF9F223206870290135E60CAA9FE00"
     },
     {
       "tool": "Safe_archive_intake",
@@ -1091,26 +1258,26 @@
     {
       "tool": "MCP_Python_SDK",
       "path": "toolchains/licenses/requirements/047-mcp-python-sdk/LICENSE-RECORD.json",
-      "bytes": 1259,
-      "sha256": "17204A495A76C34AD423E0D32EB48521C292CA2F53E7D24C3E5951E38D087DDC"
+      "bytes": 1344,
+      "sha256": "11A3B884647CAAA7E85097C49C85053FEB52183E098CFDD2C4F90D3907B1EC5A"
     },
     {
       "tool": "Pydantic",
       "path": "toolchains/licenses/requirements/048-pydantic/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "E31E9669549B5273D06D4CCBC09B2CE8019649B6036B25763E54BEE9B6C3A1B1"
+      "bytes": 1338,
+      "sha256": "E3F4A890D68D7FEBB6B623F65063166917EB10AB6FD79E4A660B458C74267D92"
     },
     {
       "tool": "HTTPX",
       "path": "toolchains/licenses/requirements/049-httpx/LICENSE-RECORD.json",
-      "bytes": 1271,
-      "sha256": "9DE790C90D71AC8EC003978087B1CA2760DBD5DEEEFAD179091F0BF6F51DFB10"
+      "bytes": 1356,
+      "sha256": "D6B0E044B10C3DE5EE60C0CE5C8330DCEA44CA5AFF6FBBCC76DB9C94DCB66811"
     },
     {
       "tool": "Cryptography_PyJWT",
       "path": "toolchains/licenses/requirements/050-cryptography-pyjwt/LICENSE-RECORD.json",
-      "bytes": 1278,
-      "sha256": "349AE2738EAF4A3BC836050664312EE82048FD84F8060008329693CD1FB32CEA"
+      "bytes": 1363,
+      "sha256": "EA320F3231E28FB348E5A3CE3E28B290CB88742EA27C25A44B657EE7CB898AA2"
     },
     {
       "tool": "PowerShell_Win32_APIs",
@@ -1145,247 +1312,394 @@
     {
       "tool": "PyMuPDF",
       "path": "toolchains/licenses/requirements/056-pymupdf/LICENSE-RECORD.json",
-      "bytes": 1252,
-      "sha256": "1029ABE2D04A98EFC091DDEE4AA1EDF323A5C70FF448B3259F0724227A4E2FB9"
+      "bytes": 1337,
+      "sha256": "4F008F4A7B1849F69B70B8FE4E57A0AA1EFEF1E59118D056F5D9F2846AB2DCAD"
     },
     {
       "tool": "Docling",
       "path": "toolchains/licenses/requirements/057-docling/LICENSE-RECORD.json",
-      "bytes": 1252,
-      "sha256": "271A08C8C891BC87729555D4F32016488A0736BB1781DAC26AA54E475C6F04CA"
+      "bytes": 1337,
+      "sha256": "5C985C207A72EED2FCA10BF4DD1F66572506DD130F076819AB1E374784936E83"
     },
     {
       "tool": "lxml",
       "path": "toolchains/licenses/requirements/058-lxml/LICENSE-RECORD.json",
-      "bytes": 1249,
-      "sha256": "4DF3FBF1CC9577708E46DCBC07988866203F1D554DCD85222A18C176388C39C9"
+      "bytes": 1334,
+      "sha256": "88CD9E3995DE68BCFB17A3838AB41C5357321CB540852A0FFADC50D26650563F"
     },
     {
       "tool": "BeautifulSoup4",
       "path": "toolchains/licenses/requirements/059-beautifulsoup4/LICENSE-RECORD.json",
-      "bytes": 1259,
-      "sha256": "78EEC0E4CFDD6845B6EC3B6BA27115EECF6777662158C9DFD703E0DA0EAC7ECA"
+      "bytes": 1344,
+      "sha256": "E82398722BF409B7B478FBB41C9E8E45C1E69C46A314A19E27F36883063F4BEE"
     },
     {
       "tool": "markdownify",
       "path": "toolchains/licenses/requirements/060-markdownify/LICENSE-RECORD.json",
-      "bytes": 1256,
-      "sha256": "AE3D68DC4E261D1EEF322B2C76E72F443733F49153CF87C4341D407BD8930FB5"
+      "bytes": 1341,
+      "sha256": "F25C24AF98C138F5A46D341C09DB99FF591F5E0AE6182BDC2E8A0B93E2A943E4"
     },
     {
       "tool": "html2text",
       "path": "toolchains/licenses/requirements/061-html2text/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "6A32FFE7AA816D3C6CB74A6BB4427B7D3A8A11A563552176A3E33B9C0629560C"
+      "bytes": 1339,
+      "sha256": "EF60ED52D6ECC7B3CAFD90CE10B4B134A9A082CF41CCF9A786915B9B077A7DFF"
     },
     {
       "tool": "trafilatura",
       "path": "toolchains/licenses/requirements/062-trafilatura/LICENSE-RECORD.json",
-      "bytes": 1256,
-      "sha256": "6F52590BDC8E08EBDBF0B0A503D311B213D4B43F38DC3573BFA8E423CF01AFD7"
+      "bytes": 1341,
+      "sha256": "06866D888D85EB3868DEBFA5A68F78BA2DB35CA717A6891833D052F9FA28B47E"
     },
     {
       "tool": "DuckDB",
       "path": "toolchains/licenses/requirements/063-duckdb/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "DAC1E137C825946E140F8B30D8B0C1C8DF1D65E89B5AD8E006AB13135548580F"
+      "bytes": 1336,
+      "sha256": "E06B056147EBB0919262396FDDAEF5666394F47E1D8F327A6BA8B7B5DA94D5DC"
     },
     {
       "tool": "SQLAlchemy",
       "path": "toolchains/licenses/requirements/064-sqlalchemy/LICENSE-RECORD.json",
-      "bytes": 1255,
-      "sha256": "BAD3CB1C91AFB2C7CAEDA967D583464F30F7575BD1BC317B37E411F4035D2C5D"
+      "bytes": 1340,
+      "sha256": "1C1BE1B3AAACC558E426EABC3062FAB491EF52739DCEF1924EED34A2E2E2AB12"
     },
     {
       "tool": "Tableau_Hyper_API",
       "path": "toolchains/licenses/requirements/065-tableau-hyper-api/LICENSE-RECORD.json",
-      "bytes": 1262,
-      "sha256": "68FC7C84632431392F13BDDF11EB82055AA8EB26E243A702C2194104530932CD"
+      "bytes": 1347,
+      "sha256": "B7F061326557B5866116092C375BFC05350BE74998E608BDDB27E03996E65EE0"
     },
     {
       "tool": "LangChain",
       "path": "toolchains/licenses/requirements/066-langchain/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "29BA9353D988C966A2351FBA4A3D4590783E54B763AE9314DC64B58A98D2D805"
+      "bytes": 1339,
+      "sha256": "672DD347DD1030E37535F4E33B556C85EFCA6C269D0F55E43D477B455BE78E9E"
     },
     {
       "tool": "SentenceTransformers",
       "path": "toolchains/licenses/requirements/067-sentencetransformers/LICENSE-RECORD.json",
-      "bytes": 1265,
-      "sha256": "A8707B6C7459AD77974383BF3B8CFD55DFD9C39C348A75197B83B31E00DAC0ED"
+      "bytes": 1350,
+      "sha256": "FB1CE69193D63F84C68CDFC869A199C51202578DE40DBCC9721691617486948E"
     },
     {
       "tool": "FAISS_CPU",
       "path": "toolchains/licenses/requirements/068-faiss-cpu/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "048E7F8F7B3A56310669DCF00F21E03197525EE767A289EC013F57DCA0DE9496"
-    },
-    {
-      "tool": "ChromaDB",
-      "path": "toolchains/licenses/requirements/069-chromadb/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "A42A425E3991CB7FA611BDE8F54DF2A49BDB84569990CB75E4C107A77295FE8D"
+      "bytes": 1339,
+      "sha256": "F40B72AFC2139872961BBC7BDA8B6721814DA1AA989FC9287E74A8D7554ABC73"
     },
     {
       "tool": "rank_bm25",
-      "path": "toolchains/licenses/requirements/070-rank-bm25/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "09A19FFE65B4A264CCEA994DE1F100BFF990E2421D1D93EC1DA4DE42CC8120B5"
+      "path": "toolchains/licenses/requirements/069-rank-bm25/LICENSE-RECORD.json",
+      "bytes": 1339,
+      "sha256": "4DA8C99ECBD65BDA6A65E6F2C4EC632D6BB1EDD7419DF1D713859B5F5D9C2F56"
     },
     {
       "tool": "FastAPI",
-      "path": "toolchains/licenses/requirements/071-fastapi/LICENSE-RECORD.json",
-      "bytes": 1252,
-      "sha256": "C2C50D61CDD420D1EC8978341A241ED4D007B6DA91205AAFEF1FEEEE60A607C7"
+      "path": "toolchains/licenses/requirements/070-fastapi/LICENSE-RECORD.json",
+      "bytes": 1337,
+      "sha256": "3C6DADA1FB109F0E98CEAB2859A9487C4378A9CFF9F3585EBEB7EF42BE19148C"
     },
     {
       "tool": "Uvicorn",
-      "path": "toolchains/licenses/requirements/072-uvicorn/LICENSE-RECORD.json",
-      "bytes": 1252,
-      "sha256": "6810A4AB8A23D5BA987C4CE8F8A553610BC03AC7C1534022A7EB1F62E998DA60"
+      "path": "toolchains/licenses/requirements/071-uvicorn/LICENSE-RECORD.json",
+      "bytes": 1337,
+      "sha256": "E311838F3B21742D48B8BC180B38DF9B8F79BBC3F62284EA9C612E42751CF96C"
     },
     {
       "tool": "Pydantic_Settings",
-      "path": "toolchains/licenses/requirements/073-pydantic-settings/LICENSE-RECORD.json",
-      "bytes": 1262,
-      "sha256": "897CA8FE4981E36A1BEB3A8C0FAC27C539EDDE9B5D045BE16D98685B8099F3FC"
+      "path": "toolchains/licenses/requirements/072-pydantic-settings/LICENSE-RECORD.json",
+      "bytes": 1347,
+      "sha256": "348D1CCE7412D7A4B8E1575040A289F4206D9C0CE0253FEE7D54A6C6CBD036C3"
     },
     {
       "tool": "python_multipart",
-      "path": "toolchains/licenses/requirements/074-python-multipart/LICENSE-RECORD.json",
-      "bytes": 1261,
-      "sha256": "029EB4C88854E7F7DD04A7FDBB7BAB427038084B64CF58656451C1AD2FCD0B5A"
+      "path": "toolchains/licenses/requirements/073-python-multipart/LICENSE-RECORD.json",
+      "bytes": 1346,
+      "sha256": "2E466B0209263ADE3CB480CA71F5D560D155108EB563DA62EEA07963522D7957"
     },
     {
       "tool": "Requests",
-      "path": "toolchains/licenses/requirements/075-requests/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "050B554C93166ECDE521F694A72E1255F10A3CAB7619EC96D7A8216EF0F6698D"
+      "path": "toolchains/licenses/requirements/074-requests/LICENSE-RECORD.json",
+      "bytes": 1338,
+      "sha256": "8D1D1D8E6D44100AED7B069F57FCB9CE85892241FA90A72B22EFABB0EEB24391"
     },
     {
       "tool": "aiofiles",
-      "path": "toolchains/licenses/requirements/076-aiofiles/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "897A7C63E885397410EED34EFAE51E0575189F3F647310364C37AF286581CA17"
+      "path": "toolchains/licenses/requirements/075-aiofiles/LICENSE-RECORD.json",
+      "bytes": 1338,
+      "sha256": "C5B9128E2239CC01EB0391D5973645C4B4122A5CD4567BCCC4956E239E39F60E"
     },
     {
       "tool": "orjson",
-      "path": "toolchains/licenses/requirements/077-orjson/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "3879E78D33C93904E3F82BC79D6BAB9BC71776D9A230DDFE753E685E1EF1FFA7"
+      "path": "toolchains/licenses/requirements/076-orjson/LICENSE-RECORD.json",
+      "bytes": 1336,
+      "sha256": "E71D457A71AA0DAE4B81B1DAAAAA7443DD0078972E481EBC457325C394606FC0"
     },
     {
       "tool": "python_dotenv",
-      "path": "toolchains/licenses/requirements/078-python-dotenv/LICENSE-RECORD.json",
-      "bytes": 1258,
-      "sha256": "EE0E602C8002FE7B347F15676A956CDB825813531C0F57AB813A96F6A251DBCF"
+      "path": "toolchains/licenses/requirements/077-python-dotenv/LICENSE-RECORD.json",
+      "bytes": 1343,
+      "sha256": "93105CDB82F35E41833DA44C5F448361708D83703B9A4175E0ECA2522ABE41CA"
     },
     {
       "tool": "Tenacity",
-      "path": "toolchains/licenses/requirements/079-tenacity/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "C610833CBBC18F46FAE9FEA8EB32CF60DEAB3B5BABBFD9E4961D9674F5ED2FF4"
+      "path": "toolchains/licenses/requirements/078-tenacity/LICENSE-RECORD.json",
+      "bytes": 1338,
+      "sha256": "83A40893332E44541072BC3E260E23E1CFD064656576A74C94016970FC30DFA3"
     },
     {
       "tool": "psutil",
-      "path": "toolchains/licenses/requirements/080-psutil/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "3251B718D9D615CAF733D5B8DD8DB9C036F3201B618A3EA1400BF9C1C51DFD45"
+      "path": "toolchains/licenses/requirements/079-psutil/LICENSE-RECORD.json",
+      "bytes": 1336,
+      "sha256": "92450F8C0C42AAB237A0508B5BC335DB5D9ACF900DD57F9EE1028EE2C5F5958D"
     },
     {
       "tool": "DDGS",
-      "path": "toolchains/licenses/requirements/081-ddgs/LICENSE-RECORD.json",
-      "bytes": 1249,
-      "sha256": "2EBC6EFBD6F1FF46DD36855566666052568239654479C9CBB171138F5221AD54"
+      "path": "toolchains/licenses/requirements/080-ddgs/LICENSE-RECORD.json",
+      "bytes": 1334,
+      "sha256": "31B12807D87680B5D157616C84285B19E01E3C959DC090B8FE93EC44DB1C0545"
     },
     {
       "tool": "PyGithub",
-      "path": "toolchains/licenses/requirements/082-pygithub/LICENSE-RECORD.json",
-      "bytes": 1253,
-      "sha256": "8CEB04C766EBC21581224CBEAB393F38B5ED3E1A6DE7D7E6734401ADF217C766"
+      "path": "toolchains/licenses/requirements/081-pygithub/LICENSE-RECORD.json",
+      "bytes": 1338,
+      "sha256": "14669D9A14E03D512A8E99C91206AA3245B956A46A3069DD919F019582CE7E45"
     },
     {
       "tool": "GitPython",
-      "path": "toolchains/licenses/requirements/083-gitpython/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "769D0C543331FD91884336E8B0C21227843D91DBE012BA6384C185769E93F91A"
+      "path": "toolchains/licenses/requirements/082-gitpython/LICENSE-RECORD.json",
+      "bytes": 1339,
+      "sha256": "883AD90D5D064565C04060D5C153F41AF655C32FB5A41D53C70F2E67FDEA9DA0"
     },
     {
       "tool": "tldextract",
-      "path": "toolchains/licenses/requirements/084-tldextract/LICENSE-RECORD.json",
-      "bytes": 1255,
-      "sha256": "9247BE17358CCF54426EE61B648573C47A77C126F13AF6386075815459B94BF1"
+      "path": "toolchains/licenses/requirements/083-tldextract/LICENSE-RECORD.json",
+      "bytes": 1340,
+      "sha256": "A74F6E74A368385BDE137FCE98AB53FC57D0FFF87637BBFADCB38B4485BD5D05"
     },
     {
       "tool": "validators",
-      "path": "toolchains/licenses/requirements/085-validators/LICENSE-RECORD.json",
-      "bytes": 1255,
-      "sha256": "806E17354F66D04D5E3DEE8AA5CCDAEF4E9CE1CE648C7AD8E1AB3FECF24D74F2"
+      "path": "toolchains/licenses/requirements/084-validators/LICENSE-RECORD.json",
+      "bytes": 1340,
+      "sha256": "4D4A5909486346C4307B4559655EE05290193D0588B99D5483D762DA9387AE7D"
     },
     {
       "tool": "readability_lxml",
-      "path": "toolchains/licenses/requirements/086-readability-lxml/LICENSE-RECORD.json",
-      "bytes": 1261,
-      "sha256": "0E39DA9CB48670033D0C46FF7FAC99F333D533A5A7D2A12A5D0DE6414A2A6754"
+      "path": "toolchains/licenses/requirements/085-readability-lxml/LICENSE-RECORD.json",
+      "bytes": 1346,
+      "sha256": "A0A98C929F77FC23A89C80B5544D93D2F1ED2A568B3A3A42601D6B4BED162CDD"
     },
     {
       "tool": "Polars",
-      "path": "toolchains/licenses/requirements/087-polars/LICENSE-RECORD.json",
-      "bytes": 1251,
-      "sha256": "3D928C70FBCB391AC855DA5C22A56E2969352068686DEB898FC4CA9C07CDB579"
+      "path": "toolchains/licenses/requirements/086-polars/LICENSE-RECORD.json",
+      "bytes": 1336,
+      "sha256": "7AFBED126DB17BF39C423CD98CF9E6871E0312C9895272C7061FE0A6220D9E3F"
     },
     {
       "tool": "TreeSitter_LanguagePack",
-      "path": "toolchains/licenses/requirements/088-treesitter-languagepack/LICENSE-RECORD.json",
-      "bytes": 1268,
-      "sha256": "06EF05E2865F4E4C6815F732ECAE5FCA581D66E5CA70C9B9839C91960710C0AA"
+      "path": "toolchains/licenses/requirements/087-treesitter-languagepack/LICENSE-RECORD.json",
+      "bytes": 1353,
+      "sha256": "468F64C5FF17A80590C2C6B4FBEE6AEF95BC9007D155722C6D3F0DDC25775983"
     },
     {
       "tool": "RapidFuzz",
-      "path": "toolchains/licenses/requirements/089-rapidfuzz/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "F0C01CDD4A617C02D39F3AD7D5695881A04D2023A9248798AC638581DF01D0A2"
+      "path": "toolchains/licenses/requirements/088-rapidfuzz/LICENSE-RECORD.json",
+      "bytes": 1339,
+      "sha256": "F00E16A18254E3E0B64620457119511BA2CB4DBA8494B5EABA32684C0B999036"
     },
     {
       "tool": "rustworkx",
-      "path": "toolchains/licenses/requirements/090-rustworkx/LICENSE-RECORD.json",
-      "bytes": 1254,
-      "sha256": "3AF122B046907DF00282DF379B72CB08AA2651C855378B1E7769E653E7F6C3CB"
+      "path": "toolchains/licenses/requirements/089-rustworkx/LICENSE-RECORD.json",
+      "bytes": 1339,
+      "sha256": "19058D828E4B419668A3BAEFDE636B6F9B3AE8F9BDEBA137F7117BF733FBD06D"
     },
     {
       "tool": "sqlite_vec",
-      "path": "toolchains/licenses/requirements/091-sqlite-vec/LICENSE-RECORD.json",
-      "bytes": 1271,
-      "sha256": "BBCC8EAEF254BB51C92021BD0657631E0288541DAA3BAB804D5CDA94ACE013EC"
+      "path": "toolchains/licenses/requirements/090-sqlite-vec/LICENSE-RECORD.json",
+      "bytes": 1356,
+      "sha256": "638D5306AE86924C1BE01FFCAA30FB88F5AC6D8A5A626172D84EC7D99414E454"
     },
     {
       "tool": "HuggingFace_Hub_ModelSnapshot",
-      "path": "toolchains/licenses/requirements/092-huggingface-hub-modelsnapshot/LICENSE-RECORD.json",
-      "bytes": 1294,
-      "sha256": "FA24D82749CC8303AF701D132F7416265167CF9E292044973D26AF67AB7C18F9"
+      "path": "toolchains/licenses/requirements/091-huggingface-hub-modelsnapshot/LICENSE-RECORD.json",
+      "bytes": 1379,
+      "sha256": "F8F38B682576627DBA98FB0A4DCCE1CA755C4BC5D2A1AEBE78488A0553658F4F"
     },
     {
       "tool": "NextJS_React_ThreeJS_FramerMotion",
-      "path": "toolchains/licenses/requirements/093-nextjs-react-threejs-framermotion/LICENSE-RECORD.json",
+      "path": "toolchains/licenses/requirements/092-nextjs-react-threejs-framermotion/LICENSE-RECORD.json",
       "bytes": 1083,
-      "sha256": "42C08616C59986B1A4D4F24C87BD023749EB8DC271B00CF1DA73AEAA5D089629"
+      "sha256": "06D54834A2ED579ACD1989A0E50A187562BCA564CC48B3FF862BDDE1FD1CF585"
     },
     {
       "tool": "GitHub_Actions",
-      "path": "toolchains/licenses/requirements/094-github-actions/LICENSE-RECORD.json",
+      "path": "toolchains/licenses/requirements/093-github-actions/LICENSE-RECORD.json",
       "bytes": 1061,
-      "sha256": "4BFB654965CBF0FC9F43765B0F6294C041A8E42855884D0DA698FB18C3E004B3"
+      "sha256": "F4C3768DF474B090C3D189B3BD05187BEC1DF5B0BB25E7EAAD61B918041124DA"
     },
     {
       "tool": "Vercel_Git_integration",
-      "path": "toolchains/licenses/requirements/095-vercel-git-integration/LICENSE-RECORD.json",
+      "path": "toolchains/licenses/requirements/094-vercel-git-integration/LICENSE-RECORD.json",
       "bytes": 1069,
-      "sha256": "7C1C1DBFFE640D9E0753DEE94FD20DAED75E385EAD8136FF1DC6ADED0690E4A5"
+      "sha256": "F18005C76ED70133F02E6D0563DA9A604B1F80C4E977C13DDE5EC8072DF56C9B"
+    },
+    {
+      "tool": "OpenAI_Agents_SDK",
+      "path": "toolchains/licenses/requirements/095-openai-agents-sdk/LICENSE-RECORD.json",
+      "bytes": 1347,
+      "sha256": "3C7880F9C1F73ACEE186E9E06485DDABBCE977131F1C68BD2C7C98C5789EDC5A"
+    },
+    {
+      "tool": "FastMCP",
+      "path": "toolchains/licenses/requirements/096-fastmcp/LICENSE-RECORD.json",
+      "bytes": 1337,
+      "sha256": "64CC0819966F9F28DD8FABA26456BF4EBF23E977B007445E0E5D0E5D9530B8A4"
+    },
+    {
+      "tool": "GitHub_MCP_Server",
+      "path": "toolchains/licenses/requirements/097-github-mcp-server/LICENSE-RECORD.json",
+      "bytes": 1064,
+      "sha256": "8E0AA10FFD79AFB3B952AEC5F21BC89550E326D9EB8716BCF48A1ACC55AC9CF9"
+    },
+    {
+      "tool": "Filesystem_MCP_Server",
+      "path": "toolchains/licenses/requirements/098-filesystem-mcp-server/LICENSE-RECORD.json",
+      "bytes": 1068,
+      "sha256": "6C160C55B68B3CB53D585DF85FD36757F23E57ABD7B0A6D068ABA0E454F5F00E"
+    },
+    {
+      "tool": "PostgreSQL_MCP_Server",
+      "path": "toolchains/licenses/requirements/099-postgresql-mcp-server/LICENSE-RECORD.json",
+      "bytes": 1068,
+      "sha256": "C31E3F8E242B72ECFB9164B9EC8798C7150ABFB1ED93A25952E5C45615E3FF52"
+    },
+    {
+      "tool": "Slack_MCP_Server",
+      "path": "toolchains/licenses/requirements/100-slack-mcp-server/LICENSE-RECORD.json",
+      "bytes": 1064,
+      "sha256": "179FBFCE2D20B5D8BF1C24334E952A9DFD4E583F51BA9E5EE59816007659EB14"
+    },
+    {
+      "tool": "Pinecone",
+      "path": "toolchains/licenses/requirements/101-pinecone/LICENSE-RECORD.json",
+      "bytes": 1056,
+      "sha256": "D283E17B3CFD3205DBADD23A62135AA91B0E5628FA99414665546F32CB586CFA"
+    },
+    {
+      "tool": "Weaviate",
+      "path": "toolchains/licenses/requirements/102-weaviate/LICENSE-RECORD.json",
+      "bytes": 1056,
+      "sha256": "1DBB2B746E92612A51D47329111D228162DCDFE2A68373BEBEA1EBE32B7229CB"
+    },
+    {
+      "tool": "Milvus",
+      "path": "toolchains/licenses/requirements/103-milvus/LICENSE-RECORD.json",
+      "bytes": 1054,
+      "sha256": "982DD7ED8D9C3B1AAD6062A29B6D6FB3B7CA0622A1CA8EF52627BDFAAD83AEDC"
+    },
+    {
+      "tool": "OpenSearch",
+      "path": "toolchains/licenses/requirements/104-opensearch/LICENSE-RECORD.json",
+      "bytes": 1058,
+      "sha256": "F7E181137DA4799657FB93A74ED9EB854B30DB3D39B4C4C7B312EE319C4CED6B"
+    },
+    {
+      "tool": "LangSmith",
+      "path": "toolchains/licenses/requirements/105-langsmith/LICENSE-RECORD.json",
+      "bytes": 1340,
+      "sha256": "7623AE616368ED5E35AFAB6D5DC8D92E5F7EB4A0875457CB4BCBD8501788CCA6"
+    },
+    {
+      "tool": "TruLens",
+      "path": "toolchains/licenses/requirements/106-trulens/LICENSE-RECORD.json",
+      "bytes": 1055,
+      "sha256": "D67EC4FC24EFFB7F1C139D4FA7462058C3217C3F41D2402E2A7B188DBE533A59"
+    },
+    {
+      "tool": "DeepEval",
+      "path": "toolchains/licenses/requirements/107-deepeval/LICENSE-RECORD.json",
+      "bytes": 1056,
+      "sha256": "CDB54A5A05E6E180307CF36446CCDA30C874E97B1FAD42132646E35B782C3D1C"
+    },
+    {
+      "tool": "Promptfoo",
+      "path": "toolchains/licenses/requirements/108-promptfoo/LICENSE-RECORD.json",
+      "bytes": 1057,
+      "sha256": "B6CBE1BCFB1BE8A8D58810F92600D76587798EFFD6F4E617C58BA1A4E4C599EB"
+    },
+    {
+      "tool": "Langfuse",
+      "path": "toolchains/licenses/requirements/109-langfuse/LICENSE-RECORD.json",
+      "bytes": 1339,
+      "sha256": "03A9C162A609FF82496D8693885FA11FD6DB98FBF71A82827CBDBC57AB7648BB"
+    },
+    {
+      "tool": "Helicone",
+      "path": "toolchains/licenses/requirements/110-helicone/LICENSE-RECORD.json",
+      "bytes": 1056,
+      "sha256": "525C1EC3866DCD9911C245976A5EB2AD72F921A1EA24F35DC425B8073882691B"
+    },
+    {
+      "tool": "OpenTelemetry",
+      "path": "toolchains/licenses/requirements/111-opentelemetry/LICENSE-RECORD.json",
+      "bytes": 1344,
+      "sha256": "F5A38FED821C9D4B91279BFF348F543D78C15FCAA0E83B28FEDDCEC0D8275BB8"
+    },
+    {
+      "tool": "Grafana",
+      "path": "toolchains/licenses/requirements/112-grafana/LICENSE-RECORD.json",
+      "bytes": 1055,
+      "sha256": "5907F0D10372E6F70308B6B33E7DCA0B1D1A97084DAB563AB87ADED2C67F3CCF"
+    },
+    {
+      "tool": "Docker",
+      "path": "toolchains/licenses/requirements/113-docker/LICENSE-RECORD.json",
+      "bytes": 1054,
+      "sha256": "ECD4D02482B9428DF0B562355CE6F827C8FD80D92079BB3FC751AA773CAF175D"
+    },
+    {
+      "tool": "Kubernetes",
+      "path": "toolchains/licenses/requirements/114-kubernetes/LICENSE-RECORD.json",
+      "bytes": 1058,
+      "sha256": "C30B46428DA54DA382008976DCC7912221CD471A779D8A65672ED7A4E332CF55"
+    },
+    {
+      "tool": "AWS_Lambda",
+      "path": "toolchains/licenses/requirements/115-aws-lambda/LICENSE-RECORD.json",
+      "bytes": 1058,
+      "sha256": "EBFB3DFA0355ED450E8173617D0E0491E9CFB42EACA197768B0ED731A03872AB"
+    },
+    {
+      "tool": "Google_Cloud_Run",
+      "path": "toolchains/licenses/requirements/116-google-cloud-run/LICENSE-RECORD.json",
+      "bytes": 1064,
+      "sha256": "712EC9BB5F4785F56EDF7A8C9C91010970F8A787286B188B4075AB57F6C78BD2"
+    },
+    {
+      "tool": "AWS",
+      "path": "toolchains/licenses/requirements/117-aws/LICENSE-RECORD.json",
+      "bytes": 1051,
+      "sha256": "7B20140387A15692A1838189EDFF03BBCA11923EBF04C8BE6F7FB31EC5D79061"
+    },
+    {
+      "tool": "Azure",
+      "path": "toolchains/licenses/requirements/118-azure/LICENSE-RECORD.json",
+      "bytes": 1053,
+      "sha256": "B7999ADF642B7E290D83A84C86135A8DAEECD75E04D443728FE5A0E02D387E42"
+    },
+    {
+      "tool": "Google_Cloud",
+      "path": "toolchains/licenses/requirements/119-google-cloud/LICENSE-RECORD.json",
+      "bytes": 1060,
+      "sha256": "8F8AD92DE6CA6337BFE40FA38A731674ACE58C8692BA65E9165E038818E84DA8"
     }
   ],
   "tool_license_inventory": "toolchains/tool-license-inventory.v1.json",
-  "tool_license_inventory_sha256": "16EF4850E8C5C984DED580D269C1983E91B0715753BFF403885F229D01B3B320",
-  "tool_license_entry_count": 95,
+  "tool_license_inventory_sha256": "B643124CFDA71BB0272E5330FD46F0FCDC3914DF58989F1545888269EE8D37F8",
+  "hardware_accelerator_catalog_sha256": "ED6F59CCDE58E7F5A90854BF785340F254F3F44C10077C7F5120A7E733B8D69C",
+  "hardware_accelerator_schema_sha256": "F87C5FAE23BCB3D6DFB6C3FE00555977D87EF116E13C50E6863166D9D56F45DA",
+  "hardware_accelerators_are_execution_providers_not_tools": true,
+  "tool_license_entry_count": 119,
   "all_tool_requirements_license_classified": true,
   "all_tool_requirements_have_physical_license_records": true,
   "installed_runtime_license_bundle": "%RUNTIME_CONTROL_ROOT%/runtime/licenses/<runtime_key>/manifest.v1.json",
@@ -1397,5 +1711,5 @@
   "ghostscript_default_bundled": false,
   "ghostscript_license_grant_required": true,
   "poppler_separate_process_and_source_offer_required": true,
-  "receipt_sha256": "5A24E67D3FE234512C4826E720E87D987006FA9C9DAA0E0E81AC93C5CF3C865A"
+  "receipt_sha256": "44AFF82EFDC98900CBD0422C7726812BA3E10883B0D5F21551AE4E74DBBEFCE1"
 }

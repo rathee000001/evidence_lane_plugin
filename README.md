@@ -1,4 +1,4 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / registry-derived-v1 -->
 
 <p align="center">
   <img src="docs/assets/evidence-lane-full-logo.png" alt="Evidence Lane" width="900" />
@@ -11,17 +11,14 @@
 # Evidence Lane
 
 <p align="center">
-  <a href="https://evidencelane.org"><strong>evidencelane.org</strong></a><br />
+  <a href="https://evidencelane.org"><strong>evidencelane.org</strong></a> ·
   <a href="https://rathee000001.github.io/evidence_lane_plugin/">GitHub Pages</a>
 </p>
-
-The canonical Devpost publication has not been created yet. No branch, preview,
-or candidate should publish or link to a provisional entry.
 
 <p align="center">
   <a href="ARCHITECTURE.md">Architecture</a> ·
   <a href="docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md">Canon</a> ·
-  <a href="docs/AI_LEARNING.md">AI Learning</a> ·
+  <a href="docs/AI_LEARNING.md">Agent Learning</a> ·
   <a href="docs/MEMORY.md">Memory</a> ·
   <a href="docs/PROJECT_UNIVERSE.md">Project Universe</a> ·
   <a href="docs/PROJECT_PV_CONTENT_ADDRESSED_STORAGE.md">PV Storage</a> ·
@@ -37,526 +34,234 @@ or candidate should publish or link to a provisional entry.
   <a href="docs/GIT_AND_CI_CD.md">Git and CI</a> ·
   <a href="docs/LIFECYCLE_AND_HIL.md">Lifecycle and HIL</a> ·
   <a href="docs/RELEASE_AND_COMPATIBILITY.md">Release</a> ·
-  <a href="docs/UPSTREAM_REFERENCE_PROVENANCE.md">Provenance</a> ·
-  <a href="docs/CREDITS_AND_CONTRIBUTIONS.md">Contributors</a> ·
-  <a href="LICENSE.md">License</a> ·
-  <a href="docs/COPYRIGHT.md">Copyright</a> ·
-  <a href="docs/THIRD_PARTY_LICENSES.md">Third-party licenses</a> ·
-  <a href="docs/TERMS_AND_CONDITIONS.md">Terms</a> ·
-  <a href="SECURITY.md">Security</a> ·
   <a href="docs/REPOSITORY_MAP.md">Repository Map</a>
 </p>
 
-The AI model is rarely the only bottleneck in a serious long-running project.
-The harder failure is the fragmented project around it: repositories, local
-dirty work, documents, databases, research, plans, installed runtimes,
-deployments, and human decisions all drift into separate realities while the
-human becomes the integration layer.
+The canonical Devpost publication has not been created yet. No branch, preview, or candidate should publish or link to a provisional entry.
 
-Evidence Lane is a local-first project control plane for that fragmented state.
-It keeps source, worktree, project, Plan, ChatLineage, installed-runtime,
-candidate, accepted, Memory, Canon, and AI Learning authorities distinct while
-making the exact slice needed by the active Delta queryable across tasks,
-context windows, tools, and hosts.
+The AI model is rarely the only bottleneck in a serious long-running project. The harder failure is the fragmented project around it: repositories, local dirty work, documents, databases, research, plans, installed runtimes, deployments, and human decisions drift into separate realities while the human becomes the integration layer.
 
-The current Codex source release is **3.0.0**. This forward release
-identity applies to the branch, package, helper, tunnel, Git, website, future
-Devpost publication, and maintained current documentation; sealed historical
-receipts retain their original identities only inside the historical evidence
-boundary.
+Evidence Lane is a local-first project control plane for that fragmented state. It keeps source, worktree, project, Plan, ChatLineage, installed-runtime, candidate, accepted, Project Memory, Canon, and Agent Learning authorities distinct while making the exact slice needed by the active Delta queryable across tasks, context windows, tools, and Codex hosts.
 
-Source identity, installed-runtime identity, Project/PV candidates, and human
-acceptance remain separate facts. The maintained documentation describes the
-current executable contract; installed-host and HIL receipts determine whether
-that contract is active for a particular task.
+The current Codex source release is **3.0.0**. Source identity, Git commit/tree, package identity, installed runtime, Project/PV proposals, accepted state, and human release or HIL decisions remain separate facts. Maintained documentation describes the current executable contract; exact installed-host and HIL receipts determine whether that contract is active for a task.
+
+## 3.0 source and historical compatibility invariants
+
+Current executable routes, schemas, counts, and documentation are derived from the 3.0 source graph. Historical versions and immutable receipts retain their original identities for traceability, but they cannot re-enter the active runtime, revive a purged route, or override the current installed and Project/PV authorities.
 
 ## Five product failures Evidence Lane addresses
 
-Long-running AI work does not have one continuity problem. It has five related
-failure modes that compound when project state lives only in a conversation or
-a repository checkout:
+1. **Every new task can charge a re-explanation tax.** A fresh task does not automatically inherit the exact files, accepted state, active work, pending decisions, or prior task boundary. Evidence Lane keeps queryable ChatLineage, exact task boundaries, the accepted pointer, pending candidates, and unresolved human gates so a new task can retrieve the relevant state instead of reconstructing the whole narrative.
+2. **Unchanged sources are repeatedly read and reparsed.** Reprocessing the same inputs spends time and context while increasing classification drift. Evidence Lane stores content-addressed lane facts and retrieves bounded matches through SQLite, FTS5, BM25, linked topology, and condition-selected semantic indexes; Refresh reprocesses changed sections and emits a new receipt for unchanged members without reauthoring them.
+3. **Human direction and AI output blur together.** A polished response, successful test, deployment, or commit can be mistaken for a human decision. Evidence Lane preserves actor lineage, keeps candidates separate from accepted truth, and requires the exact authority-owned human gate before accepted state can move.
+4. **The model needs a bounded corpus while the user needs action authority.** Dumping a Plan, backlog, Markdown history, or project folder into context hides the decision surface inside data volume. Evidence Lane classifies project recipe and Mode, queries only relevant evidence, applies condition-true tools and gates, and returns bounded facts for the current action.
+5. **Hosts do not share one storage or accelerator reality.** A persistent workstation, durable VM, ephemeral host, CPU-only runtime, NVIDIA CUDA runtime, and AMD runtime cannot safely pretend to have the same files, mounts, drivers, memory, or transport. Evidence Lane binds the eligible storage, transport, and user-enabled accelerator profile to the detected host and seals visible fallback receipts.
 
-1. **Every new task can charge a re-explanation tax.** A fresh task does not
-   automatically inherit the exact files, accepted state, active work, pending
-   decisions, or prior task boundary. Users repeat the project while the model
-   reconstructs a plausible but potentially different state. Evidence Lane
-   records queryable ChatLineage, exact task boundaries, the accepted pointer,
-   pending candidates, and unresolved human gates so the next task can retrieve
-   the relevant state instead of rebuilding the whole narrative.
-2. **Unchanged sources are repeatedly read and reparsed.** Reprocessing the same
-   large inputs spends time and context while increasing the chance that two
-   passes classify identical evidence differently. Evidence Lane stores
-   content-addressed lane facts and retrieves bounded matches through SQLite,
-   FTS5, BM25, and linked topology; Refresh reprocesses changed sections and
-   records their Delta rather than treating every turn as a first intake.
-3. **Human direction and AI output blur together.** A polished model response,
-   successful test, deployment, or commit can be mistaken for a human decision.
-   Evidence Lane preserves actor lineage, keeps candidates separate from
-   accepted truth, and requires the exact human-controlled gate before accepted
-   state can move.
-4. **The model needs a bounded corpus while the user needs command authority.**
-   Dumping a Plan, backlog, Markdown history, or project folder into the context
-   hides the decision surface inside data volume. Evidence Lane classifies the
-   operating mode, queries only the relevant evidence, applies the permitted
-   tools and gates, and returns the bounded facts needed for the current action.
-5. **Hosts do not share one storage reality.** A persistent local workstation,
-   durable VM, and ephemeral host cannot safely pretend to have the same files,
-   mounts, or lifecycle. Evidence Lane binds an eligible local, mounted, or
-   transactional authority to the detected host profile and seals entry and
-   exit boundaries so a host transition does not silently change project truth.
-
-The conversation remains the reasoning surface. Durable, queryable evidence
-remains the authority, and Git remains source history rather than a substitute
-for worktree, Plan, ChatLineage, installed-runtime, candidate, or human-decision
-state.
+The conversation remains the reasoning surface. Durable, queryable evidence remains the authority, and Git remains source history rather than a substitute for worktree, Plan, ChatLineage, installed runtime, candidate, or human-decision state.
 
 ## What Evidence Lane separates
 
-1. **Source truth** — ordered inputs, exact bytes, parsers, tools, provenance,
-   and failures.
-2. **Worktree truth** — Git identity plus preserved dirty and untracked bytes.
-3. **Project truth** — durable lane databases, graphs, pointers, and receipts.
-4. **Plan truth** — one canonical order, one active row, queued work, history,
-   dependencies, and physically final HIL.
-5. **ChatLineage** — prompts, responses, task lineage, entry/exit boundaries,
-   and bounded retrieval.
-6. **Installed truth** — exact package, slot, MCP catalog, skills, hooks,
-   helper, tunnel, and runtime identity.
-7. **Candidate truth** — immutable evidence that remains unaccepted.
-8. **Accepted truth** — the Project Version pointer moved only by the exact
-   governed human decision.
-9. **Canon** — cross-task contracts and mapped consequences without inferred
-   acceptance.
-10. **AI Learning** — project-isolated learning proposals and receipts, kept
-    distinct from Project Truth and Canon authority.
+- **Source truth** — ordered inputs, exact bytes, parsers, tools, provenance, and failures.
+- **Worktree truth** — Git identity plus preserved dirty and untracked bytes.
+- **Project truth** — durable lane databases, graphs, pointers, and receipts.
+- **Plan truth** — one canonical order, one active row, queued work, history, dependencies, and physically final HIL.
+- **ChatLineage** — prompts, responses, task lineage, Entry/Exit Slips, and bounded retrieval.
+- **Installed truth** — exact package, slot, MCP catalog, skills, hooks, tunnel, accelerator profile, and runtime identity; the maintainer restart helper stays outside executable authority.
+- **Candidate truth** — immutable evidence that remains unaccepted.
+- **Accepted truth** — the Project Version pointer moved only by the exact governed human decision.
+- **Canon** — cross-task contracts and mapped consequences without inferred acceptance.
+- **Agent Learning** — project-isolated learning proposals and receipts, separate from Project Truth and Canon.
 
-AI reasons over these authorities. It is not itself the evidence authority.
+Codex performs the work; it is not itself the evidence authority. A response, test, commit, deployment, package, or installation is evidence only. Project and Learning acceptance remain explicit human decisions owned by their respective authorities.
 
-## Current Codex package contract
+## Current source contract
 
-The 3.0 source package defines:
+These values are derived from the current executable registries. They are a release snapshot, not hard ceilings; adding or removing a registered action, skill, hook, lane, authority, tool, or workflow must regenerate this page.
 
-- one package-local native MCP server named `evidence-lane`;
-- exactly **91 canonical actions**: 30 read-only and 61 write-capable;
-- exactly **25 governed skills**;
-- six primary controls in order: Boot, Rollback, Build, Refresh, Mode, and
-  Source Intake;
-- eleven lifecycle hook events: `SessionStart`, `SubagentStart`,
-  `UserPromptSubmit`, `PreToolUse`, `PermissionRequest`, `PostToolUse`,
-  `PreCompact`, `PostCompact`, `SubagentStop`, `Stop`, and `SessionEnd`;
-- durable local SQLite as the default project authority;
-- a canonical Plan ledger and bounded 1+9 Step projection;
-- queryable ChatLineage, FTS5/BM25 retrieval, MMD and DOT topology, pointers,
-  receipts, and content hashes;
-- exact State Travel continuity for a fresh task without replaying HIL; and
-- human-owned promotion gates before a candidate can become accepted truth.
+| Surface | Current source value | Authority |
+| --- | ---: | --- |
+| Package base version | `3.0.0` | `.codex-plugin/plugin.json` (`3.0.0+codex.20260829234050` current cache-busted source identity) |
+| Canonical native actions | **91** | 30 read-only + 61 write-capable; public schema, MCP, and SDK agree |
+| Governed skills | **26** | Registry-derived; no separate command layer |
+| Hook structure | **11 events / 44 ordered handlers** | Hooks are ordered event adapters, not business-logic owners |
+| Project-sector lanes | **18** | Each lane owns a distinct schema, SQLite template, workflow, MMD, DOT, tools, and manifest |
+| Named root authorities | **11** | Separate from the sector-lane count |
+| Declared AI/toolchain capabilities | **119** | Conditional primary/fallback selection; presence is not execution |
+| Internal SDK modules | **145** | Internal execution ownership |
+| Registered skill workflow steps | **127** | Current workflow registry, not a ceiling |
 
-These are source/package contracts. A running Codex task may retain an older
-MCP snapshot until the supported same-task restart route proves the new
-installed package. A manifest, cache directory, or README claim is not
-installed-host evidence.
+The 30-row `SPECIALIZED_NATIVE_ACTIONS` tuple in the server source is an explicit specialized subset (9 reads / 21 writes), not the canonical total. The complete native catalog remains the source-derived 91-action registry above.
 
-The current same-worktree State Travel entry is the one-shot
-`pv_state_travel_direct_force_same_worktree` route. It accepts only project,
-session, source-task, runtime-donor, destination-task, and destination-title
-identities; the server derives every binding, replay, dirty-byte, Plan, runtime,
-and pointer-baseline proof. Compatibility handoff executors and caller-composed
-state are absent from this entry.
-
-### Complete skill surface
-
-| Skill | Surface | Primary control | Governed role |
-| --- | --- | --- | --- |
-| `evi` | Root router | No | Presents the six controls and conditional State Travel without silently selecting one. |
-| `evi-boot` | Lifecycle | Yes | Verifies runtime, ENV/UOP Flash, host, storage, session, and accepted pointer. |
-| `evi-rollback` | Lifecycle | Yes | Performs pointer-only movement among immutable accepted PVs. |
-| `evi-build` | Lifecycle | Yes | Seals an unaccepted candidate and stops at exact Project HIL. |
-| `evi-fuse` | HIL decision | No | Keeps Project and Learning decisions separate; only exact dual approval may promote. |
-| `evi-refresh` | Lifecycle | Yes | Rebuilds changed evidence while preserving content-addressed history. |
-| `evi-mode` | Mode | Yes | Applies ordered ENV/UOP mode and operator intersections. |
-| `evi-source-intake` | Source | Yes | Classifies and routes bounded sources across canonical lanes. |
-| `evi-state-travel` | Continuity | No | Resumes exact unfinished work through a bound fresh task. |
-| `evi-canon` | Task coordination | No | Governs typed task contracts, receiver-owned Canon decisions, backfire, results, and graph continuity. |
-| `evi-learning` | AI Learning | No | Governs project-isolated Learning retrieval, candidates, HIL, and revocation without changing Project Truth. |
-| `evi-memory` | Project Memory | No | Queries and links the independent project Memory locator graph. |
-| `evi-instructions` | Instructions | No | Resolves AGENTS.md and host MEMORY.md without merging them with Project Memory. |
-| `evi-universe` | Project graph | No | Queries Project Universe and connector-brain integrity through bounded live authority. |
-| `evi-storage` | Storage | No | Inspects and selects eligible project-scoped persistence. |
-| `evi-plugin` | Connector administration | No | Governs the bounded additional-plugin/toolchain catalog. |
-| `evi-additional-plugin` | Connector grant | No | Adds one purpose-, role-, scope-, and expiry-bound grant. |
-| `evi-drop-additional-plugin` | Connector revocation | No | Revokes one exact active grant without erasing history. |
-| `evi-exit-boot` | Session | No | Closes the exact governed session while retaining installation and evidence. |
-| `evi-formula` | ENV/UOP execution | No | Compiles and routes a bounded effect-checked Formula Engine request. |
-| `evi-brain-scaling` | Bounded context | No | Selects deterministic hash-addressed indexed slices within exact budgets. |
-| `evi-project-recipe` | Source orchestration | No | Compiles the project-type Source Intake and lane execution recipe. |
-| `evi-toolchain` | Conditional tooling | No | Resolves the exact Codex toolchain and eligible fallbacks for one lane/action. |
-| `evi-bigger-universe` | Cross-project federation | No | Registers and explicitly links hash-only project mini-brains. |
-| `evidence-lane-code-lifecycle` | Code lifecycle | No | Applies the one-writer Code-mode build, test, package, and HIL law. |
-
-### Complete native MCP surface
-
-| Native surface | Exact 3.0 source value | Authority boundary |
-| --- | --- | --- |
-| Server | `evidence-lane` | One package-local Codex MCP; website and tunnel routes are not substitutes. |
-| Canonical namespace | `mcp__evidence_lane__*` | Display suffixes never change canonical identity. |
-| Read-only actions | 30 | Inspect authority without lifecycle mutation. |
-| Write-capable actions | 61 | Each call proves its project, session, task, host, and lifecycle preconditions. |
-| Total canonical actions | 91 | Visibility is capability discovery, not permission or approval. |
-| Governed console | `ui://evidence-lane/governed-console-v5.html` | Read-only rendering cannot decide HIL or move a pointer. |
-| Durable default | Project-scoped local SQLite | Storage connectors remain separate surfaces. |
-
-## Architecture and public documentation
-
-The complete source architecture is [ARCHITECTURE.md](ARCHITECTURE.md). The
-named documentation surfaces at the top of this README are separate,
-Git-tracked authorities projected into GitHub Pages; they are not generated
-claims detached from source.
+## How one action is routed
 
 ```mermaid
-flowchart TD
-    Host["Codex host and exact task"] --> Hooks["11 lifecycle hooks"]
-    Host --> Skills["25 governed skills"]
-    Hooks --> Skills
-    Skills --> MCP["Native evidence-lane MCP<br/>30 read + 61 write actions"]
-    MCP --> SDK["Internal SDK<br/>engine + contracts + adapters"]
-    SDK --> Authorities["Separate authorities<br/>Project Truth | Canon | Learning | ChatLineage | Host Entry"]
-    Sources["Authorized sources"] --> Lanes["18 bounded evidence lanes"]
-    Authorities --> Lanes
-    Lanes --> Candidate["Immutable unaccepted candidate"]
-    Candidate --> HIL["Exact Project HIL"]
-    HIL -->|"exact approval then Fuse"| Pointer["Accepted PV pointer"]
-    HIL -->|"all other choices"| NoPromotion["No implicit promotion"]
+flowchart TB
+    subgraph EntryDistrict["Entry and source district"]
+      direction LR
+      Prompt["Prompt or steer"] --> Entry["Entry Slip"] --> Intake["Source Intake + recipe + Mode"]
+    end
+    subgraph RoutingDistrict["Typed routing district"]
+      direction TB
+      Typed["Typed action + schema"] --> SDK["Internal SDK owner"]
+      SDK --> ENV["ENV selects host and eligible route"]
+      ENV --> UOP["UOP applies formulas and gates"]
+    end
+    subgraph EvidenceDistrict["Evidence and execution district"]
+      direction LR
+      Authority["Authority + sector lane"] --> Tools["Condition-true tools"] --> Transport["Local / SDK / MCP / tunnel"]
+    end
+    subgraph ClosureDistrict["Validation and closure district"]
+      direction TB
+      Hooks["Ordered hook events"] --> Validate["Validate effects + receipt"]
+      Validate --> Continue["Adaptive Delta-exit append"]
+      Validate --> Exit["Exit Slip: Goal option 2 or State Travel"]
+      Validate -. mismatch .-> Fail["Fail closed; no HIL or pointer effect"]
+    end
+    Intake --> Typed
+    UOP --> Authority
+    Transport --> Hooks
 ```
 
-## Public controls and routing
+The executable routing stages are:
 
-Root `/evi` exposes six primary controls:
+1. `intent_and_skill_resolution`
+2. `typed_action_resolution`
+3. `internal_execution_owner`
+4. `environment_decision`
+5. `operator_and_gate_decision`
+6. `authority_and_lane_resolution`
+7. `conditional_tool_resolution`
+8. `outer_transport_resolution`
+9. `ordered_hook_handling`
+10. `result_validation_and_receipt`
 
-1. `/evi-boot`
-2. `/evi-rollback`
-3. `/evi-build`
-4. `/evi-refresh`
-5. `/evi-mode`
-6. `/evi-source-intake`
+ENV and UOP are not synonyms. ENV selects the execution environment and eligible route. UOP applies governance without overriding ENV, Project Truth, Plan, Goal, or HIL. Both are clean Codex action-plane SQLite authorities (schema version 17) with MMD/DOT traversal maps and bounded FTS indexes; predecessor ChatGPT payload databases are not copied into them.
 
-State Travel, Canon, Learning, Storage, plugin governance, and the code
-lifecycle are bounded sidecars and routers. Their presence does not inflate the
-six-control product surface or give them authority outside their contracts.
+## Entry, Delta, and Exit
 
-The native lifecycle route is `mcp__evidence_lane__*`. Skills describe and
-select the human workflow; MCP actions implement bounded reads and writes; SDK
-arms provide typed internal calls; hooks improve
-continuity around host events. A declaration on one surface is not parity until
-the installed package routes it to executable behavior and tests prove it.
+- Every user prompt or steer produces an Entry Slip that binds intent, focus, source route, owning authority/lane, workflow, gates, and the next bounded action.
+- Delta Entry begins the active task unit. Mid-Delta queries read bounded current authority without pretending the task has exited.
+- Adaptive Delta-exit append records continuing-work refresh. It is not an Exit Slip.
+- Exit Slip is reserved for completed State Travel or Goal completion through the explicit option-2 path.
+- When a current executable route replaces an older one, the stale implementation, schema field, generated artifact, test, manifest, and documentation references are directly purged in the same Delta. Immutable external receipts may remain only as non-executable history.
 
-## Lifecycle
+## Authority model
 
-```text
-Boot + locked ENV/UOP Flash
-        |
-        v
-Source Intake -> project and source identity
-        |
-        v
-Plan / Goal / Delta execution
-        |
-        v
-Build or Refresh -> immutable unaccepted candidate
-        |
-        v
-Human HIL decision
-        |
-        +-- APPROVE + exact Fuse -> accepted PV and pointer movement
-        +-- APPROVE_WITH_DELTA   -> explicit correction remains queued
-        +-- MORE_RESEARCH        -> research remains explicit
-        +-- ROLLBACK             -> pointer-only governed rollback
-        +-- REJECT / FAIL        -> no promotion
-```
+A Project/PV root is the project baseline connection. It contains or links the separate authorities required by that project; it does not flatten them into one database or prose memory. ENV/UOP remain hidden runtime authorities and are represented in a project only through their current bindings and receipts.
 
-Natural-language agreement is never enough for Fuse. A test pass, commit,
-push, preview, package, install, restart, or task transition is evidence, not
-approval. Plan acceptance in the Codex UI is also not Evidence Lane HIL.
-
-## Source Intake and lane sectors
-
-Source Intake accepts one or more ordered sources, identifies the project type,
-selects the required lanes, and always preserves ChatLineage. A lane is created
-only when that source class is actually detected or explicitly requested;
-unloaded lanes do not receive empty placeholder databases.
-
-The project sector can represent code, Git history, documents, PDFs,
-images/OCR, spreadsheets, research, discussions, plans, SQLite brains, custom
-schemas, and other governed evidence. Each active lane keeps the artifacts
-needed for both machine retrieval and human inspection, including its SQLite
-authority, searchable content, hashes, topology, pointer/manifest state,
-tool-capability record, and mutation receipts.
-
-Each project refresh also carries an ordered, hash-bound disposition for all
-canonical lanes. A loaded lane is truthfully preserved or partial; a lane with
-no current source is missing; a lane removed from the current source set is
-deferred while its earlier evidence remains history. Missing or deferred lanes
-emit no directory or placeholder artifacts. Every emitted lane distinguishes
-required, conditional, and optional tools and binds deterministic chunks/FTS,
-SQLite, MMD, DOT, `tools.json`, topology, pointers, and receipts. Historical
-V1/V2/V3 packages remain readable without being rewritten.
-
-Lane schemas start from versioned package contracts. Non-code schemas may grow
-additively when the classified project need requires a new table, column,
-relation, registry, or FTS projection. Git and local-code schema changes remain
-explicitly user-gated. Migrations are additive, hash-chained, recorded, and
-relocked; raw ad-hoc SQL is not treated as a schema-evolution contract.
-
-## Bounded query law
-
-Project data exists outside model context so it can be queried—not so it can be
-dumped back into a prompt.
-
-- Reads use exact IDs, bounded status windows, FTS5, BM25, graph pointers, and
-  explicit result limits.
-- Parallel lane and cross-lane queries return bounded aggregates with exact
-  provenance.
-- Cross-project reads require an explicit read grant and immutable project/PV
-  identity.
-- Writes persist the full transaction in SQLite but return only compact
-  receipts and the fields required for the next decision.
-- Plan writes never return the full Plan, backlog, history, or PV package.
-- Raw Markdown, full ChatLineage, full lane databases, and receipt archives are
-  never loaded merely to discover where a bounded row lives.
-
-Oversized tool payloads are first-class contract failures, not a cosmetic UI
-problem. The repair belongs in the read/write boundary so every caller—skill,
-command, MCP action, SDK arm, hook, and lifecycle route—receives the same
-bounded behavior.
-
-## Persistent Plan, Goal, and Step display
-
-The canonical Plan lives in durable SQLite. Markdown summaries and the Codex
-Step UI are projections, never replacement authority.
-
-The visible task display follows a fixed **1+9** contract:
-
-- Step 1 is the compact PV/progress/header tracker.
-- Steps 2–10 are the active executable row plus the next eight canonical rows.
-- Each Delta uses a compact three-line maximum presentation: stable task ID and
-  status; class/group/dependency/graph/FTS coordinates; then a one- or two-line
-  human-readable description.
-- Exactly one row is in progress; later rows remain pending.
-- The physically final HIL remains physically final in canonical authority.
-
-Completing one row does not reconstruct or arbitrarily slide the whole batch.
-The native UI may mark finished lines complete as work advances. A full 1+9
-rehydration occurs when the displayed batch boundary is reached, when a Plan
-mutation changes the current window, or when the host drops the panel and it
-must be restored. If the Plan is reordered, the Goal must bind to the same new
-active row before work resumes.
-
-Plan steering is append-only or explicit reorder/supersession; rows are not
-silently deleted. Completed and superseded records remain queryable history.
-Git appears only on the row where Git actually executes.
-
-## ChatLineage, entry, and exit
-
-ChatLineage records task identity, user prompts, model responses, linked
-steers, source references, and lifecycle boundaries as queryable rows. Entry
-classification selects the relevant lanes and operators before work begins.
-Intermediate turns append lineage without pretending the project has exited.
-An exit boundary is emitted only for a real governed pause, completion, or
-State Travel transition.
-
-ChatLineage is not the Plan and is not Project Truth. It connects them through
-stable task, row, source, receipt, and graph IDs. A State Travel destination may
-query the exact transferred lineage without copying an entire archived chat
-into its context window.
-
-## Canon, AI Learning, and Memory
-
-Canon governs bounded task-to-task contracts: expected inputs, destination
-ownership, dependency edges, revisions, conflicts, backfire consequences, and
-human mapping decisions. Canon may inform a Plan; it cannot accept a PV, move a
-pointer, or decide another task's HIL.
-
-AI Learning records project-isolated observations and proposed improvements.
-Delta-level learning may accumulate between HILs, but accepted learning remains
-separate from accepted Project Truth. Learning, Canon mapping, and PV promotion
-must each expose their own decision fields when the lifecycle requires human
-authority.
-
-Memory is the bounded connective layer across active project sectors. It uses
-ChatLineage, Plan, Canon, Learning, source, and receipt identities to retrieve
-the smallest useful state for the current row. It does not replace those
-authorities or compact the whole project into one prose blob.
-
-Before host compaction, the lifecycle seals the visible active-state boundary.
-After compaction, it restores the same bounded Plan/Goal/task/source coordinates
-and resumes from SQLite rather than reconstructing from conversational memory.
-
-## Hooks
-
-The package defines eleven events:
-
-| Event | Purpose |
+| Named authority | Role |
 | --- | --- |
-| `SessionStart` | Verify installed identity and prepare bounded runtime context. |
-| `SubagentStart` | Verify the exact parent task/session binding without granting a subagent lifecycle authority. |
-| `UserPromptSubmit` | Classify and bind the visible task turn without storing private reasoning. |
-| `PreToolUse` | Guard bounded tool activity before execution. |
-| `PermissionRequest` | Observe the host permission boundary without deciding allow or deny. |
-| `PostToolUse` | Append compact receipts and refresh affected projections. |
-| `PreCompact` | Seal the active continuity boundary before compaction. |
-| `PostCompact` | Rehydrate the same bounded state after compaction. |
-| `SubagentStop` | Record the exact child lifecycle boundary without completing parent work. |
-| `Stop` | Preserve the response boundary without inventing HIL or completion. |
-| `SessionEnd` | Main-thread-only best-effort flush when the host emits a real session-end event. |
+| `agent_learning` | Project-isolated learning candidates, decisions, accepted lessons, and revocations. |
+| `canon_input` | Typed task-to-task contracts, envelopes, receiver decisions, edges, and result continuity. |
+| `project_memory` | Bounded project-memory locators and links; never a merged replacement for other authorities. |
+| `project_overlay` | Full-PV proposal overlay used only at the owning HIL boundary. |
+| `source_authority` | Exact source identities, occurrences, provenance, and source graph. |
+| `project_universe` | Per-project relationship graph that remains separate from Bigger Universe federation. |
+| `connector_brain` | Bounded connector grants and hash-only cross-project mini-brain links. |
+| `project_authority` | Project registration, root layout, current pointer, and authority membership. |
+| `receipt_ledger` | Exact result and provenance receipts with content-addressed linkage. |
+| `session_authority` | Session, attachment, host, State Travel, and Goal continuity records. |
+| `instructions` | AGENTS.md and host MEMORY.md instruction chain, separate from Project Memory. |
 
-Hooks improve lifecycle continuity; the plugin remains operable through its
-explicit skills and native actions while hooks are disabled for repair. A
-reviewed definition may remain trusted while disabled, but no event may become
-the sole execution path for a valid public action. Hook configuration, host UI
-count, command mapping, execution, and installed-package bytes must agree before
-hooks are re-enabled. The complete installed-host matrix ends with an exact
-all-eleven-ON `hooks/list` readback. Later failures disable only the failing
-event through native compare-and-swap, preserve unrelated passing hooks, and
-re-enable the repaired event after PASS.
+Project Truth, Project Memory, Canon, Agent Learning, ChatLineage, instructions, sessions, receipts, connector grants, and Project Universe can cross-link through exact hashes and receipts. They do not merge authority or inherit one another's HIL.
 
-## Host and storage matrix
+## Project-sector lanes
 
-| Codex execution profile | Primary project storage | Tunnel requirement |
-| --- | --- | --- |
-| Desktop Codex on a local/persistent host | Durable local SQLite | Version-bound tunnel only when the detected host route requires it |
-| Local CLI without the interactive app | Durable local SQLite | Required when the host route lacks direct MCP transport or required host tools |
-| Headless API service on a persistent VM | Durable local PV store | Not required by the API layer |
-| Ephemeral VM with durable mount | Mounted durable SQLite | Not required by the API layer |
-| Ephemeral VM without durable mount | Explicit transactional durable connector | Not required by the API layer |
-| Interactive Codex on an ephemeral VM | Durable mount or transactional connector | One VM-lifetime setup may be required |
+Source Intake classifies actual authorized content into the applicable lanes. No universal workflow runs every lane or every tool; each project recipe, mode, source shape, and user intent selects a different conditional path.
 
-Model, reasoning effort, account tier, billing route, host lifetime, storage,
-and transport are separate classification axes. They do not change the HIL
-law. A future ChatGPT host profile is not claimed by the current Codex release.
+| Lane | Current role |
+| --- | --- |
+| `github_code` | Git refs, commits, parents, blobs, changes, and repository history. |
+| `local_code` | Current working-tree files, structural code facts, chunks, and dependency relationships. |
+| `chat_lineage` | Task prompts, responses, steers, entry/exit boundaries, and linked turn evidence. |
+| `discussion` | Bounded discussion claims and decisions that remain distinct from accepted Project Truth. |
+| `analysis` | Source-backed findings, relationships, uncertainty, and validation evidence. |
+| `plan` | Canonical Plan rows, dependencies, transitions, and bounded task projections. |
+| `mode` | Detected or explicit operating-mode classifications and intersections. |
+| `docs` | Markdown, DOCX, and other documentation structure and citations. |
+| `data_excel` | Tabular, spreadsheet, and dataset structure with typed facts and formulas. |
+| `ppt` | Presentation structure, slide content, notes, and media references. |
+| `pdf_ocr` | PDF text, page structure, OCR fallbacks, and document locators. |
+| `images_ocr` | Image metadata, OCR results, and visual-source locators. |
+| `artifacts` | Generated deliverables and exact artifact identities without treating them as approval. |
+| `custom` | User-defined source shapes compiled through an explicit schema. |
+| `brain_loader` | Imported Evidence Lane/SQLite brain packages kept separate from live authority. |
+| `research` | Web and research evidence with provenance, citations, and bounded retrieval. |
+| `project_engulf` | Initial project classification and source-to-lane registration planning. |
+| `sqlite_brain` | Existing SQLite structures, schema relationships, and bounded query surfaces. |
 
-An ephemeral or stateless invocation additionally requires an exact host-entry
-envelope persisted through the selected transactional connector. The envelope
-preserves the accepted pointer, active Plan row, task/worktree binding, locked
-ENV/UOP, and separate authority heads without becoming a new PV. It expires,
-is single-consumption, treats an exact retry idempotently, and fails closed on a
-stale or mismatched entry. Proven durable local Codex uses its local SQLite
-authority directly and creates no unnecessary external dependency.
+Each emitted lane has a lane-specific workflow and topology rather than a generic horizontal copy. Content-addressed source bytes and chunks are stored once, FTS indexes are refreshed atomically, unchanged atoms are reused, and superseded unpointed generations are directly purged after readback.
 
-## Maintainer slots and recovery
+## Toolchain capabilities, accelerators, and MCP actions
 
-The maintainer workflow separates two 3.0 roles:
+The current matrix declares **119** capabilities across the supported host profiles: `CODEX_DESKTOP`, `CODEX_CLI`, `CODEX_VM`.
 
-1. **Local testing slot** — receives reviewed working-tree packages only when a
-   governed local-install test is actually scheduled.
-2. **Git/main release slot** — receives the exact accepted release commit only
-   through the governed Git/package route.
+| Tool role | Current count | Selection law |
+| --- | ---: | --- |
+| Task execution | 82 | May own a condition-true action phase |
+| Transport or orchestration | 12 | Carries a selected route; never becomes the acting agent or authority |
+| Observability or evaluation attachment | 8 | Attaches evidence to an action; never owns it |
+| External service or store | 17 | Requires the applicable project grant, locality, credential, and expiry contract |
 
-Only one plugin/MCP route and its matching helper/tunnel identity may be active
-for one task at a time. Multiple Codex apps may work on different tasks and
-projects; helpers bind the calling app and exact task rather than globally
-redirecting every app.
+The **119 tool capabilities** above are separate from the **91 MCP actions**. Hardware accelerators are a third inventory: execution providers that speed eligible tools without becoming tools or actions.
 
-Branch checkpoints are immutable package evidence, not a third registered
-plugin slot. Removed slot routes are absent from the live registry. At an
-authorized main promotion, the two maintained slots may be normalized to the
-same accepted bytes; that operation is never inferred from CI.
+Current accelerator providers: `CPU`, `NVIDIA_CUDA`, `AMD_ROCM`, `AMD_DIRECTML`. CPU is the universal baseline. NVIDIA CUDA or AMD ROCm/DirectML activates only after an explicit vendor-plugin grant, compatible hardware/driver/runtime, action eligibility, bounded telemetry, no active throttle, and the configured VRAM budget. The current default GPU memory ceiling is 80%; it is not a forced utilization target. Every failure falls back visibly to CPU.
 
-## Helper and tunnel lifecycle
+FastMCP is the preferred MCP composition path when the selected action and host support it. Native or domain MCP routes and the version-bound tunnel are ordered alternatives for exact transport needs. SQLite remains durable authority; Pinecone, Weaviate, Milvus, OpenSearch, FAISS, sqlite-vec, and other retained indexes are optional bounded retrieval projections, never replacements for Project Truth.
 
-No separate user helper ships. Installation completes first. After the response
-is visibly complete, a maintainer-local dumb helper may close the explicitly
-selected Codex app and reopen the same app, task, and workspace. The helper has
-no drain logic and never owns installation, Plan, Goal, State Travel, or
-rollout/history mutation.
+The OpenAI Agents SDK is used only as a Codex-owned typed function-tool/MCP client library. It does not instantiate another acting agent, model, memory, lifecycle, Plan, Goal, HIL, or project authority. Anthropic, Claude, Gemini, and other external AI agents are not part of this Codex plugin plane.
 
-The tunnel is one host-wide, project-neutral transport process, not the MCP
-catalog. It is installed only for host profiles that require it, starts hidden,
-and may survive Windows sign-in through one exact versioned at-logon scheduled task.
-The plugin routes many exact task and project IDs through that one tunnel; no
-per-app, per-project, or per-task tunnel is created. Older tunnel startup
-tasks and runtimes are removed when a new version becomes active.
+See the [complete tool matrix](plugins/evidence-lane-plugin/toolchains/TOOLCHAIN_EXECUTION_MATRIX.md), [MCP contract](docs/MCP.md), and [tunnel guide](docs/USER_TUNNEL_GUIDE.md).
 
-See the [user tunnel guide](docs/USER_TUNNEL_GUIDE.md) and the
-[host matrix](docs/HOST_AND_STORAGE_MATRIX.md).
+## Governed skills
+
+The current skill registry contains:
+
+`evi`, `evi-additional-plugin`, `evi-bigger-universe`, `evi-boot`, `evi-brain-scaling`, `evi-build`, `evi-canon`, `evi-drop-additional-plugin`, `evi-exit-boot`, `evi-formula`, `evi-fuse`, `evi-instructions`, `evi-learning`, `evi-memory`, `evi-mode`, `evi-plan`, `evi-plugin`, `evi-project-recipe`, `evi-refresh`, `evi-rollback`, `evi-source-intake`, `evi-state-travel`, `evi-storage`, `evi-toolchain`, `evi-universe`, `evidence-lane-code-lifecycle`.
+
+Skills select registered workflows and typed actions. They are not a second command implementation layer, and their current count is not a permanent limit. Every first-class action must remain paired with its schema, SDK/MCP route, conditional tools, hooks, authority effects, and receipt contract.
+
+## Hook events
+
+`SessionStart`, `SubagentStart`, `UserPromptSubmit`, `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PreCompact`, `PostCompact`, `SubagentStop`, `Stop`, `SessionEnd`.
+
+Hooks improve timing and continuity, but explicit skills and native actions remain callable while hooks are disabled for repair. A hook may observe or dispatch its ordered event contract; it cannot infer HIL, acceptance, completion, or pointer movement.
+
+## Project versions, HIL, and rollback
+
+Build and full-PV Refresh create immutable unaccepted proposals. Project HIL and Learning HIL remain separate. Only the exact owning approval contract may authorize Fuse and accepted-pointer movement. Natural-language agreement, Plan acceptance, tests, Git, CI, package creation, installation, restart, preview, or deployment never substitutes for HIL.
+
+Rollback is a governed pointer move among immutable accepted versions. Hard ZIP restore is a separate explicit recovery operation. Ordinary Delta refresh does not create Project Overlay or silently promote Project Truth.
+
+## State Travel and task continuity
+
+State Travel resumes the exact unfinished project boundary in a fresh task. It verifies source task, destination task, workspace/worktree, dirty bytes, installed runtime, accepted pointer, active Plan/Goal row, and required continuity receipts. It does not replay HIL, consume caller-composed authority, or infer completion from a title, process ID, working directory, or successful test.
+
+The canonical Plan remains durable SQLite authority. Host task lists are bounded projections and can be rehydrated after panel loss, restart, or State Travel without replacing the Plan ledger.
+
+## Host, storage, and tunnel
+
+The current package supports Codex Desktop, Codex CLI, and Codex VM profiles. Host lifetime, storage durability, model, reasoning effort, account tier, and transport are separate classification axes. Persistent local work normally uses local project SQLite. Ephemeral hosts require a proven durable mount or transactional connector.
+
+A downstream project does not inherit the plugin release cycle, local package installation, maintainer restart, or Git promotion workflow. One project-neutral tunnel may be prewarmed when a host lacks the required direct transport. The tunnel is not an MCP catalog, project registry, scheduler, lifecycle owner, or second agent.
 
 ### Bounded Windows tunnel setup
 
-Local Codex and local CLI profiles may require the version-bound tunnel when
-the detected host route lacks direct MCP transport or required host tools.
-Headless API requests do not require the tunnel merely because they use API
-billing. The tunnel carries only the Evidence Lane transport selected by the
-host matrix; it never absorbs unrelated OpenAI tooling or changes project
-authority.
+The Windows tunnel is capability-gated and project-neutral. Follow the [tunnel guide](docs/USER_TUNNEL_GUIDE.md); setup never grants Project/PV authority, lifecycle ownership, or permission to expose secrets. Use `Install-EvidenceLaneTunnel.ps1` only for a host classified as `CODEX_APP_INTERACTIVE`, or with `-HostLifetime Ephemeral` plus the `exact-vm-instance-id` on an eligible VM. A Headless API or local CLI follows its separately detected route; tunnel setup is considered only when the host route lacks direct MCP transport.
 
-The 3.0 installer is
-`plugins/evidence-lane-plugin/scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1`.
-For an ephemeral interactive host, pass `CODEX_APP_INTERACTIVE`,
-`-HostLifetime Ephemeral`, and the exact `-VmInstanceId
-"<exact-vm-instance-id>"`. The prompt for the user's Runtime API key is masked;
-the encrypted value uses Windows DPAPI and is never written to a receipt.
-Inspect or start the installed tunnel with `Manage-EvidenceLaneTunnel.ps1
--Action Status`; success must report `status = PASS` before any
-`mcp__evidence_lane__*` route is treated as available. The tunnel remains a
-separate process and never installs the plugin or owns lifecycle decisions.
+The Runtime API key is displayed only masked, stored with DPAPI, and never written to project authority. Verify with `Manage-EvidenceLaneTunnel.ps1 -Action Status`; require `status = PASS` before using `mcp__evidence_lane__*` through the tunnel.
 
-## Git and CI/CD boundary
+## Public compute and deployment cost boundary
 
-Repository writes use the governed Git route. A configured non-default branch
-may use standing authorization for an exact fast-forward push or a deliberate
-same-checkpoint amend with an exact lease. That does not authorize:
+Evidence Lane does not configure or invoke the usage-based GitHub Sandbox product. Governed development uses a bounded local project work directory unless the user separately authorizes another exact runtime; paid overages and external compute remain explicit user decisions.
 
-- rewriting or merging the protected `main` branch;
-- creating or accepting a Project Version candidate;
-- moving the accepted pointer;
-- production publication, Fuse, or HIL; or
-- deleting unrelated dirty or untracked bytes.
+The selected Vercel account plan does not change Evidence Lane authority. Vercel hosts the public documentation site only; Vercel is not used to install Codex, route the native lifecycle, own Project/PV state, or replace Git and local runtime receipts.
 
-Source tests run at the scope needed by each Delta. Reinstalling the plugin
-after every row is not required. The release pre-HIL gate performs the exact Git
-commit, clean CI, package build, Git-based installation, installed-host proof,
-and preview checks as one governed release boundary. Any failed check belongs
-to the exact failing surface and blocks that gate.
+## Install and verify
 
-GitHub Pages is the branch documentation projection. The Vercel preview is a
-separate Git-triggered documentation build. Neither surface installs Codex,
-persists Project Truth, accepts candidates, or moves pointers. Production
-website refresh and main promotion remain later, explicitly authorized work.
+Install only a reviewed branch or exact commit. Follow the [Codex 3.0 installation and reload guide](docs/CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md). A valid release requires the exact Git tree, passing required CI, deterministic package, installed catalog/skill/hook/tool parity, runtime prewarm, same-task restart evidence when required, and the separate human release decision.
 
-Evidence Lane does not configure or invoke the usage-based GitHub Sandbox
-product. Local agent work remains inside the bounded local project work
-directory, and GitHub Actions supplies clean-checkout CI; paid overages and
-separate hosted-agent products are not implied. The Vercel project is a public
-documentation site only. The selected Vercel account plan does not change
-Evidence Lane authority, and Vercel is not used to install Codex, route the
-native lifecycle, persist Project Truth, create candidates, or move pointers.
-
-## Install the Codex plugin
-
-Install only a reviewed branch or exact commit:
-
-```powershell
-codex plugin marketplace add rathee000001/evidence_lane_plugin --ref REVIEWED_REF
-codex plugin add evidence-lane-plugin@evidence-lane-github --json
-```
-
-The maintainer verification sequence is:
-
-1. build a deterministic package from the exact commit;
-2. verify source, commit, tree, package, schema, catalog, skill, hook, helper,
-   tunnel, and secret boundaries;
-3. stage and activate the requested existing slot;
-4. run the pre-restart installed-package acceptance check;
-5. prepare the exact same-task restart receipt;
-6. reopen the calling Codex app and exact task;
-7. verify the native catalog, hooks, project/runtime panels, persistent Step
-   display, workspace, and installed store; and
-8. stop at the required human gate.
-
-The plugin wheel owns every runtime schema it reads. Repository schema files
-may provide public and skill-facing projections, but deterministic tests require
-their bytes to match the package-owned authorities so an installed wheel never
-depends on a source-checkout path.
-
-## Build and test locally
+For source development:
 
 ```powershell
 python -m venv .venv
@@ -564,94 +269,37 @@ python -m venv .venv
 .venv\Scripts\python -m pytest -q
 ```
 
-Focused release checks live under `tests/`. Clean GitHub Actions additionally
-prove the exact checkout, built wheel, container/runtime startup, documentation
-projection, preview compilation, and CodeQL surfaces configured for the commit.
-
 ## Repository map
 
 | Path | Role |
 | --- | --- |
-| `plugins/evidence-lane-plugin/.codex-plugin/plugin.json` | Codex product identity and UI metadata |
-| `plugins/evidence-lane-plugin/.mcp.json` | Package-local native MCP launch contract |
-| `plugins/evidence-lane-plugin/src/evidence_lane_plugin/` | Canonical Python lifecycle engine, internal SDK, and native server |
-| `plugins/evidence-lane-plugin/schemas/` | Central source-derived action, authority, lane, hook, command, skill, MCP, ENV/UOP, and SDK schemas |
-| `plugins/evidence-lane-plugin/skills/` | Twenty-five governed skills |
-| `plugins/evidence-lane-plugin/hooks/` | Eleven lifecycle events and their commands |
-| `plugins/evidence-lane-plugin/scripts/` | Package, helper, tunnel, release, and verification routes |
-| `docs/` | Architecture, product surfaces, runbooks, legal pages, and provenance |
-| `github-pages/` | GitHub Pages layout and assets |
-| `scripts/prepare_github_pages.py` | Deterministic Git-tracked Pages projection |
-| `tests/` | Unit, integration, package, source, and contract verification |
+| `plugins/evidence-lane-plugin/` | Installable Codex plugin: skills, native MCP, internal/outer SDK, ENV/UOP, authorities, lanes, schemas, tools, tunnel, and runtime contracts |
+| `apps/evidence-lane-app/` | Public documentation application; never lifecycle or Project/PV authority |
+| `docs/` | Maintained GitHub documentation pages |
+| `scripts/` | Repository-level documentation, GitHub Pages, and release projection generators |
+| `tests/` | Repository-wide executable, package, schema, security, and source-parity tests |
+| `github-pages/` | GitHub Pages assets/projection, rebuilt only from reviewed GitHub Markdown |
+
+## Documentation map
+
+- [Architecture](ARCHITECTURE.md)
+- [Lifecycle and HIL](docs/LIFECYCLE_AND_HIL.md)
+- [Source Intake and lanes](docs/SOURCE_INTAKE_AND_LANES.md)
+- [Plan and changes](docs/PLAN_AND_CHANGE_DISPLAY.md)
+- [Skills](docs/SKILLS.md), [MCP](docs/MCP.md), [Tools](docs/TOOLS.md), and [Hooks](docs/HOOKS.md)
+- [Canon](docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md), [AI Learning](docs/AI_LEARNING.md), [Memory](docs/MEMORY.md), and [Project Universe](docs/PROJECT_UNIVERSE.md)
+- [Project/PV storage](docs/PROJECT_PV_CONTENT_ADDRESSED_STORAGE.md) and [host/storage matrix](docs/HOST_AND_STORAGE_MATRIX.md)
+- [Installation](docs/CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md), [Git and CI](docs/GIT_AND_CI_CD.md), and [release compatibility](docs/RELEASE_AND_COMPATIBILITY.md)
+- [Repository map](docs/REPOSITORY_MAP.md), [provenance](docs/UPSTREAM_REFERENCE_PROVENANCE.md), and [credits](docs/CREDITS_AND_CONTRIBUTIONS.md)
+- [Security](SECURITY.md), [license](LICENSE.md), [copyright](docs/COPYRIGHT.md), [third-party licenses](docs/THIRD_PARTY_LICENSES.md), and [terms](docs/TERMS_AND_CONDITIONS.md)
 
 ## Security and claim boundary
 
-- Secrets are never written into receipts, Git commits, task panels, or source
-  packages.
+- Secrets and credential values never enter receipts, prompts, source packages, or project SQLite.
 - Private chain-of-thought is not stored.
-- Dirty and untracked bytes are preserved unless the user explicitly
-  authorizes their mutation.
-- A passed test, CI run, push, package, install, restart, or preview is evidence,
-  not candidate acceptance.
-- Host-owned UI placement must be observed; a manifest cannot prove rendering.
-- Exact counts and hashes are release-specific and must be read from bounded
-  receipts rather than inferred.
-- ENV/UOP identities remain locked and are not offloaded into project folders
-  or exposed as ordinary project data.
+- Dirty and untracked bytes are preserved unless their exact mutation is authorized.
+- Public website, GitHub Pages, Vercel, tests, CI, packages, and installed caches are evidence surfaces, not Project/PV or HIL authority.
+- Historical receipts retain their original identities as non-executable evidence; they cannot revive superseded current routes.
+- Counts and hashes are derived release facts and must be regenerated from current registries.
 
-## 3.0 source and historical compatibility invariants
-
-Version 3.0 advances the governed source and package contract without rewriting
-historical releases, receipts, commits, State Travel packages, or failure
-evidence. Those artifacts retain their original identities as provenance; they
-cannot override the current source, installed package, native ledger, or human
-decision boundary.
-
-The commit, CI, preview, package, install, helper, and tunnel sequence is the
-Evidence Lane **plugin-maintainer release cycle**. A downstream project does not
-inherit that installation cycle; it retains its own Git, CI, deployment,
-lane/schema, plugin, and storage choices.
-
-Goal completion is human-owned and independent of candidate acceptance. Only
-the visible Goal-completion action may close a governed Goal. Tests, automation,
-task transitions, pauses, and stalls cannot complete it, and Goal completion
-authorizes no pointer movement, Git action, installation, merge, or deployment.
-
-Install, drain, and dumb restart helpers are maintainer-scoped and remain in
-the hidden plugin runtime. A governed user receives one plugin version and,
-when the host classifier proves a tool gap, the matching tunnel. Maintainer
-slot rotation is not imposed on downstream users or projects.
-
-## Ownership, contribution, and licenses
-
-Evidence Lane is independently conceived, directed, funded, and owned by
-Praveen Rathee. Repository access and evaluation do not grant permission to
-redistribute, sublicense, commercialize, or create derivative releases.
-
-The relevant authorities are:
-
-- [Contributing](CONTRIBUTING.md)
-- [Proprietary source license](LICENSE.md)
-- [Copyright and ownership](docs/COPYRIGHT.md)
-- [Third-party tool licenses](docs/THIRD_PARTY_LICENSES.md)
-- [Terms and conditions](docs/TERMS_AND_CONDITIONS.md)
-- [Security policy](SECURITY.md)
-- [Credits and contributions](docs/CREDITS_AND_CONTRIBUTIONS.md)
-- [Upstream provenance](docs/UPSTREAM_REFERENCE_PROVENANCE.md)
-
-Third-party software, services, models, assets, and trademarks remain governed
-by their respective owners. Listing a tool or service records provenance and a
-supported role; it transfers neither ownership nor Evidence Lane authority.
-
-## Current release boundary
-
-Version 3.0.0 is the current documented source line. An installed release claim
-requires the exact reviewed commit,
-all required CI checks, the built package, the governed Git-route installation,
-installed-host catalog proof, and the explicit human release decision.
-Documentation, a preview deployment, a package cache, or a passing test does
-not substitute for that evidence.
-
-Main promotion, production presentation, and maintained-slot normalization are
-separate operations. Each requires its own verified inputs and explicit
-authority; none is inferred from this README or from an earlier lifecycle step.
+Evidence Lane is independently conceived, directed, funded, and owned by Praveen Rathee. Third-party software, services, models, assets, and trademarks remain governed by their respective owners and licenses.

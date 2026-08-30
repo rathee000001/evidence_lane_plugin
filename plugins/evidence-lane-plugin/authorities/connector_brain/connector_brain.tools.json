@@ -141,12 +141,12 @@
     }
   ],
   "linked_skills": {
-    "skills/evi-plugin/SKILL.md": "0CA3EA25CFB1D3B0E4D27E4C3D2EE98CB4CDDFAA8933C7FD5FF159B2CE255FA5",
-    "skills/evi-additional-plugin/SKILL.md": "EC66213738DD0A051F9789ED76BC7844131603CAD7DFB06B39329E9B84A51DF2",
-    "skills/evi-drop-additional-plugin/SKILL.md": "BC3BEBF14384938B9535E6019443B0334B3EDF2ED398E26398511D638DE7E92B"
+    "skills/evi-plugin/SKILL.md": "35119DF90CE822CF567C5715EE811C42066CF1F5E56BB4F38CC0173F5323787F",
+    "skills/evi-additional-plugin/SKILL.md": "DD6534D77622D83B42F3C9AF01866A16745086E4853B09F778CF647C792490BF",
+    "skills/evi-drop-additional-plugin/SKILL.md": "39421769BBCF7565FE35E1AD72291B25511D79BE1D69B773CEFA008E615B6824"
   },
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/connector_governance.py": "619C78D2E2447B004F4823A6B8D2C059B271381486F1F2AE3957F0B5EACCF91E",
+    "src/evidence_lane_plugin/connector_governance.py": "6406AA6E41C8D8ECD030A16BFC3325B4E198770F8505E50E833FA5EA63577ECD",
     "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
@@ -165,24 +165,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:06.592013Z",
-    "receipt_sha256": "CDA8BED42718AA3F5EB9FA32AFB9EDB2D0FA73141E4464DBF92FFD4F4458DA87"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "625285D0D9DE2CB723F8CF45A267CF88873A8540B329BF7FE53049F89E68751F"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "connector_brain_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 186,
-    "edge_count": 194,
+    "node_count": 185,
+    "edge_count": 196,
     "group_count": 1,
-    "semantic_topology_sha256": "300F269BE4639193C182E7C56F7BCCBE607EFE95CD84E0DF979B058475790499",
-    "mmd_sha256": "38B23A34CC7366A0423436F3C9D9A0FEA3151D693631E60B3F284433407C68FA",
-    "dot_sha256": "2E24996BA109F3A8FFCEF4143E713AD30CDE2DAAB9A19EEFB660BE115A3CC5F8",
+    "semantic_topology_sha256": "23B778B81ED9A2706BBBDEE14A1442CD80884BBA145B1AE43CCCF2303CF8A3DD",
+    "mmd_sha256": "0C983B610E9AF9287F7B31700D2DBDCBC893F0910336DF06A7646B886D166CE8",
+    "dot_sha256": "C2F43E624928B913B0267084E2F34AEEA27EFBA4FDE8E9EBF73C61AAB6256549",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "B42F8E853D1EAAEDF5CFA1C3CDD8078AE3BCA8408EB079789087DF0CCB15D7EF",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "E50F957BF329DDF341B65F516353B6FA74571912B6EB2B94E5504705F19E8282",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -192,10 +192,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 186,
-      "edge_count": 194,
+      "node_count": 185,
+      "edge_count": 196,
       "weak_component_count": 1,
-      "strong_component_count": 186,
+      "strong_component_count": 185,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -224,14 +224,19 @@
           "out_degree": 12
         },
         {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 10
+        },
+        {
           "node_id": "support_table_universe_cross_project_edge",
           "in_degree": 1,
           "out_degree": 10
         },
         {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 9
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 8
         },
         {
           "node_id": "support_table_plugin_event",
@@ -244,19 +249,14 @@
           "out_degree": 7
         },
         {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 7
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_universe_project_lane_head",
           "in_degree": 1,
           "out_degree": 7
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
         },
         {
           "node_id": "support_table_authority_index_fts",
@@ -289,12 +289,12 @@
           "out_degree": 4
         },
         {
-          "node_id": "support_table_authority_index_fts_idx",
+          "node_id": "support_table_authority_index_fts_docsize",
           "in_degree": 1,
           "out_degree": 3
         },
         {
-          "node_id": "support_table_plugin_fts_idx",
+          "node_id": "support_table_authority_index_fts_idx",
           "in_degree": 1,
           "out_degree": 3
         }
@@ -302,11 +302,24 @@
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "C0E33F426B2C3DEA4028668B52148700848E2BA165DD3DFD7426BC7365550276",
+    "graph_analysis_sha256": "5394E7AAFD263CB7BF1CCB099E0EC179F8AE815FA22EFB049BDBF78B9AE274D6",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 107,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "78FFFC1F5C8ECDDDEF7D43BB9ADDB51B832E5ABEF737DE44070A39AD5D831824"
+    "receipt_sha256": "2F97AD4C845F88BC95A13A0EDD6678F940D967FC3C7D6D955B297C715CB58B70"
   },
-  "receipt_sha256": "5F44A1BFC05370625443C233EACB209BCF36C339535ABC8C10EEDAED87849871"
+  "dedicated_workflow": {
+    "json": "authorities/connector_brain/workflow.v1.json",
+    "mmd": "authorities/connector_brain/workflow.mmd",
+    "dot": "authorities/connector_brain/workflow.dot",
+    "json_sha256": "EBCDDCCABFD3405B264622197701A298D1BA183C0FA5AE5085D2C6E5672A47BD",
+    "mmd_sha256": "DF65E796683C8D5A2500D96E8D2EBB973E2A347E290B7428F722EA90C402DE73",
+    "dot_sha256": "A17A374BFD7E0FAFA200CEDC6DA0167D58F1E7EDB1B2B59384EF4671F5DC8917"
+  },
+  "receipt_sha256": "2F2CF7E04BE7EBC254329E6F3A906CEEF3276168C710F42D1981E46A9C18C2B7"
 }

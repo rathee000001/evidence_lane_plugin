@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sdk-delta-entry-mid-exit.v1",
   "status": "PASS",
   "delta_entry": {
-    "workflow": "DELTA_ENTRY_AND_SIX_WAY_QUERY",
+    "workflow": "DELTA_ENTRY_AND_CURRENT_AUTHORITY_QUERY",
     "triggers": [
       "ACTIVE_PLAN_ROW_ENTRY"
     ],
@@ -85,5 +85,5 @@
   "project_overlay_hil_only": true,
   "canonical_entry_source": "src/evidence_lane_plugin/adaptive_delta_entry.py",
   "canonical_exit_source": "src/evidence_lane_plugin/adaptive_delta_exit.py",
-  "receipt_sha256": "74CA818A48FA1D73D01B7FF2184F9C94D899AA1F5A5E5B1FC04C7061893E1F53"
+  "receipt_sha256": "16DD3D039AFC844613CD2FD6678CA758C9B1CA64D3EF705FC92F1F2088E952C7"
 }

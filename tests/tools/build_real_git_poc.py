@@ -252,7 +252,7 @@ def _fixture_sources(repository: Path) -> dict[str, str]:
         encoding="utf-8",
     )
     (root / "mode.md").write_text(
-        "Scope: exact commit\nRule: fixtures are not production evidence\nGate: six-way HIL\n",
+        "Scope: exact commit\nRule: fixtures are not production evidence\nGate: governed HIL\n",
         encoding="utf-8",
     )
     _write_docx(root / "document.docx")

@@ -6,7 +6,7 @@
   "linked_public_actions": [
     {
       "name": "pv_query",
-      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi",
@@ -19,7 +19,7 @@
         "skill_workflows": [
           {
             "owner_skill": "evi",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           },
           {
@@ -44,7 +44,7 @@
           },
           {
             "owner_skill": "evi-plan",
-            "workflow": "live-six-authority-read",
+            "workflow": "live-current-authority-read",
             "order": 3
           },
           {
@@ -59,7 +59,7 @@
           },
           {
             "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           }
         ],
@@ -192,7 +192,7 @@
     },
     {
       "name": "search",
-      "schema_sha256": "1D4C303C7B3FE4AC1E729A6D7B45EA0A082FE57585D1C3251874A5BBE9769691",
+      "schema_sha256": "76F9448249D205764772262F4B673798BE5724E2F6B7162B34E3A8F8F8BE6FC1",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi-source-intake",
@@ -205,7 +205,7 @@
         "skill_workflows": [
           {
             "owner_skill": "evi",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           },
           {
@@ -215,7 +215,7 @@
           },
           {
             "owner_skill": "evi-plan",
-            "workflow": "live-six-authority-read",
+            "workflow": "live-current-authority-read",
             "order": 3
           },
           {
@@ -230,7 +230,7 @@
           },
           {
             "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           }
         ],
@@ -239,7 +239,7 @@
     }
   ],
   "linked_skills": {
-    "skills/evi-instructions/SKILL.md": "D2E9A07ECB10DC3C08C88EA9552E53B4A864CF0EEF43DAC71C731DFA72CD8532"
+    "skills/evi-instructions/SKILL.md": "E809865F1946D47E77253F4E9FA13F064A3417ECEA8F31C14C20FFDC35279366"
   },
   "canonical_source_hashes": {
     "src/evidence_lane_plugin/agent_configuration.py": "FADD455E568DCE125B8E581B028E7987D04D6E70D6A538A3FEC0D2AE793B49B3",
@@ -255,11 +255,11 @@
     "edge_count": 2,
     "group_count": 0,
     "semantic_topology_sha256": "58FC9E2BBA93074ED5A6166273BF7C6D1BFDEE72E9C413DD1715E47696D98CF0",
-    "mmd_sha256": "B28FB3AF3FCB4068C117973C9C6C7DD2DD2D929FE84B9B2E96EBE08813FE2971",
-    "dot_sha256": "D92A1DE1DFC7A24B1DDECEB49904EBA35EA1CC74C14C9F4112111DBCBAE70A92",
+    "mmd_sha256": "98E76DBF3F2D5985C65EA2B9BA15896EFC841D79F65E057F6B0037FBBFE7A9CD",
+    "dot_sha256": "2882598004FF4CD996B9FD364C2901CC46F5EAA7BB2668F7D015DACCC6C507F5",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
+    "langchain_core_version": "1.6.1",
     "langgraph_export_sha256": "28F35FCC10312D614ED5FE6686EEF681F2F2B8AA4279F0EE6B54D56D5A64608F",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
@@ -296,10 +296,23 @@
       "authority_replaced": false
     },
     "graph_analysis_sha256": "9FA4DDE3A552BD36920357B42D013A5236CCBA0219D0F97F5E4B4F73026B744D",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "62AFA01D7ED4E1DB43B6958BCD70C1063DFA96D82DAC45D6EF5D45A3F701425A"
+    "receipt_sha256": "7F87F3511EE29DECF1A357FB97E73C62537B83AB64E9F521BA05B446EC4C948C"
   },
-  "receipt_sha256": "1B63ABE2AA4E721B5E9E6841B92B101B9FF944BE5EE8B3D0E3F1778CDF9DD09A"
+  "dedicated_workflow": {
+    "json": "authorities/instructions/workflow.v1.json",
+    "mmd": "authorities/instructions/workflow.mmd",
+    "dot": "authorities/instructions/workflow.dot",
+    "json_sha256": "96D7D82FABAF3EBD391A88F1DBFA2795DAECB6CEB65B7315D2E92199C3B31777",
+    "mmd_sha256": "0C4CB802BA979C80EF5879B2EA8E57087753DB70B832BD855781DBDF5F4F2CFF",
+    "dot_sha256": "3A489B38EE048A3F7709A372C6D5E37FA134021DC18D530431F7373CF86A3F95"
+  },
+  "receipt_sha256": "1610BBFEB9614C59FC9C87E973B6AFA2FC2CE7407A4E952B42B401803819BD26"
 }

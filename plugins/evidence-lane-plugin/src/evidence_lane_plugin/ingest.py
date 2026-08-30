@@ -14,7 +14,9 @@ from pathlib import Path
 from typing import Any, cast
 
 from . import database
+from .bounded_io import bounded_existing_path
 from .code_toolchain import extract_tree_sitter_facts
+from .compact_storage import compress_exact_bytes
 from .constants import (
     DEFAULT_CHUNK_LINES,
     DEFAULT_CHUNK_OVERLAP,
@@ -22,6 +24,7 @@ from .constants import (
 )
 from .dependency_detection import parse_pnpm_lock_dependencies
 from .errors import EvidenceLaneError, require
+from .git_adapter import resolve_git_executable
 from .hashing import sha256_bytes
 from .source_policy import content_exclusion_reason, path_exclusion_reason
 from .timeutil import utc_now
@@ -152,7 +155,7 @@ def _candidate_source_files(
     """
 
     try:
-        command = ["git", "ls-files", "-z", "--cached"]
+        command = [resolve_git_executable(root), "ls-files", "-z", "--cached"]
         if include_untracked:
             command.extend(["--others", "--exclude-standard"])
         command.extend(["--", "."])
@@ -186,7 +189,11 @@ def _candidate_source_files(
     for target in sorted(root.rglob("*"), key=lambda path: path.as_posix().lower()):
         if not target.is_file() or target.is_symlink():
             continue
-        fallback.append((target.relative_to(root).as_posix(), target))
+        try:
+            safe_target = bounded_existing_path(target, root=root)
+        except (EvidenceLaneError, OSError):
+            continue
+        fallback.append((safe_target.relative_to(root).as_posix(), safe_target))
     return "FILESYSTEM_GOVERNED", fallback
 
 
@@ -208,8 +215,10 @@ def governed_source_files(
         reason = path_exclusion_reason(relative)
         if reason is None:
             try:
-                reason = content_exclusion_reason(target.read_bytes())
-            except OSError:
+                safe_target = bounded_existing_path(target, root=base)
+                reason = content_exclusion_reason(safe_target.read_bytes())
+                target = safe_target
+            except (EvidenceLaneError, OSError):
                 reason = "SOURCE_FILE_UNREADABLE"
         if reason is not None:
             excluded.append({"status": "EXCLUDED", "code": reason, "path": relative})
@@ -603,25 +612,34 @@ def _ingest_file(
     mime, family = _file_type(relative)
     is_binary = text is None
     line_count = len(text.splitlines()) if text is not None else 0
+    file_sha256 = sha256_bytes(data)
+    compression, compressed_bytes = compress_exact_bytes(data)
+    connection.execute(
+        """
+        INSERT OR IGNORE INTO file_content_cas(
+            sha256,size_bytes,compression,compressed_bytes,first_seen_at
+        ) VALUES(?,?,?,?,?)
+        """,
+        (file_sha256, len(data), compression, compressed_bytes, observed_at),
+    )
     cursor = connection.execute(
         """
         INSERT INTO files(
             repository_id, path, size_bytes, sha256, encoding, is_binary,
-            file_type, code_family, line_count, ingestion_status, exact_bytes, error_code
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+            file_type, code_family, line_count, ingestion_status, error_code
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
         """,
         (
             repository_id,
             relative,
             len(data),
-            sha256_bytes(data),
+            file_sha256,
             encoding,
             int(is_binary),
             mime,
             family,
             line_count,
             "EXACT_BINARY" if is_binary else "EXACT_TEXT_CHUNKED",
-            data,
         ),
     )
     file_id = database.required_lastrowid(cursor)
@@ -645,14 +663,22 @@ def _ingest_file(
     for ordinal, start, end, content in _line_chunks(
         text_value, lines_per_chunk=lines_per_chunk, overlap=overlap
     ):
-        chunk_sha256 = sha256_bytes(content.encode("utf-8"))
+        content_bytes = content.encode("utf-8")
+        chunk_sha256 = sha256_bytes(content_bytes)
+        chunk_compression, compressed_content = compress_exact_bytes(content_bytes)
         cas_cursor = connection.execute(
             """
             INSERT OR IGNORE INTO chunk_content_cas(
-                sha256, size_bytes, text_content, first_seen_at
-            ) VALUES (?, ?, ?, ?)
+                sha256,size_bytes,compression,compressed_text,first_seen_at
+            ) VALUES (?, ?, ?, ?, ?)
             """,
-            (chunk_sha256, len(content.encode("utf-8")), content, observed_at),
+            (
+                chunk_sha256,
+                len(content_bytes),
+                chunk_compression,
+                compressed_content,
+                observed_at,
+            ),
         )
         if cas_cursor.rowcount:
             report.chunk_cas_created += 1
@@ -694,9 +720,11 @@ def _ingest_file(
                 observed_at,
             ),
         )
+        chunk_id = database.required_lastrowid(chunk_cursor)
         connection.execute(
-            "INSERT INTO chunks_fts(path, text_content, chunk_id) VALUES (?, ?, ?)",
-            (relative, content, database.required_lastrowid(chunk_cursor)),
+            "INSERT INTO chunks_fts(rowid,path,text_content,chunk_id) "
+            "VALUES (?, ?, ?, ?)",
+            (chunk_id, relative, content, chunk_id),
         )
         report.chunks += 1
     symbols: list[dict[str, Any]] = []
@@ -822,7 +850,7 @@ def ingest_repository(
         "UNCHANGED_REUSE": 0,
         "CHANGED_REBUILD": 0,
         "NEW_REGISTER": report.files,
-        "REMOVED_TOMBSTONE": 0,
+        "REMOVED_PURGE": 0,
         "BLOCKED_UNSUPPORTED": 0,
         "CHANGED_SECTION_REUSED": report.changed_sections_reused,
         "CHANGED_SECTION_REINDEXED": report.changed_sections_reindexed,
@@ -907,12 +935,12 @@ def refresh_repository(
     for path in changed + removed:
         row = prior[path]
         connection.execute(
-            "DELETE FROM chunks_fts WHERE chunk_id IN "
+            "DELETE FROM chunks_fts WHERE rowid IN "
             "(SELECT chunk_id FROM chunks WHERE file_id=?)",
             (row["file_id"],),
         )
         connection.execute("DELETE FROM files WHERE file_id=?", (row["file_id"],))
-        classification = "CHANGED_REBUILD" if path in changed else "REMOVED_TOMBSTONE"
+        classification = "CHANGED_REBUILD" if path in changed else "REMOVED_PURGE"
         connection.execute(
             """
             INSERT INTO source_refresh_events(
@@ -927,21 +955,6 @@ def refresh_repository(
                 recorded_at,
             ),
         )
-        if path in removed:
-            connection.execute(
-                """
-                INSERT INTO source_tombstones(
-                    path, prior_sha256, prior_size_bytes, parent_pv, removed_at
-                ) VALUES (?, ?, ?, ?, ?)
-                """,
-                (
-                    path,
-                    row["sha256"],
-                    row["size_bytes"],
-                    parent_pv,
-                    recorded_at,
-                ),
-            )
     for path in changed + added:
         _ingest_file(
             connection,
@@ -1011,7 +1024,7 @@ def refresh_repository(
         "UNCHANGED_REUSE": len(unchanged),
         "CHANGED_REBUILD": len(changed),
         "NEW_REGISTER": len(added),
-        "REMOVED_TOMBSTONE": len(removed),
+        "REMOVED_PURGE": len(removed),
         "BLOCKED_UNSUPPORTED": 0,
         "CHANGED_SECTION_REUSED": report.changed_sections_reused,
         "CHANGED_SECTION_REINDEXED": report.changed_sections_reindexed,

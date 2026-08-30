@@ -292,7 +292,7 @@ def build_runtime_continuity(
             ),
             "exit_slip_next_prompt_label": "PV_EXIT_SUGGESTED_NEXT_PROMPT",
             "copyable_next_prompt_source": "EXIT_SLIP_NEXT_ACTION",
-            "six_way_hil_preserved": True,
+            "authority_hil_policy_preserved": True,
             "headless_client_may_end_after_each_invocation": headless_api,
             "durable_runtime_survives_client_process": True,
         },
@@ -420,9 +420,9 @@ def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
     require(
         invocation.get("api_billing_affects_storage_or_tunnel") is False
         and invocation.get("account_tier_affects_storage_or_tunnel") is False
-        and invocation.get("six_way_hil_preserved") is True,
+        and invocation.get("authority_hil_policy_preserved") is True,
         "RUNTIME_CONTINUITY_INVOCATION_BOUNDARY_INVALID",
-        "Runtime invocation continuity must not alter storage, tunnel, or six-way HIL law.",
+        "Runtime invocation continuity must not alter storage, tunnel, or governed HIL law.",
         status="FAIL",
     )
     runtime_classifier = value.get("runtime_classifier")

@@ -13,6 +13,8 @@ import re
 from functools import lru_cache
 from pathlib import PurePosixPath
 
+from .secret_patterns import PRIVATE_KEY_PATTERN, TOKEN_PATTERNS
+
 _EXCLUDED_PARTS = frozenset(
     {
         ".git",
@@ -61,17 +63,6 @@ _SENSITIVE_SUFFIXES = (
 _SECRET_ENV_NAME = re.compile(
     r"(?i)(?:^|_)(?:api_?key|token|secret|password|passwd|private_?key|"
     r"client_?secret|access_?key|credential)(?:$|_)"
-)
-_TOKEN_PATTERNS = (
-    re.compile(r"\bgh[opusr]_[A-Za-z0-9_]{20,}\b"),
-    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
-    re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b"),
-    re.compile(r"\bya29\.[A-Za-z0-9_-]{20,}\b"),
-    re.compile(r"\bAIza[A-Za-z0-9_-]{20,}\b"),
-)
-_PRIVATE_KEY = re.compile(
-    r"-----BEGIN (?:RSA |EC |OPENSSH |)PRIVATE KEY-----[\s\S]*?"
-    r"-----END (?:RSA |EC |OPENSSH |)PRIVATE KEY-----"
 )
 _ASSIGNED_SECRET = re.compile(
     r"(?i)\b(?:authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|"
@@ -190,11 +181,11 @@ def content_exclusion_reason(data: bytes) -> str | None:
             text = data.decode("cp1252")
         except UnicodeDecodeError:
             return None
-    if _PRIVATE_KEY.search(text):
+    if PRIVATE_KEY_PATTERN.search(text):
         return "PRIVATE_KEY_MATERIAL_EXCLUDED"
     if any(
         not _is_explicit_placeholder(match.group(0))
-        for pattern in _TOKEN_PATTERNS
+        for pattern in TOKEN_PATTERNS
         for match in pattern.finditer(text)
     ):
         return "TOKEN_SHAPED_MATERIAL_EXCLUDED"

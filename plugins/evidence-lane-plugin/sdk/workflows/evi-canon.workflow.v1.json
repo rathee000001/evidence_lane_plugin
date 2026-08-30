@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sdk-workflow-projection.v1",
   "status": "PASS",
   "skill": "evi-canon",
-  "skill_sha256": "C7D28C2459DB6206EE01E88309B49DDD35B7F8ACA889BDA8BBEF1528738E7755",
+  "skill_sha256": "EB55EF2290E1CC1ABC4D79FD719E897FA626B849EB500CC7083102C67310E653",
   "ordered_tool_groups": [
     {
       "order": 1,
@@ -248,7 +248,7 @@
     },
     {
       "name": "pv_query",
-      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi",
@@ -261,7 +261,7 @@
         "skill_workflows": [
           {
             "owner_skill": "evi",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           },
           {
@@ -286,7 +286,7 @@
           },
           {
             "owner_skill": "evi-plan",
-            "workflow": "live-six-authority-read",
+            "workflow": "live-current-authority-read",
             "order": 3
           },
           {
@@ -301,7 +301,7 @@
           },
           {
             "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           }
         ],
@@ -727,6 +727,6 @@
   ],
   "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
   "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
-  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
-  "receipt_sha256": "58C6F91E95466DA29FEFBD565E9B64FDD73694307C21028A9C9E72426772636C"
+  "canonical_routing_source_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8",
+  "receipt_sha256": "53FF0712FFBEE0348DB87DA2260D0B3B8BFC66BB9EA49AE8820A3BBCB3045337"
 }

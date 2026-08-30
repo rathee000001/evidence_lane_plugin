@@ -144,7 +144,7 @@ def resolve_skill_mcp_plugin_root() -> Path:
         ) from exc
 
 
-SDK_NATIVE_ACTIONS: tuple[tuple[str, str, str, str, str, bool], ...] = (
+SPECIALIZED_NATIVE_ACTIONS: tuple[tuple[str, str, str, str, str, bool], ...] = (
     (
         "canon_inspect",
         "Inspect Canon authority",
@@ -324,7 +324,7 @@ SDK_NATIVE_ACTIONS: tuple[tuple[str, str, str, str, str, bool], ...] = (
     (
         "learning_decide_candidate",
         "Decide Agent Learning candidate",
-        "Record one exact Learning six-way HIL decision against the Learning pointer only; Project Truth and the Project six-way HIL remain untouched.",
+        "Record one exact Learning governed HIL decision against the Learning pointer only; Project Truth and the Project governed HIL remain untouched.",
         "agent_learning",
         "decide_candidate",
         False,
@@ -387,7 +387,10 @@ SDK_NATIVE_ACTIONS: tuple[tuple[str, str, str, str, str, bool], ...] = (
     ),
 )
 
-SDK_NATIVE_READ_TOOL_NAMES = tuple(row[0] for row in SDK_NATIVE_ACTIONS if row[5])
+SPECIALIZED_NATIVE_READ_ACTION_NAMES = tuple(
+    row[0] for row in SPECIALIZED_NATIVE_ACTIONS if row[5]
+)
+
 
 def _canon_graph_public_fields(
     *, query: str | None = None, limit: int = 8
@@ -430,11 +433,19 @@ def _project_recipe_public_fields(
     source_paths: list[str],
     requested_outcome: str,
     explicit_project_type: str | None = None,
+    mode_request: str | None = None,
+    explicit_modes: list[str] | None = None,
+    custom_modes: list[dict[str, Any]] | None = None,
+    code_lane: str = "local_code",
 ) -> dict[str, Any]:
     return {
         "source_paths": source_paths,
         "requested_outcome": requested_outcome,
         "explicit_project_type": explicit_project_type,
+        "mode_request": mode_request,
+        "explicit_modes": explicit_modes,
+        "custom_modes": custom_modes,
+        "code_lane": code_lane,
     }
 
 
@@ -443,11 +454,23 @@ def _ai_toolchain_public_fields(
     lane_id: str,
     host_profile: str,
     available_tools: list[str] | None = None,
+    capability: str | None = None,
+    granted_tools: list[str] | None = None,
+    accelerator_profile: str = "cpu",
+    enabled_accelerator_plugins: list[str] | None = None,
+    accelerator_memory_budget_percent: int = 80,
+    accelerator_temperature_limit_c: int | None = None,
 ) -> dict[str, Any]:
     return {
         "lane_id": lane_id,
         "host_profile": host_profile,
         "available_tools": available_tools,
+        "capability": capability,
+        "granted_tools": granted_tools or [],
+        "accelerator_profile": accelerator_profile,
+        "enabled_accelerator_plugins": enabled_accelerator_plugins or [],
+        "accelerator_memory_budget_percent": accelerator_memory_budget_percent,
+        "accelerator_temperature_limit_c": accelerator_temperature_limit_c,
     }
 
 
@@ -542,17 +565,17 @@ def _sdk_native_public_signature(target: Any) -> inspect.Signature:
     for name, parameter in target_signature.parameters.items():
         if name in excluded:
             continue
-        parameters.append(
-            parameter.replace(kind=inspect.Parameter.KEYWORD_ONLY)
-        )
+        parameters.append(parameter.replace(kind=inspect.Parameter.KEYWORD_ONLY))
     return inspect.Signature(
         parameters=parameters,
         return_annotation=dict[str, Any],
     )
 
+
 if (
-    len(SDK_NATIVE_ACTIONS) != len({row[0] for row in SDK_NATIVE_ACTIONS})
-    or not set(SDK_NATIVE_READ_TOOL_NAMES).issubset(CODEX_READ_TOOL_NAMES)
+    len(SPECIALIZED_NATIVE_ACTIONS)
+    != len({row[0] for row in SPECIALIZED_NATIVE_ACTIONS})
+    or not set(SPECIALIZED_NATIVE_READ_ACTION_NAMES).issubset(CODEX_READ_TOOL_NAMES)
     or len(CODEX_READ_TOOL_NAMES) != NATIVE_READ_TOOL_COUNT
     or NATIVE_TOOL_COUNT - NATIVE_READ_TOOL_COUNT != NATIVE_WRITE_TOOL_COUNT
 ):
@@ -600,7 +623,9 @@ class _MCPExposureBoundary:
             public_sdk_dispatcher
             if public_sdk_dispatcher is not None
             else build_public_action_sdk_dispatcher(
-                specialized_native_actions={row[0] for row in SDK_NATIVE_ACTIONS}
+                specialized_native_actions={
+                    row[0] for row in SPECIALIZED_NATIVE_ACTIONS
+                }
             )
         )
 
@@ -2019,7 +2044,7 @@ def create_mcp_server(
         OAuthToolAuthorizationPolicy(oauth_config) if oauth_config is not None else None
     )
     public_sdk_dispatcher = build_public_action_sdk_dispatcher(
-        specialized_native_actions={row[0] for row in SDK_NATIVE_ACTIONS}
+        specialized_native_actions={row[0] for row in SPECIALIZED_NATIVE_ACTIONS}
     )
     application = _MCPExposureBoundary(
         backend_application,
@@ -2181,7 +2206,7 @@ def create_mcp_server(
         title="Read the canonical lifecycle law",
         description=(
             "Return the single executable event/from/to transition table used by "
-            "session boot, PV build, task classification, Refresh, six-way HIL, "
+            "session boot, PV build, task classification, Refresh, governed HIL, "
             "rollback state travel, and fresh-window exact-work handoff."
         ),
         annotations=_READ_ONLY,
@@ -2963,7 +2988,8 @@ def create_mcp_server(
             "prior lifecycle position without creating a task, candidate, HIL, or "
             "pointer movement. The result includes visible ENV/UOP formulas, "
             "PCM/MBA operator receipts, controlled CI/CD requirements, and "
-            "lane-specific meanings for the universal six HIL tokens; render those "
+            "lane-specific meanings for the current Project-authority HIL policy; "
+            "render those "
             "fields visibly and never substitute generic Code-mode HIL semantics."
         ),
         annotations=_LOCAL_WRITE,
@@ -3735,7 +3761,7 @@ def create_mcp_server(
             "Confirm the exact host-specific final source boundary and immediately "
             "run the HIL-only live-root Project Overlay/proposal operation. The "
             "proposal remains unaccepted and the result stops at the conjoined "
-            "Project and consolidated Learning six-way HIL, including the bounded "
+            "Project and consolidated Learning governed HIL, including the bounded "
             "Learning weave summary. An optional exact ordered "
             "batch can append QUEUED -> ACTIVE -> DONE for every queued Delta only "
             "when each task has bounded implementation and verification evidence. "
@@ -3772,7 +3798,7 @@ def create_mcp_server(
 
     @mcp.tool(
         name="hil_decide",
-        title="Record exact six-way HIL decision",
+        title="Record exact governed HIL decision",
         description=(
             "Record APPROVE_WITH_DELTA, MORE_RESEARCH, REJECT, FAIL, or pointer-only "
             "ROLLBACK for one pending candidate. Exact APPROVE is deliberately "
@@ -4094,11 +4120,11 @@ def create_mcp_server(
 
     @mcp.tool(
         name="search",
-        title="Query live six-authority project intelligence",
+        title="Query live current-authority project intelligence",
         description=(
-            "Query the live project root through six primary ENV/UOP-governed "
-            "authorities plus Project Universe and connector brain: all eighteen "
-            "sector lanes, Agent Learning, Canon graph, Project Memory, AGENTS.md, "
+            "Query the live project root through the current ENV-selected and "
+            "UOP-governed authority registry: every registered sector lane, Agent "
+            "Learning, Canon graph, Project Memory, AGENTS.md, "
             "host conversation MEMORY.md, Universe, and connector integrity. A stale "
             "or empty intelligence arm triggers one bounded Learning/Canon/Memory/"
             "Universe refresh and retry. Project Overlay is HIL-only; accepted HIL "
@@ -4359,7 +4385,7 @@ def create_mcp_server(
         sdk_module_id,
         sdk_operation,
         sdk_read_only,
-    ) in SDK_NATIVE_ACTIONS:
+    ) in SPECIALIZED_NATIVE_ACTIONS:
         mcp.tool(
             name=sdk_tool_name,
             title=sdk_title,

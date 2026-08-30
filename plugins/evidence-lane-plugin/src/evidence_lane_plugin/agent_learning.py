@@ -3,7 +3,7 @@
 Agent Learning is a separate authority from Project Truth, Canon Input, and
 ChatLineage.  This module persists only evidence-backed learning candidates
 and append-only lifecycle events.  It never reads as Project Truth, moves a
-Project PV pointer, or invokes the Project six-way HIL.
+Project PV pointer, or invokes the Project governed HIL.
 """
 
 from __future__ import annotations
@@ -3116,7 +3116,7 @@ def _parse_decision(decision_token: str) -> tuple[str, str | int | None]:
     require(
         False,
         "LEARNING_DECISION_TOKEN_INVALID",
-        "The exact Learning six-way HIL token is not recognized.",
+        "The exact Learning governed HIL token is not recognized.",
         status="BLOCKED",
         allowed=[
             "APPROVE",

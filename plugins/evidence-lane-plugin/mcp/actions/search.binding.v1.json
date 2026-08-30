@@ -2,7 +2,7 @@
   "schema": "evidence-lane.mcp-action-binding.v1",
   "status": "PASS",
   "action": "search",
-  "title": "Query live six-authority project intelligence",
+  "title": "Query live current-authority project intelligence",
   "input_schema": {
     "properties": {
       "project_id": {
@@ -49,7 +49,7 @@
     "idempotentHint": true,
     "openWorldHint": false
   },
-  "schema_sha256": "1D4C303C7B3FE4AC1E729A6D7B45EA0A082FE57585D1C3251874A5BBE9769691",
+  "schema_sha256": "76F9448249D205764772262F4B673798BE5724E2F6B7162B34E3A8F8F8BE6FC1",
   "route_contract": {
     "status": "CURRENT_ROUTE",
     "owner_skill": "evi-source-intake",
@@ -62,7 +62,7 @@
     "skill_workflows": [
       {
         "owner_skill": "evi",
-        "workflow": "live-root-six-authority-read",
+        "workflow": "live-root-current-authority-read",
         "order": 3
       },
       {
@@ -72,7 +72,7 @@
       },
       {
         "owner_skill": "evi-plan",
-        "workflow": "live-six-authority-read",
+        "workflow": "live-current-authority-read",
         "order": 3
       },
       {
@@ -87,18 +87,18 @@
       },
       {
         "owner_skill": "evidence-lane-code-lifecycle",
-        "workflow": "live-root-six-authority-read",
+        "workflow": "live-root-current-authority-read",
         "order": 3
       }
     ],
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/search.action.v1.json",
-  "sdk_action_binding_sha256": "6CBBCE6798961FA49D08681050314519BC81ED582958C8A3FD86496D6BCD6DD9",
+  "sdk_action_binding_sha256": "9B550AA3C010DBC10E34CC20847A63E54617D1E29D83AD5CCA3989BD862F4E7F",
   "public_action_schema": "schemas/actions/search.schema.json",
-  "public_action_schema_sha256": "FBEC62FC22D40E618806254D8A4A09411DF1249E11FCFD854FE42DFE17967852",
+  "public_action_schema_sha256": "B4A40C099A1F28D0B93CE16DBC1A8A2F02C01DCB945CB455A593537183BF25FE",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "20C15301DF15DA7E93ACE79DD54707C8A17E1340BA33123832FB46BCB1A4042A",
+  "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "571D4D44F0CFB8E2BF9995D4F128ACD89062BAD69D8D66567919FA6E8695A710"
+  "receipt_sha256": "76A804CA558200071BE445C4B7A8D23B112BEBF0BB12943B5A925CD6280340E3"
 }

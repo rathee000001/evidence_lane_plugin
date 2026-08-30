@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sdk-workflow-projection.v1",
   "status": "PASS",
   "skill": "evi-fuse",
-  "skill_sha256": "3C08DE694B69363608F28DE58FFA9073FC2414836E532751E667CA6C52D08D40",
+  "skill_sha256": "F8F9FBB1851EA274160FB017F20061BDD2DF7416FD7BFE30E6C28A32714EF247",
   "ordered_tool_groups": [
     {
       "order": 1,
@@ -53,7 +53,7 @@
     },
     {
       "name": "hil_decide",
-      "schema_sha256": "47102A9AAE2F25D54DDB2AA259EFB9B822BD89125C54052833694A0F01790D53",
+      "schema_sha256": "CFEDC858CFC084E74518745D8CA2FCAC10CBD4AAE2C7B0D376DD18539DABF999",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi-fuse",
@@ -130,6 +130,6 @@
   ],
   "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
   "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
-  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
-  "receipt_sha256": "B996ACE883A70BBCE9C45F42F9E9084AFE6A65F333788499E27345063A8307A8"
+  "canonical_routing_source_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8",
+  "receipt_sha256": "004B4FEBF785E9FB53F72D8D870798D3C010ECDAC9656202CC9E267198E622FC"
 }

@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import json
-import sqlite3
 from pathlib import Path
 from typing import Any
 
+from .hardware_acceleration import (
+    HardwareAccelerationProbe,
+    resolve_hardware_acceleration,
+)
 from .hashing import canonical_json_bytes, sha256_bytes
 from .lanes import CANONICAL_LANE_IDS
-from .sqlite_indexing import rebuild_connection_authority_index
-from .timeutil import utc_now
 
 AI_TOOLCHAIN_SCHEMA = "evidence-lane.ai-toolchain-runtime.v1"
 
@@ -20,11 +21,7 @@ CODEX_HOST_PROFILES: tuple[str, ...] = (
     "CODEX_VM",
 )
 
-FORBIDDEN_TOOLCHAIN_HOST_PROFILES: tuple[str, ...] = (
-    "CHATGPT",
-    "CHATGPT_DESKTOP",
-    "CHATGPT_WORK",
-)
+FORBIDDEN_TOOLCHAIN_HOST_PROFILES: tuple[str, ...] = ()
 
 
 def _duckdb_stage_inventory(
@@ -40,9 +37,7 @@ def _duckdb_stage_inventory(
 
     connection = duckdb.connect(":memory:")
     try:
-        connection.execute(
-            "CREATE TABLE tools(tool_id VARCHAR, requirement VARCHAR)"
-        )
+        connection.execute("CREATE TABLE tools(tool_id VARCHAR, requirement VARCHAR)")
         connection.executemany(
             "INSERT INTO tools VALUES(?,?)",
             [(tool_id, row["requirement"]) for tool_id, row in sorted(tools.items())],
@@ -63,14 +58,23 @@ def _duckdb_stage_inventory(
             "INSERT INTO hosts VALUES(?,?)",
             [(str(row[0]), str(row[1])) for row in host_rows],
         )
+
+        def count(query: str) -> int:
+            row = connection.execute(query).fetchone()
+            if row is None:
+                raise RuntimeError("DUCKDB_STAGING_COUNT_UNAVAILABLE")
+            return int(row[0])
+
         counts = {
-            "tool_count": int(connection.execute("SELECT COUNT(*) FROM tools").fetchone()[0]),
-            "action_count": int(connection.execute("SELECT COUNT(*) FROM actions").fetchone()[0]),
-            "lane_count": int(connection.execute("SELECT COUNT(*) FROM lanes").fetchone()[0]),
-            "host_count": int(connection.execute("SELECT COUNT(*) FROM hosts").fetchone()[0]),
-            "distinct_tool_count": int(connection.execute("SELECT COUNT(DISTINCT tool_id) FROM tools").fetchone()[0]),
-            "distinct_action_count": int(connection.execute("SELECT COUNT(DISTINCT action_name) FROM actions").fetchone()[0]),
-            "distinct_lane_count": int(connection.execute("SELECT COUNT(DISTINCT lane_id) FROM lanes").fetchone()[0]),
+            "tool_count": count("SELECT COUNT(*) FROM tools"),
+            "action_count": count("SELECT COUNT(*) FROM actions"),
+            "lane_count": count("SELECT COUNT(*) FROM lanes"),
+            "host_count": count("SELECT COUNT(*) FROM hosts"),
+            "distinct_tool_count": count("SELECT COUNT(DISTINCT tool_id) FROM tools"),
+            "distinct_action_count": count(
+                "SELECT COUNT(DISTINCT action_name) FROM actions"
+            ),
+            "distinct_lane_count": count("SELECT COUNT(DISTINCT lane_id) FROM lanes"),
         }
     finally:
         connection.close()
@@ -84,6 +88,7 @@ def _duckdb_stage_inventory(
     }
     return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
 
+
 ACTION_CLASS_TOOL_ORDER: dict[str, tuple[str, ...]] = {
     "GOVERNANCE": (
         "ENV_UOP_classifier",
@@ -91,8 +96,20 @@ ACTION_CLASS_TOOL_ORDER: dict[str, tuple[str, ...]] = {
         "Pydantic",
         "SQLite_CAS",
         "Hash_chain_writer",
+        "OpenAI_Agents_SDK",
+    ),
+    "SOURCE_ROUTING": (
+        "hashlib_pathlib",
+        "Secret_redactor",
+        "Safe_archive_intake",
+        "Project_inventory",
+        "Git_detector",
+        "Compatibility_mapper",
+        "Custom_schema_compiler",
+        "Citation_binder",
     ),
     "RETRIEVAL": (
+        "LangChain",
         "LlamaIndex_SQLite_indexer",
         "APSW_SQLite_engine",
         "SQLite_FTS5_BM25",
@@ -101,17 +118,26 @@ ACTION_CLASS_TOOL_ORDER: dict[str, tuple[str, ...]] = {
         "RapidFuzz",
         "SentenceTransformers",
         "FAISS_CPU",
-        "ChromaDB",
+        "Pinecone",
+        "Weaviate",
+        "Milvus",
+        "OpenSearch",
         "deterministic_TFIDF",
+        "OpenAI_Agents_SDK",
     ),
     "CODE": (
         "Git",
+        "Python",
+        "NodeJS_TypeScript",
         "GitPython",
         "PyGithub",
         "TreeSitter_LanguagePack",
         "ripgrep_15_2_0",
         "jq",
         "Python_structural_parser",
+        "GitHub_MCP_Server",
+        "Filesystem_MCP_Server",
+        "OpenAI_Agents_SDK",
     ),
     "DOCUMENT": (
         "Docling",
@@ -121,6 +147,11 @@ ACTION_CLASS_TOOL_ORDER: dict[str, tuple[str, ...]] = {
         "lxml",
         "DOCX_OpenXML",
         "PPTX_OpenXML",
+        "defusedxml",
+        "OpenXML_CSV_JSON_parser",
+        "pypdfium2",
+        "SQLite_immutable_URI_reader",
+        "OpenAI_Agents_SDK",
     ),
     "OCR_MEDIA": (
         "RapidOCR_ONNX_Runtime",
@@ -130,6 +161,7 @@ ACTION_CLASS_TOOL_ORDER: dict[str, tuple[str, ...]] = {
         "Poppler_pdftotext_pdfinfo",
         "Ghostscript",
         "FFmpeg",
+        "OpenAI_Agents_SDK",
     ),
     "DATA": (
         "DuckDB",
@@ -141,6 +173,12 @@ ACTION_CLASS_TOOL_ORDER: dict[str, tuple[str, ...]] = {
         "python_calamine",
         "Tableau_Hyper_API",
         "SQLAlchemy",
+        "OpenXML_CSV_JSON_parser",
+        "Custom_schema_compiler",
+        "SQLite_immutable_URI_reader",
+        "Compatibility_mapper",
+        "PostgreSQL_MCP_Server",
+        "OpenAI_Agents_SDK",
     ),
     "WEB_RESEARCH": (
         "trafilatura",
@@ -154,17 +192,22 @@ ACTION_CLASS_TOOL_ORDER: dict[str, tuple[str, ...]] = {
         "DDGS",
         "HTTPX",
         "Requests",
+        "OpenAI_Agents_SDK",
     ),
     "GRAPH": (
+        "LangChain",
         "LangGraph_Mermaid_engine",
         "rustworkx",
         "Python_Graphviz_DOT_engine",
         "Graphviz_dot",
         "Mermaid_CLI_mmdc",
+        "OpenAI_Agents_SDK",
     ),
     "RUNTIME_API": (
+        "Python",
         "FastAPI",
         "Uvicorn",
+        "FastMCP",
         "MCP_Python_SDK",
         "Pydantic",
         "Pydantic_Settings",
@@ -174,20 +217,72 @@ ACTION_CLASS_TOOL_ORDER: dict[str, tuple[str, ...]] = {
         "Tenacity",
         "psutil",
         "PowerShell_Win32_APIs",
+        "Cryptography_PyJWT",
+        "SevenZip_NSIS_extractor",
+        "python_dotenv",
+        "HuggingFace_Hub_ModelSnapshot",
+        "GitHub_MCP_Server",
+        "Filesystem_MCP_Server",
+        "PostgreSQL_MCP_Server",
+        "Slack_MCP_Server",
+        "OpenAI_Agents_SDK",
+    ),
+    "MCP_COMPOSITION": (
+        "FastMCP",
+        "MCP_Python_SDK",
+    ),
+    "EVALUATION": (
+        "LangSmith",
+        "TruLens",
+        "DeepEval",
+        "Promptfoo",
+    ),
+    "OBSERVABILITY": (
+        "OpenTelemetry",
+        "Langfuse",
+        "Helicone",
+        "Grafana",
+    ),
+    "DEPLOYMENT": (
+        "NodeJS_TypeScript",
+        "NextJS_React_ThreeJS_FramerMotion",
+        "Docker",
+        "Kubernetes",
+        "AWS_Lambda",
+        "Google_Cloud_Run",
+        "Vercel_Git_integration",
+        "GitHub_Actions",
+        "AWS",
+        "Azure",
+        "Google_Cloud",
     ),
 }
 
 LANE_ACTION_CLASSES: dict[str, tuple[str, ...]] = {
-    "github_code": ("CODE", "RETRIEVAL", "GRAPH"),
-    "local_code": ("CODE", "RETRIEVAL", "GRAPH"),
-    "docs": ("DOCUMENT", "RETRIEVAL", "GRAPH"),
-    "pdf_ocr": ("DOCUMENT", "OCR_MEDIA", "RETRIEVAL", "GRAPH"),
-    "images_ocr": ("OCR_MEDIA", "RETRIEVAL", "GRAPH"),
-    "ppt": ("DOCUMENT", "OCR_MEDIA", "RETRIEVAL", "GRAPH"),
-    "data_excel": ("DATA", "RETRIEVAL", "GRAPH"),
-    "research": ("WEB_RESEARCH", "RETRIEVAL", "GRAPH"),
-    "brain_loader": ("DOCUMENT", "DATA", "RETRIEVAL", "GRAPH"),
-    "sqlite_brain": ("DATA", "RETRIEVAL", "GRAPH"),
+    "github_code": (
+        "CODE",
+        "RETRIEVAL",
+        "GRAPH",
+        "EVALUATION",
+        "DEPLOYMENT",
+        "OBSERVABILITY",
+    ),
+    "local_code": (
+        "CODE",
+        "RETRIEVAL",
+        "GRAPH",
+        "EVALUATION",
+        "DEPLOYMENT",
+        "OBSERVABILITY",
+    ),
+    "docs": ("DOCUMENT", "RETRIEVAL", "GRAPH", "OBSERVABILITY"),
+    "pdf_ocr": ("DOCUMENT", "OCR_MEDIA", "RETRIEVAL", "GRAPH", "OBSERVABILITY"),
+    "images_ocr": ("OCR_MEDIA", "RETRIEVAL", "GRAPH", "OBSERVABILITY"),
+    "ppt": ("DOCUMENT", "OCR_MEDIA", "RETRIEVAL", "GRAPH", "OBSERVABILITY"),
+    "data_excel": ("DATA", "RETRIEVAL", "GRAPH", "OBSERVABILITY"),
+    "research": ("WEB_RESEARCH", "RETRIEVAL", "GRAPH", "EVALUATION", "OBSERVABILITY"),
+    "brain_loader": ("DOCUMENT", "DATA", "RETRIEVAL", "GRAPH", "OBSERVABILITY"),
+    "sqlite_brain": ("DATA", "RETRIEVAL", "GRAPH", "OBSERVABILITY"),
     "project_engulf": (
         "CODE",
         "DOCUMENT",
@@ -195,14 +290,45 @@ LANE_ACTION_CLASSES: dict[str, tuple[str, ...]] = {
         "WEB_RESEARCH",
         "RETRIEVAL",
         "GRAPH",
+        "EVALUATION",
+        "OBSERVABILITY",
     ),
-    "artifacts": ("DOCUMENT", "OCR_MEDIA", "DATA", "RETRIEVAL", "GRAPH"),
-    "analysis": ("DATA", "RETRIEVAL", "GRAPH", "GOVERNANCE"),
-    "discussion": ("RETRIEVAL", "GOVERNANCE"),
-    "plan": ("GOVERNANCE", "RETRIEVAL", "GRAPH"),
-    "mode": ("GOVERNANCE", "RETRIEVAL", "GRAPH"),
-    "chat_lineage": ("GOVERNANCE", "RETRIEVAL", "GRAPH"),
-    "custom": ("GOVERNANCE", "DATA", "RETRIEVAL", "GRAPH"),
+    "artifacts": (
+        "DOCUMENT",
+        "OCR_MEDIA",
+        "DATA",
+        "RETRIEVAL",
+        "GRAPH",
+        "DEPLOYMENT",
+        "OBSERVABILITY",
+    ),
+    "analysis": (
+        "DATA",
+        "RETRIEVAL",
+        "GRAPH",
+        "GOVERNANCE",
+        "EVALUATION",
+        "OBSERVABILITY",
+    ),
+    "discussion": ("RETRIEVAL", "GOVERNANCE", "OBSERVABILITY"),
+    "plan": ("GOVERNANCE", "RETRIEVAL", "GRAPH", "EVALUATION", "OBSERVABILITY"),
+    "mode": ("GOVERNANCE", "RETRIEVAL", "GRAPH", "OBSERVABILITY"),
+    "chat_lineage": ("GOVERNANCE", "RETRIEVAL", "GRAPH", "OBSERVABILITY"),
+    "custom": (
+        "GOVERNANCE",
+        "DATA",
+        "RETRIEVAL",
+        "GRAPH",
+        "EVALUATION",
+        "OBSERVABILITY",
+    ),
+}
+
+# Every sector intake begins with the same bounded source-routing phase before
+# its lane-specific parser, retrieval, graph, evaluation, or delivery phases.
+LANE_ACTION_CLASSES = {
+    lane_id: (*classes, "SOURCE_ROUTING")
+    for lane_id, classes in LANE_ACTION_CLASSES.items()
 }
 
 _ALL_LANE_SURFACES = frozenset(
@@ -214,6 +340,7 @@ _ALL_LANE_SURFACES = frozenset(
         "every_queryable_project_authority",
         "every_source_policy",
         "every_sqlite_authority",
+        "all_workflows",
     }
 )
 
@@ -255,356 +382,25 @@ def _action_class(tool: dict[str, Any]) -> str:
         return "GRAPH"
     if any(term in text for term in ("source", "intake", "research", "web")):
         return "WEB_RESEARCH"
-    if any(term in text for term in ("memory", "learning", "query", "search", "fetch", "universe", "canon")):
+    if any(
+        term in text
+        for term in (
+            "memory",
+            "learning",
+            "query",
+            "search",
+            "fetch",
+            "universe",
+            "canon",
+        )
+    ):
         return "RETRIEVAL"
-    if any(term in text for term in ("plugin", "storage", "runtime", "session", "tunnel", "boot")):
+    if any(
+        term in text
+        for term in ("plugin", "storage", "runtime", "session", "tunnel", "boot")
+    ):
         return "RUNTIME_API"
     return "GOVERNANCE"
-
-
-def _schema(connection: sqlite3.Connection, *, uop: bool) -> None:
-    if uop:
-        connection.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS uop_toolchain_policy_v16(
-                action_class TEXT PRIMARY KEY,
-                selection_rule TEXT NOT NULL,
-                fallback_rule TEXT NOT NULL,
-                can_override_env INTEGER NOT NULL CHECK(can_override_env=0),
-                can_override_project INTEGER NOT NULL CHECK(can_override_project=0),
-                status TEXT NOT NULL
-            ) STRICT;
-            CREATE TABLE IF NOT EXISTS uop_toolchain_host_policy_v16(
-                host_profile TEXT PRIMARY KEY,
-                plane TEXT NOT NULL,
-                execution_allowed INTEGER NOT NULL,
-                reason TEXT NOT NULL,
-                status TEXT NOT NULL
-            ) STRICT;
-            """
-        )
-        return
-    connection.executescript(
-        """
-        CREATE TABLE IF NOT EXISTS ai_toolchain_registry_v16(
-            tool_id TEXT PRIMARY KEY,
-            requirement TEXT NOT NULL,
-            surfaces_json TEXT NOT NULL,
-            role TEXT NOT NULL,
-            status TEXT NOT NULL
-        ) STRICT;
-        CREATE TABLE IF NOT EXISTS ai_toolchain_action_binding_v16(
-            action_name TEXT PRIMARY KEY,
-            action_class TEXT NOT NULL,
-            owner_skill TEXT,
-            primary_tool TEXT NOT NULL,
-            fallback_tools_json TEXT NOT NULL,
-            ordered_tools_json TEXT NOT NULL,
-            schema_sha256 TEXT NOT NULL,
-            binding_sha256 TEXT NOT NULL UNIQUE,
-            status TEXT NOT NULL
-        ) STRICT;
-        CREATE TABLE IF NOT EXISTS ai_toolchain_lane_binding_v16(
-            lane_id TEXT PRIMARY KEY,
-            action_classes_json TEXT NOT NULL,
-            ordered_tools_json TEXT NOT NULL,
-            binding_sha256 TEXT NOT NULL UNIQUE,
-            status TEXT NOT NULL
-        ) STRICT;
-        CREATE TABLE IF NOT EXISTS ai_toolchain_host_binding_v16(
-            host_profile TEXT PRIMARY KEY,
-            plane TEXT NOT NULL,
-            execution_allowed INTEGER NOT NULL,
-            hidden_runtime_required INTEGER NOT NULL,
-            workspace_install_allowed INTEGER NOT NULL,
-            binding_sha256 TEXT NOT NULL UNIQUE,
-            status TEXT NOT NULL
-        ) STRICT;
-        CREATE TABLE IF NOT EXISTS ai_toolchain_sync_receipt_v16(
-            sequence INTEGER PRIMARY KEY,
-            tool_count INTEGER NOT NULL,
-            action_count INTEGER NOT NULL,
-            lane_count INTEGER NOT NULL,
-            tool_matrix_sha256 TEXT NOT NULL,
-            public_catalog_sha256 TEXT NOT NULL,
-            prior_receipt_sha256 TEXT,
-            receipt_json TEXT NOT NULL,
-            receipt_sha256 TEXT NOT NULL UNIQUE,
-            recorded_at TEXT NOT NULL
-        ) STRICT;
-        """
-    )
-
-
-def sync_ai_toolchain_authority(
-    *,
-    env_database: str | Path,
-    uop_database: str | Path,
-    tool_matrix_path: str | Path,
-    public_catalog_path: str | Path,
-) -> dict[str, Any]:
-    matrix_path = Path(tool_matrix_path).resolve()
-    catalog_path = Path(public_catalog_path).resolve()
-    matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
-    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
-    catalog_actions = catalog.get("tools")
-    if not isinstance(catalog_actions, list):
-        raise TypeError(
-            "AI toolchain synchronization requires the canonical public-action "
-            "catalog with an iterable tools collection; the compact runtime count "
-            "projection is not execution authority."
-        )
-    declared_action_count = int(catalog.get("tool_count", len(catalog_actions)))
-    if declared_action_count != len(catalog_actions):
-        raise ValueError(
-            "Canonical public-action catalog count does not match its tools collection."
-        )
-    tools = {str(row["tool"]): dict(row) for row in matrix["requirements"]}
-    unknown = sorted(
-        {
-            tool
-            for ordered in ACTION_CLASS_TOOL_ORDER.values()
-            for tool in ordered
-            if tool not in tools
-        }
-    )
-    if unknown:
-        raise ValueError(f"AI toolchain binding references undeclared tools: {unknown}")
-    env = sqlite3.connect(Path(env_database).resolve(), timeout=30)
-    env.row_factory = sqlite3.Row
-    uop = sqlite3.connect(Path(uop_database).resolve(), timeout=30)
-    uop.row_factory = sqlite3.Row
-    try:
-        _schema(env, uop=False)
-        _schema(uop, uop=True)
-        env.execute("DELETE FROM ai_toolchain_registry_v16")
-        env.execute("DELETE FROM ai_toolchain_action_binding_v16")
-        env.execute("DELETE FROM ai_toolchain_lane_binding_v16")
-        env.execute("DELETE FROM ai_toolchain_host_binding_v16")
-        env.executemany(
-            "INSERT INTO ai_toolchain_registry_v16 VALUES(?,?,?,?,?)",
-            [
-                (
-                    tool_id,
-                    row["requirement"],
-                    canonical_json_bytes(row["surfaces"]).decode("utf-8"),
-                    row["role"],
-                    "ACTIVE_DECLARED",
-                )
-                for tool_id, row in sorted(tools.items())
-            ],
-        )
-        action_rows = []
-        for action in catalog_actions:
-            action_name = str(action["name"])
-            action_class = _action_class(action)
-            ordered = list(ACTION_CLASS_TOOL_ORDER[action_class])
-            body = {
-                "action_name": action_name,
-                "action_class": action_class,
-                "owner_skill": dict(action.get("route_contract") or {}).get(
-                    "owner_skill"
-                ),
-                "primary_tool": ordered[0],
-                "fallback_tools": ordered[1:],
-                "ordered_tools": ordered,
-                "schema_sha256": action["schema_sha256"],
-            }
-            action_rows.append(
-                (
-                    action_name,
-                    action_class,
-                    body["owner_skill"],
-                    ordered[0],
-                    canonical_json_bytes(ordered[1:]).decode("utf-8"),
-                    canonical_json_bytes(ordered).decode("utf-8"),
-                    action["schema_sha256"],
-                    sha256_bytes(canonical_json_bytes(body)),
-                    "ACTIVE",
-                )
-            )
-        env.executemany(
-            "INSERT INTO ai_toolchain_action_binding_v16 VALUES(?,?,?,?,?,?,?,?,?)",
-            action_rows,
-        )
-        lane_rows = []
-        for lane_id in CANONICAL_LANE_IDS:
-            classes = LANE_ACTION_CLASSES[lane_id]
-            ordered = list(
-                dict.fromkeys(
-                    tool
-                    for action_class in classes
-                    for tool in ACTION_CLASS_TOOL_ORDER[action_class]
-                    if _tool_applies_to_lane(tools[tool], lane_id)
-                )
-            )
-            body = {
-                "lane_id": lane_id,
-                "action_classes": list(classes),
-                "ordered_tools": ordered,
-            }
-            lane_rows.append(
-                (
-                    lane_id,
-                    canonical_json_bytes(list(classes)).decode("utf-8"),
-                    canonical_json_bytes(ordered).decode("utf-8"),
-                    sha256_bytes(canonical_json_bytes(body)),
-                    "ACTIVE",
-                )
-            )
-        env.executemany(
-            "INSERT INTO ai_toolchain_lane_binding_v16 VALUES(?,?,?,?,?)",
-            lane_rows,
-        )
-        host_rows = []
-        for host_profile in CODEX_HOST_PROFILES:
-            body = {
-                "host_profile": host_profile,
-                "plane": "CODEX",
-                "execution_allowed": True,
-                "hidden_runtime_required": True,
-                "workspace_install_allowed": False,
-            }
-            host_rows.append(
-                (
-                    host_profile,
-                    "CODEX",
-                    1,
-                    1,
-                    0,
-                    sha256_bytes(canonical_json_bytes(body)),
-                    "ACTIVE",
-                )
-            )
-        for host_profile in FORBIDDEN_TOOLCHAIN_HOST_PROFILES:
-            body = {
-                "host_profile": host_profile,
-                "plane": "CHATGPT",
-                "execution_allowed": False,
-                "hidden_runtime_required": False,
-                "workspace_install_allowed": False,
-            }
-            host_rows.append(
-                (
-                    host_profile,
-                    "CHATGPT",
-                    0,
-                    0,
-                    0,
-                    sha256_bytes(canonical_json_bytes(body)),
-                    "SEPARATE_PLANE_NOT_IMPLEMENTED",
-                )
-            )
-        env.executemany(
-            "INSERT INTO ai_toolchain_host_binding_v16 VALUES(?,?,?,?,?,?,?)",
-            host_rows,
-        )
-        duckdb_staging = _duckdb_stage_inventory(
-            tools=tools,
-            action_rows=action_rows,
-            lane_rows=lane_rows,
-            host_rows=host_rows,
-        )
-        uop.execute("DELETE FROM uop_toolchain_policy_v16")
-        uop.executemany(
-            "INSERT INTO uop_toolchain_policy_v16 VALUES(?,?,?,?,?,?)",
-            [
-                (
-                    action_class,
-                    "ENV_ACTION_CLASS_PRIMARY_THEN_ORDERED_AVAILABLE_FALLBACK",
-                    "NO_CROSS_CLASS_OR_SILENT_FALLBACK",
-                    0,
-                    0,
-                    "ACTIVE",
-                )
-                for action_class in ACTION_CLASS_TOOL_ORDER
-            ],
-        )
-        uop.execute("DELETE FROM uop_toolchain_host_policy_v16")
-        uop.executemany(
-            "INSERT INTO uop_toolchain_host_policy_v16 VALUES(?,?,?,?,?)",
-            [
-                (
-                    host_profile,
-                    "CODEX",
-                    1,
-                    "RUN_CONDITIONALLY_FROM_HIDDEN_CODEX_PLUGIN_RUNTIME",
-                    "ACTIVE",
-                )
-                for host_profile in CODEX_HOST_PROFILES
-            ]
-            + [
-                (
-                    host_profile,
-                    "CHATGPT",
-                    0,
-                    "SEPARATE_CHATGPT_PLANE_DEFERRED_BY_USER",
-                    "BLOCKED_SEPARATE_PLANE",
-                )
-                for host_profile in FORBIDDEN_TOOLCHAIN_HOST_PROFILES
-            ],
-        )
-        env_index_receipt = rebuild_connection_authority_index(
-            env, authority_id="env"
-        )
-        uop_index_receipt = rebuild_connection_authority_index(
-            uop, authority_id="uop"
-        )
-        prior = env.execute(
-            "SELECT receipt_sha256 FROM ai_toolchain_sync_receipt_v16 "
-            "ORDER BY sequence DESC LIMIT 1"
-        ).fetchone()
-        sequence = int(
-            env.execute(
-                "SELECT COALESCE(MAX(sequence),0)+1 FROM ai_toolchain_sync_receipt_v16"
-            ).fetchone()[0]
-        )
-        core = {
-            "schema": AI_TOOLCHAIN_SCHEMA,
-            "status": "PASS",
-            "sequence": sequence,
-            "tool_count": len(tools),
-            "action_count": len(action_rows),
-            "lane_count": len(lane_rows),
-            "action_class_count": len(ACTION_CLASS_TOOL_ORDER),
-            "codex_host_profiles": list(CODEX_HOST_PROFILES),
-            "chatgpt_plane_mixed": False,
-            "tool_matrix_sha256": sha256_bytes(matrix_path.read_bytes()),
-            "public_catalog_sha256": sha256_bytes(catalog_path.read_bytes()),
-            "prior_receipt_sha256": str(prior[0]) if prior else None,
-            "sqlite_is_authority": True,
-            "uop_can_override_env": False,
-            "uop_can_override_project": False,
-            "duckdb_staging": duckdb_staging,
-            "llama_index_authority_receipts": {
-                "env": env_index_receipt,
-                "uop": uop_index_receipt,
-            },
-            "recorded_at": utc_now(),
-        }
-        receipt_sha256 = sha256_bytes(canonical_json_bytes(core))
-        receipt = {**core, "receipt_sha256": receipt_sha256}
-        env.execute(
-            "INSERT INTO ai_toolchain_sync_receipt_v16 VALUES(?,?,?,?,?,?,?,?,?,?)",
-            (
-                sequence,
-                len(tools),
-                len(action_rows),
-                len(lane_rows),
-                core["tool_matrix_sha256"],
-                core["public_catalog_sha256"],
-                core["prior_receipt_sha256"],
-                canonical_json_bytes(receipt).decode("utf-8"),
-                receipt_sha256,
-                core["recorded_at"],
-            ),
-        )
-        env.commit()
-        uop.commit()
-        return receipt
-    finally:
-        env.close()
-        uop.close()
 
 
 def resolve_lane_toolchain(
@@ -612,6 +408,11 @@ def resolve_lane_toolchain(
     lane_id: str,
     host_profile: str,
     available_tools: set[str] | None = None,
+    accelerator_profile: str = "cpu",
+    enabled_accelerator_plugins: list[str] | tuple[str, ...] = (),
+    accelerator_memory_budget_percent: int = 80,
+    accelerator_temperature_limit_c: int | None = None,
+    accelerator_probe: HardwareAccelerationProbe | None = None,
 ) -> dict[str, Any]:
     """Resolve one conditional lane toolchain for a Codex host profile.
 
@@ -641,6 +442,14 @@ def resolve_lane_toolchain(
     available = set(ordered) if available_tools is None else set(available_tools)
     runnable = [tool for tool in ordered if tool in available]
     unavailable = [tool for tool in ordered if tool not in available]
+    hardware_acceleration = resolve_hardware_acceleration(
+        action_classes=list(action_classes),
+        requested_profile=accelerator_profile,
+        enabled_vendor_plugins=list(enabled_accelerator_plugins),
+        memory_budget_percent=accelerator_memory_budget_percent,
+        temperature_limit_c=accelerator_temperature_limit_c,
+        probe=accelerator_probe,
+    )
     core = {
         "schema": "evidence-lane.ai-toolchain-lane-resolution.v1",
         "status": "PASS" if runnable else "BLOCKED_NO_RUNNABLE_TOOL",
@@ -651,6 +460,7 @@ def resolve_lane_toolchain(
         "ordered_tools": ordered,
         "runnable_tools": runnable,
         "unavailable_tools": unavailable,
+        "hardware_acceleration": hardware_acceleration,
         "conditional_execution": True,
         "run_every_tool": False,
         "hidden_runtime_required": True,
@@ -667,5 +477,4 @@ __all__ = [
     "FORBIDDEN_TOOLCHAIN_HOST_PROFILES",
     "LANE_ACTION_CLASSES",
     "resolve_lane_toolchain",
-    "sync_ai_toolchain_authority",
 ]

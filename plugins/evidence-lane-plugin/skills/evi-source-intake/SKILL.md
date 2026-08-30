@@ -1,12 +1,12 @@
 ---
 name: evi-source-intake
-description: Evidence Lane generalized ordered source intake with optional Git history, auto-detection, exact overrides, 18 lanes, Project Engulf, and Chat Lineage.
+description: Evidence Lane generalized ordered source intake with optional Git history, auto-detection, exact overrides, registry-derived sector lanes, and Chat Lineage.
 ---
 
 # Evidence Lane Source Intake
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its Codex hook/skill
 ownership contract. This skill owns behavior; hooks provide lifecycle receipts
 only.
 
@@ -22,7 +22,7 @@ candidate, and moves no pointer.
 One governed project has exactly one registered central code project. The exact
 registered repository is `PRIMARY_PROJECT_CODE`. Any additional local code
 folder or public repository is a `LANE_SCOPED_STUDY_BRAIN` inside `local_code`
-or `github_code`; it never becomes a second project root or a nineteenth lane.
+or `github_code`; it never becomes a second project root or an extra sector lane.
 Changing the central code project requires separate project/PV registration and
 cannot be performed by Source Intake.
 
@@ -30,7 +30,8 @@ Local Code and GitHub Code remain distinct. `local_code` refreshes from current
 Delta dirty bytes. `github_code` materializes only from an exact governed Git
 checkpoint. A public/unowned repository may be read as bounded lane evidence,
 but Git history stays disabled unless ownership or explicit access is attested.
-Each lane-scoped Study Brain uses that lane's SQLite/FTS5, MMD, DOT,
+Each lane-scoped Study Brain uses that lane's SQLite/FTS5 projections with BM25,
+MMD, DOT,
 `tools.json`, lane pointer, lane manifest, and `study_brain.json`; it does not
 create a duplicate database or top-level folder.
 
@@ -72,7 +73,7 @@ Delta Learning supplements that projection. Only the current ACTIVE Delta's
 unexited dirty source changes are absent from the lanes. Source or unit tests
 may validate those bytes, but they do not prove installed public behavior.
 Adaptive Delta exit advances the live sector and separate-intelligence
-watermarks again; installed MCP/SDK/skill/command/hook/UI behavior becomes
+watermarks again; installed MCP/SDK/skill/action/hook/UI behavior becomes
 provable only after the new local package is installed and the exact task is
 reattached.
 
@@ -92,24 +93,24 @@ bytes or secret environment-variable names in an exclusion receipt. Non-Git
 sources use the same deterministic path/content policy but do not claim a
 tracked-only boundary.
 
-## Authoritative live-root six-authority query workflow
+## Authoritative live-root current-authority query workflow
 
-`EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1` is the only ordinary query
-workflow. ENV/UOP keeps every authority separate: all eighteen live-root
-sector lanes plus Project Engulf; Agent Learning; the Canon consequence graph;
+`EVIDENCE_LANE_LIVE_ROOT_CURRENT_AUTHORITY_QUERY_V2` is the only ordinary query
+workflow. ENV/UOP keeps every authority separate: the complete current live-root
+sector registry, including Project Engulf; Agent Learning; the Canon consequence graph;
 Project Memory; Project Universe; connector brain; the resolved `AGENTS.md`
 chain; and host conversation `MEMORY.md`. Accepted storage is an immutable HIL ZIP and is never opened,
 queried, extracted, or treated as the current database. The accepted pointer is
 baseline identity only.
 
 1. Call `lane_catalog` once for canonical lane identity, then call `search` for
-   the bounded six-authority result. `search` always queries all eighteen live
-   sector SQLite/FTS5 projections with BM25 in addition to Learning, Canon,
+   the bounded current-authority result. `search` always queries the complete current
+   live-sector SQLite/FTS5 registry with BM25 in addition to Learning, Canon,
    Memory, Universe, and connector-brain integrity. Preserve the AGENTS.md and
    MEMORY.md source-chain hashes separately; never merge their authority roles.
 2. A stale or no-hit Learning, Canon, or Memory arm triggers exactly one
    ordered refresh: Learning, Canon, Memory, then Universe. Retry those four
-   bounded reads exactly once. A continuing no-hit is valid and the all-eighteen-sector
+   bounded reads exactly once. A continuing no-hit is valid and the complete-sector
    slice remains the direct fallback; never widen to the accepted ZIP.
 3. Use `lane_status`, `lane_search`, and `lane_fetch` only when the caller needs
    one exact lane result. Omit every candidate or accepted-archive selector:
@@ -139,7 +140,7 @@ is `1`.
 When the user asks to modify one, call the same tool with `operation: MODIFY`,
 the next integer schema version, and `expected_previous_schema_sha256` bound to
 the exact prior registered version. MODIFY is append-only: never edit or delete
-the old definition, never mutate the canonical eighteen-lane registry, and
+the old definition, never mutate the canonical current sector registry, and
 never treat schema configuration as source classification, a candidate build,
 or HIL approval.
 

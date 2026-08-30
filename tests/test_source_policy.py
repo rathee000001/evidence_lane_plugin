@@ -4,6 +4,7 @@ import sqlite3
 import subprocess
 from pathlib import Path
 
+from evidence_lane_plugin.compact_storage import decompress_exact_bytes
 from evidence_lane_plugin.git_history import index_git_history
 from evidence_lane_plugin.ingest import governed_source_files
 from evidence_lane_plugin.source_policy import (
@@ -91,10 +92,28 @@ def test_git_history_excludes_sensitive_paths_and_secret_blobs(
     assert connection.execute(
         "SELECT COUNT(*) FROM git_file_change WHERE path LIKE '.env%'"
     ).fetchone()[0] == 0
-    for row in connection.execute("SELECT exact_bytes FROM git_blob_cas"):
-        assert secret.encode("utf-8") not in bytes(row[0])
-    for row in connection.execute("SELECT text_content FROM git_content_chunk_cas"):
-        assert secret not in str(row[0])
+    for row in connection.execute(
+        "SELECT content_sha256,size_bytes,compression,compressed_bytes "
+        "FROM git_blob_cas"
+    ):
+        data = decompress_exact_bytes(
+            compression=str(row[2]),
+            payload=bytes(row[3]),
+            expected_size=int(row[1]),
+            expected_sha256=str(row[0]),
+        )
+        assert secret.encode("utf-8") not in data
+    for row in connection.execute(
+        "SELECT chunk_sha256,size_bytes,compression,compressed_text "
+        "FROM git_content_chunk_cas"
+    ):
+        text = decompress_exact_bytes(
+            compression=str(row[2]),
+            payload=bytes(row[3]),
+            expected_size=int(row[1]),
+            expected_sha256=str(row[0]),
+        ).decode("utf-8")
+        assert secret not in text
     connection.close()
     known_environment_secrets.cache_clear()
 

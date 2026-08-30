@@ -13,11 +13,26 @@
     "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
   },
   "logical_action": "DEDUPE_AND_SEAL_EVENT",
+  "handler_stage_role": "DEDUPE_AND_SEAL_EVENT",
+  "host_timing": "SESSION_ENTRY_BEFORE_VISIBLE_INPUT",
+  "workflow_contract": {
+    "host_timing": "SESSION_ENTRY_BEFORE_VISIBLE_INPUT",
+    "action_scope": "WORKFLOW_LIFECYCLE",
+    "skill_action": "SESSION_START_BIND_OR_REENTRY",
+    "skill_consumer": "consume_session_start_transport",
+    "workflow_phases": [
+      "BOOT_OR_RESUME",
+      "STATE_TRAVEL_REENTRY",
+      "PANEL_REENTRY"
+    ],
+    "public_action_boundary": false
+  },
+  "workflow_contract_sha256": "AAD3E9BEFA841E047EE639E0014A7F0464BE91B81754F2002263E9E505BE8A2E",
   "stage": "hooks/subhook_seal.py",
   "stage_sha256": "665E54A3126C4141682D339E5FADF62B04024F875D3376908B97B4A8AA67FE22",
   "adapter": "hooks/session_start.py",
-  "adapter_sha256": "CCDF7A49E91BF9BFD693F80648B1894413293C6EE627E4E956B1E119F56D77A6",
+  "adapter_sha256": "0A06790B822F1743FC0141EE74628676FFA8C1E8D4752BF488DFD6BF879C169A",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "D90C3E9C9B7FE16A8EF2F7343DD874AE50308D0FD5062091E6BE20B2E70A55AF"
+  "receipt_sha256": "4B4CAF13C25A776C82FAD4AF91DA07EEB415732B1E936CEDFF8382C6C3CAD891"
 }

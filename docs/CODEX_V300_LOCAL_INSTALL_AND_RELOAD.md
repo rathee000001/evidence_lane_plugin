@@ -1,128 +1,78 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v3 -->
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / registry-derived-v1 -->
 
-# Evidence Lane 3.0.0 local install and exact-task reload
+# Codex 3.0 local installation and reload
 
-This is the current maintainer-only local-update route. It installs one coherent
-package into the hidden Codex plugin layer. It never creates a plugin runtime in
-the source workspace or Project/PV root, never queries accepted state, and never
-uses a generic plugin-add/cache-backup attempt as a speculative first step.
+Installation is a maintainer release operation over exact reviewed package bytes. It is not a downstream project workflow and does not create or accept a Project Version.
 
-## Three separate locations
+Current counts are derived release facts, not permanent ceilings.
 
-Evidence Lane keeps these identities independent:
+## Required order
 
-1. **Workspace** — selected by the user when the Codex task is created. This is
-   where the user wants work performed.
-2. **Project/PV root** — selected or created during the project's first Source
-   Intake registration. It is external to the workspace and reused by every
-   later task for the same project.
-3. **Hidden plugin runtime** — derived from Codex's installed plugin/cache
-   identity. The runtime, dependencies, tunnel, maintainer helpers, models,
-   licenses, and receipts live here.
+1. Verify the exact Git commit/tree and clean required CI results.
+2. Build the deterministic installable plugin package and executable manifest.
+3. Verify action/schema/SDK/MCP, skill, hook, authority, lane, tool, lock, license, and secret boundaries.
+4. Cache-bust and install into the explicitly selected existing local slot.
+5. Build the hidden hash-keyed runtime from the base/toolchain locks plus the exact selected CPU, NVIDIA CUDA, or AMD DirectML provider lock. Each profile has a distinct runtime key.
+6. Install/probe native dependencies and prewarm applicable grammar/model/tunnel capabilities.
+7. Run pre-restart package/catalog/runtime acceptance.
+8. After the response is complete, use the maintainer-local restart helper only when the host requires a same-task restart.
+9. Reopen the same Codex app, task, and workspace, then prove installed member/catalog/skill/hook/tool/authority parity.
 
-None of these paths is hardcoded. State Travel reuses the registered project and
-workspace binding; an unrelated initial workflow may register a different
-project root and workspace.
+The universal default is CPU. A GPU profile requires the user's enabled vendor plugin/grant and compatible host proof; it never silently changes the package for every user. The helper is not installed as plugin business logic and owns no Plan, Goal, HIL, State Travel, package, or Git behavior. The tunnel is separate transport and does not install the plugin.
 
-## Package boundary
+The marketplace Upgrade button is used only after the exact main release/package route reaches its assigned row. A branch test install and main-slot install remain separately receipted until deliberate normalization.
 
-The local archive is generated through the Plugin Creator development flow and
-must contain the current package roots: `.codex-plugin`, `authorities`,
-`env`, `hooks`, `manifests`, `mcp`, `schemas`, `scripts`, `sdk`,
-`skills`, `src`, installed smoke `tests`, `toolchains`, `tunnel`, and `uop`.
-Every declared member is hash-bound by
-`manifests/executable-surface-registry.v1.json`.
+## Source-bound workflow map
 
-Repository-only site sources, PoCs, developer test suites, `.next`,
-`node_modules`, virtual environments, caches, build outputs, and local evidence
-are excluded. The package must not mix historical and current generated files.
+This page is projected from the same current executable snapshot as the rest of the documentation set. The map is deliberately two-directional: each horizontal district shows peer stages while vertical edges show ownership and state progression.
 
-## Ordered local-update transaction
+```mermaid
+flowchart TB
+    subgraph InputDistrict["Input and classification"]
+      direction LR
+      A["Reviewed exact package bytes"] --> B["Plugin Creator validation"] --> C["Local-testing selector"]
+    end
+    subgraph ExecutionDistrict["Selection and execution"]
+      direction TB
+      D["Hidden runtime profile"] --> E["Prewarm and installed smoke"] --> F["Catalog and member parity"]
+    end
+    subgraph EvidenceDistrict["Evidence and outcome"]
+      direction LR
+      G["Install and restart receipts"] --> H["Exact app and task reload"]
+      G -. mismatch .-> I["No Project/PV or HIL effect"]
+    end
+    C --> D
+    F --> G
+```
 
-1. Run the deterministic source and package-parity checks.
-2. Use Plugin Creator to validate and pack the exact current plugin root.
-3. Assign a fresh cachebuster package version and materialize only the existing
-   local-testing marketplace slot.
-4. Verify every staged member, manifest, catalog, dependency lock, model/tool
-   receipt, and hidden-runtime target before switching the slot.
-5. Prewarm the derived hidden runtime from the hash-locked dependency and native
-   toolchain manifests. Normal MCP startup must not invoke package installation.
-6. Produce the pre-restart installed-package receipt. This proves bytes and
-   readiness only; it is not installed-host proof and cannot infer HIL.
-7. Seal the exact install/task/channel restart preparation without inspecting,
-   rewriting, or draining Codex turns. A stale in-progress turn is a host fault,
-   never a lifecycle repair target.
-8. Persist and visibly complete the current response. Only after that terminal
-   boundary may the maintainer use a local dumb same-app/same-task helper to
-   close and reopen the exact selected Codex channel. The helper is not shipped
-   and contains no drain, install, tunnel, Plan, Goal, State Travel, focus, or
-   fallback logic.
-9. After the same task reopens, verify the installed package and hidden runtime
-   through native catalog, skill, hook, ENV/UOP, SDK, schema, tunnel,
-   and project/session readback.
-10. Relock the canonical compact Step Task List and unchanged Changes surface
-    before resuming governed work.
+## Contract and readback
 
-## Restart is terminal-safe and maintainer-local
+| Phase | Current contract | Required readback |
+| --- | --- | --- |
+| Input | Reviewed exact package bytes | Exact identity, provenance, and scope |
+| Classification | Plugin Creator validation | Owning schema, action, lane, skill, or authority |
+| Owner | Local-testing selector | One canonical implementation owner |
+| Route | Hidden runtime profile | Condition-true ordered route with no hidden alias |
+| Execution | Prewarm and installed smoke | Real execution or a visible fail-closed result |
+| Validation | Catalog and member parity | Hash, schema, authority-effect, and negative-case checks |
+| Receipt | Install and restart receipts | Content-addressed result and provenance receipt |
+| Downstream | Exact app and task reload | Only the explicitly eligible next state |
+| Failure | No Project/PV or HIL effect | No inferred HIL, candidate acceptance, or pointer movement |
 
-No drain utility is part of the current route. The package may seal an exact
-restart preparation receipt, but it cannot stop an active response, repair host
-history, or manufacture a terminal event. A maintainer-local dumb helper may
-act only after the response is terminal, accepts one exact Codex app identity
-and task deep link, and cannot select another task or workspace.
+## Canonical source owners
 
-State Travel never invokes either helper. A fresh State Travel destination uses
-native task/session attachment and Plan acceptance; it performs no install or
-restart.
+- `.codex-plugin/plugin.json`
+- `scripts/codex_release/install_codex_stable.py`
+- `manifests/package/package-surface-coherence.json`
 
-## Tunnel and dependency provisioning
+## Cross-surface invariants
 
-The tunnel is installed into the hidden plugin runtime, not the user's
-workspace. It is enabled only for a measured host-tool gap. On first use, if no
-version-matched tunnel configuration exists, the host may open a one-time
-interactive terminal that helps the user create and paste the required API key.
-The secret is stored with Windows DPAPI, never in project data, Git, prompts,
-receipts, or process arguments. After configuration the tunnel runs hidden,
-survives Windows sign-in under its exact versioned contract, and prewarms the
-runtime dependencies and toolchain it owns.
+- The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.
+- Executable ownership stays one-way: skills select, MCP exposes, the outer SDK routes, the internal SDK executes, ENV selects, UOP governs, tools perform bounded work, hooks emit receipts, and the owning authority validates effects.
+- Any missing identity, schema, grant, capability, dependency, receipt, or authority proof must fail closed at its owning phase; a later green check cannot retroactively authorize the skipped boundary.
+- A changed route refreshes every dependent schema, manifest, generator, test, diagram, and documentation reference; the superseded executable route is directly purged in the same Delta.
+- Tests, Git, CI, installation, restart, deployment, discussion, or a rendered page never imply Project HIL, Learning HIL, Goal completion, or pointer movement.
 
-Users receive one current plugin version and at most one matching active tunnel.
-There is no separate governed-user recovery helper. Maintainer install and dumb
-restart helpers remain local maintenance tools and are never shipped as plugin
-runtime or staged as user-facing executable behavior.
+---
 
-## Hook activation
-
-Local installation never claims hook success from source tests. Hooks remain
-OFF until the restarted installed host proves each registered event class and
-its ordered subhandlers against the exact installed hashes and timing laws.
-Passing handlers may then be trusted and enabled through native
-`hooks/list`, `config/read`, and compare-and-swap `config/batchWrite`. A failing
-handler stays disabled without disabling unrelated passing handlers.
-
-`PreCompact` must seal before compaction; `PostCompact` must rehydrate after
-compaction. `PreToolUse` reentrancy and fail-closed behavior are tested as a
-distinct boundary.
-
-## Failure behavior
-
-Any source/package hash drift, incomplete dependency provision, hidden-runtime
-path escape, catalog/schema mismatch, stale in-progress turn, wrong app/task
-identity, failed hook timing, or post-restart attachment mismatch fails closed.
-The local-testing slot may not mutate the main Git release slot, Project/PV
-pointer, candidate, HIL state, Plan, Goal identity, or dirty workspace bytes.
-
-## Evidence required before continuing
-
-- exact package version, archive hash, and executable-surface manifest;
-- derived catalog counts and complete action/skill/hook inventories, with no separate command surface;
-- hidden runtime root, dependency/tool/model/license receipt hashes;
-- local-slot materialization and pre-restart acceptance receipts;
-- terminal-safe exact task/channel restart-preparation receipt;
-- maintainer-local dumb helper same-app/same-task restart receipt, when used;
-- post-restart native catalog and project/session/runtime attachment proof;
-- installed ENV/UOP execution and SDK routing proof; and
-- canonical Step/Changes relock proof.
-
-Only the later governed branch/main and HIL routes can authorize Git promotion,
-candidate acceptance, pointer movement, or accepted ZIP rotation.
+This page is a Git-tracked documentation projection. Executable source, SQLite authorities, installed-runtime receipts, and explicit human gates remain the governing evidence.

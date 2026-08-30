@@ -11,10 +11,13 @@ an independent lifecycle authority.
 from __future__ import annotations
 
 import importlib.util
+import math
 import os
 import re
 from dataclasses import asdict, dataclass
+from html import unescape
 from importlib.metadata import version
+from itertools import pairwise
 from typing import Any, Literal, TypedDict
 
 from graphviz import Digraph, Source
@@ -33,6 +36,7 @@ from .native_toolchain import (
 GraphRole = Literal["AUTHORITY_TRAVERSAL", "EXECUTABLE_WORKFLOW"]
 
 GRAPH_PIPELINE_SCHEMA = "evidence-lane.semantic-graph-pipeline.v1"
+GRAPH_LAYOUT_STRATEGY = "BALANCED_TWO_DIMENSIONAL_FANOUT_V1"
 LANGGRAPH_VERSION = version("langgraph")
 LANGCHAIN_CORE_VERSION = version("langchain-core")
 PYTHON_GRAPHVIZ_VERSION = version("graphviz")
@@ -45,6 +49,7 @@ _MMD_IMPORT_SUBGRAPH = re.compile(
 _MMD_IMPORT_EDGE = re.compile(
     r"^\s*(?P<left>.+?)\s*(?:"
     r"--\s*(?P<label>.*?)\s*-->|"
+    r'(?P<piped>-->\|"?(?P<piped_label>.*?)"?\|)|'
     r"(?P<plain>-->)|"
     r"-\.\s*(?P<dashed>.*?)\s*\.->"
     r")\s*(?P<right>.+?)\s*$"
@@ -52,7 +57,7 @@ _MMD_IMPORT_EDGE = re.compile(
 _MMD_IMPORT_NODE = re.compile(
     r'^\s*(?P<id>[A-Za-z_][A-Za-z0-9_]*)'
     r'(?P<shape>\(\[.*?\]\)|\[\(.*?\)\]|\{\{.*?\}\}|\{.*?\}|\[.*?\])?'
-    r'(?:::[A-Za-z_][A-Za-z0-9_]*)?\s*$'
+    r'(?P<class>:::[A-Za-z_][A-Za-z0-9_]*)?\s*$'
 )
 _KIND_STYLES: dict[str, dict[str, str]] = {
     "root": {
@@ -208,8 +213,10 @@ def _import_node(value: str) -> tuple[str, str | None, str]:
         raise ValueError(f"Unsupported Mermaid node expression: {value!r}")
     node_id = match.group("id")
     shape = match.group("shape")
+    class_name = match.group("class")
+    class_kind = class_name[3:] if class_name else None
     if shape is None:
-        return node_id, None, "default"
+        return node_id, None, class_kind or "default"
     label = shape
     kind = "semantic"
     if shape.startswith("(["):
@@ -226,8 +233,8 @@ def _import_node(value: str) -> tuple[str, str | None, str]:
         kind = "warn"
     elif shape.startswith("["):
         label = shape[1:-1]
-    label = label.strip().strip('"').replace("<br/>", "\n")
-    return node_id, label, kind
+    label = unescape(label.strip().strip('"').replace("<br/>", "\n"))
+    return node_id, label, class_kind or kind
 
 
 def semantic_graph_from_mermaid(
@@ -246,8 +253,17 @@ def semantic_graph_from_mermaid(
     node_order: list[str] = []
     edges: list[SemanticEdge] = []
     unsupported: list[str] = []
+    in_layout_constraints = False
     for number, raw in enumerate(source.splitlines(), start=1):
         stripped = raw.strip()
+        if stripped == "%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN":
+            in_layout_constraints = True
+            continue
+        if stripped == "%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END":
+            in_layout_constraints = False
+            continue
+        if in_layout_constraints:
+            continue
         if not stripped or stripped.startswith(("%%", "---", "title:")):
             continue
         if stripped.startswith(("flowchart ", "graph ")):
@@ -312,13 +328,23 @@ def semantic_graph_from_mermaid(
                         kind if kind != "default" else prior_kind,
                         prior_group or current_group,
                     )
-            label = edge_match.group("label") or edge_match.group("dashed")
+            label = (
+                edge_match.group("label")
+                or edge_match.group("dashed")
+                or edge_match.group("piped_label")
+            )
+            conditional = edge_match.group("dashed") is not None
+            if label:
+                label = unescape(label.strip().strip('"'))
+                if label.startswith("conditional: "):
+                    label = label.removeprefix("conditional: ")
+                    conditional = True
             edges.append(
                 SemanticEdge(
                     left_id,
                     right_id,
-                    label.strip().strip('"') if label else None,
-                    edge_match.group("dashed") is not None,
+                    label or None,
+                    conditional,
                 )
             )
             continue
@@ -455,6 +481,58 @@ class SemanticGraph:
         if missing:
             raise ValueError(f"Semantic graph edges reference missing nodes: {missing}")
 
+    def _balanced_layout_constraints(self) -> list[tuple[str, str]]:
+        """Return render-only sibling constraints that prevent flat fan-out strips.
+
+        Semantic edges remain authoritative.  These invisible constraints arrange
+        large sibling sets into bounded columns, so both Mermaid and DOT project
+        the same graph as a two-dimensional map instead of one horizontal row.
+        """
+
+        node_group = {node.node_id: node.group_id for node in self.nodes}
+        node_label = {node.node_id: node.label for node in self.nodes}
+        semantic_pairs = {
+            (edge.source, edge.target) for edge in self.edges
+        } | {(edge.target, edge.source) for edge in self.edges}
+        targets_by_source: dict[str, list[str]] = {}
+        for edge in self.edges:
+            targets = targets_by_source.setdefault(edge.source, [])
+            if edge.target not in targets:
+                targets.append(edge.target)
+        constraints: list[tuple[str, str]] = []
+        seen: set[tuple[str, str]] = set()
+        for targets in targets_by_source.values():
+            by_group: dict[str, list[str]] = {}
+            for target in targets:
+                group_key = node_group.get(target) or "__UNGROUPED__"
+                by_group.setdefault(group_key, []).append(target)
+            for siblings in by_group.values():
+                if len(siblings) < 5:
+                    continue
+                average_label_width = sum(
+                    max((len(line) for line in node_label[node].splitlines()), default=1)
+                    for node in siblings
+                ) / len(siblings)
+                label_aspect = max(1.0, average_label_width / 32.0)
+                direction_bias = (
+                    label_aspect
+                    if self.direction in {"TB", "TD", "BT"}
+                    else 1.0 / label_aspect
+                )
+                chain_length = max(
+                    3,
+                    math.ceil(math.sqrt(len(siblings) * direction_bias)),
+                )
+                for offset in range(0, len(siblings), chain_length):
+                    column = siblings[offset : offset + chain_length]
+                    for left, right in pairwise(column):
+                        pair = (left, right)
+                        if pair in seen or pair in semantic_pairs:
+                            continue
+                        seen.add(pair)
+                        constraints.append(pair)
+        return constraints
+
     def _langchain_graph(self) -> LangChainGraph:
         nodes = {
             node.node_id: LangChainNode(
@@ -510,6 +588,7 @@ class SemanticGraph:
 
     def render_mermaid(self) -> tuple[str, dict[str, Any]]:
         self._validate_topology()
+        layout_constraints = self._balanced_layout_constraints()
         exported, projection, exporter = self._langgraph_export()
         projected_nodes = {
             str(row["id"])
@@ -534,6 +613,8 @@ class SemanticGraph:
             f"%% EVIDENCE_LANE_GRAPH_ENGINE={exporter}",
             f"%% LANGGRAPH_VERSION={LANGGRAPH_VERSION}",
             f"%% LANGGRAPH_EXPORT_SHA256={export_sha256}",
+            f"%% EVIDENCE_LANE_LAYOUT={GRAPH_LAYOUT_STRATEGY}",
+            f"%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT={len(layout_constraints)}",
         ]
         for kind, style in _MMD_CLASS_DEFS.items():
             lines.append(f"  classDef {kind} {style};")
@@ -570,19 +651,35 @@ class SemanticGraph:
                 )
             else:
                 lines.append(f"  {edge.source} --> {edge.target}")
+        if layout_constraints:
+            lines.append("%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN")
+            for source, target in layout_constraints:
+                lines.append(f"  {source} ~~~ {target}")
+            lines.append("%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END")
         source = "\n".join(lines) + "\n"
         receipt = self._receipt(
             mmd_sha256=sha256_bytes(source.encode("utf-8")),
             dot_sha256=None,
             langgraph_export_sha256=export_sha256,
             mermaid_exporter=exporter,
+            layout_constraint_count=len(layout_constraints),
         )
         return source, receipt
 
     def render_dot(self) -> tuple[str, dict[str, Any]]:
         self._validate_topology()
+        layout_constraints = self._balanced_layout_constraints()
         graph = Digraph(self.name, strict=False)
-        graph.attr(rankdir=self.direction, fontname="Arial", bgcolor="white")
+        graph.attr(
+            rankdir=self.direction,
+            fontname="Arial",
+            bgcolor="white",
+            newrank="true",
+            compound="true",
+            splines="polyline",
+            nodesep="0.35",
+            ranksep="0.65",
+        )
         graph.attr(
             "node",
             shape="box",
@@ -622,6 +719,14 @@ class SemanticGraph:
             if edge.conditional:
                 attributes["style"] = "dashed"
             graph.edge(edge.source, edge.target, **attributes)
+        for source, target in layout_constraints:
+            graph.edge(
+                source,
+                target,
+                style="invis",
+                weight="100",
+                constraint="true",
+            )
         source = graph.source.replace("\t", "  ")
         source = source.replace(
             "{\n",
@@ -652,6 +757,7 @@ class SemanticGraph:
             langgraph_export_sha256=None,
             mermaid_exporter=None,
             native_validation=native_validation,
+            layout_constraint_count=len(layout_constraints),
         )
         return source, receipt
 
@@ -674,6 +780,7 @@ class SemanticGraph:
         langgraph_export_sha256: str | None,
         mermaid_exporter: str | None,
         native_validation: dict[str, Any] | None = None,
+        layout_constraint_count: int = 0,
     ) -> dict[str, Any]:
         topology = {
             "name": self.name,
@@ -714,6 +821,11 @@ class SemanticGraph:
             "graph_analysis_sha256": sha256_bytes(
                 canonical_json_bytes(graph_analysis)
             ),
+            "layout_strategy": GRAPH_LAYOUT_STRATEGY,
+            "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+            "layout_constraint_count": int(layout_constraint_count),
+            "balanced_two_dimensional_projection": True,
+            "layout_constraints_change_semantic_topology": False,
             "mmd_and_dot_are_sqlite_traversal_maps": True,
             "sqlite_authority_replaced": False,
         }
@@ -735,12 +847,17 @@ def graph_engine_status() -> dict[str, Any]:
             "LANGGRAPH_STATEGRAPH_OR_LANGGRAPH_GRAPH_EXPORTER"
         ),
         "dot_generation": "PYTHON_GRAPHVIZ",
+        "layout_strategy": GRAPH_LAYOUT_STRATEGY,
+        "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+        "balanced_two_dimensional_projection": True,
+        "layout_constraints_change_semantic_topology": False,
         "all_mmd_dot_remain_traversal_maps_into_owning_sqlite": True,
     }
     return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
 
 
 __all__ = [
+    "GRAPH_LAYOUT_STRATEGY",
     "GRAPH_PIPELINE_SCHEMA",
     "GraphRole",
     "SemanticEdge",

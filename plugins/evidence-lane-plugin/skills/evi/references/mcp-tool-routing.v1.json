@@ -131,7 +131,7 @@
             "pv_query",
             "search"
           ],
-          "workflow": "live-root-six-authority-read"
+          "workflow": "live-root-current-authority-read"
         },
         {
           "order": 4,
@@ -588,7 +588,7 @@
             "pv_query",
             "search"
           ],
-          "workflow": "live-six-authority-read"
+          "workflow": "live-current-authority-read"
         },
         {
           "order": 4,
@@ -935,7 +935,7 @@
             "pv_query",
             "search"
           ],
-          "workflow": "live-root-six-authority-read"
+          "workflow": "live-root-current-authority-read"
         },
         {
           "order": 4,

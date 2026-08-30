@@ -150,7 +150,7 @@ def test_plugin_creator_local_cache_boundary_seals_exact_task_restart(
         "plugin_id": module.PLUGIN_NAME,
         "version": target_version,
         "manifest_sha256": "A" * 64,
-        "catalog": {"tools": 91, "read": 30, "write": 61, "skills": 25},
+        "catalog": {"tools": 91, "read": 30, "write": 61, "skills": 26},
         "surface_inventory": {"surface_inventory_sha256": "B" * 64},
     }
     stage = {
@@ -613,7 +613,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
         source / "src" / "evidence_lane_plugin" / "mcp_server.py",
         _fixture_catalog_source(),
     )
-    for number in range(25):
+    for number in range(26):
         _write(source / "skills" / f"skill-{number:02d}" / "SKILL.md", "# Test\n")
     _write(source / "README.md", "# Evidence Lane\n")
     package_proofs = {
@@ -837,7 +837,7 @@ def _exact_package_receipt(
         "base_anchor": local["base_anchor"],
         "working_source_manifest_sha256": local["working_source_manifest_sha256"],
         "source_member_count": 1,
-        "skill_count": 25,
+        "skill_count": 26,
         "canonical_lane_count": 18,
         "exact_commit_export": {
             "branch": "main",
@@ -988,7 +988,7 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
         "SubagentStop",
         "UserPromptSubmit",
     ]
-    assert result["surface_change_display"]["skills"]["count"] == 25
+    assert result["surface_change_display"]["skills"]["count"] == 26
     assert result["surface_change_display"]["search_toolchain"]["status"] == "PASS"
     assert result["surface_change_display"]["search_toolchain"]["record_count"] == 1
     assert [
@@ -1011,7 +1011,7 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
         "tools": 91,
         "read": 30,
         "write": 61,
-        "skills": 25,
+        "skills": 26,
         "changed_from_previous": False,
     }
     assert (
@@ -1488,6 +1488,9 @@ def _seed_current_runtime_prewarm_fixture(plugin_root: Path) -> None:
     for relative in (
         "scripts/generate_runtime_license_bundle.py",
         "scripts/codex_release/install_native_toolchain.py",
+        "requirements.torch-cpu.lock.txt",
+        "requirements.torch-nvidia.lock.txt",
+        "requirements.onnx-directml.lock.txt",
         "toolchains/native-tools.v1.json",
         "toolchains/tool-requirement-matrix.v1.json",
         "toolchains/tool-license-inventory.v1.json",
@@ -1508,8 +1511,18 @@ def _runtime_license_payload(module: object, plugin_root: Path) -> dict[str, obj
     return {
         "schema": "evidence-lane.installed-runtime-license-bundle.v1",
         "status": "PASS",
+        "accelerator_profile": "CPU",
         "requirements_lock_sha256": module._sha256(
             plugin_root / "requirements.lock.txt"
+        ),
+        "requirements_torch_cpu_lock_sha256": module._sha256(
+            plugin_root / "requirements.torch-cpu.lock.txt"
+        ),
+        "requirements_torch_nvidia_lock_sha256": module._sha256(
+            plugin_root / "requirements.torch-nvidia.lock.txt"
+        ),
+        "requirements_onnx_directml_lock_sha256": module._sha256(
+            plugin_root / "requirements.onnx-directml.lock.txt"
         ),
         "requirements_toolchain_lock_sha256": module._sha256(
             plugin_root / "requirements.toolchain.lock.txt"
@@ -1577,7 +1590,13 @@ def _runtime_probe_payload(module: object, plugin_root: Path) -> dict[str, objec
             "matrix_sha256": module._sha256(
                 plugin_root / "toolchains" / "tool-requirement-matrix.v1.json"
             ),
-            "requirement_count": 95,
+            "requirement_count": len(
+                json.loads(
+                    (
+                        plugin_root / "toolchains" / "tool-requirement-matrix.v1.json"
+                    ).read_text(encoding="utf-8")
+                )["requirements"]
+            ),
             "failure_count": 0,
             "receipt_sha256": "E" * 64,
         },
@@ -1596,8 +1615,21 @@ def _runtime_bootstrap_payload(
         "runtime_identity": {
             "schema": "evidence-lane.codex-native-runtime.v1",
             "runtime_key": "A" * 64,
+            "accelerator_profile": "CPU",
             "requirements_lock_sha256": module._sha256(
                 plugin_root / "requirements.lock.txt"
+            ),
+            "requirements_torch_cpu_lock_sha256": module._sha256(
+                plugin_root / "requirements.torch-cpu.lock.txt"
+            ),
+            "requirements_torch_nvidia_lock_sha256": module._sha256(
+                plugin_root / "requirements.torch-nvidia.lock.txt"
+            ),
+            "requirements_onnx_directml_lock_sha256": module._sha256(
+                plugin_root / "requirements.onnx-directml.lock.txt"
+            ),
+            "selected_torch_lock_sha256": module._sha256(
+                plugin_root / "requirements.torch-cpu.lock.txt"
             ),
             "requirements_toolchain_lock_sha256": module._sha256(
                 plugin_root / "requirements.toolchain.lock.txt"
@@ -1680,7 +1712,15 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
                 "schema": "evidence-lane.installed-runtime-license-bundle.v1",
                 "status": "PASS",
                 "tool_license_inventory_sha256": "0" * 64,
-                "tool_license_entry_count": 95,
+                "tool_license_entry_count": len(
+                    json.loads(
+                        (
+                            plugin_root
+                            / "toolchains"
+                            / "tool-requirement-matrix.v1.json"
+                        ).read_text(encoding="utf-8")
+                    )["requirements"]
+                ),
             }
         ),
     )
@@ -1713,11 +1753,15 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
                 module, plugin_root, runtime_root, runtime_python
             )
         elif script == "run_mcp.py" and "--transport" in arguments:
-            tools = list(reversed(json.loads(
-                (
-                    plugin_root / "schemas" / "public-action-schemas.v001.json"
-                ).read_text(encoding="utf-8")
-            )["tools"]))
+            tools = list(
+                reversed(
+                    json.loads(
+                        (
+                            plugin_root / "schemas" / "public-action-schemas.v001.json"
+                        ).read_text(encoding="utf-8")
+                    )["tools"]
+                )
+            )
             responses = [
                 {
                     "jsonrpc": "2.0",
@@ -1738,9 +1782,7 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
             return subprocess.CompletedProcess(
                 arguments,
                 0,
-                "".join(json.dumps(row) + "\n" for row in responses).encode(
-                    "utf-8"
-                ),
+                "".join(json.dumps(row) + "\n" for row in responses).encode("utf-8"),
                 b"",
             )
         else:
@@ -1853,6 +1895,12 @@ def test_installed_runtime_rejects_projection_outside_durable_authority(
         plugin_root / "requirements.toolchain.lock.txt",
         "fixture toolchain lock\n",
     )
+    for name in (
+        "requirements.torch-cpu.lock.txt",
+        "requirements.torch-nvidia.lock.txt",
+        "requirements.onnx-directml.lock.txt",
+    ):
+        shutil.copy2(PLUGIN / name, plugin_root / name)
     (plugin_root / "assets").mkdir(parents=True, exist_ok=True)
     shutil.copy2(
         PLUGIN / "assets" / "evidence-lane-icon.png",
@@ -2277,13 +2325,13 @@ def test_installer_rejects_native_catalog_drift_before_staging(tmp_path: Path) -
         module._validate_plugin(source)
 
 
-def test_installer_catalog_counts_declarative_sdk_actions() -> None:
+def test_installer_catalog_counts_specialized_and_decorated_actions() -> None:
     module = _module()
     catalog = module._catalog(PLUGIN)
     assert catalog["tools"] == 91
     assert catalog["read"] == 30
     assert catalog["write"] == 61
-    assert catalog["skills"] == 25
+    assert catalog["skills"] == 26
     assert catalog["tool_names_unique"] is True
 
 
@@ -2336,7 +2384,7 @@ def test_installer_accepts_current_local_v300_package_contract(
         "tools": 91,
         "read": 30,
         "write": 61,
-        "skills": 25,
+        "skills": 26,
         "tool_names_unique": True,
         "static_catalog_sha256": identity["catalog"]["static_catalog_sha256"],
     }
@@ -2565,25 +2613,19 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
             source / "hooks" / name,
             _fixture_hook_source(marker),
         )
-    _write(
-        source / "commands" / "evi-plan.md",
-        "---\n"
-        "description: Pair a finished Codex plan with the canonical Plan Lane.\n"
-        "---\n\n"
-        "# Evidence Lane Plan Lane\n\n"
-        "Keep the canonical plan visible.\n",
-    )
+    for number in range(26):
+        _write(
+            source / "skills" / f"skill-{number:02d}" / "SKILL.md",
+            "---\n"
+            f"name: skill-{number:02d}\n"
+            f"description: Current governed fixture skill {number:02d}.\n"
+            "---\n\n"
+            f"# Skill {number:02d}\n",
+        )
     marketplace.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(source, marketplace)
     installed.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(source, installed)
-    for relative, generated in acceptance._expected_migrated_command_skills(
-        marketplace
-    ).items():
-        generated_path = installed / relative
-        generated_path.parent.mkdir(parents=True, exist_ok=True)
-        generated_path.write_bytes(generated)
-
     selector = "evidence-lane-plugin@evidence-lane-github"
     config = tmp_path / "codex" / "config.toml"
     _write(
@@ -2622,7 +2664,7 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         "brand_icon_sha256": (
             "5F3ED419B62661F703F5DF763B4DC562645F621935AA99FC3DEF87B8A129C4FA"
         ),
-        "catalog_expected": {"tools": 91, "read": 30, "write": 61, "skills": 25},
+        "catalog_expected": {"tools": 91, "read": 30, "write": 61, "skills": 26},
         "native_dependency_prewarm_completed": True,
         "duration_ms": 1,
         "task_reopened": False,
@@ -2764,7 +2806,7 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
             "tools": 91,
             "read": 30,
             "write": 61,
-            "skills": 25,
+            "skills": len(list((installed / "skills").glob("*/SKILL.md"))),
             "changed_from_previous": False,
         },
         "previous_surface_inventory_sha256": None,
@@ -2801,14 +2843,11 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
         )
     )
     assert pre["state"] == ("PRE_RESTART_INSTALLED_PACKAGE_VERIFIED_RESTART_REQUIRED")
-    assert pre["catalog"] == {"tools": 91, "read": 30, "write": 61, "skills": 25}
+    assert pre["catalog"] == {"tools": 91, "read": 30, "write": 61, "skills": 26}
     assert pre["installed_plugin"]["version"] == version
     assert pre["package_inventory"]["source_bytes_match_marketplace"] is True
-    assert pre["package_inventory"]["codex_generated_migration_count"] == 1
-    assert (
-        pre["package_inventory"]["codex_generated_migrations"][0]["skill_name"]
-        == "source-command-evi-plan"
-    )
+    assert "codex_generated_migration_count" not in pre["package_inventory"]
+    assert "codex_generated_migrations" not in pre["package_inventory"]
     assert pre["restart_verified"] is False
     assert pre["enabled_selector"] == selector
     assert pre["hook_trust"]["status"] == "PENDING_NATIVE_CONTROL"
@@ -2878,11 +2917,11 @@ def test_installed_acceptance_checker_verifies_real_fixture_before_and_after_res
     assert post["candidate_created_or_accepted"] is False
     assert post["pointer_moved"] is False
 
-    migrated = next(
-        (installed / ".codex-plugin" / "migrated-command-skills").rglob("SKILL.md")
-    )
-    migrated.write_text("tampered\n", encoding="utf-8")
-    with pytest.raises(acceptance.AcceptanceError, match="exact derivation"):
+    assert not (installed / "commands").exists()
+    assert not (installed / ".codex-plugin" / "migrated-command-skills").exists()
+    installed_skill = next((installed / "skills").glob("*/SKILL.md"))
+    installed_skill.write_text("tampered\n", encoding="utf-8")
+    with pytest.raises(acceptance.AcceptanceError):
         acceptance.accept(
             argparse.Namespace(
                 **common,

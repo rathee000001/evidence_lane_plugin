@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.tunnel_identity_routing",
+  "source_path": "src/evidence_lane_plugin/tunnel_identity_routing.py",
+  "source_sha256": "00E8E2BB23045481A9444CDDFF0B2CF4470F112BF8B59A9E4996FB30B6C00719",
+  "source_bytes": 3915,
+  "role": "SDK_AND_ROUTING",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "79B947A3F2FC602ACAB48B86187B92DAC27E55367A5007A25BA684CA6AE3AFFB"
+}

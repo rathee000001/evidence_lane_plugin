@@ -6,7 +6,7 @@ description: "Govern the project-isolated AI Agent Learning arm: inspect and ret
 # Evidence Lane Agent Learning
 
 First apply the shared installed lifecycle contract in
-`../evidence-lane-code-lifecycle/SKILL.md`; this skill narrows that contract to
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`; this skill narrows that contract to
 the separate Agent Learning authority and never widens lifecycle permission.
 
 Agent Learning is a separate project-scoped AI learning authority under the
@@ -16,8 +16,8 @@ scaling means bounded indexed retrieval and composition, never self-training.
 
 ## Host memory boundary
 
-ChatGPT/Codex host memories are an optional generated recall layer, not
-Evidence Lane authority. The host documents local Codex memories as generated
+Codex host memories are an optional generated recall layer, not Evidence Lane
+authority. The host documents local Codex memories as generated
 state under Codex home and recommends checked-in documentation or `AGENTS.md`
 for guidance that must always apply. Do not scan, import, trust, or promote host
 memory automatically, and do not treat a memory filename, summary, recollection,
@@ -43,7 +43,7 @@ Hooks never import memory and attach explicit
 ## Inspect and retrieve
 
 Run `pv_status`, `pv_task_backlog`, one bounded live-root `pv_query`, and the
-six-authority `search` before using a Learning result in governed work. Neither
+current-authority `search` before using a Learning result in governed work. Neither
 read opens the accepted HIL ZIP. Use `learning_inspect` to read the independent
 candidate/event/pointer authority. Use `learning_retrieve` with exact scope,
 time, conflict, and result limits. Keep the returned Learning slice visibly
@@ -58,7 +58,8 @@ The Learning ledger is schema-versioned and validates its exact SQLite tables,
 indexes, and FTS5 projections before use. Retrieval queries FTS5 with BM25 and
 returns only the bounded result slice; never scan or place the full ledger in
 model context. Project Memory is a separate authority, SDK arm, and first-class
-`evi-memory` skill. AI Learning owns six current public actions:
+`evi-memory` skill. In the current registry snapshot, AI Learning owns these
+public actions:
 `learning_inspect`, `learning_retrieve`, `learning_record_host_memory_import`,
 `learning_seal_candidate`, `learning_decide_candidate`, and `learning_revoke`.
 The installed registry contains no Learning-as-Memory compatibility actions;
@@ -73,8 +74,8 @@ accepted procedural evidence. The full-PV pointer still represents PV(n-1),
 while the live sector projection advances at every Delta exit through the
 immediately preceding sub-PV; only the current ACTIVE Delta is absent.
 
-The internal provider-neutral SDK owns `bootstrap_verified_history`; it is not
-a ninth MCP action. It may seal Learning Delta members only from two
+The internal Codex-owned SDK owns `bootstrap_verified_history`; it remains an
+internal workflow and never becomes an MCP action. It may seal Learning Delta members only from two
 canonical Plan event classes: an `ACCEPTED` row whose latest exact event is an
 approved `HIL_OUTCOME`, or a `DONE` row whose latest exact event is
 `VERIFIED_TASK_CHECKPOINT_COMPLETED`. Ordinary `TASK_DONE`, queued, dropped,
@@ -95,8 +96,8 @@ hooks do not own or auto-run the bootstrap.
 
 Project Memory query and record-link behavior is owned only by `evi-memory`
 through `project_memory_query` and `project_memory_record_link`. Those routes
-append or return bounded content-addressed locators and edges among the 18
-project lanes, ChatLineage, Plan, Project Truth, Canon, Agent Learning, Project
+append or return bounded content-addressed locators and edges among the complete
+current project-sector registry, ChatLineage, Plan, Project Truth, Canon, Agent Learning, Project
 Universe, receipts, and explicit host-memory import receipts. Neither route
 stores or returns raw lane databases, Markdown, chat scrollback, or private
 reasoning. `SUPERSEDES`, `SUPPRESSES`, and `REVOKES` edges exclude stale targets
@@ -131,7 +132,7 @@ Project candidate, invoke Project HIL, or move the Project pointer.
 
 ## Learning HIL
 
-Use `learning_decide_candidate` only for the separate exact Learning six-way
+Use `learning_decide_candidate` only for the separate exact Learning governed
 decision surface: `APPROVE`, `APPROVE_WITH_DELTA`, `MORE_RESEARCH`, pointer-only
 Learning rollback, `REJECT`, or `FAIL`. The decision may move only the Learning
 pointer. It cannot promote Project Truth or authorize Project Fuse, Git,
@@ -157,7 +158,7 @@ or rewrite an older lesson.
 
 ## SDK and operator boundary
 
-The internal provider-neutral SDK exposes the whole engine and its isolated
+The internal Codex-owned SDK exposes the whole engine and its isolated
 authority contracts; it is not a public skill and must not merge authority
 arms. The Formula Engine compiles and routes bounded ENV/UOP operators; it does
 not learn. Hooks transport visible lifecycle events only; they do not decide or

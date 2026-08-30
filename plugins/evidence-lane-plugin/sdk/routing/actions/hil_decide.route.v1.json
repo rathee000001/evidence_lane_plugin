@@ -20,11 +20,11 @@
     ],
     "executable": true
   },
-  "schema_sha256": "47102A9AAE2F25D54DDB2AA259EFB9B822BD89125C54052833694A0F01790D53",
+  "schema_sha256": "CFEDC858CFC084E74518745D8CA2FCAC10CBD4AAE2C7B0D376DD18539DABF999",
   "sdk_action_binding": "sdk/actions/hil_decide.action.v1.json",
   "mcp_action_binding": "mcp/actions/hil_decide.binding.v1.json",
   "canonical_router": "src/evidence_lane_plugin/current_route_registry.py",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "fallback_to_historical_route_allowed": false,
-  "receipt_sha256": "D1D233A3E90DE46D7336E080F5D43C966FA532F050939892B33D78DBD22B4E97"
+  "receipt_sha256": "52670A25984CA44EFE02FB33383E6D1B70F6BF8B9BFAAF32E71FC74FAFF433D7"
 }

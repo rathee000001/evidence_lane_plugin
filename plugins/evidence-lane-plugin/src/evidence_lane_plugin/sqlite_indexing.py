@@ -19,6 +19,7 @@ from typing import Any
 from llama_index.core import Document
 from llama_index.core.node_parser import SentenceSplitter
 
+from .compact_storage import compress_exact_bytes, decompress_exact_bytes
 from .hashing import canonical_json_bytes, sha256_bytes
 from .hybrid_retrieval import RetrievalCandidate, rank_bm25_candidates
 from .timeutil import utc_now
@@ -125,15 +126,36 @@ def llama_index_nodes(
 
 
 def ensure_authority_index_schema(connection: sqlite3.Connection) -> None:
+    legacy_columns = {
+        str(row[1])
+        for row in connection.execute("PRAGMA table_info(authority_index_node)")
+    }
+    if "text_content" in legacy_columns or "metadata_json" in legacy_columns:
+        connection.executescript(
+            """
+            DROP TABLE IF EXISTS authority_index_fts;
+            DROP TABLE IF EXISTS authority_index_node;
+            DROP TABLE IF EXISTS authority_index_source;
+            DROP TABLE IF EXISTS authority_index_content_cas;
+            """
+        )
     connection.executescript(
         """
+        CREATE TABLE IF NOT EXISTS authority_index_content_cas(
+            sha256 TEXT PRIMARY KEY,
+            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
+            compression TEXT NOT NULL,
+            compressed_bytes BLOB NOT NULL,
+            first_seen_at TEXT NOT NULL
+        ) STRICT;
         CREATE TABLE IF NOT EXISTS authority_index_source(
             source_id TEXT PRIMARY KEY,
             authority_id TEXT NOT NULL,
             source_table TEXT NOT NULL,
             source_identity TEXT NOT NULL,
             source_text_sha256 TEXT NOT NULL,
-            metadata_json TEXT NOT NULL,
+            metadata_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
             recorded_at TEXT NOT NULL,
             UNIQUE(authority_id, source_table, source_identity)
         ) STRICT;
@@ -144,17 +166,20 @@ def ensure_authority_index_schema(connection: sqlite3.Connection) -> None:
             ordinal INTEGER NOT NULL,
             char_start INTEGER NOT NULL,
             char_end INTEGER NOT NULL,
-            text_content TEXT NOT NULL,
-            text_sha256 TEXT NOT NULL,
-            metadata_json TEXT NOT NULL,
+            text_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
+            metadata_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
             UNIQUE(source_id, ordinal)
         ) STRICT;
         CREATE VIRTUAL TABLE IF NOT EXISTS authority_index_fts USING fts5(
             node_id UNINDEXED,
             authority_id UNINDEXED,
-            source_table,
-            source_identity,
+            source_table UNINDEXED,
+            source_identity UNINDEXED,
             text_content,
+            content='',
+            contentless_delete=1,
             tokenize='unicode61'
         );
         CREATE TABLE IF NOT EXISTS authority_index_refresh_receipt(
@@ -192,6 +217,14 @@ def _table_names(connection: sqlite3.Connection) -> list[str]:
         if _SAFE_IDENTIFIER.fullmatch(table)
         and not table.startswith(_EXCLUDED_TABLE_PREFIXES)
         and not table.endswith(_FTS_SHADOW_SUFFIXES)
+        and not table.endswith(
+            (
+                "_engulfed_row_cas",
+                "_engulfed_table_receipt",
+                "_engulfed_record",
+                "_engulf_receipt",
+            )
+        )
         and "_fts" not in table
     ]
 
@@ -279,11 +312,14 @@ def rebuild_connection_authority_index(
     authority_id: str,
     table_names: Iterable[str] | None = None,
     recorded_at: str | None = None,
+    reset_receipts: bool = False,
 ) -> dict[str, Any]:
     """Rebuild the derived LlamaIndex node/FTS authority in one transaction."""
 
     _assert_llama_index_version()
     ensure_authority_index_schema(connection)
+    if reset_receipts:
+        connection.execute("DELETE FROM authority_index_refresh_receipt")
     sources = list(
         _iter_sources(
             connection,
@@ -300,17 +336,36 @@ def rebuild_connection_authority_index(
     connection.execute("DELETE FROM authority_index_fts")
     connection.execute("DELETE FROM authority_index_node")
     connection.execute("DELETE FROM authority_index_source")
+    connection.execute("DELETE FROM authority_index_content_cas")
     node_count = 0
     exact_time = recorded_at or utc_now()
     indexed_tables: set[str] = set()
     for source in sources:
         text_sha256 = sha256_bytes(source["text"].encode("utf-8"))
-        metadata_json = canonical_json_bytes(source["metadata"]).decode("utf-8")
+        metadata_bytes = canonical_json_bytes(source["metadata"])
+        metadata_sha256 = sha256_bytes(metadata_bytes)
+        metadata_compression, compressed_metadata = compress_exact_bytes(
+            metadata_bytes
+        )
+        connection.execute(
+            """
+            INSERT OR IGNORE INTO authority_index_content_cas(
+                sha256,size_bytes,compression,compressed_bytes,first_seen_at
+            ) VALUES(?,?,?,?,?)
+            """,
+            (
+                metadata_sha256,
+                len(metadata_bytes),
+                metadata_compression,
+                compressed_metadata,
+                exact_time,
+            ),
+        )
         connection.execute(
             """
             INSERT INTO authority_index_source(
                 source_id, authority_id, source_table, source_identity,
-                source_text_sha256, metadata_json, recorded_at
+                source_text_sha256, metadata_sha256, recorded_at
             ) VALUES(?,?,?,?,?,?,?)
             """,
             (
@@ -319,7 +374,7 @@ def rebuild_connection_authority_index(
                 source["source_table"],
                 source["source_identity"],
                 text_sha256,
-                metadata_json,
+                metadata_sha256,
                 exact_time,
             ),
         )
@@ -330,13 +385,30 @@ def rebuild_connection_authority_index(
             metadata=source["metadata"],
         )
         for node in nodes:
-            node_metadata_json = canonical_json_bytes(node.metadata).decode("utf-8")
+            node_text_bytes = node.text_content.encode("utf-8")
+            node_compression, compressed_node_text = compress_exact_bytes(
+                node_text_bytes
+            )
             connection.execute(
+                """
+                INSERT OR IGNORE INTO authority_index_content_cas(
+                    sha256,size_bytes,compression,compressed_bytes,first_seen_at
+                ) VALUES(?,?,?,?,?)
+                """,
+                (
+                    node.text_sha256,
+                    len(node_text_bytes),
+                    node_compression,
+                    compressed_node_text,
+                    exact_time,
+                ),
+            )
+            node_cursor = connection.execute(
                 """
                 INSERT INTO authority_index_node(
                     node_id, source_id, ordinal, char_start, char_end,
-                    text_content, text_sha256, metadata_json
-                ) VALUES(?,?,?,?,?,?,?,?)
+                    text_sha256, metadata_sha256
+                ) VALUES(?,?,?,?,?,?,?)
                 """,
                 (
                     node.node_id,
@@ -344,19 +416,21 @@ def rebuild_connection_authority_index(
                     node.ordinal,
                     node.char_start,
                     node.char_end,
-                    node.text_content,
                     node.text_sha256,
-                    node_metadata_json,
+                    metadata_sha256,
                 ),
             )
+            if node_cursor.lastrowid is None:
+                raise RuntimeError("Authority index node rowid is unavailable.")
             connection.execute(
                 """
                 INSERT INTO authority_index_fts(
-                    node_id, authority_id, source_table, source_identity,
+                    rowid,node_id, authority_id, source_table, source_identity,
                     text_content
-                ) VALUES(?,?,?,?,?)
+                ) VALUES(?,?,?,?,?,?)
                 """,
                 (
+                    int(node_cursor.lastrowid),
                     node.node_id,
                     authority_id,
                     source["source_table"],
@@ -422,6 +496,8 @@ def rebuild_sqlite_authority_index(
     *,
     authority_id: str,
     table_names: Iterable[str] | None = None,
+    recorded_at: str | None = None,
+    reset_receipts: bool = False,
 ) -> dict[str, Any]:
     path = Path(database).resolve()
     connection = sqlite3.connect(path, timeout=30)
@@ -432,6 +508,8 @@ def rebuild_sqlite_authority_index(
             connection,
             authority_id=authority_id,
             table_names=table_names,
+            recorded_at=recorded_at,
+            reset_receipts=reset_receipts,
         )
         connection.commit()
         integrity = [str(row[0]) for row in connection.execute("PRAGMA integrity_check")]
@@ -453,11 +531,15 @@ def query_authority_index(
         raise ValueError("Authority index limit must be between 1 and 100.")
     rows = connection.execute(
         """
-        SELECT node_id,source_table,source_identity,text_content,
+        SELECT n.node_id,s.source_table,s.source_identity,n.text_sha256,
+               cas.size_bytes,cas.compression,cas.compressed_bytes,
                bm25(authority_index_fts) AS rank
-        FROM authority_index_fts
-        WHERE authority_index_fts MATCH ? AND authority_id=?
-        ORDER BY rank,node_id LIMIT ?
+        FROM authority_index_fts AS f
+        JOIN authority_index_node AS n ON n.rowid=f.rowid
+        JOIN authority_index_source AS s ON s.source_id=n.source_id
+        JOIN authority_index_content_cas AS cas ON cas.sha256=n.text_sha256
+        WHERE authority_index_fts MATCH ? AND s.authority_id=?
+        ORDER BY rank,n.node_id LIMIT ?
         """,
         (match, authority_id, int(limit)),
     ).fetchall()
@@ -466,8 +548,13 @@ def query_authority_index(
             "node_id": str(row[0]),
             "source_table": str(row[1]),
             "source_identity": str(row[2]),
-            "text_content": str(row[3]),
-            "bm25_rank": float(row[4]),
+            "text_content": decompress_exact_bytes(
+                compression=str(row[5]),
+                payload=bytes(row[6]),
+                expected_size=int(row[4]),
+                expected_sha256=str(row[3]),
+            ).decode("utf-8"),
+            "bm25_rank": float(row[7]),
         }
         for row in rows
     ]

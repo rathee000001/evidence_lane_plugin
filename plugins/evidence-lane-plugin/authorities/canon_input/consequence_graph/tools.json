@@ -29,24 +29,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:05.243149Z",
-    "receipt_sha256": "968214A0FE6A8F2043A2895A88D5EE2FA3FF39AD29DC976A73319A79914DE9D4"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "D928E22212A6FF2A69C8F320899F24E0302F69A327C93C00AC6ABD5439517317"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "canon_consequence_graph_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 100,
-    "edge_count": 102,
+    "node_count": 99,
+    "edge_count": 104,
     "group_count": 1,
-    "semantic_topology_sha256": "8485E40944113FC0A85D0874CFF5196E2F604367EC408843E449FA4ED6F560CD",
-    "mmd_sha256": "B3F27ED1F8B8193E70F9553E384238EF52AD01AFC552E41E5AFF1388261D863A",
-    "dot_sha256": "C4B75AE14F8415506ED1213E1792F22B04913F882673D47F9DC228C7532D7E2B",
+    "semantic_topology_sha256": "315D641B427CF397AE2DD6EBBC59168E1E4A058397BD35787912923F3AE6C108",
+    "mmd_sha256": "6792DBFA6C82F721C10C188B6F91162833FBE2382F8B9DD56FC4F8CE92AC7F5B",
+    "dot_sha256": "099ED93ECAC4A0B7507B89060B4FCFA8436711D172FE809EDC9F55D84027D132",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "1DBC786BE1A9542045A107699E07D23D35D157B3930A20C9156FF30E7CF6A5D1",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "B4FCF98B368F9E86B38DDCE4FB272491580D9D98839A2B32D44A26EE19D35EDB",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -56,10 +56,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 100,
-      "edge_count": 102,
+      "node_count": 99,
+      "edge_count": 104,
       "weak_component_count": 1,
-      "strong_component_count": 100,
+      "strong_component_count": 99,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -75,7 +75,12 @@
         {
           "node_id": "support_table_authority_index_node",
           "in_degree": 1,
-          "out_degree": 9
+          "out_degree": 10
+        },
+        {
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 8
         },
         {
           "node_id": "support_table_consequence_edge",
@@ -83,19 +88,14 @@
           "out_degree": 9
         },
         {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 7
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_consequence_node",
           "in_degree": 3,
           "out_degree": 5
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
         },
         {
           "node_id": "support_table_consequence_graph_fts_content",
@@ -111,6 +111,11 @@
           "node_id": "support_table_consequence_graph_fts",
           "in_degree": 1,
           "out_degree": 5
+        },
+        {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 3
         },
         {
           "node_id": "support_table_authority_index_fts_idx",
@@ -129,11 +134,6 @@
         },
         {
           "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
           "in_degree": 1,
           "out_degree": 2
         },
@@ -158,7 +158,7 @@
           "out_degree": 2
         },
         {
-          "node_id": "support_table_authority_index_fts_column_authority_id",
+          "node_id": "support_table_authority_index_content_cas_column_compressed_bytes",
           "in_degree": 1,
           "out_degree": 0
         }
@@ -166,11 +166,16 @@
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "9274498BFC1ED16530566FA6B01192C1B0EA6198251C2E48DD3060E7587731BA",
+    "graph_analysis_sha256": "6409B792382589E526E25BC49BC77F7B787D7CB982E6D3C96CBF33D6FA5D6CC6",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 54,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "085C47ECFDF2C88680F5329570EE9DDC37BCEB7DC38644625667CCEEB57DE86B"
+    "receipt_sha256": "D60EABB749B002810485A48E4C7648D38E19937F8ECFFAA7F7470726918DFC34"
   },
-  "receipt_sha256": "8C874B160093906D80B82EBACD6D503ED58902AECB6D25CDC8313C639015EF2D"
+  "receipt_sha256": "BB9859A845F787D622903FEDA94C875980615B399AC9ADBC2CE7D8B3FBCF6A2B"
 }

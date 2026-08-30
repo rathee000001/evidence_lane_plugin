@@ -29,6 +29,7 @@ from evidence_lane_plugin.codex_turn_control import (
     seal_lifecycle_exit_slip,
     session_start_control,
 )
+from evidence_lane_plugin.constants import GOVERNED_SKILL_COUNT
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import (
     atomic_write_json,
@@ -136,12 +137,12 @@ def _strict_state_travel_session(
         ],
         "permitted_tools": ["repository_read", "repository_write", "test"],
         "acceptance_checks": ["One PREPARE and one COMMIT per visible turn."],
-        "stop_condition": "Stop at the final six-way HIL.",
+        "stop_condition": "Stop at the final governed HIL.",
     }
     final_hil = {
         **task,
         "task_id": "turn-control-final-hil",
-        "requested_outcome": "Present the physically final six-way HIL.",
+        "requested_outcome": "Present the physically final governed HIL.",
         "panel_role": "PHYSICALLY_FINAL_HIL",
     }
     service.plan_tasks(
@@ -547,7 +548,7 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
         "SubagentStop",
         "UserPromptSubmit",
     ]
-    assert package_status["skills"]["count"] == 25
+    assert package_status["skills"]["count"] == GOVERNED_SKILL_COUNT
     assert package_status["catalog"]["tools"] == 91
     assert package_status["catalog"]["read"] == 30
     assert package_status["catalog"]["write"] == 61
@@ -2152,12 +2153,15 @@ def test_native_hook_adapters_prepare_commit_chain_and_fail_closed(
                 *PLUGIN.joinpath("hooks").glob("*.ps1"),
             ]
         )
-        assert prepared_notice["package_change_status"]["skills"]["count"] == 25
+        assert (
+            prepared_notice["package_change_status"]["skills"]["count"]
+            == GOVERNED_SKILL_COUNT
+        )
         assert prepared_notice["package_change_status"]["catalog"] == {
                 "tools": 91,
                 "read": 30,
                 "write": 61,
-                "skills": 25,
+                "skills": GOVERNED_SKILL_COUNT,
                 "changed_from_previous": None,
         }
         assert prepared_notice["package_change_status"]["refresh_state"] == (

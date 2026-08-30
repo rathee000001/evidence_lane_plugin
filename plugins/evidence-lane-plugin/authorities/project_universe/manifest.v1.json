@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_universe",
   "database": "project_universe.sqlite",
-  "database_sha256": "0CFB647435E1A1D50B41B6AC356D3EB6600F252C4CB0F15CEFE8D2A049321A48",
+  "database_sha256": "BB9CB7D81824ABF8B2F43AC5F592C6562A80A004C78825C54CCD0ED131638468",
   "database_integrity": "ok",
-  "schema_sha256": "222A608272E257842FFE6E3457961192EDB8692F178D82D27BA27F58741E60E1",
+  "schema_sha256": "FB97DEFB59B518E0B5E438DAB5F02FDCEDEBA07CCBACC3CB53B467B442D5491E",
   "table_count": 20,
   "fts5_tables": [
     "authority_index_fts",
@@ -49,23 +49,23 @@
     },
     {
       "path": "authorities/project_universe/project_universe.dot",
-      "bytes": 28043,
-      "sha256": "5A1E8167FA685EF0EE46117EF235E83EF0DC2292762619992713191DD895808B"
+      "bytes": 37070,
+      "sha256": "6BAD25554ED44218A156362412097082CE1C1C79BD2227B6EBF256BF7325949D"
     },
     {
       "path": "authorities/project_universe/project_universe.mmd",
-      "bytes": 20813,
-      "sha256": "E9B2A22FC7E737BBA1175805607055FF9B58E09982B658A6161812CE9E94EF6C"
+      "bytes": 27617,
+      "sha256": "FCC08DB9291205699A8CACFF42A01F5FB28DF32DFE99FD2C2093800267CFA17E"
     },
     {
       "path": "authorities/project_universe/project_universe.sqlite",
-      "bytes": 155648,
-      "sha256": "0CFB647435E1A1D50B41B6AC356D3EB6600F252C4CB0F15CEFE8D2A049321A48"
+      "bytes": 159744,
+      "sha256": "BB9CB7D81824ABF8B2F43AC5F592C6562A80A004C78825C54CCD0ED131638468"
     },
     {
       "path": "authorities/project_universe/project_universe.tools.json",
-      "bytes": 12843,
-      "sha256": "A62C3AB27B8911C41BAE408E16005F3A8F27832D1F68A0350C45FF90CB2E6AA6"
+      "bytes": 13593,
+      "sha256": "4E1BAB5AEE5A72788A250CDE0E9B93EE9E798CA66A8635FFB9BD9BBBA29C864E"
     },
     {
       "path": "authorities/project_universe/reader-contract.schema.json",
@@ -99,8 +99,8 @@
     },
     {
       "path": "authorities/project_universe/schema.sql",
-      "bytes": 3602,
-      "sha256": "487D20CF7963350A76863F166CB0C6C601B74C58748A7804848C945744A9D1EA"
+      "bytes": 4118,
+      "sha256": "2D14738CC504C18DCB01A9D2EA76A2D282F2E74D948D66330B2161388E3B14D5"
     },
     {
       "path": "authorities/project_universe/sqlite-artifact.schema.json",
@@ -109,13 +109,28 @@
     },
     {
       "path": "authorities/project_universe/sqlite-schema.v1.json",
-      "bytes": 24627,
-      "sha256": "DF90241C9233978EE85F1C0F2DB9FADCC84AED222CA048A71B36B2CA62899A82"
+      "bytes": 25397,
+      "sha256": "EAC72728BE431A78CCEDA6D7079A3F1DED98CC97AA7CF4AEADCA182E3F08E01E"
     },
     {
       "path": "authorities/project_universe/tools.schema.json",
       "bytes": 544,
       "sha256": "7B61CABC8A072CC5E3545E678E83DC238ADB670C0D2659070EDCEAEAC160B437"
+    },
+    {
+      "path": "authorities/project_universe/workflow.dot",
+      "bytes": 5896,
+      "sha256": "4DC9BDED5429E41797EDDB5B53E115B515EFA75D52E911EBB9B025295B5F96E0"
+    },
+    {
+      "path": "authorities/project_universe/workflow.mmd",
+      "bytes": 4690,
+      "sha256": "DB3FB77558479CBA2855C34735092E8BC2BD6386BEF577A89EB0AA4EF9D92E88"
+    },
+    {
+      "path": "authorities/project_universe/workflow.v1.json",
+      "bytes": 13953,
+      "sha256": "E42855B989370C6302081F3BCE3309387E8327A2E3D17447A203CBC04E1FF874"
     }
   ],
   "canonical_source_hashes": {
@@ -138,24 +153,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:06.380235Z",
-    "receipt_sha256": "B9CB09649ADC98BD1AE6E9FF15A62B6113EB11DB136E32CB3179DF5BD5481CFD"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "D58DFCFF2A81DDF2FB94A63C1EFA5C80E7B7EA32E8A0834F6F7F3EFE9ACA370C"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "project_universe_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 110,
-    "edge_count": 112,
+    "node_count": 109,
+    "edge_count": 114,
     "group_count": 1,
-    "semantic_topology_sha256": "0E393BF4161F6F2FAB22C94EF8209EA6F3940062E0F3553CC770E932D6B4BCC1",
-    "mmd_sha256": "E9B2A22FC7E737BBA1175805607055FF9B58E09982B658A6161812CE9E94EF6C",
-    "dot_sha256": "5A1E8167FA685EF0EE46117EF235E83EF0DC2292762619992713191DD895808B",
+    "semantic_topology_sha256": "762777FC3C0BF2B729DCBD7944BDA4620482DB757B455B10CAB9032894DF0B62",
+    "mmd_sha256": "FCC08DB9291205699A8CACFF42A01F5FB28DF32DFE99FD2C2093800267CFA17E",
+    "dot_sha256": "6BAD25554ED44218A156362412097082CE1C1C79BD2227B6EBF256BF7325949D",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "7D58A1AFA532BACF46E9015B6FA3D8375FE9ED28941AED5A906B0E21ED6D6946",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "DFF6D481EF7329245B490CC3A0D7615BDD10E0573A8FDB19492C68B244C1691D",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -165,10 +180,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 110,
-      "edge_count": 112,
+      "node_count": 109,
+      "edge_count": 114,
       "weak_component_count": 1,
-      "strong_component_count": 110,
+      "strong_component_count": 109,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -184,12 +199,17 @@
         {
           "node_id": "support_table_authority_index_node",
           "in_degree": 1,
-          "out_degree": 9
+          "out_degree": 10
         },
         {
           "node_id": "support_table_authority_index_source",
           "in_degree": 2,
-          "out_degree": 7
+          "out_degree": 8
+        },
+        {
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_universe_edge",
@@ -199,11 +219,6 @@
         {
           "node_id": "support_table_universe_node",
           "in_degree": 3,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
           "out_degree": 6
         },
         {
@@ -227,6 +242,11 @@
           "out_degree": 5
         },
         {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
           "node_id": "support_table_authority_index_fts_idx",
           "in_degree": 1,
           "out_degree": 3
@@ -243,11 +263,6 @@
         },
         {
           "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
           "in_degree": 1,
           "out_degree": 2
         },
@@ -275,13 +290,18 @@
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "B9BA84FB865F826D7F90A02E9AA18B77CE09C9254CDBF9AC2A822A860EDDFB92",
+    "graph_analysis_sha256": "6E6F46F8DD4C08294996FB06BAD8ED628A2966CBD8B4D754A0190B18D89DBCE6",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 60,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "C18530DAA6926F08AC09825CB1494F7AA7E42B7CCF09C940D0651E57AF251410"
+    "receipt_sha256": "E371E49F30D865466BB4899D6D59F31A8D47EC69A91A6AAB86BDA6A8C6BA706D"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "394CE51E7BA84097AF9CC1BDEFC48FB95461D30EF74EBACC476F9DFF2B04A600"
+  "receipt_sha256": "E0E3A435DBB3F30AA2D19F99E7753C55433B3CBB8241BDCC2F4E43DFC9504B4C"
 }

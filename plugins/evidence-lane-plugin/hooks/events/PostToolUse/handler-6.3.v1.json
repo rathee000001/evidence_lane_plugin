@@ -13,11 +13,25 @@
     "statusMessage": "Projecting Evidence Lane Plan and changes"
   },
   "logical_action": "TRANSPORT_VISIBLE_TOOL_RESULT_SIGNAL",
+  "handler_stage_role": "TRANSPORT_VISIBLE_TOOL_RESULT_SIGNAL",
+  "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
+  "workflow_contract": {
+    "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
+    "action_scope": "PUBLIC_ACTION_BOUNDARY",
+    "skill_action": "TOOL_RECEIPT_AND_CURRENT_CHANGE_PROJECTION",
+    "skill_consumer": "consume_post_tool_transport",
+    "workflow_phases": [
+      "TOOL_RECEIPT",
+      "CURRENT_PLAN_ROW_AND_CHANGE_DISPLAY"
+    ],
+    "public_action_boundary": true
+  },
+  "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
   "stage": "hooks/subhook_transport.py",
   "stage_sha256": "E55AE969598601F7C8691509AA5FA9CF5BAC8A69A590EDFC431DFF7EDC1A0BA9",
   "adapter": "hooks/post_tool_use.py",
   "adapter_sha256": "F1970DD6BEBA0BD262A2A35CB93293617CD6647A0BF6F0293B8975158A7E44BB",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "92C435BE43FA6D57AC163C788E0FE52EA79D464DD0CE10EFD8DCEFEE1FC47D11"
+  "receipt_sha256": "1555691B99DD98E618525ECE132AD8A0A24445E0F0B231ED733FB93CC29DF4EA"
 }

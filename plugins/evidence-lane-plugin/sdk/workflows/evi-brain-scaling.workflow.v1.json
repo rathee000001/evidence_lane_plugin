@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sdk-workflow-projection.v1",
   "status": "PASS",
   "skill": "evi-brain-scaling",
-  "skill_sha256": "0ACD400255F73F9631C2C5795DC92452BC6C49264C3D32A2D2295B43A0563A38",
+  "skill_sha256": "1DEB94DBDDAB77FF175FC3694713FB7F587EB4B6D3FD49D53D017AD970600D3C",
   "ordered_tool_groups": [
     {
       "order": 1,
@@ -43,6 +43,6 @@
   ],
   "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
   "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
-  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
-  "receipt_sha256": "89FF03EDAC40F8DB4D993C8E1715BFFEEABD27FCB7502236283A8F7722E8730F"
+  "canonical_routing_source_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8",
+  "receipt_sha256": "5D22E418AD765AAFB52D518BCDB4050F2CBEECB10C9B3AA283DF464860426480"
 }

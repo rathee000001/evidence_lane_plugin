@@ -9,6 +9,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .context_index_routing import context_index_catalog
 from .hashing import canonical_json_bytes, sha256_bytes
 
 _TOKEN = re.compile(r"[\w.-]+", re.UNICODE)
@@ -112,49 +113,6 @@ def faiss_vector_rank(request: VectorRetrievalRequest) -> dict[str, Any]:
     return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
 
 
-def chroma_vector_rank(request: VectorRetrievalRequest) -> dict[str, Any]:
-    if importlib.util.find_spec("chromadb") is None:
-        raise RuntimeError("CHROMADB_DEPENDENCY_UNAVAILABLE")
-    import chromadb  # type: ignore[import-not-found]
-    from chromadb.config import Settings  # type: ignore[import-not-found]
-
-    if len(request.candidate_ids) != len(request.vectors):
-        raise ValueError("CHROMA_CANDIDATE_VECTOR_COUNT_MISMATCH")
-    client = chromadb.Client(
-        Settings(
-            anonymized_telemetry=False,
-            is_persistent=False,
-            allow_reset=False,
-        )
-    )
-    collection = client.create_collection(
-        "evidence_lane_ephemeral",
-        metadata={"hnsw:space": "cosine"},
-    )
-    collection.add(ids=request.candidate_ids, embeddings=request.vectors)
-    response = collection.query(
-        query_embeddings=[request.query_vector],
-        n_results=min(request.limit, len(request.candidate_ids)),
-        include=["distances"],
-    )
-    ids = list((response.get("ids") or [[]])[0])
-    distances = list((response.get("distances") or [[]])[0])
-    results = [
-        {"candidate_id": str(candidate_id), "distance": float(distances[index])}
-        for index, candidate_id in enumerate(ids)
-    ]
-    core = {
-        "schema": "evidence-lane.chroma-vector-rank.v1",
-        "status": "PASS",
-        "engine": "CHROMADB_EPHEMERAL",
-        "results": results,
-        "persistent_authority": False,
-        "telemetry_enabled": False,
-        "sqlite_node_ids_canonical": True,
-    }
-    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
-
-
 def reciprocal_rank_fusion(
     ranked_lists: Sequence[Sequence[str]],
     *,
@@ -190,11 +148,17 @@ def langchain_retrieval_pipeline() -> Any:
     )
 
 
+def inspect_context_index_backends() -> dict[str, Any]:
+    """Return the unified local and remote rebuildable-index contract."""
+
+    return context_index_catalog()
+
+
 __all__ = [
     "RetrievalCandidate",
     "VectorRetrievalRequest",
-    "chroma_vector_rank",
     "faiss_vector_rank",
+    "inspect_context_index_backends",
     "langchain_retrieval_pipeline",
     "rank_bm25_candidates",
     "reciprocal_rank_fusion",

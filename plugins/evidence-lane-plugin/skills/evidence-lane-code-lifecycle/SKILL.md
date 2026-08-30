@@ -1,9 +1,13 @@
 ---
 name: evidence-lane-code-lifecycle
-description: Govern one universal Evidence Lane project across user-timed fresh-host State Travel, atomic Boot and locked ENV/UOP Flash, six public controls, eighteen lanes, bounded linear work, unaccepted candidates, exact-APPROVE Fuse, Plan-stamped logical Rollback, and explicit Exit Boot.
+description: Govern one universal Evidence Lane project across user-timed fresh-host State Travel, atomic Boot and locked ENV/UOP Flash, registry-derived public skill entrypoints and sector lanes, bounded linear work, unaccepted candidates, exact-APPROVE Fuse, Plan-stamped logical Rollback, and explicit Exit Boot.
 ---
 
 # Evidence Lane universal lifecycle
+
+Apply `references/shared-boundaries.md` first. This skill contains the detailed
+lifecycle-only state machine; focused skills load the shared reference and only
+their own narrower resources.
 
 Use one linear state machine. Runtime context is never accepted evidence.
 
@@ -12,7 +16,7 @@ owns the complete derived public-action registry and every authority/workflow
 contract. MCP schemas, skills, hook event classes/sub-actions,
 installer, helper, tunnel, remote adapter, and host UI are routing or transport
 adapters only; they may not duplicate business logic or reason about lifecycle
-state. Prompt/steer entry, six-way ENV/UOP work, Delta entry, in-Delta query,
+state. Prompt/steer entry, ENV/UOP-governed work, Delta entry, in-Delta query,
 Delta-exit append refresh, HIL Overlay, State Travel, and Step Task List relock
 must resolve through the runtime workflow SDK registry. Explicit actions work
 with hooks off. Codex skill auto-selection is the host prompt trigger; the SDK
@@ -74,8 +78,8 @@ by rewriting rollout JSONL, SQLite, prompt chronology, or turn timestamps.
   complete Plan Lane, infer HIL, or call `update_plan`. The consumed lifecycle
   receipt may carry a content-addressed host-Plan rehydration request whose
   behavior owner is this active skill; transport is not execution.
-- After exact installed-package parity and the complete eleven-event progressive
-  invocation matrix pass, all eleven hooks remain enabled. A later failure uses
+- After exact installed-package parity and the complete current hook-event
+  progressive invocation matrix pass, every passing current hook remains enabled. A later failure uses
   only Codex's native compare-and-swap hook action to disable the exact failed
   event; every unrelated passing hook and the active Goal continue. Repair and
   retest that event, then re-enable it on PASS. Restart, reattachment, and
@@ -105,14 +109,14 @@ by rewriting rollout JSONL, SQLite, prompt chronology, or turn timestamps.
   native Evidence Lane route in this order: `pv_status`, the default bounded
   `pv_task_backlog` current window, one exact active-task
   `pv_task_backlog(task_id=...)` lookup, one bounded live-root `pv_query`, and
-  one prompt-relevant `search` through the live six-authority route. Use a
+  one prompt-relevant `search` through the live current-authority route. Use a
   bounded `receipts` query for lifecycle-only prompts rather than inventing a
   semantic match. Both reads must be real native MCP calls visible in Codex
   Sources. The accepted HIL ZIP is never opened or queried; its pointer is
   baseline identity only. Internal hook SQLite lookup is not equivalent proof.
 - When a canonical Plan Lane exists, validate
   `canonical_authority=PLAN_LANE`, contiguous rows, exactly one active row, and
-  `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`. Keep that complete ledger as
+  `persistent_until=NEXT_GOVERNED_HIL_PRESENTED`. Keep that complete ledger as
   native authority, then activate or update only the single host Step Task List
   projection: visible element one is the compact continuity header and the
   remaining elements are the persisted fixed batch of up to nine Delta rows
@@ -123,7 +127,7 @@ by rewriting rollout JSONL, SQLite, prompt chronology, or turn timestamps.
   links remain in live Plan SQLite and are retrieved only by exact task ID plus
   bounded FTS. They are never copied into the host item or loaded from a raw PV.
 - After `pv_plan_steer_delta`, repeat `pv_status`, `pv_task_backlog`, the bounded
-  native live-root `pv_query`, the six-authority `search`, and verify the
+  native live-root `pv_query`, the current-authority `search`, and verify the
   complete ledger. Synchronize the host window
   only when its UI fingerprint changed in membership, numbering, status,
   class, group, batch, Git stage, role, or dependency. A text-only linked steer
@@ -187,9 +191,9 @@ calling another lifecycle write, the skill must:
 1. call the installed native `pv_status`;
 2. call the installed native `pv_task_backlog`;
 3. call one bounded installed-native `pv_query` against the live root and the
-   prompt-relevant live six-authority `search`;
+   prompt-relevant live current-authority `search`;
 4. verify `canonical_authority=PLAN_LANE`, contiguous executable rows, exactly
-   one active row, `persistent_until=NEXT_SIX_WAY_HIL_PRESENTED`, and one
+   one active row, `persistent_until=NEXT_GOVERNED_HIL_PRESENTED`, and one
    physically final `PHYSICALLY_FINAL_HIL` row in the final position; and
 5. derive the aligned current window from the canonical row origin and ACTIVE
    row; call host `update_plan` only when the receipt says ACTIVATE,
@@ -355,7 +359,7 @@ rehydration request. It must not perform native reads or call host
   entry, no subagent, alternate-checkout writer, background mutation, or second
   browser profile is allowed unless the user explicitly changes this boundary.
 
-## Six public controls
+## Registry-derived public skill entrypoints
 
 After root `/evi`, expose exactly this order:
 
@@ -387,8 +391,8 @@ and fail closed. Never route an Evidence Lane lifecycle call through a storage
 connector or another plugin namespace.
 
 `/evi-source-intake` accepts ordered sources, auto-detects their canonical
-lanes, and accepts exact per-source overrides. It supports all eighteen lanes
-and Project Engulf and always adds Chat Lineage. Its source-intake Git arm is
+lanes, and accepts exact per-source overrides. It supports the complete current
+sector registry, including Project Engulf, and always adds Chat Lineage. Its source-intake Git arm is
 explicitly `AUTO`, `REQUIRED`, or `DISABLED`: AUTO falls back to deterministic
 content indexing, REQUIRED fails closed, and DISABLED skips history. This does
 not authorize remote writes. Governed lifecycle enrollment remains bounded to
@@ -400,7 +404,7 @@ locked mode namespace plus explicit custom mode schemas. It always includes
 Mode and Chat Lineage, appends a visible receipt, and returns to the prior
 lifecycle position without creating a candidate or moving a pointer.
 
-`$evi-plan` is a Codex-only Planning skill sidecar outside the six controls. If native
+`$evi-plan` is a Codex-only Planning skill sidecar outside the registry-derived entrypoints. If native
 Plan mode is not active, return the `/pl` reminder without persisting a plan.
 After planning, persist the canonical Plan Lane and return the short prompt the
 user copies into the host-owned Goal. Linked steers append to an existing row;
@@ -460,7 +464,7 @@ owns SQLite, MMD, DOT, tool identity, refresh evidence, and a manifest.
 Project-sector overlays and Chat Lineage remain candidate-only until Fuse.
 Visible lineage appends initial user prompts and every detectable mid-turn
 steer as distinct ordered, idempotent events, plus assistant output, actors,
-model/submodel when available, token metrics when available, tools, commands,
+model/submodel when available, token metrics when available, tools, actions,
 files, tests, builds, links, hashes, and pointers. Missing metrics remain
 explicitly unavailable; private reasoning is prohibited.
 
@@ -472,7 +476,7 @@ Local or durable-host Codex uses local Git-backed SQLite. An ephemeral host
 must have a configured durable runtime connector or fail closed. Google Drive
 is an optional mirror/fallback, never primary when durable local storage exists.
 Persistent connector registrations are governed, history-preserving, and
-limited to eight additional active plugins; drop requires its exact token.
+limited to the current registry-derived additional-plugin capacity; drop requires its exact token.
 
 ## Task, Refresh, and HIL
 
@@ -495,8 +499,8 @@ limited to eight additional active plugins; drop requires its exact token.
    Every successful `task_classify` automatically fires the first-class
    adaptive Delta-entry behavior before source work. It binds the exact sole
    ACTIVE Plan row and all linked steers, reconciles or reuses the immediately
-   prior verified auto-accepted sub-PV, and consumes bounded results from all
-   eighteen live-root sector lanes, Agent Learning, Canon, Project Memory,
+   prior verified auto-accepted sub-PV, and consumes bounded results from the
+   complete current live-root sector registry, Agent Learning, Canon, Project Memory,
    Project Universe, connector brain, the resolved AGENTS.md chain, and host
    MEMORY.md under ENV/UOP. A stale/no-hit arm uses the live-sector fallback,
    refreshes Learning, Canon, Memory, and Universe once, and refires once. It
@@ -516,7 +520,7 @@ limited to eight additional active plugins; drop requires its exact token.
    current pointer generation and ordered dependencies; continue the previous
    sealed post-worktree hash as the next pre-worktree hash; name every changed
    source/test path with its live SHA-256; and include bounded test selectors,
-   commands, command/output SHA-256 values, PASS outputs, and negative cases.
+   validation actions, command/output SHA-256 values, PASS outputs, and negative cases.
    The acceptance-check list must equal the active Plan row exactly, and all
    candidate/HIL/pointer/Git/install flags must remain false. Missing, stale,
    tampered, generic-PASS, or non-first-successor evidence fails before Plan or
@@ -602,7 +606,7 @@ failure owner. Any included-row failure fails the bundle closed.
 
 For the Evidence Lane plugin repository itself, the current maintainer Git
 write route is `github_app_exact_commit_push_v1`, owned by
-`scripts/codex_release/push_github_app_exact_commit.py`. The local commit object
+`../../scripts/codex_release/push_github_app_exact_commit.py`. The local commit object
 is a deterministic preview only and must use the canonical
 `evidence-lane[bot]` identity for both author and committer. The selected
 Evidence Lane GitHub App then recreates the exact blobs, tree, ordered parents,
@@ -616,7 +620,7 @@ separate accepted-PV route for governed downstream project repositories and
 must never substitute for this maintainer App route. All implementation occurs
 on feature branches. After the exact head is green, `main` receives only the
 current `github_app_main_fast_forward_v3` action owned by
-`scripts/codex_release/fast_forward_github_app_feature_to_main.py`. That route
+`../../scripts/codex_release/fast_forward_github_app_feature_to_main.py`. That route
 requires exact source/target refs, strict target-to-source ancestry, the App-bot
 feature identity, and latest successful required exact-head workflows before
 one `force=false` main-ref update. It verifies the final main commit/tree,
@@ -625,7 +629,7 @@ to an older repository-merge or connector route.
 
 Default reads use the live project root and disclose live freshness. The
 accepted pointer is baseline identity only; accepted ZIPs and candidates are
-opened only by their explicit HIL routes. Use the ENV/UOP-governed six-authority
+opened only by their explicit HIL routes. Use the ENV/UOP-governed current-authority
 `search`, bounded fetches, and allowlisted live-root queries; never execute
 arbitrary source SQL.
 

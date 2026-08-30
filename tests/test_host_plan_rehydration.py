@@ -42,7 +42,7 @@ def _tasks() -> list[dict[str, object]]:
         {
             **first,
             "task_id": "host-plan-final-hil",
-            "requested_outcome": "Render the physically final six-way HIL.",
+            "requested_outcome": "Render the physically final governed HIL.",
             "panel_role": "PHYSICALLY_FINAL_HIL",
         },
     ]

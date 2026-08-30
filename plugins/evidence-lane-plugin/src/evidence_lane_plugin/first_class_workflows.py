@@ -8,17 +8,21 @@ a pointer, train a model, or merge project truth.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from .ai_toolchain import resolve_lane_toolchain
 from .connector_governance import ConnectorGovernance
+from .ecosystem_toolchain import resolve_ecosystem_adapters
 from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes
 from .lanes import CANONICAL_LANE_IDS
 from .mode_governance import compile_env_uop_formula, route_env_uop_operator
+from .operating_modes import classify_operating_modes
+from .project_execution_profile import compile_project_execution_profile
 
 FORMULA_ENGINE_WORKFLOW_SCHEMA = "evidence-lane.formula-engine-workflow.v1"
 BRAIN_SCALING_WORKFLOW_SCHEMA = "evidence-lane.brain-scaling-workflow.v1"
@@ -26,7 +30,8 @@ PROJECT_RECIPE_WORKFLOW_SCHEMA = "evidence-lane.project-recipe-workflow.v1"
 FULL_AI_TOOLCHAIN_WORKFLOW_SCHEMA = "evidence-lane.full-ai-toolchain-workflow.v1"
 BIGGER_UNIVERSE_WORKFLOW_SCHEMA = "evidence-lane.bigger-universe-workflow.v1"
 
-ProjectType = Literal["CODE", "DATA", "DOCUMENT", "RESEARCH", "MIXED"]
+KnownProjectType = Literal["CODE", "DATA", "DOCUMENT", "RESEARCH", "MIXED"]
+ProjectType = str
 
 
 class FormulaEngineRequest(BaseModel):
@@ -62,7 +67,11 @@ class ProjectRecipeRequest(BaseModel):
     project_id: str = Field(min_length=1, max_length=128)
     source_paths: list[str]
     requested_outcome: str = Field(min_length=1, max_length=10_000)
-    explicit_project_type: ProjectType | None = None
+    explicit_project_type: str | None = None
+    mode_request: str | None = None
+    explicit_modes: list[str] | None = None
+    custom_modes: list[dict[str, Any]] | None = None
+    code_lane: str = "local_code"
 
 
 class FullAIToolchainRequest(BaseModel):
@@ -71,6 +80,14 @@ class FullAIToolchainRequest(BaseModel):
     lane_id: str
     host_profile: str
     available_tools: list[str] | None = None
+    capability: str | None = None
+    granted_tools: list[str] = Field(default_factory=list)
+    accelerator_profile: str = "cpu"
+    enabled_accelerator_plugins: list[str] = Field(default_factory=list)
+    accelerator_memory_budget_percent: int = Field(default=80, ge=1, le=95)
+    accelerator_temperature_limit_c: int | None = Field(default=None, ge=30, le=110)
+    project_id: str = Field(default="UNBOUND_PROJECT", min_length=1, max_length=128)
+    task_id: str = Field(default="UNBOUND_TASK", min_length=1, max_length=192)
 
 
 class BiggerUniverseProjectRequest(BaseModel):
@@ -147,7 +164,7 @@ def run_brain_scaling(request: BrainScalingRequest) -> dict[str, Any]:
     return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
 
 
-_RECIPE_LANES: dict[ProjectType, tuple[str, ...]] = {
+_RECIPE_LANES: dict[KnownProjectType, tuple[str, ...]] = {
     "CODE": (
         "local_code",
         "github_code",
@@ -186,10 +203,19 @@ _RECIPE_LANES: dict[ProjectType, tuple[str, ...]] = {
 
 def _infer_project_type(request: ProjectRecipeRequest) -> ProjectType:
     if request.explicit_project_type is not None:
-        return request.explicit_project_type
+        exact = request.explicit_project_type.strip().upper()
+        if exact in _RECIPE_LANES:
+            return exact
+        custom_value = exact.removeprefix("CUSTOM:")
+        slug = "_".join(
+            part for part in re.split(r"[^A-Z0-9]+", custom_value) if part
+        )
+        if not slug:
+            raise ValueError("Explicit project type must contain a visible identifier.")
+        return f"CUSTOM:{slug}"
     suffixes = {Path(value).suffix.casefold() for value in request.source_paths}
     text = request.requested_outcome.casefold()
-    classes: set[ProjectType] = set()
+    classes: set[KnownProjectType] = set()
     if suffixes & {".py", ".js", ".ts", ".tsx", ".go", ".rs", ".java", ".cs"}:
         classes.add("CODE")
     if suffixes & {".csv", ".tsv", ".xlsx", ".xls", ".parquet", ".sqlite", ".db"}:
@@ -207,14 +233,19 @@ def compile_project_recipe(request: ProjectRecipeRequest) -> dict[str, Any]:
     """Compile a project-type recipe without creating a stored lane or PV."""
 
     project_type = _infer_project_type(request)
-    lanes = list(_RECIPE_LANES[project_type])
+    lanes = list(
+        _RECIPE_LANES.get(
+            cast(KnownProjectType, project_type),
+            CANONICAL_LANE_IDS,
+        )
+    )
     require(
         set(lanes) <= set(CANONICAL_LANE_IDS) and "chat_lineage" in lanes,
         "PROJECT_RECIPE_LANE_SET_INVALID",
         "A project recipe must use only current lanes and include Chat Lineage.",
         status="MISMATCH",
     )
-    core = {
+    recipe_core = {
         "schema": PROJECT_RECIPE_WORKFLOW_SCHEMA,
         "status": "PASS",
         "project_id": request.project_id,
@@ -223,6 +254,7 @@ def compile_project_recipe(request: ProjectRecipeRequest) -> dict[str, Any]:
         "stages": [
             "SOURCE_INTAKE",
             "ENV_UOP_CLASSIFY",
+            "PROJECT_EXECUTION_PROFILE",
             "LANE_EXECUTION",
             "VALIDATION",
             "DELTA_APPEND",
@@ -232,7 +264,33 @@ def compile_project_recipe(request: ProjectRecipeRequest) -> dict[str, Any]:
         "candidate_created": False,
         "hil_inferred": False,
     }
-    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+    recipe = {
+        **recipe_core,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(recipe_core)),
+    }
+    mode_classification = None
+    if request.mode_request or request.explicit_modes or request.custom_modes:
+        mode_classification = classify_operating_modes(
+            request.mode_request or request.requested_outcome,
+            explicit_modes=request.explicit_modes,
+            code_lane=request.code_lane,
+            custom_modes=request.custom_modes,
+        )
+    execution_profile = compile_project_execution_profile(
+        project_recipe=recipe,
+        mode_classification=mode_classification,
+    )
+    final_core = {
+        **recipe,
+        "mode_classification": mode_classification,
+        "project_execution_profile": execution_profile,
+        "recipe_and_mode_synchronized": mode_classification is not None,
+        "receipt_sha256": recipe["receipt_sha256"],
+    }
+    return {
+        **final_core,
+        "workflow_receipt_sha256": sha256_bytes(canonical_json_bytes(final_core)),
+    }
 
 
 def run_full_ai_toolchain(request: FullAIToolchainRequest) -> dict[str, Any]:
@@ -246,15 +304,38 @@ def run_full_ai_toolchain(request: FullAIToolchainRequest) -> dict[str, Any]:
             if request.available_tools is not None
             else None
         ),
+        accelerator_profile=request.accelerator_profile,
+        enabled_accelerator_plugins=request.enabled_accelerator_plugins,
+        accelerator_memory_budget_percent=request.accelerator_memory_budget_percent,
+        accelerator_temperature_limit_c=request.accelerator_temperature_limit_c,
     )
+    ecosystem_resolution: dict[str, Any] | None = None
+    if request.capability:
+        for action_class in resolved["action_classes"]:
+            candidate = resolve_ecosystem_adapters(
+                capability=request.capability,
+                action_class=action_class,
+                lane_id=request.lane_id,
+                project_id=request.project_id,
+                task_id=request.task_id,
+                granted_tools=request.granted_tools,
+                available_tools=resolved["runnable_tools"],
+            )
+            if candidate["candidate_tools"]:
+                ecosystem_resolution = candidate
+                break
     core = {
         "schema": FULL_AI_TOOLCHAIN_WORKFLOW_SCHEMA,
         "status": "PASS",
         "lane_id": request.lane_id,
         "host_profile": request.host_profile,
         "resolved_toolchain": resolved,
+        "ecosystem_resolution": ecosystem_resolution,
+        "project_id": request.project_id,
+        "task_id": request.task_id,
         "conditional_dispatch": True,
         "run_everything": False,
+        "one_ecosystem_adapter_maximum": True,
         "mode_is_owner": False,
         "chatgpt_plane_mixed": False,
     }

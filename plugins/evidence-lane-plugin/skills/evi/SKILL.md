@@ -1,9 +1,11 @@
 ---
 name: evi
-description: Evidence Lane root router with user-timed State Travel and exactly six primary controls.
+description: Evidence Lane registry-driven root router with user-timed State Travel and current registry-derived human entrypoints over every first-class workflow.
 ---
 
 # Evidence Lane root
+
+Apply `../evidence-lane-code-lifecycle/references/shared-boundaries.md` first.
 
 Every selected route enters the complete internal SDK public-action registry.
 MCP, skills, hooks, helper, tunnel, remote adapter, and host UI own
@@ -22,7 +24,7 @@ compatibility executors are absent and must never be reconstructed.
 
 The installed lifecycle skill runtime first calls native `pv_status`,
 `pv_task_backlog`, one bounded live-root `pv_query`, and one prompt-relevant
-six-authority `search`. These explicit
+current-authority `search`. These explicit
 public routes must work with hooks disabled. When enabled, `UserPromptSubmit`
 may seal an additional bounded transport envelope, but hook retrieval is
 lifecycle evidence only and never satisfies or gates the native read sequence.
@@ -145,7 +147,8 @@ or in the structured missing-field list. If the Goal is already complete,
 validate and reuse its persisted rich receipt; never complete it again to obtain
 metrics. No compact or single-epoch compatibility collector is installed.
 
-After root `/evi`, expose exactly these six primary controls in this order:
+After root `/evi`, expose the current registry-derived human entrypoints. The
+current ordered snapshot is:
 
 1. `/evi-boot`
 2. `/evi-rollback`
@@ -154,13 +157,20 @@ After root `/evi`, expose exactly these six primary controls in this order:
 5. `/evi-mode`
 6. `/evi-source-intake`
 
+This list is regenerated from current routes and is not a backend workflow or
+count ceiling.
+Every first-class workflow retains its own first-class skill and routes through
+the derived action/schema, internal SDK, outer SDK, ENV/UOP, authority, hook,
+tool, and receipt registries. New or removed workflows regenerate this surface;
+no count or prompt example may define the executable architecture.
+
 `/evi-refresh` means only the HIL-side live-root Project Overlay/proposal
 finalization owned by `task_complete_and_refresh`. Source Intake plus
 `adaptive_delta_exit` own ordinary changed-lane refresh; candidate-building
 compatibility execution is absent, and ordinary non-HIL rows create neither a
 Project candidate nor a Project Overlay.
 
-Use one deterministic direct command map for these six controls. An exact slash
+Use one deterministic direct command map for these registry-derived entrypoints. An exact slash
 command and a conservative unambiguous ordinary-language request select the
 same existing skill; do not invent another command or skill. Selection alone
 executes no lifecycle action, and the selected skill still performs its native
@@ -168,14 +178,14 @@ reads and gates. Ambiguity fails closed. Plan-panel or Step Task List restore,
 reactivation, or synchronization belongs to this lifecycle/host Plan path and
 must never infer, invoke, or alias the Refresh lifecycle action.
 
-Keep that exact control inventory on every supported Codex profile. The native
-catalog contains twenty-seven reads and sixty-one writes under the complete
-Git-backed lifecycle; a host capability restriction never becomes permission
-to simulate an unavailable action.
+Keep that exact control inventory on every supported Codex profile. The current
+native catalog contains 30 reads and 61 writes under the complete Git-backed
+lifecycle; this is a derived snapshot, not a ceiling. A host capability
+restriction never becomes permission to simulate an unavailable action.
 
-Every skill and command must name MCP tools by the canonical bare name returned
+Every skill and action route must name MCP tools by the canonical bare name returned
 by this exact Evidence Lane server. A connector-generated display namespace is
-transport metadata: never copy it into a skill, receipt, command, or stored
+transport metadata: never copy it into a skill, receipt, action, or stored
 contract. The stdio boundary may remove such a namespace only when its suffix
 exactly matches a tool registered on the active server; every unknown prefix or
 suffix must reach the MCP dispatcher unchanged and fail closed.
@@ -190,31 +200,32 @@ replacement, require a Codex MCP catalog reload or a fresh Codex task before
 claiming the new package is active.
 
 `/evi-source-intake` is the single generalized intake surface. It auto-detects
-all eighteen canonical lanes and Project Engulf, accepts exact overrides, and
+the complete current sector registry, including Project Engulf, accepts exact overrides, and
 always includes Chat Lineage. `/evi-mode` remains a separate one-command
 sidecar for ordered intersections and explicit custom-mode briefs.
 
 When a task needs project evidence, route it through the single
-`EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1` workflow defined by
+`EVIDENCE_LANE_LIVE_ROOT_CURRENT_AUTHORITY_QUERY_V2` workflow defined by
 `../evi-source-intake/SKILL.md`. Call `search` for the ENV/UOP-governed,
-bounded result across all eighteen live sector lanes, Agent Learning, Canon,
+bounded result across the complete current live sector registry, Agent Learning, Canon,
 Project Memory, AGENTS.md, and host conversation MEMORY.md. Learning, Canon,
 and Memory refresh once in that order on stale/no-hit and retry once; the
-all-eighteen-sector slice is the direct fallback. `lane_status`, `lane_search`,
+complete-sector slice is the direct fallback. `lane_status`, `lane_search`,
 and `lane_fetch` narrow an already live-root result to one exact sector. The
 ordinary route never opens an accepted HIL ZIP or candidate and never uses an
 accepted-directory diagnostic template. Keep queries inside native tool
 boundaries and never substitute transcript, scrollback, or browser history.
 
-`/evi-plugin` is an administrative sidecar outside the six primary controls.
-It lists, registers, routes, or separately drops at most eight additional
-persistent connector/toolchain plugins. Its `SETTINGS:CODEX` view
-exposes eight structured slots with one-time purpose, role/schema, host profile,
+`/evi-plugin` is a first-class administrative workflow outside the current
+ordinary entrypoint snapshot.
+It lists, registers, routes, or separately drops additional persistent
+connector/toolchain plugins up to the current registry-derived capacity. Its
+`SETTINGS:CODEX` view exposes that same derived slot set with one-time purpose, role/schema, host profile,
 and optional governed backend runtime. It stores environment-variable names
 only, preserves dropped history, and returns to the prior lifecycle position.
 
-`/evi-canon` is a separate linked-work sidecar outside the six primary
-controls. It governs bounded task-to-task and explicitly authorized
+`/evi-canon` is a separate first-class linked-work workflow outside the current
+ordinary entrypoint snapshot. It governs bounded task-to-task and explicitly authorized
 task-to-subagent exchange through exact graph edges, immutable envelopes,
 receiver-owned three-way Canon decisions, results, and bounded backfire.
 Canon cannot promote Project Truth or Agent Learning, replay Project HIL, or
@@ -223,7 +234,7 @@ sidecar for accepted-lesson retrieval, evidence-backed candidates, Learning
 decisions, and revocation. Learning never becomes Project Truth, Canon, or the
 Formula Engine.
 
-Host-managed ChatGPT/Codex memories remain a nonauthoritative optional recall
+Host-managed Codex memories remain a nonauthoritative optional recall
 layer. They are never imported by a hook or treated as required-rule, Project
 Truth, Canon, ChatLineage, candidate, or accepted Learning authority. Any later
 Learning use requires one explicit immutable provenance receipt; recording it
@@ -255,7 +266,8 @@ user instead continues in the unchanged host after Fuse, call
 `EXPLICIT_USER_CONTINUATION`; preserve the sealed receipt, record its
 supersession, and do not move the pointer.
 
-`$evi-plan` is a Codex-only Planning skill sidecar outside the six primary controls.
+`$evi-plan` is a Codex-only first-class Planning workflow selected when its
+registered conditions hold.
 For ordinary planning it validates the host Plan context before a native Plan
 write. At a State Travel destination, the active skill restores the complete
 host Plan through exactly one EVI Plan prompt and stops for explicit host Plan

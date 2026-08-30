@@ -7,7 +7,7 @@ PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 ROOT_SKILL = PLUGIN / "skills" / "evi" / "SKILL.md"
 SOURCE_INTAKE_SKILL = PLUGIN / "skills" / "evi-source-intake" / "SKILL.md"
 
-WORKFLOW_ID = "EVIDENCE_LANE_LIVE_ROOT_SIX_AUTHORITY_QUERY_V1"
+WORKFLOW_ID = "EVIDENCE_LANE_LIVE_ROOT_CURRENT_AUTHORITY_QUERY_V2"
 LIVE_ROOT_TEMPLATE = (
     "<project-root>/sectors/<canonical_lane_id>/<sqlite_filename>"
 )

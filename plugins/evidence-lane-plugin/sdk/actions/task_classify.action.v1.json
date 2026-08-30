@@ -117,7 +117,7 @@
     "executable": true
   },
   "runtime_workflows": [
-    "DELTA_ENTRY_AND_SIX_WAY_QUERY"
+    "DELTA_ENTRY_AND_CURRENT_AUTHORITY_QUERY"
   ],
   "dispatcher": "sdk/actions/dispatcher.py",
   "internal_registry": "sdk/internal/public-action-registry.v1.json",
@@ -125,7 +125,7 @@
   "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
   "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
   "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
-  "source_module_registry_sha256": "54457935B5294FDAB6FBDBAF407B42B0A6FE7AEB0636A9CC7DF59458D15A5A6B",
+  "source_module_registry_sha256": "92DE9530CB6EC0E5935BB7BE81B224C5E95CABD4F9B82627475579943B649A14",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "9C2F81F40F33BB430C4A581F02F0692315DEC803256156384489D4C0AD58834E"
+  "receipt_sha256": "E9FF9D84DFA93E5C34F991A149AAFC061B7CBE5801F7FD4E29525E52BF461883"
 }

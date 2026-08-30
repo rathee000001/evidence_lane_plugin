@@ -4,6 +4,7 @@ import sqlite3
 from pathlib import Path
 
 import pytest
+from evidence_lane_plugin.compact_storage import compress_exact_bytes
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from evidence_lane_plugin.lane_engine import (
     LANE_SCHEMA_LEDGER_DDL_SHA256,
@@ -120,51 +121,72 @@ def test_schema_evolution_policy_is_hash_bound_and_lane_specific() -> None:
     assert github["explicit_user_confirmation_required"] is True
     assert docs["migration"]["raw_sql_allowed"] is False
     assert docs["ledger"]["hash_chained"] is True
+    assert docs["core_rebuild"]["atomic_generation_swap_required"] is True
+    assert docs["core_rebuild"]["superseded_storage_route_retained"] is False
 
 
 def test_docs_migration_seals_ddl_fk_index_fts_compatibility_and_chain() -> None:
     lane = LANE_REGISTRY["docs"]
     connection = _bound_memory_lane("docs")
     try:
+        source_bytes = b"guide"
+        source_sha256 = sha256_bytes(source_bytes)
+        compression, compressed = compress_exact_bytes(source_bytes)
+        connection.execute(
+            "INSERT INTO source_content_cas VALUES(?,?,?,?,?)",
+            (source_sha256, len(source_bytes), compression, compressed, T0),
+        )
         connection.execute(
             """
             INSERT INTO source_registry(
                 path, size_bytes, sha256, mime_type, extension, encoding,
-                parser_state, exact_bytes, registered_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                parser_state, registered_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 "guide.md",
                 5,
-                "A" * 64,
+                source_sha256,
                 "text/markdown",
                 ".md",
                 "utf-8",
                 "PASS",
-                b"guide",
                 T0,
             ),
         )
         source_id = int(
             connection.execute("SELECT source_id FROM source_registry").fetchone()[0]
         )
+        chunk_bytes = b"guide"
+        chunk_sha256 = sha256_bytes(chunk_bytes)
+        chunk_compression, compressed_chunk = compress_exact_bytes(chunk_bytes)
+        connection.execute(
+            "INSERT INTO chunk_content_cas VALUES(?,?,?,?,?)",
+            (
+                chunk_sha256,
+                len(chunk_bytes),
+                chunk_compression,
+                compressed_chunk,
+                T0,
+            ),
+        )
         connection.execute(
             """
             INSERT INTO chunk_index(
                 source_id, locator, ordinal, char_start, char_end,
-                text_content, sha256, metadata_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                sha256, metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (source_id, "line:1", 0, 0, 5, "guide", "B" * 64, "{}"),
+            (source_id, "line:1", 0, 0, 5, chunk_sha256, "{}"),
         )
         chunk_id = int(
             connection.execute("SELECT chunk_id FROM chunk_index").fetchone()[0]
         )
         connection.execute(
             f"""INSERT INTO {lane.fts_table}(
-                    path, locator, text_content, chunk_id
-                ) VALUES (?, ?, ?, ?)""",  # nosec B608
-            ("guide.md", "line:1", "guide", chunk_id),
+                    rowid,path,locator,text_content,chunk_id
+                ) VALUES (?, ?, ?, ?, ?)""",  # nosec B608
+            (chunk_id, "guide.md", "line:1", "guide", chunk_id),
         )
 
         first_migration = _create_annotations_migration("docs")

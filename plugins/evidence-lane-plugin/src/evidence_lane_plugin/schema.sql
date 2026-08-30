@@ -21,30 +21,28 @@ CREATE TABLE IF NOT EXISTS repositories (
     UNIQUE (repository_url, commit_sha, worktree_sha256)
 ) STRICT;
 
+CREATE TABLE IF NOT EXISTS file_content_cas (
+    sha256 TEXT PRIMARY KEY,
+    size_bytes INTEGER NOT NULL CHECK (size_bytes >= 0),
+    compression TEXT NOT NULL,
+    compressed_bytes BLOB NOT NULL,
+    first_seen_at TEXT NOT NULL
+) STRICT;
+
 CREATE TABLE IF NOT EXISTS files (
     file_id INTEGER PRIMARY KEY,
     repository_id INTEGER NOT NULL REFERENCES repositories(repository_id) ON DELETE CASCADE,
     path TEXT NOT NULL,
     size_bytes INTEGER NOT NULL CHECK (size_bytes >= 0),
-    sha256 TEXT NOT NULL,
+    sha256 TEXT NOT NULL REFERENCES file_content_cas(sha256),
     encoding TEXT,
     is_binary INTEGER NOT NULL CHECK (is_binary IN (0, 1)),
     file_type TEXT NOT NULL,
     code_family TEXT NOT NULL,
     line_count INTEGER NOT NULL CHECK (line_count >= 0),
     ingestion_status TEXT NOT NULL,
-    exact_bytes BLOB NOT NULL,
     error_code TEXT,
     UNIQUE (repository_id, path)
-) STRICT;
-
-CREATE TABLE IF NOT EXISTS source_tombstones (
-    tombstone_id INTEGER PRIMARY KEY,
-    path TEXT NOT NULL,
-    prior_sha256 TEXT NOT NULL,
-    prior_size_bytes INTEGER NOT NULL,
-    parent_pv TEXT,
-    removed_at TEXT NOT NULL
 ) STRICT;
 
 CREATE TABLE IF NOT EXISTS source_refresh_events (
@@ -70,7 +68,8 @@ CREATE TABLE IF NOT EXISTS chunks (
 CREATE TABLE IF NOT EXISTS chunk_content_cas (
     sha256 TEXT PRIMARY KEY,
     size_bytes INTEGER NOT NULL CHECK (size_bytes >= 0),
-    text_content TEXT NOT NULL,
+    compression TEXT NOT NULL,
+    compressed_text BLOB NOT NULL,
     first_seen_at TEXT NOT NULL
 ) STRICT;
 
@@ -91,9 +90,11 @@ CREATE INDEX IF NOT EXISTS chunk_history_path_idx
 ON chunk_history(repository_id, path, observed_at);
 
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
-    path,
+    path UNINDEXED,
     text_content,
     chunk_id UNINDEXED,
+    content='',
+    contentless_delete=1,
     tokenize = 'unicode61'
 );
 

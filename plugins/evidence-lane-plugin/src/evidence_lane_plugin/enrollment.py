@@ -16,6 +16,7 @@ from .errors import require
 from .git_adapter import (
     identity_json,
     inspect_repository,
+    resolve_git_executable,
     run_git,
     validate_remote_ref,
 )
@@ -404,13 +405,7 @@ def enroll_project(
             tempfile.mkdtemp(prefix=f".enroll-{project_id}-", dir=workspaces)
         ).resolve()
         try:
-            git_executable = shutil.which("git")
-            require(
-                bool(git_executable),
-                "PROJECT_ENROLL_GIT_UNAVAILABLE",
-                "Git is required for HTTPS project enrollment.",
-                status="BLOCKED",
-            )
+            git_executable = resolve_git_executable(temporary)
             completed = subprocess.run(  # nosec B603
                 [
                     str(git_executable),

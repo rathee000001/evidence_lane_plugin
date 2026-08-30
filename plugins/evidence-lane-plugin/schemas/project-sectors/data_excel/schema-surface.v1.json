@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "data_excel",
   "authority_root": "authorities/project_sectors/data_excel",
-  "authority_manifest_sha256": "19B0EC7E769C108E9CA53124F023698CFCA1AA320AB4D8B13980DAB09E0B9710",
+  "authority_manifest_sha256": "AD09CA2342B5C76B9178FA41B6541E39E321FCD85D8F3A5C5D9C69A677D96F95",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -43,8 +43,8 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/schema.sql",
-      "bytes": 13382,
-      "sha256": "CE9EDC90D006A6396AFCF5DC653C157972DD7E7EB728E6A01AE39A3AA3F1AFFB"
+      "bytes": 13969,
+      "sha256": "FF0F97DBDAFAD2D7052303021DC9A7B51F1E85BBC9101699E663D58569B8ED02"
     },
     {
       "path": "authorities/project_sectors/data_excel/sqlite-artifact.schema.json",
@@ -53,12 +53,12 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.schema.json",
-      "bytes": 1013,
-      "sha256": "9E2E89B7634F69DC33CB84D92E7A0C1ABC815CEF036146DBFA46D606A6D67DBA"
+      "bytes": 1459,
+      "sha256": "B9514608EB949A7F82F1681B2388D73F8C7A8CC8B4DDD76B074D2C4300CC845B"
     }
   ],
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
-  "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "canonical_lane_contract_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "95D50C2AA723039D2B3F94B27C94A9ACC028D07C6E4BBB96823DF87C2B9095AC"
+  "receipt_sha256": "728DB21B853FCC9968D70EAECAFF44040BD2430D23250AAAAD18A54269A63261"
 }

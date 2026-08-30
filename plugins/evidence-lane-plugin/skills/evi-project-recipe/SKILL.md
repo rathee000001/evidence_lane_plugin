@@ -24,4 +24,4 @@ and use the ordered route for `evi-project-recipe`. `MCP_ROUTING_FAIL_CLOSED`: i
 bundled `evidence-lane` dependency, an exact tool, or a required result is
 missing, stop without aliasing, prefix rewriting, or a compatibility fallback.
 Shared lifecycle, Goal, Plan, HIL, install, and State Travel boundaries remain
-owned by `../evidence-lane-code-lifecycle/SKILL.md`; this workflow cannot override them.
+owned by `../evidence-lane-code-lifecycle/references/shared-boundaries.md`; this workflow cannot override them.

@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sdk-workflow-projection.v1",
   "status": "PASS",
   "skill": "evi-learning",
-  "skill_sha256": "45A0404DDEF8CC1B8531715D54485CDB698CFC52B2F7A8A689142A3BE03CF721",
+  "skill_sha256": "42AB4B361F38BD7744078B647190D28FB642D1F701CC90D79C53BEA12913E8E5",
   "ordered_tool_groups": [
     {
       "order": 1,
@@ -190,7 +190,7 @@
     },
     {
       "name": "pv_query",
-      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi",
@@ -203,7 +203,7 @@
         "skill_workflows": [
           {
             "owner_skill": "evi",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           },
           {
@@ -228,7 +228,7 @@
           },
           {
             "owner_skill": "evi-plan",
-            "workflow": "live-six-authority-read",
+            "workflow": "live-current-authority-read",
             "order": 3
           },
           {
@@ -243,7 +243,7 @@
           },
           {
             "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           }
         ],
@@ -356,7 +356,7 @@
     },
     {
       "name": "learning_decide_candidate",
-      "schema_sha256": "991154FE28FF2E4108C4587D2CFF30E29772E1F299B7573D5C0FDCF49D652A60",
+      "schema_sha256": "A6FAAF7B15F4D7DB515C88F391F851013079998BE3E57105732684A420EF1459",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi-learning",
@@ -409,6 +409,6 @@
   ],
   "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
   "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
-  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
-  "receipt_sha256": "EA0B4034EEB129081C3485163599549584AC0B33F24E792B56D7F3E6DF30AD4F"
+  "canonical_routing_source_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8",
+  "receipt_sha256": "733256DAE25D36AAE4679333127B6B41BFDC5457FDB1418E0499A132145DE996"
 }

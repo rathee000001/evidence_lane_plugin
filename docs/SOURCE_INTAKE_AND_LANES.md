@@ -1,58 +1,102 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / registry-derived-v1 -->
 
-# Source Intake and lanes
+# Source Intake and project-sector lanes
 
-This is the Git-tracked authority for the GitHub Pages Lanes story and the
-current Vercel Lanes projection. Both must describe the same 3.0.0 contract:
-ordered authorized intake, eighteen bounded lane contracts, selective lane
-firing, content-addressed reuse, and explicit failures. Neither public surface
-is an execution route or an authority substitute.
+Source Intake converts authorized source identities into a project recipe and the exact set of sector-lane workflows required by the user's current intent.
 
-Source Intake accepts one or more ordered, user-authorized sources, classifies
-their project role, and routes them into only the lanes that actually fire.
-ChatLineage is included for visible project continuity. Unloaded lanes do not
-receive empty folders or placeholder databases.
+Current counts are derived release facts, not permanent ceilings.
 
-The registry supports eighteen canonical lane contracts plus governed project
-overlays for code, Git history, documents, PDFs, images/OCR, spreadsheets,
-research, discussions, plans, SQLite brains, custom schemas, and other declared
-source types.
+## Intake sequence
 
-## Four-file lane surface
+1. Bind the prompt/steer Entry Slip and exact source identity.
+2. Apply path/content policy, redaction, provenance, and project classification.
+3. Compile or reuse the project recipe and Mode intersection.
+4. Route each source to the applicable lane; a source can be overridden only through the explicit schema/route contract.
+5. Parse and chunk exact bytes once, project lane-specific facts, refresh contentless FTS, and derive MMD/DOT from SQLite.
+6. Validate hashes, schemas, conditional tool execution, authority effects, and receipts before atomic pointer swap.
+7. Reuse unchanged content-addressed atoms and directly purge superseded unpointed generations after readback.
 
-Each fired lane emits its governed machine and human surfaces:
+## Current lanes
 
-- SQLite authority with schema and FTS5/BM25 indexes;
-- Mermaid MMD topology;
-- Graphviz DOT topology; and
-- tools/route JSON with exact capability and version state.
+| Lane | Role |
+| --- | --- |
+| `github_code` | Git refs, commits, trees, blobs, changes, and repository history. |
+| `local_code` | Working-tree files, code structure, chunks, and dependencies. |
+| `chat_lineage` | Prompts, responses, steers, and task entry/exit evidence. |
+| `discussion` | Bounded discussion claims and decisions. |
+| `analysis` | Source-backed findings, relationships, and uncertainty. |
+| `plan` | Canonical Plan rows, dependencies, transitions, and projections. |
+| `mode` | Operating-mode classification and intersection. |
+| `docs` | Documentation hierarchy, text, relationships, and citations. |
+| `data_excel` | Tabular and spreadsheet structure, formulas, and typed facts. |
+| `ppt` | Slides, notes, shapes, tables, and media references. |
+| `pdf_ocr` | PDF structure, native text, page geometry, and OCR fallback. |
+| `images_ocr` | Image metadata, OCR, and visual locators. |
+| `artifacts` | Generated deliverables and exact artifact identities. |
+| `custom` | Explicit user-defined source schemas. |
+| `brain_loader` | Imported Evidence Lane/SQLite brain packages. |
+| `research` | Web and research evidence, citations, and provenance. |
+| `project_engulf` | Initial project classification and lane registration plan. |
+| `sqlite_brain` | Existing SQLite schema, relationships, and bounded queries. |
+## Lane package contract
 
-Project sectors sit beneath one project folder. Canon, AI Learning, Memory, and
-host-entry continuity retain their own first-class authorities outside ordinary
-sector merging. ENV/UOP remains runtime governance and is not copied into the
-project package.
+Every current lane owns a distinct SQLite schema/template, lane-specific workflow JSON, MMD, DOT, tools contract, manifest, reader, builder, pointer schema, and refresh receipt. Empty tables are classified as query-time materialization, condition-false, intentionally empty template/history, blocked upstream tool, or defect. Eligibility is not execution proof: every condition-true tool must execute or fail visibly.
 
-## Query contract
+Git history and local working-tree content remain separate lanes. Project Engulf registers/classifies a project and its baseline sources; it does not flatten all project material into ENV/UOP or create acceptance. ChatLineage is a sector source, not the Plan or Project Truth.
 
-Models receive stable paths and routes for exact task, lane, cross-lane,
-parallel-lane, and authorized cross-project queries. Results return bounded
-locators, hashes, relationships, and exclusions. Raw Markdown, full PV packages,
-full Plan backlogs, and whole SQLite databases are not loaded into context.
+Project recipes and Modes are paired inputs to ENV selection; neither is a fixed workflow list. New project types, lanes, tools, and schema facts may be registered when current source and user intent require them.
 
-For governed work, Plan authority is queried first. Changed applicable
-authority lanes are refreshed at accepted Delta boundaries; unchanged bytes
-reuse their content-addressed records and are not rewritten to manufacture a
-new timestamp. A stale aggregate may be resolved by a bounded query to the
-exact sector-lane SQLite authority, never by silently selecting an older route.
+## Source-bound workflow map
 
-Every lane retains source identity, parser/tool capability state, hashes,
-provenance edges, and fail-visible unsupported states. No-hit and missing-tool
-results fail visibly rather than selecting an unrelated parser or connector.
+This page is projected from the same current executable snapshot as the rest of the documentation set. The map is deliberately two-directional: each horizontal district shows peer stages while vertical edges show ownership and state progression.
 
-## Schema evolution
+```mermaid
+flowchart TB
+    subgraph InputDistrict["Input and classification"]
+      direction LR
+      A["Authorized source identity"] --> B["Entry and source classification"] --> C["Project recipe and Mode"]
+    end
+    subgraph ExecutionDistrict["Selection and execution"]
+      direction TB
+      D["One or more of 18 sector lanes"] --> E["Lane-specific parse, SQLite, MMD, and DOT"] --> F["Schema, hash, and tool validation"]
+    end
+    subgraph EvidenceDistrict["Evidence and outcome"]
+      direction LR
+      G["Lane refresh receipt"] --> H["Atomic current generation"]
+      G -. mismatch .-> I["No placeholder lane or universal all-tool run"]
+    end
+    C --> D
+    F --> G
+```
 
-The initial schema is a governed starting contract. Project requirements may
-add rows, columns, tables, sheets, registries, or relationships through the
-lane schema-evolution route. Existing accepted records and receipts remain
-immutable; destructive, unknown-version, or hash-mismatched migrations fail
-closed.
+## Contract and readback
+
+| Phase | Current contract | Required readback |
+| --- | --- | --- |
+| Input | Authorized source identity | Exact identity, provenance, and scope |
+| Classification | Entry and source classification | Owning schema, action, lane, skill, or authority |
+| Owner | Project recipe and Mode | One canonical implementation owner |
+| Route | One or more of 18 sector lanes | Condition-true ordered route with no hidden alias |
+| Execution | Lane-specific parse, SQLite, MMD, and DOT | Real execution or a visible fail-closed result |
+| Validation | Schema, hash, and tool validation | Hash, schema, authority-effect, and negative-case checks |
+| Receipt | Lane refresh receipt | Content-addressed result and provenance receipt |
+| Downstream | Atomic current generation | Only the explicitly eligible next state |
+| Failure | No placeholder lane or universal all-tool run | No inferred HIL, candidate acceptance, or pointer movement |
+
+## Canonical source owners
+
+- `authorities/project_sectors/lane-surface-registry.v1.json`
+- `schemas/source-intake/source-intake-code-routing.v1.json`
+- `src/evidence_lane_plugin/source_intake.py`
+
+## Cross-surface invariants
+
+- The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.
+- Executable ownership stays one-way: skills select, MCP exposes, the outer SDK routes, the internal SDK executes, ENV selects, UOP governs, tools perform bounded work, hooks emit receipts, and the owning authority validates effects.
+- Any missing identity, schema, grant, capability, dependency, receipt, or authority proof must fail closed at its owning phase; a later green check cannot retroactively authorize the skipped boundary.
+- A changed route refreshes every dependent schema, manifest, generator, test, diagram, and documentation reference; the superseded executable route is directly purged in the same Delta.
+- Tests, Git, CI, installation, restart, deployment, discussion, or a rendered page never imply Project HIL, Learning HIL, Goal completion, or pointer movement.
+
+---
+
+This page is a Git-tracked documentation projection. Executable source, SQLite authorities, installed-runtime receipts, and explicit human gates remain the governing evidence.

@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import importlib.metadata
 import json
+import os
 import shutil
 from pathlib import Path
 from typing import Any
@@ -156,12 +157,21 @@ def build_runtime_license_bundle(output_root: Path, plugin_root: Path) -> dict[s
         manifest_body = {
             "schema": "evidence-lane.installed-runtime-license-bundle.v1",
             "status": "PASS",
+            "accelerator_profile": os.environ.get(
+                "EVIDENCE_LANE_ACCELERATOR_PROFILE", "cpu"
+            ).strip().upper(),
             "plugin_root_sha256": hashlib.sha256(
                 str(plugin).encode("utf-8")
             ).hexdigest().upper(),
             "requirements_lock_sha256": _sha256(plugin / "requirements.lock.txt"),
             "requirements_torch_cpu_lock_sha256": _sha256(
                 plugin / "requirements.torch-cpu.lock.txt"
+            ),
+            "requirements_torch_nvidia_lock_sha256": _sha256(
+                plugin / "requirements.torch-nvidia.lock.txt"
+            ),
+            "requirements_onnx_directml_lock_sha256": _sha256(
+                plugin / "requirements.onnx-directml.lock.txt"
             ),
             "requirements_toolchain_lock_sha256": _sha256(
                 plugin / "requirements.toolchain.lock.txt"

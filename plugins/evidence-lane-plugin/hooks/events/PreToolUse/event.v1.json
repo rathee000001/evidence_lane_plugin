@@ -42,27 +42,39 @@
     {
       "display_id": "4.1",
       "path": "hooks/events/PreToolUse/handler-4.1.v1.json",
-      "sha256": "7F8048EB843ECA3F5A4EB6B2F59B4ED1EC703AA06D19BFDDD4F2AEE175B62D41"
+      "sha256": "FC5D4F2298DF1F1749A28EAAF44D7C4DD09A7E78176DCA03598AB9132F06E219"
     },
     {
       "display_id": "4.2",
       "path": "hooks/events/PreToolUse/handler-4.2.v1.json",
-      "sha256": "5AA454B8DD34FD4CE2CE1B52D2E67694C2D8EE60637A35EA7D29CAFA4E7843D3"
+      "sha256": "3F108867738D93562B22A8B5254B82CCBE84C0C0CB6CCD04C3D5760D8A568EBD"
     },
     {
       "display_id": "4.3",
       "path": "hooks/events/PreToolUse/handler-4.3.v1.json",
-      "sha256": "1C2F354709F300EB4A1293EE75B1C7987100221A456063B4D62FAAE515E9EF4C"
+      "sha256": "E6AE27F8B0A8530AE761A03567E76B3937A957448030F39709DCE12CA3FC041C"
     },
     {
       "display_id": "4.4",
       "path": "hooks/events/PreToolUse/handler-4.4.v1.json",
-      "sha256": "08A998C38E57C91391B031FF5D4202D18C2879193E8025FEB6F4CE031132C97F"
+      "sha256": "ABAEE124F321E2446BCEF7F6DC90D68D27FE30E5D0AF02E821DF99494F186F87"
     }
   ],
   "adapter": "hooks/pre_tool_use.py",
   "adapter_sha256": "1D5EE052FD282B7DB09B56EA534762E4ABF49E5DC52A2F7D97B8B82EE97E746C",
+  "workflow_contract": {
+    "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
+    "action_scope": "PUBLIC_ACTION_BOUNDARY",
+    "skill_action": "PROSPECTIVE_TOOL_BOUNDARY",
+    "skill_consumer": "consume_pre_tool_transport",
+    "workflow_phases": [
+      "UOP_PRECONDITION",
+      "ACTIVE_DELTA_EXECUTION"
+    ],
+    "public_action_boundary": true
+  },
+  "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "A6CFAE4B1E4E81B516356D97ACF03E4EE10340137A7C35A0A52181171DCCB0E8"
+  "receipt_sha256": "8930AE78E31BFB067D08CB38AD7D615CB23BC2F260F65C3A4B99920FD9B80AC2"
 }

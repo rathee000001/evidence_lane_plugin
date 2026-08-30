@@ -9,7 +9,7 @@ from itertools import pairwise
 from typing import Any
 
 from .constants import ENGINE_VERSION
-from .next_actions import HIL_CHOICES, HIL_SUGGESTED_PROMPT
+from .next_actions import HIL_SUGGESTED_PROMPT, PROJECT_HIL_DECISION_TOKENS
 
 MCP_APP_MIME_TYPE = "text/html;profile=mcp-app"
 # MCP Apps hosts may cache UI resources by immutable ``ui://`` identity.  Bump
@@ -476,7 +476,7 @@ def build_project_panel_snapshot(
                     "availability": choice_availability,
                     "consequence": _HIL_PANEL_CONSEQUENCES[token],
                 }
-                for token in HIL_CHOICES
+                for token in PROJECT_HIL_DECISION_TOKENS
             ],
             "prompt_template": HIL_SUGGESTED_PROMPT,
             "suggested_next_prompt": HIL_SUGGESTED_PROMPT if pending_hil else None,

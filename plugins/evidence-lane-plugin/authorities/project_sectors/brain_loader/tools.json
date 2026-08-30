@@ -17,11 +17,506 @@
     "lane_manifest.json"
   ],
   "canonical_shared_modules": {
-    "src/evidence_lane_plugin/lanes.py": "D6270B812093ACFDDC6D8D7B165A6757ACED153FEE2D38193BA500285A6E8AC7",
-    "src/evidence_lane_plugin/lane_engine.py": "606278B437DC3C1E4F9D7AD703122294C369F745FB28C5F3F7149EF69D773AE4",
-    "src/evidence_lane_plugin/lane_reader.py": "D3AD5D9A83F59FA1D47C78E9A1C3FF9B55686FAE297D86D652D778737C61A566",
+    "src/evidence_lane_plugin/lanes.py": "1FE3EF29F00CD144566BB72E74B8059B6DA51A0CC138AD97B6FCD609133A3FC3",
+    "src/evidence_lane_plugin/lane_engine.py": "3789EFE347EA0EADDA54520E67F42B2FC88218F94A345D98892A0D928701FD96",
+    "src/evidence_lane_plugin/lane_reader.py": "E131620487F19CC2E6B3188F0B53A3483D7179F9AC4BA7BE87249750097BE7E7",
     "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
-    "src/evidence_lane_plugin/source_intake.py": "F8B9EA79F70CC9A68D1648103F1947259F09D4AF679475291A66CB9F2B47E85B"
+    "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
   },
-  "receipt_sha256": "9F670ED6A58C560149988F960A48679D914992A0755C3B95C749C742139C000E"
+  "registry_linked_workflow": {
+    "schema": "evidence-lane.lane-registry-linked-workflow.v1",
+    "status": "PASS",
+    "lane_id": "brain_loader",
+    "eligible_tools": [
+      "hashlib_pathlib",
+      "SQLite_FTS5_BM25",
+      "APSW_SQLite_engine",
+      "deterministic_TFIDF",
+      "LangGraph_Mermaid_engine",
+      "Python_Graphviz_DOT_engine",
+      "LlamaIndex_SQLite_indexer",
+      "Mermaid_CLI_mmdc",
+      "Graphviz_dot",
+      "Secret_redactor",
+      "SQLite_immutable_URI_reader",
+      "Safe_archive_intake",
+      "Tableau_Hyper_API",
+      "SentenceTransformers",
+      "FAISS_CPU",
+      "rank_bm25",
+      "rustworkx",
+      "sqlite_vec"
+    ],
+    "eligible_tool_count": 18,
+    "task_execution_tools": [
+      "hashlib_pathlib",
+      "SQLite_FTS5_BM25",
+      "APSW_SQLite_engine",
+      "deterministic_TFIDF",
+      "LangGraph_Mermaid_engine",
+      "Python_Graphviz_DOT_engine",
+      "LlamaIndex_SQLite_indexer",
+      "Mermaid_CLI_mmdc",
+      "Graphviz_dot",
+      "Secret_redactor",
+      "SQLite_immutable_URI_reader",
+      "Safe_archive_intake",
+      "Tableau_Hyper_API",
+      "SentenceTransformers",
+      "FAISS_CPU",
+      "rank_bm25",
+      "rustworkx",
+      "sqlite_vec"
+    ],
+    "transport_orchestration_adapters": [],
+    "external_services_or_stores": [
+      "Pinecone",
+      "Weaviate",
+      "Milvus",
+      "OpenSearch"
+    ],
+    "observability_evaluation_attachments": [
+      "Langfuse",
+      "OpenTelemetry"
+    ],
+    "tool_role_classes_are_mutually_exclusive": true,
+    "action_classes": [
+      "DATA",
+      "DOCUMENT",
+      "GRAPH",
+      "RETRIEVAL",
+      "SOURCE_ROUTING"
+    ],
+    "eligible_public_actions": [
+      "adaptive_delta_exit",
+      "ai_toolchain_route",
+      "brain_scaling_select",
+      "canon_graph",
+      "canon_inbox",
+      "canon_inspect",
+      "connector_plugin_catalog",
+      "connector_plugin_settings",
+      "fetch",
+      "lane_catalog",
+      "lane_fetch",
+      "lane_search",
+      "lane_status",
+      "learning_inspect",
+      "learning_retrieve",
+      "lifecycle_transition_law",
+      "project_memory_query",
+      "project_recipe_compile",
+      "project_register",
+      "prompt_index_status",
+      "pv_build_initial",
+      "pv_diff",
+      "pv_enroll_project",
+      "pv_query",
+      "pv_status",
+      "pv_summary",
+      "pv_task_backlog",
+      "render_project_panel",
+      "render_runtime_panel",
+      "runtime_activation_status",
+      "runtime_doctor",
+      "search",
+      "session_flash_status",
+      "source_graph_build",
+      "source_graph_diff",
+      "source_graph_impact",
+      "source_intake_classify",
+      "source_intake_schema_configure",
+      "source_sqlite_inspect",
+      "storage_connector_inspect"
+    ],
+    "eligible_public_action_count": 40,
+    "eligible_skill_workflows": [
+      {
+        "skill": "evi",
+        "workflow": "exact-fuse"
+      },
+      {
+        "skill": "evi",
+        "workflow": "governance-read"
+      },
+      {
+        "skill": "evi",
+        "workflow": "lane-evidence-read"
+      },
+      {
+        "skill": "evi",
+        "workflow": "live-root-authority-read"
+      },
+      {
+        "skill": "evi",
+        "workflow": "live-root-current-authority-read"
+      },
+      {
+        "skill": "evi",
+        "workflow": "plan-steer"
+      },
+      {
+        "skill": "evi",
+        "workflow": "same-host-next-turn"
+      },
+      {
+        "skill": "evi-additional-plugin",
+        "workflow": "register-connector"
+      },
+      {
+        "skill": "evi-bigger-universe",
+        "workflow": "explicit-hash-only-cross-project-link"
+      },
+      {
+        "skill": "evi-bigger-universe",
+        "workflow": "register-changed-project-mini-brain-heads"
+      },
+      {
+        "skill": "evi-boot",
+        "workflow": "boot-or-resume"
+      },
+      {
+        "skill": "evi-boot",
+        "workflow": "project-enrollment"
+      },
+      {
+        "skill": "evi-brain-scaling",
+        "workflow": "deterministic-indexed-brain-slice-selection"
+      },
+      {
+        "skill": "evi-build",
+        "workflow": "physically-final-pv-hil-presentation-only"
+      },
+      {
+        "skill": "evi-build",
+        "workflow": "source-intake-backed-pv0-bootstrap"
+      },
+      {
+        "skill": "evi-canon",
+        "workflow": "canon-authority-read"
+      },
+      {
+        "skill": "evi-canon",
+        "workflow": "canon-backfire"
+      },
+      {
+        "skill": "evi-canon",
+        "workflow": "canon-contract"
+      },
+      {
+        "skill": "evi-canon",
+        "workflow": "canon-decision"
+      },
+      {
+        "skill": "evi-canon",
+        "workflow": "canon-envelope"
+      },
+      {
+        "skill": "evi-canon",
+        "workflow": "canon-result"
+      },
+      {
+        "skill": "evi-canon",
+        "workflow": "canon-state-travel-continuity"
+      },
+      {
+        "skill": "evi-canon",
+        "workflow": "canon-task-edge"
+      },
+      {
+        "skill": "evi-drop-additional-plugin",
+        "workflow": "drop-connector"
+      },
+      {
+        "skill": "evi-exit-boot",
+        "workflow": "close-session"
+      },
+      {
+        "skill": "evi-formula",
+        "workflow": "bounded-env-uop-formula-execution"
+      },
+      {
+        "skill": "evi-fuse",
+        "workflow": "dual-hil-intent-classification"
+      },
+      {
+        "skill": "evi-fuse",
+        "workflow": "dual-hil-non-promotion-decision"
+      },
+      {
+        "skill": "evi-fuse",
+        "workflow": "exact-learning-then-project-approval-promotion"
+      },
+      {
+        "skill": "evi-instructions",
+        "workflow": "agents-and-host-memory-read"
+      },
+      {
+        "skill": "evi-learning",
+        "workflow": "learning-authority-read"
+      },
+      {
+        "skill": "evi-learning",
+        "workflow": "learning-candidate"
+      },
+      {
+        "skill": "evi-learning",
+        "workflow": "learning-host-memory-import"
+      },
+      {
+        "skill": "evi-learning",
+        "workflow": "learning-revoke"
+      },
+      {
+        "skill": "evi-memory",
+        "workflow": "project-memory-authority-read"
+      },
+      {
+        "skill": "evi-memory",
+        "workflow": "project-memory-link"
+      },
+      {
+        "skill": "evi-mode",
+        "workflow": "classify-mode"
+      },
+      {
+        "skill": "evi-plan",
+        "workflow": "classify-plan-mode"
+      },
+      {
+        "skill": "evi-plan",
+        "workflow": "live-current-authority-read"
+      },
+      {
+        "skill": "evi-plan",
+        "workflow": "live-plan-authority-read"
+      },
+      {
+        "skill": "evi-plan",
+        "workflow": "persist-plan"
+      },
+      {
+        "skill": "evi-plan",
+        "workflow": "plan-steer"
+      },
+      {
+        "skill": "evi-plugin",
+        "workflow": "change-connector-registration"
+      },
+      {
+        "skill": "evi-plugin",
+        "workflow": "inspect-connectors"
+      },
+      {
+        "skill": "evi-plugin",
+        "workflow": "route-connector"
+      },
+      {
+        "skill": "evi-project-recipe",
+        "workflow": "project-type-source-and-lane-recipe-compilation"
+      },
+      {
+        "skill": "evi-refresh",
+        "workflow": "adaptive-delta-exit-append-refresh"
+      },
+      {
+        "skill": "evi-refresh",
+        "workflow": "hil-live-root-project-overlay-proposal"
+      },
+      {
+        "skill": "evi-refresh",
+        "workflow": "steer-prompt-source-intake-refresh-working-sectors"
+      },
+      {
+        "skill": "evi-rollback",
+        "workflow": "pointer-rollback"
+      },
+      {
+        "skill": "evi-source-intake",
+        "workflow": "bounded-source-retrieval"
+      },
+      {
+        "skill": "evi-source-intake",
+        "workflow": "classify-source-intake"
+      },
+      {
+        "skill": "evi-source-intake",
+        "workflow": "custom-schema-intake"
+      },
+      {
+        "skill": "evi-source-intake",
+        "workflow": "git-read-intake"
+      },
+      {
+        "skill": "evi-source-intake",
+        "workflow": "source-graph-intake"
+      },
+      {
+        "skill": "evi-source-intake",
+        "workflow": "source-identity-intake"
+      },
+      {
+        "skill": "evi-source-intake",
+        "workflow": "source-route-configuration"
+      },
+      {
+        "skill": "evi-source-intake",
+        "workflow": "sqlite-source-intake"
+      },
+      {
+        "skill": "evi-state-travel",
+        "workflow": "direct-destination-activation-verification"
+      },
+      {
+        "skill": "evi-state-travel",
+        "workflow": "direct-destination-existing-session-attachment"
+      },
+      {
+        "skill": "evi-state-travel",
+        "workflow": "direct-destination-locked-flash"
+      },
+      {
+        "skill": "evi-state-travel",
+        "workflow": "direct-destination-runtime-doctor"
+      },
+      {
+        "skill": "evi-state-travel",
+        "workflow": "direct-force-same-worktree-state-travel"
+      },
+      {
+        "skill": "evi-state-travel",
+        "workflow": "post-entry-plan-authority-read"
+      },
+      {
+        "skill": "evi-state-travel",
+        "workflow": "state-travel-plan-steer"
+      },
+      {
+        "skill": "evi-storage",
+        "workflow": "inspect-storage"
+      },
+      {
+        "skill": "evi-storage",
+        "workflow": "select-storage"
+      },
+      {
+        "skill": "evi-toolchain",
+        "workflow": "conditional-codex-toolchain-routing"
+      },
+      {
+        "skill": "evi-universe",
+        "workflow": "project-universe-authority-read"
+      },
+      {
+        "skill": "evidence-lane-code-lifecycle",
+        "workflow": "boot-or-resume"
+      },
+      {
+        "skill": "evidence-lane-code-lifecycle",
+        "workflow": "exact-fuse"
+      },
+      {
+        "skill": "evidence-lane-code-lifecycle",
+        "workflow": "governed-git-delivery"
+      },
+      {
+        "skill": "evidence-lane-code-lifecycle",
+        "workflow": "live-root-authority-read"
+      },
+      {
+        "skill": "evidence-lane-code-lifecycle",
+        "workflow": "live-root-current-authority-read"
+      },
+      {
+        "skill": "evidence-lane-code-lifecycle",
+        "workflow": "plan-steer"
+      },
+      {
+        "skill": "evidence-lane-code-lifecycle",
+        "workflow": "record-task-activity"
+      },
+      {
+        "skill": "evidence-lane-code-lifecycle",
+        "workflow": "same-host-next-turn"
+      },
+      {
+        "skill": "evidence-lane-code-lifecycle",
+        "workflow": "task-execution"
+      },
+      {
+        "skill": "evidence-lane-code-lifecycle",
+        "workflow": "two-trigger-render-dispatch"
+      }
+    ],
+    "eligible_skill_workflow_count": 79,
+    "current_registry_counts": {
+      "tool_requirements": 119,
+      "mcp_actions": 91,
+      "governed_skills": 26,
+      "hook_events": 11
+    },
+    "counts_are_current_snapshot_not_ceiling": true,
+    "all_required_linked_steps_run": true,
+    "unrelated_tools_run": false,
+    "env_selects_applicable_capabilities": true,
+    "uop_governs_operators_gates_and_fallbacks": true,
+    "internal_sdk_owns_execution": true,
+    "outer_sdk_selects_local_or_transport_route": true,
+    "mcp_action_inventory_is_not_tool_requirement_inventory": true,
+    "source_registries": {
+      "tool_requirements": {
+        "path": "toolchains/tool-requirement-matrix.v1.json",
+        "sha256": "5F8B1604A59BB8B758AF995AE43A1502D89068B327E99A7C32125EFF1C19B10A",
+        "direct_hash_embedded": true
+      },
+      "tool_routing": {
+        "path": "toolchains/tool-execution-routing.v1.json",
+        "sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182",
+        "direct_hash_embedded": true
+      },
+      "unified_pairing": {
+        "path": "toolchains/unified-tool-workflow-pairing.v1.json",
+        "hash_authority": "manifests/executable-surface-registry.v1.json",
+        "direct_hash_embedded": false,
+        "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
+      },
+      "public_actions": {
+        "path": "schemas/public-action-schemas.v001.json",
+        "sha256": "07245443366EBA937D4A8BF10382B3A90A7E0D4035BD0A4CF3104BCA9F0FCF86",
+        "direct_hash_embedded": true
+      },
+      "skills": {
+        "path": "skills/skill-surface-registry.v1.json",
+        "sha256": "95F510DDA3212100933B6FDCF950CA046C640B13810375F504EEBB32371D8F9D",
+        "direct_hash_embedded": true
+      },
+      "hooks": {
+        "path": "hooks/hook-event-registry.v1.json",
+        "sha256": "67DDC5EBD44F858D53C207F773C2893CC0C79D5AD64A87CE2F2A41B2B29E7549",
+        "direct_hash_embedded": true
+      },
+      "sdk": {
+        "path": "sdk/sdk-manifest.v1.json",
+        "hash_authority": "manifests/executable-surface-registry.v1.json",
+        "direct_hash_embedded": false,
+        "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
+      },
+      "mcp": {
+        "path": "mcp/mcp-manifest.v1.json",
+        "hash_authority": "manifests/executable-surface-registry.v1.json",
+        "direct_hash_embedded": false,
+        "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
+      }
+    },
+    "receipt_sha256": "5E4DEF785AF004EB962461A460B91AF5BCA35727EC199BAFB975BC832984AE32"
+  },
+  "dedicated_workflow": {
+    "json": "authorities/project_sectors/brain_loader/workflow.v1.json",
+    "mmd": "authorities/project_sectors/brain_loader/workflow.mmd",
+    "dot": "authorities/project_sectors/brain_loader/workflow.dot",
+    "json_sha256": "46B6BFF574BF16659A5AD5C410C7462DCD64C316A60D986D5C49A7ED3F50D3D8",
+    "mmd_sha256": "615C5E974197A55DD02F1885E58637EEEEF3DDFA94FA1476DC4D080201ECDA6F",
+    "dot_sha256": "63EE6CDC968DF5B160D5A7E45F4A16E14FCD7AE2B68058D47F3E97985A10DA62"
+  },
+  "receipt_sha256": "1A67AA023B724F6BC290123244332BF6C7B0876D005A78409A0691C7F30E1BB8"
 }

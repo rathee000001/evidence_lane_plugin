@@ -62,9 +62,8 @@ function welcomeMessage(corpus: StudioCorpusSummary): StudioMessage {
 
 function externalTitle(result: StudioQueryResponse) {
   if (result.title) return result.title;
-  if (result.mode === "external_general_free") return "Free general AI / outside project evidence";
   if (result.mode === "project_no_hit") return "Outside the committed project corpus";
-  if (result.mode === "external_unavailable") return "General AI route is not configured";
+  if (result.mode === "external_unavailable") return "No public provider proxy";
   return "Governed no-hit boundary";
 }
 
@@ -105,16 +104,13 @@ export function EvidencePromptStudio({ corpus }: { corpus: StudioCorpusSummary }
       });
       const result = await response.json() as StudioQueryResponse;
       const grounded = result.mode === "local_retrieval" && result.grounded === true;
-      const providerDetail = result.mode === "external_general_free"
-        ? ` Provider: ${result.provider ?? "OpenRouter"}; model: ${result.model ?? "openrouter/free"}.`
-        : "";
       setMessages((current) => [
         ...current,
         {
           id: assistantId,
           role: "assistant",
           title: externalTitle(result),
-          text: `${result.answer ?? "No answer was returned."}${providerDetail}`,
+          text: result.answer ?? "No answer was returned.",
           sources: result.sources ?? [{ label: "Proof boundary", href: "/proof" }],
           grounded,
           retrieval: result.retrieval,

@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.hardware_acceleration",
+  "source_path": "src/evidence_lane_plugin/hardware_acceleration.py",
+  "source_sha256": "543FEE269A141C00FB6C167060D842C2684A4C3B1A92CC4803967A39EE5A441A",
+  "source_bytes": 14437,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "D4D3CDA5E8B54F8037E46DC17AAE43BDBCAABDBD902E163B85ECD760E7B7BB79"
+}

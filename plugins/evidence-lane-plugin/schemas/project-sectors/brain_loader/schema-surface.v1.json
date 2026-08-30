@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "brain_loader",
   "authority_root": "authorities/project_sectors/brain_loader",
-  "authority_manifest_sha256": "754614AD8B50CE419A334850A52A13490D251CC42CD98EE3E7416B9B837F7844",
+  "authority_manifest_sha256": "4D2FF9D27A08E11FF806F83569B9A274BC49866AC39E2914B95A5ED0C6671453",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -43,8 +43,8 @@
     },
     {
       "path": "authorities/project_sectors/brain_loader/schema.sql",
-      "bytes": 9677,
-      "sha256": "3363E866DBDBC510F945A71467788DC01FB0F9AA84B60275E2B16BA69E936E14"
+      "bytes": 10264,
+      "sha256": "9891B38372E3E017928FE3D4D4C50D6C1DDF60C7BDFB2FA9D367C87A9FE412D8"
     },
     {
       "path": "authorities/project_sectors/brain_loader/sqlite-artifact.schema.json",
@@ -53,12 +53,12 @@
     },
     {
       "path": "authorities/project_sectors/brain_loader/tools.schema.json",
-      "bytes": 1023,
-      "sha256": "CA3A9A8032434CB3ECFDF7DA737AA4E9805671DD6CF6A535C1A8330A368CA267"
+      "bytes": 1469,
+      "sha256": "C80973CAFF61C28F996807F047E08A8A841951EEE780E954C69D7D76C0BABB0B"
     }
   ],
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
-  "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "canonical_lane_contract_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "75509B8A2C0B24F65934F7AED670BD09AF311A4AB29EE8C20E4D81B1B050D419"
+  "receipt_sha256": "FBF6E1E6D06C1451BC67ADAD04C663BF18ED627B8900BC2CFF52A0595F5227BD"
 }

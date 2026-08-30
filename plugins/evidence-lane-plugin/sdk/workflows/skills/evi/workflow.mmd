@@ -1,0 +1,119 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=6F925EBFD6D67812F6AEA4A4115DD1561C07E1AE80DF51CC1FADA9B4194AA33C
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  ENTRY["evi intent"]:::root
+  EXIT["Exact result / stop / next workflow"]:::output
+  subgraph WF_LIVE_ROOT_AUTHORITY_READ["live-root-authority-read"]
+    direction TB
+    WF_LIVE_ROOT_AUTHORITY_READ_START["live-root-authority-read"]:::lifecycle
+    WF_LIVE_ROOT_AUTHORITY_READ_ACTION_001["1. pv_status [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LIVE_ROOT_AUTHORITY_READ_ACTION_002["2. pv_task_backlog [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+  end
+  subgraph WF_LIVE_ROOT_CURRENT_AUTHORITY_READ["live-root-current-authority-read"]
+    direction TB
+    WF_LIVE_ROOT_CURRENT_AUTHORITY_READ_START["live-root-current-authority-read"]:::lifecycle
+    WF_LIVE_ROOT_CURRENT_AUTHORITY_READ_ACTION_001["3. pv_query [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LIVE_ROOT_CURRENT_AUTHORITY_READ_ACTION_002["3. search [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+  end
+  subgraph WF_GOVERNANCE_READ["governance-read"]
+    direction TB
+    WF_GOVERNANCE_READ_START["governance-read"]:::lifecycle
+    WF_GOVERNANCE_READ_ACTION_001["4. lifecycle_transition_law [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_GOVERNANCE_READ_ACTION_002["4. pv_summary [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_GOVERNANCE_READ_ACTION_003["4. pv_diff [['GOVERNANCE', 'RETRIEVAL', 'GRAPH']]"]:::semantic
+  end
+  subgraph WF_PLAN_STEER["plan-steer"]
+    direction TB
+    WF_PLAN_STEER_START["plan-steer"]:::lifecycle
+    WF_PLAN_STEER_ACTION_001["5. pv_plan_steer_delta [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_LANE_EVIDENCE_READ["lane-evidence-read"]
+    direction TB
+    WF_LANE_EVIDENCE_READ_START["lane-evidence-read"]:::lifecycle
+    WF_LANE_EVIDENCE_READ_ACTION_001["6. lane_catalog [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LANE_EVIDENCE_READ_ACTION_002["7. lane_status [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LANE_EVIDENCE_READ_ACTION_003["8. lane_search [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LANE_EVIDENCE_READ_ACTION_004["9. lane_fetch [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+  end
+  subgraph WF_EXACT_FUSE["exact-fuse"]
+    direction TB
+    WF_EXACT_FUSE_START["exact-fuse"]:::lifecycle
+    WF_EXACT_FUSE_ACTION_001["10. pv_fuse [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_SAME_HOST_NEXT_TURN["same-host-next-turn"]
+    direction TB
+    WF_SAME_HOST_NEXT_TURN_START["same-host-next-turn"]:::lifecycle
+    WF_SAME_HOST_NEXT_TURN_ACTION_001["11. pv_begin_next_turn [['GOVERNANCE', 'CODE']]"]:::semantic
+  end
+  subgraph EXECUTION["Shared typed execution contract"]
+    direction TB
+    SCHEMA["Current input/output schema"]:::semantic
+    INTERNAL_SDK["Internal SDK execution owner"]:::semantic
+    ENV["ENV15 environment selection"]:::semantic
+    UOP["UOP15 governance and gates"]:::warn
+    AUTHORITY["Owning authority and lane"]:::semantic
+    TOOLS["Conditional tool role resolution"]:::semantic
+    OUTER["Outer SDK / FastMCP / native compatibility"]:::semantic
+    HOOKS["Only emitted ordered hooks"]:::semantic
+    VALIDATE["Validate schema, result and effects"]:::warn
+    RECEIPT["Exact receipt"]:::output
+  end
+  ENTRY --> WF_LIVE_ROOT_AUTHORITY_READ_START
+  WF_LIVE_ROOT_AUTHORITY_READ_START --> WF_LIVE_ROOT_AUTHORITY_READ_ACTION_001
+  WF_LIVE_ROOT_AUTHORITY_READ_ACTION_001 -->|"ordered action"| WF_LIVE_ROOT_AUTHORITY_READ_ACTION_002
+  ENTRY --> WF_LIVE_ROOT_CURRENT_AUTHORITY_READ_START
+  WF_LIVE_ROOT_CURRENT_AUTHORITY_READ_START --> WF_LIVE_ROOT_CURRENT_AUTHORITY_READ_ACTION_001
+  WF_LIVE_ROOT_CURRENT_AUTHORITY_READ_ACTION_001 -->|"ordered action"| WF_LIVE_ROOT_CURRENT_AUTHORITY_READ_ACTION_002
+  ENTRY --> WF_GOVERNANCE_READ_START
+  WF_GOVERNANCE_READ_START --> WF_GOVERNANCE_READ_ACTION_001
+  WF_GOVERNANCE_READ_ACTION_001 -->|"ordered action"| WF_GOVERNANCE_READ_ACTION_002
+  WF_GOVERNANCE_READ_ACTION_002 -->|"ordered action"| WF_GOVERNANCE_READ_ACTION_003
+  ENTRY --> WF_PLAN_STEER_START
+  WF_PLAN_STEER_START --> WF_PLAN_STEER_ACTION_001
+  ENTRY --> WF_LANE_EVIDENCE_READ_START
+  WF_LANE_EVIDENCE_READ_START --> WF_LANE_EVIDENCE_READ_ACTION_001
+  WF_LANE_EVIDENCE_READ_ACTION_001 -->|"ordered action"| WF_LANE_EVIDENCE_READ_ACTION_002
+  WF_LANE_EVIDENCE_READ_ACTION_002 -->|"ordered action"| WF_LANE_EVIDENCE_READ_ACTION_003
+  WF_LANE_EVIDENCE_READ_ACTION_003 -->|"ordered action"| WF_LANE_EVIDENCE_READ_ACTION_004
+  ENTRY --> WF_EXACT_FUSE_START
+  WF_EXACT_FUSE_START --> WF_EXACT_FUSE_ACTION_001
+  ENTRY --> WF_SAME_HOST_NEXT_TURN_START
+  WF_SAME_HOST_NEXT_TURN_START --> WF_SAME_HOST_NEXT_TURN_ACTION_001
+  SCHEMA --> INTERNAL_SDK
+  INTERNAL_SDK --> ENV
+  ENV --> UOP
+  UOP --> AUTHORITY
+  AUTHORITY --> TOOLS
+  TOOLS --> OUTER
+  OUTER --> HOOKS
+  HOOKS --> VALIDATE
+  VALIDATE --> RECEIPT
+  WF_LIVE_ROOT_AUTHORITY_READ_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_LIVE_ROOT_AUTHORITY_READ_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_LIVE_ROOT_CURRENT_AUTHORITY_READ_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_LIVE_ROOT_CURRENT_AUTHORITY_READ_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_GOVERNANCE_READ_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_GOVERNANCE_READ_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_GOVERNANCE_READ_ACTION_003 -->|"typed execution"| SCHEMA
+  WF_PLAN_STEER_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_LANE_EVIDENCE_READ_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_LANE_EVIDENCE_READ_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_LANE_EVIDENCE_READ_ACTION_003 -->|"typed execution"| SCHEMA
+  WF_LANE_EVIDENCE_READ_ACTION_004 -->|"typed execution"| SCHEMA
+  WF_EXACT_FUSE_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_SAME_HOST_NEXT_TURN_ACTION_001 -->|"typed execution"| SCHEMA
+  RECEIPT --> EXIT

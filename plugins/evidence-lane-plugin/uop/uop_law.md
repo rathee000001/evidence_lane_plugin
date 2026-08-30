@@ -1,48 +1,55 @@
-# UEPC Env12 Clean UOP Governance Law
+# UOP15 Codex Governance Law
 
-UOP is a clean governance/operator sector, not private story content.
+UOP15 is the clean governance authority over the ENV-selected Codex action
+plane. It is rebuilt from current governance, action, tool, host and project-
+class policies. It contains no predecessor database, ChatGPT host surface,
+prompt/discussion/ChatLineage content, foreign path, artifact payload, critique
+or private project data.
 
-## Allowed content
-- spatial route geometry
-- source-state labeling
-- route-before-judgment logic
-- knowledge compression
-- public/private/patent-sensitive boundary
-- direct/adjacent/self-built/ramp proof classification
-- mode cluster control
-- delta preservation
-- human gate logic
-- context-pressure logic
-- clean exit logic
-- salience/root packet logic
+## Non-override law
 
-## Blocked content
-- private family story
-- health details
-- recruiter private messages
-- personal relationship material
-- raw Life Arc narrative text
-- raw LinkedIn/profile payload
-- raw secrets/passwords
+- UOP cannot override ENV, Project Truth, Plan, Goal, HIL, source authority or
+  the user.
+- UOP cannot become an agent, lifecycle owner, memory, scheduler or transport.
+- Codex remains the sole acting AI agent.
 
-## Authority
-UOP guides mode/lane/operator selection. It cannot override env law or project truth.
+## Governing operators
 
+- source and authority precedence
+- work and bounded-execution gates
+- privacy and disclosure gates
+- direct-purge gate for every replaced current route
+- separate Project and Learning HIL gates
+- Entry Slip gate for every prompt and steer
+- Exit Slip gate only for Goal option 2 or completed State Travel
+- same-class ordered fallback with visible failure
 
----
+## Entry, Delta and exit boundaries
 
-# Env14 UOP Deltas
+- Entry Slip may classify and focus work; it cannot accept a Plan, move Project
+  Truth or infer HIL.
+- Adaptive Delta-exit append may refresh changed authorities and close an
+  ordinary Delta; it cannot emit an Exit Slip.
+- Exit Slip may seal only the completed State Travel or Goal-option-2 boundary.
 
-- UOP cannot override env or project.
-- UOP prompt-override interpretation separates local display preference from process law.
-- UOP governance includes spatial route operators, source-state operators, knowledge-compression operators, disclosure boundary operators, mode-cluster operators, delta operators, and human-gate operators.
-- Private UOP payload is blocked in clean package.
-- Read-only audit never requires write password.
+## Project-class governance
 
----
+Project-class policies select different CI, validation and HIL presentations
+for code, research, document, data, media, mixed and custom projects. The
+current registry is mutable; no literal count is a ceiling.
 
-# UOP15 Additive Public Governance Delta
+## Tool governance
 
-Updated: 2026-07-10T14:52:04Z
+- Tools run only when ENV action/lane/phase/host and any required grant agree.
+- Multiple tools may form one pipeline.
+- External services never gain agent, project, HIL, lifecycle, memory or
+  scheduler authority.
+- OpenAI Agents SDK is permitted only as a Codex-owned function-tool/MCP client
+  library; no second agent or model route may be created.
+- Fallback never crosses workflow class silently.
 
-Env14 UOP governance is retained as base. UOP remains governance-only, read-only by default, cannot override Env or Project, and cannot receive private payload in this public package. UOP operators may classify the active project sector and mutation grant, but only chat lineage is automatically writable.
+## Storage and disclosure
+
+UOP stores policy rows, hashes, graph projections and receipts only. Private
+payload, raw secrets, private reasoning, prompt/response content and foreign
+authority data are forbidden.

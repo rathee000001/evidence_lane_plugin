@@ -96,3 +96,8 @@ def test_upstream_ledger_preserves_non_claim_and_acceptance_boundaries() -> None
     assert "Open WebUI License" in provenance
     assert "does not move the accepted\nPV5 pointer" in provenance
     assert "UPSTREAM_REFERENCE_PROVENANCE.md" in credits
+    assert "Current 3.0 executable dependency and license ledger" in provenance
+    assert "**119** tool requirements" in provenance
+    assert "MCP remains a separate **91-action** inventory" in provenance
+    assert "EVIDENCE_LANE_CURRENT_UPSTREAM_INVENTORY_START" in provenance
+    assert "EVIDENCE_LANE_CURRENT_UPSTREAM_INVENTORY_END" in provenance

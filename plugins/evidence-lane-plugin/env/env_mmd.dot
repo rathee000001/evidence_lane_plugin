@@ -1,603 +1,433 @@
-digraph env_authority {
+digraph env_codex_action_plane {
   // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
   // PYTHON_GRAPHVIZ_VERSION=0.21
-  bgcolor=white fontname=Arial rankdir=TD
+  bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
   node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
   edge [color="#667085" fontname=Arial]
-  START [label="User prompt enters chat display window" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
-  ENTRY [label="ENTRY SLIP: read package pointers first" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  DOTENV [label=".uepc_env / env HEAD" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  DOTPROJECT [label=".uepc_project / project HEAD template" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  DOTUOP [label=".uepc_profile / UOP PROFILE HEAD" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  MODE_ROUTER [label=MODE_ROUTER color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  SOURCE_INTAKE [label=SOURCE_INTAKE color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  AUTHORITY [label=AUTHORITY color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  PCM_MBA [label=PCM_MBA color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  UOP_SECTOR [label=UOP_SECTOR color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  PROJECT_TEMPLATE [label=PROJECT_TEMPLATE color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  PB_BUILDER [label=PB_BUILDER color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  TURN_WRITEBACK [label=TURN_WRITEBACK color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV_MMD_EXIT [label=ENV_MMD_EXIT color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV12_BREAKER [label=ENV12_BREAKER color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV14_AUTHORITY [label=ENV14_AUTHORITY color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV14_DEEPRESEARCH [label=ENV14_DEEPRESEARCH color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV14_MMD_SVG [label=ENV14_MMD_SVG color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV14_PROJECT_EXPANSION [label=ENV14_PROJECT_EXPANSION color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV14_CLEAN_PACKAGE [label=ENV14_CLEAN_PACKAGE color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV15_IMMUTABLE_BASE [label=ENV15_IMMUTABLE_BASE color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV15_STATE_TRAVEL [label=ENV15_STATE_TRAVEL color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV15_LEGACY [label=ENV15_LEGACY color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV15_PROJECT_SECTORS [label=ENV15_PROJECT_SECTORS color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV15_CODE_INDEX [label=ENV15_CODE_INDEX color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV15_RESEARCH_LEDGER [label=ENV15_RESEARCH_LEDGER color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV15_RENDER_LOCK [label=ENV15_RENDER_LOCK color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV15_CLEAN_PACKAGE [label=ENV15_CLEAN_PACKAGE color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  ENV15_CODEX_HANDOFF [label=ENV15_CODEX_HANDOFF color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  subgraph cluster_env_head {
-    label="ENV HEAD / LOCKED GOVERNANCE ROOT" rankdir=TB
-    ENVSQL [label="env/env_sqlite.sqlite" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ENVROOT [label=env_governance_root_v12 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    LOCK [label="env_write_lock_policy / env core locked" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    FLASHQ [label="mode == flash_env?" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
-    ENV_MUTATE [label="env_flash_approval_log_v11 / env mutation allowed only this run" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ENV_RO [label="READ ONLY env law/schema/MMD" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ENVTRUST [label=env_trust_state_v11 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROOTKEY [label="root_key_policy_v11 / public verification, private root key external" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    SIG [label="env_signature_manifest_v11 / official seal" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    TRUSTFAIL [label="OFFICIAL_SIGNATURE_FAILED / UNTRUSTED_FORK_MODE / PROJECT_DATA_SAFE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    NOCI [label="no_autonomous_cicd_gate / human route control" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    SAFE [label="safe tamper response / read-only quarantine + recovery export" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  PROMPT [label="Prompt or steer" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
+  ENTRY_SLIP [label="Entry Slip: intent, focus, source route, workflow and bounded next action" color="#125cdd" fillcolor="#edf5ff" shape=box style="rounded,filled"]
+  SOURCE_INTAKE [label="Source Intake and exact authority/lane classification" color="#125cdd" fillcolor="#edf5ff" shape=box style="rounded,filled"]
+  MODE [label="Codex mode + Project Recipe + project-class policy" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  ACTION [label="Typed action + schema + internal SDK owner" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  ENV [label="ENV selects host, context, locality, workflow and conditional pipeline" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  UOP [label="UOP applies governance, gates, HIL and fallback policy" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+  TOOLS [label="Condition-true multi-tool pipeline; Codex remains sole agent" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  OUTER [label="Outer SDK + FastMCP/native/domain MCP/tunnel transport" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  HOOKS [label="Ordered host hook events" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  VALIDATE [label="Validate result, authority effects and direct purge" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+  DELTA_EXIT [label="Adaptive Delta-exit append for continuing work" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  EXIT_SLIP [label="Exit Slip only for Goal option 2 or completed State Travel" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  subgraph cluster_hosts {
+    label=Hosts rankdir=TB
+    HOSTS_CODEX_CLI [label="CODEX_CLI: CLI" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    HOSTS_CODEX_DESKTOP_BETA [label="CODEX_DESKTOP_BETA: BETA" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    HOSTS_CODEX_DESKTOP_STABLE [label="CODEX_DESKTOP_STABLE: STABLE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    HOSTS_CODEX_VM_EPHEMERAL [label="CODEX_VM_EPHEMERAL: EPHEMERAL_VM" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    HOSTS_CODEX_VM_PERSISTENT [label="CODEX_VM_PERSISTENT: PERSISTENT_VM" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   }
-  subgraph cluster_source_intake {
-    label="SOURCE INTAKE + LOSSLESS CHUNKING" rankdir=TB
-    UPLOADS [label="Uploaded source files / zips / brains / docs / images" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    CLASS [label=source_classifier_registry_v12 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    TYPEQ [label="source type?" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
-    DOCS [label="DOCX/PDF/MD/TXT/HTML/JSON parse once" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    SHEETS [label="CSV/XLSX sheet/table/formula chunks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    CODE [label="Raw code repo / .git / symbol/import/API chunks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    SQLBRAIN [label="SQLite brain ZIP / schema + table import" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    IMAGE [label="Image/video metadata, OCR only if needed" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ZIPROUTE [label="ZIP vertical route / nested package audit" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    RAWREG [label=artifact_raw_registry color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    BYTE [label=artifact_byte_range_index color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PARSE [label=artifact_parse_event color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    CHUNK [label=artifact_chunk_index color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UINDEX [label=universal_index_registry color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    FTS [label="source_chunk_fts / artifact_chunk_fts" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    COVER [label=artifact_coverage_audit color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    STATUS [label="REGISTERED / PARSED / CHUNKED / METADATA_ONLY / BLOCKED / REVIEW_REQUIRED" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  subgraph cluster_accelerators {
+    label=Accelerators rankdir=TB
+    ACCELERATORS_AMD_DIRECTML [label="AMD_DIRECTML: USER_PLUGIN_GRANT_AND_DIRECTML_PROVIDER_TELEMETRY_PASS" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACCELERATORS_AMD_ROCM [label="AMD_ROCM: USER_PLUGIN_GRANT_AND_HIP_RUNTIME_TELEMETRY_PASS" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACCELERATORS_CPU [label="CPU: DEFAULT_OR_VISIBLE_GPU_FALLBACK" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACCELERATORS_NVIDIA_CUDA [label="NVIDIA_CUDA: USER_PLUGIN_GRANT_AND_DRIVER_RUNTIME_TELEMETRY_PASS" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   }
-  subgraph cluster_authority {
-    label="AUTHORITY, PRECEDENCE, QUARANTINE" rankdir=TB
-    PRECEDENCE [label=source_precedence_matrix_v12 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    AUTHSTACK [label="sparse_active_source_stack / top source IDs only" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ACTIVE [label="active_source_stack / lane-specific evidence pull" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    QUAR [label=source_instruction_quarantine_v12 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PROMO [label="promoted by user as route law?" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
-    EVIDENCE_ONLY [label="uploaded text is evidence only" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROUTE_LAW [label="accepted delta / route law candidate" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    DELTA [label=delta_ledger color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  subgraph cluster_modes {
+    label=Modes rankdir=TB
+    MODES_ANALYSIS [label="ANALYSIS: PROJECT_CLASS_POLICY" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    MODES_CODE [label="CODE: PROJECT_CLASS_POLICY" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    MODES_CUSTOM [label="CUSTOM: EXPLICIT_CUSTOM_SCHEMA" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    MODES_DATA [label="DATA: PROJECT_CLASS_POLICY" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    MODES_DOCUMENT [label="DOCUMENT: PROJECT_CLASS_POLICY" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    MODES_MEDIA [label="MEDIA: PROJECT_CLASS_POLICY" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    MODES_PLAN [label="PLAN: PLAN_ACCEPTANCE_SEPARATE_FROM_PROJECT_HIL" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    MODES_PROJECT_ENGULF [label="PROJECT_ENGULF: REGISTRATION_ONLY_NO_ACCEPTANCE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    MODES_RESEARCH [label="RESEARCH: PROJECT_CLASS_POLICY" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    MODES_RUNTIME [label="RUNTIME: NO_PROJECT_HIL" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   }
-  subgraph cluster_mode_router {
-    label="MODE + LANE ROUTER" rankdir=TB
-    MODENS [label=mode_namespace_registry color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    COMBO [label=combined_mode_namespace_rule color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    HINDEX [label=hierarchical_index_registry color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    D [label="D discussion" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    AL [label="AL analysis" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PL [label="PL planning" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    CD [label="CD code" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    OP [label="OP output" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    VAL [label="VAL validation" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    RS [label="RS research" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    JD [label="JD job/JD" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    XL [label="XL Excel" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PPT [label="PPT presentation" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    DOC [label="DOC document" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PB [label="PB project brain builder" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ENG [label="ENG project engulf" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    CE [label="CE clean exit" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    RCV [label="RCV recovery" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    X [label="X custom user-defined mode" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    CDREC [label="lane_recursive_policy: scan discussion -> planning -> code -> validation -> error/open deltas" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    XLREC [label="sheet/formula/pivot dependency lane" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PPTREC [label="slide/story/source-state lane" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    DOCREC [label="section/render-QA lane" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PBLANE [label=project_brain_builder_lane_v11 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  subgraph cluster_formulas {
+    label=Formulas rankdir=TB
+    FORMULAS_CODE_BOOLEAN_GATE [label="CODE_BOOLEAN_GATE: ALL_REQUIRED_GATES == PASS" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FORMULAS_DELTA_COMPLETION [label="DELTA_COMPLETION: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FORMULAS_GOAL_OPTION_2_READY [label="GOAL_OPTION_2_READY: GOAL_METRICS_SEALED AND FINAL_BOUNDARY_VERIFIED" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FORMULAS_LEARNING_HIL_READY [label="LEARNING_HIL_READY: LEARNING_CANDIDATE_VALID" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FORMULAS_PROJECT_HIL_READY [label="PROJECT_HIL_READY: CANDIDATE_VALID AND PROJECT_EVIDENCE_COMPLETE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FORMULAS_SOURCE_INTEGRITY [label="SOURCE_INTEGRITY: ALL_SELECTED_SOURCES_HASH_BOUND" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    FORMULAS_STATE_TRAVEL_READY [label="STATE_TRAVEL_READY: DESTINATION_ATTESTED AND CONTINUITY_VERIFIED" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   }
-  subgraph cluster_pcm_mba {
-    label="PCM + MBA OPERATOR ENGINE / FIRED ONLY WHEN NEEDED" rankdir=TB
-    PCM [label=pcm_mba_operator color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    MATH [label="Math: sets, relations, matrices, graph, indexing, hashes" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHYS [label="Physics: state, entropy, continuity, signal/noise" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    CHEM [label="Chemistry: redox, quarantine, irreversible fusion risk" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    MBA [label="MBA/Ops: audit, risk, supply chain, rollback, human control" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    FORMULA [label="formula_component / task formula receipt" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  subgraph cluster_lanes {
+    label=Lanes rankdir=TB
+    LANES_ANALYSIS [label="analysis: analysis_structured_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_ARTIFACTS [label="artifacts: artifact_structure_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_BRAIN_LOADER [label="brain_loader: brain_package_loader_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_CHAT_LINEAGE [label="chat_lineage: chat_lineage_state_travel_v57" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_CUSTOM [label="custom: custom_best_effort_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_DATA_EXCEL [label="data_excel: office_data_structural_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_DISCUSSION [label="discussion: discussion_structured_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_DOCS [label="docs: document_structure_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_GITHUB_CODE [label="github_code: github_code_reverse_history_v2" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_IMAGES_OCR [label="images_ocr: image_ocr_structural_v2" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_LOCAL_CODE [label="local_code: local_code_snapshot_v2" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_MODE [label="mode: mode_contract_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_PDF_OCR [label="pdf_ocr: pdf_ocr_structural_v2" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_PLAN [label="plan: plan_structured_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_PPT [label="ppt: presentation_structure_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_PROJECT_ENGULF [label="project_engulf: project_engulf_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_RESEARCH [label="research: research_evidence_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    LANES_SQLITE_BRAIN [label="sqlite_brain: sqlite_brain_inspector_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   }
-  subgraph cluster_uop_sector {
-    label="UOP GOVERNANCE SECTOR / MANDATORY BUT SEPARATE" rankdir=TB
-    UOPROOT [label=uop_governance_root_v12 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOPSLOT [label="UOP slot exists in clean env / no private payload in env core" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOPPKG [label="uop/uop_sqlite.sqlite / clean governance sector" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOPSQL [label="uop/uop_sqlite.sqlite" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOPSRC [label="uop_source_registry / governance extraction only" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOPCHUNK [label="uop_spatial_operator + uop_knowledge_compression_operator" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOPPRIV [label=uop_privacy_boundary color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOPRULE [label="UOP guides profile/operator context only" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    NOOVERRIDE [label="UOP cannot override env law or project truth" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOPMMD [label="UOP governance MMD / own topology" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    FLASHUOP [label="mode == flash_uop?" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
-    UOPUPDATE [label="scoped UOP update allowed" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOPLOCK [label="UOP sector locked/read-only" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  subgraph cluster_action_pipelines {
+    label="Typed action pipelines" rankdir=TB
+    ACTION_ADAPTIVE_DELTA_EXIT [label="adaptive_delta_exit | classes=GOVERNANCE,SOURCE_ROUTING | tools=16" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_AI_TOOLCHAIN_ROUTE [label="ai_toolchain_route | classes=GOVERNANCE,RETRIEVAL,MCP_TRANSPORT | tools=17" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_BIGGER_UNIVERSE_LINK [label="bigger_universe_link | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_BIGGER_UNIVERSE_REGISTER [label="bigger_universe_register | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_BRAIN_SCALING_SELECT [label="brain_scaling_select | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_BACKFIRE_HIL [label="canon_backfire_hil | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_BIND_EDGE [label="canon_bind_edge | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_CLASSIFY [label="canon_classify | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_DECIDE [label="canon_decide | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_DISPATCH_LINKED_TASK [label="canon_dispatch_linked_task | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_GRAPH [label="canon_graph | classes=GOVERNANCE,RETRIEVAL,GRAPH | tools=16" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_INBOX [label="canon_inbox | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_INSPECT [label="canon_inspect | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_RECEIVE [label="canon_receive | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_REGISTER_CONTRACT [label="canon_register_contract | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_REGISTER_EDGE [label="canon_register_edge | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_RESTORE_CONTINUITY [label="canon_restore_continuity | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_SEAL_CONTINUITY [label="canon_seal_continuity | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_SEAL_ENVELOPE [label="canon_seal_envelope | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_SEAL_RESULT [label="canon_seal_result | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CANON_SUPERSEDE [label="canon_supersede | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CONNECTOR_PLUGIN_CATALOG [label="connector_plugin_catalog | classes=GOVERNANCE,RETRIEVAL,RUNTIME | tools=25" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CONNECTOR_PLUGIN_DROP [label="connector_plugin_drop | classes=GOVERNANCE,RUNTIME | tools=20" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CONNECTOR_PLUGIN_REGISTER [label="connector_plugin_register | classes=GOVERNANCE,RUNTIME | tools=20" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CONNECTOR_PLUGIN_ROUTE [label="connector_plugin_route | classes=GOVERNANCE,RUNTIME | tools=20" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_CONNECTOR_PLUGIN_SETTINGS [label="connector_plugin_settings | classes=GOVERNANCE,RETRIEVAL,RUNTIME | tools=25" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_FETCH [label="fetch | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_FORMULA_ENGINE_RUN [label="formula_engine_run | classes=GOVERNANCE,FORMULA | tools=7" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_GIT_SYNC_SELECTED [label="git_sync_selected | classes=GOVERNANCE,CODE | tools=15" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_HIL_DECIDE [label="hil_decide | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_HIL_INTENT_CLASSIFY [label="hil_intent_classify | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_HIL_RETURN_TO_ACCEPTED [label="hil_return_to_accepted | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LANE_CATALOG [label="lane_catalog | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LANE_CONFIGURE_ROUTES [label="lane_configure_routes | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LANE_FETCH [label="lane_fetch | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LANE_SEARCH [label="lane_search | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LANE_STATUS [label="lane_status | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LEARNING_DECIDE_CANDIDATE [label="learning_decide_candidate | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LEARNING_INSPECT [label="learning_inspect | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LEARNING_RECORD_HOST_MEMORY_IMPORT [label="learning_record_host_memory_import | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LEARNING_RETRIEVE [label="learning_retrieve | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LEARNING_REVOKE [label="learning_revoke | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LEARNING_SEAL_CANDIDATE [label="learning_seal_candidate | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_LIFECYCLE_TRANSITION_LAW [label="lifecycle_transition_law | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_MODE_CLASSIFY [label="mode_classify | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PROJECT_MEMORY_QUERY [label="project_memory_query | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PROJECT_MEMORY_RECORD_LINK [label="project_memory_record_link | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PROJECT_RECIPE_COMPILE [label="project_recipe_compile | classes=GOVERNANCE,RETRIEVAL,SOURCE_ROUTING | tools=20" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PROJECT_REGISTER [label="project_register | classes=GOVERNANCE,SOURCE_ROUTING | tools=16" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PROMPT_INDEX_STATUS [label="prompt_index_status | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_BEGIN_NEXT_TURN [label="pv_begin_next_turn | classes=GOVERNANCE,CODE | tools=15" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_BUILD_INITIAL [label="pv_build_initial | classes=GOVERNANCE,SOURCE_ROUTING | tools=16" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_DIFF [label="pv_diff | classes=GOVERNANCE,RETRIEVAL,GRAPH | tools=16" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_ENROLL_PROJECT [label="pv_enroll_project | classes=GOVERNANCE,SOURCE_ROUTING | tools=16" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_FUSE [label="pv_fuse | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_PLAN_STEER_DELTA [label="pv_plan_steer_delta | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_PLAN_TASKS [label="pv_plan_tasks | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_QUERY [label="pv_query | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_ROLLBACK [label="pv_rollback | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_STATE_TRAVEL_DIRECT_FORCE_SAME_WORKTREE [label="pv_state_travel_direct_force_same_worktree | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_STATUS [label="pv_status | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_SUMMARY [label="pv_summary | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_TASK_BACKLOG [label="pv_task_backlog | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_PV_TASK_TRANSITION [label="pv_task_transition | classes=GOVERNANCE,CODE | tools=15" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_REMOTE_GIT_EXECUTE_PUSH [label="remote_git_execute_push | classes=GOVERNANCE,CODE,DEPLOYMENT | tools=25" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_REMOTE_GIT_PREPARE_PUSH [label="remote_git_prepare_push | classes=GOVERNANCE,CODE,DEPLOYMENT | tools=25" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_RENDER_PROJECT_PANEL [label="render_project_panel | classes=GOVERNANCE,RETRIEVAL,GRAPH | tools=16" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_RENDER_RUNTIME_PANEL [label="render_runtime_panel | classes=GOVERNANCE,RETRIEVAL,GRAPH,RUNTIME | tools=30" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_RUNTIME_ACTIVATION_STATUS [label="runtime_activation_status | classes=GOVERNANCE,RETRIEVAL,RUNTIME | tools=25" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_RUNTIME_DOCTOR [label="runtime_doctor | classes=GOVERNANCE,RETRIEVAL,RUNTIME | tools=25" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SEARCH [label="search | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SESSION_BOOT [label="session_boot | classes=GOVERNANCE,RUNTIME | tools=20" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SESSION_CLOSE [label="session_close | classes=GOVERNANCE,RUNTIME | tools=20" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SESSION_FLASH_STATUS [label="session_flash_status | classes=GOVERNANCE,RETRIEVAL,RUNTIME | tools=25" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SESSION_RESUME [label="session_resume | classes=GOVERNANCE,RUNTIME | tools=20" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SOURCE_CUSTOM_SCHEMA_COMPILE [label="source_custom_schema_compile | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SOURCE_GIT_COMMIT_IMPACT [label="source_git_commit_impact | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SOURCE_GIT_HISTORY_BUILD [label="source_git_history_build | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SOURCE_GRAPH_BUILD [label="source_graph_build | classes=GOVERNANCE,GRAPH | tools=12" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SOURCE_GRAPH_DIFF [label="source_graph_diff | classes=GOVERNANCE,GRAPH | tools=12" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SOURCE_GRAPH_IMPACT [label="source_graph_impact | classes=GOVERNANCE,GRAPH | tools=12" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SOURCE_IDENTITY_REGISTER [label="source_identity_register | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SOURCE_INTAKE_CLASSIFY [label="source_intake_classify | classes=GOVERNANCE,SOURCE_ROUTING | tools=16" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SOURCE_INTAKE_SCHEMA_CONFIGURE [label="source_intake_schema_configure | classes=GOVERNANCE,SOURCE_ROUTING | tools=16" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_SOURCE_SQLITE_INSPECT [label="source_sqlite_inspect | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_STORAGE_CONNECTOR_INSPECT [label="storage_connector_inspect | classes=GOVERNANCE,RETRIEVAL | tools=11" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_STORAGE_CONNECTOR_SELECT [label="storage_connector_select | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_TASK_CLASSIFY [label="task_classify | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_TASK_COMPLETE_AND_REFRESH [label="task_complete_and_refresh | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_TASK_CONFIRM_SOURCE_UPDATE [label="task_confirm_source_update | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTION_TASK_RECORD_ACTIVITY [label="task_record_activity | classes=GOVERNANCE | tools=6" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   }
-  subgraph cluster_project_template {
-    label="UNPOPULATED PROJECT SECTOR / TEMPLATE ONLY" rankdir=TB
-    PROOT [label=project_growth_root_v12 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PSECTION [label="project_section template / no project payload" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PPACKET [label="project_packet_section template" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PTURN [label="project_turn_packet template" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PSRC [label="project source registry placeholder" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PCHUNK [label="prompt_chunk / source_chunk / visible_reasoning_chunk / response_chunk" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PART [label="artifact_registry + artifact_link_state" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PCONSIST [label=project_pointer_consistency_check_v12 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PASSQ [label=".uepc_project + project_section + packet + MMD agree?" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
-    PREADY [label="project template ready" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PBLOCK [label=BLOCKED_POINTER_MISMATCH color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PMMD [label=project_mmd_generation_event_v12 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PMMDT [label="project topology MMD grows from project section" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PNGOPT [label="project PNG/SVG optional unless requested" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_pb_builder {
-    label="PROJECT BRAIN BUILDER LANES / EMPTY UNTIL PROJECT ENGULF" rankdir=TB
-    PB_CODE [label="PB_CODE_REPO: raw code + .git" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PB_SQL [label="PB_SQLITE_IMPORT: project brain sqlite" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PB_DOC [label="PB_DOC_CORPUS: reports/docs" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PB_CSV [label="PB_CSV_FACT: master fact CSV" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PB_MIXED [label=PB_MIXED_PROJECT_ZIP color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    FUTUREPROJECT [label="future project section population" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_turn_writeback {
-    label="PROMPT / RESPONSE / ARTIFACT WRITEBACK" rankdir=TB
-    PTURNLOG [label=prompt_turn color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PCHUNKS [label="prompt_chunk indexed by mode namespace" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ERECEIPT [label="env_receipt ENTRY" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    MODELOG [label="mode_classification_run + operator_activation_run" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    GATERUN [label=gate_evaluation_run color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    VREASON [label="visible_reasoning_chunk only / no hidden chain-of-thought" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    RESPONSE [label=response_chunk color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    GENART [label=generated_artifact_link_state color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ARTREG [label="artifact_registry / output_artifact" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    WRITE [label=env_sqlite_write_receipt color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    STATEHASH [label=state_hash_chain color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env_mmd_exit {
-    label="ENV MMD LOCK + CLEAN EXIT" rankdir=TB
-    ENVMMDLOCK [label="env_mmd_lock_state / env MMD changes only in flash_env" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ENVMMD [label="env topology MMD generated after env SQLite migration" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    CHECKSUM [label="diagram_checksum_registry / MMD_STALE_WARN" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    EXIT [label="EXIT SLIP" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    MANIFEST [label="external hash manifest + artifact manifest + availability ledger" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    CLEANEXIT [label=clean_exit_protocol_v12 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PACKAGE [label="one-upload continuation package" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    NEXT [label="Next prompt / next chat re-entry" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
-    RECOVERY [label=recovery_command_registry_v12 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env12_breaker {
-    label="ENV12 INVALID-ANSWER BREAKER GATES" rankdir=TB
-    PREINDEX [label="Prompt indexed first" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    RAWCOVER [label="Raw artifact byte coverage" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    INDEXGATE [label="No reasoning before index gate" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    RELOCK1 [label=RELOCK_GATE_FILE_NOT_INDEXED_BEFORE_REASONING color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    CHATBLOCK [label="CHAT_WINDOW_LOOKUP_VIOLATION if package exists" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ENVCONT [label="ENV_CONTINUITY_DROP_DETECTED if any law drops" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    MMDREPACK [label=MMD_REPACK_NO_MUTATION_GATE color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env14_authority {
-    label="ENV14 ROOT AUTHORITY + PROMPT OVERRIDE CONTROL" rankdir=TB
-    ENV14ROOT [label=env_governance_root_v14 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14AUTH [label=ROOT_AUTHORITY_LADDER color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14PROMPTBLOCK [label=PROMPT_CANNOT_OVERRIDE_ENV color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14LOCALDISPLAY [label=LOCAL_DISPLAY_ONLY_ALLOWED color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14TELEMETRY [label=VISIBLE_TELEMETRY_MINIMUM color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14RELOCK [label=RELOCK_ON_PARTIAL_COMPLIANCE color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14NOEXCUSE [label=NO_NARRATIVE_EXCUSE_FOR_GATE_FAILURE color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14VISDROP [label=VISIBLE_TELEMETRY_LAYER_DROPPED color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14DETECT [label=PROMPT_OVERRIDE_ATTEMPT_DETECTED color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14LEDGER [label=SUPERSEDE_LEDGER_REQUIRED color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14FLASHREQ [label=FLASH_MODE_REQUIRED_FOR_MUTATION color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env14_deepresearch {
-    label="ENV14 DEEP RESEARCH ACCESS + AUDIT SIDECAR" rankdir=TB
-    E14DRROOT [label=deep_research_access_triage_v14 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14READLOCK [label=READ_LOCK_MUST_NOT_BLOCK_AUDIT color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14WRITELOCK [label=WRITE_LOCK_IS_NOT_READ_LOCK color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14NOPASS [label=PASSWORD_NEVER_REQUIRED_FOR_READ_ONLY_AUDIT color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14SIDECAR [label=DEEP_RESEARCH_AUDIT_SIDECAR_REQUIRED color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14ZIPBLOCK [label=ZIP_BLOCKED_USE_HASHED_SIDECAR color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14MIRROR [label="research/UEPC_ENV14_DEEPRESEARCH_AUDIT_MIRROR.md" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14LINKAGE [label="research/SIDECAR_HASH_LINKAGE.json" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14TRIAGE [label="research/DEEP_RESEARCH_ACCESS_TRIAGE.md" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env14_mmd_svg {
-    label="ENV14 MMD SOURCE + SVG RENDER LOCK" rankdir=TB
-    E14MMDROOT [label=locked_mmd_hash_registry_v14 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14ENVMMD [label="env/env_mmd.mmd full source" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14ENVSVG [label="env/env_mmd.svg exact render" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14UOPMMD [label="uop/uop_mmd.mmd full source" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14UOPSVG [label="uop/uop_mmd.svg exact render" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14PROJMMD [label="project/project_topology_template.mmd full source" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14PROJSVG [label="project/project_topology_template.svg exact render" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14NOSHRINK [label=MMD_SIZE_OR_NODE_DROP_FAIL_BUILD color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14RENDERQA [label="validation/RENDER_QA_REPORT.md" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env14_project_expansion {
-    label="ENV14 PROJECT TEMPLATE EXPANSION CONTROL" rankdir=TB
-    E14PROJEXP [label=project_template_expansion_audit_v14 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14LEGACY [label="legacy unpopulated count 14" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14CURRENT [label="current framework count 41" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14PAYLOADZERO [label="PROJECT_PAYLOAD_ROWS=0" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14SUPERPASS [label="SUPERSEDED_PASS not population failure" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14FOOTPRINT [label="manifests/PROJECT_TEMPLATE_FOOTPRINT_AUDIT.json" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env14_clean_package {
-    label="ENV14 CLEAN PACKAGE / NO BASELINE ZIP COPY" rankdir=TB
-    E14PKGCLASS [label="PACKAGE_CLASS=CLEAN_ENV14_SUPERSEDE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14NOBASE [label="NO baseline/ folder" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14BASEHASH [label="manifests/BASELINE_HASH_REFERENCE.txt" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14DIFF [label="manifests/BASELINE_DIFF_MANIFEST.json" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14OBJ [label="manifests/BASELINE_OBJECT_COUNT_COMPARISON.json" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14V10REF [label="V10 packaging discipline reference only" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E14FINALZIP [label="UEPC_ENV14_CLEAN_SUPERSEDE_ONE_UPLOAD.zip" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env15_immutable_base {
-    label="ENV15 IMMUTABLE BASE + MUTABLE OVERLAY" rankdir=TB
-    E15BASE [label="Env + UOP + project base open mode=ro&immutable=1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15AUTOWRITE [label="chat_lineage is only automatic append-write lane" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15OTHER [label="all other 13 project sectors preserved read-only by default" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15GRANT [label="explicit user-named one-turn mutation grant" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15RELOCK [label="mutation receipt + immediate sector relock" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15ROAUDIT [label="WRITEBACK_POLICY=DISABLED_READ_ONLY_AUDIT" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15SKIP [label=WRITEBACK_SKIPPED_BY_USER_READ_ONLY_GATE color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env15_state_travel {
-    label="ENV15 EXACT TURN STATE TRAVEL" rankdir=TB
-    E15PREP [label="PREPARE exact raw prompt + attachments + entry slip" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15PREPCOMMIT [label="commit PREPARED" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15TASK [label="mode/lane/gate/operator execution" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15VISIBLE [label="exact visible response + visible reasoning summary" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15COMMIT [label="COMMIT response + links + exit receipt" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15CHAIN [label="previous/current state hash chain" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15HEAD [label="canonical lineage_head" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15NEXT [label="next expected index" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15FAIL [label="PREPARED_NOT_COMMITTED recovery state" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env15_legacy {
-    label="ENV15 LEGACY PROJECT CARRY-FORWARD" rankdir=TB
-    E15SCAN [label="scan older Env .uepc_project active write sector" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15COPY [label="copy without mutating older package" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15MIRROR [label="chat_lineage/legacy_project_carry_forward mirror" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15LABEL [label="PROJECT_HISTORY_SOURCE / NOT_ENV_LAW / NOT_UOP_TRUTH" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env15_project_sectors {
-    label="ENV15 ALL 14 UNIVERSAL PROJECT SECTORS" rankdir=TB
-    E15SECTORS [label="project_sector_registry_v15 / 14 sectors" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15CHAT [label="chat_lineage auto append" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15GH [label=github_code color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15LOCAL [label=local_code color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15SQL [label=sqlite_brain color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15DOCS [label=docs color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15DATA [label=data_excel color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15PDF [label=pdf_ocr color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15PPT [label=ppt color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15IMG [label=images_ocr color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15ART [label=artifacts color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15CUSTOM [label="custom schema-first" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15LOADER [label=brain_loader color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15RESEARCH [label=research color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15ENGULF [label=project_engulf color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env15_code_index {
-    label="ENV15 CODE SNAPSHOT + GIT LINEAGE INDEX" rankdir=TB
-    E15CODESRC [label="GitHub / Local Code source" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15SNAP [label="Code Snapshot Layer" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15GIT [label="Git Lineage Layer" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15FILE [label="file chunks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15SYMBOL [label="function/class/symbol" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15IMPORT [label="import/dependency" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15API [label="route/API boundary" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15CONFIG [label="config/build/test" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15COMMITS [label="commit/file-change/diff chunks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15STRUCT [label="structured text artifacts" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15BINARY [label="binary/image/video/GLB metadata-only" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env15_research_ledger {
-    label="ENV15 CREDIT TOKEN ESTIMATE RESEARCH LEDGER" rankdir=TB
-    E15TOKENPOL [label=credit_token_estimate_policy_v15 color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15TOKENMD [label="credit_token_estimate_comparison.md" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15FORMULA [label="naive vs SQLite token + iteration estimate formulas" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15RQ [label="5 constant research questions per prompt" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15PROF [label="professor-facing estimate with assumptions/confidence" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env15_render_lock {
-    label="ENV15 FULL MMD + SVG + PNG LOCK" rankdir=TB
-    E15MMDLAW [label="Env14 exact MMD base required" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15ADD [label="append Env15 delta only" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15SVGP [label="render exact packaged MMD to SVG + PNG" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15PNGSTORE [label="PNG stored ZIP_STORED" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15NOSHRINK [label="MMD_BASE_TEXT_MISSING or shrink = FAIL" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_env15_codex_handoff {
-    label="ENV15 CODEX PUBLIC SECTION HANDOFF" rankdir=TB
-    E15CODEXPKG [label="Env15 public package" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15CODEXPROMPT [label="Codex locked-section update handoff" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15PATCH [label="patch Env/UOP/project + all sectors only" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15KEEPUI [label="preserve T020 visual/backend authority" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    E15TESTS [label="CI/CD tests + receipts + no unrelated changes" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  START -> ENTRY
-  ENTRY -> DOTENV
-  ENTRY -> DOTPROJECT
-  ENTRY -> DOTUOP
-  DOTENV -> ENVSQL
-  ENVSQL -> ENVROOT
-  ENVROOT -> LOCK
-  LOCK -> FLASHQ
-  FLASHQ -> ENV_MUTATE [label=Yes]
-  FLASHQ -> ENV_RO [label=No]
-  ENVROOT -> ENVTRUST
-  ENVTRUST -> ROOTKEY
-  ROOTKEY -> SIG
-  SIG -> TRUSTFAIL
-  ENVROOT -> NOCI
-  ENVROOT -> SAFE
-  UPLOADS -> CLASS
-  CLASS -> TYPEQ
-  TYPEQ -> DOCS
-  TYPEQ -> SHEETS
-  TYPEQ -> CODE
-  TYPEQ -> SQLBRAIN
-  TYPEQ -> IMAGE
-  TYPEQ -> ZIPROUTE
-  DOCS -> RAWREG
-  SHEETS -> RAWREG
-  CODE -> RAWREG
-  SQLBRAIN -> RAWREG
-  IMAGE -> RAWREG
-  ZIPROUTE -> RAWREG
-  RAWREG -> BYTE
-  RAWREG -> PARSE
-  PARSE -> CHUNK
-  CHUNK -> UINDEX
-  CHUNK -> FTS
-  RAWREG -> COVER
-  COVER -> STATUS
-  ENVROOT -> PRECEDENCE
-  PRECEDENCE -> AUTHSTACK
-  AUTHSTACK -> ACTIVE
-  PRECEDENCE -> QUAR
-  QUAR -> PROMO
-  PROMO -> EVIDENCE_ONLY [label=No]
-  PROMO -> ROUTE_LAW [label=Yes]
-  ROUTE_LAW -> DELTA
-  ENVROOT -> MODENS
-  ENVROOT -> COMBO
-  ENVROOT -> HINDEX
-  MODENS -> D
-  MODENS -> AL
-  MODENS -> PL
-  MODENS -> CD
-  MODENS -> OP
-  MODENS -> VAL
-  MODENS -> RS
-  MODENS -> JD
-  MODENS -> XL
-  MODENS -> PPT
-  MODENS -> DOC
-  MODENS -> PB
-  MODENS -> ENG
-  MODENS -> CE
-  MODENS -> RCV
-  MODENS -> X
-  CD -> CDREC
-  XL -> XLREC
-  PPT -> PPTREC
-  DOC -> DOCREC
-  PB -> PBLANE
-  ENVROOT -> PCM
-  PCM -> MATH
-  PCM -> PHYS
-  PCM -> CHEM
-  PCM -> MBA
-  PCM -> FORMULA
-  DOTUOP -> UOPROOT
-  UOPROOT -> UOPSLOT
-  UOPSLOT -> UOPPKG
-  UOPPKG -> UOPSQL
-  UOPSQL -> UOPSRC
-  UOPSQL -> UOPCHUNK
-  UOPSQL -> UOPPRIV
-  UOPPRIV -> UOPRULE
-  UOPRULE -> NOOVERRIDE
-  UOPSQL -> UOPMMD
-  UOPROOT -> FLASHUOP
-  FLASHUOP -> UOPUPDATE [label=Yes]
-  FLASHUOP -> UOPLOCK [label=No]
-  DOTPROJECT -> PROOT
-  PROOT -> PSECTION
-  PROOT -> PPACKET
-  PROOT -> PTURN
-  PROOT -> PSRC
-  PROOT -> PCHUNK
-  PROOT -> PART
-  PROOT -> PCONSIST
-  PCONSIST -> PASSQ
-  PASSQ -> PREADY [label=Yes]
-  PASSQ -> PBLOCK [label=No]
-  PROOT -> PMMD
-  PMMD -> PMMDT
-  PMMDT -> PNGOPT
-  PBLANE -> PB_CODE
-  PBLANE -> PB_SQL
-  PBLANE -> PB_DOC
-  PBLANE -> PB_CSV
-  PBLANE -> PB_MIXED
-  PB_CODE -> FUTUREPROJECT
-  PB_SQL -> FUTUREPROJECT
-  PB_DOC -> FUTUREPROJECT
-  PB_CSV -> FUTUREPROJECT
-  PB_MIXED -> FUTUREPROJECT
-  FUTUREPROJECT -> PMMD
-  START -> PTURNLOG
-  PTURNLOG -> PCHUNKS
-  ENTRY -> ERECEIPT
-  MODE_ROUTER -> MODELOG
-  MODELOG -> GATERUN
-  GATERUN -> VREASON
-  VREASON -> RESPONSE
-  RESPONSE -> GENART
-  GENART -> ARTREG
-  ARTREG -> WRITE
-  WRITE -> STATEHASH
-  ENVROOT -> ENVMMDLOCK
-  ENVMMDLOCK -> ENVMMD
-  ENVMMD -> CHECKSUM
-  STATEHASH -> EXIT
-  EXIT -> MANIFEST
-  MANIFEST -> CLEANEXIT
-  CLEANEXIT -> PACKAGE
-  PACKAGE -> NEXT
-  CLEANEXIT -> RECOVERY
-  ENVROOT -> SOURCE_INTAKE
-  ENVROOT -> AUTHORITY
-  ENVROOT -> MODE_ROUTER
-  ENVROOT -> PCM_MBA
-  ENVROOT -> UOP_SECTOR
-  ENVROOT -> PROJECT_TEMPLATE
-  PROJECT_TEMPLATE -> PB_BUILDER
-  AUTHORITY -> MODE_ROUTER
-  MODE_ROUTER -> TURN_WRITEBACK
-  PROJECT_TEMPLATE -> TURN_WRITEBACK
-  UOP_SECTOR -> TURN_WRITEBACK
-  TURN_WRITEBACK -> ENV_MMD_EXIT
-  PREINDEX -> RAWCOVER
-  RAWCOVER -> INDEXGATE
-  INDEXGATE -> RELOCK1
-  DOTENV -> CHATBLOCK
-  DOTENV -> ENVCONT
-  ENVMMDLOCK -> MMDREPACK
-  ENVROOT -> ENV12_BREAKER
-  ENV14ROOT -> E14AUTH
-  E14AUTH -> E14PROMPTBLOCK
-  E14PROMPTBLOCK -> E14LOCALDISPLAY
-  E14LOCALDISPLAY -> E14TELEMETRY
-  E14TELEMETRY -> E14RELOCK
-  E14PROMPTBLOCK -> E14NOEXCUSE
-  E14TELEMETRY -> E14VISDROP
-  E14PROMPTBLOCK -> E14DETECT
-  E14DETECT -> E14LEDGER
-  E14LEDGER -> E14FLASHREQ
-  E14DRROOT -> E14READLOCK
-  E14READLOCK -> E14WRITELOCK
-  E14WRITELOCK -> E14NOPASS
-  E14DRROOT -> E14SIDECAR
-  E14SIDECAR -> E14ZIPBLOCK
-  E14ZIPBLOCK -> E14MIRROR
-  E14MIRROR -> E14LINKAGE
-  E14DRROOT -> E14TRIAGE
-  E14MMDROOT -> E14ENVMMD
-  E14ENVMMD -> E14ENVSVG
-  E14MMDROOT -> E14UOPMMD
-  E14UOPMMD -> E14UOPSVG
-  E14MMDROOT -> E14PROJMMD
-  E14PROJMMD -> E14PROJSVG
-  E14MMDROOT -> E14NOSHRINK
-  E14NOSHRINK -> E14RENDERQA
-  E14PROJEXP -> E14LEGACY
-  E14PROJEXP -> E14CURRENT
-  E14CURRENT -> E14PAYLOADZERO
-  E14PAYLOADZERO -> E14SUPERPASS
-  E14SUPERPASS -> E14FOOTPRINT
-  E14PKGCLASS -> E14NOBASE
-  E14NOBASE -> E14BASEHASH
-  E14BASEHASH -> E14DIFF
-  E14DIFF -> E14OBJ
-  E14PKGCLASS -> E14V10REF
-  E14V10REF -> E14FINALZIP
-  ENVROOT -> ENV14_AUTHORITY
-  ENVROOT -> ENV14_DEEPRESEARCH
-  ENVROOT -> ENV14_MMD_SVG
-  ENVROOT -> ENV14_PROJECT_EXPANSION
-  ENVROOT -> ENV14_CLEAN_PACKAGE
-  E14AUTH -> MODE_ROUTER
-  E14SIDECAR -> MANIFEST
-  E14PROJEXP -> PROJECT_TEMPLATE
-  E14MMDROOT -> ENV_MMD_EXIT
-  E14FINALZIP -> NEXT
-  E15BASE -> E15AUTOWRITE
-  E15AUTOWRITE -> E15OTHER
-  E15OTHER -> E15GRANT
-  E15GRANT -> E15RELOCK
-  E15BASE -> E15ROAUDIT
-  E15ROAUDIT -> E15SKIP
-  E15PREP -> E15PREPCOMMIT
-  E15PREPCOMMIT -> E15TASK
-  E15TASK -> E15VISIBLE
-  E15VISIBLE -> E15COMMIT
-  E15COMMIT -> E15CHAIN
-  E15CHAIN -> E15HEAD
-  E15HEAD -> E15NEXT
-  E15PREPCOMMIT -> E15FAIL
-  E15SCAN -> E15COPY
-  E15COPY -> E15MIRROR
-  E15MIRROR -> E15LABEL
-  E15SECTORS -> E15CHAT
-  E15SECTORS -> E15GH
-  E15SECTORS -> E15LOCAL
-  E15SECTORS -> E15SQL
-  E15SECTORS -> E15DOCS
-  E15SECTORS -> E15DATA
-  E15SECTORS -> E15PDF
-  E15SECTORS -> E15PPT
-  E15SECTORS -> E15IMG
-  E15SECTORS -> E15ART
-  E15SECTORS -> E15CUSTOM
-  E15SECTORS -> E15LOADER
-  E15SECTORS -> E15RESEARCH
-  E15SECTORS -> E15ENGULF
-  E15CODESRC -> E15SNAP
-  E15CODESRC -> E15GIT
-  E15SNAP -> E15FILE
-  E15FILE -> E15SYMBOL
-  E15FILE -> E15IMPORT
-  E15FILE -> E15API
-  E15FILE -> E15CONFIG
-  E15GIT -> E15COMMITS
-  E15SNAP -> E15STRUCT
-  E15SNAP -> E15BINARY
-  E15TOKENPOL -> E15TOKENMD
-  E15TOKENMD -> E15FORMULA
-  E15FORMULA -> E15RQ
-  E15RQ -> E15PROF
-  E15MMDLAW -> E15ADD
-  E15ADD -> E15SVGP
-  E15SVGP -> E15PNGSTORE
-  E15MMDLAW -> E15NOSHRINK
-  E15CODEXPKG -> E15CODEXPROMPT
-  E15CODEXPROMPT -> E15PATCH
-  E15PATCH -> E15KEEPUI
-  E15PATCH -> E15TESTS
-  ENVROOT -> ENV15_IMMUTABLE_BASE
-  TURN_WRITEBACK -> ENV15_STATE_TRAVEL
-  PROJECT_TEMPLATE -> ENV15_LEGACY
-  PROJECT_TEMPLATE -> ENV15_PROJECT_SECTORS
-  PB_BUILDER -> ENV15_CODE_INDEX
-  TURN_WRITEBACK -> ENV15_RESEARCH_LEDGER
-  ENV_MMD_EXIT -> ENV15_RENDER_LOCK
-  ENV15_CLEAN_PACKAGE -> ENV15_CODEX_HANDOFF
-  E15AUTOWRITE -> E15PREP
-  E15MIRROR -> E15PREP
-  E15CHAT -> E15PREP
-  E15OTHER -> E15GRANT
-  E15HEAD -> EXIT
+  PROMPT -> ENTRY_SLIP
+  ENTRY_SLIP -> SOURCE_INTAKE
+  SOURCE_INTAKE -> MODE
+  MODE -> ACTION
+  ACTION -> ENV
+  ENV -> UOP
+  UOP -> TOOLS
+  TOOLS -> OUTER
+  OUTER -> HOOKS
+  HOOKS -> VALIDATE
+  VALIDATE -> DELTA_EXIT [label="ordinary Delta closes" style=dashed]
+  VALIDATE -> EXIT_SLIP [label="Goal option 2 or State Travel completes" style=dashed]
+  ENV -> HOSTS_CODEX_CLI [label="current registry member" style=dashed]
+  ENV -> HOSTS_CODEX_DESKTOP_BETA [label="current registry member" style=dashed]
+  ENV -> HOSTS_CODEX_DESKTOP_STABLE [label="current registry member" style=dashed]
+  ENV -> HOSTS_CODEX_VM_EPHEMERAL [label="current registry member" style=dashed]
+  ENV -> HOSTS_CODEX_VM_PERSISTENT [label="current registry member" style=dashed]
+  ENV -> ACCELERATORS_AMD_DIRECTML [label="current registry member" style=dashed]
+  ENV -> ACCELERATORS_AMD_ROCM [label="current registry member" style=dashed]
+  ENV -> ACCELERATORS_CPU [label="current registry member" style=dashed]
+  ENV -> ACCELERATORS_NVIDIA_CUDA [label="current registry member" style=dashed]
+  MODE -> MODES_ANALYSIS [label="current registry member" style=dashed]
+  MODE -> MODES_CODE [label="current registry member" style=dashed]
+  MODE -> MODES_CUSTOM [label="current registry member" style=dashed]
+  MODE -> MODES_DATA [label="current registry member" style=dashed]
+  MODE -> MODES_DOCUMENT [label="current registry member" style=dashed]
+  MODE -> MODES_MEDIA [label="current registry member" style=dashed]
+  MODE -> MODES_PLAN [label="current registry member" style=dashed]
+  MODE -> MODES_PROJECT_ENGULF [label="current registry member" style=dashed]
+  MODE -> MODES_RESEARCH [label="current registry member" style=dashed]
+  MODE -> MODES_RUNTIME [label="current registry member" style=dashed]
+  VALIDATE -> FORMULAS_CODE_BOOLEAN_GATE [label="current registry member" style=dashed]
+  VALIDATE -> FORMULAS_DELTA_COMPLETION [label="current registry member" style=dashed]
+  VALIDATE -> FORMULAS_GOAL_OPTION_2_READY [label="current registry member" style=dashed]
+  VALIDATE -> FORMULAS_LEARNING_HIL_READY [label="current registry member" style=dashed]
+  VALIDATE -> FORMULAS_PROJECT_HIL_READY [label="current registry member" style=dashed]
+  VALIDATE -> FORMULAS_SOURCE_INTEGRITY [label="current registry member" style=dashed]
+  VALIDATE -> FORMULAS_STATE_TRAVEL_READY [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_ANALYSIS [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_ARTIFACTS [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_BRAIN_LOADER [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_CHAT_LINEAGE [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_CUSTOM [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_DATA_EXCEL [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_DISCUSSION [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_DOCS [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_GITHUB_CODE [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_IMAGES_OCR [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_LOCAL_CODE [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_MODE [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_PDF_OCR [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_PLAN [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_PPT [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_PROJECT_ENGULF [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_RESEARCH [label="current registry member" style=dashed]
+  SOURCE_INTAKE -> LANES_SQLITE_BRAIN [label="current registry member" style=dashed]
+  ACTION -> ACTION_ADAPTIVE_DELTA_EXIT
+  ACTION -> ACTION_AI_TOOLCHAIN_ROUTE
+  ACTION -> ACTION_BIGGER_UNIVERSE_LINK
+  ACTION -> ACTION_BIGGER_UNIVERSE_REGISTER
+  ACTION -> ACTION_BRAIN_SCALING_SELECT
+  ACTION -> ACTION_CANON_BACKFIRE_HIL
+  ACTION -> ACTION_CANON_BIND_EDGE
+  ACTION -> ACTION_CANON_CLASSIFY
+  ACTION -> ACTION_CANON_DECIDE
+  ACTION -> ACTION_CANON_DISPATCH_LINKED_TASK
+  ACTION -> ACTION_CANON_GRAPH
+  ACTION -> ACTION_CANON_INBOX
+  ACTION -> ACTION_CANON_INSPECT
+  ACTION -> ACTION_CANON_RECEIVE
+  ACTION -> ACTION_CANON_REGISTER_CONTRACT
+  ACTION -> ACTION_CANON_REGISTER_EDGE
+  ACTION -> ACTION_CANON_RESTORE_CONTINUITY
+  ACTION -> ACTION_CANON_SEAL_CONTINUITY
+  ACTION -> ACTION_CANON_SEAL_ENVELOPE
+  ACTION -> ACTION_CANON_SEAL_RESULT
+  ACTION -> ACTION_CANON_SUPERSEDE
+  ACTION -> ACTION_CONNECTOR_PLUGIN_CATALOG
+  ACTION -> ACTION_CONNECTOR_PLUGIN_DROP
+  ACTION -> ACTION_CONNECTOR_PLUGIN_REGISTER
+  ACTION -> ACTION_CONNECTOR_PLUGIN_ROUTE
+  ACTION -> ACTION_CONNECTOR_PLUGIN_SETTINGS
+  ACTION -> ACTION_FETCH
+  ACTION -> ACTION_FORMULA_ENGINE_RUN
+  ACTION -> ACTION_GIT_SYNC_SELECTED
+  ACTION -> ACTION_HIL_DECIDE
+  ACTION -> ACTION_HIL_INTENT_CLASSIFY
+  ACTION -> ACTION_HIL_RETURN_TO_ACCEPTED
+  ACTION -> ACTION_LANE_CATALOG
+  ACTION -> ACTION_LANE_CONFIGURE_ROUTES
+  ACTION -> ACTION_LANE_FETCH
+  ACTION -> ACTION_LANE_SEARCH
+  ACTION -> ACTION_LANE_STATUS
+  ACTION -> ACTION_LEARNING_DECIDE_CANDIDATE
+  ACTION -> ACTION_LEARNING_INSPECT
+  ACTION -> ACTION_LEARNING_RECORD_HOST_MEMORY_IMPORT
+  ACTION -> ACTION_LEARNING_RETRIEVE
+  ACTION -> ACTION_LEARNING_REVOKE
+  ACTION -> ACTION_LEARNING_SEAL_CANDIDATE
+  ACTION -> ACTION_LIFECYCLE_TRANSITION_LAW
+  ACTION -> ACTION_MODE_CLASSIFY
+  ACTION -> ACTION_PROJECT_MEMORY_QUERY
+  ACTION -> ACTION_PROJECT_MEMORY_RECORD_LINK
+  ACTION -> ACTION_PROJECT_RECIPE_COMPILE
+  ACTION -> ACTION_PROJECT_REGISTER
+  ACTION -> ACTION_PROMPT_INDEX_STATUS
+  ACTION -> ACTION_PV_BEGIN_NEXT_TURN
+  ACTION -> ACTION_PV_BUILD_INITIAL
+  ACTION -> ACTION_PV_DIFF
+  ACTION -> ACTION_PV_ENROLL_PROJECT
+  ACTION -> ACTION_PV_FUSE
+  ACTION -> ACTION_PV_PLAN_STEER_DELTA
+  ACTION -> ACTION_PV_PLAN_TASKS
+  ACTION -> ACTION_PV_QUERY
+  ACTION -> ACTION_PV_ROLLBACK
+  ACTION -> ACTION_PV_STATE_TRAVEL_DIRECT_FORCE_SAME_WORKTREE
+  ACTION -> ACTION_PV_STATUS
+  ACTION -> ACTION_PV_SUMMARY
+  ACTION -> ACTION_PV_TASK_BACKLOG
+  ACTION -> ACTION_PV_TASK_TRANSITION
+  ACTION -> ACTION_REMOTE_GIT_EXECUTE_PUSH
+  ACTION -> ACTION_REMOTE_GIT_PREPARE_PUSH
+  ACTION -> ACTION_RENDER_PROJECT_PANEL
+  ACTION -> ACTION_RENDER_RUNTIME_PANEL
+  ACTION -> ACTION_RUNTIME_ACTIVATION_STATUS
+  ACTION -> ACTION_RUNTIME_DOCTOR
+  ACTION -> ACTION_SEARCH
+  ACTION -> ACTION_SESSION_BOOT
+  ACTION -> ACTION_SESSION_CLOSE
+  ACTION -> ACTION_SESSION_FLASH_STATUS
+  ACTION -> ACTION_SESSION_RESUME
+  ACTION -> ACTION_SOURCE_CUSTOM_SCHEMA_COMPILE
+  ACTION -> ACTION_SOURCE_GIT_COMMIT_IMPACT
+  ACTION -> ACTION_SOURCE_GIT_HISTORY_BUILD
+  ACTION -> ACTION_SOURCE_GRAPH_BUILD
+  ACTION -> ACTION_SOURCE_GRAPH_DIFF
+  ACTION -> ACTION_SOURCE_GRAPH_IMPACT
+  ACTION -> ACTION_SOURCE_IDENTITY_REGISTER
+  ACTION -> ACTION_SOURCE_INTAKE_CLASSIFY
+  ACTION -> ACTION_SOURCE_INTAKE_SCHEMA_CONFIGURE
+  ACTION -> ACTION_SOURCE_SQLITE_INSPECT
+  ACTION -> ACTION_STORAGE_CONNECTOR_INSPECT
+  ACTION -> ACTION_STORAGE_CONNECTOR_SELECT
+  ACTION -> ACTION_TASK_CLASSIFY
+  ACTION -> ACTION_TASK_COMPLETE_AND_REFRESH
+  ACTION -> ACTION_TASK_CONFIRM_SOURCE_UPDATE
+  ACTION -> ACTION_TASK_RECORD_ACTIVITY
+  LANES_ANALYSIS -> LANES_ARTIFACTS [constraint=true style=invis weight=100]
+  LANES_ARTIFACTS -> LANES_BRAIN_LOADER [constraint=true style=invis weight=100]
+  LANES_BRAIN_LOADER -> LANES_CHAT_LINEAGE [constraint=true style=invis weight=100]
+  LANES_CHAT_LINEAGE -> LANES_CUSTOM [constraint=true style=invis weight=100]
+  LANES_DATA_EXCEL -> LANES_DISCUSSION [constraint=true style=invis weight=100]
+  LANES_DISCUSSION -> LANES_DOCS [constraint=true style=invis weight=100]
+  LANES_DOCS -> LANES_GITHUB_CODE [constraint=true style=invis weight=100]
+  LANES_GITHUB_CODE -> LANES_IMAGES_OCR [constraint=true style=invis weight=100]
+  LANES_LOCAL_CODE -> LANES_MODE [constraint=true style=invis weight=100]
+  LANES_MODE -> LANES_PDF_OCR [constraint=true style=invis weight=100]
+  LANES_PDF_OCR -> LANES_PLAN [constraint=true style=invis weight=100]
+  LANES_PLAN -> LANES_PPT [constraint=true style=invis weight=100]
+  LANES_PROJECT_ENGULF -> LANES_RESEARCH [constraint=true style=invis weight=100]
+  LANES_RESEARCH -> LANES_SQLITE_BRAIN [constraint=true style=invis weight=100]
+  MODES_ANALYSIS -> MODES_CODE [constraint=true style=invis weight=100]
+  MODES_CODE -> MODES_CUSTOM [constraint=true style=invis weight=100]
+  MODES_CUSTOM -> MODES_DATA [constraint=true style=invis weight=100]
+  MODES_DOCUMENT -> MODES_MEDIA [constraint=true style=invis weight=100]
+  MODES_MEDIA -> MODES_PLAN [constraint=true style=invis weight=100]
+  MODES_PLAN -> MODES_PROJECT_ENGULF [constraint=true style=invis weight=100]
+  MODES_RESEARCH -> MODES_RUNTIME [constraint=true style=invis weight=100]
+  ACTION_ADAPTIVE_DELTA_EXIT -> ACTION_AI_TOOLCHAIN_ROUTE [constraint=true style=invis weight=100]
+  ACTION_AI_TOOLCHAIN_ROUTE -> ACTION_BIGGER_UNIVERSE_LINK [constraint=true style=invis weight=100]
+  ACTION_BIGGER_UNIVERSE_LINK -> ACTION_BIGGER_UNIVERSE_REGISTER [constraint=true style=invis weight=100]
+  ACTION_BIGGER_UNIVERSE_REGISTER -> ACTION_BRAIN_SCALING_SELECT [constraint=true style=invis weight=100]
+  ACTION_BRAIN_SCALING_SELECT -> ACTION_CANON_BACKFIRE_HIL [constraint=true style=invis weight=100]
+  ACTION_CANON_BACKFIRE_HIL -> ACTION_CANON_BIND_EDGE [constraint=true style=invis weight=100]
+  ACTION_CANON_BIND_EDGE -> ACTION_CANON_CLASSIFY [constraint=true style=invis weight=100]
+  ACTION_CANON_CLASSIFY -> ACTION_CANON_DECIDE [constraint=true style=invis weight=100]
+  ACTION_CANON_DECIDE -> ACTION_CANON_DISPATCH_LINKED_TASK [constraint=true style=invis weight=100]
+  ACTION_CANON_DISPATCH_LINKED_TASK -> ACTION_CANON_GRAPH [constraint=true style=invis weight=100]
+  ACTION_CANON_GRAPH -> ACTION_CANON_INBOX [constraint=true style=invis weight=100]
+  ACTION_CANON_INBOX -> ACTION_CANON_INSPECT [constraint=true style=invis weight=100]
+  ACTION_CANON_RECEIVE -> ACTION_CANON_REGISTER_CONTRACT [constraint=true style=invis weight=100]
+  ACTION_CANON_REGISTER_CONTRACT -> ACTION_CANON_REGISTER_EDGE [constraint=true style=invis weight=100]
+  ACTION_CANON_REGISTER_EDGE -> ACTION_CANON_RESTORE_CONTINUITY [constraint=true style=invis weight=100]
+  ACTION_CANON_RESTORE_CONTINUITY -> ACTION_CANON_SEAL_CONTINUITY [constraint=true style=invis weight=100]
+  ACTION_CANON_SEAL_CONTINUITY -> ACTION_CANON_SEAL_ENVELOPE [constraint=true style=invis weight=100]
+  ACTION_CANON_SEAL_ENVELOPE -> ACTION_CANON_SEAL_RESULT [constraint=true style=invis weight=100]
+  ACTION_CANON_SEAL_RESULT -> ACTION_CANON_SUPERSEDE [constraint=true style=invis weight=100]
+  ACTION_CANON_SUPERSEDE -> ACTION_CONNECTOR_PLUGIN_CATALOG [constraint=true style=invis weight=100]
+  ACTION_CONNECTOR_PLUGIN_CATALOG -> ACTION_CONNECTOR_PLUGIN_DROP [constraint=true style=invis weight=100]
+  ACTION_CONNECTOR_PLUGIN_DROP -> ACTION_CONNECTOR_PLUGIN_REGISTER [constraint=true style=invis weight=100]
+  ACTION_CONNECTOR_PLUGIN_REGISTER -> ACTION_CONNECTOR_PLUGIN_ROUTE [constraint=true style=invis weight=100]
+  ACTION_CONNECTOR_PLUGIN_ROUTE -> ACTION_CONNECTOR_PLUGIN_SETTINGS [constraint=true style=invis weight=100]
+  ACTION_FETCH -> ACTION_FORMULA_ENGINE_RUN [constraint=true style=invis weight=100]
+  ACTION_FORMULA_ENGINE_RUN -> ACTION_GIT_SYNC_SELECTED [constraint=true style=invis weight=100]
+  ACTION_GIT_SYNC_SELECTED -> ACTION_HIL_DECIDE [constraint=true style=invis weight=100]
+  ACTION_HIL_DECIDE -> ACTION_HIL_INTENT_CLASSIFY [constraint=true style=invis weight=100]
+  ACTION_HIL_INTENT_CLASSIFY -> ACTION_HIL_RETURN_TO_ACCEPTED [constraint=true style=invis weight=100]
+  ACTION_HIL_RETURN_TO_ACCEPTED -> ACTION_LANE_CATALOG [constraint=true style=invis weight=100]
+  ACTION_LANE_CATALOG -> ACTION_LANE_CONFIGURE_ROUTES [constraint=true style=invis weight=100]
+  ACTION_LANE_CONFIGURE_ROUTES -> ACTION_LANE_FETCH [constraint=true style=invis weight=100]
+  ACTION_LANE_FETCH -> ACTION_LANE_SEARCH [constraint=true style=invis weight=100]
+  ACTION_LANE_SEARCH -> ACTION_LANE_STATUS [constraint=true style=invis weight=100]
+  ACTION_LANE_STATUS -> ACTION_LEARNING_DECIDE_CANDIDATE [constraint=true style=invis weight=100]
+  ACTION_LEARNING_DECIDE_CANDIDATE -> ACTION_LEARNING_INSPECT [constraint=true style=invis weight=100]
+  ACTION_LEARNING_RECORD_HOST_MEMORY_IMPORT -> ACTION_LEARNING_RETRIEVE [constraint=true style=invis weight=100]
+  ACTION_LEARNING_RETRIEVE -> ACTION_LEARNING_REVOKE [constraint=true style=invis weight=100]
+  ACTION_LEARNING_REVOKE -> ACTION_LEARNING_SEAL_CANDIDATE [constraint=true style=invis weight=100]
+  ACTION_LEARNING_SEAL_CANDIDATE -> ACTION_LIFECYCLE_TRANSITION_LAW [constraint=true style=invis weight=100]
+  ACTION_LIFECYCLE_TRANSITION_LAW -> ACTION_MODE_CLASSIFY [constraint=true style=invis weight=100]
+  ACTION_MODE_CLASSIFY -> ACTION_PROJECT_MEMORY_QUERY [constraint=true style=invis weight=100]
+  ACTION_PROJECT_MEMORY_QUERY -> ACTION_PROJECT_MEMORY_RECORD_LINK [constraint=true style=invis weight=100]
+  ACTION_PROJECT_MEMORY_RECORD_LINK -> ACTION_PROJECT_RECIPE_COMPILE [constraint=true style=invis weight=100]
+  ACTION_PROJECT_RECIPE_COMPILE -> ACTION_PROJECT_REGISTER [constraint=true style=invis weight=100]
+  ACTION_PROJECT_REGISTER -> ACTION_PROMPT_INDEX_STATUS [constraint=true style=invis weight=100]
+  ACTION_PROMPT_INDEX_STATUS -> ACTION_PV_BEGIN_NEXT_TURN [constraint=true style=invis weight=100]
+  ACTION_PV_BEGIN_NEXT_TURN -> ACTION_PV_BUILD_INITIAL [constraint=true style=invis weight=100]
+  ACTION_PV_DIFF -> ACTION_PV_ENROLL_PROJECT [constraint=true style=invis weight=100]
+  ACTION_PV_ENROLL_PROJECT -> ACTION_PV_FUSE [constraint=true style=invis weight=100]
+  ACTION_PV_FUSE -> ACTION_PV_PLAN_STEER_DELTA [constraint=true style=invis weight=100]
+  ACTION_PV_PLAN_STEER_DELTA -> ACTION_PV_PLAN_TASKS [constraint=true style=invis weight=100]
+  ACTION_PV_PLAN_TASKS -> ACTION_PV_QUERY [constraint=true style=invis weight=100]
+  ACTION_PV_QUERY -> ACTION_PV_ROLLBACK [constraint=true style=invis weight=100]
+  ACTION_PV_ROLLBACK -> ACTION_PV_STATE_TRAVEL_DIRECT_FORCE_SAME_WORKTREE [constraint=true style=invis weight=100]
+  ACTION_PV_STATE_TRAVEL_DIRECT_FORCE_SAME_WORKTREE -> ACTION_PV_STATUS [constraint=true style=invis weight=100]
+  ACTION_PV_STATUS -> ACTION_PV_SUMMARY [constraint=true style=invis weight=100]
+  ACTION_PV_SUMMARY -> ACTION_PV_TASK_BACKLOG [constraint=true style=invis weight=100]
+  ACTION_PV_TASK_BACKLOG -> ACTION_PV_TASK_TRANSITION [constraint=true style=invis weight=100]
+  ACTION_PV_TASK_TRANSITION -> ACTION_REMOTE_GIT_EXECUTE_PUSH [constraint=true style=invis weight=100]
+  ACTION_REMOTE_GIT_PREPARE_PUSH -> ACTION_RENDER_PROJECT_PANEL [constraint=true style=invis weight=100]
+  ACTION_RENDER_PROJECT_PANEL -> ACTION_RENDER_RUNTIME_PANEL [constraint=true style=invis weight=100]
+  ACTION_RENDER_RUNTIME_PANEL -> ACTION_RUNTIME_ACTIVATION_STATUS [constraint=true style=invis weight=100]
+  ACTION_RUNTIME_ACTIVATION_STATUS -> ACTION_RUNTIME_DOCTOR [constraint=true style=invis weight=100]
+  ACTION_RUNTIME_DOCTOR -> ACTION_SEARCH [constraint=true style=invis weight=100]
+  ACTION_SEARCH -> ACTION_SESSION_BOOT [constraint=true style=invis weight=100]
+  ACTION_SESSION_BOOT -> ACTION_SESSION_CLOSE [constraint=true style=invis weight=100]
+  ACTION_SESSION_CLOSE -> ACTION_SESSION_FLASH_STATUS [constraint=true style=invis weight=100]
+  ACTION_SESSION_FLASH_STATUS -> ACTION_SESSION_RESUME [constraint=true style=invis weight=100]
+  ACTION_SESSION_RESUME -> ACTION_SOURCE_CUSTOM_SCHEMA_COMPILE [constraint=true style=invis weight=100]
+  ACTION_SOURCE_CUSTOM_SCHEMA_COMPILE -> ACTION_SOURCE_GIT_COMMIT_IMPACT [constraint=true style=invis weight=100]
+  ACTION_SOURCE_GIT_COMMIT_IMPACT -> ACTION_SOURCE_GIT_HISTORY_BUILD [constraint=true style=invis weight=100]
+  ACTION_SOURCE_GRAPH_BUILD -> ACTION_SOURCE_GRAPH_DIFF [constraint=true style=invis weight=100]
+  ACTION_SOURCE_GRAPH_DIFF -> ACTION_SOURCE_GRAPH_IMPACT [constraint=true style=invis weight=100]
+  ACTION_SOURCE_GRAPH_IMPACT -> ACTION_SOURCE_IDENTITY_REGISTER [constraint=true style=invis weight=100]
+  ACTION_SOURCE_IDENTITY_REGISTER -> ACTION_SOURCE_INTAKE_CLASSIFY [constraint=true style=invis weight=100]
+  ACTION_SOURCE_INTAKE_CLASSIFY -> ACTION_SOURCE_INTAKE_SCHEMA_CONFIGURE [constraint=true style=invis weight=100]
+  ACTION_SOURCE_INTAKE_SCHEMA_CONFIGURE -> ACTION_SOURCE_SQLITE_INSPECT [constraint=true style=invis weight=100]
+  ACTION_SOURCE_SQLITE_INSPECT -> ACTION_STORAGE_CONNECTOR_INSPECT [constraint=true style=invis weight=100]
+  ACTION_STORAGE_CONNECTOR_INSPECT -> ACTION_STORAGE_CONNECTOR_SELECT [constraint=true style=invis weight=100]
+  ACTION_STORAGE_CONNECTOR_SELECT -> ACTION_TASK_CLASSIFY [constraint=true style=invis weight=100]
+  ACTION_TASK_CLASSIFY -> ACTION_TASK_COMPLETE_AND_REFRESH [constraint=true style=invis weight=100]
+  ACTION_TASK_COMPLETE_AND_REFRESH -> ACTION_TASK_CONFIRM_SOURCE_UPDATE [constraint=true style=invis weight=100]
+  ACTION_TASK_CONFIRM_SOURCE_UPDATE -> ACTION_TASK_RECORD_ACTIVITY [constraint=true style=invis weight=100]
+  HOSTS_CODEX_CLI -> HOSTS_CODEX_DESKTOP_BETA [constraint=true style=invis weight=100]
+  HOSTS_CODEX_DESKTOP_BETA -> HOSTS_CODEX_DESKTOP_STABLE [constraint=true style=invis weight=100]
+  HOSTS_CODEX_VM_EPHEMERAL -> HOSTS_CODEX_VM_PERSISTENT [constraint=true style=invis weight=100]
+  FORMULAS_CODE_BOOLEAN_GATE -> FORMULAS_DELTA_COMPLETION [constraint=true style=invis weight=100]
+  FORMULAS_DELTA_COMPLETION -> FORMULAS_GOAL_OPTION_2_READY [constraint=true style=invis weight=100]
+  FORMULAS_GOAL_OPTION_2_READY -> FORMULAS_LEARNING_HIL_READY [constraint=true style=invis weight=100]
+  FORMULAS_PROJECT_HIL_READY -> FORMULAS_SOURCE_INTEGRITY [constraint=true style=invis weight=100]
+  FORMULAS_SOURCE_INTEGRITY -> FORMULAS_STATE_TRAVEL_READY [constraint=true style=invis weight=100]
 }

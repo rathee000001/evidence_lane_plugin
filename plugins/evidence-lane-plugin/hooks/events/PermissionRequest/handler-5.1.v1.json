@@ -13,11 +13,24 @@
     "statusMessage": "Validating and bounding Evidence Lane hook signal"
   },
   "logical_action": "VALIDATE_REDACT_AND_BOUND_VISIBLE_SIGNAL",
+  "handler_stage_role": "VALIDATE_REDACT_AND_BOUND_VISIBLE_SIGNAL",
+  "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
+  "workflow_contract": {
+    "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
+    "action_scope": "BOUND_OBSERVATION_ONLY",
+    "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
+    "skill_consumer": "consume_optional_observer_transport",
+    "workflow_phases": [
+      "HOST_PERMISSION_OBSERVATION"
+    ],
+    "public_action_boundary": true
+  },
+  "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
   "stage": "hooks/subhook_validate.py",
   "stage_sha256": "D218BB6F4923746A558FB1E70F9B8E32AE14EB0002D5EC13AAA042377066B874",
   "adapter": "hooks/permission_request.py",
   "adapter_sha256": "05283C844BCE39B541912BCC66500B76FC7BD93C8092E064D377F104B8D971A8",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "B4EAC65AEA02274D7A36569B37A1ED646A4F79026942DF88172A9A1F6FF6588D"
+  "receipt_sha256": "03255813FC5A83609CB3EAFA1F25F01404BC8F1D87B3CB4B3994DE751B7C873C"
 }

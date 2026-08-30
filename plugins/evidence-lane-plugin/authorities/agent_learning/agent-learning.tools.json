@@ -16,7 +16,7 @@
   "linked_public_actions": [
     {
       "name": "learning_decide_candidate",
-      "schema_sha256": "991154FE28FF2E4108C4587D2CFF30E29772E1F299B7573D5C0FDCF49D652A60",
+      "schema_sha256": "A6FAAF7B15F4D7DB515C88F391F851013079998BE3E57105732684A420EF1459",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi-learning",
@@ -172,7 +172,7 @@
     },
     {
       "name": "pv_query",
-      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi",
@@ -185,7 +185,7 @@
         "skill_workflows": [
           {
             "owner_skill": "evi",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           },
           {
@@ -210,7 +210,7 @@
           },
           {
             "owner_skill": "evi-plan",
-            "workflow": "live-six-authority-read",
+            "workflow": "live-current-authority-read",
             "order": 3
           },
           {
@@ -225,7 +225,7 @@
           },
           {
             "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           }
         ],
@@ -358,10 +358,10 @@
     }
   ],
   "linked_skills": {
-    "skills/evi-learning/SKILL.md": "45A0404DDEF8CC1B8531715D54485CDB698CFC52B2F7A8A689142A3BE03CF721"
+    "skills/evi-learning/SKILL.md": "42AB4B361F38BD7744078B647190D28FB642D1F701CC90D79C53BEA12913E8E5"
   },
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/agent_learning.py": "38D89683C25EA536392E2EC9816B26F4B94E1561057791EAEF792104C3A54331",
+    "src/evidence_lane_plugin/agent_learning.py": "BF75C699067155F4C0CD3E757954F9BC99372B485F400811AC4C659F0D3A9572",
     "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
@@ -382,24 +382,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:04.901810Z",
-    "receipt_sha256": "EA490FD48CC8340D7E329FF79A70B17DB850A62F53302CC2B2A015DF004975AE"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "F53C0B37EFD3D57F4CCD6E93E6D3F63B365ACBA7A2A50BFC3EBDBDE7A16E8BE5"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "agent_learning_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 172,
-    "edge_count": 177,
+    "node_count": 171,
+    "edge_count": 179,
     "group_count": 1,
-    "semantic_topology_sha256": "8584A01D90C7488FF7F803E2D725F28B4AF30126262C575D3CBA28EFB11F298B",
-    "mmd_sha256": "6586301A19FCED13BE51B7502A9BF4EB266A250163303C92CE85661AB610D52C",
-    "dot_sha256": "93300F5B094EC846711214426DA9EE3C4FA9A2058E541F87C98BAD510B7FD2B6",
+    "semantic_topology_sha256": "AB6C3738FE1518F515FA22C8B5065A1117772B2A5A98AFB90AFB0E21B02B8134",
+    "mmd_sha256": "C12D300EBCCB8D5956C198FD67E40190E00FB383FBF9DE16573B8F17CDDBECCB",
+    "dot_sha256": "F64CF91A54F309439DD7E0D9DE67139BC1AE4D4C7643162EDF1D4F6A7B71DAB3",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "EAE68F5E7916FC4F2B6A447DE5ED202648D4DE153B151A3F93803351DB749A87",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "AFFB5ABBF05C9BFC98A88DCFC7C5E4484C02F924B375288EFAF619F48897B5E0",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -409,10 +409,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 172,
-      "edge_count": 177,
+      "node_count": 171,
+      "edge_count": 179,
       "weak_component_count": 1,
-      "strong_component_count": 172,
+      "strong_component_count": 171,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -441,14 +441,19 @@
           "out_degree": 11
         },
         {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 10
+        },
+        {
           "node_id": "support_table_learning_event",
           "in_degree": 1,
           "out_degree": 10
         },
         {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 9
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 8
         },
         {
           "node_id": "support_table_learning_pointer_history",
@@ -456,19 +461,14 @@
           "out_degree": 9
         },
         {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 7
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_memory_locator_fts_content",
           "in_degree": 1,
           "out_degree": 7
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
         },
         {
           "node_id": "support_table_learning_candidate_fts_content",
@@ -501,6 +501,11 @@
           "out_degree": 5
         },
         {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
           "node_id": "support_table_authority_index_fts_idx",
           "in_degree": 1,
           "out_degree": 3
@@ -509,21 +514,29 @@
           "node_id": "support_table_learning_candidate_fts_idx",
           "in_degree": 1,
           "out_degree": 3
-        },
-        {
-          "node_id": "support_table_memory_locator_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
         }
       ],
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "027B4AC2579E50F9F10BF279E2F5F6C233328D9A66F074975D567D9BEFE5940F",
+    "graph_analysis_sha256": "DEE09DA3EA01ECCE6BFDD58867D0D9CACE82837CEB3C0734FBF894CED7E9BB4B",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 101,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "2EF539246B6DD2CB281B897C810DB5A95234485F1DD49B5CCB271EADED3505CD"
+    "receipt_sha256": "C174520B955F8459807EB0DBC08DACC2129684DDCC95D2E6CA4D82525D15288F"
   },
-  "receipt_sha256": "AAC9FBA076BE72654CEEE074ECD4F1D83B47454E6D57EED3ACECD3ED191E676F"
+  "dedicated_workflow": {
+    "json": "authorities/agent_learning/workflow.v1.json",
+    "mmd": "authorities/agent_learning/workflow.mmd",
+    "dot": "authorities/agent_learning/workflow.dot",
+    "json_sha256": "F65F33034D336E6F0715D836A044E85690319FA22EDDDABC31F064C49787ABB2",
+    "mmd_sha256": "80A7AB2611274DB7F96D810C6CB2652F9D4485E41758FD1BDE57E5A8F663F6CD",
+    "dot_sha256": "D055CC9E10DB06BFAAD86A6253A09E5706F9434276E443BC20D2A6EB71D1B464"
+  },
+  "receipt_sha256": "43740238C8E9BEA14CC406265B7048510401757607D0AD734A8685EEE714C0FB"
 }

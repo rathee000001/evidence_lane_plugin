@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sdk-workflow-projection.v1",
   "status": "PASS",
   "skill": "evi-additional-plugin",
-  "skill_sha256": "EC66213738DD0A051F9789ED76BC7844131603CAD7DFB06B39329E9B84A51DF2",
+  "skill_sha256": "DD6534D77622D83B42F3C9AF01866A16745086E4853B09F778CF647C792490BF",
   "ordered_tool_groups": [
     {
       "order": 1,
@@ -78,6 +78,6 @@
   ],
   "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
   "canonical_routing_source": "skills/evi/references/mcp-tool-routing.v1.json",
-  "canonical_routing_source_sha256": "41B96A89C10E79D696A2A924D8423ECCB37C7C2FBB72B87B7AAB1BD23B789867",
-  "receipt_sha256": "3EE88C223694E9B113FB43DDCBEFEA49FE548F3FBC65296086630F61B59D48F5"
+  "canonical_routing_source_sha256": "70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8",
+  "receipt_sha256": "E6129847B65C902DBFD9B086D6326ED32B6D52749819D0EF785B308AE88E3479"
 }

@@ -3,7 +3,7 @@
   "schema": "evidence-lane.public-action-contract.v1",
   "name": "task_complete_and_refresh",
   "title": "Seal one HIL-only live-root proposal and dual presentation",
-  "description": "Confirm the exact host-specific final source boundary and immediately run the HIL-only live-root Project Overlay/proposal operation. The proposal remains unaccepted and the result stops at the conjoined Project and consolidated Learning six-way HIL, including the bounded Learning weave summary. An optional exact ordered batch can append QUEUED -> ACTIVE -> DONE for every queued Delta only when each task has bounded implementation and verification evidence. If the same pending live-root proposal predates bounded exit-side writes, archive its prior seal and finalize that exact candidate ID without clearing or rebuilding it. Accepted snapshot storage is not opened or queried. Users do not need a separate Refresh or exit command.",
+  "description": "Confirm the exact host-specific final source boundary and immediately run the HIL-only live-root Project Overlay/proposal operation. The proposal remains unaccepted and the result stops at the conjoined Project and consolidated Learning governed HIL, including the bounded Learning weave summary. An optional exact ordered batch can append QUEUED -> ACTIVE -> DONE for every queued Delta only when each task has bounded implementation and verification evidence. If the same pending live-root proposal predates bounded exit-side writes, archive its prior seal and finalize that exact candidate ID without clearing or rebuilding it. Accepted snapshot storage is not opened or queried. Users do not need a separate Refresh or exit command.",
   "input_schema": {
     "properties": {
       "project_id": {
@@ -89,8 +89,8 @@
     ],
     "executable": true
   },
-  "canonical_schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570",
+  "canonical_schema_sha256": "DDCC0D86F2CB504F7BD9B6CAE92C275E6792507B47C67E86EE6C83462F65FC19",
   "canonical_catalog": "schemas/public-action-schemas.v001.json",
   "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
-  "receipt_sha256": "F2C993909F970988445E1CF540601B29EE154405419BE61C0DD53BBF3C10E83F"
+  "receipt_sha256": "E4C4D69CBAF977C920555F9B49780F063D994CB64AAF331D5AB158944FB44273"
 }

@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "3.0.0+codex.20260828101843",
+  "version": "3.0.0+codex.20260829234050",
   "description": "Evidence Lane keeps long Codex projects grounded in their evidence, resumes the exact unfinished work, and leaves every important decision with the user.",
   "author": {
     "name": "Praveen Rathee",
@@ -32,9 +32,9 @@
     "privacyPolicyURL": "https://evidencelane.org/privacy",
     "termsOfServiceURL": "https://evidencelane.org/terms",
     "defaultPrompt": [
-      "Open my Evidence Lane project, verify that it is ready, and show the six controls available on this host.",
+      "Open my Evidence Lane project, verify that it is ready, show the current safe human entrypoints, and route every registered first-class workflow through the installed SDK automatically.",
       "Show the accepted project state, current Plan row, recent changes, and supporting evidence without changing anything.",
-      "Explain the current six-way HIL, the exact next human decision, and what each choice would change."
+      "Explain the current governed HIL, the exact next human decision, and what each choice would change."
     ],
     "brandColor": "#18A9C8",
     "composerIcon": "./assets/evidence-lane-icon.png",

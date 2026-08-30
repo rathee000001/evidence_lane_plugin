@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "discussion",
   "authority_root": "authorities/project_sectors/discussion",
-  "authority_manifest_sha256": "F95482DD75F82ADB280366A4FE220272AF55019D2282A77BD0B511CC550E4940",
+  "authority_manifest_sha256": "F5DABC564F383AF7C2D5F27D5D4B1209E4ACEB7B5C7DB5467FED53CDFCC93A35",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -43,8 +43,8 @@
     },
     {
       "path": "authorities/project_sectors/discussion/schema.sql",
-      "bytes": 9067,
-      "sha256": "7C75EFFDE12734163A3D6F3F1286E217572696EDE144A5CAF8AF9686B58049AB"
+      "bytes": 9654,
+      "sha256": "933FA0BEB97B4F2ABB056E74BD292D2A0C77CB7C02D1FBAAC3978A1CA421E0D8"
     },
     {
       "path": "authorities/project_sectors/discussion/sqlite-artifact.schema.json",
@@ -53,12 +53,12 @@
     },
     {
       "path": "authorities/project_sectors/discussion/tools.schema.json",
-      "bytes": 1005,
-      "sha256": "38B6427A89C2E82681151D03711D3BF1844E4ED8816D7C29A25DF7A34A9ED5AE"
+      "bytes": 1451,
+      "sha256": "A1BCCA4BD7A26B5685327D456B36B652C89133E888DC78047147DACA806F1A3A"
     }
   ],
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
-  "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "canonical_lane_contract_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "D8165BE33A61B2593704739ED2866C5B20B578639F4B464F158CEE304EA5CF44"
+  "receipt_sha256": "0C4D46E09DA495712AA553BDB4E680CBF77BA22E5F9942C1709E61D30E65F144"
 }

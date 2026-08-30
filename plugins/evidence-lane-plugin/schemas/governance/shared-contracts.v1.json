@@ -6,7 +6,7 @@
     "UOP"
   ],
   "shared_contracts": {
-    "live_root_query": "live-root-env-uop-six-way-query.v001.json",
+    "live_root_query": "live-root-current-authority-query.v002.json",
     "lane_fts5_bm25": "lane-search-fts5.v001.json",
     "canon": "canon/canon-consequence-graph.v1.sql",
     "memory": "memory/project-memory.v1.sql",
@@ -36,5 +36,5 @@
     "PROJECT_UNIVERSE",
     "CONNECTOR_BRAIN"
   ],
-  "receipt_sha256": "32F86095ED98B6169485618CE4172D9B15FA926DFE51F85318B4698F482370A3"
+  "receipt_sha256": "B805A4B010883272D5210BC6A88AF47CFC2311A9182F83451586D0EC50D2D3F2"
 }

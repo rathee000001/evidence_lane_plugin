@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "analysis",
   "authority_root": "authorities/project_sectors/analysis",
-  "authority_manifest_sha256": "7592C988BC369344859655473F2E9E4F6ECDD2B045B70585273B12FF7983B2CD",
+  "authority_manifest_sha256": "AE3BACC7618DC0FB3206A6188302B0BB9B7F136FF55E63B764805A335BC410A2",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -43,8 +43,8 @@
     },
     {
       "path": "authorities/project_sectors/analysis/schema.sql",
-      "bytes": 9359,
-      "sha256": "CAF50998F09CDD0FA2624257B59F91B068DA1D7B79C2B645EB2928924AD9DBD4"
+      "bytes": 9946,
+      "sha256": "EA77328CB0941DEAF9D08AEDE2F5D6931899B6BF8EC28201AE9122A11B7F148E"
     },
     {
       "path": "authorities/project_sectors/analysis/sqlite-artifact.schema.json",
@@ -53,12 +53,12 @@
     },
     {
       "path": "authorities/project_sectors/analysis/tools.schema.json",
-      "bytes": 1001,
-      "sha256": "6B083DB28D016DBACE3D2EA03B18DCE2FEC792687A0FBE4ED10DB3FBA1F995C7"
+      "bytes": 1447,
+      "sha256": "2E3E8649F5855D6871BC6DED2ADE128C674EF7AEC3A6EDFFB7A33995D30AB36A"
     }
   ],
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
-  "canonical_lane_contract_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "canonical_lane_contract_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "026B0BD849B9FE04ADA60A03871E70708E81084C63D823B6EC2088D08F007AF7"
+  "receipt_sha256": "B0A0C0C95A8DB39F03F00E2F9ABD13D379D5A8509D5C921EBDA391A2925DF0DF"
 }

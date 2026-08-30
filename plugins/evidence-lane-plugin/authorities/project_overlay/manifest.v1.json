@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_overlay",
   "database": "project_overlay.sqlite",
-  "database_sha256": "885C07E073785B532B1B496824DC6A9FAFF1CF2C13E2426BF76193EEDCDE5134",
+  "database_sha256": "E54785A60DF858293829A649116C792E6AF7DA8D3BA83619B6E59E79660C56BF",
   "database_integrity": "ok",
-  "schema_sha256": "394497590101C4326BD60DD9437DEB1DCD013D545B65DDF96FD4FCF258FE77D0",
+  "schema_sha256": "0BE6DE1C173C884E719164EA906CEE3811925B9095410D813DE87BB17A3FC9AB",
   "table_count": 28,
   "fts5_tables": [
     "authority_index_fts",
@@ -49,23 +49,23 @@
     },
     {
       "path": "authorities/project_overlay/project_overlay.dot",
-      "bytes": 49150,
-      "sha256": "A9610615267BBD5F2BBC201167BF810244BB7895D8D58674DFBF8FD57B004162"
+      "bytes": 66108,
+      "sha256": "EBBDA93802D1F70423B53B19041E69B86D9F13F3741238F5F9E2567270463296"
     },
     {
       "path": "authorities/project_overlay/project_overlay.mmd",
-      "bytes": 36589,
-      "sha256": "E2CE96E1A276FACD04F504A69EB96CD5C36100D5BE07FEC695D71E8D9644CA9F"
+      "bytes": 49285,
+      "sha256": "6F424EE4A99A731C2F0079C5478CAD56FE7AADC239F856C8C5278A0A4D03870D"
     },
     {
       "path": "authorities/project_overlay/project_overlay.sqlite",
-      "bytes": 217088,
-      "sha256": "885C07E073785B532B1B496824DC6A9FAFF1CF2C13E2426BF76193EEDCDE5134"
+      "bytes": 221184,
+      "sha256": "E54785A60DF858293829A649116C792E6AF7DA8D3BA83619B6E59E79660C56BF"
     },
     {
       "path": "authorities/project_overlay/project_overlay.tools.json",
-      "bytes": 14275,
-      "sha256": "08010E6D33574DDE92E65081FDAFFE5AA0B7C99D0E4D36252ED06BE2CC7E0026"
+      "bytes": 14999,
+      "sha256": "123474C075392D191637C4CC5D67C9C6DB048EA9B60547A9EF9B873F596529CB"
     },
     {
       "path": "authorities/project_overlay/reader-contract.schema.json",
@@ -99,8 +99,8 @@
     },
     {
       "path": "authorities/project_overlay/schema.sql",
-      "bytes": 7892,
-      "sha256": "B0763B43518C9CA23A0ED7E87F1AFBCFF9C336BE6E05643EEF74D6AAC708C359"
+      "bytes": 8408,
+      "sha256": "3DD89642B5F682332AA6D98812E2E94E10F28F5D9F39D5E240150992C134AA10"
     },
     {
       "path": "authorities/project_overlay/sqlite-artifact.schema.json",
@@ -109,19 +109,34 @@
     },
     {
       "path": "authorities/project_overlay/sqlite-schema.v1.json",
-      "bytes": 42131,
-      "sha256": "783A8EAD6E9587795D92726AC885B81ABFF121063122E4862BD9DA519C20C3CC"
+      "bytes": 42901,
+      "sha256": "04200F56EEE3D61AD41ACA290E3FCCEE2FC9E9666EC0226171BCCD9E85ADC5BE"
     },
     {
       "path": "authorities/project_overlay/tools.schema.json",
       "bytes": 541,
       "sha256": "50BCFB5DA2E946E91CDE4354CDC3FBDE1FB376AC9C0149CB9F7277C0EE4E9DE8"
+    },
+    {
+      "path": "authorities/project_overlay/workflow.dot",
+      "bytes": 5892,
+      "sha256": "BD8CB4332734FEF158984B6557F82F13E8A1071E7E07C98186BFBF3BED248D68"
+    },
+    {
+      "path": "authorities/project_overlay/workflow.mmd",
+      "bytes": 4687,
+      "sha256": "92119D001AAD61C4F9FBF9EE1E633911AB3A88B4F6D205CFAB7D040FB1A34BCB"
+    },
+    {
+      "path": "authorities/project_overlay/workflow.v1.json",
+      "bytes": 16066,
+      "sha256": "874AC9FAB262475027D6D1776F3755A3F45DEC5098F4C40D7279EB4BD9A55141"
     }
   ],
   "canonical_source_hashes": {
     "src/evidence_lane_plugin/project_overlay.py": "F9C2D4D6339DEA0EC413A28F16F03AB8D99CF083F796B5B73815974490EAEF86",
-    "src/evidence_lane_plugin/adaptive_delta_exit.py": "480467D59E86DF7293EB2C3CEA5D80CCC5670F9B2A08BF21074C323524B14AE0",
-    "src/evidence_lane_plugin/store.py": "C20836BBA55DE7C3AB5A38C3AEC0988A0B4BF2FB1C50CAA33E63DBF5A1B98F96",
+    "src/evidence_lane_plugin/adaptive_delta_exit.py": "36847646D49534C0649CE9D15C806A9A52890A1B90BADE3F30E5FEA0B35D6149",
+    "src/evidence_lane_plugin/store.py": "CB9E657ED52938A40B5C3E60EC346A2007ED78CB62771B57100227E166551A17",
     "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
@@ -140,24 +155,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:05.849740Z",
-    "receipt_sha256": "52293A739108CFE711F4840BC9F3AAF9DDED205694667CEC8E8AF66EA59CFFCF"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "2244484558601207C94D808BCAF0CE046CB3F14A673EA912F9747016E0A3260E"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "project_overlay_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 185,
-    "edge_count": 192,
+    "node_count": 184,
+    "edge_count": 194,
     "group_count": 1,
-    "semantic_topology_sha256": "F6FB46B346227C586E9C22E7B648493FBD5FA14992A788C11109154B33562915",
-    "mmd_sha256": "E2CE96E1A276FACD04F504A69EB96CD5C36100D5BE07FEC695D71E8D9644CA9F",
-    "dot_sha256": "A9610615267BBD5F2BBC201167BF810244BB7895D8D58674DFBF8FD57B004162",
+    "semantic_topology_sha256": "E8849EF176DDFE2D3D7AD4E47CF3CF27D33DFBEAFB68D5F8120991FAF1E9FF75",
+    "mmd_sha256": "6F424EE4A99A731C2F0079C5478CAD56FE7AADC239F856C8C5278A0A4D03870D",
+    "dot_sha256": "EBBDA93802D1F70423B53B19041E69B86D9F13F3741238F5F9E2567270463296",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "EA2336DE910D101F0AE0305FB1D8C1EDBD055CF20C0D235E3F170158E7E11EA2",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "200EB4135869AC44672088E0849422F6FED444D4C057EA3A5367FC74FA400AEE",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -167,10 +182,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 185,
-      "edge_count": 192,
+      "node_count": 184,
+      "edge_count": 194,
       "weak_component_count": 1,
-      "strong_component_count": 185,
+      "strong_component_count": 184,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -194,14 +209,19 @@
           "out_degree": 12
         },
         {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 10
+        },
+        {
           "node_id": "support_table_overlay_history_baseline",
           "in_degree": 1,
           "out_degree": 10
         },
         {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 9
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 8
         },
         {
           "node_id": "support_table_hil_transition_receipt",
@@ -214,9 +234,9 @@
           "out_degree": 9
         },
         {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 7
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_fusion_receipt",
@@ -227,11 +247,6 @@
           "node_id": "support_table_sector_hil_snapshot",
           "in_degree": 1,
           "out_degree": 8
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
         },
         {
           "node_id": "support_table_chat_lineage_sector_fanout",
@@ -277,13 +292,18 @@
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "2A4783EFAF29CE4DF156016D45D43D763F3066DDC8B28530DAD2F93BC6C57043",
+    "graph_analysis_sha256": "F9505490AB0DC67978B177880F6117000C280FF6C22D452F69037458E3FCB281",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 111,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "24D4553453E93AD482DE17A86B0DE731C54BECA598EBC9B94172DA367C70F3DB"
+    "receipt_sha256": "18C61D6BC7A3DC024FD90A6B64F7B799994D000571C359B13CCEF65298D1444A"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "134CFE5F8BB5D4944C6412D157DEF33E341A99AB295A17A0531C4CAA16E7C58B"
+  "receipt_sha256": "6AC16145D45908912AD5807FF08EC2F60052DF8D0AFAB3185CC5827EBB3BD804"
 }

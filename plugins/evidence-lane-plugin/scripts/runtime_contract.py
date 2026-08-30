@@ -19,6 +19,7 @@ from typing import Any
 
 RUNTIME_SCHEMA = "evidence-lane.codex-native-runtime.v1"
 MARKER_SCHEMA = "evidence-lane.codex-native-runtime-ready.v1"
+ACCELERATOR_PROFILES = ("cpu", "auto", "nvidia", "amd")
 
 
 def _sha256(path: Path) -> str:
@@ -58,18 +59,37 @@ def data_root() -> Path:
     return resolved
 
 
+def accelerator_profile() -> str:
+    profile = os.environ.get("EVIDENCE_LANE_ACCELERATOR_PROFILE", "cpu").strip().lower()
+    if profile not in ACCELERATOR_PROFILES:
+        raise RuntimeError("Unsupported EVIDENCE_LANE_ACCELERATOR_PROFILE.")
+    return profile
+
+
 def runtime_identity(plugin_root: Path) -> dict[str, Any]:
     lock = plugin_root / "requirements.lock.txt"
     torch_lock = plugin_root / "requirements.torch-cpu.lock.txt"
+    nvidia_torch_lock = plugin_root / "requirements.torch-nvidia.lock.txt"
+    directml_lock = plugin_root / "requirements.onnx-directml.lock.txt"
     toolchain_lock = plugin_root / "requirements.toolchain.lock.txt"
-    if not lock.is_file() or not torch_lock.is_file() or not toolchain_lock.is_file():
+    if not all(
+        path.is_file()
+        for path in (lock, torch_lock, nvidia_torch_lock, directml_lock, toolchain_lock)
+    ):
         raise RuntimeError(
-            "Missing pinned CPU Torch, base, or full-toolchain dependency lock."
+            "Missing pinned CPU/NVIDIA/DirectML, base, or full-toolchain dependency lock."
         )
+    profile = accelerator_profile()
+    selected_torch_lock = nvidia_torch_lock if profile == "nvidia" else torch_lock
     core = {
         "schema": RUNTIME_SCHEMA,
+        "accelerator_profile": profile.upper(),
         "requirements_lock_sha256": _sha256(lock),
         "requirements_torch_cpu_lock_sha256": _sha256(torch_lock),
+        "requirements_torch_nvidia_lock_sha256": _sha256(nvidia_torch_lock),
+        "requirements_onnx_directml_lock_sha256": _sha256(directml_lock),
+        "selected_torch_lock_sha256": _sha256(selected_torch_lock),
+        "directml_selected": profile == "amd" and platform.system() == "Windows",
         "requirements_toolchain_lock_sha256": _sha256(toolchain_lock),
         "python_implementation": platform.python_implementation(),
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",

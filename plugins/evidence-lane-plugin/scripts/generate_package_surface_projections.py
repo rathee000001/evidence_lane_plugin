@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import sqlite3
+import subprocess
 import sys
 import tempfile
 import time
@@ -44,6 +45,79 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest().upper()
 
 
+def _canonicalize_sqlite_header(path: Path) -> dict[str, Any]:
+    """Make a logically unchanged packaged SQLite authority byte-stable.
+
+    SQLite increments the file-change counter, schema cookie, and
+    version-valid-for fields even when a deterministic rebuild produces the
+    same logical database. The packaged ENV/UOP authorities are closed before
+    this step, so bind the schema cookie to the canonical sqlite_master graph
+    and reset the paired change/version counters. Runtime writes will advance
+    them normally after installation.
+    """
+
+    connection = sqlite3.connect(path)
+    try:
+        schema_rows = [
+            {
+                "type": str(row[0]),
+                "name": str(row[1]),
+                "table": str(row[2]),
+                "sql": str(row[3] or ""),
+            }
+            for row in connection.execute(
+                "SELECT type,name,tbl_name,sql FROM sqlite_master "
+                "ORDER BY type,name,tbl_name"
+            )
+        ]
+        schema_cookie = (
+            int(hashlib.sha256(_json_bytes(schema_rows)).hexdigest()[:8], 16)
+            & 0x7FFFFFFF
+        )
+        schema_cookie = schema_cookie or 1
+        connection.execute(f"PRAGMA schema_version={schema_cookie}")
+        connection.commit()
+    finally:
+        connection.close()
+
+    header = path.read_bytes()[:100]
+    if len(header) < 100 or header[:16] != b"SQLite format 3\x00":
+        raise RuntimeError(f"SQLITE_HEADER_INVALID:{path}")
+    stable_change_counter = 1
+    with path.open("r+b") as stream:
+        stream.seek(24)
+        stream.write(stable_change_counter.to_bytes(4, "big"))
+        stream.seek(40)
+        stream.write(schema_cookie.to_bytes(4, "big"))
+        stream.seek(92)
+        stream.write(stable_change_counter.to_bytes(4, "big"))
+        stream.flush()
+        os.fsync(stream.fileno())
+
+    verification = sqlite3.connect(
+        f"file:{path.resolve().as_posix()}?mode=ro&immutable=1",
+        uri=True,
+    )
+    try:
+        integrity = [
+            str(row[0]) for row in verification.execute("PRAGMA integrity_check")
+        ]
+        observed_cookie = int(
+            verification.execute("PRAGMA schema_version").fetchone()[0]
+        )
+    finally:
+        verification.close()
+    if integrity != ["ok"] or observed_cookie != schema_cookie:
+        raise RuntimeError(f"SQLITE_HEADER_CANONICALIZATION_FAILED:{path}")
+    return {
+        "path": path.relative_to(PLUGIN_ROOT).as_posix(),
+        "schema_cookie": schema_cookie,
+        "file_change_counter": stable_change_counter,
+        "version_valid_for": stable_change_counter,
+        "sha256": _sha256(path),
+    }
+
+
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = content.replace("\r\n", "\n").encode("utf-8")
@@ -72,6 +146,96 @@ def _write_json(path: Path, body: dict[str, Any]) -> None:
     body = dict(body)
     body["receipt_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
     _write(path, _pretty_json(body))
+
+
+def _refresh_flash_authority_pins() -> dict[str, str]:
+    source = PACKAGE_ROOT / "flash_authority.py"
+    text = source.read_text(encoding="utf-8")
+    values = {
+        "FLASH_MANIFEST_SHA256": _sha256(
+            PLUGIN_ROOT / "env" / "SESSION_FLASH_MANIFEST.json"
+        ),
+        "ENV_MMD_SHA256": _sha256(PLUGIN_ROOT / "env" / "env_mmd.mmd"),
+        "UOP_MMD_SHA256": _sha256(PLUGIN_ROOT / "uop" / "uop_mmd.mmd"),
+        "ENV_DOT_SHA256": _sha256(PLUGIN_ROOT / "env" / "env_mmd.dot"),
+        "UOP_DOT_SHA256": _sha256(PLUGIN_ROOT / "uop" / "uop_mmd.dot"),
+    }
+    for name, value in values.items():
+        pattern = re.compile(
+            rf"({name}\s*=\s*(?:\(\s*)?\")([A-F0-9]{{64}})(\"(?:\s*\))?)",
+            flags=re.MULTILINE,
+        )
+        text, count = pattern.subn(rf"\g<1>{value}\g<3>", text, count=1)
+        if count != 1:
+            raise ValueError(f"Unable to refresh flash authority pin: {name}")
+    _write(source, text)
+    projection_tables = {
+        "env": (
+            "codex_host_variant_v17",
+            "env_workflow_event_v17",
+            "env_mode_registry_v17",
+            "env_project_class_policy_v17",
+            "env_formula_registry_v17",
+            "env_operator_registry_v17",
+            "env_tool_registry_v17",
+            "env_action_binding_v17",
+            "env_lane_binding_v17",
+            "env_skill_binding_v17",
+            "env_hook_binding_v17",
+            "env_sdk_action_binding_v17",
+            "env_mcp_action_binding_v17",
+        ),
+        "uop": (
+            "uop_governance_operator_v17",
+            "uop_project_class_hil_policy_v17",
+            "uop_workflow_gate_v17",
+            "uop_action_policy_v17",
+            "uop_tool_policy_v17",
+            "uop_host_policy_v17",
+            "uop_fallback_policy_v17",
+        ),
+    }
+    projection: dict[str, Any] = {}
+    for authority, tables in projection_tables.items():
+        database = PLUGIN_ROOT / authority / f"{authority}_sqlite.sqlite"
+        connection = sqlite3.connect(
+            f"file:{database.resolve().as_posix()}?mode=ro&immutable=1",
+            uri=True,
+        )
+        connection.row_factory = sqlite3.Row
+        try:
+            projection[authority] = {
+                table: [
+                    dict(row) for row in connection.execute(f'SELECT * FROM "{table}"')
+                ]
+                for table in tables
+            }
+        finally:
+            connection.close()
+    mode_values = {
+        "ENV15_ENV_SQLITE_SHA256": _sha256(PLUGIN_ROOT / "env" / "env_sqlite.sqlite"),
+        "ENV15_UOP_SQLITE_SHA256": _sha256(PLUGIN_ROOT / "uop" / "uop_sqlite.sqlite"),
+        "ENV15_MODE_POLICY_PROJECTION_SHA256": hashlib.sha256(_json_bytes(projection))
+        .hexdigest()
+        .upper(),
+    }
+    mode_source = PACKAGE_ROOT / "mode_governance.py"
+    mode_text = mode_source.read_text(encoding="utf-8")
+    for name, value in mode_values.items():
+        pattern = re.compile(
+            rf"({name}\s*=\s*(?:\(\s*)?\")([A-F0-9]{{64}})(\"(?:\s*\))?)",
+            flags=re.MULTILINE,
+        )
+        mode_text, count = pattern.subn(
+            rf"\g<1>{value}\g<3>",
+            mode_text,
+            count=1,
+        )
+        if count != 1:
+            raise ValueError(f"Unable to refresh mode authority pin: {name}")
+    _write(mode_source, mode_text)
+    values.update(mode_values)
+    return values
 
 
 _NATIVE_LICENSE_TOOL_IDS = {
@@ -251,16 +415,29 @@ def _requirement_license_record(
         evidence_paths.append("LICENSE.md")
     if row["classification"] == "SYSTEM_CAPABILITY_WITH_PLUGIN_IMPLEMENTATION":
         evidence_paths.extend(
-            ["LICENSE.md", "requirements.torch-cpu.lock.txt", "requirements.lock.txt"]
+            [
+                "LICENSE.md",
+                "requirements.torch-cpu.lock.txt",
+                "requirements.torch-nvidia.lock.txt",
+                "requirements.onnx-directml.lock.txt",
+                "requirements.lock.txt",
+            ]
         )
     if row["classification"] == "HIDDEN_RUNTIME_INTERPRETER":
         evidence_paths.extend(
-            ["requirements.torch-cpu.lock.txt", "requirements.lock.txt"]
+            [
+                "requirements.torch-cpu.lock.txt",
+                "requirements.torch-nvidia.lock.txt",
+                "requirements.onnx-directml.lock.txt",
+                "requirements.lock.txt",
+            ]
         )
     if row["classification"] == "PYTHON_OR_HOST_DISTRIBUTION":
         evidence_paths.extend(
             [
                 "requirements.torch-cpu.lock.txt",
+                "requirements.torch-nvidia.lock.txt",
+                "requirements.onnx-directml.lock.txt",
                 "requirements.lock.txt",
                 "requirements.toolchain.lock.txt",
             ]
@@ -362,7 +539,13 @@ def _skill_rows() -> list[dict[str, Any]]:
         description = ""
         for line in text.splitlines():
             if line.startswith("description:"):
-                description = line.split(":", 1)[1].strip()
+                raw_description = line.split(":", 1)[1].strip()
+                if raw_description.startswith('"') and raw_description.endswith('"'):
+                    description = str(json.loads(raw_description))
+                elif raw_description.startswith("'") and raw_description.endswith("'"):
+                    description = raw_description[1:-1].replace("''", "'")
+                else:
+                    description = raw_description
                 break
         rows.append(
             {
@@ -430,6 +613,10 @@ def _generate_skill_surface_registry(skills: list[dict[str, Any]]) -> dict[str, 
 
 
 def _generate_hook_event_surfaces() -> dict[str, Any]:
+    from evidence_lane_plugin.hook_contract import (
+        HOOK_EVENT_WORKFLOW_CONTRACTS,
+    )
+
     hooks_root = PLUGIN_ROOT / "hooks"
     hooks = json.loads((hooks_root / "hooks.json").read_text(encoding="utf-8"))
     logical = json.loads(
@@ -453,6 +640,10 @@ def _generate_hook_event_surfaces() -> dict[str, Any]:
     expected_event_directories = set(adapter_map)
     for event_number, event_name in enumerate(adapter_map, start=1):
         groups = list(hooks["hooks"][event_name])
+        workflow_contract = dict(HOOK_EVENT_WORKFLOW_CONTRACTS[event_name])
+        workflow_contract_sha256 = (
+            hashlib.sha256(_json_bytes(workflow_contract)).hexdigest().upper()
+        )
         event_root = events_root / event_name
         handlers = [handler for group in groups for handler in group["hooks"]]
         logical_actions = list(logical["logicalActions"][event_name])
@@ -480,6 +671,10 @@ def _generate_hook_event_surfaces() -> dict[str, Any]:
                 "event": event_name,
                 "handler": handler,
                 "logical_action": logical_action,
+                "handler_stage_role": str(logical_action),
+                "host_timing": workflow_contract["host_timing"],
+                "workflow_contract": workflow_contract,
+                "workflow_contract_sha256": workflow_contract_sha256,
                 "stage": f"hooks/{stage_name}",
                 "stage_sha256": _sha256(stage),
                 "adapter": f"hooks/{adapter.name}",
@@ -509,6 +704,7 @@ def _generate_hook_event_surfaces() -> dict[str, Any]:
                     "event",
                     "handlers",
                     "adapter_sha256",
+                    "workflow_contract",
                 ],
                 "properties": {
                     "schema": {"const": "evidence-lane.hook-event-binding.v1"},
@@ -516,6 +712,7 @@ def _generate_hook_event_surfaces() -> dict[str, Any]:
                     "event_number": {"const": event_number},
                     "event": {"const": event_name},
                     "handlers": {"type": "array", "minItems": 1},
+                    "workflow_contract": {"type": "object"},
                     "adapter_sha256": {
                         "type": "string",
                         "pattern": "^[A-F0-9]{64}$",
@@ -534,6 +731,8 @@ def _generate_hook_event_surfaces() -> dict[str, Any]:
             "handlers": handler_rows,
             "adapter": f"hooks/{adapter.name}",
             "adapter_sha256": _sha256(adapter),
+            "workflow_contract": workflow_contract,
+            "workflow_contract_sha256": workflow_contract_sha256,
             "precompact_seals_before_compaction": event_name != "PreCompact"
             or adapter.name == "lifecycle_boundary.py",
             "postcompact_rehydrates_after_compaction": event_name != "PostCompact"
@@ -545,7 +744,9 @@ def _generate_hook_event_surfaces() -> dict[str, Any]:
             f"# Hook {event_number}: {event_name}\n\n"
             f"This event has {len(handler_rows)} ordered, separately hash-bound "
             "handlers. The event adapter and shared stage pipeline remain the "
-            "single executable implementation.\n",
+            "single executable implementation. Its exact host timing, lifecycle "
+            "consumer, skill action, workflow phases, and public-action boundary "
+            "are bound by `workflow_contract` in `event.v1.json`.\n",
         )
         rows.append(
             {
@@ -554,6 +755,8 @@ def _generate_hook_event_surfaces() -> dict[str, Any]:
                 "path": event_root.relative_to(PLUGIN_ROOT).as_posix(),
                 "event_sha256": _sha256(event_root / "event.v1.json"),
                 "handler_count": len(handler_rows),
+                "workflow_contract": workflow_contract,
+                "workflow_contract_sha256": workflow_contract_sha256,
             }
         )
     for path in events_root.iterdir():
@@ -576,7 +779,24 @@ def _generate_hook_event_surfaces() -> dict[str, Any]:
 
 
 def _generate_tunnel_and_toolchain_surfaces() -> tuple[dict[str, Any], dict[str, Any]]:
+    from evidence_lane_plugin.hardware_acceleration import (
+        hardware_acceleration_catalog,
+        hardware_acceleration_schema,
+    )
+    from evidence_lane_plugin.tunnel_identity_routing import (
+        tunnel_identity_routing_catalog,
+    )
+
     toolchains_root = PLUGIN_ROOT / "toolchains"
+    accelerator_catalog_path = toolchains_root / "hardware-accelerator-routing.v1.json"
+    accelerator_schema_path = (
+        PLUGIN_ROOT
+        / "schemas"
+        / "toolchains"
+        / "hardware-acceleration-route.schema.json"
+    )
+    _write_json(accelerator_catalog_path, hardware_acceleration_catalog())
+    _write_json(accelerator_schema_path, hardware_acceleration_schema())
     matrix_path = toolchains_root / "tool-requirement-matrix.v1.json"
     matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
     execution_routing_path = toolchains_root / "tool-execution-routing.v1.json"
@@ -590,7 +810,9 @@ def _generate_tunnel_and_toolchain_surfaces() -> tuple[dict[str, Any], dict[str,
         or set(execution_by_tool)
         != {str(row["tool"]) for row in matrix["requirements"]}
     ):
-        raise ValueError("The 95-tool execution routing projection is incomplete.")
+        raise ValueError(
+            "The complete tool execution routing projection is incomplete."
+        )
     non_runtime_requirements = {
         "CONFIGURED_EXTERNAL_SERVICE",
         "REPOSITORY_PUBLIC_ADAPTER_ONLY",
@@ -653,6 +875,10 @@ def _generate_tunnel_and_toolchain_surfaces() -> tuple[dict[str, Any], dict[str,
         "all_runtime_dependencies_prewarmed": True,
         "conditional_execution_not_run_everything": True,
         "chatgpt_plane_mixed": False,
+        "identity_routing": tunnel_identity_routing_catalog(),
+        "shared_tunnel_supports_multiple_projects_and_tasks": True,
+        "scheduled_task_owner": False,
+        "prewarm_executes_tools": False,
     }
     tunnel_toolchain_path = toolchains_root / "tunnel-runtime-toolchain.v1.json"
     _write_json(tunnel_toolchain_path, tunnel_toolchain)
@@ -757,6 +983,12 @@ def _generate_tunnel_and_toolchain_surfaces() -> tuple[dict[str, Any], dict[str,
         "requirements_torch_cpu_lock_sha256": _sha256(
             PLUGIN_ROOT / "requirements.torch-cpu.lock.txt"
         ),
+        "requirements_torch_nvidia_lock_sha256": _sha256(
+            PLUGIN_ROOT / "requirements.torch-nvidia.lock.txt"
+        ),
+        "requirements_onnx_directml_lock_sha256": _sha256(
+            PLUGIN_ROOT / "requirements.onnx-directml.lock.txt"
+        ),
         "bundled_license_file_count": len(license_files),
         "bundled_license_files": license_files,
         "bundled_native_license_text_count": len(bundled_native_license_files),
@@ -766,6 +998,9 @@ def _generate_tunnel_and_toolchain_surfaces() -> tuple[dict[str, Any], dict[str,
             tool_license_inventory_path.relative_to(PLUGIN_ROOT).as_posix()
         ),
         "tool_license_inventory_sha256": _sha256(tool_license_inventory_path),
+        "hardware_accelerator_catalog_sha256": _sha256(accelerator_catalog_path),
+        "hardware_accelerator_schema_sha256": _sha256(accelerator_schema_path),
+        "hardware_accelerators_are_execution_providers_not_tools": True,
         "tool_license_entry_count": len(tool_license_rows),
         "all_tool_requirements_license_classified": True,
         "all_tool_requirements_have_physical_license_records": True,
@@ -1475,6 +1710,8 @@ def _generate_sdk(
                 "event_binding": event_path.relative_to(PLUGIN_ROOT).as_posix(),
                 "event_binding_sha256": _sha256(event_path),
                 "handlers": event_payload["handlers"],
+                "workflow_contract": event_payload["workflow_contract"],
+                "workflow_contract_sha256": event_payload["workflow_contract_sha256"],
                 "canonical_hook_manifest": "hooks/hooks.json",
                 "canonical_logical_actions": "hooks/logical-actions.json",
                 "enabled_only_after_installed_event_pass": True,
@@ -1491,7 +1728,7 @@ def _generate_sdk(
             "delta_entry": next(
                 row
                 for row in public["runtime_workflow_sdk_registry"]["workflows"]
-                if row["workflow"] == "DELTA_ENTRY_AND_SIX_WAY_QUERY"
+                if row["workflow"] == "DELTA_ENTRY_AND_CURRENT_AUTHORITY_QUERY"
             ),
             "delta_exit": public["delta_authority_time_boundary"],
             "prompt_steer_source_intake": public["prompt_and_steer_dispatch"],
@@ -1502,7 +1739,7 @@ def _generate_sdk(
     )
     delta_workflows = {
         "prompt-steer": "PROMPT_OR_STEER_ENTRY",
-        "entry": "DELTA_ENTRY_AND_SIX_WAY_QUERY",
+        "entry": "DELTA_ENTRY_AND_CURRENT_AUTHORITY_QUERY",
         "mid-query": "IN_DELTA_BOUNDED_QUERY_AND_NO_HIT_REFIRE",
         "exit": "DELTA_EXIT_APPEND_REFRESH",
         "hil-overlay": "FULL_PV_DUAL_HIL",
@@ -1714,94 +1951,82 @@ def _generate_sdk(
             },
         )
     public_backend_readiness = {
-            "schema": "evidence-lane.public-backend-readiness.v1",
-            "status": "R265_BACKEND_LINKS_READY_PRESENTATION_DEFERRED",
-            "public_origin": "https://evidencelane.org",
-            "surfaces": {
-                "connect": {
-                    "status": "BACKEND_READY",
-                    "user_entry_path": "/connect",
-                    "oauth_callback_path": "/api/github-app/oauth/callback",
-                    "alternate_setup_path": "/api/github-app/setup",
-                    "device_flow_path": "/api/github-app/device",
-                    "testing_path": "/api/github-app/testing",
-                    "webhook_path": "/api/github-app/webhook",
-                    "authentication": (
-                        "GITHUB_USER_OAUTH_OR_DEVICE_FLOW_WITH_SERVER_SIDE_SECRETS"
-                    ),
-                    "live_profile_gate": (
-                        "EXPLICIT_POST_BRANCH_MAIN_MERGE_AND_GITHUB_APP_UPGRADE_APPROVAL"
-                    ),
-                },
-                "prompt_studio": {
-                    "status": "EXISTING_BACKEND_READY_PAGE_REFRESH_DEFERRED",
-                    "query_path": "/api/studio-query",
-                    "health_method": "GET",
-                    "query_method": "POST",
-                    "project_retrieval_authentication": (
-                        "PUBLIC_SAFE_COMMITTED_CORPUS_NO_USER_CREDENTIAL"
-                    ),
-                    "optional_general_provider_key_reference": "OPENROUTER_API_KEY",
-                    "optional_general_provider_enable_reference": (
-                        "EVIDENCE_LANE_GENERAL_AI_ENABLED"
-                    ),
-                    "generated_rag_refresh": (
-                        "DEFERRED_TO_LATER_PROMPT_STUDIO_ROW"
-                    ),
-                },
-                "proof": {
-                    "status": "BACKEND_DATA_BOUND_PAGE_REFRESH_DEFERRED",
-                    "public_path": "/proof",
-                    "docs_binding_source": (
-                        "app/_data/public-docs-backend-binding.json"
-                    ),
-                    "lane_fixture_source": "app/_data/dummy-lane-artifacts.json",
-                    "real_poc_publication": "DEFERRED_TO_LATER_PROOF_ROW",
-                },
-                "git_ci": {
-                    "status": "BACKEND_READY_PAGE_REFRESH_DEFERRED",
-                    "public_path": "/git-ci",
-                    "github_app_contract": (
-                        "sdk/host/github-app-connection.v1.json"
-                    ),
-                    "main_merge_authority": "EXPLICIT_USER_APPROVAL_ONLY",
-                },
+        "schema": "evidence-lane.public-backend-readiness.v1",
+        "status": "R265_BACKEND_LINKS_READY_PRESENTATION_DEFERRED",
+        "public_origin": "https://evidencelane.org",
+        "surfaces": {
+            "connect": {
+                "status": "BACKEND_READY",
+                "user_entry_path": "/connect",
+                "oauth_callback_path": "/api/github-app/oauth/callback",
+                "alternate_setup_path": "/api/github-app/setup",
+                "device_flow_path": "/api/github-app/device",
+                "testing_path": "/api/github-app/testing",
+                "webhook_path": "/api/github-app/webhook",
+                "authentication": (
+                    "GITHUB_USER_OAUTH_OR_DEVICE_FLOW_WITH_SERVER_SIDE_SECRETS"
+                ),
+                "live_profile_gate": (
+                    "EXPLICIT_POST_BRANCH_MAIN_MERGE_AND_GITHUB_APP_UPGRADE_APPROVAL"
+                ),
             },
-            "runtime_routing_boundary": {
-                "remote_adapter_role": "PUBLIC_SAFE_TRANSPORT_ONLY",
-                "internal_sdk_role": "ALL_PLUGIN_BEHAVIOR_OWNER",
-                "native_mcp_role": "PUBLIC_ACTION_TRANSPORT",
-                "tunnel_role": "CONDITIONAL_HOST_TOOL_GAP_TRANSPORT",
-                "env_uop_role": "EXECUTABLE_AI_ACTION_PLANE_SEPARATE_AUTHORITIES",
-                "toolchain_route": "ai_toolchain_route",
-                "project_sector_http_api_exposed": False,
-                "toolchain_http_api_exposed": False,
-                "allowed_http_route_prefixes": [
-                    "/api/backend-readiness",
-                    "/api/github-app",
-                    "/api/studio-query",
-                ],
+            "prompt_studio": {
+                "status": "EXISTING_BACKEND_READY_PAGE_REFRESH_DEFERRED",
+                "query_path": "/api/studio-query",
+                "health_method": "GET",
+                "query_method": "POST",
+                "project_retrieval_authentication": (
+                    "PUBLIC_SAFE_COMMITTED_CORPUS_NO_USER_CREDENTIAL"
+                ),
+                "public_provider_proxy_present": False,
+                "generated_rag_refresh": ("DEFERRED_TO_LATER_PROMPT_STUDIO_ROW"),
             },
-            "presentation_deferrals": {
-                "vercel_page_redesign": True,
-                "prompt_studio_redesign": True,
-                "prompt_studio_rag_regeneration": True,
-                "real_poc_publication": True,
-                "devpost_publication": True,
+            "proof": {
+                "status": "BACKEND_DATA_BOUND_PAGE_REFRESH_DEFERRED",
+                "public_path": "/proof",
+                "docs_binding_source": ("app/_data/public-docs-backend-binding.json"),
+                "lane_fixture_source": "app/_data/dummy-lane-artifacts.json",
+                "real_poc_publication": "DEFERRED_TO_LATER_PROOF_ROW",
             },
-            "secret_values_exposed": False,
-            "project_authority_mutation": False,
-            "candidate_or_hil_authority": False,
-        }
+            "git_ci": {
+                "status": "BACKEND_READY_PAGE_REFRESH_DEFERRED",
+                "public_path": "/git-ci",
+                "github_app_contract": ("sdk/host/github-app-connection.v1.json"),
+                "main_merge_authority": "EXPLICIT_USER_APPROVAL_ONLY",
+            },
+        },
+        "runtime_routing_boundary": {
+            "remote_adapter_role": "PUBLIC_SAFE_TRANSPORT_ONLY",
+            "internal_sdk_role": "ALL_PLUGIN_BEHAVIOR_OWNER",
+            "native_mcp_role": "PUBLIC_ACTION_TRANSPORT",
+            "tunnel_role": "CONDITIONAL_HOST_TOOL_GAP_TRANSPORT",
+            "env_uop_role": "EXECUTABLE_AI_ACTION_PLANE_SEPARATE_AUTHORITIES",
+            "toolchain_route": "ai_toolchain_route",
+            "project_sector_http_api_exposed": False,
+            "toolchain_http_api_exposed": False,
+            "allowed_http_route_prefixes": [
+                "/api/backend-readiness",
+                "/api/github-app",
+                "/api/studio-query",
+            ],
+        },
+        "presentation_deferrals": {
+            "vercel_page_redesign": True,
+            "prompt_studio_redesign": True,
+            "prompt_studio_rag_regeneration": True,
+            "real_poc_publication": True,
+            "devpost_publication": True,
+        },
+        "secret_values_exposed": False,
+        "project_authority_mutation": False,
+        "candidate_or_hil_authority": False,
+    }
     _write_json(
         sdk_root / "host" / "public-backend-readiness.v1.json",
         public_backend_readiness,
     )
     _write_json(
-        PUBLIC_APP_ROOT
-        / "app"
-        / "_data"
-        / "public-backend-readiness.v1.json",
+        PUBLIC_APP_ROOT / "app" / "_data" / "public-backend-readiness.v1.json",
         public_backend_readiness,
     )
     github_mutual_exclusion = (
@@ -1996,9 +2221,7 @@ def _generate_mcp(
         action_name = str(tool["name"])
         filename = f"{action_name}.binding.v1.json"
         expected_mcp_action_files.add(filename)
-        sdk_binding = (
-            PLUGIN_ROOT / "sdk" / "actions" / f"{action_name}.action.v1.json"
-        )
+        sdk_binding = PLUGIN_ROOT / "sdk" / "actions" / f"{action_name}.action.v1.json"
         action_path = mcp_root / "actions" / filename
         _write_json(
             action_path,
@@ -2100,7 +2323,11 @@ def _generate_mcp(
 def _generate_lane_surfaces() -> dict[str, Any]:
     """Materialize 18 inspectable bindings without duplicating lane logic."""
 
-    from evidence_lane_plugin.lane_engine import _create_lane_schema, _lane_topology
+    from evidence_lane_plugin.lane_engine import (
+        _create_lane_schema,
+        _lane_topology,
+        _registry_linked_lane_workflow,
+    )
     from evidence_lane_plugin.lanes import (
         CANONICAL_LANE_IDS,
         LANE_ARTIFACT_ROLE_REGISTRY_SHA256,
@@ -2190,7 +2417,7 @@ def _generate_lane_surfaces() -> dict[str, Any]:
             "unchanged_reuse": [],
             "changed_rebuild": [],
             "new_register": [],
-            "removed_tombstone": [],
+            "removed_purge": [],
             "blocked_unsupported": [],
         }
         mmd, dot = _lane_topology(lane, sqlite_path, empty_classification)
@@ -2236,6 +2463,20 @@ def _generate_lane_surfaces() -> dict[str, Any]:
                 "shared_engine_does_not_merge_lane_sqlite": True,
             },
         )
+        workflow_files = {
+            "json": lane_root / "workflow.v1.json",
+            "mmd": lane_root / "workflow.mmd",
+            "dot": lane_root / "workflow.dot",
+        }
+        dedicated_workflow = (
+            {
+                key: path.relative_to(PLUGIN_ROOT).as_posix()
+                for key, path in workflow_files.items()
+            }
+            | {f"{key}_sha256": _sha256(path) for key, path in workflow_files.items()}
+            if all(path.is_file() for path in workflow_files.values())
+            else None
+        )
         _write_json(
             lane_root / "tools.json",
             {
@@ -2252,6 +2493,8 @@ def _generate_lane_surfaces() -> dict[str, Any]:
                     "lane_manifest.json",
                 ],
                 "canonical_shared_modules": source_hashes,
+                "registry_linked_workflow": _registry_linked_lane_workflow(lane_id),
+                "dedicated_workflow": dedicated_workflow,
             },
         )
         _write_json(
@@ -2337,6 +2580,8 @@ def _generate_lane_surfaces() -> dict[str, Any]:
                     "query_traversal",
                     "retrieval_modes",
                     "canonical_shared_modules",
+                    "registry_linked_workflow",
+                    "dedicated_workflow",
                 ],
                 "properties": {
                     "schema": {"const": "evidence-lane.installed-lane-tooling.v1"},
@@ -2347,6 +2592,20 @@ def _generate_lane_surfaces() -> dict[str, Any]:
                     "query_traversal": {"type": "string", "minLength": 1},
                     "retrieval_modes": {"const": ["hybrid", "fts5", "bm25", "tfidf"]},
                     "canonical_shared_modules": {"type": "object"},
+                    "registry_linked_workflow": {
+                        "type": "object",
+                        "required": [
+                            "schema",
+                            "status",
+                            "lane_id",
+                            "eligible_tools",
+                            "eligible_public_actions",
+                            "eligible_skill_workflows",
+                            "current_registry_counts",
+                            "counts_are_current_snapshot_not_ceiling",
+                        ],
+                    },
+                    "dedicated_workflow": {"type": "object"},
                 },
                 "additionalProperties": True,
             },
@@ -2764,6 +3023,8 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
         llama_index_receipt = rebuild_sqlite_authority_index(
             database,
             authority_id=authority_id,
+            recorded_at="2000-01-01T00:00:00Z",
+            reset_receipts=True,
         )
         snapshot = _schema_snapshot(database)
         mmd_text, dot_text, graph_pipeline_receipt = _schema_graph(
@@ -2821,6 +3082,8 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
             consequence_llama_index_receipt = rebuild_sqlite_authority_index(
                 consequence_database,
                 authority_id="canon_consequence_graph",
+                recorded_at="2000-01-01T00:00:00Z",
+                reset_receipts=True,
             )
             consequence_snapshot = _schema_snapshot(consequence_database)
             (
@@ -3083,6 +3346,23 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
             "    return validate_authority_support(project_root, AUTHORITY_ID)\n\n"
             '__all__ = ["AUTHORITY_ID", "validate"]\n',
         )
+        authority_workflow_files = {
+            "json": root / "workflow.v1.json",
+            "mmd": root / "workflow.mmd",
+            "dot": root / "workflow.dot",
+        }
+        dedicated_authority_workflow = (
+            {
+                key: path.relative_to(PLUGIN_ROOT).as_posix()
+                for key, path in authority_workflow_files.items()
+            }
+            | {
+                f"{key}_sha256": _sha256(path)
+                for key, path in authority_workflow_files.items()
+            }
+            if all(path.is_file() for path in authority_workflow_files.values())
+            else None
+        )
         _write_json(
             root / Path(profile.tools).name,
             {
@@ -3106,6 +3386,7 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
                 "linked_subauthorities": linked_subauthorities,
                 "llama_index_refresh_receipt": llama_index_receipt,
                 "graph_pipeline_receipt": graph_pipeline_receipt,
+                "dedicated_workflow": dedicated_authority_workflow,
             },
         )
         _write_json(
@@ -3350,7 +3631,6 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
                     "runtime/**": "hidden plugin runtime",
                 },
                 "obsolete_paths_removed_after_hash_readback": True,
-                "obsolete_paths_tombstoned": False,
                 "accepted_folder_queried": False,
                 "accepted_folder_role": "SOLE GOVERNED ROOT-PV SNAPSHOT ZIP",
             }
@@ -3371,7 +3651,6 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
                         "named_authorities",
                         "absorbed_legacy_paths",
                         "obsolete_paths_removed_after_hash_readback",
-                        "obsolete_paths_tombstoned",
                         "accepted_folder_queried",
                     ],
                     "properties": {
@@ -3380,7 +3659,6 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
                         },
                         "status": {"const": "PASS"},
                         "obsolete_paths_removed_after_hash_readback": {"const": True},
-                        "obsolete_paths_tombstoned": {"const": False},
                         "accepted_folder_queried": {"const": False},
                     },
                     "additionalProperties": True,
@@ -3597,6 +3875,23 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
         )
         _write(root / f"{authority_id}.mmd", authority_mmd)
         _write(root / f"{authority_id}.dot", authority_dot)
+        non_sqlite_workflow_files = {
+            "json": root / "workflow.v1.json",
+            "mmd": root / "workflow.mmd",
+            "dot": root / "workflow.dot",
+        }
+        dedicated_non_sqlite_workflow = (
+            {
+                key: path.relative_to(PLUGIN_ROOT).as_posix()
+                for key, path in non_sqlite_workflow_files.items()
+            }
+            | {
+                f"{key}_sha256": _sha256(path)
+                for key, path in non_sqlite_workflow_files.items()
+            }
+            if all(path.is_file() for path in non_sqlite_workflow_files.values())
+            else None
+        )
         _write_json(
             root / "tools.json",
             {
@@ -3614,6 +3909,7 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
                 "canonical_source_hashes": source_hashes,
                 "sqlite_authority_owned": False,
                 "graph_pipeline_receipt": authority_graph_receipt,
+                "dedicated_workflow": dedicated_non_sqlite_workflow,
             },
         )
         _write_json(
@@ -3785,6 +4081,9 @@ def _generate_source_module_registry(
             "public_surface_registry.py",
             "mcp_server.py",
             "service.py",
+            "mcp_adapter_routing.py",
+            "plugin_architecture.py",
+            "tunnel_identity_routing.py",
         },
         "SECTOR_LANE_ENGINE": {
             "lanes.py",
@@ -3799,6 +4098,7 @@ def _generate_source_module_registry(
             "flash_authority.py",
             "flash_identity.py",
             "flash_projection.py",
+            "env_uop_tool_routing.py",
         },
         "FIRST_CLASS_WORKFLOWS": {
             "first_class_workflows.py",
@@ -3820,6 +4120,11 @@ def _generate_source_module_registry(
             "sqlite_indexing.py",
             "tabular_toolchain.py",
             "web_toolchain.py",
+            "context_index_routing.py",
+            "deployment_toolchain.py",
+            "ecosystem_toolchain.py",
+            "evaluation_toolchain.py",
+            "observability_toolchain.py",
         },
         "HOST_RUNTIME_AND_CONTINUITY": {
             "codex_turn_control.py",
@@ -4243,6 +4548,8 @@ def _generate_executable_surface_registry() -> dict[str, Any]:
         "THIRD_PARTY_NOTICES.md",
         "pyproject.toml",
         "requirements.torch-cpu.lock.txt",
+        "requirements.torch-nvidia.lock.txt",
+        "requirements.onnx-directml.lock.txt",
         "requirements.lock.txt",
         "requirements.toolchain.lock.txt",
     )
@@ -4358,6 +4665,82 @@ def main() -> int:
         )
     )
     _generate_public_action_schema_files(public)
+    from evidence_lane_plugin.codex_action_plane import rebuild_codex_action_planes
+    from evidence_lane_plugin.env_uop_graph import (
+        rebuild_env_uop_locks,
+        rebuild_flash_manifest,
+        rebuild_packaged_authority_manifests,
+    )
+
+    action_plane = rebuild_codex_action_planes(PLUGIN_ROOT)
+    toolchain_sync = action_plane
+    env_graph = action_plane["env"]["graph"]
+    uop_graph = action_plane["uop"]["graph"]
+    env_uop_architecture = {
+        "status": "PASS",
+        "row_to_graph_coverage": {
+            "schema": "evidence-lane.codex-action-plane-graph-coverage.v1",
+            "status": "PASS",
+            "counts": action_plane["counts"],
+            "codex_is_sole_agent": True,
+            "chatgpt_surface_rows": 0,
+            "foreign_absolute_paths": 0,
+            "discussion_or_chatlineage_authority_rows": 0,
+            "predecessor_database_copied": False,
+        },
+        "graph_tool_execution_evidence": {
+            "LangGraph_Mermaid_engine": {"state": "EXECUTED"},
+            "Python_Graphviz_DOT_engine": {"state": "EXECUTED"},
+            "rustworkx": {"state": "EXECUTED"},
+        },
+    }
+    sqlite_header_canonicalization = []
+    for authority_database in (
+        PLUGIN_ROOT / "env" / "env_sqlite.sqlite",
+        PLUGIN_ROOT / "uop" / "uop_sqlite.sqlite",
+    ):
+        connection = sqlite3.connect(authority_database)
+        try:
+            connection.execute("VACUUM")
+        finally:
+            connection.close()
+        sqlite_header_canonicalization.append(
+            _canonicalize_sqlite_header(authority_database)
+        )
+    coverage = dict(env_uop_architecture["row_to_graph_coverage"])
+    coverage["final_graphs"] = {
+        "env": {
+            "node_count": env_graph["graph_pipeline_receipt"]["node_count"],
+            "edge_count": env_graph["graph_pipeline_receipt"]["edge_count"],
+            "group_count": env_graph["graph_pipeline_receipt"]["group_count"],
+            "semantic_topology_sha256": env_graph["semantic_topology_sha256"],
+            "mmd_sha256": env_graph["mmd_sha256"],
+            "dot_sha256": env_graph["dot_sha256"],
+        },
+        "uop": {
+            "node_count": uop_graph["graph_pipeline_receipt"]["node_count"],
+            "edge_count": uop_graph["graph_pipeline_receipt"]["edge_count"],
+            "group_count": uop_graph["graph_pipeline_receipt"]["group_count"],
+            "semantic_topology_sha256": uop_graph["semantic_topology_sha256"],
+            "mmd_sha256": uop_graph["mmd_sha256"],
+            "dot_sha256": uop_graph["dot_sha256"],
+        },
+    }
+    coverage["graph_tool_execution_evidence"] = env_uop_architecture[
+        "graph_tool_execution_evidence"
+    ]
+    _write_json(
+        PLUGIN_ROOT / "toolchains" / "env-uop-row-to-graph-coverage.v1.json",
+        {key: value for key, value in coverage.items() if key != "receipt_sha256"},
+    )
+    env_uop_locks = rebuild_env_uop_locks(
+        PLUGIN_ROOT,
+        env_graph_receipt=env_graph,
+        uop_graph_receipt=uop_graph,
+    )
+    env_uop_flash = rebuild_flash_manifest(PLUGIN_ROOT)
+    env_uop_manifests = rebuild_packaged_authority_manifests(PLUGIN_ROOT)
+    flash_authority_pins = _refresh_flash_authority_pins()
     skills = _skill_rows()
     _purge_legacy_command_surface()
     skill_surface = _generate_skill_surface_registry(skills)
@@ -4402,6 +4785,145 @@ def main() -> int:
         lanes=lanes,
         authorities=authorities,
     )
+    from evidence_lane_plugin.plugin_architecture import (
+        build_dedicated_skill_workflows,
+        build_surface_workflows,
+        build_universal_plugin_architecture,
+        render_dedicated_skill_workflow,
+        render_memory_architecture_dot,
+        render_memory_architecture_mmd,
+        render_surface_workflow,
+        render_universal_architecture_dot,
+        render_universal_architecture_mmd,
+    )
+
+    architecture = build_universal_plugin_architecture(PLUGIN_ROOT)
+    toolchains_root = PLUGIN_ROOT / "toolchains"
+    _write_json(
+        toolchains_root / "universal-plugin-architecture.v1.json",
+        architecture,
+    )
+    _write_json(
+        toolchains_root / "unified-tool-workflow-pairing.v1.json",
+        architecture["unified_tool_workflow_pairing"],
+    )
+    _write_json(
+        toolchains_root / "authority-tool-workflow-pairing.v1.json",
+        architecture["authority_tool_workflow_pairing"],
+    )
+    _write_json(
+        toolchains_root / "action-skill-hook-schema-pairing.v1.json",
+        architecture["action_skill_hook_schema_pairing"],
+    )
+    (toolchains_root / "UNIVERSAL_PLUGIN_ARCHITECTURE.mmd").write_text(
+        render_universal_architecture_mmd(architecture),
+        encoding="utf-8",
+        newline="\n",
+    )
+    (toolchains_root / "UNIVERSAL_PLUGIN_ARCHITECTURE.dot").write_text(
+        render_universal_architecture_dot(architecture),
+        encoding="utf-8",
+        newline="\n",
+    )
+    (toolchains_root / "MEMORY_AUTHORITY_ARCHITECTURE.mmd").write_text(
+        render_memory_architecture_mmd(), encoding="utf-8", newline="\n"
+    )
+    (toolchains_root / "MEMORY_AUTHORITY_ARCHITECTURE.dot").write_text(
+        render_memory_architecture_dot(), encoding="utf-8", newline="\n"
+    )
+    dedicated_skills = build_dedicated_skill_workflows(architecture)
+    dedicated_root = PLUGIN_ROOT / "sdk" / "workflows" / "skills"
+    dedicated_root.mkdir(parents=True, exist_ok=True)
+    expected_skill_directories = {
+        str(row["skill"]) for row in dedicated_skills["skills"]
+    }
+    for child in dedicated_root.iterdir():
+        if child.is_dir() and child.name not in expected_skill_directories:
+            resolved = child.resolve()
+            if resolved.parent != dedicated_root.resolve():
+                raise ValueError("Stale skill workflow path escapes its root.")
+            shutil.rmtree(resolved)
+    dedicated_artifacts = []
+    for skill_workflow in dedicated_skills["skills"]:
+        skill_name = str(skill_workflow["skill"])
+        skill_root = dedicated_root / skill_name
+        skill_root.mkdir(parents=True, exist_ok=True)
+        json_path = skill_root / "workflow.v1.json"
+        mmd_path = skill_root / "workflow.mmd"
+        dot_path = skill_root / "workflow.dot"
+        mmd, dot, graph_receipt = render_dedicated_skill_workflow(dict(skill_workflow))
+        _write(json_path, _pretty_json(skill_workflow))
+        _write(mmd_path, mmd)
+        _write(dot_path, dot)
+        expected_files = {json_path.name, mmd_path.name, dot_path.name}
+        for child in skill_root.iterdir():
+            if child.is_file() and child.name not in expected_files:
+                child.unlink()
+        dedicated_artifacts.append(
+            {
+                "skill": skill_name,
+                "workflow_count": int(skill_workflow["workflow_count"]),
+                "action_step_count": int(skill_workflow["action_step_count"]),
+                "json": json_path.relative_to(PLUGIN_ROOT).as_posix(),
+                "json_sha256": _sha256(json_path),
+                "mmd": mmd_path.relative_to(PLUGIN_ROOT).as_posix(),
+                "mmd_sha256": _sha256(mmd_path),
+                "dot": dot_path.relative_to(PLUGIN_ROOT).as_posix(),
+                "dot_sha256": _sha256(dot_path),
+                "graph_receipt": graph_receipt,
+            }
+        )
+    dedicated_registry = {
+        key: value for key, value in dedicated_skills.items() if key != "receipt_sha256"
+    }
+    dedicated_registry["artifacts"] = dedicated_artifacts
+    _write_json(
+        PLUGIN_ROOT / "sdk" / "workflows" / "skill-workflow-registry.v1.json",
+        dedicated_registry,
+    )
+    surface_workflows = build_surface_workflows(architecture)
+    surface_artifacts = []
+    for surface in [
+        *surface_workflows["sectors"],
+        *surface_workflows["authorities"],
+    ]:
+        surface_id = str(surface["surface_id"])
+        if surface["surface_kind"] == "PROJECT_SECTOR":
+            surface_root = PLUGIN_ROOT / "authorities" / "project_sectors" / surface_id
+        else:
+            surface_root = PLUGIN_ROOT / "authorities" / surface_id
+        if not surface_root.is_dir():
+            raise ValueError(f"Missing workflow surface root: {surface_id}")
+        json_path = surface_root / "workflow.v1.json"
+        mmd_path = surface_root / "workflow.mmd"
+        dot_path = surface_root / "workflow.dot"
+        mmd, dot, graph_receipt = render_surface_workflow(dict(surface))
+        _write(json_path, _pretty_json(surface))
+        _write(mmd_path, mmd)
+        _write(dot_path, dot)
+        surface_artifacts.append(
+            {
+                "surface_kind": surface["surface_kind"],
+                "surface_id": surface_id,
+                "json": json_path.relative_to(PLUGIN_ROOT).as_posix(),
+                "json_sha256": _sha256(json_path),
+                "mmd": mmd_path.relative_to(PLUGIN_ROOT).as_posix(),
+                "mmd_sha256": _sha256(mmd_path),
+                "dot": dot_path.relative_to(PLUGIN_ROOT).as_posix(),
+                "dot_sha256": _sha256(dot_path),
+                "graph_receipt": graph_receipt,
+            }
+        )
+    surface_registry = {
+        key: value
+        for key, value in surface_workflows.items()
+        if key != "receipt_sha256"
+    }
+    surface_registry["artifacts"] = surface_artifacts
+    _write_json(
+        PLUGIN_ROOT / "sdk" / "workflows" / "surface-workflow-registry.v1.json",
+        surface_registry,
+    )
     executable_surface = _generate_executable_surface_registry()
     print(
         json.dumps(
@@ -4423,6 +4945,23 @@ def main() -> int:
                 "schema_files": schema_manifest["schema_file_count"],
                 "public_action_schemas": schema_manifest["public_action_schema_count"],
                 "executable_members": executable_surface["member_count"],
+                "universal_architecture": architecture["status"],
+                "dedicated_skill_workflows": dedicated_skills["skill_count"],
+                "dedicated_surface_workflows": (
+                    surface_workflows["sector_count"]
+                    + surface_workflows["authority_count"]
+                ),
+                "ecosystem_adapters": architecture["counts"]["ecosystem_adapters"],
+                "env_uop_toolchain_sync": toolchain_sync["status"],
+                "env_uop_sqlite_headers": sqlite_header_canonicalization,
+                "env_uop_architecture": env_uop_architecture["status"],
+                "env_uop_action_plane": action_plane["status"],
+                "env_uop_locks": env_uop_locks["status"],
+                "env_uop_flash": env_uop_flash["status"],
+                "env_uop_manifests": env_uop_manifests["status"],
+                "flash_authority_pin_count": len(flash_authority_pins),
+                "env_graph": env_graph["status"],
+                "uop_graph": uop_graph["status"],
             },
             sort_keys=True,
         )
@@ -4430,5 +4969,91 @@ def main() -> int:
     return 0
 
 
+def _generation_snapshot() -> dict[str, str]:
+    """Hash every maintained plugin byte while excluding runtime-only caches."""
+
+    snapshot: dict[str, str] = {}
+    for path in PLUGIN_ROOT.rglob("*"):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(PLUGIN_ROOT).as_posix()
+        if (
+            relative.startswith((".venv/", ".pytest_cache/"))
+            or "/__pycache__/" in f"/{relative}/"
+            or relative.endswith((".pyc", ".tmp"))
+        ):
+            continue
+        snapshot[relative] = _sha256(path)
+    return snapshot
+
+
+def _stabilized_cli() -> int:
+    """Run fresh-process passes until the whole generated surface is byte-stable."""
+
+    previous: dict[str, str] | None = None
+    previous_summary: dict[str, Any] | None = None
+    environment = dict(os.environ)
+    environment["EVIDENCE_LANE_GENERATION_INNER_PASS"] = "1"
+    for pass_number in range(1, 7):
+        result = subprocess.run(
+            [sys.executable, str(Path(__file__).resolve())],
+            cwd=PLUGIN_ROOT,
+            env=environment,
+            text=True,
+            capture_output=True,
+            check=False,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        if result.returncode != 0:
+            if result.stdout:
+                print(result.stdout, end="")
+            if result.stderr:
+                print(result.stderr, end="", file=sys.stderr)
+            return result.returncode
+        lines = [line for line in result.stdout.splitlines() if line.strip()]
+        if not lines:
+            raise RuntimeError("GENERATION_INNER_PASS_RETURNED_NO_SUMMARY")
+        previous_summary = json.loads(lines[-1])
+        current = _generation_snapshot()
+        if previous is not None and current == previous:
+            summary = dict(previous_summary)
+            summary.update(
+                {
+                    "stabilization_passes": pass_number,
+                    "fixed_point_files": len(current),
+                    "fixed_point_mismatches": 0,
+                }
+            )
+            print(json.dumps(summary, sort_keys=True))
+            return 0
+        previous = current
+
+    assert previous is not None
+    probe = subprocess.run(
+        [sys.executable, str(Path(__file__).resolve())],
+        cwd=PLUGIN_ROOT,
+        env=environment,
+        text=True,
+        capture_output=True,
+        check=False,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
+    current = _generation_snapshot()
+    changed = sorted(
+        path
+        for path in set(previous) | set(current)
+        if previous.get(path) != current.get(path)
+    )
+    if probe.returncode != 0:
+        if probe.stdout:
+            print(probe.stdout, end="")
+        if probe.stderr:
+            print(probe.stderr, end="", file=sys.stderr)
+        return probe.returncode
+    raise RuntimeError("GENERATION_FIXED_POINT_NOT_REACHED:" + ",".join(changed[:50]))
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    if os.environ.get("EVIDENCE_LANE_GENERATION_INNER_PASS") == "1":
+        raise SystemExit(main())
+    raise SystemExit(_stabilized_cli())

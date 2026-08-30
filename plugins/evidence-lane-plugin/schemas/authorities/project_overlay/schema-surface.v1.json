@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "project_overlay",
   "authority_root": "authorities/project_overlay",
-  "authority_manifest_sha256": "FF4597E65BB70365826FDE7A087C12F93913AE06915A6A3D2C562C83E9934A32",
+  "authority_manifest_sha256": "C43B9D64EE065868749FE29AB4FDA3551FF0BA8FD7E0ECF65FA39900E6D561B2",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -49,8 +49,8 @@
     },
     {
       "path": "authorities/project_overlay/schema.sql",
-      "bytes": 7892,
-      "sha256": "B0763B43518C9CA23A0ED7E87F1AFBCFF9C336BE6E05643EEF74D6AAC708C359"
+      "bytes": 8408,
+      "sha256": "3DD89642B5F682332AA6D98812E2E94E10F28F5D9F39D5E240150992C134AA10"
     },
     {
       "path": "authorities/project_overlay/sqlite-artifact.schema.json",
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "73F2EA7BA127C909F4D5F6952EE4F06CE9D1F26CBA0711A8E720A74F75C8F038"
+  "receipt_sha256": "C3A78BA3682FA106339E8B31BEA3CFEF5592758B638474C13644813CCDA30832"
 }

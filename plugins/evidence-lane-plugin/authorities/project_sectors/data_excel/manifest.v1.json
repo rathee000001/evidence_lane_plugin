@@ -4,8 +4,8 @@
   "lane_id": "data_excel",
   "sqlite_filename": "data_excel_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 51,
-  "schema_contract_table_count": 41,
+  "sqlite_table_count": 50,
+  "schema_contract_table_count": 42,
   "members": [
     {
       "path": "authorities/project_sectors/data_excel/builder-contract.schema.json",
@@ -19,18 +19,18 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/data_excel.dot",
-      "bytes": 26474,
-      "sha256": "6078FBC06975917D72132EA77DBF61F89F98AF248C506BDB8009A9BCF0F86659"
+      "bytes": 28295,
+      "sha256": "E7ADE1BFC5172CE3C2554A47CAB886F7245A9D1C27970B1F8EB887522A45C4F0"
     },
     {
       "path": "authorities/project_sectors/data_excel/data_excel.mmd",
-      "bytes": 21024,
-      "sha256": "714BB12507DEC6123BBED87425853CA4ACE5BE08DE068EE1ABBD8389E5C82739"
+      "bytes": 22204,
+      "sha256": "2CCA88203F3F7E7B1FA29CF07C5F626BD0C6E37E6B143F9BCA6A4289B6914DAE"
     },
     {
       "path": "authorities/project_sectors/data_excel/data_excel_sector_v001.sqlite",
-      "bytes": 307200,
-      "sha256": "94B471F74A9077B7FE837A9BE8C4657E745FDC2350B2F4488DB2BAA72A8B9E43"
+      "bytes": 311296,
+      "sha256": "0C0E5214176AB0AD1511C51C0DABCAD7F965EA0FE609F9948763BE680E2E81A0"
     },
     {
       "path": "authorities/project_sectors/data_excel/dot-artifact.schema.json",
@@ -39,8 +39,8 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/lane-contract.v1.json",
-      "bytes": 8633,
-      "sha256": "04FEC1A885B5A2F0A9E5777A25D75CC96B57FA72AA1AFA501448E8F640D48069"
+      "bytes": 9607,
+      "sha256": "2DB4C5E6B9EAC1C0AE42F18CB3E4EE9ECAA33499023F1F758CDB893067E4B791"
     },
     {
       "path": "authorities/project_sectors/data_excel/lane-pointer.schema.json",
@@ -79,8 +79,8 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/schema.sql",
-      "bytes": 13382,
-      "sha256": "CE9EDC90D006A6396AFCF5DC653C157972DD7E7EB728E6A01AE39A3AA3F1AFFB"
+      "bytes": 13969,
+      "sha256": "FF0F97DBDAFAD2D7052303021DC9A7B51F1E85BBC9101699E663D58569B8ED02"
     },
     {
       "path": "authorities/project_sectors/data_excel/sqlite-artifact.schema.json",
@@ -89,19 +89,34 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.json",
-      "bytes": 1152,
-      "sha256": "F6E88E8FB0285483AC5FBE4CC1163721D01C1CE9BD2C19BEFE91206D42C98645"
+      "bytes": 15046,
+      "sha256": "55CC8A0D4BC34B70DD550FDB57BAA31D8EED718F3777C73D975744553E03C4F8"
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.schema.json",
-      "bytes": 1013,
-      "sha256": "9E2E89B7634F69DC33CB84D92E7A0C1ABC815CEF036146DBFA46D606A6D67DBA"
+      "bytes": 1459,
+      "sha256": "B9514608EB949A7F82F1681B2388D73F8C7A8CC8B4DDD76B074D2C4300CC845B"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/workflow.dot",
+      "bytes": 6451,
+      "sha256": "7B3AFAD3847EF8CFD0D9AFCADBC1276A1C350516F8FE63EE9E74C2F2A27A1C66"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/workflow.mmd",
+      "bytes": 5014,
+      "sha256": "2E2B255B60AF2646F4D392A4E155D52DBB29D467518761399AF53CE002BB1AD4"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/workflow.v1.json",
+      "bytes": 31956,
+      "sha256": "EED4A2D0450A64E5FE268869843B4CAA3C20381EEE59634ACD58F049EA3C5EA7"
     }
   ],
-  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "E8B27793E459780D3CE04A0A21CB3D622D6D74F4C1CE695C61785B4004A487F7"
+  "receipt_sha256": "E70697395F97F0583D984B6967E98F6C34715058869D102E4294DA14F59FD7B4"
 }

@@ -1,6 +1,6 @@
 {
   "schema": "evidence-lane.lane-schema-evolution-policy.v1",
-  "policy_version": 1,
+  "policy_version": 3,
   "ledger": {
     "schema": "evidence-lane.lane-schema-migration-ledger.v1",
     "table": "lane_schema_migration",
@@ -35,6 +35,19 @@
     "preserve_rowids": true,
     "before_after_content_hash_required": true,
     "before_after_row_count_required": true
+  },
+  "core_rebuild": {
+    "allowed_operations": [
+      "REBUILD_COMPACT_CONTENT_CAS_AND_CONTENTLESS_FTS",
+      "REBUILD_REFERENCE_ONLY_CHUNKS_AND_COMPACT_AUTHORITY_INDEX"
+    ],
+    "explicit_user_authorization_required": true,
+    "rebuild_from_exact_source_hashes": true,
+    "exact_byte_reconstruction_required": true,
+    "integrity_and_foreign_key_checks_required": true,
+    "accepted_artifact_in_place_mutation_allowed": false,
+    "atomic_generation_swap_required": true,
+    "superseded_storage_route_retained": false
   },
   "protected_lanes": {
     "lane_ids": [

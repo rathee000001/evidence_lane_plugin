@@ -48,7 +48,7 @@ export default function ProvenancePage() {
         <div className="creditGrid">
           {credits.map(([name, role], index) => <article key={name}><span>{String(index + 1).padStart(2, "0")}</span><h3>{name}</h3><p>{role}</p></article>)}
         </div>
-        <p className="creditNote">The implementation also depends on Python, SQLite, Git, Mermaid, Graphviz DOT, Next.js, React, Vercel, and the open-source libraries named in the repository. OpenRouter is an optional external general-question provider after a governed corpus no-hit; it is never project evidence. Their terms, licenses, and trademarks remain their own.</p>
+        <p className="creditNote">The implementation also depends on Python, SQLite, Git, Mermaid, Graphviz DOT, Next.js, React, Vercel, and the open-source libraries named in the repository. The public Studio has no server-owned external provider proxy. Third-party terms, licenses, and trademarks remain their own.</p>
       </section>
       <section className="section shell upstreamSection" id="upstream-reference-ledger">
         <div className="sectionHead wideHead">

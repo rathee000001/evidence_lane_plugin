@@ -6,11 +6,11 @@ description: Inspect or select Evidence Lane primary storage routing with an app
 # Evidence Lane Storage Sidecar
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its Codex hook/skill
 ownership contract. This skill owns behavior; hooks provide lifecycle receipts
 only.
 
-This is an administrative sidecar, not a seventh primary `/evi` control.
+This is a first-class administrative workflow in the mutable skill registry.
 
 1. Call `storage_connector_inspect` before any `storage_connector_select`.
 2. Route by the MCP server's actual durable-filesystem capability, then by host

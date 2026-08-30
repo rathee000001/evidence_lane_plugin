@@ -36,7 +36,7 @@ def _backlog(*, linked_delta: str = "DELTA-A") -> dict[str, Any]:
             "canonical_plan_sha256": "D" * 64,
             "history_projection_sha256": "E" * 64,
             "projection_sha256": "F" * 64,
-            "persistent_until": "NEXT_SIX_WAY_HIL_PRESENTED",
+            "persistent_until": "NEXT_GOVERNED_HIL_PRESENTED",
             "rows": [
                 {
                     "number": 81,

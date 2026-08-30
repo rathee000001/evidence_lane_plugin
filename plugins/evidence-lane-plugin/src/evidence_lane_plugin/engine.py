@@ -17,6 +17,7 @@ from .git_adapter import (
     diff_patch,
     identity_json,
     inspect_repository,
+    try_resolve_git_executable,
 )
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .ids import new_ulid, prefixed_id
@@ -103,7 +104,7 @@ class CodePVEngine:
     def doctor(self) -> dict[str, Any]:
         schema_path = self.package_source_root / "schema.sql"
         checks = {
-            "git": shutil.which("git") is not None,
+            "git": try_resolve_git_executable(self.source_repository_root) is not None,
             "python": True,
             "sqlite_fts5": False,
             "schema_file": schema_path.is_file(),
@@ -587,10 +588,11 @@ class CodePVEngine:
                         else "OPEN_OR_FAILED"
                     ),
                 },
-                "six_way_token_vocabulary_preserved": governance[
-                    "six_way_token_vocabulary_preserved"
+                "authority_hil_token_vocabulary": governance[
+                    "authority_hil_token_vocabulary"
                 ],
-                "six_way_hil_is_lane_specific": True,
+                "authority_hil_is_lane_specific": True,
+                "decision_count_is_behavior_ceiling": False,
                 "mode_selection_is_not_hil_approval": True,
                 "candidate_created_by_selection": False,
                 "pointer_moved_by_selection": False,
@@ -848,7 +850,7 @@ class CodePVEngine:
                             f"{identity.repository_url}@{identity.commit_sha}",
                             "code_sqlite",
                             candidate_id,
-                            "exact repository bytes in files.exact_bytes",
+                            "exact repository bytes in compressed file_content_cas",
                             repository_payload["worktree_sha256"],
                             json.dumps(
                                 repository_payload,

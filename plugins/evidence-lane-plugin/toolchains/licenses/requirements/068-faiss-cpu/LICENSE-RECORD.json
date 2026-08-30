@@ -10,8 +10,10 @@
   "license_evidence": "runtime/licenses/<runtime_key>/manifest.v1.json with copied license files, metadata, classifiers, version, bytes, and SHA-256",
   "evidence_paths": [
     "requirements.lock.txt",
+    "requirements.onnx-directml.lock.txt",
     "requirements.toolchain.lock.txt",
-    "requirements.torch-cpu.lock.txt"
+    "requirements.torch-cpu.lock.txt",
+    "requirements.torch-nvidia.lock.txt"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -22,5 +24,5 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "CBE6EB11E673332C9CD34644CDAA97B710B3A0F562743482BBC863B5067AC375"
+  "receipt_sha256": "6F3D95BCE8E17BD83E24332C4458A30BDD3BCF4B8431495A3F6FC216AE9422D8"
 }

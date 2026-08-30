@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "receipt_ledger",
   "authority_root": "authorities/receipt_ledger",
-  "authority_manifest_sha256": "EBD93E14F2E3BC0BA13D7C83BF33045D88F54436779D44886919733C19C17F5E",
+  "authority_manifest_sha256": "8BA4CFEFBB522FE622519036B433405C0C0F877D5FFE79D4BB2D0617CA56548B",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -45,12 +45,12 @@
     {
       "path": "authorities/receipt_ledger/runtime-binding.schema.json",
       "bytes": 596,
-      "sha256": "04D354DD9C4B719A4D682A70F4DB7A07EC0A2AA4596FD8EDCDC03860F1205E24"
+      "sha256": "4A67E8106DC1D5061602556A550BEB14334E62047C8F82D45A9D6BF4921D5B84"
     },
     {
       "path": "authorities/receipt_ledger/schema.sql",
-      "bytes": 4809,
-      "sha256": "6D93DCF0B5F972F0DE591D5275CC05F4FE475CFD2841185DD83F15F185B65529"
+      "bytes": 5728,
+      "sha256": "977F6F4731AD06B96D45C6C6128D9C6A3B2DC0FC22A45665C1E027327E906D52"
     },
     {
       "path": "authorities/receipt_ledger/sqlite-artifact.schema.json",
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "C2AD8A28CCBE3BACDBFAEDB4911C6CD2022D70297B057FB676607FF89F5309CE"
+  "receipt_sha256": "7FD8D5C035E14ABC350F3470DF75495E86AAC37F1351D44E5291A851A9C018B2"
 }

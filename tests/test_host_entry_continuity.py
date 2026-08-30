@@ -410,7 +410,7 @@ def test_service_remote_resume_consumes_entry_before_runtime_continuity(
     final_hil = {
         **task,
         "task_id": "remote-entry-final-hil",
-        "requested_outcome": "Present the physically final six-way HIL.",
+        "requested_outcome": "Present the physically final governed HIL.",
         "panel_role": "PHYSICALLY_FINAL_HIL",
     }
     service.plan_tasks(

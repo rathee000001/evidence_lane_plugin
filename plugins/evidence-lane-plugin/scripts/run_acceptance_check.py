@@ -23,7 +23,7 @@ from evidence_lane_plugin.hashing import (
     sha256_bytes,
     sha256_file,
 )
-from evidence_lane_plugin.next_actions import HIL_CHOICES
+from evidence_lane_plugin.next_actions import PROJECT_HIL_DECISION_TOKENS
 from evidence_lane_plugin.pv_package import validate_pv_package
 
 EXPECTED_BRANCH = "agent/evi-v150-systemwide-release-hil-v1.5.0"
@@ -449,8 +449,14 @@ def _postseal_candidate_context() -> dict[str, Any]:
         "Code-mode postseal count differs.",
     )
     next_action = exit_slip.get("next_action") or {}
-    _require(next_action.get("state") == "PRESENT_SIX_WAY_HIL", "HIL state differs.")
-    _require(next_action.get("choices") == list(HIL_CHOICES), "HIL choices differ.")
+    _require(
+        next_action.get("state") == "PRESENT_PROJECT_AUTHORITY_HIL",
+        "HIL state differs.",
+    )
+    _require(
+        next_action.get("choices") == list(PROJECT_HIL_DECISION_TOKENS),
+        "HIL choices differ.",
+    )
     _require(next_action.get("stop_and_wait") is True, "HIL is not stop-and-wait.")
     safety = release["payload"].get("safety") or {}
     _require(
@@ -477,7 +483,7 @@ def _postseal_candidate_context() -> dict[str, Any]:
         "postseal_pending": pending_postseal,
         "postseal_check": "PASS",
         "approve_gate": ci_cd["approve_gate"],
-        "hil_choices": list(HIL_CHOICES),
+        "hil_choices": list(PROJECT_HIL_DECISION_TOKENS),
         "hil_state": next_action["state"],
         "hil_stop_and_wait": next_action["stop_and_wait"],
         "suggested_next_prompt": next_action.get("suggested_next_prompt"),
@@ -623,7 +629,7 @@ def check_ac17() -> dict[str, Any]:
 
 
 def check_ac18() -> dict[str, Any]:
-    """Prove the exact six-way HIL stop and zero prohibited mutation."""
+    """Prove the exact governed HIL stop and zero prohibited mutation."""
 
     evidence = _postseal_candidate_context()
     return {

@@ -2,19 +2,21 @@
   "schema": "evidence-lane.remote-public-action-registry.v1",
   "status": "GENERATED_READ_ONLY_PROJECTION",
   "source_catalog_path": "schemas/public-action-schemas.v001.json",
-  "source_catalog_sha256": "4AFF1511E4D6AFDB2DB1C1D70F375A394CFAFCD35FA90AF87262898C448FA413",
+  "source_catalog_sha256": "B39942AF6B4AEB7E1D73513972386C9413B858DED240A6D2853B1FC4527D5769",
   "tool_count": 91,
   "read_tool_count": 30,
   "write_tool_count": 61,
   "governed_skill_count": 26,
-  "ordinary_live_authority_count": 8,
-  "env_uop_governed_six_way_arms": [
+  "current_authority_classes_derived": true,
+  "env_uop_governed_current_authority_classes": [
     "PROJECT_SECTORS_AND_ROOT_FILES",
     "AI_LEARNING",
     "CANON_GRAPH",
     "PROJECT_MEMORY_DB",
     "HOST_CONVERSATION_MEMORY_MD",
-    "AGENTS_MD"
+    "AGENTS_MD",
+    "PROJECT_UNIVERSE",
+    "CONNECTOR_BRAIN"
   ],
   "linked_operational_authorities": [
     "PROJECT_UNIVERSE",
@@ -51,17 +53,43 @@
     "internal_support_bindings": {
       "schema": "evidence-lane.internal-sdk-support-bindings.v1",
       "status": "PASS",
-      "component_count": 4,
+      "component_count": 6,
       "components": [
         {
           "component": "env_uop_graph",
           "owner_module": "env_uop_operator_runtime",
           "functions": [
-            "migrate_and_render_env_uop_graph",
+            "rebuild_codex_action_planes",
             "rebuild_flash_manifest"
           ],
           "function_modules": [
+            "evidence_lane_plugin.codex_action_plane",
             "evidence_lane_plugin.env_uop_graph"
+          ],
+          "public_action": false
+        },
+        {
+          "component": "env_uop_tool_routing",
+          "owner_module": "env_uop_operator_runtime",
+          "functions": [
+            "env_uop_tool_routing_catalog",
+            "route_env_uop_data_touch"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.env_uop_tool_routing"
+          ],
+          "public_action": false
+        },
+        {
+          "component": "evaluation_toolchain",
+          "owner_module": "first_class_workflows",
+          "functions": [
+            "build_evaluation_plan",
+            "evaluation_tool_catalog",
+            "seal_evaluation_result"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.evaluation_toolchain"
           ],
           "public_action": false
         },
@@ -104,9 +132,9 @@
       ],
       "all_components_have_one_sdk_owner": true,
       "support_components_inflate_public_action_count": false,
-      "receipt_sha256": "E4164C883105EA654CF4850B1725FF9AE9C9C8B5B61E82317507B17A34740C85"
+      "receipt_sha256": "991F7C7B40A28148EE9D0177AC695E620422C11C82485B1152CF7B4E2D857D11"
     },
-    "receipt_sha256": "23315DD0EDAB5454E3F1CD4838EC0612C59AB0011E2BDFFA655FB1CF70332FC1"
+    "receipt_sha256": "28452E9665E8269E878CCFCADB3011A06E395ED8E65D577D2FD5C0340D6A9416"
   },
   "public_action_and_env_uop_ai_action_planes_separate": true,
   "authority_support_systems": {
@@ -148,7 +176,7 @@
     "failed_event_only_disabled_during_repair": true,
     "passing_event_reenabled_after_installed_host_proof": true
   },
-  "current_implementation_registry_sha256": "3AB2FD404AF96F709B74F7947AF096962C49647749E42E72DA01530ACFA6C356",
+  "current_implementation_registry_sha256": "CE4227131F8874568011B38B6A11EE578CECB709CA804E4E1BAF3A07060B1372",
   "actions": [
     {
       "name": "adaptive_delta_exit",
@@ -162,7 +190,7 @@
       "title": "Resolve full AI toolchain",
       "read_only": true,
       "owner_skill": "evi-toolchain",
-      "schema_sha256": "F458DEF20BB5A93761DA23F5382CBBBC1A05E54965083D40D9F6CA97A7197E72"
+      "schema_sha256": "51AA7B19847327264F9DED47FF39C70032767AA078D99291895B119A4F485AB0"
     },
     {
       "name": "bigger_universe_link",
@@ -355,10 +383,10 @@
     },
     {
       "name": "hil_decide",
-      "title": "Record exact six-way HIL decision",
+      "title": "Record exact governed HIL decision",
       "read_only": false,
       "owner_skill": "evi-fuse",
-      "schema_sha256": "47102A9AAE2F25D54DDB2AA259EFB9B822BD89125C54052833694A0F01790D53"
+      "schema_sha256": "CFEDC858CFC084E74518745D8CA2FCAC10CBD4AAE2C7B0D376DD18539DABF999"
     },
     {
       "name": "hil_intent_classify",
@@ -414,7 +442,7 @@
       "title": "Decide Agent Learning candidate",
       "read_only": false,
       "owner_skill": "evi-learning",
-      "schema_sha256": "991154FE28FF2E4108C4587D2CFF30E29772E1F299B7573D5C0FDCF49D652A60"
+      "schema_sha256": "A6FAAF7B15F4D7DB515C88F391F851013079998BE3E57105732684A420EF1459"
     },
     {
       "name": "learning_inspect",
@@ -456,14 +484,14 @@
       "title": "Read the canonical lifecycle law",
       "read_only": true,
       "owner_skill": "evi",
-      "schema_sha256": "DC8F592786038F171CBBFC65A1A884DD7E5E670D57313DD5F1AA026891F28BA3"
+      "schema_sha256": "867E13F514924481E33B548D50636E2F99A1DD3F5FD778B1DA7E6344A38D7070"
     },
     {
       "name": "mode_classify",
       "title": "Classify an ENV15 mode intersection and lanes",
       "read_only": false,
       "owner_skill": "evi-mode",
-      "schema_sha256": "4E85D82EC4364F65F640B8347FA7E01BF611FA8A80A4427868261A155BCB3F39"
+      "schema_sha256": "AF16028F18B7715D41B3F13B2AB597B1C8076F2ACA083DB4A45A5FD9DE1396A3"
     },
     {
       "name": "project_memory_query",
@@ -484,7 +512,7 @@
       "title": "Compile project recipe",
       "read_only": true,
       "owner_skill": "evi-project-recipe",
-      "schema_sha256": "9B995E704D12C8C56BDCA41E1280D60302541F74513E54E618AF121DDFE5C59A"
+      "schema_sha256": "8CCF5C36A0E546B2D521B03560DECB2D893B19DEB694B98E097BE40EDDEF8A37"
     },
     {
       "name": "project_register",
@@ -554,7 +582,7 @@
       "title": "Run focused PV intelligence query",
       "read_only": true,
       "owner_skill": "evi",
-      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE"
+      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2"
     },
     {
       "name": "pv_rollback",
@@ -642,10 +670,10 @@
     },
     {
       "name": "search",
-      "title": "Query live six-authority project intelligence",
+      "title": "Query live current-authority project intelligence",
       "read_only": true,
       "owner_skill": "evi-source-intake",
-      "schema_sha256": "1D4C303C7B3FE4AC1E729A6D7B45EA0A082FE57585D1C3251874A5BBE9769691"
+      "schema_sha256": "76F9448249D205764772262F4B673798BE5724E2F6B7162B34E3A8F8F8BE6FC1"
     },
     {
       "name": "session_boot",
@@ -771,7 +799,7 @@
       "title": "Seal one HIL-only live-root proposal and dual presentation",
       "read_only": false,
       "owner_skill": "evi-refresh",
-      "schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570"
+      "schema_sha256": "DDCC0D86F2CB504F7BD9B6CAE92C275E6792507B47C67E86EE6C83462F65FC19"
     },
     {
       "name": "task_confirm_source_update",
@@ -789,5 +817,5 @@
     }
   ],
   "execution_authority": false,
-  "projection_sha256": "87741C64A4C8AD9DBCA9C31F768613AFBC49EAAA4D59BCA2E7B0A8B3509D5B20"
+  "projection_sha256": "2DFB0F5C05F41DEC03F4F528956EA7DAA5862F3D5FA71392DF8B6EDDAE53F469"
 }

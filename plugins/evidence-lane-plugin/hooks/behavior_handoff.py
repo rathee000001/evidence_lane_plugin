@@ -17,34 +17,22 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from evidence_lane_plugin.hook_contract import HOOK_EVENT_WORKFLOW_CONTRACTS
+
 BEHAVIOR_HANDOFF_SCHEMA = "evidence-lane.codex-hook-behavior-handoff.v1"
 BEHAVIOR_HANDOFF_CONSUMER = "EVIDENCE_LANE_HOOK_TRANSPORT_ADAPTER"
 SKILL_RUNTIME_OWNER = "INSTALLED_EVIDENCE_LANE_CODE_LIFECYCLE_SKILL"
 HOOK_RUNTIME_ROLE = "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY"
 
 EVENT_SKILL_ACTIONS = {
-    "SessionStart": "SESSION_START_BIND_OR_REENTRY",
-    "SubagentStart": "BOUND_OPTIONAL_EVENT_OBSERVATION",
-    "UserPromptSubmit": "PREPARE",
-    "PreToolUse": "PROSPECTIVE_TOOL_BOUNDARY",
-    "PermissionRequest": "BOUND_OPTIONAL_EVENT_OBSERVATION",
-    "PostToolUse": "TOOL_RECEIPT_AND_CURRENT_CHANGE_PROJECTION",
-    "PreCompact": "COMPACTION_OR_SESSION_BOUNDARY",
-    "PostCompact": "COMPACTION_OR_SESSION_BOUNDARY",
-    "SubagentStop": "BOUND_OPTIONAL_EVENT_OBSERVATION",
-    "Stop": "COMMIT",
+    event_name: str(contract["skill_action"])
+    for event_name, contract in HOOK_EVENT_WORKFLOW_CONTRACTS.items()
+    if contract.get("skill_consumer") is not None
 }
 EVENT_SKILL_CONSUMERS = {
-    "SessionStart": "consume_session_start_transport",
-    "SubagentStart": "consume_optional_observer_transport",
-    "UserPromptSubmit": "consume_prompt_transport",
-    "PreToolUse": "consume_pre_tool_transport",
-    "PermissionRequest": "consume_optional_observer_transport",
-    "PostToolUse": "consume_post_tool_transport",
-    "PreCompact": "consume_boundary_transport",
-    "PostCompact": "consume_boundary_transport",
-    "SubagentStop": "consume_optional_observer_transport",
-    "Stop": "consume_stop_transport",
+    event_name: str(contract["skill_consumer"])
+    for event_name, contract in HOOK_EVENT_WORKFLOW_CONTRACTS.items()
+    if contract.get("skill_consumer") is not None
 }
 
 
@@ -68,8 +56,7 @@ def _event_isolation_binding() -> dict[str, Any]:
         "policy_sha256": "EVIDENCE_LANE_HOOK_ISOLATION_POLICY_SHA256",
     }
     values = {
-        key: os.environ.get(env_name, "").strip()
-        for key, env_name in names.items()
+        key: os.environ.get(env_name, "").strip() for key, env_name in names.items()
     }
     present = {key for key, value in values.items() if value}
     if not present:
@@ -118,9 +105,7 @@ def _verified_skill_consumer(
     ).resolve()
     try:
         source_file = (
-            inspect.getsourcefile(skill_consumer)
-            if callable(skill_consumer)
-            else None
+            inspect.getsourcefile(skill_consumer) if callable(skill_consumer) else None
         )
     except (TypeError, OSError):
         source_file = None
@@ -141,9 +126,7 @@ def _verified_skill_consumer(
         "module": "evidence_lane_plugin.hook_skill_runtime",
         "function": expected_name,
         "source_path_role": "PLUGIN_ROOT/src/evidence_lane_plugin/hook_skill_runtime.py",
-        "source_sha256": hashlib.sha256(expected_path.read_bytes())
-        .hexdigest()
-        .upper(),
+        "source_sha256": hashlib.sha256(expected_path.read_bytes()).hexdigest().upper(),
     }
 
 
@@ -182,9 +165,7 @@ def _verified_bindings(
     skill_receipt: Mapping[str, Any],
 ) -> tuple[str, str, str]:
     expected_action = _expected_action(event_name)
-    transport_receipt_sha256 = str(
-        transport.get("transport_receipt_sha256") or ""
-    )
+    transport_receipt_sha256 = str(transport.get("transport_receipt_sha256") or "")
     if transport.get("event_name") != event_name or not _is_sha256(
         transport_receipt_sha256.upper()
     ):
@@ -192,9 +173,7 @@ def _verified_bindings(
             "BEHAVIOR_HANDOFF_TRANSPORT_INVALID",
             "The transport event or transport receipt identity is invalid.",
         )
-    if dict(skill_receipt.get("hook_transport_envelope") or {}) != dict(
-        transport
-    ):
+    if dict(skill_receipt.get("hook_transport_envelope") or {}) != dict(transport):
         raise BehaviorHandoffError(
             "BEHAVIOR_HANDOFF_TRANSPORT_MISMATCH",
             "The skill receipt is not bound to the exact hook transport.",
@@ -204,9 +183,7 @@ def _verified_bindings(
             skill_receipt.get("skill_action_owner") == SKILL_RUNTIME_OWNER
         ),
         "skill_action": skill_receipt.get("skill_action") == expected_action,
-        "skill_action_executed": (
-            skill_receipt.get("skill_action_executed") is True
-        ),
+        "skill_action_executed": (skill_receipt.get("skill_action_executed") is True),
         "hook_behavior_executed": (
             skill_receipt.get("hook_behavior_executed") is False
         ),

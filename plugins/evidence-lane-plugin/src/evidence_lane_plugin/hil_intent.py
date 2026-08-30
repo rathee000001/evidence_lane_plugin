@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from .next_actions import HIL_CHOICES, HIL_SUGGESTED_PROMPT
+from .next_actions import HIL_SUGGESTED_PROMPT, PROJECT_HIL_DECISION_TOKENS
 
 _CONTINUE_RE = re.compile(
     r"\b(?:pursue|purse|continue|proceed|resume|carry\s+on)\b.*"
@@ -48,7 +48,9 @@ def classify_hil_intent(
         intent = "EXACT_CORRECTION_DECISION"
         route = "hil_decide" if pending_hil else None
         suggested = HIL_SUGGESTED_PROMPT
-    elif argument and any(argument.startswith(choice) for choice in HIL_CHOICES[2:]):
+    elif argument and any(
+        argument.startswith(choice) for choice in PROJECT_HIL_DECISION_TOKENS[2:]
+    ):
         intent = "EXACT_NON_PROMOTION_DECISION"
         route = "hil_decide" if pending_hil else None
         suggested = HIL_SUGGESTED_PROMPT

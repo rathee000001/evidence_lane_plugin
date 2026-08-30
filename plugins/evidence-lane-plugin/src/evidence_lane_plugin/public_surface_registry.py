@@ -30,18 +30,14 @@ except ImportError:
     )
     if _current_registry_spec is None or _current_registry_spec.loader is None:
         raise
-    _current_registry_module = importlib.util.module_from_spec(
-        _current_registry_spec
-    )
+    _current_registry_module = importlib.util.module_from_spec(_current_registry_spec)
     _current_registry_spec.loader.exec_module(_current_registry_module)
     current_implementation_registry = (
         _current_registry_module.current_implementation_registry
     )
 
 _PLUGIN_ROOT_ENV = "EVIDENCE_LANE_PLUGIN_ROOT"
-PUBLIC_SURFACE_SINGLE_INSTALLED_ROOT_LAW = (
-    "PUBLIC_SURFACE_SINGLE_INSTALLED_ROOT_LAW"
-)
+PUBLIC_SURFACE_SINGLE_INSTALLED_ROOT_LAW = "PUBLIC_SURFACE_SINGLE_INSTALLED_ROOT_LAW"
 RUNTIME_PUBLIC_CATALOG_SCHEMA = "evidence-lane.runtime-public-catalog.v1"
 _RUNTIME_PUBLIC_CATALOG_FILE = "runtime-public-catalog.v1.json"
 
@@ -106,9 +102,7 @@ def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
         if key in result:
-            raise PublicSurfaceRegistryError(
-                f"PUBLIC_SURFACE_DUPLICATE_JSON_KEY:{key}"
-            )
+            raise PublicSurfaceRegistryError(f"PUBLIC_SURFACE_DUPLICATE_JSON_KEY:{key}")
         result[key] = value
     return result
 
@@ -168,7 +162,9 @@ def resolve_public_surface_plugin_root() -> Path:
     return resolved
 
 
-def _file_records(paths: list[Path], *, parent_name: bool = False) -> list[dict[str, str]]:
+def _file_records(
+    paths: list[Path], *, parent_name: bool = False
+) -> list[dict[str, str]]:
     records = [
         {
             "name": path.parent.name if parent_name else path.name,
@@ -207,15 +203,14 @@ def derive_public_surface_registry(
     missing_read_names = sorted(set(read_names) - set(tool_names))
     if missing_read_names:
         raise PublicSurfaceRegistryError(
-            "PUBLIC_SURFACE_READ_REGISTRY_UNKNOWN_TOOL:"
-            + ",".join(missing_read_names)
+            "PUBLIC_SURFACE_READ_REGISTRY_UNKNOWN_TOOL:" + ",".join(missing_read_names)
         )
     write_names = sorted(set(tool_names) - set(read_names))
     routing_catalog_contract = routing.get("catalog_contract")
     if not isinstance(routing_catalog_contract, dict):
         raise PublicSurfaceRegistryError("PUBLIC_SURFACE_CATALOG_CONTRACT_INVALID")
-    routing_catalog_matches_derived = (
-        routing_catalog_contract.get("tool_count") == len(tool_names)
+    routing_catalog_matches_derived = routing_catalog_contract.get("tool_count") == len(
+        tool_names
     )
 
     skill_records = _file_records(
@@ -236,8 +231,7 @@ def derive_public_surface_registry(
     if (
         logical_action_configuration.get("schema")
         != "evidence-lane.hook-logical-action-registry.v1"
-        or
-        not isinstance(declared_logical_actions, dict)
+        or not isinstance(declared_logical_actions, dict)
         or list(declared_logical_actions) != hook_events
         or any(
             not isinstance(declared_logical_actions.get(name), list)
@@ -328,9 +322,7 @@ def derive_public_surface_registry(
     plugin_id = str(plugin_manifest.get("name") or "").strip()
     plugin_version = str(plugin_manifest.get("version") or "").strip()
     try:
-        project = tomllib.loads(
-            (root / "pyproject.toml").read_text(encoding="utf-8")
-        )
+        project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
         project_name = str(project["project"]["name"]).strip()
         project_version = str(project["project"]["version"]).strip()
     except (OSError, UnicodeError, KeyError, TypeError, tomllib.TOMLDecodeError) as exc:
@@ -373,13 +365,15 @@ def derive_public_surface_registry(
         if isinstance(row, dict) and isinstance(row.get("tool"), str)
     }
     implementation_routes_match_tools = implementation_tool_names == set(tool_names)
-    routing_tombstones = routing.get("obsolete_tool_tombstones")
-    implementation_tombstones = {
+    obsolete_routing_sections = {
+        str(key) for key in routing if str(key).startswith("obsolete_")
+    }
+    obsolete_implementation_routes = {
         str(name) for name in implementation_registry.get("obsolete_public_tools", [])
     }
     obsolete_public_routes_purged = (
-        routing_tombstones is None
-        and not implementation_tombstones
+        not obsolete_routing_sections
+        and not obsolete_implementation_routes
         and all(
             isinstance(row, dict)
             and row.get("status") == "CURRENT_ROUTE"
@@ -444,8 +438,7 @@ def derive_public_surface_registry(
                 _canonical_bytes(hook_event_actions)
             ),
             "logical_action_count": sum(
-                int(row["logical_action_count"])
-                for row in logical_action_inventory
+                int(row["logical_action_count"]) for row in logical_action_inventory
             ),
             "logical_action_count_semantics": (
                 "NUMBERED_SERIAL_TRANSPORT_STEPS_INSIDE_HANDLER_ACTIONS"
@@ -466,7 +459,7 @@ def derive_public_surface_registry(
             "capability_count": implementation_registry["capability_count"],
             "public_tool_count": implementation_registry["public_tool_count"],
             "routes_match_tool_registry": implementation_routes_match_tools,
-            "obsolete_public_tools": sorted(implementation_tombstones),
+            "obsolete_public_tools": sorted(obsolete_implementation_routes),
             "obsolete_public_routes_purged": obsolete_public_routes_purged,
             "registry_sha256": implementation_registry["registry_sha256"],
             "obsolete_execution_allowed": implementation_registry[
@@ -522,25 +515,25 @@ def derive_runtime_catalog_constants(
             else [statement.target]
         )
         if not any(
-            isinstance(target, ast.Name) and target.id == "SDK_NATIVE_ACTIONS"
+            isinstance(target, ast.Name) and target.id == "SPECIALIZED_NATIVE_ACTIONS"
             for target in targets
         ):
             continue
         if statement.value is None:
             raise PublicSurfaceRegistryError(
-                "PUBLIC_SURFACE_SDK_TOOL_REGISTRY_INVALID"
+                "PUBLIC_SURFACE_SPECIALIZED_ACTION_REGISTRY_INVALID"
             )
         try:
-            sdk_actions = ast.literal_eval(statement.value)
+            specialized_actions = ast.literal_eval(statement.value)
         except (TypeError, ValueError) as exc:
             raise PublicSurfaceRegistryError(
-                "PUBLIC_SURFACE_SDK_TOOL_REGISTRY_INVALID"
+                "PUBLIC_SURFACE_SPECIALIZED_ACTION_REGISTRY_INVALID"
             ) from exc
-        if not isinstance(sdk_actions, tuple):
+        if not isinstance(specialized_actions, tuple):
             raise PublicSurfaceRegistryError(
-                "PUBLIC_SURFACE_SDK_TOOL_REGISTRY_INVALID"
+                "PUBLIC_SURFACE_SPECIALIZED_ACTION_REGISTRY_INVALID"
             )
-        for row in sdk_actions:
+        for row in specialized_actions:
             if (
                 not isinstance(row, tuple)
                 or len(row) != 6
@@ -548,7 +541,7 @@ def derive_runtime_catalog_constants(
                 or not isinstance(row[5], bool)
             ):
                 raise PublicSurfaceRegistryError(
-                    "PUBLIC_SURFACE_SDK_TOOL_REGISTRY_INVALID"
+                    "PUBLIC_SURFACE_SPECIALIZED_ACTION_REGISTRY_INVALID"
                 )
             tool_records.append((row[0], row[5]))
     for syntax_node in ast.walk(tree):
@@ -593,8 +586,7 @@ def derive_runtime_catalog_constants(
     }
     if (
         derived != packaged_catalog
-        or packaged_catalog_payload.get("mcp_source_sha256")
-        != _sha256_file(mcp_source)
+        or packaged_catalog_payload.get("mcp_source_sha256") != _sha256_file(mcp_source)
         or packaged_catalog_payload.get("release_channel_sha256")
         != _sha256_file(release_path)
     ):

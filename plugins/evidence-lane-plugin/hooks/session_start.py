@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 _FLASH_PROMPT_SHA256 = (
-    "2167BBABE80656C24B18544096E725E874D4FB46066B8F4F8364A3BF14A827DB"
+    "DDD5A334D4FB3DC036F7FFB18DE00B6F052AC932EDF6E2EC56C1D384603E30C8"
 )
 _ENGINE_VERSION_RE = re.compile(
     r'^ENGINE_VERSION\s*=\s*"(?P<version>[^"]+)"',
@@ -250,7 +250,7 @@ def _plugin_version_context() -> dict[str, object]:
             and remote_git_policy.get("pull_request_acceptance_allowed") is True
             and promotion.get("mode") == "CODE"
             and promotion.get("ci_cd_law") == "CONTROLLED_REQUIRED"
-            and promotion.get("explicit_six_way_hil_required") is True
+            and promotion.get("explicit_authority_hil_required") is True
         )
         return {
             "plugin_id": manifest.get("name"),
@@ -937,8 +937,9 @@ def main() -> int:
         + "incremental Refresh across the single eighteen-lane registry. Task "
         + "completion automatically confirms source, Refreshes, and seals the "
         + "exit candidate; Exit and Refresh are not user commands."
-        + "\n\nExpose exactly six public controls after /evi: Boot, Rollback, "
-        + "Build, Refresh, Mode, and Source Intake. A prepared accepted-PV "
+        + "\n\nExpose the current registry-derived human entrypoints after /evi; "
+        + "do not impose a fixed count or duplicate backend workflows. A prepared "
+        + "accepted-PV "
         + "handoff makes /evi-state-travel eligible but must not auto-display, "
         + "invoke, or consume it. Route to it only after an explicit user request "
         + "or genuine host-context exhaustion; it must bind a fresh host session, "
@@ -947,7 +948,7 @@ def main() -> int:
         + "/evi-boot as the first normal action and atomically verifies "
         + "Boot/Flash before displaying generalized /evi-source-intake, the "
         + "separate /evi-mode sidecar, Build, bounded work, automatic exit-Refresh, "
-        + "six-way HIL, exact-APPROVE Fuse, Rollback, and explicit "
+        + "authority-specific governed HIL, exact-APPROVE Fuse, Rollback, and explicit "
         + "/evi-exit-boot. A booted session persists until that explicit command. "
         + "Before stopping at HIL or State Travel, visibly render the engine's "
         + "suggested_next_prompt. The composer is host-owned; do not claim the "

@@ -22,7 +22,7 @@ from evidence_lane_plugin.lanes import (
 )
 
 
-def test_all_lane_schema_assets_are_versioned_hash_bound_and_additive() -> None:
+def test_all_lane_schema_assets_are_versioned_hash_bound_and_authorized() -> None:
     registry = lane_schema_registry_contract()
     raw = json.loads(LANE_SCHEMA_REGISTRY_PATH.read_text(encoding="utf-8"))
 
@@ -31,8 +31,8 @@ def test_all_lane_schema_assets_are_versioned_hash_bound_and_additive() -> None:
         "registry_version": 1,
         "asset_path": "schemas/lane-schema-registry.v001.json",
         "asset_sha256": LANE_SCHEMA_REGISTRY_SHA256,
-        "lane_count": 18,
-        "base_schema_id": "evidence-lane.universal-lane.v2",
+        "lane_count": len(CANONICAL_LANE_IDS),
+        "base_schema_id": "evidence-lane.universal-lane.v4",
         "entity_table_template_id": "GENERIC_ENTITY_RECORD_V1",
         "extension_model": "PER_LANE_NAMESPACED_ADDITIVE_VERSIONING",
     }
@@ -42,9 +42,12 @@ def test_all_lane_schema_assets_are_versioned_hash_bound_and_additive() -> None:
     for lane_id in CANONICAL_LANE_IDS:
         lane = LANE_REGISTRY[lane_id]
         asset = lane_schema_asset(lane_id)
-        assert asset["schema_id"] == f"evidence-lane.lane-schema.{lane_id}.v001"
-        assert asset["schema_version"] == 1
-        assert asset["base_schema_id"] == "evidence-lane.universal-lane.v2"
+        assert asset["schema_id"] == (
+            f"evidence-lane.lane-schema.{lane_id}.v"
+            f"{asset['schema_version']:03d}"
+        )
+        assert asset["schema_version"] == asset["migration_ledger"][-1]["to_version"]
+        assert asset["base_schema_id"] == "evidence-lane.universal-lane.v4"
         assert asset["fts_table"] == lane.fts_table
         assert asset["tables"] == list(lane.schema_contract)
         assert len(asset["contract_sha256"]) == 64
@@ -55,16 +58,27 @@ def test_all_lane_schema_assets_are_versioned_hash_bound_and_additive() -> None:
             if lane_id in PRIMARY_CODE_LANES
             else "GENERIC_ENTITY_RECORD_V1"
         )
-        assert asset["migration_ledger"] == [
-            {
-                "migration_id": f"{lane_id}.bootstrap.v001",
-                "sequence": 1,
-                "from_version": 0,
-                "to_version": 1,
-                "operation": "BASELINE_BIND_EXISTING_SCHEMA",
-                "additive_only": True,
-            }
-        ]
+        assert asset["migration_ledger"][0]["operation"] == (
+            "BASELINE_BIND_EXISTING_SCHEMA"
+        )
+        expected_migration_id = (
+            f"{lane_id}.direct-purge-current-only."
+            f"v{asset['schema_version']:03d}"
+        )
+        expected_operation = (
+            "REBUILD_WITH_DIRECT_PURGE_CURRENT_ONLY"
+        )
+        assert asset["migration_ledger"][-1] == {
+            "migration_id": expected_migration_id,
+            "sequence": len(asset["migration_ledger"]),
+            "from_version": asset["schema_version"] - 1,
+            "to_version": asset["schema_version"],
+            "operation": expected_operation,
+            "additive_only": False,
+            "rebuild_required": True,
+        }
+        assert "source_content_cas" in asset["tables"]
+        assert "authority_index_content_cas" in asset["tables"]
         assert len(asset["sqlite_master_projection_sha256"]) == 64
 
 
@@ -142,7 +156,7 @@ def test_built_lane_binds_schema_asset_and_projection_in_sqlite(
         projection = lane_schema_builder_projection(connection, lane)
 
     assert metadata["lane_schema_id"] == asset["schema_id"]
-    assert metadata["lane_schema_asset_version"] == "1"
+    assert metadata["lane_schema_asset_version"] == str(asset["schema_version"])
     assert metadata["lane_schema_contract_sha256"] == asset["contract_sha256"]
     assert metadata["lane_schema_registry_sha256"] == LANE_SCHEMA_REGISTRY_SHA256
     assert metadata["lane_schema_sqlite_master_projection_sha256"] == asset[
@@ -151,9 +165,9 @@ def test_built_lane_binds_schema_asset_and_projection_in_sqlite(
     assert metadata["lane_schema_extension_namespace"] == asset[
         "extension_namespace"
     ]
-    assert metadata["lane_schema_migration_head"] == (
-        "docs.bootstrap.v001"
-    )
+    assert metadata["lane_schema_migration_head"] == asset["migration_ledger"][-1][
+        "migration_id"
+    ]
     assert projection["status"] == "PASS"
     assert validate_lane_bundle(output)["valid"] is True
 

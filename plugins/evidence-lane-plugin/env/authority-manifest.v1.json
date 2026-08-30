@@ -9,47 +9,47 @@
     {
       "path": "env/SOURCE_PACKET_AUDIT.json",
       "canonical_path": "env/SOURCE_PACKET_AUDIT.json",
-      "bytes": 1191,
-      "sha256": "022CAD7DD9B9832190EF83B3BC2E38E0D4F7BCA151F5A1DE90158666559E5455"
+      "bytes": 470,
+      "sha256": "8D79D86C5807AA13FC2B5092362241DC548B402D31E98CB41B61C5ED1C4AB03D"
     },
     {
       "path": "env/UNIVERSAL_FLASH_PROMPT.md",
       "canonical_path": "env/UNIVERSAL_FLASH_PROMPT.md",
-      "bytes": 2786,
-      "sha256": "2167BBABE80656C24B18544096E725E874D4FB46066B8F4F8364A3BF14A827DB"
+      "bytes": 543,
+      "sha256": "DDD5A334D4FB3DC036F7FFB18DE00B6F052AC932EDF6E2EC56C1D384603E30C8"
     },
     {
       "path": "env/env_law.md",
       "canonical_path": "env/env_law.md",
-      "bytes": 3526,
-      "sha256": "FC410F6EED4EDB10C8BC2969C4556324CEAAB0CEE98F3163D30657D724A72433"
+      "bytes": 3253,
+      "sha256": "6357BD5E29904C12E009CD016C4F1D3A8691BBEF5E66A0D763B61BBD0CFCC8E8"
     },
     {
       "path": "env/env_mmd.dot",
       "canonical_path": "env/env_mmd.dot",
-      "bytes": 40584,
-      "sha256": "B873DCD12B6B0880A67A79D2D228053AECE63C81C56D73D972EF904D141E708C"
+      "bytes": 41988,
+      "sha256": "B2BA7E6E7CCEC16B142DEEC3AEB23802B52078681626ABB8475EDF23A7B51A9D"
     },
     {
       "path": "env/env_mmd.mmd",
       "canonical_path": "env/env_mmd.mmd",
-      "bytes": 24433,
-      "sha256": "4FDE450BB73D470440C40DD8EA4E7C67BBEB7C0B123B7796BE23E41A9E03E9A4"
+      "bytes": 29205,
+      "sha256": "B6C4053914AFDB9DEA3F6E5A4A844E0EAB6108BAEF3CC118E22CCC0F2126C7EA"
     },
     {
       "path": "env/env_sqlite.sqlite",
       "canonical_path": "env/env_sqlite.sqlite",
-      "bytes": 13701120,
-      "sha256": "75648397DE3051524B834718ECF83D2BF36C5CB01570686541F65190808C508E"
+      "bytes": 2146304,
+      "sha256": "B887FE0989FE72F3B8E8F67891163D89EF2785E768B5A50D76CEAB522062D8CB"
     },
     {
       "path": "env/locked_mmd_hash.txt",
       "canonical_path": "env/locked_mmd_hash.txt",
-      "bytes": 622,
-      "sha256": "9FF390C1C8E400CDC737B285FDE09522D85077BC56E7DB2E8D2B0BC32DDE7FF8"
+      "bytes": 609,
+      "sha256": "6F21EC156B70BC4CC9B275152D39D408B5E88FB617453515364AA5053F0CB8A9"
     }
   ],
   "canonical_packaged_authority": true,
   "duplicate_authority_copy_present": false,
-  "receipt_sha256": "AD6B4445F917C50B38BE0A8C3E0D10A38327381C23BC511AB30C7012A107DA17"
+  "receipt_sha256": "32789B6EC6D083CF601226B2110090414AE8C87645930EED412A209A01282843"
 }

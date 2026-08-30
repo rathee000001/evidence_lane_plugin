@@ -16,7 +16,6 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import sqlite3
 import subprocess  # nosec B404
 from collections import defaultdict
@@ -25,6 +24,7 @@ from pathlib import Path
 from typing import Any, BinaryIO, cast
 
 from .errors import EvidenceLaneError, require
+from .git_adapter import resolve_git_executable
 from .hashing import canonical_json_bytes, sha256_bytes
 from .redaction import redact_text
 from .source_authority import (
@@ -66,17 +66,6 @@ def _connect(path: Path) -> sqlite3.Connection:
     return connection
 
 
-def _git_executable() -> str:
-    executable = shutil.which("git")
-    require(
-        executable is not None,
-        "SOURCE_GIT_EXECUTABLE_MISSING",
-        "Git is required for exact repository-history evidence.",
-        status="BLOCKED",
-    )
-    return cast(str, executable)
-
-
 def _git_environment() -> dict[str, str]:
     environment = os.environ.copy()
     environment.update(
@@ -97,7 +86,7 @@ def _git(
     max_output_bytes: int = 512 * 1024 * 1024,
 ) -> bytes:
     completed = subprocess.run(  # nosec B603
-        [_git_executable(), "-C", str(root), *arguments],
+        [resolve_git_executable(root), "-C", str(root), *arguments],
         stdin=subprocess.DEVNULL,
         capture_output=True,
         check=False,
@@ -691,7 +680,7 @@ def _object_evidence(
     if not object_shas:
         return [], 0
     process = subprocess.Popen(  # nosec B603
-        [_git_executable(), "-C", str(root), "cat-file", "--batch"],
+        [resolve_git_executable(root), "-C", str(root), "cat-file", "--batch"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -850,7 +839,15 @@ def build_registered_git_history(
     head_commit = _git(root, "rev-parse", "HEAD").decode("ascii").strip()
     head_tree = _git(root, "rev-parse", "HEAD^{tree}").decode("ascii").strip()
     branch_result = subprocess.run(  # nosec B603
-        [_git_executable(), "-C", str(root), "symbolic-ref", "--short", "-q", "HEAD"],
+        [
+            resolve_git_executable(root),
+            "-C",
+            str(root),
+            "symbolic-ref",
+            "--short",
+            "-q",
+            "HEAD",
+        ],
         stdin=subprocess.DEVNULL,
         capture_output=True,
         check=False,

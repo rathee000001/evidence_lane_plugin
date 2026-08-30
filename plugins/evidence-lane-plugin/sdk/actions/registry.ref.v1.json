@@ -3,8 +3,8 @@
   "status": "PASS",
   "action_count": 91,
   "registry": "sdk/internal/public-action-registry.v1.json",
-  "registry_sha256": "3DA9F3E0C01FD72EDFEF704A10C928E3B5C825FB4C3A1BB2ECDC59A6D7913BB5",
+  "registry_sha256": "2F6B0498066EB1838FB68DAF167CA230AFBE505D292EA80AAEE6891C4BCE7DE9",
   "dispatcher": "sdk/actions/dispatcher.py",
   "canonical_implementation": "src/evidence_lane_plugin/internal_sdk.py",
-  "receipt_sha256": "793F16981647723E14BC81A7A966B87E941449A4D8C8E078D667B4F363658EFD"
+  "receipt_sha256": "EBFA6CB08589D71D7F98463B3CF62134603DEE16ABB9E841029CB3C3AAFE0B3C"
 }

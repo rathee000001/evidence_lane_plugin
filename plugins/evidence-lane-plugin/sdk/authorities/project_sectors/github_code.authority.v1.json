@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "github_code",
   "authority_root": "authorities/project_sectors/github_code",
-  "authority_manifest_sha256": "FA638C7927350AE4E15AE7C42A8F1FF165EE65377D215E860CD5776881BD03E0",
+  "authority_manifest_sha256": "9412B12B6D0B0A7751DC11C23869A5CE56E2F1E86AD27989B3171288D12DB015",
   "schema_surface": "schemas/project-sectors/github_code/schema-surface.v1.json",
   "builder": "authorities/project_sectors/github_code/builder.py",
   "reader": "authorities/project_sectors/github_code/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "CE01C45589FF1DE295C48F0D901287F6E1F153BD15F5EE1C988A7ACE10405063"
+  "receipt_sha256": "E62E32CB74BE066BBA59554F570FA314287A684F5F2DA9190F2B851C781392D1"
 }

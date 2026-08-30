@@ -43,7 +43,7 @@
     },
     {
       "name": "hil_decide",
-      "schema_sha256": "47102A9AAE2F25D54DDB2AA259EFB9B822BD89125C54052833694A0F01790D53",
+      "schema_sha256": "CFEDC858CFC084E74518745D8CA2FCAC10CBD4AAE2C7B0D376DD18539DABF999",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi-fuse",
@@ -244,7 +244,7 @@
     },
     {
       "name": "task_complete_and_refresh",
-      "schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570",
+      "schema_sha256": "DDCC0D86F2CB504F7BD9B6CAE92C275E6792507B47C67E86EE6C83462F65FC19",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi-refresh",
@@ -271,14 +271,14 @@
     }
   ],
   "linked_skills": {
-    "skills/evi-build/SKILL.md": "0BC4328FC24208B28EBB84AD7284A57DB2E7FFCCF08F95BDCAEFFA629768ABF0",
-    "skills/evi-refresh/SKILL.md": "F32DA2CDFEB8F3810233BCD3AD8621024635283559720C81375BCBE6BB189511",
-    "skills/evi-fuse/SKILL.md": "3C08DE694B69363608F28DE58FFA9073FC2414836E532751E667CA6C52D08D40"
+    "skills/evi-build/SKILL.md": "B26461568F52B27B916DAD0DA6DB68A47A28CD1313D917A4391CE48CB7536B4E",
+    "skills/evi-refresh/SKILL.md": "6C9954C69DC21407DA694405EC7E6CB35FF099D64917E001E556452CB1F64F31",
+    "skills/evi-fuse/SKILL.md": "F8F9FBB1851EA274160FB017F20061BDD2DF7416FD7BFE30E6C28A32714EF247"
   },
   "canonical_source_hashes": {
     "src/evidence_lane_plugin/project_overlay.py": "F9C2D4D6339DEA0EC413A28F16F03AB8D99CF083F796B5B73815974490EAEF86",
-    "src/evidence_lane_plugin/adaptive_delta_exit.py": "480467D59E86DF7293EB2C3CEA5D80CCC5670F9B2A08BF21074C323524B14AE0",
-    "src/evidence_lane_plugin/store.py": "C20836BBA55DE7C3AB5A38C3AEC0988A0B4BF2FB1C50CAA33E63DBF5A1B98F96",
+    "src/evidence_lane_plugin/adaptive_delta_exit.py": "36847646D49534C0649CE9D15C806A9A52890A1B90BADE3F30E5FEA0B35D6149",
+    "src/evidence_lane_plugin/store.py": "CB9E657ED52938A40B5C3E60EC346A2007ED78CB62771B57100227E166551A17",
     "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
@@ -297,24 +297,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:05.849740Z",
-    "receipt_sha256": "52293A739108CFE711F4840BC9F3AAF9DDED205694667CEC8E8AF66EA59CFFCF"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "2244484558601207C94D808BCAF0CE046CB3F14A673EA912F9747016E0A3260E"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "project_overlay_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 185,
-    "edge_count": 192,
+    "node_count": 184,
+    "edge_count": 194,
     "group_count": 1,
-    "semantic_topology_sha256": "F6FB46B346227C586E9C22E7B648493FBD5FA14992A788C11109154B33562915",
-    "mmd_sha256": "E2CE96E1A276FACD04F504A69EB96CD5C36100D5BE07FEC695D71E8D9644CA9F",
-    "dot_sha256": "A9610615267BBD5F2BBC201167BF810244BB7895D8D58674DFBF8FD57B004162",
+    "semantic_topology_sha256": "E8849EF176DDFE2D3D7AD4E47CF3CF27D33DFBEAFB68D5F8120991FAF1E9FF75",
+    "mmd_sha256": "6F424EE4A99A731C2F0079C5478CAD56FE7AADC239F856C8C5278A0A4D03870D",
+    "dot_sha256": "EBBDA93802D1F70423B53B19041E69B86D9F13F3741238F5F9E2567270463296",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "EA2336DE910D101F0AE0305FB1D8C1EDBD055CF20C0D235E3F170158E7E11EA2",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "200EB4135869AC44672088E0849422F6FED444D4C057EA3A5367FC74FA400AEE",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -324,10 +324,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 185,
-      "edge_count": 192,
+      "node_count": 184,
+      "edge_count": 194,
       "weak_component_count": 1,
-      "strong_component_count": 185,
+      "strong_component_count": 184,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -351,14 +351,19 @@
           "out_degree": 12
         },
         {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 10
+        },
+        {
           "node_id": "support_table_overlay_history_baseline",
           "in_degree": 1,
           "out_degree": 10
         },
         {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 9
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 8
         },
         {
           "node_id": "support_table_hil_transition_receipt",
@@ -371,9 +376,9 @@
           "out_degree": 9
         },
         {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 7
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_fusion_receipt",
@@ -384,11 +389,6 @@
           "node_id": "support_table_sector_hil_snapshot",
           "in_degree": 1,
           "out_degree": 8
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
         },
         {
           "node_id": "support_table_chat_lineage_sector_fanout",
@@ -434,11 +434,24 @@
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "2A4783EFAF29CE4DF156016D45D43D763F3066DDC8B28530DAD2F93BC6C57043",
+    "graph_analysis_sha256": "F9505490AB0DC67978B177880F6117000C280FF6C22D452F69037458E3FCB281",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 111,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "24D4553453E93AD482DE17A86B0DE731C54BECA598EBC9B94172DA367C70F3DB"
+    "receipt_sha256": "18C61D6BC7A3DC024FD90A6B64F7B799994D000571C359B13CCEF65298D1444A"
   },
-  "receipt_sha256": "75F641B837313D54759D653026A6A3ADD79B402432C998F5E0750BC7AF52259B"
+  "dedicated_workflow": {
+    "json": "authorities/project_overlay/workflow.v1.json",
+    "mmd": "authorities/project_overlay/workflow.mmd",
+    "dot": "authorities/project_overlay/workflow.dot",
+    "json_sha256": "874AC9FAB262475027D6D1776F3755A3F45DEC5098F4C40D7279EB4BD9A55141",
+    "mmd_sha256": "92119D001AAD61C4F9FBF9EE1E633911AB3A88B4F6D205CFAB7D040FB1A34BCB",
+    "dot_sha256": "BD8CB4332734FEF158984B6557F82F13E8A1071E7E07C98186BFBF3BED248D68"
+  },
+  "receipt_sha256": "0F1E9DC52F50DADBB6A740327EFDF7BD0CD870803F717B965E62D6EB56FD6A78"
 }

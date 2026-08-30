@@ -726,7 +726,7 @@ def run_adaptive_delta_entry(
                 "normalized_contract_sha256"
             ],
             "predecessor_sub_pv_state": predecessor_sub_pv.get("state"),
-            "six_authority_query_status": live_authority.get("status"),
+            "current_authority_query_status": live_authority.get("status"),
             "fallback_refresh_performed": live_authority.get("refresh_performed"),
             "bounded_retry_performed": live_authority.get("bounded_retry_performed"),
             "learning_candidate_count": learning["candidate_count"],

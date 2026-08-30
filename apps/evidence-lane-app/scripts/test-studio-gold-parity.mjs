@@ -69,7 +69,7 @@ for (const format of evaluation.required_artifact_formats) {
 assert.equal(studioRetrievalServices.lexical, "READY_COMMITTED_BM25_TFIDF_RRF");
 assert.equal(studioRetrievalServices.sql, "WIRED_NOT_CONFIGURED_READ_ONLY_ONLY");
 assert.equal(studioRetrievalServices.vector, "WIRED_NOT_CONFIGURED_OPTIONAL");
-assert.equal(studioRetrievalServices.generation, "DETERMINISTIC_REVIEWED_FALLBACK_OPENROUTER_OPTIONAL");
+assert.equal(studioRetrievalServices.generation, "DETERMINISTIC_REVIEWED_SYNTHESIS_NO_PUBLIC_PROVIDER_PROXY");
 
 for (const testCase of evaluation.cases) {
   const route = studioRouteContextFor(testCase.path);

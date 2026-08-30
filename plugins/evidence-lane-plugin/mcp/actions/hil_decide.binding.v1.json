@@ -2,7 +2,7 @@
   "schema": "evidence-lane.mcp-action-binding.v1",
   "status": "PASS",
   "action": "hil_decide",
-  "title": "Record exact six-way HIL decision",
+  "title": "Record exact governed HIL decision",
   "input_schema": {
     "properties": {
       "project_id": {
@@ -102,7 +102,7 @@
     "idempotentHint": false,
     "openWorldHint": false
   },
-  "schema_sha256": "47102A9AAE2F25D54DDB2AA259EFB9B822BD89125C54052833694A0F01790D53",
+  "schema_sha256": "CFEDC858CFC084E74518745D8CA2FCAC10CBD4AAE2C7B0D376DD18539DABF999",
   "route_contract": {
     "status": "CURRENT_ROUTE",
     "owner_skill": "evi-fuse",
@@ -122,11 +122,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/hil_decide.action.v1.json",
-  "sdk_action_binding_sha256": "08F48B93FF7D76BB989C5080373A7ED3AD91B812ACABE560E8D175709EEA8B6A",
+  "sdk_action_binding_sha256": "06BF85AF5D3532D5EA977F6E06570733D84034FC785CF1526FB12AC24A21596B",
   "public_action_schema": "schemas/actions/hil_decide.schema.json",
-  "public_action_schema_sha256": "ECC5404CC07AC7F115682CCAE67461D93DFA04DF41FC11C844D7F99219B7B726",
+  "public_action_schema_sha256": "0E1B1519A44B45083168A500BFE9D27196962633BA5F1BF529C7F026AB0A5955",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "20C15301DF15DA7E93ACE79DD54707C8A17E1340BA33123832FB46BCB1A4042A",
+  "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "D9C7B636F63F195C9631019C141306A16FD8390CC1E9C96D2E141C0A799C43A7"
+  "receipt_sha256": "888D9051254123DD86B70914A0976AAF7EF468A87DC71B5CBA6F0333C05403B1"
 }

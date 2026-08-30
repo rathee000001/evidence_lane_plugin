@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.mcp_apps",
   "source_path": "src/evidence_lane_plugin/mcp_apps.py",
-  "source_sha256": "95C0F1CE45344AB35C526DCA6E0A57DE799BECDF19BD434857C1CA6A09F8BB36",
-  "source_bytes": 30988,
+  "source_sha256": "9E5D08A92125D3ED207ADFC5332B10881DEA9DE957AEE8D79A7AB2DEE730F20F",
+  "source_bytes": 31020,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "1A9B9F2C780F404B4733736E6630DCD3893AC3DBE8F1521D38E34EAFAE347C02"
+  "receipt_sha256": "13004CFCC05C0BED20400C0138FA28697F4DE87432D772F194CC6AEA4EC4CDFC"
 }

@@ -3,10 +3,10 @@
   "status": "PASS",
   "authority_id": "agent_learning",
   "authority_root": "authorities/agent_learning",
-  "authority_manifest_sha256": "70AAAFCB7464FD4640A9AA8D8028FE4B4AB11EF963A609AE16D946D4CB1E6277",
+  "authority_manifest_sha256": "A3AB9BC83AE4246489F8C9A6BD810794B546351A1F5B16002199943144CE059B",
   "schema_surface": "schemas/authorities/agent_learning/schema-surface.v1.json",
   "persistent_sqlite_authority": true,
   "linked_public_action_count": 9,
   "merged_with_project_sector_or_peer": false,
-  "receipt_sha256": "9ECCBDD25A0188ECB4FBBF55E0EEBBFA031CA7A9EA09F56BE4E9BA4A0A179290"
+  "receipt_sha256": "5CF3CD840D0CDC6288C718FA8AAED0191B31E833C83D5826D9B9DC7211815B89"
 }

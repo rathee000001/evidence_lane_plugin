@@ -1,0 +1,69 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=A79873787998BE5585110E3E399DF984848FA5C17ACB33A8585B330F991B8BC3
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  ENTRY["evi-fuse intent"]:::root
+  EXIT["Exact result / stop / next workflow"]:::output
+  subgraph WF_DUAL_HIL_INTENT_CLASSIFICATION["dual-hil-intent-classification"]
+    direction TB
+    WF_DUAL_HIL_INTENT_CLASSIFICATION_START["dual-hil-intent-classification"]:::lifecycle
+    WF_DUAL_HIL_INTENT_CLASSIFICATION_ACTION_001["1. hil_intent_classify [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_DUAL_HIL_NON_PROMOTION_DECISION["dual-hil-non-promotion-decision"]
+    direction TB
+    WF_DUAL_HIL_NON_PROMOTION_DECISION_START["dual-hil-non-promotion-decision"]:::lifecycle
+    WF_DUAL_HIL_NON_PROMOTION_DECISION_ACTION_001["2. hil_decide [['GOVERNANCE']]"]:::semantic
+    WF_DUAL_HIL_NON_PROMOTION_DECISION_ACTION_002["2. hil_return_to_accepted [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_EXACT_LEARNING_THEN_PROJECT_APPROVAL_PROMOTION["exact-learning-then-project-approval-promotion"]
+    direction TB
+    WF_EXACT_LEARNING_THEN_PROJECT_APPROVAL_PROMOTION_START["exact-learning-then-project-approval-promotion"]:::lifecycle
+    WF_EXACT_LEARNING_THEN_PROJECT_APPROVAL_PROMOTION_ACTION_001["3. pv_fuse [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph EXECUTION["Shared typed execution contract"]
+    direction TB
+    SCHEMA["Current input/output schema"]:::semantic
+    INTERNAL_SDK["Internal SDK execution owner"]:::semantic
+    ENV["ENV15 environment selection"]:::semantic
+    UOP["UOP15 governance and gates"]:::warn
+    AUTHORITY["Owning authority and lane"]:::semantic
+    TOOLS["Conditional tool role resolution"]:::semantic
+    OUTER["Outer SDK / FastMCP / native compatibility"]:::semantic
+    HOOKS["Only emitted ordered hooks"]:::semantic
+    VALIDATE["Validate schema, result and effects"]:::warn
+    RECEIPT["Exact receipt"]:::output
+  end
+  ENTRY --> WF_DUAL_HIL_INTENT_CLASSIFICATION_START
+  WF_DUAL_HIL_INTENT_CLASSIFICATION_START --> WF_DUAL_HIL_INTENT_CLASSIFICATION_ACTION_001
+  ENTRY --> WF_DUAL_HIL_NON_PROMOTION_DECISION_START
+  WF_DUAL_HIL_NON_PROMOTION_DECISION_START --> WF_DUAL_HIL_NON_PROMOTION_DECISION_ACTION_001
+  WF_DUAL_HIL_NON_PROMOTION_DECISION_ACTION_001 -->|"ordered action"| WF_DUAL_HIL_NON_PROMOTION_DECISION_ACTION_002
+  ENTRY --> WF_EXACT_LEARNING_THEN_PROJECT_APPROVAL_PROMOTION_START
+  WF_EXACT_LEARNING_THEN_PROJECT_APPROVAL_PROMOTION_START --> WF_EXACT_LEARNING_THEN_PROJECT_APPROVAL_PROMOTION_ACTION_001
+  SCHEMA --> INTERNAL_SDK
+  INTERNAL_SDK --> ENV
+  ENV --> UOP
+  UOP --> AUTHORITY
+  AUTHORITY --> TOOLS
+  TOOLS --> OUTER
+  OUTER --> HOOKS
+  HOOKS --> VALIDATE
+  VALIDATE --> RECEIPT
+  WF_DUAL_HIL_INTENT_CLASSIFICATION_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_DUAL_HIL_NON_PROMOTION_DECISION_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_DUAL_HIL_NON_PROMOTION_DECISION_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_EXACT_LEARNING_THEN_PROJECT_APPROVAL_PROMOTION_ACTION_001 -->|"typed execution"| SCHEMA
+  RECEIPT --> EXIT

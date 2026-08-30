@@ -4,8 +4,8 @@
   "lane_id": "github_code",
   "sqlite_filename": "github_code_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 73,
-  "schema_contract_table_count": 58,
+  "sqlite_table_count": 46,
+  "schema_contract_table_count": 34,
   "members": [
     {
       "path": "authorities/project_sectors/github_code/builder-contract.schema.json",
@@ -24,23 +24,23 @@
     },
     {
       "path": "authorities/project_sectors/github_code/github_code.dot",
-      "bytes": 31481,
-      "sha256": "ADF106F5CDDA2FB95B9BEC49FA07214D307A5E9D575611786958DFF0EA268CD3"
+      "bytes": 23663,
+      "sha256": "7F4B9A218E6714F093E2FEA55BDE3C258F99486B8BB8666A749B01CAB56A3432"
     },
     {
       "path": "authorities/project_sectors/github_code/github_code.mmd",
-      "bytes": 25383,
-      "sha256": "164A5A5A05366AE5ECFB5844B0A960D60B21C9E0DBC0BB99F85369EC4D3C2805"
+      "bytes": 19110,
+      "sha256": "B46D793A95A9C6DD55C0A66D2F07F07ECACFC2B3FC9014658C7199287877CC58"
     },
     {
       "path": "authorities/project_sectors/github_code/github_code_sector_v001.sqlite",
-      "bytes": 438272,
-      "sha256": "4A517CB15FEF3B87C7EE62C67DC1C047A758C95535DBA595A0BA7F181AA57E22"
+      "bytes": 327680,
+      "sha256": "1EA8C24910ACE52A5C838A3BCE90FBE1DE6CA0891E12B77D8A06DDE8D91AE402"
     },
     {
       "path": "authorities/project_sectors/github_code/lane-contract.v1.json",
-      "bytes": 9899,
-      "sha256": "49E06535BEBF6F483357D54A6A4FEA4BAF50EA735066A9D2134CA4EDAD1CC554"
+      "bytes": 9775,
+      "sha256": "258E991B46D67D21C060E9531F5A3B57D9324ACBE7DEA933695F66EF1B58F7E6"
     },
     {
       "path": "authorities/project_sectors/github_code/lane-pointer.schema.json",
@@ -79,8 +79,8 @@
     },
     {
       "path": "authorities/project_sectors/github_code/schema.sql",
-      "bytes": 18616,
-      "sha256": "DE7C2C7A88F2CFD9743A3D5C42D508B355247EAB6399FF3F32B4334E13D277DA"
+      "bytes": 12128,
+      "sha256": "133DFA592166DB6A4A5A68D7A7D63950974204CB262A8319BD58269D49A29F3E"
     },
     {
       "path": "authorities/project_sectors/github_code/sqlite-artifact.schema.json",
@@ -89,19 +89,34 @@
     },
     {
       "path": "authorities/project_sectors/github_code/tools.json",
-      "bytes": 1153,
-      "sha256": "90CB59AD38D7DC6A30D98A9E8DFDED34DFF4E3BE9A3C1537CC8E491816B659B7"
+      "bytes": 15430,
+      "sha256": "7F2144A182A2C12E1BCA94F72C3FDB603E7C5E9B132E7371FF9C43AD444CCCE6"
     },
     {
       "path": "authorities/project_sectors/github_code/tools.schema.json",
-      "bytes": 1007,
-      "sha256": "17E41F0AB318A7E6053D1F3B29CEF66FB324B4BF669FBE2AB57300885F8FEC73"
+      "bytes": 1453,
+      "sha256": "22A2FB5C278C388841FF7778087AEBE1BDD22B1A32D37B8633852025D9B009AF"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/workflow.dot",
+      "bytes": 6481,
+      "sha256": "EE813414CA32709AE7CECACD6AA0D31D39BA1658FD6CF2350E5C0265B0F26128"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/workflow.mmd",
+      "bytes": 5043,
+      "sha256": "441399C756CE574B7C2260CF8BF7713F89E55566AA2CED0096C36ED3B330F3D6"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/workflow.v1.json",
+      "bytes": 33140,
+      "sha256": "F01199C931A5246D2840EB4D7160711ACBEC8FC2FE40EA511E0E760C7D1B4E98"
     }
   ],
-  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "F95AAAD251F99E81B3310435722D1B8DC92A7858BF061A8E4FB3ED7E2C24CF31"
+  "receipt_sha256": "25AFFC3C2836F0F2D613D62E6E009EC04F753A22CB84C0A2933A0F0B1D6273A8"
 }

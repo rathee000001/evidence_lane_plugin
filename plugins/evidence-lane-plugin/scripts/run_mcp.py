@@ -16,6 +16,7 @@ _SCRIPT_ROOT = Path(__file__).resolve().parent
 if str(_SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_ROOT))
 from runtime_contract import (
+    ACCELERATOR_PROFILES,
     marker_is_valid,
     runtime_environment,
     runtime_identity,
@@ -36,6 +37,16 @@ def _parser() -> argparse.ArgumentParser:
         "--transport",
         choices=("stdio", "streamable-http"),
         default="stdio",
+    )
+    parser.add_argument(
+        "--accelerator-profile",
+        choices=ACCELERATOR_PROFILES,
+        default=os.environ.get("EVIDENCE_LANE_ACCELERATOR_PROFILE", "cpu").strip().lower(),
+    )
+    parser.add_argument(
+        "--accelerator-memory-budget-percent",
+        type=int,
+        default=int(os.environ.get("EVIDENCE_LANE_ACCELERATOR_MEMORY_BUDGET_PERCENT", "80")),
     )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
@@ -190,6 +201,12 @@ def main() -> int:
             Path(args.runtime_control_root).resolve()
         )
     os.environ["EVIDENCE_LANE_HOST_PROFILE"] = args.host_profile
+    if not 1 <= args.accelerator_memory_budget_percent <= 95:
+        raise SystemExit("Accelerator memory budget must be between 1 and 95 percent.")
+    os.environ["EVIDENCE_LANE_ACCELERATOR_PROFILE"] = args.accelerator_profile
+    os.environ["EVIDENCE_LANE_ACCELERATOR_MEMORY_BUDGET_PERCENT"] = str(
+        args.accelerator_memory_budget_percent
+    )
     expected_version = _expected_runtime_version(plugin_root)
     expected_pydantic_version = _expected_dependency_version(plugin_root, "pydantic")
     environment = runtime_environment(plugin_root)
@@ -221,6 +238,10 @@ def main() -> int:
                 "--bootstrap-only",
                 "--host-profile",
                 args.host_profile,
+                "--accelerator-profile",
+                args.accelerator_profile,
+                "--accelerator-memory-budget-percent",
+                str(args.accelerator_memory_budget_percent),
                 *(
                     ["--runtime-control-root", args.runtime_control_root]
                     if args.runtime_control_root
@@ -255,6 +276,10 @@ def main() -> int:
                 "--prewarm-only",
                 "--host-profile",
                 args.host_profile,
+                "--accelerator-profile",
+                args.accelerator_profile,
+                "--accelerator-memory-budget-percent",
+                str(args.accelerator_memory_budget_percent),
                 *(
                     ["--runtime-control-root", args.runtime_control_root]
                     if args.runtime_control_root
@@ -269,9 +294,22 @@ def main() -> int:
     if args.prewarm_only:
         source = plugin_root / "src"
         sys.path.insert(0, str(source))
+        from evidence_lane_plugin.hardware_acceleration import (
+            resolve_hardware_acceleration,
+        )
         from evidence_lane_plugin.runtime_toolchain import inspect_runtime_toolchain
 
         toolchain = inspect_runtime_toolchain(plugin_root, prewarm_native=True)
+        acceleration = resolve_hardware_acceleration(
+            action_classes=["RETRIEVAL", "OCR_MEDIA", "EVALUATION"],
+            requested_profile=args.accelerator_profile,
+            enabled_vendor_plugins=(
+                [args.accelerator_profile]
+                if args.accelerator_profile in {"nvidia", "amd"}
+                else []
+            ),
+            memory_budget_percent=args.accelerator_memory_budget_percent,
+        )
         payload = {
             "schema": "evidence-lane.codex-native-runtime-prewarm.v1",
             "status": "PASS" if toolchain["status"] == "PASS" else "FAIL",
@@ -280,6 +318,7 @@ def main() -> int:
             "runtime_environment": str(environment),
             "runtime_python": str(python),
             "runtime_toolchain": toolchain,
+            "hardware_acceleration": acceleration,
         }
         print(json.dumps(payload, sort_keys=True, separators=(",", ":")))
         return 0
@@ -296,6 +335,10 @@ def main() -> int:
                 str(args.port),
                 "--host-profile",
                 args.host_profile,
+                "--accelerator-profile",
+                args.accelerator_profile,
+                "--accelerator-memory-budget-percent",
+                str(args.accelerator_memory_budget_percent),
                 *(
                     ["--runtime-control-root", args.runtime_control_root]
                     if args.runtime_control_root

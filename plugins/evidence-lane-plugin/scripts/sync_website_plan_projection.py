@@ -12,7 +12,11 @@ SOURCE_ROOT = PLUGIN_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
-from evidence_lane_plugin.hashing import atomic_write_bytes
+from evidence_lane_plugin.hashing import (
+    atomic_write_bytes,
+    canonical_json_bytes,
+    sha256_bytes,
+)
 from evidence_lane_plugin.store import ProjectStore
 from evidence_lane_plugin.website_plan_projection import (
     WEBSITE_PLAN_PROJECTION_PATH,
@@ -52,11 +56,29 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--public-metadata", type=Path, default=DEFAULT_METADATA)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--repair-current-law", action="store_true")
     args = parser.parse_args()
 
+    raw_committed = _read_json(args.output) if args.output.is_file() else None
+    if args.repair_current_law:
+        if raw_committed is None:
+            raise SystemExit("Current-law repair requires one committed snapshot")
+        old_body = dict(raw_committed)
+        old_receipt = str(old_body.pop("snapshot_sha256", ""))
+        if old_receipt != sha256_bytes(canonical_json_bytes(old_body)):
+            raise SystemExit("Current-law repair refuses an invalid existing snapshot seal")
+        if raw_committed.get("persistent_until") != "NEXT_SIX_WAY_HIL_PRESENTED":
+            raise SystemExit("Current-law repair accepts only the exact retired six-way label")
+        repaired_body = dict(raw_committed)
+        repaired_body.pop("snapshot_sha256", None)
+        repaired_body["persistent_until"] = "NEXT_GOVERNED_HIL_PRESENTED"
+        raw_committed = {
+            **repaired_body,
+            "snapshot_sha256": sha256_bytes(canonical_json_bytes(repaired_body)),
+        }
     committed = (
-        validate_website_plan_projection(_read_json(args.output))
-        if args.output.is_file()
+        validate_website_plan_projection(raw_committed)
+        if raw_committed is not None
         else None
     )
     generated: dict[str, Any] | None = None
@@ -96,8 +118,8 @@ def main() -> None:
                 "STALE public plugin metadata: plan_lane does not match the sealed website snapshot"
             )
     else:
-        if generated is None:
-            raise SystemExit("Update requires --input or --project-id")
+        if generated is None and not args.repair_current_law:
+            raise SystemExit("Update requires --input, --project-id, or --repair-current-law")
         metadata["plan_lane"] = expected_plan_lane
         atomic_write_bytes(args.output, _pretty_bytes(target))
         atomic_write_bytes(args.public_metadata, _pretty_bytes(metadata))

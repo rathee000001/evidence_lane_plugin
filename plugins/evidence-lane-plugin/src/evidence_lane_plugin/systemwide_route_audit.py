@@ -18,7 +18,8 @@ from .internal_sdk import (
     runtime_workflow_sdk_registry,
     whole_plugin_sdk_governance_registry,
 )
-from .mcp_server import SDK_NATIVE_ACTIONS, create_mcp_server
+from .lanes import CANONICAL_LANE_IDS
+from .mcp_server import SPECIALIZED_NATIVE_ACTIONS, create_mcp_server
 from .model_compatibility import (
     classify_model_compatibility,
     model_compatibility_catalog,
@@ -45,7 +46,12 @@ _PLAN_FAMILY_KEYWORDS: dict[str, tuple[str, ...]] = {
     "SOURCE_GRAPH": ("source graph", "graph diff", "impact"),
     "LANES": ("lane", "sector", "engulf"),
     "RETRIEVAL": ("fts", "sqlite", "bm25", "query", "search", "fetch"),
-    "SIX_AUTHORITY": ("six authority", "six-authority", "agents.md", "memory.md"),
+    "CURRENT_AUTHORITY": (
+        "current authority",
+        "current-authority",
+        "agents.md",
+        "memory.md",
+    ),
     "PUBLIC_SURFACE": ("public", "surface", "schema", "registry", "action"),
     "MCP_SDK_SKILL": ("mcp", "sdk", "skill"),
     "PLAN": ("plan", "delta", "task", "step task"),
@@ -150,6 +156,12 @@ _SKILL_REQUIRED_CURRENT_MARKERS = {
         "project_memory_record_link",
     ),
     "evi-mode": ("mode_classify", "Chat Lineage"),
+    "evi-plan": (
+        "mode_classify",
+        "pv_plan_tasks",
+        "pv_plan_steer_delta",
+        "NATIVE_HOST_PLAN_PROJECTION_ONLY_LAW",
+    ),
     "evi-plugin": ("connector_plugin_catalog", "connector_plugin_settings"),
     "evi-refresh": (
         "REFRESH_WORKING_SECTORS",
@@ -204,15 +216,16 @@ _AGENT_FORBIDDEN_STALE_PHRASES = (
     "Compatibility sidecar for project-scoped storage",
 )
 
-_ENV_UOP_GOVERNED_SIX_WAY_ARMS = [
+_ENV_UOP_GOVERNED_CURRENT_AUTHORITY_CLASSES = [
     "PROJECT_SECTORS_AND_ROOT_FILES",
     "AI_LEARNING",
     "CANON_GRAPH",
     "PROJECT_MEMORY_DB",
     "HOST_CONVERSATION_MEMORY_MD",
     "AGENTS_MD",
+    "PROJECT_UNIVERSE",
+    "CONNECTOR_BRAIN",
 ]
-_LINKED_OPERATIONAL_AUTHORITIES = ["PROJECT_UNIVERSE", "CONNECTOR_BRAIN"]
 _HIL_ONLY_AUTHORITIES = ["PROJECT_OVERLAY"]
 
 
@@ -1071,7 +1084,7 @@ def build_systemwide_route_audit(
     registry_tools = {str(row["tool"]) for row in registry["public_tool_routes"]}
     public_tools = {str(row["name"]) for row in public_catalog["tools"]}
     remote_tools = {str(row["name"]) for row in remote["actions"]}
-    sdk_tools = {str(row[0]) for row in SDK_NATIVE_ACTIONS}
+    specialized_tools = {str(row[0]) for row in SPECIALIZED_NATIVE_ACTIONS}
 
     with tempfile.TemporaryDirectory(prefix="evidence-lane-route-audit-") as temp:
         server = create_mcp_server(service=EvidenceLaneService(data_root=Path(temp)))
@@ -1083,7 +1096,7 @@ def build_systemwide_route_audit(
         )
 
     opaque_sdk_payload_tools = []
-    for name in sorted(sdk_tools):
+    for name in sorted(specialized_tools):
         properties = set(dict(mcp_tool_map[name].parameters.get("properties") or {}))
         if "payload" in properties and properties <= {
             "project_id",
@@ -1145,7 +1158,7 @@ def build_systemwide_route_audit(
             if not opaque_sdk_payload_tools and not semantic_schema_missing_fields
             else "BLOCKED"
         ),
-        "sdk_native_action_count": len(sdk_tools),
+        "specialized_native_action_count": len(specialized_tools),
         "opaque_payload_tool_count": len(opaque_sdk_payload_tools),
         "opaque_payload_tools": opaque_sdk_payload_tools,
         "critical_schema_missing_fields": semantic_schema_missing_fields,
@@ -1176,24 +1189,25 @@ def build_systemwide_route_audit(
     }
     observed_service_methods = {str(row["method"]) for row in service_parity["methods"]}
     surface = derive_public_surface_registry(root)
-    env_uop_six_way_governance = {
+    env_uop_current_authority_governance = {
         "status": (
             "PASS"
-            if public_catalog.get("lane_count") == 18
-            and len(public_catalog.get("canonical_lanes") or []) == 18
-            and public_catalog.get("env_uop_governed_six_way_arms")
-            == _ENV_UOP_GOVERNED_SIX_WAY_ARMS
-            and public_catalog.get("linked_operational_authorities")
-            == _LINKED_OPERATIONAL_AUTHORITIES
+            if public_catalog.get("lane_count") == len(CANONICAL_LANE_IDS)
+            and set(public_catalog.get("canonical_lanes") or [])
+            == set(CANONICAL_LANE_IDS)
+            and public_catalog.get("env_uop_governed_current_authority_classes")
+            == _ENV_UOP_GOVERNED_CURRENT_AUTHORITY_CLASSES
+            and public_catalog.get("current_authority_classes_derived") is True
             and public_catalog.get("hil_only_authorities") == _HIL_ONLY_AUTHORITIES
-            and public_catalog.get("ordinary_live_authority_count") == 8
             else "BLOCKED"
         ),
         "sector_lane_count": int(public_catalog.get("lane_count") or 0),
+        "current_authority_classes_derived": bool(
+            public_catalog.get("current_authority_classes_derived")
+        ),
         "project_engulf_in_project_sector_arm": True,
-        "six_way_arms": public_catalog.get("env_uop_governed_six_way_arms"),
-        "linked_operational_authorities": public_catalog.get(
-            "linked_operational_authorities"
+        "current_authority_classes": public_catalog.get(
+            "env_uop_governed_current_authority_classes"
         ),
         "hil_only_authorities": public_catalog.get("hil_only_authorities"),
         "authority_merge_allowed": False,
@@ -1205,7 +1219,7 @@ def build_systemwide_route_audit(
     public_set_equality = (
         routing_tools == registry_tools == public_tools == remote_tools == mcp_tools
     )
-    sdk_subset_registered = sdk_tools.issubset(routing_tools)
+    specialized_subset_registered = specialized_tools.issubset(routing_tools)
     sdk_route_registry_shared = (
         surface["current_implementation_registry"]["routes_match_tool_registry"] is True
     )
@@ -1230,7 +1244,7 @@ def build_systemwide_route_audit(
     }
     obsolete_public_routes_purged = (
         not obsolete
-        and "obsolete_tool_tombstones" not in routing
+        and not any(str(key).startswith("obsolete_") for key in routing)
         and not obsolete_workflow_violations
     )
     service_compatibility_routes_purged = not (
@@ -1284,7 +1298,7 @@ def build_systemwide_route_audit(
     status = (
         "PASS"
         if public_set_equality
-        and sdk_subset_registered
+        and specialized_subset_registered
         and sdk_route_registry_shared
         and all_public_actions_enter_internal_sdk
         and env_uop_sdk_complete
@@ -1294,7 +1308,7 @@ def build_systemwide_route_audit(
         and surface["status"] == "PASS"
         and surface["release_catalog_matches_derived"] is True
         and surface["routing_catalog_matches_derived"] is True
-        and env_uop_six_way_governance["status"] == "PASS"
+        and env_uop_current_authority_governance["status"] == "PASS"
         and semantic_public_schema["status"] == "PASS"
         and plan["status"] == "PASS"
         and plan_capability_route_coverage["status"] == "PASS"
@@ -1331,7 +1345,7 @@ def build_systemwide_route_audit(
             "status": (
                 "PASS"
                 if public_set_equality
-                and sdk_subset_registered
+                and specialized_subset_registered
                 and sdk_route_registry_shared
                 and all_public_actions_enter_internal_sdk
                 and env_uop_sdk_complete
@@ -1349,8 +1363,8 @@ def build_systemwide_route_audit(
             "routing_equals_registry": routing_tools == registry_tools,
             "routing_equals_public_schema": routing_tools == public_tools,
             "routing_equals_remote_adapter": routing_tools == remote_tools,
-            "specialized_sdk_action_count": len(sdk_tools),
-            "sdk_subset_registered": sdk_subset_registered,
+            "specialized_native_action_count": len(specialized_tools),
+            "specialized_subset_registered": specialized_subset_registered,
             "sdk_route_registry_shared": sdk_route_registry_shared,
             "all_public_actions_enter_internal_sdk": (
                 all_public_actions_enter_internal_sdk
@@ -1370,8 +1384,8 @@ def build_systemwide_route_audit(
                 else "BLOCKED"
             ),
             "obsolete_public_tools": sorted(obsolete),
-            "routing_tombstone_section_present": (
-                "obsolete_tool_tombstones" in routing
+            "obsolete_route_registry_section_present": any(
+                str(key).startswith("obsolete_") for key in routing
             ),
             "active_workflow_violations": obsolete_workflow_violations,
             "purged_service_methods_present": sorted(
@@ -1392,7 +1406,7 @@ def build_systemwide_route_audit(
                 "routing_catalog_matches_derived"
             ],
         },
-        "env_uop_six_way_governance": env_uop_six_way_governance,
+        "env_uop_current_authority_governance": (env_uop_current_authority_governance),
         "source_fingerprints": {
             "tracked_plugin": tracked_plugin,
             "current_plugin_tree": {

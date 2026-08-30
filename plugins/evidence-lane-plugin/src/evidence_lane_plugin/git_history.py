@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import shutil
 import sqlite3
 import subprocess  # nosec B404
 from pathlib import Path
 from typing import Any, BinaryIO, cast
 
+from .compact_storage import compress_exact_bytes, decompress_exact_bytes
 from .errors import EvidenceLaneError, require
+from .git_adapter import resolve_git_executable
 from .hashing import canonical_json_bytes, sha256_bytes
 from .redaction import redact_text
 from .source_policy import (
@@ -21,20 +22,9 @@ _TEXT_CHUNK_CHARS = 6000
 _TEXT_CHUNK_OVERLAP = 500
 
 
-def _git_executable() -> str:
-    executable = shutil.which("git")
-    require(
-        executable is not None,
-        "GIT_EXECUTABLE_MISSING",
-        "Git is required for full-history indexing.",
-        status="BLOCKED",
-    )
-    return cast(str, executable)
-
-
 def _git(root: Path, *args: str, timeout: int = 180) -> bytes:
     completed = subprocess.run(  # nosec B603
-        [_git_executable(), *args],
+        [resolve_git_executable(root), *args],
         cwd=root,
         stdin=subprocess.DEVNULL,
         capture_output=True,
@@ -109,13 +99,15 @@ def create_git_history_schema(connection: sqlite3.Connection) -> None:
             size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
             is_binary INTEGER NOT NULL CHECK(is_binary IN (0, 1)),
             encoding TEXT,
-            exact_bytes BLOB NOT NULL,
+            compression TEXT NOT NULL,
+            compressed_bytes BLOB NOT NULL,
             first_commit_sha TEXT NOT NULL
         ) STRICT;
         CREATE TABLE IF NOT EXISTS git_content_chunk_cas(
             chunk_sha256 TEXT PRIMARY KEY,
             size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            text_content TEXT NOT NULL
+            compression TEXT NOT NULL,
+            compressed_text BLOB NOT NULL
         ) STRICT;
         CREATE TABLE IF NOT EXISTS git_chunk_occurrence(
             commit_sha TEXT NOT NULL REFERENCES git_commit_registry(commit_sha),
@@ -137,9 +129,11 @@ def create_git_history_schema(connection: sqlite3.Connection) -> None:
         ) STRICT;
         CREATE VIRTUAL TABLE IF NOT EXISTS git_history_fts USING fts5(
             commit_sha UNINDEXED,
-            path,
+            path UNINDEXED,
             message,
             text_content,
+            content='',
+            contentless_delete=1,
             tokenize='unicode61'
         );
         CREATE INDEX IF NOT EXISTS git_chunk_path_idx
@@ -270,11 +264,19 @@ def _changes(root: Path, commit_sha: str) -> list[dict[str, str | None]]:
 def _purge_unsafe_history(connection: sqlite3.Connection) -> dict[str, int]:
     """Remove unsafe bytes inherited from an older accepted lane database."""
 
-    unsafe_blobs = {
-        str(row["blob_sha"])
-        for row in connection.execute("SELECT blob_sha, exact_bytes FROM git_blob_cas")
-        if content_exclusion_reason(bytes(row["exact_bytes"])) is not None
-    }
+    unsafe_blobs = set()
+    for row in connection.execute(
+        "SELECT blob_sha,content_sha256,size_bytes,compression,compressed_bytes "
+        "FROM git_blob_cas"
+    ):
+        data = decompress_exact_bytes(
+            compression=str(row["compression"]),
+            payload=bytes(row["compressed_bytes"]),
+            expected_size=int(row["size_bytes"]),
+            expected_sha256=str(row["content_sha256"]),
+        )
+        if content_exclusion_reason(data) is not None:
+            unsafe_blobs.add(str(row["blob_sha"]))
     sensitive_occurrences = [
         (str(row["commit_sha"]), str(row["path"]), int(row["ordinal"]))
         for row in connection.execute(
@@ -337,7 +339,7 @@ def _read_blobs(root: Path, blob_shas: list[str]) -> dict[str, bytes]:
     if not blob_shas:
         return {}
     process = subprocess.Popen(  # nosec B603
-        [_git_executable(), "cat-file", "--batch"],
+        [resolve_git_executable(root), "cat-file", "--batch"],
         cwd=root,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
@@ -444,12 +446,13 @@ def index_git_history(
     for blob_sha in safe_missing_blobs:
         data = blob_bytes[blob_sha]
         text, encoding = _decode_blob(data)
+        blob_compression, compressed_blob = compress_exact_bytes(data)
         connection.execute(
             """
             INSERT INTO git_blob_cas(
                 blob_sha, content_sha256, size_bytes, is_binary, encoding,
-                exact_bytes, first_commit_sha
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                compression,compressed_bytes,first_commit_sha
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 blob_sha,
@@ -457,20 +460,30 @@ def index_git_history(
                 len(data),
                 int(text is None),
                 encoding,
-                data,
+                blob_compression,
+                compressed_blob,
                 first_commit_for_blob[blob_sha],
             ),
         )
         if text is not None:
             for _, _, _, content in _chunks(text):
-                digest = sha256_bytes(content.encode("utf-8"))
+                content_bytes = content.encode("utf-8")
+                digest = sha256_bytes(content_bytes)
+                chunk_compression, compressed_content = compress_exact_bytes(
+                    content_bytes
+                )
                 cursor = connection.execute(
                     """
                     INSERT OR IGNORE INTO git_content_chunk_cas(
-                        chunk_sha256, size_bytes, text_content
-                    ) VALUES (?, ?, ?)
+                        chunk_sha256,size_bytes,compression,compressed_text
+                    ) VALUES (?, ?, ?, ?)
                     """,
-                    (digest, len(content.encode("utf-8")), content),
+                    (
+                        digest,
+                        len(content_bytes),
+                        chunk_compression,
+                        compressed_content,
+                    ),
                 )
                 if cursor.rowcount:
                     chunks_created += 1
@@ -527,12 +540,19 @@ def index_git_history(
             )
         for item in trees[row["commit_sha"]]:
             blob = connection.execute(
-                "SELECT is_binary, encoding, exact_bytes FROM git_blob_cas WHERE blob_sha=?",
+                "SELECT content_sha256,size_bytes,is_binary,encoding,compression,"
+                "compressed_bytes FROM git_blob_cas WHERE blob_sha=?",
                 (item["blob_sha"],),
             ).fetchone()
             if blob is None or int(blob["is_binary"]):
                 continue
-            text = bytes(blob["exact_bytes"]).decode(str(blob["encoding"]))
+            blob_data = decompress_exact_bytes(
+                compression=str(blob["compression"]),
+                payload=bytes(blob["compressed_bytes"]),
+                expected_size=int(blob["size_bytes"]),
+                expected_sha256=str(blob["content_sha256"]),
+            )
+            text = blob_data.decode(str(blob["encoding"]))
             for chunk_ordinal, start, end, content in _chunks(text):
                 digest = sha256_bytes(content.encode("utf-8"))
                 connection.execute(
@@ -580,13 +600,32 @@ def index_git_history(
         SELECT c.commit_sha, '', c.message, '' FROM git_commit_registry c
         """
     )
-    connection.execute(
+    chunk_rows = connection.execute(
         """
-        INSERT INTO git_history_fts(commit_sha, path, message, text_content)
-        SELECT o.commit_sha, o.path, '', c.text_content
-        FROM git_chunk_occurrence o
-        JOIN git_content_chunk_cas c ON c.chunk_sha256=o.chunk_sha256
+        SELECT o.commit_sha,o.path,c.chunk_sha256,c.size_bytes,c.compression,
+               c.compressed_text
+        FROM git_chunk_occurrence AS o
+        JOIN git_content_chunk_cas AS c ON c.chunk_sha256=o.chunk_sha256
+        ORDER BY o.commit_sha,o.path,o.ordinal
         """
+    )
+    connection.executemany(
+        "INSERT INTO git_history_fts(commit_sha,path,message,text_content) "
+        "VALUES(?,?,?,?)",
+        (
+            (
+                str(row["commit_sha"]),
+                str(row["path"]),
+                "",
+                decompress_exact_bytes(
+                    compression=str(row["compression"]),
+                    payload=bytes(row["compressed_text"]),
+                    expected_size=int(row["size_bytes"]),
+                    expected_sha256=str(row["chunk_sha256"]),
+                ).decode("utf-8"),
+            )
+            for row in chunk_rows
+        ),
     )
     counts = {
         "commits": int(

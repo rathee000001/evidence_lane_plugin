@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schema": "evidence-lane.public-action-contract.v1",
   "name": "hil_decide",
-  "title": "Record exact six-way HIL decision",
+  "title": "Record exact governed HIL decision",
   "description": "Record APPROVE_WITH_DELTA, MORE_RESEARCH, REJECT, FAIL, or pointer-only ROLLBACK for one pending candidate. Exact APPROVE is deliberately rejected here and may promote only through pv_fuse. ROLLBACK preserves the candidate and accepted history; a bare target resolves to the current prompt/session entry PV.",
   "input_schema": {
     "properties": {
@@ -121,8 +121,8 @@
     ],
     "executable": true
   },
-  "canonical_schema_sha256": "47102A9AAE2F25D54DDB2AA259EFB9B822BD89125C54052833694A0F01790D53",
+  "canonical_schema_sha256": "CFEDC858CFC084E74518745D8CA2FCAC10CBD4AAE2C7B0D376DD18539DABF999",
   "canonical_catalog": "schemas/public-action-schemas.v001.json",
   "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
-  "receipt_sha256": "E4698B1EAA138A8529A675E4FF6DC1F6E95519A5D6032A855D104D4BD88EFAB9"
+  "receipt_sha256": "509369286F6EC2122C9285734AB8F43BFF0FB0CF224766F324F715B436806B94"
 }

@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "agent_learning",
   "database": "agent-learning.sqlite",
-  "database_sha256": "DA87355850397644A9048A588546C2BFC50999B6A0972F92F35B05C4AA924D59",
+  "database_sha256": "EEBDA87D83B03D9C3D9472217CFA7A4FFC745EF0012F5DF41A6643A55E937921",
   "database_integrity": "ok",
-  "schema_sha256": "50744ACAD1C6B588F60CAA0EA50A1E5B27FB8C0B4D6DBA9E4BF874EFD892B46A",
+  "schema_sha256": "3812EA8CFE7621A58EFF5210E5EF12B717905D06DAFF7214925FCE37DA0616BB",
   "table_count": 28,
   "fts5_tables": [
     "authority_index_fts",
@@ -15,23 +15,23 @@
   "members": [
     {
       "path": "authorities/agent_learning/agent-learning.dot",
-      "bytes": 45077,
-      "sha256": "93300F5B094EC846711214426DA9EE3C4FA9A2058E541F87C98BAD510B7FD2B6"
+      "bytes": 60296,
+      "sha256": "F64CF91A54F309439DD7E0D9DE67139BC1AE4D4C7643162EDF1D4F6A7B71DAB3"
     },
     {
       "path": "authorities/agent_learning/agent-learning.mmd",
-      "bytes": 33444,
-      "sha256": "6586301A19FCED13BE51B7502A9BF4EB266A250163303C92CE85661AB610D52C"
+      "bytes": 44801,
+      "sha256": "C12D300EBCCB8D5956C198FD67E40190E00FB383FBF9DE16573B8F17CDDBECCB"
     },
     {
       "path": "authorities/agent_learning/agent-learning.sqlite",
-      "bytes": 221184,
-      "sha256": "DA87355850397644A9048A588546C2BFC50999B6A0972F92F35B05C4AA924D59"
+      "bytes": 225280,
+      "sha256": "EEBDA87D83B03D9C3D9472217CFA7A4FFC745EF0012F5DF41A6643A55E937921"
     },
     {
       "path": "authorities/agent_learning/agent-learning.tools.json",
-      "bytes": 16188,
-      "sha256": "00EE6BF2CF260974AD3F983A3419F47A35D27B1DB0D464DF37D68CE118823E6E"
+      "bytes": 16926,
+      "sha256": "187665BF700312ABEAACA08735277665484776F24E130E865757B5ED7508F13D"
     },
     {
       "path": "authorities/agent_learning/build-refresh-contract.schema.json",
@@ -91,7 +91,7 @@
     {
       "path": "authorities/agent_learning/runtime-binding.schema.json",
       "bytes": 596,
-      "sha256": "2AFEF6B005F5BD41699BC414EAD87DF638D957AA8D66544325D4FF7BA9F41BBD"
+      "sha256": "B5AD6D7CAC02AEB48EC30EE13E09046AD5C98C1C0C1F8A6D82F1A15A142C6505"
     },
     {
       "path": "authorities/agent_learning/runtime.py",
@@ -100,8 +100,8 @@
     },
     {
       "path": "authorities/agent_learning/schema.sql",
-      "bytes": 5462,
-      "sha256": "BBECCCB5AB8D86AB9FC3E3B427D04A0AB932B7CBA42C9D38E90784EA9BA28CA2"
+      "bytes": 5978,
+      "sha256": "571E1B3F1DC32693B861C0B08C727ADF276376E2C589492E7184E659EA7C7021"
     },
     {
       "path": "authorities/agent_learning/sqlite-artifact.schema.json",
@@ -110,17 +110,32 @@
     },
     {
       "path": "authorities/agent_learning/sqlite-schema.v1.json",
-      "bytes": 38352,
-      "sha256": "79C1B28AE2D4EA3595B15BE49625DDBD3714727F961EB4FA4F6E6840B1888C72"
+      "bytes": 39122,
+      "sha256": "0DE3FB416633D385F2062B9951C370B295E450D76229DE45E77D26EFF215D21B"
     },
     {
       "path": "authorities/agent_learning/tools.schema.json",
       "bytes": 538,
       "sha256": "006F9DE26632992BBEC68BF2155352BAFDF2357BF21E5891133CF369C3C2ED22"
+    },
+    {
+      "path": "authorities/agent_learning/workflow.dot",
+      "bytes": 5888,
+      "sha256": "D055CC9E10DB06BFAAD86A6253A09E5706F9434276E443BC20D2A6EB71D1B464"
+    },
+    {
+      "path": "authorities/agent_learning/workflow.mmd",
+      "bytes": 4684,
+      "sha256": "80A7AB2611274DB7F96D810C6CB2652F9D4485E41758FD1BDE57E5A8F663F6CD"
+    },
+    {
+      "path": "authorities/agent_learning/workflow.v1.json",
+      "bytes": 13945,
+      "sha256": "F65F33034D336E6F0715D836A044E85690319FA22EDDDABC31F064C49787ABB2"
     }
   ],
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/agent_learning.py": "38D89683C25EA536392E2EC9816B26F4B94E1561057791EAEF792104C3A54331",
+    "src/evidence_lane_plugin/agent_learning.py": "BF75C699067155F4C0CD3E757954F9BC99372B485F400811AC4C659F0D3A9572",
     "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
@@ -141,24 +156,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:04.901810Z",
-    "receipt_sha256": "EA490FD48CC8340D7E329FF79A70B17DB850A62F53302CC2B2A015DF004975AE"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "F53C0B37EFD3D57F4CCD6E93E6D3F63B365ACBA7A2A50BFC3EBDBDE7A16E8BE5"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "agent_learning_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 172,
-    "edge_count": 177,
+    "node_count": 171,
+    "edge_count": 179,
     "group_count": 1,
-    "semantic_topology_sha256": "8584A01D90C7488FF7F803E2D725F28B4AF30126262C575D3CBA28EFB11F298B",
-    "mmd_sha256": "6586301A19FCED13BE51B7502A9BF4EB266A250163303C92CE85661AB610D52C",
-    "dot_sha256": "93300F5B094EC846711214426DA9EE3C4FA9A2058E541F87C98BAD510B7FD2B6",
+    "semantic_topology_sha256": "AB6C3738FE1518F515FA22C8B5065A1117772B2A5A98AFB90AFB0E21B02B8134",
+    "mmd_sha256": "C12D300EBCCB8D5956C198FD67E40190E00FB383FBF9DE16573B8F17CDDBECCB",
+    "dot_sha256": "F64CF91A54F309439DD7E0D9DE67139BC1AE4D4C7643162EDF1D4F6A7B71DAB3",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "EAE68F5E7916FC4F2B6A447DE5ED202648D4DE153B151A3F93803351DB749A87",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "AFFB5ABBF05C9BFC98A88DCFC7C5E4484C02F924B375288EFAF619F48897B5E0",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -168,10 +183,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 172,
-      "edge_count": 177,
+      "node_count": 171,
+      "edge_count": 179,
       "weak_component_count": 1,
-      "strong_component_count": 172,
+      "strong_component_count": 171,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -200,14 +215,19 @@
           "out_degree": 11
         },
         {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 10
+        },
+        {
           "node_id": "support_table_learning_event",
           "in_degree": 1,
           "out_degree": 10
         },
         {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 9
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 8
         },
         {
           "node_id": "support_table_learning_pointer_history",
@@ -215,19 +235,14 @@
           "out_degree": 9
         },
         {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 7
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_memory_locator_fts_content",
           "in_degree": 1,
           "out_degree": 7
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
         },
         {
           "node_id": "support_table_learning_candidate_fts_content",
@@ -260,6 +275,11 @@
           "out_degree": 5
         },
         {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
           "node_id": "support_table_authority_index_fts_idx",
           "in_degree": 1,
           "out_degree": 3
@@ -268,23 +288,23 @@
           "node_id": "support_table_learning_candidate_fts_idx",
           "in_degree": 1,
           "out_degree": 3
-        },
-        {
-          "node_id": "support_table_memory_locator_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
         }
       ],
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "027B4AC2579E50F9F10BF279E2F5F6C233328D9A66F074975D567D9BEFE5940F",
+    "graph_analysis_sha256": "DEE09DA3EA01ECCE6BFDD58867D0D9CACE82837CEB3C0734FBF894CED7E9BB4B",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 101,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "2EF539246B6DD2CB281B897C810DB5A95234485F1DD49B5CCB271EADED3505CD"
+    "receipt_sha256": "C174520B955F8459807EB0DBC08DACC2129684DDCC95D2E6CA4D82525D15288F"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "3D8D54AA5B71E3487641E67D9E3E30DD86B5B85D277A012C68397F6A2A0BFC37"
+  "receipt_sha256": "D6B2066F32A9E63209C91EF3F26696BDF4226C287175F85E9359BCE0A94CC7C6"
 }

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import asyncio
 import hashlib
 import json
@@ -45,6 +46,97 @@ def _write_atomic_text(path: Path, value: str) -> None:
             temporary.unlink(missing_ok=True)
 
 
+def _refresh_runtime_public_catalog() -> dict[str, Any]:
+    """Refresh the import bootstrap catalog directly from current source AST."""
+
+    package_root = PLUGIN_ROOT / "src" / "evidence_lane_plugin"
+    mcp_path = package_root / "mcp_server.py"
+    release_path = PLUGIN_ROOT / "scripts" / "codex-release-channel.json"
+    tree = ast.parse(mcp_path.read_text(encoding="utf-8"), filename=str(mcp_path))
+    records: list[tuple[str, bool]] = []
+    specialized_found = False
+    for statement in tree.body:
+        if not isinstance(statement, (ast.Assign, ast.AnnAssign)):
+            continue
+        targets = (
+            statement.targets
+            if isinstance(statement, ast.Assign)
+            else [statement.target]
+        )
+        if not any(
+            isinstance(target, ast.Name) and target.id == "SPECIALIZED_NATIVE_ACTIONS"
+            for target in targets
+        ):
+            continue
+        if statement.value is None:
+            raise RuntimeError("SPECIALIZED_NATIVE_ACTIONS_VALUE_MISSING")
+        specialized = ast.literal_eval(statement.value)
+        if not isinstance(specialized, tuple):
+            raise TypeError("SPECIALIZED_NATIVE_ACTIONS_NOT_TUPLE")
+        for row in specialized:
+            if (
+                not isinstance(row, tuple)
+                or len(row) != 6
+                or not isinstance(row[0], str)
+                or not isinstance(row[5], bool)
+            ):
+                raise RuntimeError("SPECIALIZED_NATIVE_ACTION_INVALID")
+            records.append((row[0], row[5]))
+        specialized_found = True
+    if not specialized_found:
+        raise RuntimeError("SPECIALIZED_NATIVE_ACTIONS_MISSING")
+
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        for decorator in node.decorator_list:
+            if not (
+                isinstance(decorator, ast.Call)
+                and isinstance(decorator.func, ast.Attribute)
+                and decorator.func.attr == "tool"
+            ):
+                continue
+            keywords = {row.arg: row.value for row in decorator.keywords if row.arg}
+            name_node = keywords.get("name")
+            annotation_node = keywords.get("annotations")
+            if not isinstance(name_node, ast.Constant) or not isinstance(
+                name_node.value, str
+            ):
+                raise TypeError("DECORATED_NATIVE_ACTION_NAME_NOT_STATIC")
+            records.append(
+                (
+                    name_node.value,
+                    isinstance(annotation_node, ast.Name)
+                    and annotation_node.id == "_READ_ONLY",
+                )
+            )
+
+    names = [name for name, _read_only in records]
+    if not names or len(names) != len(set(names)):
+        raise RuntimeError("CANONICAL_NATIVE_ACTION_REGISTRY_INVALID")
+    read_count = sum(read_only for _name, read_only in records)
+    release = json.loads(release_path.read_text(encoding="utf-8"))
+    stable = release.get("stable")
+    if not isinstance(stable, dict) or not isinstance(stable.get("skill_count"), int):
+        raise TypeError("CODEX_RELEASE_SKILL_COUNT_INVALID")
+    catalog = {
+        "schema": "evidence-lane.runtime-public-catalog.v1",
+        "tools": len(records),
+        "read": read_count,
+        "write": len(records) - read_count,
+        "skills": int(stable["skill_count"]),
+        "mcp_source_sha256": hashlib.sha256(mcp_path.read_bytes()).hexdigest().upper(),
+        "release_channel_sha256": hashlib.sha256(release_path.read_bytes())
+        .hexdigest()
+        .upper(),
+    }
+    _write_atomic_text(
+        package_root / "runtime-public-catalog.v1.json",
+        json.dumps(catalog, indent=2, ensure_ascii=False) + "\n",
+    )
+    return catalog
+
+
 def _annotation(tool: Any) -> dict[str, Any]:
     annotations = tool.annotations
     if annotations is None:
@@ -64,7 +156,10 @@ def build_catalog() -> dict[str, Any]:
         sdk_plane_registry,
     )
     from evidence_lane_plugin.lanes import LANE_REGISTRY
-    from evidence_lane_plugin.mcp_server import SDK_NATIVE_ACTIONS, create_mcp_server
+    from evidence_lane_plugin.mcp_server import (
+        SPECIALIZED_NATIVE_ACTIONS,
+        create_mcp_server,
+    )
 
     server = create_mcp_server()
     tools = sorted(asyncio.run(server.list_tools()), key=lambda item: item.name)
@@ -107,7 +202,7 @@ def build_catalog() -> dict[str, Any]:
             "operation": str(row[4]),
             "read_only": bool(row[5]),
         }
-        for row in SDK_NATIVE_ACTIONS
+        for row in SPECIALIZED_NATIVE_ACTIONS
     }
     workflow_routes: dict[str, list[dict[str, Any]]] = {tool.name: [] for tool in tools}
     for skill_name, workflow in dict(routing.get("workflows") or {}).items():
@@ -180,19 +275,21 @@ def build_catalog() -> dict[str, Any]:
         "counts_are_derived_not_fixed": True,
         "lane_count": len(lanes),
         "canonical_lanes": lanes,
-        "env_uop_governed_six_way_arms": [
+        "env_uop_governed_current_authority_classes": [
             "PROJECT_SECTORS_AND_ROOT_FILES",
             "AI_LEARNING",
             "CANON_GRAPH",
             "PROJECT_MEMORY_DB",
             "HOST_CONVERSATION_MEMORY_MD",
             "AGENTS_MD",
+            "PROJECT_UNIVERSE",
+            "CONNECTOR_BRAIN",
         ],
+        "current_authority_classes_derived": True,
         "linked_operational_authorities": [
             "PROJECT_UNIVERSE",
             "CONNECTOR_BRAIN",
         ],
-        "ordinary_live_authority_count": 8,
         "hil_only_authorities": ["PROJECT_OVERLAY"],
         "governance": ["ENV", "UOP"],
         "sdk_planes": sdk_planes,
@@ -213,7 +310,7 @@ def build_catalog() -> dict[str, Any]:
         "hooks_required_for_explicit_actions": False,
         "accepted_hil_archive_queried_by_ordinary_actions": False,
         "shared_contracts": {
-            "live_root_query": "live-root-env-uop-six-way-query.v001.json",
+            "live_root_query": "live-root-current-authority-query.v002.json",
             "lane_fts5_bm25": "lane-search-fts5.v001.json",
             "canon": "canon/canon-consequence-graph.v1.sql",
             "memory": "memory/project-memory.v1.sql",
@@ -448,6 +545,7 @@ def build_catalog() -> dict[str, Any]:
 
 def main() -> int:
     plugin_root = Path(__file__).resolve().parents[1]
+    _refresh_runtime_public_catalog()
     public_path = plugin_root / "schemas" / "public-action-schemas.v001.json"
     obsolete_runtime_path = (
         plugin_root
@@ -476,6 +574,12 @@ def main() -> int:
     conformance_gate["generated_from"]["public_catalog_sha256"] = (
         hashlib.sha256(public_path.read_bytes()).hexdigest().upper()
     )
+    from evidence_lane_plugin.mcp_server import create_mcp_server
+
+    evaluation_matrix = create_mcp_server()._evidence_lane_public_tool_evaluation_matrix
+    conformance_gate["generated_from"]["source_matrix_sha256"] = evaluation_matrix[
+        "matrix_sha256"
+    ]
     _write_atomic_text(
         conformance_gate_path,
         json.dumps(conformance_gate, indent=2, ensure_ascii=False) + "\n",
@@ -494,8 +598,12 @@ def main() -> int:
         "read_tool_count": catalog["read_tool_count"],
         "write_tool_count": catalog["write_tool_count"],
         "governed_skill_count": len(list((plugin_root / "skills").glob("*/SKILL.md"))),
-        "ordinary_live_authority_count": catalog["ordinary_live_authority_count"],
-        "env_uop_governed_six_way_arms": catalog["env_uop_governed_six_way_arms"],
+        "current_authority_classes_derived": catalog[
+            "current_authority_classes_derived"
+        ],
+        "env_uop_governed_current_authority_classes": catalog[
+            "env_uop_governed_current_authority_classes"
+        ],
         "linked_operational_authorities": catalog["linked_operational_authorities"],
         "hil_only_authorities": catalog["hil_only_authorities"],
         "sdk_planes": catalog["sdk_planes"],

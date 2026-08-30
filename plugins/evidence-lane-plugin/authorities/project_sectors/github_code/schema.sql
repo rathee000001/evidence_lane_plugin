@@ -1,20 +1,22 @@
 -- Generated inspection/replay schema from the canonical lane builder.
 -- Canonical implementation: src/evidence_lane_plugin/lane_engine.py
 
-CREATE TABLE artifact_registry(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
+CREATE TABLE authority_index_content_cas(
+            sha256 TEXT PRIMARY KEY,
+            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
+            compression TEXT NOT NULL,
+            compressed_bytes BLOB NOT NULL,
+            first_seen_at TEXT NOT NULL
+        ) STRICT;
 
 CREATE VIRTUAL TABLE authority_index_fts USING fts5(
             node_id UNINDEXED,
             authority_id UNINDEXED,
-            source_table,
-            source_identity,
+            source_table UNINDEXED,
+            source_identity UNINDEXED,
             text_content,
+            content='',
+            contentless_delete=1,
             tokenize='unicode61'
         );
 
@@ -25,9 +27,10 @@ CREATE TABLE authority_index_node(
             ordinal INTEGER NOT NULL,
             char_start INTEGER NOT NULL,
             char_end INTEGER NOT NULL,
-            text_content TEXT NOT NULL,
-            text_sha256 TEXT NOT NULL,
-            metadata_json TEXT NOT NULL,
+            text_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
+            metadata_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
             UNIQUE(source_id, ordinal)
         ) STRICT;
 
@@ -52,7 +55,8 @@ CREATE TABLE authority_index_source(
             source_table TEXT NOT NULL,
             source_identity TEXT NOT NULL,
             source_text_sha256 TEXT NOT NULL,
-            metadata_json TEXT NOT NULL,
+            metadata_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
             recorded_at TEXT NOT NULL,
             UNIQUE(authority_id, source_table, source_identity)
         ) STRICT;
@@ -60,7 +64,8 @@ CREATE TABLE authority_index_source(
 CREATE TABLE chunk_content_cas(
             sha256 TEXT PRIMARY KEY,
             size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            text_content TEXT NOT NULL,
+            compression TEXT NOT NULL,
+            compressed_text BLOB NOT NULL,
             first_seen_at TEXT NOT NULL
         ) STRICT;
 
@@ -84,7 +89,6 @@ CREATE TABLE chunk_index(
             ordinal INTEGER NOT NULL,
             char_start INTEGER NOT NULL,
             char_end INTEGER NOT NULL,
-            text_content TEXT NOT NULL,
             sha256 TEXT NOT NULL,
             metadata_json TEXT NOT NULL,
             UNIQUE(source_id, locator, ordinal)
@@ -98,29 +102,15 @@ CREATE TABLE code_call(
             ) STRICT
             ;
 
-CREATE TABLE code_chunk(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
 CREATE VIRTUAL TABLE code_chunk_fts USING fts5(
-            path,
-            locator,
+            path UNINDEXED,
+            locator UNINDEXED,
             text_content,
             chunk_id UNINDEXED,
+            content='',
+            contentless_delete=1,
             tokenize='unicode61'
         );
-
-CREATE TABLE code_config_build_test_chunk(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
 
 CREATE TABLE code_dependency(
                 record_id INTEGER PRIMARY KEY,
@@ -130,31 +120,7 @@ CREATE TABLE code_dependency(
             ) STRICT
             ;
 
-CREATE TABLE code_file_snapshot(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE code_good_snapshot(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
 CREATE TABLE code_import(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE code_index_checkpoint(
                 record_id INTEGER PRIMARY KEY,
                 source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
                 locator TEXT NOT NULL,
@@ -186,71 +152,7 @@ CREATE TABLE code_route(
             ) STRICT
             ;
 
-CREATE TABLE code_route_api_boundary(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE code_semantic_diff(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE code_snapshot_history(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE code_source_active_head(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE code_source_registry(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
 CREATE TABLE code_symbol(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE code_synthetic_snapshot_file(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE code_workflow_edge(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE git_artifact_impact(
                 record_id INTEGER PRIMARY KEY,
                 source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
                 locator TEXT NOT NULL,
@@ -264,7 +166,8 @@ CREATE TABLE git_blob_cas(
             size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
             is_binary INTEGER NOT NULL CHECK(is_binary IN (0, 1)),
             encoding TEXT,
-            exact_bytes BLOB NOT NULL,
+            compression TEXT NOT NULL,
+            compressed_bytes BLOB NOT NULL,
             first_commit_sha TEXT NOT NULL
         ) STRICT;
 
@@ -302,24 +205,9 @@ CREATE TABLE git_commit_registry(
 CREATE TABLE git_content_chunk_cas(
             chunk_sha256 TEXT PRIMARY KEY,
             size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            text_content TEXT NOT NULL
+            compression TEXT NOT NULL,
+            compressed_text BLOB NOT NULL
         ) STRICT;
-
-CREATE TABLE git_dependency_impact(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE git_exact_line_change(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
 
 CREATE TABLE git_file_change(
             commit_sha TEXT NOT NULL REFERENCES git_commit_registry(commit_sha),
@@ -332,27 +220,13 @@ CREATE TABLE git_file_change(
 
 CREATE VIRTUAL TABLE git_history_fts USING fts5(
             commit_sha UNINDEXED,
-            path,
+            path UNINDEXED,
             message,
             text_content,
+            content='',
+            contentless_delete=1,
             tokenize='unicode61'
         );
-
-CREATE TABLE git_patch_hunk(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE git_push_event(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
 
 CREATE TABLE git_ref_registry(
             ref_name TEXT PRIMARY KEY,
@@ -360,30 +234,6 @@ CREATE TABLE git_ref_registry(
             peeled_sha TEXT,
             captured_signature TEXT NOT NULL
         ) STRICT;
-
-CREATE TABLE git_route_impact(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE git_symbol_impact(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE git_test_impact(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
 
 CREATE TABLE lane_meta(
             key TEXT PRIMARY KEY,
@@ -421,64 +271,30 @@ CREATE TABLE refresh_receipt(
             unchanged_reuse INTEGER NOT NULL,
             changed_rebuild INTEGER NOT NULL,
             new_register INTEGER NOT NULL,
-            removed_tombstone INTEGER NOT NULL,
+            removed_purge INTEGER NOT NULL,
             blocked_unsupported INTEGER NOT NULL,
             details_json TEXT NOT NULL,
             recorded_at TEXT NOT NULL
         ) STRICT;
 
-CREATE TABLE relation_edge(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE sector_head(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE sector_meta(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE snapshot_git_bridge(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
+CREATE TABLE source_content_cas(
+            sha256 TEXT PRIMARY KEY,
+            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
+            compression TEXT NOT NULL,
+            compressed_bytes BLOB NOT NULL,
+            first_seen_at TEXT NOT NULL
+        ) STRICT;
 
 CREATE TABLE source_registry(
             source_id INTEGER PRIMARY KEY,
             path TEXT NOT NULL UNIQUE,
             size_bytes INTEGER NOT NULL,
-            sha256 TEXT NOT NULL,
+            sha256 TEXT NOT NULL REFERENCES source_content_cas(sha256),
             mime_type TEXT NOT NULL,
             extension TEXT NOT NULL,
             encoding TEXT,
             parser_state TEXT NOT NULL,
-            exact_bytes BLOB NOT NULL,
             registered_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE source_tombstone(
-            tombstone_id INTEGER PRIMARY KEY,
-            path TEXT NOT NULL,
-            prior_sha256 TEXT NOT NULL,
-            prior_size_bytes INTEGER NOT NULL,
-            removed_at TEXT NOT NULL,
-            parent_pv TEXT
         ) STRICT;
 
 CREATE TABLE structured_fact(

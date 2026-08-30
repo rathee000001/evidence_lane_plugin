@@ -10,9 +10,16 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from .deployment_toolchain import deployment_tool_catalog
+from .ecosystem_toolchain import (
+    ECOSYSTEM_ADAPTERS,
+    inspect_ecosystem_adapter_runtime,
+)
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .native_toolchain import try_resolve_native_tool
+from .observability_toolchain import observability_tool_catalog
 from .package_root import resolve_plugin_root
+from .tunnel_identity_routing import tunnel_identity_routing_catalog
 
 RUNTIME_TOOLCHAIN_SCHEMA = "evidence-lane.runtime-toolchain-prewarm.v1"
 
@@ -87,7 +94,6 @@ def inspect_runtime_toolchain(
         "LangChain": ("langchain",),
         "SentenceTransformers": ("sentence_transformers",),
         "FAISS_CPU": ("faiss",),
-        "ChromaDB": ("chromadb",),
         "rank_bm25": ("rank_bm25",),
         "FastAPI": ("fastapi",),
         "Uvicorn": ("uvicorn",),
@@ -113,6 +119,14 @@ def inspect_runtime_toolchain(
         "sqlite_vec": ("sqlite_vec",),
         "FFmpeg": ("imageio_ffmpeg",),
         "HuggingFace_Hub_ModelSnapshot": ("huggingface_hub",),
+        "OpenAI_Agents_SDK": ("agents",),
+        "FastMCP": ("fastmcp",),
+        "LangSmith": ("langsmith",),
+        "Langfuse": ("langfuse",),
+        "OpenTelemetry": (
+            "opentelemetry.sdk",
+            "opentelemetry.exporter.otlp.proto.http.trace_exporter",
+        ),
     }
     command_map = {
         "Git": ("git",),
@@ -229,6 +243,17 @@ def inspect_runtime_toolchain(
             }
         elif tool in build_gate_tools:
             state = "BUILD_GATE_NOT_RUNTIME_REQUIRED"
+        elif tool in ECOSYSTEM_ADAPTERS:
+            adapter = inspect_ecosystem_adapter_runtime(tool)
+            state = str(adapter["state"])
+            evidence = {
+                "adapter_receipt_sha256": adapter["receipt_sha256"],
+                "modules": adapter["modules"],
+                "commands": adapter["commands"],
+                "credential_names": adapter["credential_names"],
+                "credential_values_read": False,
+                "network_probe_performed": False,
+            }
         elif tool in external_tools:
             state = "EXTERNAL_PROOF_REQUIRED_AT_DELIVERY_GATE"
         elif tool in repository_only_tools:
@@ -334,6 +359,9 @@ def inspect_runtime_toolchain(
 
         prewarmed.extend(prewarm_native_dependencies())
     failures = [row for row in results if row["status"] != "PASS"]
+    observability = observability_tool_catalog()
+    deployment = deployment_tool_catalog()
+    tunnel_identity = tunnel_identity_routing_catalog()
     body = {
         "schema": RUNTIME_TOOLCHAIN_SCHEMA,
         "status": "PASS" if not failures else "FAIL",
@@ -346,6 +374,15 @@ def inspect_runtime_toolchain(
         "prewarmed_native_dependencies": prewarmed,
         "mcp_public_action_counted_here": False,
         "public_adapter_dependencies_installed_in_plugin_runtime": False,
+        "observability_tool_count": observability["tool_count"],
+        "observability_catalog_sha256": observability["receipt_sha256"],
+        "raw_authority_payload_export_allowed": False,
+        "deployment_tool_count": deployment["tool_count"],
+        "deployment_catalog_sha256": deployment["receipt_sha256"],
+        "deployment_results_are_evidence_only": True,
+        "tunnel_identity_routing_sha256": tunnel_identity["receipt_sha256"],
+        "tunnel_scheduled_task_owner": False,
+        "tunnel_count_is_fixed_ceiling": False,
     }
     return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
 

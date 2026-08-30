@@ -20,8 +20,7 @@
       "health_method": "GET",
       "query_method": "POST",
       "project_retrieval_authentication": "PUBLIC_SAFE_COMMITTED_CORPUS_NO_USER_CREDENTIAL",
-      "optional_general_provider_key_reference": "OPENROUTER_API_KEY",
-      "optional_general_provider_enable_reference": "EVIDENCE_LANE_GENERAL_AI_ENABLED",
+      "public_provider_proxy_present": false,
       "generated_rag_refresh": "DEFERRED_TO_LATER_PROMPT_STUDIO_ROW"
     },
     "proof": {
@@ -63,5 +62,5 @@
   "secret_values_exposed": false,
   "project_authority_mutation": false,
   "candidate_or_hil_authority": false,
-  "receipt_sha256": "16638E9CC308F840E3F2117EAD9DB3B3EE472C50E42F5A5BECFC0159358C2EF0"
+  "receipt_sha256": "87CDB4704F6CBC5D87AB07D62EE1D8DB49299F26437728B57403E163FAB56FB0"
 }

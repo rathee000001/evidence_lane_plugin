@@ -1,0 +1,56 @@
+digraph skill_evi_refresh {
+  // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
+  // PYTHON_GRAPHVIZ_VERSION=0.21
+  bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
+  node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
+  edge [color="#667085" fontname=Arial]
+  ENTRY [label="evi-refresh intent" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
+  EXIT [label="Exact result / stop / next workflow" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  subgraph cluster_wf_steer_prompt_source_intake_refresh_working_sectors {
+    label="steer-prompt-source-intake-refresh-working-sectors" rankdir=TB
+    WF_STEER_PROMPT_SOURCE_INTAKE_REFRESH_WORKING_SECTORS_START [label="steer-prompt-source-intake-refresh-working-sectors" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_STEER_PROMPT_SOURCE_INTAKE_REFRESH_WORKING_SECTORS_ACTION_001 [label="1. source_intake_classify [['GOVERNANCE', 'SOURCE_ROUTING']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_adaptive_delta_exit_append_refresh {
+    label="adaptive-delta-exit-append-refresh" rankdir=TB
+    WF_ADAPTIVE_DELTA_EXIT_APPEND_REFRESH_START [label="adaptive-delta-exit-append-refresh" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_ADAPTIVE_DELTA_EXIT_APPEND_REFRESH_ACTION_001 [label="2. adaptive_delta_exit [['GOVERNANCE', 'SOURCE_ROUTING']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_hil_live_root_project_overlay_proposal {
+    label="hil-live-root-project-overlay-proposal" rankdir=TB
+    WF_HIL_LIVE_ROOT_PROJECT_OVERLAY_PROPOSAL_START [label="hil-live-root-project-overlay-proposal" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_HIL_LIVE_ROOT_PROJECT_OVERLAY_PROPOSAL_ACTION_001 [label="3. task_complete_and_refresh [['GOVERNANCE']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_execution {
+    label="Shared typed execution contract" rankdir=TB
+    SCHEMA [label="Current input/output schema" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    INTERNAL_SDK [label="Internal SDK execution owner" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ENV [label="ENV15 environment selection" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    UOP [label="UOP15 governance and gates" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+    AUTHORITY [label="Owning authority and lane" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    TOOLS [label="Conditional tool role resolution" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    OUTER [label="Outer SDK / FastMCP / native compatibility" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    HOOKS [label="Only emitted ordered hooks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    VALIDATE [label="Validate schema, result and effects" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+    RECEIPT [label="Exact receipt" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  }
+  ENTRY -> WF_STEER_PROMPT_SOURCE_INTAKE_REFRESH_WORKING_SECTORS_START
+  WF_STEER_PROMPT_SOURCE_INTAKE_REFRESH_WORKING_SECTORS_START -> WF_STEER_PROMPT_SOURCE_INTAKE_REFRESH_WORKING_SECTORS_ACTION_001
+  ENTRY -> WF_ADAPTIVE_DELTA_EXIT_APPEND_REFRESH_START
+  WF_ADAPTIVE_DELTA_EXIT_APPEND_REFRESH_START -> WF_ADAPTIVE_DELTA_EXIT_APPEND_REFRESH_ACTION_001
+  ENTRY -> WF_HIL_LIVE_ROOT_PROJECT_OVERLAY_PROPOSAL_START
+  WF_HIL_LIVE_ROOT_PROJECT_OVERLAY_PROPOSAL_START -> WF_HIL_LIVE_ROOT_PROJECT_OVERLAY_PROPOSAL_ACTION_001
+  SCHEMA -> INTERNAL_SDK
+  INTERNAL_SDK -> ENV
+  ENV -> UOP
+  UOP -> AUTHORITY
+  AUTHORITY -> TOOLS
+  TOOLS -> OUTER
+  OUTER -> HOOKS
+  HOOKS -> VALIDATE
+  VALIDATE -> RECEIPT
+  WF_STEER_PROMPT_SOURCE_INTAKE_REFRESH_WORKING_SECTORS_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_ADAPTIVE_DELTA_EXIT_APPEND_REFRESH_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_HIL_LIVE_ROOT_PROJECT_OVERLAY_PROPOSAL_ACTION_001 -> SCHEMA [label="typed execution"]
+  RECEIPT -> EXIT
+}

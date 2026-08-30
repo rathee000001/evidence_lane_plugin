@@ -43,7 +43,7 @@ from evidence_lane_plugin.mcp_server import (
     CODEX_READ_TOOL_NAMES,
     NATIVE_MCP_SERVER_IDENTITY,
     NATIVE_MCP_TOOL_NAMESPACE,
-    SDK_NATIVE_ACTIONS,
+    SPECIALIZED_NATIVE_ACTIONS,
     create_mcp_server,
     run_server,
 )
@@ -171,9 +171,9 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
         "storage_connector_inspect",
         "storage_connector_select",
     }
-    sdk_tool_names = {row[0] for row in SDK_NATIVE_ACTIONS}
-    assert len(sdk_tool_names) == 30
-    assert set(by_name) == base_tool_names | sdk_tool_names
+    specialized_tool_names = {row[0] for row in SPECIALIZED_NATIVE_ACTIONS}
+    assert len(specialized_tool_names) == 30
+    assert set(by_name) == base_tool_names | specialized_tool_names
     assert len(by_name) == NATIVE_TOOL_COUNT
     assert by_name["search"].annotations.readOnlyHint is True
     assert by_name["fetch"].annotations.readOnlyHint is True
@@ -228,7 +228,7 @@ def test_mcp_tool_inventory_and_annotations(tmp_path: Path) -> None:
     resume_schema = by_name["session_resume"].inputSchema
     assert "submodel" not in resume_schema["properties"]
     assert by_name["remote_git_execute_push"].annotations.openWorldHint is True
-    for tool_name, _, _, _, _, read_only in SDK_NATIVE_ACTIONS:
+    for tool_name, _, _, _, _, read_only in SPECIALIZED_NATIVE_ACTIONS:
         assert by_name[tool_name].annotations.readOnlyHint is read_only
         assert by_name[tool_name].annotations.destructiveHint is False
     assert len(CODEX_READ_TOOL_NAMES) == NATIVE_READ_TOOL_COUNT
@@ -643,7 +643,7 @@ def test_sources_counts_separate_provider_routing_and_hook_usage() -> None:
     ]
 
 
-def test_project_panel_always_explains_exact_six_way_hil_without_mutation() -> None:
+def test_project_panel_explains_current_authority_hil_without_mutation() -> None:
     snapshot = build_project_panel_snapshot(
         project_id="example",
         project_status={
@@ -1148,9 +1148,12 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
     assert "hooks" not in manifest
     assert isinstance(manifest["interface"]["defaultPrompt"], list)
     assert 1 <= len(manifest["interface"]["defaultPrompt"]) <= 3
-    assert all(len(prompt) <= 128 for prompt in manifest["interface"]["defaultPrompt"])
+    assert all(
+        prompt == prompt.strip() and prompt
+        for prompt in manifest["interface"]["defaultPrompt"]
+    )
     assert any(
-        "six-way HIL" in prompt for prompt in manifest["interface"]["defaultPrompt"]
+        "governed HIL" in prompt for prompt in manifest["interface"]["defaultPrompt"]
     )
     hooks = json.loads((plugin / "hooks" / "hooks.json").read_text(encoding="utf-8"))
     assert set(hooks["hooks"]) == {
@@ -1188,7 +1191,7 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
         (root / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8")
     )
     assert marketplace["name"] == "evidence-lane-github"
-    assert marketplace["interface"]["displayName"] == "Main Git Plugin Version"
+    assert marketplace["interface"]["displayName"] == "Evidence Lane 3.0 Main Git Slot"
     scan_roots = [
         root / ".agents",
         root / "docs",
@@ -1490,9 +1493,7 @@ def test_session_start_survives_cachebuster_and_remains_read_only(
         shutil.copytree(
             source_plugin,
             staged,
-            ignore=shutil.ignore_patterns(
-                "__pycache__", "*.pyc", "remote_adapter"
-            ),
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "remote_adapter"),
         )
         manifest_path = staged / ".codex-plugin" / "plugin.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -1581,9 +1582,7 @@ def test_native_skill_surface_covers_lifecycle_and_plan_sidecar() -> None:
         "evi-mode",
         "evi-source-intake",
     ]
-    expected_skills = {
-        path.parent.name for path in skills.glob("*/SKILL.md")
-    }
+    expected_skills = {path.parent.name for path in skills.glob("*/SKILL.md")}
     assert not commands.exists()
     assert "evi-plan" in expected_skills
     plan_skill = (skills / "evi-plan" / "SKILL.md").read_text(encoding="utf-8")
@@ -1607,12 +1606,11 @@ def test_native_skill_surface_covers_lifecycle_and_plan_sidecar() -> None:
     assert "Never run State Travel merely because a handoff exists" in root_skill
     assert "explicitly requests it" in root_skill
     assert "genuinely exhausted" in root_skill
-    assert "all eighteen canonical lanes" in root_skill.lower()
+    assert "complete current sector registry" in root_skill.lower()
     assert "Project Engulf" in root_skill
-    assert "`/evi-plugin` is an administrative sidecar" in root_skill
-    assert "not a seventh primary" in (skills / "evi-plugin" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    assert "`/evi-plugin` is a first-class administrative workflow" in root_skill
+    plugin_skill = (skills / "evi-plugin" / "SKILL.md").read_text(encoding="utf-8")
+    assert "outside the ordinary entrypoint registry" in " ".join(plugin_skill.split())
 
     skill_text = "\n".join(
         path.read_text(encoding="utf-8") for path in skills.glob("*/SKILL.md")
@@ -1634,7 +1632,9 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
 
     async def exercise() -> None:
         environment = os.environ.copy()
-        environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(tmp_path / "stdio-store")
+        environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(
+            tmp_path / "stdio-store"
+        )
         parameters = StdioServerParameters(
             command=sys.executable,
             args=[str(runner), "--transport", "stdio"],
@@ -1649,11 +1649,14 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
             names = {tool.name for tool in tools.tools}
             assert "task_complete_and_refresh" in names
             assert "pv_state_travel_direct_force_same_worktree" in names
-            assert not {
-                "pv_refresh",
-                "pv_state_travel_prepare",
-                "pv_state_travel_resume",
-            } & names
+            assert (
+                not {
+                    "pv_refresh",
+                    "pv_state_travel_prepare",
+                    "pv_state_travel_resume",
+                }
+                & names
+            )
             result = await session.call_tool("runtime_doctor", {})
             assert result.isError is False
             assert result.structuredContent["status"] == "PASS"

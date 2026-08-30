@@ -5,31 +5,43 @@
   "event": "PostToolUse",
   "handler_count": 4,
   "event_binding": "hooks/events/PostToolUse/event.v1.json",
-  "event_binding_sha256": "17F6167F4921D01957D0B8FCAB94809ABCEA936F5DDA7A3289142A7A4A8AC89C",
+  "event_binding_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
   "handlers": [
     {
       "display_id": "6.1",
       "path": "hooks/events/PostToolUse/handler-6.1.v1.json",
-      "sha256": "5FB441627D3C6129382483283AEF5E867B450E36FFF685617CB05ADC3433926E"
+      "sha256": "D9B0AB704C1007B7A6B5669C02EF120589B3BB69793D1E60797D226738DEE1A7"
     },
     {
       "display_id": "6.2",
       "path": "hooks/events/PostToolUse/handler-6.2.v1.json",
-      "sha256": "3855146A6897B0805CE16D227E680BB7AAB0C670FF0860A312C6F8871B3B235D"
+      "sha256": "201286542BCFF5182BB1D77AB2AAF3597946425F6AB49480DF250C40BEDD7FCB"
     },
     {
       "display_id": "6.3",
       "path": "hooks/events/PostToolUse/handler-6.3.v1.json",
-      "sha256": "F7BFCD5475BF1B43EAB465454DE0C0398A28780D45C5F55BC3C0595F94D0FE2E"
+      "sha256": "4141CB362151923E37AD963D15E665C7634B7EF900658C670776827164BA2443"
     },
     {
       "display_id": "6.4",
       "path": "hooks/events/PostToolUse/handler-6.4.v1.json",
-      "sha256": "56639636377D227161090CAD5B0AF08C85F66401A2CDBCC33E6F7FF8D522B677"
+      "sha256": "670CFBA366A2A94ED1FFDC518DA64DC90884217CF9A3F3BC0FC9165F94D80C45"
     }
   ],
+  "workflow_contract": {
+    "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
+    "action_scope": "PUBLIC_ACTION_BOUNDARY",
+    "skill_action": "TOOL_RECEIPT_AND_CURRENT_CHANGE_PROJECTION",
+    "skill_consumer": "consume_post_tool_transport",
+    "workflow_phases": [
+      "TOOL_RECEIPT",
+      "CURRENT_PLAN_ROW_AND_CHANGE_DISPLAY"
+    ],
+    "public_action_boundary": true
+  },
+  "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "62A38D5B3E6D6FF82A37A804C93EE4430E464AFE2F0C32C19687778C0BCC5FF9"
+  "receipt_sha256": "2803C99CC92AD0FDF99CD59B54FB4F57C5011794254A0B4040EAFAA60FCE3D1B"
 }

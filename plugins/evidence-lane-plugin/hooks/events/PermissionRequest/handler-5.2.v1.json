@@ -13,11 +13,24 @@
     "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
   },
   "logical_action": "DEDUPE_AND_SEAL_EVENT",
+  "handler_stage_role": "DEDUPE_AND_SEAL_EVENT",
+  "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
+  "workflow_contract": {
+    "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
+    "action_scope": "BOUND_OBSERVATION_ONLY",
+    "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
+    "skill_consumer": "consume_optional_observer_transport",
+    "workflow_phases": [
+      "HOST_PERMISSION_OBSERVATION"
+    ],
+    "public_action_boundary": true
+  },
+  "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
   "stage": "hooks/subhook_seal.py",
   "stage_sha256": "665E54A3126C4141682D339E5FADF62B04024F875D3376908B97B4A8AA67FE22",
   "adapter": "hooks/permission_request.py",
   "adapter_sha256": "05283C844BCE39B541912BCC66500B76FC7BD93C8092E064D377F104B8D971A8",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "F46FA9983A27DE9259A5F1D3D875E1925B3FB3BD95F3985161CEC4EC2D60A10D"
+  "receipt_sha256": "2B9ED8BE0A945E9037098B987C043F54CECE32AB5660F9829F18654E1571D63B"
 }

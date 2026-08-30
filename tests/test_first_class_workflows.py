@@ -24,6 +24,7 @@ from evidence_lane_plugin.first_class_workflows import (
 )
 from evidence_lane_plugin.mode_governance import ENV_UOP_EXECUTION_BUDGET_SCHEMA
 from evidence_lane_plugin.operating_modes import classify_operating_modes
+from evidence_lane_plugin.project_execution_profile import compile_atomic_pv_refresh
 
 
 def test_brain_scaling_is_bounded_deterministic_and_not_training() -> None:
@@ -89,6 +90,52 @@ def test_project_recipe_is_first_class_and_keeps_chat_lineage(
     assert receipt["stored_lane_created"] is False
 
 
+def test_project_recipe_and_mode_compile_one_env_uop_execution_profile() -> None:
+    receipt = compile_project_recipe(
+        ProjectRecipeRequest(
+            project_id="project-a",
+            source_paths=["src/app.py", "pyproject.toml"],
+            requested_outcome="Implement and validate the code project",
+            explicit_project_type="CUSTOM:PLUGIN_RUNTIME",
+            mode_request="analysis then code and validation",
+            explicit_modes=["analysis", "code", "validation"],
+            code_lane="local_code",
+        )
+    )
+    assert receipt["project_type"] == "CUSTOM:PLUGIN_RUNTIME"
+    assert receipt["recipe_is_mode"] is False
+    assert receipt["recipe_and_mode_synchronized"] is True
+    profile = receipt["project_execution_profile"]
+    assert profile["project_recipe_and_mode_are_distinct"] is True
+    assert profile["project_recipe_and_mode_are_synchronized"] is True
+    assert profile["env_selects_environment_context"] is True
+    assert profile["uop_applies_governance_operators_and_gates"] is True
+    assert profile["behavior"]["ci_loop_required"] is True
+    assert profile["behavior"]["analysis_operator_required"] is True
+    assert profile["mode_or_recipe_selection_is_hil_approval"] is False
+    assert profile["workflow_or_count_ceiling"] is False
+
+
+def test_atomic_pv_refresh_reuses_unchanged_content_and_swaps_after_validation() -> None:
+    plan = compile_atomic_pv_refresh(
+        project_id="project-a",
+        current_members={
+            "plan/plan.sqlite": "A" * 64,
+            "memory/index.json": "B" * 64,
+        },
+        desired_members={
+            "plan/plan.sqlite": "A" * 64,
+            "memory/index.json": "C" * 64,
+        },
+    )
+    assert plan["reused_members"] == ["plan/plan.sqlite"]
+    assert plan["changed_members"] == ["memory/index.json"]
+    assert plan["unchanged_content_addressed_atoms_reused"] is True
+    assert plan["pointer_swap_after_full_validation_only"] is True
+    assert plan["partial_live_tree_write_allowed"] is False
+    assert plan["write_performed"] is False
+
+
 def test_full_ai_toolchain_is_conditional_and_codex_only() -> None:
     receipt = run_full_ai_toolchain(
         FullAIToolchainRequest(
@@ -101,6 +148,20 @@ def test_full_ai_toolchain_is_conditional_and_codex_only() -> None:
     assert receipt["conditional_dispatch"] is True
     assert receipt["run_everything"] is False
     assert receipt["chatgpt_plane_mixed"] is False
+    ecosystem = run_full_ai_toolchain(
+        FullAIToolchainRequest(
+            lane_id="research",
+            host_profile="CODEX_DESKTOP",
+            available_tools=["Pinecone"],
+            capability="vector_query",
+            granted_tools=["Pinecone"],
+            project_id="project-a",
+            task_id="task-a",
+        )
+    )
+    assert ecosystem["ecosystem_resolution"]["selected_tools"] == ["Pinecone"]
+    assert ecosystem["ecosystem_resolution"]["run_every_tool"] is False
+    assert ecosystem["one_ecosystem_adapter_maximum"] is True
     with pytest.raises((EvidenceLaneError, ValueError)):
         run_full_ai_toolchain(
             FullAIToolchainRequest(

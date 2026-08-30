@@ -5,6 +5,8 @@ description: Fresh-native same-project direct State Travel from the exact verifi
 
 # Evidence Lane current State Travel
 
+Apply `../evidence-lane-code-lifecycle/references/shared-boundaries.md` first.
+
 Run only on explicit user request or genuine host-context exhaustion. Use one
 genuinely fresh native same-project destination, never a fork, reconstructed
 chat, helper task, renderer restart, or historical accepted-folder fallback.

@@ -15,6 +15,7 @@ from evidence_lane_plugin.hook_contract import (
     HOOK_CAPABILITY_SCHEMA,
     HOOK_CONTRACT_SCHEMA,
     HOOK_EVENT_NAMES,
+    HOOK_EVENT_WORKFLOW_CONTRACTS,
     HOOK_TRANSPORT_SCHEMA,
     MAX_VISIBLE_INPUT_CHARS,
     HookContractError,
@@ -78,24 +79,26 @@ def test_current_eleven_event_hook_contract_keeps_behavior_skill_owned() -> None
 
     assert contract["schema"] == HOOK_CONTRACT_SCHEMA
     assert contract["version"] == 1
-    assert tuple(contract["event_order"]) == HOOK_EVENT_NAMES == (
-        "SessionStart",
-        "SubagentStart",
-        "UserPromptSubmit",
-        "PreToolUse",
-        "PermissionRequest",
-        "PostToolUse",
-        "PreCompact",
-        "PostCompact",
-        "SubagentStop",
-        "Stop",
-        "SessionEnd",
+    assert (
+        tuple(contract["event_order"])
+        == HOOK_EVENT_NAMES
+        == (
+            "SessionStart",
+            "SubagentStart",
+            "UserPromptSubmit",
+            "PreToolUse",
+            "PermissionRequest",
+            "PostToolUse",
+            "PreCompact",
+            "PostCompact",
+            "SubagentStop",
+            "Stop",
+            "SessionEnd",
+        )
     )
     assert contract["registered_event_count"] == 11
     assert contract["event_numbering"] == "HOOK_1_THROUGH_HOOK_11"
-    assert contract["nested_action_numbering"] == (
-        "HOOK_EVENT_ORDINAL.ACTION_ORDINAL"
-    )
+    assert contract["nested_action_numbering"] == ("HOOK_EVENT_ORDINAL.ACTION_ORDINAL")
     assert contract["handler_cardinality_per_event"] == "ONE_OR_MORE"
     assert contract["logical_action_count"] == 44
     assert contract["logical_action_count_semantics"] == (
@@ -111,38 +114,50 @@ def test_current_eleven_event_hook_contract_keeps_behavior_skill_owned() -> None
     assert contract["skill_runtime_consumer"] == (
         "evidence_lane_plugin.hook_skill_runtime"
     )
-    assert contract["windows_interpreter_resolution"] == (
-        "SEALED_DERIVED_RUNTIME_ONLY"
-    )
-    assert contract["windows_process_window_mode"] == (
-        "HOST_MANAGED_NO_CHILD_WINDOW"
-    )
+    assert contract["windows_interpreter_resolution"] == ("SEALED_DERIVED_RUNTIME_ONLY")
+    assert contract["windows_process_window_mode"] == ("HOST_MANAGED_NO_CHILD_WINDOW")
     assert contract["windows_command_launcher"] == "EvidenceLaneHookHost.exe"
     assert contract["windows_child_create_no_window"] is True
     assert contract["windows_path_lookup_allowed"] is False
     assert contract["session_end_host_timeout_seconds"] == 3
-    assert contract["permission_request_policy"] == (
-        "OBSERVE_ONLY_NEVER_GRANT_OR_DENY"
-    )
+    assert contract["permission_request_policy"] == ("OBSERVE_ONLY_NEVER_GRANT_OR_DENY")
     assert contract["subagent_events_in_scope"] is True
-    assert contract["subagent_event_policy"] == (
-        "BOUND_OBSERVATION_ONLY_NEVER_CONTROL"
-    )
+    assert contract["subagent_event_policy"] == ("BOUND_OBSERVATION_ONLY_NEVER_CONTROL")
     assert contract["full_plan_allowed_in_hook_payload"] is False
     assert contract["linked_delta_json_allowed_in_hook_payload"] is False
     assert contract["private_reasoning_allowed"] is False
     assert len(contract["contract_sha256"]) == 64
 
     events = {row["event_name"]: row for row in contract["events"]}
+    assert tuple(HOOK_EVENT_WORKFLOW_CONTRACTS) == HOOK_EVENT_NAMES
+    assert all(
+        row["workflow_contract"] == HOOK_EVENT_WORKFLOW_CONTRACTS[row["event_name"]]
+        for row in contract["events"]
+    )
     assert events["UserPromptSubmit"]["skill_action_owner"] == (
         "SKILL_PREPARE_THEN_NATIVE_READ_SEQUENCE"
     )
-    assert events["SessionEnd"]["delivery"] == (
-        "BEST_EFFORT_HOST_CAPABILITY_GATED"
-    )
+    assert events["UserPromptSubmit"]["workflow_contract"] == {
+        "host_timing": "BEFORE_MODEL_REASONING_AND_TOOL_SELECTION",
+        "action_scope": "WORKFLOW_ENTRY",
+        "skill_action": "PREPARE",
+        "skill_consumer": "consume_prompt_transport",
+        "workflow_phases": [
+            "ENTRY_SLIP",
+            "SOURCE_INTAKE",
+            "ADAPTIVE_DELTA_ENTRY",
+        ],
+        "public_action_boundary": False,
+    }
+    assert {
+        name
+        for name, row in HOOK_EVENT_WORKFLOW_CONTRACTS.items()
+        if row["public_action_boundary"] is True
+    } == {"PreToolUse", "PermissionRequest", "PostToolUse"}
+    assert HOOK_EVENT_WORKFLOW_CONTRACTS["SessionEnd"]["skill_consumer"] is None
+    assert events["SessionEnd"]["delivery"] == ("BEST_EFFORT_HOST_CAPABILITY_GATED")
     assert [
-        row["logical_action_number"]
-        for row in events["PreToolUse"]["logical_actions"]
+        row["logical_action_number"] for row in events["PreToolUse"]["logical_actions"]
     ] == ["4.L1", "4.L2", "4.L3", "4.L4"]
 
 
@@ -157,9 +172,7 @@ def test_package_hook_configuration_matches_contract_order_and_handlers() -> Non
     assert receipt["event_order"] == list(HOOK_EVENT_NAMES)
     assert receipt["handler_count"] == 44
     assert receipt["registered_event_count"] == 11
-    assert receipt["handler_count_semantics"] == (
-        "TOTAL_NESTED_HANDLER_ACTION_COUNT"
-    )
+    assert receipt["handler_count_semantics"] == ("TOTAL_NESTED_HANDLER_ACTION_COUNT")
     assert receipt["logical_action_count"] == 44
     assert [row["action_number"] for row in receipt["handler_records"]] == [
         f"{event_ordinal}.{action_ordinal}"
@@ -172,14 +185,10 @@ def test_package_hook_configuration_matches_contract_order_and_handlers() -> Non
     assert {"SubagentStart", "SubagentStop"}.issubset(configuration["hooks"])
     records = receipt["handler_records"]
     assert all(
-        row["timeout"] == 3
-        for row in records
-        if row["event_name"] == "SessionEnd"
+        row["timeout"] == 3 for row in records if row["event_name"] == "SessionEnd"
     )
     assert all(
-        row["timeout"] == 10
-        for row in records
-        if row["event_name"] != "SessionEnd"
+        row["timeout"] == 10 for row in records if row["event_name"] != "SessionEnd"
     )
     assert all(
         row["windows_process_window_mode"] == "HOST_MANAGED_NO_CHILD_WINDOW"
@@ -227,13 +236,9 @@ def test_hook_event_supports_distinct_numbered_nested_actions(
     receipt = validate_hook_configuration(configuration)
 
     precompact = [
-        row
-        for row in receipt["handler_records"]
-        if row["event_name"] == "PreCompact"
+        row for row in receipt["handler_records"] if row["event_name"] == "PreCompact"
     ]
-    assert [row["action_number"] for row in precompact] == [
-        "7.1", "7.2", "7.3", "7.4"
-    ]
+    assert [row["action_number"] for row in precompact] == ["7.1", "7.2", "7.3", "7.4"]
     assert [row["handler"] for row in precompact] == [
         "subhook_validate.py",
         "subhook_seal.py",
@@ -255,18 +260,17 @@ def test_hook_event_supports_distinct_numbered_nested_actions(
         ),
     )
     monkeypatch.setattr(launcher.sys, "stdin", io.StringIO("{}"))
-    assert launcher.main(
-        ["--event", "PreCompact", "--handler", "subhook_transport.py"]
-    ) == 0
+    assert (
+        launcher.main(["--event", "PreCompact", "--handler", "subhook_transport.py"])
+        == 0
+    )
     assert calls == [
         (
             "subhook_transport.py",
             ("PreCompact", "lifecycle_boundary.py", "PreCompact"),
         )
     ]
-    assert json.loads(capsys.readouterr().out) == {
-        "systemMessage": "nested-action"
-    }
+    assert json.loads(capsys.readouterr().out) == {"systemMessage": "nested-action"}
 
 
 def test_hook_launcher_is_mapping_bound_secret_safe_and_host_nonblocking(
@@ -281,9 +285,9 @@ def test_hook_launcher_is_mapping_bound_secret_safe_and_host_nonblocking(
     assert "HOOK_EVENT_UNSUPPORTED" in unsupported["systemMessage"]
     assert "SECRET_VALUE" not in json.dumps(unsupported)
 
-    assert launcher.main(
-        ["--event", "PreCompact", "--handler", "stop_response.py"]
-    ) == 0
+    assert (
+        launcher.main(["--event", "PreCompact", "--handler", "stop_response.py"]) == 0
+    )
     mismatch = json.loads(capsys.readouterr().out)
     assert set(mismatch) == {"systemMessage"}
     assert "HOOK_EVENT_HANDLER_MAPPING_MISMATCH" in mismatch["systemMessage"]
@@ -305,9 +309,10 @@ def test_hook_launcher_is_mapping_bound_secret_safe_and_host_nonblocking(
 
     monkeypatch.setattr(launcher, "_execute_isolated_handler", fake_execute)
     monkeypatch.setattr(launcher.sys, "stdin", io.StringIO("{}"))
-    assert launcher.main(
-        ["--event", "PreCompact", "--handler", "subhook_validate.py"]
-    ) == 0
+    assert (
+        launcher.main(["--event", "PreCompact", "--handler", "subhook_validate.py"])
+        == 0
+    )
     assert calls == [
         (
             "subhook_validate.py",
@@ -441,9 +446,7 @@ def test_compaction_boundary_uses_only_native_universal_output_fields(
             expected.update({"continue", "stopReason"})
         assert set(output) == expected
         assert "hookSpecificOutput" not in output
-        assert output["systemMessage"].startswith(
-            "EVIDENCE_LANE_LIFECYCLE_BOUNDARY="
-        )
+        assert output["systemMessage"].startswith("EVIDENCE_LANE_LIFECYCLE_BOUNDARY=")
 
 
 def test_pre_tool_use_uses_permission_schema_without_unsupported_common_fields(
@@ -567,8 +570,7 @@ def test_stop_and_post_tool_notices_do_not_embed_full_receipts(
     post_output = json.loads(capsys.readouterr().out)
     assert post_output == {
         "systemMessage": (
-            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY_GAP="
-            "BOUNDED_GAP:RuntimeError"
+            "EVIDENCE_LANE_PERSISTENT_CHANGE_DISPLAY_GAP=BOUNDED_GAP:RuntimeError"
         )
     }
     assert "MUST_NOT_APPEAR" not in json.dumps(post_output)
@@ -717,10 +719,7 @@ def test_hook_adapters_delegate_behavior_to_the_skill_runtime() -> None:
             assert forbidden not in source
 
     consumer = (
-        PLUGIN
-        / "src"
-        / "evidence_lane_plugin"
-        / "hook_skill_runtime.py"
+        PLUGIN / "src" / "evidence_lane_plugin" / "hook_skill_runtime.py"
     ).read_text(encoding="utf-8")
     assert (
         'SKILL_RUNTIME_OWNER = "INSTALLED_EVIDENCE_LANE_CODE_LIFECYCLE_SKILL"'
@@ -762,13 +761,9 @@ def test_hook_transport_envelope_is_secret_safe_bounded_and_idempotent() -> None
     assert first["schema"] == HOOK_TRANSPORT_SCHEMA
     assert first["event_name"] == "UserPromptSubmit"
     assert first["event_ordinal"] == 3
-    assert first["skill_action_owner"] == (
-        "SKILL_PREPARE_THEN_NATIVE_READ_SEQUENCE"
-    )
+    assert first["skill_action_owner"] == ("SKILL_PREPARE_THEN_NATIVE_READ_SEQUENCE")
     assert "SECRET_VALUE" not in json.dumps(first)
-    assert "[REDACTED]" in first["safe_payload"][
-        "visible_input_after_redaction"
-    ]
+    assert "[REDACTED]" in first["safe_payload"]["visible_input_after_redaction"]
     assert first["transport_bytes"] < 65_536
     assert first["hook_behavior_executed"] is False
     assert first["native_pv_tool_called"] is False
@@ -799,9 +794,7 @@ def test_hook_transport_envelope_is_secret_safe_bounded_and_idempotent() -> None
 
 
 def test_unavailable_host_events_are_reported_without_false_success() -> None:
-    supported = set(HOOK_EVENT_NAMES).difference(
-        {"PermissionRequest", "SessionEnd"}
-    )
+    supported = set(HOOK_EVENT_NAMES).difference({"PermissionRequest", "SessionEnd"})
     receipt = hook_capability_receipt(supported)
 
     assert receipt["schema"] == HOOK_CAPABILITY_SCHEMA

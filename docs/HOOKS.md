@@ -1,81 +1,78 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / registry-derived-v1 -->
 
-# Codex hooks
+# Lifecycle hook events
 
-Evidence Lane declares Codex hooks as optional lifecycle transports. Every
-public skill, command, SDK route, MCP read/write, Source Intake, Refresh, Plan,
-Canon, Learning, Memory, Universe, Git/CI, install, and lifecycle action must
-remain explicitly usable while hooks are disabled. Hooks may observe or
-automate a lifecycle boundary; they are never the sole authority for a public
-action, approval, HIL decision, candidate, or accepted-pointer transition.
+Hooks are ordered host-event adapters. They improve capture and continuity but do not own business logic, HIL, completion, or pointer movement.
 
-## Current host contract
+Current counts are derived release facts, not permanent ceilings.
 
-The implementation is bound to the current [Codex Hooks guide](https://learn.chatgpt.com/docs/hooks),
-read on 2026-08-22 with content SHA-256
-`017D2A86BC8654FB5E566F968019E5BC23F65AB0BCA3B051B92EC74BC6DA130A`.
-The current command-event registry contains eleven events in stable package
-order:
+| Event | Order | Handlers |
+| --- | ---: | ---: |
+| `SessionStart` | 1 | 4 |
+| `SubagentStart` | 2 | 4 |
+| `UserPromptSubmit` | 3 | 4 |
+| `PreToolUse` | 4 | 4 |
+| `PermissionRequest` | 5 | 4 |
+| `PostToolUse` | 6 | 4 |
+| `PreCompact` | 7 | 4 |
+| `PostCompact` | 8 | 4 |
+| `SubagentStop` | 9 | 4 |
+| `Stop` | 10 | 4 |
+| `SessionEnd` | 11 | 4 |
 
-1. `SessionStart`
-2. `SubagentStart`
-3. `UserPromptSubmit`
-4. `PreToolUse`
-5. `PermissionRequest`
-6. `PostToolUse`
-7. `PreCompact`
-8. `PostCompact`
-9. `SubagentStop`
-10. `Stop`
-11. `SessionEnd`
+The current registry contains 11 event classes and 44 ordered handlers. Explicit skills and native actions remain available when hooks are disabled for repair. An event runs only when the host emits it, and a failing event can be isolated without granting unrelated hooks authority.
 
-`SessionEnd` is a main-thread event and is not used for subagents. Matching
-hooks from the active configuration layers and the plugin may all run; multiple
-command handlers for one event may run concurrently. Only command handlers
-execute under the current official contract. Prompt and agent handlers may be
-parsed but are skipped, so prompt intent detection and public routing remain in
-the plugin router rather than in a synthetic prompt hook.
+## Source-bound workflow map
 
-Each of the eleven classes exposes four real native handler rows in the Codex
-surface: validate/bound, seal/deduplicate, transport, and verify/emit. This is
-44 native subhandlers, not one `Hook 1` wrapper containing 44 invisible logical
-labels. Because the host may launch sibling handlers concurrently, each later
-stage waits for and validates the prior stage's sealed receipt. Only transport
-executes the original event implementation, exactly once; emit returns that
-stored result. No duplicate or no-op row is used to manufacture the count.
+This page is projected from the same current executable snapshot as the rest of the documentation set. The map is deliberately two-directional: each horizontal district shows peer stages while vertical edges show ownership and state progression.
 
-## Control boundary
+```mermaid
+flowchart TB
+    subgraph InputDistrict["Input and classification"]
+      direction LR
+      A["Native Codex host event"] --> B["Event and timing classification"] --> C["One of 11 hook classes"]
+    end
+    subgraph ExecutionDistrict["Selection and execution"]
+      direction TB
+      D["Four ordered handlers"] --> E["Validate, emit, transport, and seal"] --> F["Trust and invocation proof"]
+    end
+    subgraph EvidenceDistrict["Evidence and outcome"]
+      direction LR
+      G["Hook receipt"] --> H["Bounded lifecycle strengthening"]
+      G -. mismatch .-> I["Disable only the failing untrusted event"]
+    end
+    C --> D
+    F --> G
+```
 
-- `PermissionRequest` is observation-only. Evidence Lane emits no allow or deny
-  decision, leaving the ordinary host permission flow authoritative.
-- `SubagentStart` and `SubagentStop` verify the exact parent task/session
-  binding and emit no continuation or subagent control.
-- `Stop` emits the exact empty object and never requests another turn.
-- `SessionEnd` is best-effort, output-inert, and bounded inside the host timeout.
-- No hook imports cross-task state, private reasoning, raw credentials, or host
-  memory as authority.
+## Contract and readback
 
-Trust and enablement are independent. A hook definition can be reviewed and
-trusted by its exact installed hash while remaining disabled. The maintained
-test installation keeps all hooks OFF until the designated installed-host
-verification owner proves each event independently. The supported
-`--progressive-all` installed-host route then leaves every passing event ON and
-requires a final `hooks/list` readback showing all eleven trusted and enabled
-before the matrix can pass. That all-ON state is the normal corrected release
-state and is preserved across exact-task restart, reattachment, and upgrades.
+| Phase | Current contract | Required readback |
+| --- | --- | --- |
+| Input | Native Codex host event | Exact identity, provenance, and scope |
+| Classification | Event and timing classification | Owning schema, action, lane, skill, or authority |
+| Owner | One of 11 hook classes | One canonical implementation owner |
+| Route | Four ordered handlers | Condition-true ordered route with no hidden alias |
+| Execution | Validate, emit, transport, and seal | Real execution or a visible fail-closed result |
+| Validation | Trust and invocation proof | Hash, schema, authority-effect, and negative-case checks |
+| Receipt | Hook receipt | Content-addressed result and provenance receipt |
+| Downstream | Bounded lifecycle strengthening | Only the explicitly eligible next state |
+| Failure | Disable only the failing untrusted event | No inferred HIL, candidate acceptance, or pointer movement |
 
-A failing enabled hook is disabled alone through a compare-and-swap
-`config/batchWrite`, followed by an exact `hooks/list` readback; unrelated
-passing hook states remain ON and the active Goal is not paused. The failure
-receipt names only the failed event, which is repaired and retested through the
-same progressive route. It is re-enabled only after PASS. An upgrade preserves
-the current verified enablement state; it neither blankets all hooks OFF nor
-enables an unverified definition as a side effect.
+## Canonical source owners
 
-## Evidence boundary
+- `hooks/hook-event-registry.v1.json`
+- `hooks/hooks.json`
+- `schemas/hooks/hook-runtime.v1.json`
 
-Package configuration and isolated-runtime tests prove declarations and local
-behavior only. Installed-host invocation requires correlated native
-`hook/started` and `hook/completed` notifications bound to the exact installed
-selector, event key, definition hash, task, workspace, and host session. Missing
-events remain pending; they are never relabeled as successful or unavailable.
+## Cross-surface invariants
+
+- The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.
+- Executable ownership stays one-way: skills select, MCP exposes, the outer SDK routes, the internal SDK executes, ENV selects, UOP governs, tools perform bounded work, hooks emit receipts, and the owning authority validates effects.
+- Any missing identity, schema, grant, capability, dependency, receipt, or authority proof must fail closed at its owning phase; a later green check cannot retroactively authorize the skipped boundary.
+- A changed route refreshes every dependent schema, manifest, generator, test, diagram, and documentation reference; the superseded executable route is directly purged in the same Delta.
+- Tests, Git, CI, installation, restart, deployment, discussion, or a rendered page never imply Project HIL, Learning HIL, Goal completion, or pointer movement.
+
+---
+
+This page is a Git-tracked documentation projection. Executable source, SQLite authorities, installed-runtime receipts, and explicit human gates remain the governing evidence.

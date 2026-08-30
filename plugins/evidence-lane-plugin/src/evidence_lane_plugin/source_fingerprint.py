@@ -8,12 +8,20 @@ from pathlib import Path
 from typing import Any
 
 from .errors import require
+from .git_adapter import resolve_git_executable
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 
 
 def _tracked_index_rows(repository_root: Path) -> list[dict[str, str]]:
     completed = subprocess.run(
-        ["git", "-C", str(repository_root), "ls-files", "-z", "--stage"],
+        [
+            resolve_git_executable(repository_root),
+            "-C",
+            str(repository_root),
+            "ls-files",
+            "-z",
+            "--stage",
+        ],
         check=True,
         capture_output=True,
         creationflags=(
@@ -135,7 +143,14 @@ def staged_index_file_manifest(repository_path: str | Path) -> dict[str, Any]:
             path=row["path"],
         )
         completed = subprocess.run(
-            ["git", "-C", str(root), "cat-file", "blob", object_id],
+            [
+                resolve_git_executable(root),
+                "-C",
+                str(root),
+                "cat-file",
+                "blob",
+                object_id,
+            ],
             check=True,
             stdin=subprocess.DEVNULL,
             capture_output=True,

@@ -1,12 +1,22 @@
 -- Generated from the canonical authority SQLite builder.
 -- FTS5 shadow tables are intentionally omitted; SQLite creates them.
 
+CREATE TABLE authority_index_content_cas(
+            sha256 TEXT PRIMARY KEY,
+            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
+            compression TEXT NOT NULL,
+            compressed_bytes BLOB NOT NULL,
+            first_seen_at TEXT NOT NULL
+        ) STRICT;
+
 CREATE VIRTUAL TABLE authority_index_fts USING fts5(
             node_id UNINDEXED,
             authority_id UNINDEXED,
-            source_table,
-            source_identity,
+            source_table UNINDEXED,
+            source_identity UNINDEXED,
             text_content,
+            content='',
+            contentless_delete=1,
             tokenize='unicode61'
         );
 
@@ -17,9 +27,10 @@ CREATE TABLE authority_index_node(
             ordinal INTEGER NOT NULL,
             char_start INTEGER NOT NULL,
             char_end INTEGER NOT NULL,
-            text_content TEXT NOT NULL,
-            text_sha256 TEXT NOT NULL,
-            metadata_json TEXT NOT NULL,
+            text_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
+            metadata_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
             UNIQUE(source_id, ordinal)
         ) STRICT;
 
@@ -44,10 +55,19 @@ CREATE TABLE authority_index_source(
             source_table TEXT NOT NULL,
             source_identity TEXT NOT NULL,
             source_text_sha256 TEXT NOT NULL,
-            metadata_json TEXT NOT NULL,
+            metadata_sha256 TEXT NOT NULL
+                REFERENCES authority_index_content_cas(sha256),
             recorded_at TEXT NOT NULL,
             UNIQUE(authority_id, source_table, source_identity)
         ) STRICT;
+
+CREATE TABLE receipt_content_cas(
+                receipt_sha256 TEXT PRIMARY KEY,
+                byte_count INTEGER NOT NULL CHECK(byte_count >= 0),
+                compression TEXT NOT NULL,
+                compressed_bytes BLOB NOT NULL,
+                first_recorded_at TEXT NOT NULL
+            ) STRICT;
 
 CREATE VIRTUAL TABLE receipt_fts USING fts5(
                 receipt_sha256 UNINDEXED,
@@ -55,6 +75,8 @@ CREATE VIRTUAL TABLE receipt_fts USING fts5(
                 receipt_kind,
                 schema_id,
                 payload_text,
+                content='',
+                contentless_delete=1,
                 tokenize='unicode61'
             );
 
@@ -85,7 +107,8 @@ CREATE TABLE receipt_migration_batch(
 
 CREATE TABLE receipt_record(
                 sequence INTEGER PRIMARY KEY,
-                receipt_sha256 TEXT NOT NULL UNIQUE,
+                receipt_sha256 TEXT NOT NULL UNIQUE
+                    REFERENCES receipt_content_cas(receipt_sha256),
                 logical_path TEXT NOT NULL UNIQUE,
                 receipt_kind TEXT NOT NULL,
                 schema_id TEXT,
@@ -94,7 +117,6 @@ CREATE TABLE receipt_record(
                 host_task_id TEXT,
                 media_type TEXT NOT NULL,
                 byte_count INTEGER NOT NULL CHECK(byte_count >= 0),
-                exact_bytes BLOB NOT NULL,
                 payload_json TEXT,
                 prior_receipt_sha256 TEXT,
                 supersedes_receipt_sha256 TEXT,

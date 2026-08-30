@@ -6,7 +6,7 @@ description: Evidence Lane PV0 bootstrap and unaccepted proposal construction th
 # Evidence Lane Build and dual-HIL presentation
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its Codex hook/skill
 ownership contract. This skill owns behavior; hooks provide lifecycle receipts
 only.
 
@@ -15,14 +15,14 @@ workflow has already registered the separate workspace and external Project/PV
 root, persisted the canonical Plan through native Plan mode and EVI Plan, obtained explicit host
 Plan acceptance, and bound the active Goal plus fixed Step Task List through
 hooks. `pv_build_initial` then internally uses Source Intake to materialize
-the exact eighteen sector lanes plus Project Engulf and binds that live
+the complete current sector-lane registry, including Project Engulf, and binds that live
 projection as the starting `PV0` authority at pointer generation `0`. It
 creates no candidate, invokes no Project or Learning HIL, refreshes no Project
 Overlay, and never reads or writes accepted storage. State Travel reuses the
 carried project/Plan/Goal/PV identities and never invokes this initial path.
 The historical initial-PV1
 candidate workflow is an obsolete execution route and must never be selected
-by the public skill, MCP, command, SDK, hook, or UI action.
+by the public skill, MCP action, SDK, hook, or UI route.
 
 After PV0, continue the already-active Goal and Step Task List at the current
 Plan row. PV0 never invents Plan rows, starts a Goal, or infers acceptance.

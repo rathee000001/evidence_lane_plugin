@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "project_authority",
   "authority_root": "authorities/project_authority",
-  "authority_manifest_sha256": "B408A2BBD2D8079CB970B7524FC9A23E27436AB3E38829366390F7A84E9CC1B8",
+  "authority_manifest_sha256": "2D57E8CFD1C9F78EB662625822EB601D1DA3B22A65D2C5FEF5B70DBFE3020AF8",
   "persistent_sqlite_authority": true,
   "schema_file_count": 12,
   "schema_files": [
@@ -19,8 +19,8 @@
     },
     {
       "path": "authorities/project_authority/live-root-layout.schema.json",
-      "bytes": 924,
-      "sha256": "7B0B8E0B0ACC7D73B75132BEFE1D1D908F6973EDA3DFDCF12E6F1A5364052981"
+      "bytes": 828,
+      "sha256": "5072D7FEFA529524C92971872EE0B0D07386DAEEEF1D830FCB5BE135578CFC7E"
     },
     {
       "path": "authorities/project_authority/manifest.schema.json",
@@ -50,12 +50,12 @@
     {
       "path": "authorities/project_authority/runtime-binding.schema.json",
       "bytes": 605,
-      "sha256": "E936EBED6B54579A71135EB0D0E8A6D9A657FB89147C2AB2F0E51AA7AD23BA34"
+      "sha256": "B75B65E3B8E5E2BC0EB66276869102E089D29724EA82AACC9983C9AFE4035BD4"
     },
     {
       "path": "authorities/project_authority/schema.sql",
-      "bytes": 5314,
-      "sha256": "18A30047753991242B867B4C4FBE2082A43447ACF70C432887975E1E7FABB72A"
+      "bytes": 5830,
+      "sha256": "3F89A3EDDE9CCF9F7458B2A61C6BD349D39E438F60F85407BA499167C70F8BDC"
     },
     {
       "path": "authorities/project_authority/sqlite-artifact.schema.json",
@@ -69,5 +69,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "495A4680AC60E64DC1744242FF1BDEFA6D6CEDFEB2D9DCA6314921B9FD5C09E7"
+  "receipt_sha256": "1EC1B27B6E2FF0891DBDB7DDAEEB20919A7293BD18A9B7F4E67C235998707FAB"
 }

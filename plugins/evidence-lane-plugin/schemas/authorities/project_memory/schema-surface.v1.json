@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "project_memory",
   "authority_root": "authorities/project_memory",
-  "authority_manifest_sha256": "38F9A0BB05164560807E5B2212840FE65AA033143AA7D255BEB408992065E10F",
+  "authority_manifest_sha256": "3EE5BF13C400631484E9F1D7448F94BDE9B22D514CD5A10E5CF14C2075312CBA",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -49,8 +49,8 @@
     },
     {
       "path": "authorities/project_memory/schema.sql",
-      "bytes": 5352,
-      "sha256": "68F24FC1B517AD4304659DE4C52C8779604B4C4299E2016AF698CCEB82F35092"
+      "bytes": 5868,
+      "sha256": "BD8A60B2973E7AA058382C717C30C10B0C5A2D642A480CDE0C4DFBBFE2528832"
     },
     {
       "path": "authorities/project_memory/sqlite-artifact.schema.json",
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "17EBF51653C4A4A02513C300516F967F69F8DF3A39B3EFB85169AFFBBF31CB1B"
+  "receipt_sha256": "8AEA6F112F3780FCD401B2BC4D62D57F5AA9642E02FC802939223437A715B9A5"
 }

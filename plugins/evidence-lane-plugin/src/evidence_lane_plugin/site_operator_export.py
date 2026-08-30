@@ -7,7 +7,7 @@ from typing import Any, cast
 
 from .errors import require
 from .hashing import atomic_write_bytes, canonical_json_bytes, sha256_bytes, sha256_file
-from .next_actions import HIL_CHOICES
+from .next_actions import PROJECT_HIL_DECISION_TOKENS
 from .operating_modes import MODE_DEFINITIONS, classify_operating_modes
 
 _CUSTOM_MODE = {
@@ -118,7 +118,9 @@ def build_mode_operator_site_payload() -> dict[str, Any]:
     require(
         code["variants"]["plugin"]["ci_cd"]["required"] is True
         and code["variants"]["plugin"]["formula"]["rule"]
-        == "plan -> sandbox build -> test -> hash -> package",
+        == "ALL_REQUIRED_GATES == PASS"
+        and code["variants"]["plugin"]["ci_cd"]["loop"]
+        == "ALL_REQUIRED_GATES == PASS",
         "SITE_CODE_MODE_CONTRACT_INVALID",
         "The website cannot publish Code mode without its exact CI/CD formula.",
         status="FAIL",
@@ -126,9 +128,10 @@ def build_mode_operator_site_payload() -> dict[str, Any]:
     for mode in modes:
         choices = mode["variants"]["plugin"]["hil"]["choices"]
         require(
-            [choice["token"] for choice in choices] == list(HIL_CHOICES),
+            [choice["token"] for choice in choices]
+            == list(PROJECT_HIL_DECISION_TOKENS),
             "SITE_MODE_HIL_VOCABULARY_INVALID",
-            "Every site mode must preserve the universal six exact HIL tokens.",
+            "Every site mode must preserve the current Project-authority HIL policy.",
             status="FAIL",
             mode_id=mode["id"],
         )
@@ -138,9 +141,11 @@ def build_mode_operator_site_payload() -> dict[str, Any]:
         "schema": "evidence-lane.site-mode-operator-guide.v1",
         "mode_count": len(modes),
         "selection_variants": ["plugin", "prompt"],
-        "six_way_token_vocabulary": list(HIL_CHOICES),
+        "authority_hil_token_vocabulary": list(PROJECT_HIL_DECISION_TOKENS),
+        "decision_count_is_behavior_ceiling": False,
         "universal_boundary": (
-            "The six tokens are exact and universal; accepted objects, gates, "
+            "The current Project-authority tokens are exact for that authority; "
+            "accepted objects, gates, "
             "rollback targets, and effects are mode-specific. Mode selection is "
             "never HIL approval."
         ),

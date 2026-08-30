@@ -181,6 +181,96 @@ def build_manifest(
     }
 
 
+def build_staged_manifest(
+    *,
+    baseline_commit: str,
+    refreshed_at: str,
+) -> dict[str, Any]:
+    """Build a pre-commit refresh from exact stage-0 index blob bytes."""
+
+    baseline_sha = _commit(baseline_commit)
+    staged_tree_sha = _git("write-tree").decode("ascii").strip()
+    source_rows = _tree_rows(staged_tree_sha)
+    baseline_rows = _tree_rows(baseline_sha)
+    source_rows.pop(OUTPUT_RELATIVE, None)
+    baseline_rows.pop(OUTPUT_RELATIVE, None)
+    fingerprints = _blob_fingerprints(
+        {row["index_object_id"] for row in source_rows.values()}
+    )
+    entries: list[dict[str, Any]] = []
+    for path in sorted(source_rows):
+        row = source_rows[path]
+        baseline = baseline_rows.get(path)
+        if baseline is None:
+            refresh_status = "ADDED_REFRESH_VERIFIED"
+        elif (
+            baseline["index_mode"] == row["index_mode"]
+            and baseline["index_object_id"] == row["index_object_id"]
+        ):
+            refresh_status = "UNCHANGED_REFRESH_VERIFIED"
+        else:
+            refresh_status = "CHANGED_REFRESH_VERIFIED"
+        receipt_core = {
+            **row,
+            **fingerprints[row["index_object_id"]],
+            "refresh_status": refresh_status,
+            "refresh_commit_sha": "PENDING_FEATURE_COMMIT",
+            "refresh_tree_sha": staged_tree_sha,
+            "refreshed_at": refreshed_at,
+        }
+        entries.append(
+            {
+                **receipt_core,
+                "refresh_receipt_sha256": sha256_bytes(
+                    canonical_json_bytes(receipt_core)
+                ),
+            }
+        )
+    removed_paths = sorted(set(baseline_rows) - set(source_rows))
+    status_counts = {
+        status: sum(row["refresh_status"] == status for row in entries)
+        for status in (
+            "ADDED_REFRESH_VERIFIED",
+            "CHANGED_REFRESH_VERIFIED",
+            "UNCHANGED_REFRESH_VERIFIED",
+        )
+    }
+    core = {
+        "schema": "evidence-lane.repository-source-fingerprints.v2",
+        "status": "PASS",
+        "selection": "EXACT_PRECOMMIT_GIT_INDEX_BLOB_BYTES",
+        "source_commit_sha": "PENDING_FEATURE_COMMIT",
+        "source_tree_sha": staged_tree_sha,
+        "source_commit_subject_sha256": None,
+        "baseline_commit_sha": baseline_sha,
+        "refreshed_at": refreshed_at,
+        "tracked_path_count": len(entries),
+        "tracked_bytes": sum(int(row["staged_bytes"]) for row in entries),
+        "lfs_pointer_count": sum(bool(row["lfs_pointer"]) for row in entries),
+        "status_counts": status_counts,
+        "path_set_sha256": sha256_bytes(
+            canonical_json_bytes([row["path"] for row in entries])
+        ),
+        "file_receipt_manifest_sha256": sha256_bytes(
+            canonical_json_bytes(entries)
+        ),
+        "entries": entries,
+        "removed_since_baseline": removed_paths,
+        "excluded_self_referential_paths": [OUTPUT_RELATIVE],
+        "self_reference_law": (
+            "THE EXTERNAL FINAL-TREE RECEIPT BINDS THIS MANIFEST; THE MANIFEST "
+            "CANNOT CONTAIN ITS OWN FINAL BLOB OR FINAL TREE HASH"
+        ),
+        "final_tree_external_receipt_required": True,
+        "precommit_staged_tree": True,
+        "current_worktree_bytes_substituted": False,
+        "untracked_paths_included": False,
+        "ignored_paths_included": False,
+        "git_ref_mutated": False,
+    }
+    return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
+
+
 def _default_refresh_time() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
 
@@ -188,10 +278,13 @@ def _default_refresh_time() -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--staged", action="store_true")
     parser.add_argument("--source-commit")
     parser.add_argument("--baseline-commit")
     parser.add_argument("--refreshed-at")
     args = parser.parse_args()
+    if args.check and args.staged:
+        raise SystemExit("REPOSITORY_SOURCE_FINGERPRINT_MODE_CONFLICT")
     if args.check:
         if not OUTPUT.is_file():
             raise SystemExit("REPOSITORY_SOURCE_FINGERPRINT_MANIFEST_MISSING")
@@ -202,14 +295,25 @@ def main() -> int:
         expected_parent = _commit("HEAD^")
         if expected_parent != source_commit:
             raise SystemExit("REPOSITORY_SOURCE_FINGERPRINT_RECEIPT_PARENT_MISMATCH")
+    elif args.staged:
+        source_commit = None
+        baseline_commit = args.baseline_commit or "HEAD"
+        refreshed_at = args.refreshed_at or _default_refresh_time()
     else:
         source_commit = args.source_commit or "HEAD"
         baseline_commit = args.baseline_commit or f"{source_commit}^"
         refreshed_at = args.refreshed_at or _default_refresh_time()
-    manifest = build_manifest(
-        source_commit=source_commit,
-        baseline_commit=baseline_commit,
-        refreshed_at=refreshed_at,
+    manifest = (
+        build_staged_manifest(
+            baseline_commit=baseline_commit,
+            refreshed_at=refreshed_at,
+        )
+        if args.staged
+        else build_manifest(
+            source_commit=str(source_commit),
+            baseline_commit=baseline_commit,
+            refreshed_at=refreshed_at,
+        )
     )
     exact_bytes = canonical_json_bytes(manifest)
     if args.check:

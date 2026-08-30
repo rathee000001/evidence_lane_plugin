@@ -563,7 +563,7 @@ def test_current_execution_ledger_uses_generated_unabridged_plan_authority() -> 
         "EL-CODEX-NATIVE-FUSED-RELEASE-HIL-DELTA-141-NORMALIZED-SUCCESSOR"
     )
     assert rows[-1]["panel_role"] == "PHYSICALLY_FINAL_HIL"
-    assert projection["persistent_until"] == "NEXT_SIX_WAY_HIL_PRESENTED"
+    assert projection["persistent_until"] == "NEXT_GOVERNED_HIL_PRESENTED"
 
     assert 'import planProjection from "./website-plan-projection.json"' in current
     assert "const rows = planProjection.rows" in current

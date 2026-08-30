@@ -6,12 +6,12 @@ description: Govern persistent connector and AI-toolchain sidecars without chang
 # Evidence Lane persistent plugin sidecar
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its Codex hook/skill
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its Codex hook/skill
 ownership contract. This skill owns behavior; hooks provide lifecycle receipts
 only.
 
-This is an administrative sidecar, not a seventh primary Evidence Lane
-control. It never changes the current lifecycle position, accepts a candidate,
+This is a first-class administrative workflow outside the ordinary entrypoint
+registry. It never changes the current lifecycle position, accepts a candidate,
 moves a pointer, or invokes State Travel.
 
 Use `/evi-storage` for the separate primary-storage inspection and selection
@@ -19,13 +19,13 @@ sidecar. Connector/plugin registration never silently changes storage authority.
 
 - `LIST` calls `connector_plugin_catalog` and shows active and dropped history.
 - `SETTINGS:CODEX` calls
-  `connector_plugin_settings` and returns the eight structured slots for that
-  host profile. Codex may render this structure in a settings UI, but Evidence
+  `connector_plugin_settings` and returns the complete current registry-derived
+  slot set for that host profile. Codex may render this structure in a settings UI, but Evidence
   Lane does not claim it can inject a new native settings panel.
 - `ADD:` calls `connector_plugin_register` only after the visible brief provides
   a lowercase ID, connector/toolchain kind, description, environment-variable
-  **names** (never values), capabilities, canonical lanes, and actor. At most
-  eight additional plugins may remain active. The grant also records a visible
+  **names** (never values), capabilities, canonical lanes, and actor. Only the
+  current registry-derived additional-plugin capacity may remain active. The grant also records a visible
   one-time purpose/reason, role, typed role-field schema, the `CODEX` host
   profiles, allowed actions, write scope, and an ISO expiry or `NO_EXPIRY`.
   `backend_runtime` may declare `python`, `java`, `kotlin`, `go`, `rust`, `cpp`,

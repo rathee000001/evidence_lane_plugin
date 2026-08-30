@@ -143,7 +143,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     "may_replace_stable_before_acceptance": False,
                 },
                 "promotion_gate": {
-                    "explicit_six_way_hil_required": True,
+                    "explicit_authority_hil_required": True,
                     "fail_closed_on_version_mismatch": True,
                 },
                 "history": {"append_only": True, "hash_chained": True},
@@ -345,7 +345,7 @@ def _plugin_fixture(tmp_path: Path) -> Path:
                     },
                 },
                 "promotion_gate": {
-                    "explicit_six_way_hil_required": True,
+                    "explicit_authority_hil_required": True,
                     "fail_closed_on_version_mismatch": True,
                 },
             }

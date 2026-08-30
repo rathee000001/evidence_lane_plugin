@@ -8,6 +8,7 @@ from evidence_lane_plugin.constants import (
     NATIVE_TOOL_COUNT,
     NATIVE_WRITE_TOOL_COUNT,
 )
+from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS
 from evidence_lane_plugin.mcp_server import create_mcp_server
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,14 +23,14 @@ OBSOLETE_RUNTIME_COPY = (
 )
 REMOTE = ROOT / "apps" / "evidence-lane-app" / "app" / "_data" / "public-action-registry.json"
 LIVE_AUTHORITY = (
-    PLUGIN / "schemas" / "live-root-env-uop-six-way-query.v001.json"
+    PLUGIN / "schemas" / "live-root-current-authority-query.v002.json"
 )
 OBSOLETE_LIVE_AUTHORITY_COPY = (
     PLUGIN
     / "src"
     / "evidence_lane_plugin"
     / "schemas"
-    / "live-root-env-uop-six-way-query.v001.json"
+    / "live-root-current-authority-query.v002.json"
 )
 
 
@@ -43,13 +44,18 @@ def test_public_action_schema_catalog_is_canonical_and_complete() -> None:
     assert catalog["tool_count"] == NATIVE_TOOL_COUNT
     assert catalog["read_tool_count"] == NATIVE_READ_TOOL_COUNT
     assert catalog["write_tool_count"] == NATIVE_WRITE_TOOL_COUNT
-    assert catalog["lane_count"] == 18
-    assert len(catalog["env_uop_governed_six_way_arms"]) == 6
-    assert catalog["linked_operational_authorities"] == [
+    assert catalog["lane_count"] == len(CANONICAL_LANE_IDS)
+    assert catalog["current_authority_classes_derived"] is True
+    assert set(catalog["env_uop_governed_current_authority_classes"]) == {
+        "PROJECT_SECTORS_AND_ROOT_FILES",
+        "AI_LEARNING",
+        "CANON_GRAPH",
+        "PROJECT_MEMORY_DB",
+        "HOST_CONVERSATION_MEMORY_MD",
+        "AGENTS_MD",
         "PROJECT_UNIVERSE",
         "CONNECTOR_BRAIN",
-    ]
-    assert catalog["ordinary_live_authority_count"] == 8
+    }
     assert catalog["hil_only_authorities"] == ["PROJECT_OVERLAY"]
     assert catalog["governance"] == ["ENV", "UOP"]
     assert catalog["hooks_required_for_explicit_actions"] is False
@@ -89,14 +95,13 @@ def test_public_action_schema_catalog_is_canonical_and_complete() -> None:
     live_authority = json.loads(LIVE_AUTHORITY.read_text(encoding="utf-8"))
     contract = live_authority["x-evidence-lane-contract"]
     assert contract["schema"] == (
-        "evidence-lane.live-root-env-uop-six-way-query.v1"
+        "evidence-lane.live-root-current-authority-query.v2"
     )
-    assert contract["ordinary_working_layer_count"] == 8
+    assert contract["working_authority_classes_derived"] is True
     assert contract["env_uop_role"] == (
         "GOVERNING_CONTROL_PLANE_NOT_AUTHORITY_ARMS"
     )
-    assert contract["linked_operational_layers"] == [
-        {"id": "PROJECT_UNIVERSE"},
-        {"id": "CONNECTOR_BRAIN"},
-    ]
+    assert {row["id"] for row in contract[
+        "env_uop_governed_current_authority_classes"
+    ]} == set(catalog["env_uop_governed_current_authority_classes"])
     assert contract["hil_only_layers"] == ["PROJECT_OVERLAY"]

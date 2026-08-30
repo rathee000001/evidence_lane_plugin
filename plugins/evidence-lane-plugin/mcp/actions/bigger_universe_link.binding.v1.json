@@ -87,11 +87,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/bigger_universe_link.action.v1.json",
-  "sdk_action_binding_sha256": "4D27B0BD5D64FB69C5A88A51B8CFB2EA036F0CB9020495C444A25A55F28B0A8B",
+  "sdk_action_binding_sha256": "362F2D000C3B365DF3A48320EE0C9D54FBBB2FF1C9E4554BA00821FF0D3B3EF5",
   "public_action_schema": "schemas/actions/bigger_universe_link.schema.json",
   "public_action_schema_sha256": "9F390EFA34F423F408AE8572EE8C8DA5263B7CC4AE106E2CEE1B0C887877979E",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "20C15301DF15DA7E93ACE79DD54707C8A17E1340BA33123832FB46BCB1A4042A",
+  "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "DA9F70B2B6E616FE480EB3873E77554388073E69F74867973E11114CA790471C"
+  "receipt_sha256": "E7F822D8A0BF42D3BB86A7E74E89934598622EB8513C08BAFB69C2C3E0C3D9AB"
 }

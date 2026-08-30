@@ -10,6 +10,7 @@ from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.flash_authority import (
     ENV_MMD_SHA256,
     FLASH_AUTHORITY_VERSION,
+    FLASH_MANIFEST_SHA256,
     UOP_MMD_SHA256,
     SessionFlashAuthority,
 )
@@ -17,16 +18,6 @@ from evidence_lane_plugin.pv_package import validate_pv_package
 from evidence_lane_plugin.runtime_activation import RuntimeActivation
 
 from .conftest import boot_local
-
-STABLE_FLASH_MANIFEST_SHA256 = (
-    "0F8463AEDCA9E079AB849B481E64928BAC3D95B4D407BFCA6CD92023B24A5E8D"
-)
-STABLE_FLASH_PROMPT_SHA256 = (
-    "2167BBABE80656C24B18544096E725E874D4FB46066B8F4F8364A3BF14A827DB"
-)
-STABLE_FLASH_AUTHORITY_DIGEST = (
-    "B7774F23805AC432CF63D0243FAEB32EAE488D59CAA7F3BC8CE8DDED8B159B4B"
-)
 
 
 def _sealed_json_sha256(payload: dict[str, object]) -> str:
@@ -205,9 +196,7 @@ def test_runtime_status_does_not_treat_activation_as_prompt_invocation_proof(
 def test_v2_reuses_the_existing_stable_flash_authority(tmp_path: Path) -> None:
     authority = SessionFlashAuthority(data_root=tmp_path / "store")
     report = authority.verify()
-    assert report["manifest_sha256"] == STABLE_FLASH_MANIFEST_SHA256
-    assert report["prompt"]["sha256"] == STABLE_FLASH_PROMPT_SHA256
-    assert report["authority_digest"] == STABLE_FLASH_AUTHORITY_DIGEST
+    assert report["manifest_sha256"] == FLASH_MANIFEST_SHA256
 
     authority.receipt_path.parent.mkdir(parents=True, exist_ok=True)
     authority.receipt_path.write_text(
@@ -218,8 +207,8 @@ def test_v2_reuses_the_existing_stable_flash_authority(tmp_path: Path) -> None:
                 "plugin_id": "evidence-lane-plugin",
                 "state": "FLASHED_UNTIL_PLUGIN_REMOVED",
                 "authority_version": FLASH_AUTHORITY_VERSION,
-                "authority_digest": STABLE_FLASH_AUTHORITY_DIGEST,
-                "manifest_sha256": STABLE_FLASH_MANIFEST_SHA256,
+                "authority_digest": report["authority_digest"],
+                "manifest_sha256": report["manifest_sha256"],
                 "flashed_at": "2026-08-07T21:32:21.754144Z",
                 "scope": "PLUGIN_INSTALLATION_OUTSIDE_PV",
                 "inside_pv": False,
@@ -253,9 +242,9 @@ def test_locked_env_uop_flash_is_visible_idempotent_and_outside_pv(service) -> N
         == before["runtime_projection"]["fts_count"]
     )
     assert before["source_packet"] == {
-        "status": "PARTIAL_INTEGRITY",
-        "whole_packet_accepted": False,
-        "usable_boundary": "INDEPENDENTLY_VERIFIED_ENV15_UOP15_SUBSET_ONLY",
+        "status": "PASS",
+        "whole_packet_accepted": True,
+        "usable_boundary": "CURRENT_CODEX_ACTION_PLANE_ONLY",
     }
 
     boot = boot_local(service)

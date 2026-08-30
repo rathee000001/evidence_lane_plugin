@@ -73,7 +73,7 @@ def test_all_canonical_lane_dummy_packages_are_exact_and_downloadable() -> None:
             assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
             metadata = dict(connection.execute("SELECT key, value FROM lane_meta"))
             assert metadata["lane_id"] == lane_id
-            assert metadata["schema_version"] == "evidence-lane.universal-lane.v2"
+            assert metadata["schema_version"] == "evidence-lane.universal-lane.v4"
 
         mmd_text = (lane_root / definition.mmd_filename).read_text(encoding="utf-8")
         dot_text = (lane_root / definition.dot_filename).read_text(encoding="utf-8")

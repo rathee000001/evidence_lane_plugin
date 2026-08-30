@@ -40,6 +40,70 @@
         ],
         "default": null,
         "title": "Available Tools"
+      },
+      "capability": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Capability"
+      },
+      "granted_tools": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Granted Tools"
+      },
+      "accelerator_profile": {
+        "default": "cpu",
+        "title": "Accelerator Profile",
+        "type": "string"
+      },
+      "enabled_accelerator_plugins": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Enabled Accelerator Plugins"
+      },
+      "accelerator_memory_budget_percent": {
+        "default": 80,
+        "title": "Accelerator Memory Budget Percent",
+        "type": "integer"
+      },
+      "accelerator_temperature_limit_c": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Accelerator Temperature Limit C"
       }
     },
     "required": [
@@ -85,8 +149,8 @@
     ],
     "executable": true
   },
-  "canonical_schema_sha256": "F458DEF20BB5A93761DA23F5382CBBBC1A05E54965083D40D9F6CA97A7197E72",
+  "canonical_schema_sha256": "51AA7B19847327264F9DED47FF39C70032767AA078D99291895B119A4F485AB0",
   "canonical_catalog": "schemas/public-action-schemas.v001.json",
   "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
-  "receipt_sha256": "7A28C75EC5D6CC68EB56189F474FEB53E9C40A2BAF0E222BC840FE77101AFE35"
+  "receipt_sha256": "61DFE3DD45580F8E7D9C3680D2C7F0BCC524CAB093F8668359EA7497D6B87C3E"
 }

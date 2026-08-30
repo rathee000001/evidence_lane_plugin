@@ -3,7 +3,7 @@
   "schema": "evidence-lane.public-action-contract.v1",
   "name": "mode_classify",
   "title": "Classify an ENV15 mode intersection and lanes",
-  "description": "At any lifecycle position, classify one or more locked ENV15 modes such as Analysis + Planning + Code, map them to canonical Evidence Lanes, always include Chat Lineage, append only the privacy-minimized classification receipt when a session is active, and return to the prior lifecycle position without creating a task, candidate, HIL, or pointer movement. The result includes visible ENV/UOP formulas, PCM/MBA operator receipts, controlled CI/CD requirements, and lane-specific meanings for the universal six HIL tokens; render those fields visibly and never substitute generic Code-mode HIL semantics.",
+  "description": "At any lifecycle position, classify one or more locked ENV15 modes such as Analysis + Planning + Code, map them to canonical Evidence Lanes, always include Chat Lineage, append only the privacy-minimized classification receipt when a session is active, and return to the prior lifecycle position without creating a task, candidate, HIL, or pointer movement. The result includes visible ENV/UOP formulas, PCM/MBA operator receipts, controlled CI/CD requirements, and lane-specific meanings for the current Project-authority HIL policy; render those fields visibly and never substitute generic Code-mode HIL semantics.",
   "input_schema": {
     "properties": {
       "project_id": {
@@ -99,8 +99,8 @@
     ],
     "executable": true
   },
-  "canonical_schema_sha256": "4E85D82EC4364F65F640B8347FA7E01BF611FA8A80A4427868261A155BCB3F39",
+  "canonical_schema_sha256": "AF16028F18B7715D41B3F13B2AB597B1C8076F2ACA083DB4A45A5FD9DE1396A3",
   "canonical_catalog": "schemas/public-action-schemas.v001.json",
   "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
-  "receipt_sha256": "471CA2E2E2A5093B2DE3836D66FF1741012C0D481EAFDB8EDB333F2865E3D6C0"
+  "receipt_sha256": "728400F3FFC27F5EDEC26FB18C2CF523DC8F5FC3578C6F66E42AF0468081FD53"
 }

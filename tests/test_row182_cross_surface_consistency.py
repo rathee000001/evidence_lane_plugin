@@ -59,8 +59,7 @@ def test_every_repository_markdown_path_link_resolves() -> None:
         and path.suffix.casefold() in {".md", ".markdown"}
         and not (set(path.relative_to(ROOT).parts) & excluded)
         and not any(
-            path.is_relative_to(derived_root)
-            for derived_root in derived_evidence_roots
+            path.is_relative_to(derived_root) for derived_root in derived_evidence_roots
         )
     )
     assert len(markdown) >= 80
@@ -71,9 +70,7 @@ def test_every_repository_markdown_path_link_resolves() -> None:
     }.issubset(markdown)
     patterns = (
         re.compile(r"!?\[[^\]]*\]\(([^)]+)\)"),
-        re.compile(
-            r"""(?:href|src)\s*=\s*["']([^"']+)["']""", re.IGNORECASE
-        ),
+        re.compile(r"""(?:href|src)\s*=\s*["']([^"']+)["']""", re.IGNORECASE),
     )
     failures: list[tuple[str, str, str]] = []
     for path in markdown:
@@ -106,7 +103,11 @@ def test_every_repository_markdown_path_link_resolves() -> None:
                     resolved.relative_to(ROOT)
                 except ValueError:
                     failures.append(
-                        (path.relative_to(ROOT).as_posix(), target, "outside-repository")
+                        (
+                            path.relative_to(ROOT).as_posix(),
+                            target,
+                            "outside-repository",
+                        )
                     )
                     continue
                 if not resolved.exists():
@@ -151,7 +152,12 @@ def test_release_identity_urls_and_proprietary_boundary_are_consistent() -> None
     assert adapter_package["private"] is True
     assert (ROOT / "LICENSE.md").is_file()
     assert "proprietary" in _read(ROOT / "LICENSE.md").casefold()
-    for relative in ("README.md", "LICENSE.md", "COPYRIGHT.md", "THIRD_PARTY_NOTICES.md"):
+    for relative in (
+        "README.md",
+        "LICENSE.md",
+        "COPYRIGHT.md",
+        "THIRD_PARTY_NOTICES.md",
+    ):
         assert (PLUGIN / relative).is_file()
 
     assert codex_manifest["repository"] == REPOSITORY
@@ -175,7 +181,6 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
         "ai-learning",
         "canon",
         "connect",
-        "commands",
         "copyright",
         "credits",
         "hil",
@@ -201,7 +206,11 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
         "tunnel",
     }
     for route in route_names:
-        page = ADAPTER / "app" / route / "page.tsx" if route else ADAPTER / "app" / "page.tsx"
+        page = (
+            ADAPTER / "app" / route / "page.tsx"
+            if route
+            else ADAPTER / "app" / "page.tsx"
+        )
         assert page.is_file()
 
     sitemap = _read(ADAPTER / "app" / "sitemap.ts")
@@ -219,7 +228,6 @@ def test_public_routes_sitemap_footer_and_plugin_presentation_are_complete() -> 
         "third-party",
         "security",
         "credits",
-        "commands",
         "tunnel",
     ):
         assert f'href="/{route}"' in footer
@@ -242,9 +250,7 @@ def test_all_skill_manifests_are_unique_complete_and_package_owned() -> None:
         frontmatter = text.split("---", 2)
         assert len(frontmatter) == 3
         name = re.search(r"^name:\s*(.+)$", frontmatter[1], re.MULTILINE)
-        description = re.search(
-            r"^description:\s*(.+)$", frontmatter[1], re.MULTILINE
-        )
+        description = re.search(r"^description:\s*(.+)$", frontmatter[1], re.MULTILINE)
         assert name is not None
         assert description is not None
         assert name.group(1).strip() == path.parent.name
@@ -265,16 +271,24 @@ def test_all_skill_manifests_are_unique_complete_and_package_owned() -> None:
         _read(ADAPTER / "public" / ".well-known" / "evidence-lane-plugin.json")
     )
     assert "mcp_endpoint" not in public_metadata
-    assert "website is documentation only" in public_metadata["interactive_ui"][
-        "host_boundary"
-    ]
+    assert (
+        "website is documentation only"
+        in public_metadata["interactive_ui"]["host_boundary"]
+    )
     assert codex_mcp["mcpServers"]["evidence-lane"].get("url") is None
 
 
-def test_release_package_excludes_local_state_maps_secrets_and_3d_dependencies() -> None:
+def test_release_package_excludes_local_state_maps_secrets_and_3d_dependencies() -> (
+    None
+):
     records, _ = _source_inventory(PLUGIN)
     names = [record["path"] for record in records]
-    for required in ("README.md", "LICENSE.md", "COPYRIGHT.md", "THIRD_PARTY_NOTICES.md"):
+    for required in (
+        "README.md",
+        "LICENSE.md",
+        "COPYRIGHT.md",
+        "THIRD_PARTY_NOTICES.md",
+    ):
         assert required in names
     forbidden_parts = {
         ".git",
@@ -319,7 +333,9 @@ def test_release_package_excludes_local_state_maps_secrets_and_3d_dependencies()
     assert "WebGLRenderer" in webgl
 
 
-def test_direct_dependency_license_correction_and_render_provenance_are_explicit() -> None:
+def test_direct_dependency_license_correction_and_render_provenance_are_explicit() -> (
+    None
+):
     root_project = tomllib.loads(_read(ROOT / "pyproject.toml"))["project"]
     plugin_project = tomllib.loads(_read(PLUGIN / "pyproject.toml"))["project"]
     requirements = _read(ROOT / "requirements.in")
@@ -356,9 +372,9 @@ def test_direct_dependency_license_correction_and_render_provenance_are_explicit
 
     index = json.loads(_read(ADAPTER / "app" / "_data" / "dummy-lane-artifacts.json"))
     assert len(index["lanes"]) == 18
-    assert {
-        lane["render"]["rasterizer"] for lane in index["lanes"]
-    } == {"stable_svg_chromium_screenshot"}
+    assert {lane["render"]["rasterizer"] for lane in index["lanes"]} == {
+        "stable_svg_chromium_screenshot"
+    }
 
 
 def test_owner_repository_and_readme_devpost_publication_hold_do_not_drift() -> None:
@@ -398,12 +414,26 @@ def test_current_public_plan_projection_preserves_its_sealed_snapshot() -> None:
         "PRE_HIL_BRANCH_PROJECTION_NOT_ACCEPTED_PUBLICATION"
     )
     assert public_metadata["plan_lane"]["active_public_row"] == snapshot["active_row"]
-    assert public_metadata["plan_lane"]["active_public_task_position"] == snapshot["active_task_position"]
-    assert public_metadata["plan_lane"]["physically_final_hil_public_row"] == snapshot["physically_final_hil_row"]
-    assert public_metadata["plan_lane"]["website_plan_snapshot_sha256"] == snapshot["snapshot_sha256"]
+    assert (
+        public_metadata["plan_lane"]["active_public_task_position"]
+        == snapshot["active_task_position"]
+    )
+    assert (
+        public_metadata["plan_lane"]["physically_final_hil_public_row"]
+        == snapshot["physically_final_hil_row"]
+    )
+    assert (
+        public_metadata["plan_lane"]["website_plan_snapshot_sha256"]
+        == snapshot["snapshot_sha256"]
+    )
     current_plan = _read(ADAPTER / "app" / "_data" / "current-execution-plan.ts")
-    assert "activeRow: websiteCurrentExecutionBoundary.activePublicOrder" in current_plan
-    assert "activeTaskPosition: websiteCurrentExecutionBoundary.activeTaskPosition" in current_plan
+    assert (
+        "activeRow: websiteCurrentExecutionBoundary.activePublicOrder" in current_plan
+    )
+    assert (
+        "activeTaskPosition: websiteCurrentExecutionBoundary.activeTaskPosition"
+        in current_plan
+    )
 
 
 def test_current_codex_surfaces_reject_active_chatgpt_delivery_claims() -> None:
@@ -424,7 +454,9 @@ def test_current_codex_surfaces_reject_active_chatgpt_delivery_claims() -> None:
     )
     for relative, text in current_surfaces.items():
         for claim in forbidden:
-            assert claim not in text, f"active external-host claim in {relative}: {claim}"
+            assert claim not in text, (
+                f"active external-host claim in {relative}: {claim}"
+            )
 
     public_metadata = json.loads(
         _read(ADAPTER / "public" / ".well-known" / "evidence-lane-plugin.json")

@@ -5,31 +5,42 @@
   "event": "SessionEnd",
   "handler_count": 4,
   "event_binding": "hooks/events/SessionEnd/event.v1.json",
-  "event_binding_sha256": "8EC8A2C6D32366E0AD9DE75CEC800395727831F859A96E6523EF75468AD6B37D",
+  "event_binding_sha256": "98D66BF6B53ECDBAD2A274476D62EA665D23A0013F379B1BD3C34DBBC65D1721",
   "handlers": [
     {
       "display_id": "11.1",
       "path": "hooks/events/SessionEnd/handler-11.1.v1.json",
-      "sha256": "BC88567E2A371ACFCC1280D3E630B93E32000A7468F79ADE99CE64439955B033"
+      "sha256": "3F6E07A9BA6BDA07A7123492F6F5C453DD693951110CE0BD845FF8DF4F96F9C7"
     },
     {
       "display_id": "11.2",
       "path": "hooks/events/SessionEnd/handler-11.2.v1.json",
-      "sha256": "9410D3F2DB8E6E6394AEBD80862C992DC1F9084F185D2498E7FEBB7367782B93"
+      "sha256": "547AC3BB0C293C8CF67BA3C4FC963A40F8B045331E6B6488FE4DD6B114BDE0DA"
     },
     {
       "display_id": "11.3",
       "path": "hooks/events/SessionEnd/handler-11.3.v1.json",
-      "sha256": "4C4F98F867F6E6696422630E2325115D552EF656B6201FF548689422258DBE7F"
+      "sha256": "D8ED346606AB8ECB26E65CE011B3D4B5022695355A36C9ABCD79A27979289C9E"
     },
     {
       "display_id": "11.4",
       "path": "hooks/events/SessionEnd/handler-11.4.v1.json",
-      "sha256": "EB4EC001915CB1F9F0972CF9C31DE62B0A121364044E5DB385DB6B9C5DE46BE5"
+      "sha256": "F2DC0517BC42598A0C26527AB40AD4FCAC9521420A8432891DF408FE3708AB5A"
     }
   ],
+  "workflow_contract": {
+    "host_timing": "BEST_EFFORT_AFTER_SESSION_END",
+    "action_scope": "TRANSPORT_ONLY",
+    "skill_action": "BEST_EFFORT_SESSION_END_TRANSPORT",
+    "skill_consumer": null,
+    "workflow_phases": [
+      "SESSION_END_BOUNDARY"
+    ],
+    "public_action_boundary": false
+  },
+  "workflow_contract_sha256": "06D747FA7B497048205FE80F1EDF4399BFABF9512B30F57EB995EAF3C6B56011",
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "05FE25350740282A9835282214C4938FCA986C7BB447E565CDB77E67213C9832"
+  "receipt_sha256": "2112783F9D375B5869039DA45F76440D96E9C7BDE32F46326EEB7689A0DA8121"
 }

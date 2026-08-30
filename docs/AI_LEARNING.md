@@ -1,86 +1,74 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / registry-derived-v1 -->
 
-# AI Learning
+# AI Agent Learning authority
 
-Evidence Lane AI Learning is a project-scoped authority for reusable lessons.
-It is separate from Project Truth, Canon Input, Project Memory, ChatLineage,
-host memory, Plan, and the accepted Project PV pointer. Brain scaling means bounded indexed
-retrieval and composition; it does not mean autonomous training.
+Agent Learning is a project-isolated authority for evidence-backed procedural, failure-avoidance, relational, tool-routing, and host-compatibility lessons. It never becomes Project Truth.
 
-## What Learning can record
+Current counts are derived release facts, not permanent ceilings.
 
-An evidence-backed Learning candidate may describe a procedural lesson,
-failure-avoidance rule, relationship, tool route, host compatibility fact, or
-other reusable project behavior. Every candidate binds:
+| Action | Access | Internal owner |
+| --- | --- | --- |
+| `learning_decide_candidate` | write-capable | `agent_learning:decide_candidate` |
+| `learning_inspect` | read | `agent_learning:inspect` |
+| `learning_record_host_memory_import` | write-capable | `agent_learning:record_host_memory_import` |
+| `learning_retrieve` | read | `agent_learning:retrieve` |
+| `learning_revoke` | write-capable | `agent_learning:revoke` |
+| `learning_seal_candidate` | write-capable | `agent_learning:seal_candidate` |
+Candidates remain unaccepted until the separate Learning HIL records the exact decision. Accepted Learning moves only the Learning pointer; revocation is append-only and does not erase historical evidence. Host MEMORY.md can be linked only through an explicit nonauthoritative provenance receipt.
 
-- exact project, task, Delta, and PV context;
-- lesson type, tier, scope, and temporal validity;
-- evidence and counterevidence references;
-- outcome, calibrated confidence, contradictions, and supersession;
-- privacy class and exact ChatLineage head; and
-- a stable identity and content hash.
+Learning may inform later work through bounded retrieval. It cannot change a Project pointer, accept a Project proposal, alter Canon, replace Project Memory, or infer HIL from repetition or model confidence.
 
-Actor/model evidence remains in linked ChatLineage rather than being copied
-into the lesson.
+## Source-bound workflow map
 
-## Independent lifecycle
+This page is projected from the same current executable snapshot as the rest of the documentation set. The map is deliberately two-directional: each horizontal district shows peer stages while vertical edges show ownership and state progression.
 
-The Learning family has five public actions:
+```mermaid
+flowchart TB
+    subgraph InputDistrict["Input and classification"]
+      direction LR
+      A["Evidence-backed lesson proposal"] --> B["Learning candidate classification"] --> C["Agent Learning authority"]
+    end
+    subgraph ExecutionDistrict["Selection and execution"]
+      direction TB
+      D["Separate Learning HIL"] --> E["Accept, reject, or research"] --> F["Evidence and scope validation"]
+    end
+    subgraph EvidenceDistrict["Evidence and outcome"]
+      direction LR
+      G["Learning decision receipt"] --> H["Bounded later retrieval or revocation"]
+      G -. mismatch .-> I["Keep Project Truth unchanged"]
+    end
+    C --> D
+    F --> G
+```
 
-1. `learning_inspect`
-2. `learning_retrieve`
-3. `learning_seal_candidate`
-4. `learning_decide_candidate`
-5. `learning_revoke`
+## Contract and readback
 
-The provider-neutral internal SDK also exposes
-`bootstrap_verified_history`. It is deliberately not another public MCP
-action: it deterministically seals unaccepted candidates from approved
-historical Plan outcomes and exact verified forward-Delta checkpoints. Rows
-that are merely DONE, ambiguous, dropped, superseded, or unverified are
-excluded. Replays reuse candidate identities and the immutable bootstrap
-receipt; Project Truth, both HIL surfaces, and both pointers remain untouched.
+| Phase | Current contract | Required readback |
+| --- | --- | --- |
+| Input | Evidence-backed lesson proposal | Exact identity, provenance, and scope |
+| Classification | Learning candidate classification | Owning schema, action, lane, skill, or authority |
+| Owner | Agent Learning authority | One canonical implementation owner |
+| Route | Separate Learning HIL | Condition-true ordered route with no hidden alias |
+| Execution | Accept, reject, or research | Real execution or a visible fail-closed result |
+| Validation | Evidence and scope validation | Hash, schema, authority-effect, and negative-case checks |
+| Receipt | Learning decision receipt | Content-addressed result and provenance receipt |
+| Downstream | Bounded later retrieval or revocation | Only the explicitly eligible next state |
+| Failure | Keep Project Truth unchanged | No inferred HIL, candidate acceptance, or pointer movement |
 
-Sealing creates `PENDING_LEARNING_HIL`. It creates no Project candidate and
-moves no pointer. Learning owns its own six-way decision surface:
-`APPROVE`, `APPROVE_WITH_DELTA`, `MORE_RESEARCH`, pointer-only Learning
-rollback, `REJECT`, and `FAIL`. A Learning decision may move only the Learning
-pointer. It never authorizes Project Fuse, Git, installation, deployment,
-Canon acceptance, or State Travel.
+## Canonical source owners
 
-Accepted, rejected, revoked, expired, rolled-back, and superseded lessons stay
-immutable in history. Retrieval excludes ineligible lessons with an explicit
-reason rather than deleting them.
+- `authorities/agent_learning/manifest.v1.json`
+- `skills/evi-learning/SKILL.md`
+- `schemas/actions/learning_seal_candidate.schema.json`
 
-## SQLite and bounded retrieval
+## Cross-surface invariants
 
-The project `learning/` authority stores immutable candidates, append-only
-events, decision receipts, pointer generations, canonical JSON artifacts, and
-an FTS5 projection. Retrieval uses BM25 and returns only the requested bounded
-slice. The full Learning ledger is never loaded into model context or silently
-concatenated with Project Truth.
+- The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.
+- Executable ownership stays one-way: skills select, MCP exposes, the outer SDK routes, the internal SDK executes, ENV selects, UOP governs, tools perform bounded work, hooks emit receipts, and the owning authority validates effects.
+- Any missing identity, schema, grant, capability, dependency, receipt, or authority proof must fail closed at its owning phase; a later green check cannot retroactively authorize the skipped boundary.
+- A changed route refreshes every dependent schema, manifest, generator, test, diagram, and documentation reference; the superseded executable route is directly purged in the same Delta.
+- Tests, Git, CI, installation, restart, deployment, discussion, or a rendered page never imply Project HIL, Learning HIL, Goal completion, or pointer movement.
 
-No hit is a valid governed result. A Project-Truth conflict suppresses the
-lesson rather than changing accepted project evidence.
+---
 
-## Host-memory boundary
-
-Codex or ChatGPT host memory is optional generated recall, not Evidence Lane
-authority. It is never scanned or promoted automatically. A host-memory fact
-may enter Learning evidence only through an immutable
-`host-memory-import://<receipt-sha256>` provenance receipt binding the exact
-project/task/Delta/PV, source-record hash, context hash, purpose, actor, times,
-and unchanged Project Truth pointer. Raw memory text, secrets, and private
-reasoning are not persisted by that receipt.
-
-Hooks may transport visible lifecycle events but cannot import, decide, or
-promote Learning. The Formula Engine may compile and route ENV/UOP operators;
-it is not the learner.
-
-## Cross-sector role
-
-ChatLineage supplies visible event provenance. Canon may provide bounded input.
-Memory may retrieve linked project facts. AI Learning may then propose a lesson
-whose evidence points back to those immutable records. The authorities remain
-separate throughout that flow and keep separate schemas, pointers, receipts,
-failure states, and HIL decisions.
+This page is a Git-tracked documentation projection. Executable source, SQLite authorities, installed-runtime receipts, and explicit human gates remain the governing evidence.

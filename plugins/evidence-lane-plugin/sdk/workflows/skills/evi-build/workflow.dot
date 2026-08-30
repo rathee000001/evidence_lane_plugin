@@ -1,0 +1,51 @@
+digraph skill_evi_build {
+  // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
+  // PYTHON_GRAPHVIZ_VERSION=0.21
+  bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
+  node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
+  edge [color="#667085" fontname=Arial]
+  ENTRY [label="evi-build intent" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
+  EXIT [label="Exact result / stop / next workflow" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  subgraph cluster_wf_source_intake_backed_pv0_bootstrap {
+    label="source-intake-backed-pv0-bootstrap" rankdir=TB
+    WF_SOURCE_INTAKE_BACKED_PV0_BOOTSTRAP_START [label="source-intake-backed-pv0-bootstrap" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_SOURCE_INTAKE_BACKED_PV0_BOOTSTRAP_ACTION_001 [label="1. pv_build_initial [['GOVERNANCE', 'SOURCE_ROUTING']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_wf_physically_final_pv_hil_presentation_only {
+    label="physically-final-pv-hil-presentation-only" rankdir=TB
+    WF_PHYSICALLY_FINAL_PV_HIL_PRESENTATION_ONLY_START [label="physically-final-pv-hil-presentation-only" color="#ba4236" fillcolor="#fff1f0" shape=box style="rounded,filled"]
+    WF_PHYSICALLY_FINAL_PV_HIL_PRESENTATION_ONLY_ACTION_001 [label="2. render_runtime_panel [['GOVERNANCE', 'RETRIEVAL', 'GRAPH', 'RUNTIME']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    WF_PHYSICALLY_FINAL_PV_HIL_PRESENTATION_ONLY_ACTION_002 [label="2. render_project_panel [['GOVERNANCE', 'RETRIEVAL', 'GRAPH']]" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  }
+  subgraph cluster_execution {
+    label="Shared typed execution contract" rankdir=TB
+    SCHEMA [label="Current input/output schema" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    INTERNAL_SDK [label="Internal SDK execution owner" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ENV [label="ENV15 environment selection" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    UOP [label="UOP15 governance and gates" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+    AUTHORITY [label="Owning authority and lane" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    TOOLS [label="Conditional tool role resolution" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    OUTER [label="Outer SDK / FastMCP / native compatibility" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    HOOKS [label="Only emitted ordered hooks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    VALIDATE [label="Validate schema, result and effects" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
+    RECEIPT [label="Exact receipt" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  }
+  ENTRY -> WF_SOURCE_INTAKE_BACKED_PV0_BOOTSTRAP_START
+  WF_SOURCE_INTAKE_BACKED_PV0_BOOTSTRAP_START -> WF_SOURCE_INTAKE_BACKED_PV0_BOOTSTRAP_ACTION_001
+  ENTRY -> WF_PHYSICALLY_FINAL_PV_HIL_PRESENTATION_ONLY_START
+  WF_PHYSICALLY_FINAL_PV_HIL_PRESENTATION_ONLY_START -> WF_PHYSICALLY_FINAL_PV_HIL_PRESENTATION_ONLY_ACTION_001
+  WF_PHYSICALLY_FINAL_PV_HIL_PRESENTATION_ONLY_ACTION_001 -> WF_PHYSICALLY_FINAL_PV_HIL_PRESENTATION_ONLY_ACTION_002 [label="ordered action"]
+  SCHEMA -> INTERNAL_SDK
+  INTERNAL_SDK -> ENV
+  ENV -> UOP
+  UOP -> AUTHORITY
+  AUTHORITY -> TOOLS
+  TOOLS -> OUTER
+  OUTER -> HOOKS
+  HOOKS -> VALIDATE
+  VALIDATE -> RECEIPT
+  WF_SOURCE_INTAKE_BACKED_PV0_BOOTSTRAP_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_PHYSICALLY_FINAL_PV_HIL_PRESENTATION_ONLY_ACTION_001 -> SCHEMA [label="typed execution"]
+  WF_PHYSICALLY_FINAL_PV_HIL_PRESENTATION_ONLY_ACTION_002 -> SCHEMA [label="typed execution"]
+  RECEIPT -> EXIT
+}

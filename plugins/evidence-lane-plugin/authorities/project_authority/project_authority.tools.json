@@ -129,7 +129,7 @@
     },
     {
       "name": "lifecycle_transition_law",
-      "schema_sha256": "DC8F592786038F171CBBFC65A1A884DD7E5E670D57313DD5F1AA026891F28BA3",
+      "schema_sha256": "867E13F514924481E33B548D50636E2F99A1DD3F5FD778B1DA7E6344A38D7070",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi",
@@ -313,7 +313,7 @@
     },
     {
       "name": "pv_query",
-      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi",
@@ -326,7 +326,7 @@
         "skill_workflows": [
           {
             "owner_skill": "evi",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           },
           {
@@ -351,7 +351,7 @@
           },
           {
             "owner_skill": "evi-plan",
-            "workflow": "live-six-authority-read",
+            "workflow": "live-current-authority-read",
             "order": 3
           },
           {
@@ -366,7 +366,7 @@
           },
           {
             "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           }
         ],
@@ -575,7 +575,7 @@
     },
     {
       "name": "search",
-      "schema_sha256": "1D4C303C7B3FE4AC1E729A6D7B45EA0A082FE57585D1C3251874A5BBE9769691",
+      "schema_sha256": "76F9448249D205764772262F4B673798BE5724E2F6B7162B34E3A8F8F8BE6FC1",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi-source-intake",
@@ -588,7 +588,7 @@
         "skill_workflows": [
           {
             "owner_skill": "evi",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           },
           {
@@ -598,7 +598,7 @@
           },
           {
             "owner_skill": "evi-plan",
-            "workflow": "live-six-authority-read",
+            "workflow": "live-current-authority-read",
             "order": 3
           },
           {
@@ -613,7 +613,7 @@
           },
           {
             "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           }
         ],
@@ -708,13 +708,13 @@
     }
   ],
   "linked_skills": {
-    "skills/evi-boot/SKILL.md": "5664F2588A75E4BEC8FBB6396AEE6BF4F3FA556F12ECEC23A3D6B2CA3A6F0ADC",
-    "skills/evi/SKILL.md": "47EDE692225A70AB41635F6EAF99EB3F57F0273C4F776D93731107AEBC417AC8"
+    "skills/evi-boot/SKILL.md": "0CE1F67BB03DA4A875EB2E47DC142E148226EED34E3C8C19E11E5C757DF71447",
+    "skills/evi/SKILL.md": "5AEC8A11200B1800BB2FC46C262E20064A306DCE0C01CBF266519FE3502C43D7"
   },
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/project_authority.py": "4E1AE7CD926B8AF06D6069AAA3B9BCE35E5CA651A5E146BFB10AD44F08E6C090",
+    "src/evidence_lane_plugin/project_authority.py": "46B0EA806C2CBA4BB54652E2BEA3894EF28FC77A7AC8265376F30A311EA43F1B",
     "src/evidence_lane_plugin/project_pv_storage.py": "E35B608C0C8EF0A6E97789AF75D35B4EAD8AAC3EC612FC6C7B61FE432A253B73",
-    "src/evidence_lane_plugin/store.py": "C20836BBA55DE7C3AB5A38C3AEC0988A0B4BF2FB1C50CAA33E63DBF5A1B98F96",
+    "src/evidence_lane_plugin/store.py": "CB9E657ED52938A40B5C3E60EC346A2007ED78CB62771B57100227E166551A17",
     "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
   },
   "linked_subauthorities": [],
@@ -733,24 +733,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:06.819366Z",
-    "receipt_sha256": "C8608554135CFEF43831FFC2CE9AD2168B6FBB4E5511D1915744650D387D29EB"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "A5C5C0A61AB329AD17711F1ADCBA916915DD93309FE1CA3DE2A20BFA8C97FA2C"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "project_authority_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 139,
-    "edge_count": 139,
+    "node_count": 138,
+    "edge_count": 141,
     "group_count": 1,
-    "semantic_topology_sha256": "A89E09717E74E92EA12992A806D20A7C902A49152C6D92D02D3A89F82D56573B",
-    "mmd_sha256": "B03352A8AA5C22D4471AA951D689AFF9E60F539447C80A1F9653B063E28FADA1",
-    "dot_sha256": "66A0F97B42411C92375751AD288465382D659AC073783F14CFBB6BF157273D82",
+    "semantic_topology_sha256": "DFAD37EA72336CBA83B32726D09F5BE4D6CA843733F1FD8355D37DE63AAF48A6",
+    "mmd_sha256": "F9534204E8037894720F7CFA19232C1A4CB68F7D92AE53A525BE700440474B40",
+    "dot_sha256": "9D2F22492CE1749F2ADBAEA846F84957EBA2DE5C90D7E1E6521605855CA09B42",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "EBFCA1324185A69E42D0F889FBBB0669F1016F90FFC20935336B5A6ACFFD21F5",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "674D553AEB9C43586A7B773B813C3FB627104EC8D9050AF3A147C6C3F22DE53A",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -760,10 +760,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 139,
-      "edge_count": 139,
+      "node_count": 138,
+      "edge_count": 141,
       "weak_component_count": 1,
-      "strong_component_count": 139,
+      "strong_component_count": 138,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -787,14 +787,19 @@
           "out_degree": 11
         },
         {
+          "node_id": "support_table_authority_index_node",
+          "in_degree": 1,
+          "out_degree": 10
+        },
+        {
           "node_id": "support_table_project_authority_migration_receipt",
           "in_degree": 1,
           "out_degree": 10
         },
         {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 9
+          "node_id": "support_table_authority_index_source",
+          "in_degree": 2,
+          "out_degree": 8
         },
         {
           "node_id": "support_table_project_pointer_history",
@@ -802,19 +807,14 @@
           "out_degree": 9
         },
         {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 7
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_project_registration",
           "in_degree": 1,
           "out_degree": 8
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
         },
         {
           "node_id": "support_table_project_authority_fts_content",
@@ -830,6 +830,11 @@
           "node_id": "support_table_project_authority_fts",
           "in_degree": 1,
           "out_degree": 5
+        },
+        {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 3
         },
         {
           "node_id": "support_table_authority_index_fts_idx",
@@ -852,11 +857,6 @@
           "out_degree": 2
         },
         {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
           "node_id": "support_table_project_authority_fts_config",
           "in_degree": 1,
           "out_degree": 2
@@ -870,11 +870,24 @@
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "756307167F3A7D04EC1514DF9E0E80BD42FA5A5C26C76A979E8EC809D9EE3683",
+    "graph_analysis_sha256": "DE58A2FBC670F1A726B2EBB0C3A376F7090368FF8D9046B8A6F433421DDC5CEC",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 83,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "4922FEB251E893CB75F0BE9EE659A79FBBF6E9FF4C35FBEB089A2309C8D85593"
+    "receipt_sha256": "783C48CEE01144DC0916F96BBF8753223B0276724CFD100660E570C5B78D41D9"
   },
-  "receipt_sha256": "4D0BC84E29E104CA3B66F7C025001C10E706C37E5401563B239DF7ABDFB38061"
+  "dedicated_workflow": {
+    "json": "authorities/project_authority/workflow.v1.json",
+    "mmd": "authorities/project_authority/workflow.mmd",
+    "dot": "authorities/project_authority/workflow.dot",
+    "json_sha256": "A9A9DE6B330BCD8E0C8928A53F3EBDB28CA6F13C01785E545D5E74A9D39B4CFC",
+    "mmd_sha256": "12B13D30FD0B582D2EC55A5A944132E38AAAF06A4A08841EBCF97781A149662D",
+    "dot_sha256": "18411C49116F94A4724B37A4B92181ED064FC596EAC0314DEEBBE91B131C52C9"
+  },
+  "receipt_sha256": "5187083E3C10FCB691897D2DF04F3C4044DC414BF1E49F5A76A3863C361513E2"
 }

@@ -1,0 +1,194 @@
+{
+  "schema": "evidence-lane.dedicated-skill-workflow.v1",
+  "status": "PASS",
+  "skill": "evi-storage",
+  "description": "Inspect or select Evidence Lane primary storage routing with an append-only, secret-free receipt.",
+  "workflow_names": [
+    "inspect-storage",
+    "select-storage"
+  ],
+  "workflow_count": 2,
+  "ordered_group_count": 2,
+  "action_step_count": 2,
+  "steps": [
+    {
+      "workflow": "inspect-storage",
+      "order": 1,
+      "action": "storage_connector_inspect",
+      "action_class": "['GOVERNANCE', 'RETRIEVAL']",
+      "schema_path": "schemas/actions/storage_connector_inspect.schema.json",
+      "schema_sha256": "EF8CCDA3FCCDA17A3458C8262F9AF3887BF9720BD9CB5BE2E36A1F1B5C42F667",
+      "sdk_binding": "sdk/actions/storage_connector_inspect.action.v1.json",
+      "mcp_binding": "mcp/actions/storage_connector_inspect.binding.v1.json",
+      "current_route": {
+        "tool": "storage_connector_inspect",
+        "capability": "storage_routing",
+        "current_route": "PROJECT_SCOPED_TRANSACTIONAL_STORAGE_SELECTION",
+        "owner": "evi-storage",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "APSW_SQLite_engine",
+          "ENV_UOP_classifier",
+          "FAISS_CPU",
+          "Hash_chain_writer",
+          "LlamaIndex_SQLite_indexer",
+          "PCM_MBA_operators",
+          "RapidFuzz",
+          "SQLite_CAS",
+          "SQLite_FTS5_BM25",
+          "SentenceTransformers",
+          "deterministic_TFIDF",
+          "rank_bm25",
+          "sqlite_vec"
+        ],
+        "transport_orchestration": [
+          "LangChain",
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [
+          "Milvus",
+          "OpenSearch",
+          "Pinecone",
+          "Weaviate"
+        ],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "select-storage",
+      "order": 2,
+      "action": "storage_connector_select",
+      "action_class": "['GOVERNANCE']",
+      "schema_path": "schemas/actions/storage_connector_select.schema.json",
+      "schema_sha256": "6CA1E5660914849488AA0F5B7DC6FDBF88782AE0CFDE05C4C0C287A9BF225DBF",
+      "sdk_binding": "sdk/actions/storage_connector_select.action.v1.json",
+      "mcp_binding": "mcp/actions/storage_connector_select.binding.v1.json",
+      "current_route": {
+        "tool": "storage_connector_select",
+        "capability": "storage_routing",
+        "current_route": "PROJECT_SCOPED_TRANSACTIONAL_STORAGE_SELECTION",
+        "owner": "evi-storage",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "ENV_UOP_classifier",
+          "Hash_chain_writer",
+          "PCM_MBA_operators",
+          "SQLite_CAS"
+        ],
+        "transport_orchestration": [
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "internal_sdk_is_execution_owner": true,
+  "env_and_uop_are_distinct": true,
+  "outer_sdk_and_mcp_are_transport_only": true,
+  "authority_and_lane_resolve_per_action_and_state": true,
+  "every_condition_true_step_runs_or_fails_visible": true,
+  "workflow_or_count_ceiling": false,
+  "receipt_sha256": "24F6FB05E37C03BA28E1E53B71F2AF8A5DC01FF769CAE7185C3E79666C1597EB"
+}

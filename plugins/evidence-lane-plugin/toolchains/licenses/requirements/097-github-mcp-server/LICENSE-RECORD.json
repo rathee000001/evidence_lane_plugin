@@ -1,0 +1,24 @@
+{
+  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "status": "PASS",
+  "ordinal": 97,
+  "tool": "GitHub_MCP_Server",
+  "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+  "classification": "EXTERNAL_OR_REPOSITORY_GATE",
+  "install_mode": "not_installed_by_tunnel",
+  "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
+  "license_evidence": "validated at the repository/delivery gate; no binary redistributed",
+  "evidence_paths": [
+    "toolchains/tool-requirement-matrix.v1.json"
+  ],
+  "redistributed_by_source_package": false,
+  "source_package_copied_license_text_present": false,
+  "source_package_copied_license_texts": [],
+  "native_license_acquisition": null,
+  "runtime_distribution_license_required": false,
+  "runtime_distribution_license_manifest": null,
+  "runtime_distribution_license_files_must_be_copied_before_use": false,
+  "metadata_without_a_license_file_is_labeled_metadata_only": true,
+  "mcp_inventory_separate": true,
+  "receipt_sha256": "FC47C3151BCD3B739DCB42FF8FDB545F0B4DDD0752C365B9949B0203BAD6896E"
+}

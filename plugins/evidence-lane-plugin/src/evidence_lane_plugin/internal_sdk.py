@@ -52,10 +52,20 @@ from .canon_task_graph import (
     seal_canon_task_result,
     supersede_canon_input,
 )
+from .codex_action_plane import rebuild_codex_action_planes
 from .connector_governance import ConnectorGovernance
 from .current_route_registry import current_implementation_registry
-from .env_uop_graph import migrate_and_render_env_uop_graph, rebuild_flash_manifest
+from .env_uop_graph import rebuild_flash_manifest
+from .env_uop_tool_routing import (
+    env_uop_tool_routing_catalog,
+    route_env_uop_data_touch,
+)
 from .errors import EvidenceLaneError, require
+from .evaluation_toolchain import (
+    build_evaluation_plan,
+    evaluation_tool_catalog,
+    seal_evaluation_result,
+)
 from .first_class_workflows import (
     BiggerUniverseProjectRequest,
     BrainScalingRequest,
@@ -153,8 +163,25 @@ SDK_INTERNAL_SUPPORT_BINDINGS: dict[str, dict[str, Any]] = {
     "env_uop_graph": {
         "owner_module": "env_uop_operator_runtime",
         "functions": (
-            migrate_and_render_env_uop_graph,
+            rebuild_codex_action_planes,
             rebuild_flash_manifest,
+        ),
+        "public_action": False,
+    },
+    "env_uop_tool_routing": {
+        "owner_module": "env_uop_operator_runtime",
+        "functions": (
+            env_uop_tool_routing_catalog,
+            route_env_uop_data_touch,
+        ),
+        "public_action": False,
+    },
+    "evaluation_toolchain": {
+        "owner_module": "first_class_workflows",
+        "functions": (
+            build_evaluation_plan,
+            evaluation_tool_catalog,
+            seal_evaluation_result,
         ),
         "public_action": False,
     },
@@ -230,7 +257,7 @@ class PublicActionSDKDispatcher:
         require(
             self._specialized_native_actions <= set(self._routes),
             "PUBLIC_ACTION_SDK_SPECIALIZED_ROUTE_UNKNOWN",
-            "A specialized SDK-native action is absent from the public registry.",
+            "A specialized native action is absent from the canonical public registry.",
             status="BLOCKED",
         )
         self._lock = threading.RLock()
@@ -304,7 +331,9 @@ def sdk_plane_registry() -> dict[str, Any]:
 
     public_action_count = int(current_implementation_registry()["public_tool_count"])
     env_module = next(
-        module for module in SDK_MODULES if module.module_id == "env_uop_operator_runtime"
+        module
+        for module in SDK_MODULES
+        if module.module_id == "env_uop_operator_runtime"
     )
     core = {
         "schema": "evidence-lane.sdk-plane-registry.v1",
@@ -365,9 +394,7 @@ def whole_plugin_sdk_governance_registry() -> dict[str, Any]:
         != "INTERNAL_SDK_IMPLEMENTATION"
         and (
             row["sdk_governance"].get("outer_business_logic_allowed") is not False
-            or row["sdk_governance"].get(
-                "outer_adapter_may_reason_about_lifecycle"
-            )
+            or row["sdk_governance"].get("outer_adapter_may_reason_about_lifecycle")
             is not False
         )
     )
@@ -379,11 +406,7 @@ def whole_plugin_sdk_governance_registry() -> dict[str, Any]:
             implementation_counts.get(classification, 0) + 1
         )
     consumer_surfaces = sorted(
-        {
-            str(consumer)
-            for row in capabilities
-            for consumer in row.get("consumers", [])
-        }
+        {str(consumer) for row in capabilities for consumer in row.get("consumers", [])}
     )
     planes = sdk_plane_registry()
     core = {
@@ -453,7 +476,7 @@ def runtime_workflow_sdk_registry() -> dict[str, Any]:
             "pre_reasoning_interception_claimed": False,
         },
         {
-            "workflow": "DELTA_ENTRY_AND_SIX_WAY_QUERY",
+            "workflow": "DELTA_ENTRY_AND_CURRENT_AUTHORITY_QUERY",
             "triggers": ["ACTIVE_PLAN_ROW_ENTRY"],
             "skills": [
                 "evidence-lane-code-lifecycle",
@@ -3400,9 +3423,16 @@ def build_local_service_adapter(
     def _ai_toolchain_route(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
-        del binding
         context.checkpoint()
-        return run_full_ai_toolchain(FullAIToolchainRequest.model_validate(payload))
+        return run_full_ai_toolchain(
+            FullAIToolchainRequest.model_validate(
+                {
+                    **payload,
+                    "project_id": binding.project_id,
+                    "task_id": binding.task_id,
+                }
+            )
+        )
 
     def _bigger_universe_register(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext

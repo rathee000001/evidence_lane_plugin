@@ -157,11 +157,15 @@ def test_internal_support_modules_are_bound_to_exact_sdk_owners() -> None:
     assert receipt["status"] == "PASS"
     assert set(rows) == {
         "env_uop_graph",
+        "env_uop_tool_routing",
+        "evaluation_toolchain",
         "github_toolchain",
         "live_root_normalization",
         "runtime_api",
     }
     assert rows["env_uop_graph"]["owner_module"] == "env_uop_operator_runtime"
+    assert rows["env_uop_tool_routing"]["owner_module"] == ("env_uop_operator_runtime")
+    assert rows["evaluation_toolchain"]["owner_module"] == "first_class_workflows"
     assert rows["github_toolchain"]["owner_module"] == "first_class_workflows"
     assert rows["live_root_normalization"]["owner_module"] == "storage_connectors"
     assert rows["runtime_api"]["owner_module"] == "provider_host_adapters"
@@ -193,18 +197,26 @@ def test_runtime_workflows_bind_prompt_delta_relock_and_hooks_to_sdk() -> None:
     assert receipt["all_explicit_actions_work_with_hooks_off"] is True
     assert receipt["sdk_claims_pre_reasoning_prompt_interception"] is False
     assert by_name["PROMPT_OR_STEER_ENTRY"]["hooks_required"] is False
-    assert by_name["DELTA_ENTRY_AND_SIX_WAY_QUERY"][
-        "accepted_archive_query_allowed"
-    ] is False
-    assert by_name["DELTA_EXIT_APPEND_REFRESH"][
-        "ordinary_project_overlay_allowed"
-    ] is False
-    assert by_name["STEP_TASK_LIST_RELOCK"][
-        "identical_fingerprint_reattachment_required"
-    ] is True
-    assert by_name["STEP_TASK_LIST_RELOCK"][
-        "plan_mutation_allowed_for_panel_drop_or_restart"
-    ] is False
+    assert (
+        by_name["DELTA_ENTRY_AND_CURRENT_AUTHORITY_QUERY"][
+            "accepted_archive_query_allowed"
+        ]
+        is False
+    )
+    assert (
+        by_name["DELTA_EXIT_APPEND_REFRESH"]["ordinary_project_overlay_allowed"]
+        is False
+    )
+    assert (
+        by_name["STEP_TASK_LIST_RELOCK"]["identical_fingerprint_reattachment_required"]
+        is True
+    )
+    assert (
+        by_name["STEP_TASK_LIST_RELOCK"][
+            "plan_mutation_allowed_for_panel_drop_or_restart"
+        ]
+        is False
+    )
     assert by_name["HOOK_EVENT_TRANSPORT"]["logical_sub_actions"] == 44
 
 

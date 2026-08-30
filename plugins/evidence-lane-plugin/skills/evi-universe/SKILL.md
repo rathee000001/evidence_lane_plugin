@@ -6,13 +6,13 @@ description: Inspect the linked Project Universe and connector-brain integrity g
 # Evidence Lane Project Universe
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its hook/skill ownership
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its hook/skill ownership
 contract. This skill owns the Project Universe read workflow; adaptive Delta
 exit owns Universe refresh.
 
 Project Universe and connector brain are linked operational graphs derived from
 the live project sectors and exact task/source/connector identities. They are
-not separate replacements for the six-way working arms and do not replace
+not separate replacements for the current working authority classes and do not replace
 Plan, Project Memory, Canon, AI Learning, or lanes.
 
 1. Call `pv_status` and `pv_task_backlog` for exact current identity.

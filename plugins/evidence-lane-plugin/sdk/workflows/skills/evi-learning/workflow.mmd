@@ -1,0 +1,89 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=FD1FCE4AC3A012064160C735E5B5759A687F3E7F372801D1B6305BE5EE408441
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  ENTRY["evi-learning intent"]:::root
+  EXIT["Exact result / stop / next workflow"]:::output
+  subgraph WF_LEARNING_AUTHORITY_READ["learning-authority-read"]
+    direction TB
+    WF_LEARNING_AUTHORITY_READ_START["learning-authority-read"]:::lifecycle
+    WF_LEARNING_AUTHORITY_READ_ACTION_001["1. pv_status [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LEARNING_AUTHORITY_READ_ACTION_002["2. pv_task_backlog [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LEARNING_AUTHORITY_READ_ACTION_003["3. pv_query [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LEARNING_AUTHORITY_READ_ACTION_004["4. learning_inspect [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LEARNING_AUTHORITY_READ_ACTION_005["4. learning_retrieve [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+  end
+  subgraph WF_LEARNING_HOST_MEMORY_IMPORT["learning-host-memory-import"]
+    direction TB
+    WF_LEARNING_HOST_MEMORY_IMPORT_START["learning-host-memory-import"]:::lifecycle
+    WF_LEARNING_HOST_MEMORY_IMPORT_ACTION_001["5. learning_record_host_memory_import [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_LEARNING_CANDIDATE["learning-candidate"]
+    direction TB
+    WF_LEARNING_CANDIDATE_START["learning-candidate"]:::lifecycle
+    WF_LEARNING_CANDIDATE_ACTION_001["6. learning_seal_candidate [['GOVERNANCE']]"]:::semantic
+    WF_LEARNING_CANDIDATE_ACTION_002["7. learning_decide_candidate [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_LEARNING_REVOKE["learning-revoke"]
+    direction TB
+    WF_LEARNING_REVOKE_START["learning-revoke"]:::lifecycle
+    WF_LEARNING_REVOKE_ACTION_001["8. learning_revoke [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph EXECUTION["Shared typed execution contract"]
+    direction TB
+    SCHEMA["Current input/output schema"]:::semantic
+    INTERNAL_SDK["Internal SDK execution owner"]:::semantic
+    ENV["ENV15 environment selection"]:::semantic
+    UOP["UOP15 governance and gates"]:::warn
+    AUTHORITY["Owning authority and lane"]:::semantic
+    TOOLS["Conditional tool role resolution"]:::semantic
+    OUTER["Outer SDK / FastMCP / native compatibility"]:::semantic
+    HOOKS["Only emitted ordered hooks"]:::semantic
+    VALIDATE["Validate schema, result and effects"]:::warn
+    RECEIPT["Exact receipt"]:::output
+  end
+  ENTRY --> WF_LEARNING_AUTHORITY_READ_START
+  WF_LEARNING_AUTHORITY_READ_START --> WF_LEARNING_AUTHORITY_READ_ACTION_001
+  WF_LEARNING_AUTHORITY_READ_ACTION_001 -->|"ordered action"| WF_LEARNING_AUTHORITY_READ_ACTION_002
+  WF_LEARNING_AUTHORITY_READ_ACTION_002 -->|"ordered action"| WF_LEARNING_AUTHORITY_READ_ACTION_003
+  WF_LEARNING_AUTHORITY_READ_ACTION_003 -->|"ordered action"| WF_LEARNING_AUTHORITY_READ_ACTION_004
+  WF_LEARNING_AUTHORITY_READ_ACTION_004 -->|"ordered action"| WF_LEARNING_AUTHORITY_READ_ACTION_005
+  ENTRY --> WF_LEARNING_HOST_MEMORY_IMPORT_START
+  WF_LEARNING_HOST_MEMORY_IMPORT_START --> WF_LEARNING_HOST_MEMORY_IMPORT_ACTION_001
+  ENTRY --> WF_LEARNING_CANDIDATE_START
+  WF_LEARNING_CANDIDATE_START --> WF_LEARNING_CANDIDATE_ACTION_001
+  WF_LEARNING_CANDIDATE_ACTION_001 -->|"ordered action"| WF_LEARNING_CANDIDATE_ACTION_002
+  ENTRY --> WF_LEARNING_REVOKE_START
+  WF_LEARNING_REVOKE_START --> WF_LEARNING_REVOKE_ACTION_001
+  SCHEMA --> INTERNAL_SDK
+  INTERNAL_SDK --> ENV
+  ENV --> UOP
+  UOP --> AUTHORITY
+  AUTHORITY --> TOOLS
+  TOOLS --> OUTER
+  OUTER --> HOOKS
+  HOOKS --> VALIDATE
+  VALIDATE --> RECEIPT
+  WF_LEARNING_AUTHORITY_READ_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_LEARNING_AUTHORITY_READ_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_LEARNING_AUTHORITY_READ_ACTION_003 -->|"typed execution"| SCHEMA
+  WF_LEARNING_AUTHORITY_READ_ACTION_004 -->|"typed execution"| SCHEMA
+  WF_LEARNING_AUTHORITY_READ_ACTION_005 -->|"typed execution"| SCHEMA
+  WF_LEARNING_HOST_MEMORY_IMPORT_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_LEARNING_CANDIDATE_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_LEARNING_CANDIDATE_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_LEARNING_REVOKE_ACTION_001 -->|"typed execution"| SCHEMA
+  RECEIPT --> EXIT

@@ -4,16 +4,20 @@ import base64
 import importlib.util
 import io
 import json
+import math
+import re
 import shutil
 import sqlite3
 import threading
 import zipfile
+from collections import Counter
 from dataclasses import replace
 from pathlib import Path
 
 import evidence_lane_plugin.lane_engine as lane_engine_module
 import evidence_lane_plugin.lanes as lanes_module
 import pytest
+from evidence_lane_plugin.compact_storage import decompress_exact_bytes
 from evidence_lane_plugin.forensic_audit import (
     audit_lane_bundle,
     write_forensic_audit_reports,
@@ -331,27 +335,54 @@ def _retrieval_rows(
         f"file:{database.resolve().as_posix()}?mode=ro&immutable=1", uri=True
     )
     try:
-        bm25 = connection.execute(
+        raw_bm25 = connection.execute(
             f"""
-            SELECT CAST(chunk_id AS INTEGER), path, locator, bm25({fts_table})
-            FROM {fts_table}
+            SELECT c.chunk_id, s.path, c.locator, c.sha256, cas.size_bytes,
+                   cas.compression, cas.compressed_text, bm25({fts_table})
+            FROM {fts_table} AS f
+            JOIN chunk_index AS c ON c.chunk_id=f.rowid
+            JOIN source_registry AS s ON s.source_id=c.source_id
+            JOIN chunk_content_cas AS cas ON cas.sha256=c.sha256
             WHERE {fts_table} MATCH ?
-            ORDER BY bm25({fts_table}), path, locator, CAST(chunk_id AS INTEGER)
+            ORDER BY bm25({fts_table}), s.path, c.locator, c.chunk_id
             """,
             (term,),
         ).fetchall()
-        tfidf = connection.execute(
-            """
-            SELECT c.chunk_id, s.path, c.locator, SUM(v.tfidf) AS score
-            FROM tfidf_vector v
-            JOIN chunk_index c ON c.chunk_id=v.chunk_id
-            JOIN source_registry s ON s.source_id=c.source_id
-            WHERE v.term=?
-            GROUP BY c.chunk_id, s.path, c.locator
-            ORDER BY score DESC, s.path, c.locator, c.chunk_id
-            """,
-            (term.lower(),),
-        ).fetchall()
+        candidates = []
+        for row in raw_bm25:
+            text = decompress_exact_bytes(
+                compression=str(row[5]),
+                payload=bytes(row[6]),
+                expected_size=int(row[4]),
+                expected_sha256=str(row[3]),
+            ).decode("utf-8")
+            candidates.append((row, Counter(token.lower() for token in re.findall(r"[\w.-]+", text))))
+        query_term = term.lower()
+        document_count = len(candidates)
+        document_frequency = sum(counter[query_term] > 0 for _row, counter in candidates)
+        tfidf = sorted(
+            [
+                (
+                    int(row[0]),
+                    str(row[1]),
+                    str(row[2]),
+                    (counter[query_term] / max(sum(counter.values()), 1))
+                    * (
+                        math.log(
+                            (1 + document_count) / (1 + document_frequency)
+                        )
+                        + 1.0
+                    ),
+                )
+                for row, counter in candidates
+                if counter[query_term]
+            ],
+            key=lambda value: (-float(value[3]), value[1], value[2], value[0]),
+        )
+        bm25 = [
+            (int(row[0]), str(row[1]), str(row[2]), float(row[7]))
+            for row in raw_bm25
+        ]
         return bm25, tfidf
     finally:
         connection.close()
@@ -782,6 +813,19 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
             ):
                 assert logical_table in mermaid
             assert "git_commit_registry" in mermaid
+            for obsolete_table in (
+                "code_source_registry",
+                "code_file_snapshot",
+                "code_chunk",
+                "code_semantic_diff",
+                "code_snapshot_history",
+                "git_patch_hunk",
+                "git_exact_line_change",
+                "git_push_event",
+                    "git_artifact_impact",
+                ):
+                    assert obsolete_table not in lane.schema_contract
+                    assert f'"{obsolete_table}<br/>' not in mermaid
             if lane_id == "github_code":
                 assert "subgraph GITHUB_REPOSITORY_GRAPH" in mermaid
                 assert "GITHUB_GRAPH_ROOT" in mermaid
@@ -798,6 +842,41 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
             assert "SCHEMA_SECTOR" in mermaid
             assert "schema sector" in mermaid
         tools = json.loads((lane_root / "tools.json").read_text(encoding="utf-8"))
+        conditioned = tools["source_conditioned_toolchain"]
+        assert "selected_tools" not in conditioned
+        assert "selected_tool_count" not in conditioned
+        assert conditioned["eligible_tool_count"] == len(
+            conditioned["eligible_tools"]
+        )
+        execution = tools["tool_execution_evidence"]
+        assert execution["status"] == "PASS"
+        assert execution[
+            "all_condition_true_tools_executed_or_failed_visible"
+        ] is True
+        assert execution["presence_or_eligibility_is_execution_proof"] is False
+        assert execution["eligible_tool_count"] == len(execution["rows"])
+        assert execution["eligible_tool_count"] == (
+            execution["condition_true_tool_count"]
+            + execution["condition_false_tool_count"]
+        )
+        for tool_row in execution["rows"]:
+            assert tool_row["eligibility_state"] == "ELIGIBLE"
+            if tool_row["condition_state"] == "CONDITION_TRUE":
+                assert tool_row["selection_state"] == (
+                    "SELECTED_FOR_CURRENT_ACTION_PHASE"
+                )
+                assert tool_row["execution_state"] == "EXECUTED" or str(
+                    tool_row["execution_state"]
+                ).startswith("BLOCKED_")
+            else:
+                assert tool_row["selection_state"] == "NOT_SELECTED"
+                assert tool_row["execution_state"] == "NOT_EXECUTED"
+            assert tool_row["network_call_performed"] is False
+            assert tool_row["credential_value_read"] is False
+        empty_tables = tools["empty_table_classification"]
+        assert empty_tables["status"] == "PASS"
+        assert empty_tables["defect_table_count"] == 0
+        assert empty_tables["defect_tables"] == []
         assert tools["artifact_authority"]["schema"] == (
             "evidence-lane.tools-artifact-authority.v1"
         )
@@ -1353,7 +1432,7 @@ def test_pv1_full_build_and_pvn_incremental_lane_reuse(tmp_path: Path) -> None:
     assert _count(code_db, "code_import") >= 1
     assert _count(code_db, "code_route") >= 1
     assert _count(code_db, "code_dependency") >= 1
-    assert _count(code_db, "tfidf_term") >= 1
+    assert _count(code_db, "tfidf_term") == 0
     assert _count(data_db, "sheet_workbook") == 1
     assert _count(data_db, "sheet_formula") == 1
     assert _count(data_db, "sheet_formula_dependency_edge") >= 1
@@ -1523,8 +1602,8 @@ def test_tool_identity_fallback_replays_parent_and_preserves_unavailable_source(
     parent = tmp_path / "parent-lanes"
     current_tool_identity = lane_engine_module._tool_identity
 
-    def historical_tool_identity(lane):
-        payload = current_tool_identity(lane)
+    def historical_tool_identity(lane, *, source_paths=()):
+        payload = current_tool_identity(lane, source_paths=source_paths)
         if lane.canonical_lane_id != "discussion":
             return payload
         payload = json.loads(json.dumps(payload))
@@ -1538,6 +1617,8 @@ def test_tool_identity_fallback_replays_parent_and_preserves_unavailable_source(
                 "topology_generator",
                 "artifact_contract",
                 "parser_implementation",
+                "registry_linked_workflow",
+                "source_conditioned_tool_identity",
             )
         }
         payload["sha256"] = sha256_bytes(canonical_json_bytes(identity_core))
@@ -1618,8 +1699,8 @@ def test_tool_identity_fallback_never_replays_unselected_current_bytes(
     parent = tmp_path / "parent-lanes"
     current_tool_identity = lane_engine_module._tool_identity
 
-    def historical_tool_identity(lane):
-        payload = current_tool_identity(lane)
+    def historical_tool_identity(lane, *, source_paths=()):
+        payload = current_tool_identity(lane, source_paths=source_paths)
         if lane.canonical_lane_id != "discussion":
             return payload
         payload = json.loads(json.dumps(payload))
@@ -1633,6 +1714,8 @@ def test_tool_identity_fallback_never_replays_unselected_current_bytes(
                 "topology_generator",
                 "artifact_contract",
                 "parser_implementation",
+                "registry_linked_workflow",
+                "source_conditioned_tool_identity",
             )
         }
         payload["sha256"] = sha256_bytes(canonical_json_bytes(identity_core))
@@ -1702,10 +1785,24 @@ def test_tool_identity_fallback_never_replays_unselected_current_bytes(
         assert preserved is not None
         assert str(preserved[0]) == parent_sha256
         snippets = "\n".join(
-            str(row[0])
+            decompress_exact_bytes(
+                compression=str(row[2]),
+                payload=bytes(row[3]),
+                expected_size=int(row[1]),
+                expected_sha256=str(row[0]),
+            ).decode("utf-8")
             for row in connection.execute(
-                f"SELECT text_content FROM {LANE_REGISTRY['discussion'].fts_table} "
-                "WHERE path='historical.txt'"
+                """
+                SELECT content.sha256, content.size_bytes,
+                       content.compression, content.compressed_text
+                FROM chunk_index AS chunk
+                JOIN source_registry AS source
+                  ON source.source_id = chunk.source_id
+                JOIN chunk_content_cas AS content
+                  ON content.sha256 = chunk.sha256
+                WHERE source.path='historical.txt'
+                ORDER BY chunk.ordinal
+                """
             ).fetchall()
         )
     finally:
@@ -1728,8 +1825,8 @@ def test_tool_identity_fallback_full_snapshot_replays_current_and_removes_delete
     parent = tmp_path / "parent-lanes"
     current_tool_identity = lane_engine_module._tool_identity
 
-    def historical_tool_identity(lane):
-        payload = current_tool_identity(lane)
+    def historical_tool_identity(lane, *, source_paths=()):
+        payload = current_tool_identity(lane, source_paths=source_paths)
         if lane.canonical_lane_id != "discussion":
             return payload
         payload = json.loads(json.dumps(payload))
@@ -1743,6 +1840,8 @@ def test_tool_identity_fallback_full_snapshot_replays_current_and_removes_delete
                 "topology_generator",
                 "artifact_contract",
                 "parser_implementation",
+                "registry_linked_workflow",
+                "source_conditioned_tool_identity",
             )
         }
         payload["sha256"] = sha256_bytes(canonical_json_bytes(identity_core))
@@ -1795,7 +1894,7 @@ def test_tool_identity_fallback_full_snapshot_replays_current_and_removes_delete
     assert report["build_mode"] == "FULL_VALIDATION_FALLBACK"
     assert report["parent_baseline_replay"]["preserved_unavailable_source_count"] == 0
     assert [
-        row["path"] for row in report["classification"]["REMOVED_TOMBSTONE"]
+        row["path"] for row in report["classification"]["REMOVED_PURGE"]
     ] == ["removed.txt"]
     assert result["parallel_execution"]["source_binding"]["valid"] is True
     assert (

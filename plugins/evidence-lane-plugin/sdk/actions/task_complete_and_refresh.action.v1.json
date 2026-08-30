@@ -3,7 +3,7 @@
   "status": "PASS",
   "action": "task_complete_and_refresh",
   "title": "Seal one HIL-only live-root proposal and dual presentation",
-  "description": "Confirm the exact host-specific final source boundary and immediately run the HIL-only live-root Project Overlay/proposal operation. The proposal remains unaccepted and the result stops at the conjoined Project and consolidated Learning six-way HIL, including the bounded Learning weave summary. An optional exact ordered batch can append QUEUED -> ACTIVE -> DONE for every queued Delta only when each task has bounded implementation and verification evidence. If the same pending live-root proposal predates bounded exit-side writes, archive its prior seal and finalize that exact candidate ID without clearing or rebuilding it. Accepted snapshot storage is not opened or queried. Users do not need a separate Refresh or exit command.",
+  "description": "Confirm the exact host-specific final source boundary and immediately run the HIL-only live-root Project Overlay/proposal operation. The proposal remains unaccepted and the result stops at the conjoined Project and consolidated Learning governed HIL, including the bounded Learning weave summary. An optional exact ordered batch can append QUEUED -> ACTIVE -> DONE for every queued Delta only when each task has bounded implementation and verification evidence. If the same pending live-root proposal predates bounded exit-side writes, archive its prior seal and finalize that exact candidate ID without clearing or rebuilding it. Accepted snapshot storage is not opened or queried. Users do not need a separate Refresh or exit command.",
   "input_schema": {
     "properties": {
       "project_id": {
@@ -66,7 +66,7 @@
     "idempotentHint": true,
     "openWorldHint": false
   },
-  "schema_sha256": "342AD1B26DBEF70537E77ADA8AE3DC9C191CD2A08BB465601747E5F1653AF570",
+  "schema_sha256": "DDCC0D86F2CB504F7BD9B6CAE92C275E6792507B47C67E86EE6C83462F65FC19",
   "route_contract": {
     "status": "CURRENT_ROUTE",
     "owner_skill": "evi-refresh",
@@ -99,7 +99,7 @@
   "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
   "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
   "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
-  "source_module_registry_sha256": "54457935B5294FDAB6FBDBAF407B42B0A6FE7AEB0636A9CC7DF59458D15A5A6B",
+  "source_module_registry_sha256": "92DE9530CB6EC0E5935BB7BE81B224C5E95CABD4F9B82627475579943B649A14",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "0EB3D37D7E89B2AC1119B5F49C7B3424014F84FB01B04CB8610991E19A8A2B3A"
+  "receipt_sha256": "91C3D25DF3EA4D515ABB2FEF29B4D47E3D14A8D0673DC7D49C28C4EB967E3F09"
 }

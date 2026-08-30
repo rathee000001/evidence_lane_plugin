@@ -1,0 +1,473 @@
+{
+  "schema": "evidence-lane.dedicated-skill-workflow.v1",
+  "status": "PASS",
+  "skill": "evi-memory",
+  "description": "Query and link the independent Project Memory DB through bounded FTS5/BM25 locators without merging Project Truth, AI Learning, Canon, AGENTS.md, or host MEMORY.md.",
+  "workflow_names": [
+    "project-memory-authority-read",
+    "project-memory-link"
+  ],
+  "workflow_count": 2,
+  "ordered_group_count": 5,
+  "action_step_count": 5,
+  "steps": [
+    {
+      "workflow": "project-memory-authority-read",
+      "order": 1,
+      "action": "pv_status",
+      "action_class": "['GOVERNANCE', 'RETRIEVAL']",
+      "schema_path": "schemas/actions/pv_status.schema.json",
+      "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA",
+      "sdk_binding": "sdk/actions/pv_status.action.v1.json",
+      "mcp_binding": "mcp/actions/pv_status.binding.v1.json",
+      "current_route": {
+        "tool": "pv_status",
+        "capability": "governance_and_live_root_reads",
+        "current_route": "LIVE_ROOT_POINTER_BASELINE_BOUNDED_GOVERNANCE_READS",
+        "owner": "evi",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "APSW_SQLite_engine",
+          "ENV_UOP_classifier",
+          "FAISS_CPU",
+          "Hash_chain_writer",
+          "LlamaIndex_SQLite_indexer",
+          "PCM_MBA_operators",
+          "RapidFuzz",
+          "SQLite_CAS",
+          "SQLite_FTS5_BM25",
+          "SentenceTransformers",
+          "deterministic_TFIDF",
+          "rank_bm25",
+          "sqlite_vec"
+        ],
+        "transport_orchestration": [
+          "LangChain",
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [
+          "Milvus",
+          "OpenSearch",
+          "Pinecone",
+          "Weaviate"
+        ],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "project-memory-authority-read",
+      "order": 2,
+      "action": "pv_task_backlog",
+      "action_class": "['GOVERNANCE', 'RETRIEVAL']",
+      "schema_path": "schemas/actions/pv_task_backlog.schema.json",
+      "schema_sha256": "C2746023576A61362CEE3340EF2BC090F6779067BEB16749F9AFDA15185AA6A9",
+      "sdk_binding": "sdk/actions/pv_task_backlog.action.v1.json",
+      "mcp_binding": "mcp/actions/pv_task_backlog.binding.v1.json",
+      "current_route": {
+        "tool": "pv_task_backlog",
+        "capability": "step_task_list",
+        "current_route": "CANONICAL_HEADER_PLUS_PERSISTED_FIXED_WINDOW",
+        "owner": "host_plan_rehydration",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "APSW_SQLite_engine",
+          "ENV_UOP_classifier",
+          "FAISS_CPU",
+          "Hash_chain_writer",
+          "LlamaIndex_SQLite_indexer",
+          "PCM_MBA_operators",
+          "RapidFuzz",
+          "SQLite_CAS",
+          "SQLite_FTS5_BM25",
+          "SentenceTransformers",
+          "deterministic_TFIDF",
+          "rank_bm25",
+          "sqlite_vec"
+        ],
+        "transport_orchestration": [
+          "LangChain",
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [
+          "Milvus",
+          "OpenSearch",
+          "Pinecone",
+          "Weaviate"
+        ],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "project-memory-authority-read",
+      "order": 3,
+      "action": "pv_query",
+      "action_class": "['GOVERNANCE', 'RETRIEVAL']",
+      "schema_path": "schemas/actions/pv_query.schema.json",
+      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
+      "sdk_binding": "sdk/actions/pv_query.action.v1.json",
+      "mcp_binding": "mcp/actions/pv_query.binding.v1.json",
+      "current_route": {
+        "tool": "pv_query",
+        "capability": "governance_and_live_root_reads",
+        "current_route": "LIVE_ROOT_POINTER_BASELINE_BOUNDED_GOVERNANCE_READS",
+        "owner": "evi",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "APSW_SQLite_engine",
+          "ENV_UOP_classifier",
+          "FAISS_CPU",
+          "Hash_chain_writer",
+          "LlamaIndex_SQLite_indexer",
+          "PCM_MBA_operators",
+          "RapidFuzz",
+          "SQLite_CAS",
+          "SQLite_FTS5_BM25",
+          "SentenceTransformers",
+          "deterministic_TFIDF",
+          "rank_bm25",
+          "sqlite_vec"
+        ],
+        "transport_orchestration": [
+          "LangChain",
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [
+          "Milvus",
+          "OpenSearch",
+          "Pinecone",
+          "Weaviate"
+        ],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "project-memory-authority-read",
+      "order": 4,
+      "action": "project_memory_query",
+      "action_class": "['GOVERNANCE', 'RETRIEVAL']",
+      "schema_path": "schemas/actions/project_memory_query.schema.json",
+      "schema_sha256": "F213CB98BBD6D89D9AE2A231940D2488129053280E90945F1455A90627D851F7",
+      "sdk_binding": "sdk/actions/project_memory_query.action.v1.json",
+      "mcp_binding": "mcp/actions/project_memory_query.binding.v1.json",
+      "current_route": {
+        "tool": "project_memory_query",
+        "capability": "project_memory",
+        "current_route": "INDEPENDENT_PROJECT_MEMORY_FTS5_LOCATOR_GRAPH",
+        "owner": "evi-memory",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "APSW_SQLite_engine",
+          "ENV_UOP_classifier",
+          "FAISS_CPU",
+          "Hash_chain_writer",
+          "LlamaIndex_SQLite_indexer",
+          "PCM_MBA_operators",
+          "RapidFuzz",
+          "SQLite_CAS",
+          "SQLite_FTS5_BM25",
+          "SentenceTransformers",
+          "deterministic_TFIDF",
+          "rank_bm25",
+          "sqlite_vec"
+        ],
+        "transport_orchestration": [
+          "LangChain",
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [
+          "Milvus",
+          "OpenSearch",
+          "Pinecone",
+          "Weaviate"
+        ],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    },
+    {
+      "workflow": "project-memory-link",
+      "order": 5,
+      "action": "project_memory_record_link",
+      "action_class": "['GOVERNANCE']",
+      "schema_path": "schemas/actions/project_memory_record_link.schema.json",
+      "schema_sha256": "C5BF34EDAC337E5ED2F75D17CEEAFFE38EAC4CE30227B282172BCEDB621D6348",
+      "sdk_binding": "sdk/actions/project_memory_record_link.action.v1.json",
+      "mcp_binding": "mcp/actions/project_memory_record_link.binding.v1.json",
+      "current_route": {
+        "tool": "project_memory_record_link",
+        "capability": "project_memory",
+        "current_route": "INDEPENDENT_PROJECT_MEMORY_FTS5_LOCATOR_GRAPH",
+        "owner": "evi-memory",
+        "status": "CURRENT_ROUTE",
+        "executable": true,
+        "fallback_allowed": false
+      },
+      "candidate_lanes": [
+        "analysis",
+        "artifacts",
+        "brain_loader",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "discussion",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "mode",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "project_engulf",
+        "research",
+        "sqlite_brain"
+      ],
+      "tool_roles": {
+        "task_execution": [
+          "ENV_UOP_classifier",
+          "Hash_chain_writer",
+          "PCM_MBA_operators",
+          "SQLite_CAS"
+        ],
+        "transport_orchestration": [
+          "OpenAI_Agents_SDK",
+          "Pydantic"
+        ],
+        "external_services_or_stores": [],
+        "observability_evaluation_attachments": [
+          "LangSmith",
+          "Langfuse",
+          "OpenTelemetry"
+        ]
+      },
+      "env_contract": "SELECT_CONTEXT_HOST_LANE_AUTHORITY_LOCALITY_AVAILABILITY_GRANT",
+      "uop_contract": "APPLY_OPERATORS_FORMULAS_WORK_PRIVACY_DISCLOSURE_HIL_AND_FALLBACK_GATES",
+      "hook_contract": {
+        "registry_events": [
+          "SessionStart",
+          "SubagentStart",
+          "UserPromptSubmit",
+          "PreToolUse",
+          "PermissionRequest",
+          "PostToolUse",
+          "PreCompact",
+          "PostCompact",
+          "SubagentStop",
+          "Stop",
+          "SessionEnd"
+        ],
+        "run_only_events_emitted_by_current_action": true,
+        "hooks_are_not_action_owners": true
+      },
+      "receipt_required": true,
+      "hil_inference_allowed": false
+    }
+  ],
+  "missing_tool_behavior": "FAIL_CLOSED_NO_ALIAS_NO_PREFIX_REWRITE",
+  "internal_sdk_is_execution_owner": true,
+  "env_and_uop_are_distinct": true,
+  "outer_sdk_and_mcp_are_transport_only": true,
+  "authority_and_lane_resolve_per_action_and_state": true,
+  "every_condition_true_step_runs_or_fails_visible": true,
+  "workflow_or_count_ceiling": false,
+  "receipt_sha256": "72E0B2F4C1AF8BEE0752B1155532B5FAADB97F35F4B182AB33D274B79DCF1BE6"
+}

@@ -12,7 +12,6 @@
     "named_authorities",
     "absorbed_legacy_paths",
     "obsolete_paths_removed_after_hash_readback",
-    "obsolete_paths_tombstoned",
     "accepted_folder_queried"
   ],
   "properties": {
@@ -25,13 +24,10 @@
     "obsolete_paths_removed_after_hash_readback": {
       "const": true
     },
-    "obsolete_paths_tombstoned": {
-      "const": false
-    },
     "accepted_folder_queried": {
       "const": false
     }
   },
   "additionalProperties": true,
-  "receipt_sha256": "1901ED42059E8B9986925CCE15B29148304F89687B9D4A9FFBDE748B4E830267"
+  "receipt_sha256": "05EE3A4649BF0CFBC3432DF5972455151B0185B8C180A562B72775EF4CA89F23"
 }

@@ -1,116 +1,84 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2 -->
+<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / registry-derived-v1 -->
 
-# Canon task graph and Canon Input HIL
+# Canon task graph and input HIL
 
-Canon is a project-isolated coordination authority for typed communication
-between persistent governed tasks. It is not Project Truth, Agent Learning,
-ChatLineage, a shared mutable memory, or permission to edit another task.
+Canon coordinates typed evidence, requirements, corrections, plans, and results between exact governed tasks without merging their Project Truth, Learning, Plan, Goal, ownership, or HIL.
 
-## Authority boundary
+Current counts are derived release facts, not permanent ceilings.
 
-Every envelope binds exact source and destination project IDs, task UUIDs and
-deep links, lane and Delta IDs, accepted source PV/generation/manifest/package,
-schema and payload hashes, expected contract, evidence references, expiry,
-revision, replay identity, and ordered route trace. Runtime validation rejects
-secret-bearing payloads and every action that could write source, write Git,
-build or promote a candidate, decide another HIL, move a pointer, Fuse, install,
-or deploy.
+| Action | Access | Internal owner |
+| --- | --- | --- |
+| `canon_backfire_hil` | write-capable | `canon_input:backfire_hil` |
+| `canon_bind_edge` | write-capable | `canon_input:bind_edge` |
+| `canon_classify` | write-capable | `canon_input:classify` |
+| `canon_decide` | write-capable | `canon_input:decide` |
+| `canon_dispatch_linked_task` | write-capable | `canon_input:dispatch_linked_task` |
+| `canon_graph` | read | `canon_input:graph` |
+| `canon_inbox` | read | `canon_input:inbox` |
+| `canon_inspect` | read | `canon_input:inspect` |
+| `canon_receive` | write-capable | `canon_input:receive` |
+| `canon_register_contract` | write-capable | `canon_input:register_contract` |
+| `canon_register_edge` | write-capable | `canon_input:register_edge` |
+| `canon_restore_continuity` | write-capable | `canon_input:restore_continuity` |
+| `canon_seal_continuity` | write-capable | `canon_input:seal_continuity` |
+| `canon_seal_envelope` | write-capable | `canon_input:seal_envelope` |
+| `canon_seal_result` | write-capable | `canon_input:seal_result` |
+| `canon_supersede` | write-capable | `canon_input:supersede` |
+Each envelope binds source/destination task identity, direction, schema, expected contract, dependency, expiry, evidence, and result requirements. The receiver owns classification and the three-way Canon Input HIL: ACCEPT, REJECT, or MORE_RESEARCH.
 
-The durable project-local authority is `canon/canon-input.sqlite`, accompanied
-by immutable contract, packet, edge, receipt, and State Travel continuity JSON.
-Project Truth and Agent Learning identities are sampled before and after every
-Canon write. Drift fails closed.
+Linked top-level tasks may own independent HIL. Explicitly authorized subagents may perform bounded work but never own HIL. Backfire is deduplicated and addressed to the task that can supply the missing input. State Travel continuity preserves the graph; it does not execute State Travel or replay decisions.
 
-The operational ledger remains the sole decision authority. A separate
-content-addressed consequence projection may be refreshed through the private
-SDK operation `canon_input:bootstrap_consequence_graph`. It binds the exact
-project layout, all 18 sector references, accepted PV/generation/manifest,
-active Plan task, Plan/steer database, Learning ledger, Canon ledger, host task
-UUID/deep link, and ChatLineage head. Each input fingerprint produces one
-immutable SQLite, Mermaid, DOT, manifest, and receipt bundle under
-`canon/consequence-graphs/`; `canon/consequence-graph-current.json` points to
-the verified current bundle. Exact replay reuses the bundle without reporting
-a write effect.
+## Source-bound workflow map
 
-The projection records task dependencies, steer links, Learning provenance,
-typed Canon handoffs, result returns, backfires, sector bounds, and the active
-host-task relationship. It is a bounded graph index, not another decision
-store: refresh cannot admit Canon input, accept Learning, create a Project
-candidate, invoke any HIL, infer ordinary approval, or move either pointer.
-`canon_graph` returns its counts and hashes only; raw Plan/Learning rows and the
-full graph are not loaded into model context.
+This page is projected from the same current executable snapshot as the rest of the documentation set. The map is deliberately two-directional: each horizontal district shows peer stages while vertical edges show ownership and state progression.
 
-## Admission state machine
+```mermaid
+flowchart TB
+    subgraph InputDistrict["Input and classification"]
+      direction LR
+      A["Typed cross-task requirement or result"] --> B["Envelope and contract classification"] --> C["Receiver-owned Canon authority"]
+    end
+    subgraph ExecutionDistrict["Selection and execution"]
+      direction TB
+      D["Canon Input HIL"] --> E["Bind edge, backfire, or return"] --> F["Cycle, expiry, and schema validation"]
+    end
+    subgraph EvidenceDistrict["Evidence and outcome"]
+      direction LR
+      G["Canon continuity receipt"] --> H["Exact linked-task continuation"]
+      G -. mismatch .-> I["Reject ambiguity without merging tasks"]
+    end
+    C --> D
+    F --> G
+```
 
-An envelope starts at `PROPOSED`, then the receiving project records
-`RECEIVED` and `VALIDATED`.
+## Contract and readback
 
-- An exact active expected-contract match becomes `EXPECTED_ADMITTED` without
-  a human prompt.
-- An undefined or incompatible packet becomes `PENDING_HIL` in the receiving
-  top-level task only.
-- That receiver may issue exactly `ACCEPT`, `REJECT`, or `MORE_RESEARCH`.
-- `ACCEPT` admits only that immutable packet revision as bounded Canon input.
-- `REJECT` preserves the packet, reason, receipt, and source-notification need.
-- `MORE_RESEARCH` preserves a bounded field request and requires a new linked
-  revision. The predecessor becomes `SUPERSEDED`; it is never rewritten.
+| Phase | Current contract | Required readback |
+| --- | --- | --- |
+| Input | Typed cross-task requirement or result | Exact identity, provenance, and scope |
+| Classification | Envelope and contract classification | Owning schema, action, lane, skill, or authority |
+| Owner | Receiver-owned Canon authority | One canonical implementation owner |
+| Route | Canon Input HIL | Condition-true ordered route with no hidden alias |
+| Execution | Bind edge, backfire, or return | Real execution or a visible fail-closed result |
+| Validation | Cycle, expiry, and schema validation | Hash, schema, authority-effect, and negative-case checks |
+| Receipt | Canon continuity receipt | Content-addressed result and provenance receipt |
+| Downstream | Exact linked-task continuation | Only the explicitly eligible next state |
+| Failure | Reject ambiguity without merging tasks | No inferred HIL, candidate acceptance, or pointer movement |
 
-An exact replay returns the prior receipt. A changed actor, reason, request,
-timestamp, packet hash, or revision is not an idempotent replay.
+## Canonical source owners
 
-## Linked task graph
+- `authorities/canon_input/manifest.v1.json`
+- `authorities/canon_input/consequence_graph/manifest.v1.json`
+- `skills/evi-canon/SKILL.md`
 
-Typed edges support upstream, downstream, and lateral task links, including
-fan-out and fan-in. Edges bind the exact source/destination tasks, contracts,
-dependencies, paths, tools, execution scope, return contract, expiry, and host
-write receipt. Cycles and self-links fail closed.
+## Cross-surface invariants
 
-Top-level destinations may own their own independent HIL. Subagents never own
-HIL, cannot receive lifecycle/pointer/Fuse/Git tools, and require current user
-authority before launch. Every governed read-write edge additionally requires
-an external host task contract and exact bounded paths. Canon itself never
-grants that write authority.
+- The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.
+- Executable ownership stays one-way: skills select, MCP exposes, the outer SDK routes, the internal SDK executes, ENV selects, UOP governs, tools perform bounded work, hooks emit receipts, and the owning authority validates effects.
+- Any missing identity, schema, grant, capability, dependency, receipt, or authority proof must fail closed at its owning phase; a later green check cannot retroactively authorize the skipped boundary.
+- A changed route refreshes every dependent schema, manifest, generator, test, diagram, and documentation reference; the superseded executable route is directly purged in the same Delta.
+- Tests, Git, CI, installation, restart, deployment, discussion, or a rendered page never imply Project HIL, Learning HIL, Goal completion, or pointer movement.
 
-The provider-neutral dispatcher calls a supported host create-task operation
-once and then seals the returned task UUID/deep link. If a provider cannot
-programmatically create the task, it reports `HOST_CAPABILITY_UNAVAILABLE`;
-the engine does not fabricate a destination or bind by title/CWD. The local SDK
-therefore exposes the full dispatch contract while truthfully leaving that one
-provider-owned operation unavailable.
+---
 
-## Results, backfire, and State Travel
-
-A destination binds the immutable received edge before sealing a typed
-`TASK_RESULT` envelope to the source. No local Project HIL, Learning HIL,
-pointer state, or source-write authority propagates with the result.
-
-Backfire is conditional: it is allowed only when admitted input exposes a
-bounded upstream failure, missing source information, new source requirement,
-or linked-task input need. It seals one correction packet to the exact
-recipient, requires a newer revision, deduplicates identical requests, rejects
-changed bytes under the same dedup identity, blocks route cycles, and never
-automatically retries. Expected responses auto-admit; undefined or incompatible
-responses stop at the exact recipient's three-way Canon Input HIL.
-
-State Travel may carry pending Canon locators and hashes as continuity context.
-It cannot carry or replay a Canon decision, mutate Canon state, or move the
-Project Truth pointer. Consumption is bound exactly once to the destination
-task/deep link/host-session tuple.
-
-## Schemas and proof
-
-The package contains:
-
-- `schemas/canon-envelope.schema.json`
-- `schemas/canon-expected-contract.schema.json`
-- `schemas/canon-task-edge.schema.json`
-- `schemas/canon/canon-consequence-graph.v1.sql`
-
-`tests/test_canon_task_graph.py` covers expected and undefined admission,
-receiver ownership, all three decisions, replay conflict, revision and
-supersession, cross-project dispatch/result return, subagent denial, cycles,
-backfire deduplication, secret and authority escalation rejection, and
-State Travel's no-decision boundary.
-`tests/test_canon_consequence_graph.py` covers exact project/pointer/task
-binding, all-sector projection, Plan/Learning edges, immutable replay, SDK
-ownership, and fail-closed mismatch handling.
+This page is a Git-tracked documentation projection. Executable source, SQLite authorities, installed-runtime receipts, and explicit human gates remain the governing evidence.

@@ -125,7 +125,7 @@ def test_plugin_release_cycle_never_leaks_into_downstream_project_pvs() -> None:
                 "write_actions": NATIVE_WRITE_TOOL_COUNT,
                 "governed_skills": GOVERNED_SKILL_COUNT,
             "hook_events": 11,
-            "migrated_command_skills": 26,
+            "separate_command_layer_present": False,
         },
         "installed_ui_readback_required_before_pv13_hil": True,
         "main_git_release_slot_mutation_allowed": True,
@@ -269,7 +269,7 @@ def test_promotion_requires_matching_cross_surface_receipts_and_hil() -> None:
         (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
     )
     promotion = contract["promotion_gate"]
-    assert promotion["explicit_six_way_hil_required"] is True
+    assert promotion["explicit_authority_hil_required"] is True
     assert promotion["required_catalog"] == {
         "tools": NATIVE_TOOL_COUNT,
         "read": NATIVE_READ_TOOL_COUNT,
@@ -580,7 +580,7 @@ def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> N
         PLUGIN / "skills" / "evidence-lane-code-lifecycle" / "SKILL.md",
         PLUGIN / "skills" / "evi" / "SKILL.md",
         PLUGIN / "skills" / "evi-state-travel" / "SKILL.md",
-        PLUGIN / "commands" / "evi-plan.md",
+        PLUGIN / "skills" / "evi-plan" / "SKILL.md",
     ]
     for source in behavior_sources:
         text = source.read_text("utf-8")
@@ -597,7 +597,10 @@ def test_codex_behavior_belongs_to_skills_and_hooks_remain_lifecycle_only() -> N
     for skill in sorted((PLUGIN / "skills").glob("*/SKILL.md")):
         if skill.parent.name in explicit_behavior_skills:
             continue
-        assert "../evidence-lane-code-lifecycle/SKILL.md" in skill.read_text("utf-8")
+        text = skill.read_text("utf-8")
+        assert (
+            "../evidence-lane-code-lifecycle/references/shared-boundaries.md" in text
+        )
 
     hook_text = "\n".join(
         (PLUGIN / "hooks" / name).read_text("utf-8")

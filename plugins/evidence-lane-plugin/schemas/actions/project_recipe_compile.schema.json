@@ -40,6 +40,54 @@
         ],
         "default": null,
         "title": "Explicit Project Type"
+      },
+      "mode_request": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Mode Request"
+      },
+      "explicit_modes": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Explicit Modes"
+      },
+      "custom_modes": {
+        "anyOf": [
+          {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Custom Modes"
+      },
+      "code_lane": {
+        "default": "local_code",
+        "title": "Code Lane",
+        "type": "string"
       }
     },
     "required": [
@@ -85,8 +133,8 @@
     ],
     "executable": true
   },
-  "canonical_schema_sha256": "9B995E704D12C8C56BDCA41E1280D60302541F74513E54E618AF121DDFE5C59A",
+  "canonical_schema_sha256": "8CCF5C36A0E546B2D521B03560DECB2D893B19DEB694B98E097BE40EDDEF8A37",
   "canonical_catalog": "schemas/public-action-schemas.v001.json",
   "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
-  "receipt_sha256": "D6C4FF5026279CC34A4E9CBB40B104C2D411893A88189B24558CC06FF26D12B4"
+  "receipt_sha256": "CDC07B9AE1344A4A07A2F069F27AB74376634239D78FF98E47A499D6A6602782"
 }

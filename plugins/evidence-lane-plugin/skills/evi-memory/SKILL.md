@@ -6,12 +6,13 @@ description: Query and link the independent Project Memory DB through bounded FT
 # Evidence Lane Project Memory
 
 Before any tool call, read and apply
-`../evidence-lane-code-lifecycle/SKILL.md`, including its hook/skill ownership
+`../evidence-lane-code-lifecycle/references/shared-boundaries.md`, including its hook/skill ownership
 contract. This skill owns Project Memory behavior; hooks provide lifecycle
 receipts only.
 
 Project Memory is its own project-scoped SQLite/FTS5 authority. It links bounded
-locators from Plan, all 18 sectors and Project Engulf, AI Learning, Canon,
+locators from Plan, the complete current sector registry including Project
+Engulf, AI Learning, Canon,
 Project Universe, connector brain, receipts, and compaction continuity. It does
 not replace or merge those authorities. Resolved `AGENTS.md` and host
 conversation `MEMORY.md` remain separate instruction/recall arms.

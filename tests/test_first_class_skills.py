@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +17,13 @@ EXPECTED = {
 
 def test_first_class_skills_are_distinct_thin_workflow_owners() -> None:
     all_skills = sorted(SKILLS.glob("*/SKILL.md"))
-    assert len(all_skills) == 25
+    registry = json.loads(
+        (SKILLS / "skill-surface-registry.v1.json").read_text(encoding="utf-8")
+    )
+    assert len(all_skills) == registry["skill_count"]
+    assert {path.parent.name for path in all_skills} == {
+        row["name"] for row in registry["skills"]
+    }
     for name, required in EXPECTED.items():
         path = SKILLS / name / "SKILL.md"
         agent = SKILLS / name / "agents" / "openai.yaml"

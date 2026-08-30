@@ -6,32 +6,38 @@ from collections.abc import Mapping
 from typing import Any
 
 from .errors import require
+from .models import HilDecision
 
-HIL_CHOICES = (
-    "APPROVE",
-    "APPROVE_WITH_DELTA",
-    "MORE_RESEARCH",
-    "ROLLBACK",
-    "REJECT",
-    "FAIL",
+PROJECT_HIL_DECISION_TOKENS = tuple(decision.value for decision in HilDecision)
+LEARNING_HIL_DECISION_TOKENS = tuple(decision.value for decision in HilDecision)
+CANON_HIL_DECISION_TOKENS = ("ACCEPT", "REJECT", "MORE_RESEARCH")
+
+_PROJECT_HIL_PROMPT_FORMS = {
+    "APPROVE": "APPROVE",
+    "APPROVE_WITH_DELTA": "APPROVE_WITH_DELTA: correction",
+    "MORE_RESEARCH": "MORE_RESEARCH: question",
+    "ROLLBACK": "ROLLBACK[: PVn]",
+    "REJECT": "REJECT: reason",
+    "FAIL": "FAIL: gate",
+}
+require(
+    set(_PROJECT_HIL_PROMPT_FORMS) == set(PROJECT_HIL_DECISION_TOKENS),
+    "PROJECT_HIL_PROMPT_POLICY_DRIFT",
+    "Every current Project-authority decision needs one visible prompt form.",
+    status="MISMATCH",
 )
-
 HIL_SUGGESTED_PROMPT = (
-    "/evi-build <APPROVE | APPROVE_WITH_DELTA: correction | "
-    "MORE_RESEARCH: question | ROLLBACK[: PVn] | REJECT: reason | FAIL: gate>"
+    "/evi-build <"
+    + " | ".join(
+        _PROJECT_HIL_PROMPT_FORMS[token]
+        for token in PROJECT_HIL_DECISION_TOKENS
+    )
+    + ">"
 )
 
-PUBLIC_CONTROLS = (
-    "/evi-boot",
-    "/evi-rollback",
-    "/evi-build",
-    "/evi-refresh",
-    "/evi-mode",
-    "/evi-source-intake",
-)
 SOURCE_INTAKE_COMMANDS = ("/evi-source-intake",)
 
-_DIRECT_COMMAND_ROUTES = (
+_HUMAN_ENTRYPOINT_ROUTES = (
     {
         "command": "/evi-boot",
         "skill": "evi-boot",
@@ -90,6 +96,27 @@ _DIRECT_COMMAND_ROUTES = (
     },
 )
 
+
+def authority_hil_decision_registry() -> dict[str, tuple[str, ...]]:
+    """Return current HIL vocabularies by owning authority.
+
+    The returned sets are current registry snapshots, not a cross-authority
+    vocabulary or a count ceiling. Adding or removing a decision in its owning
+    authority automatically changes every derived presentation.
+    """
+
+    return {
+        "PROJECT_AUTHORITY": PROJECT_HIL_DECISION_TOKENS,
+        "AGENT_LEARNING": LEARNING_HIL_DECISION_TOKENS,
+        "CANON_INPUT": CANON_HIL_DECISION_TOKENS,
+    }
+
+
+def human_entrypoints() -> tuple[str, ...]:
+    """Return the current ordered registry-derived human entrypoints."""
+
+    return tuple(str(route["command"]) for route in _HUMAN_ENTRYPOINT_ROUTES)
+
 BOOT_SUGGESTED_PROMPT = (
     "Use /evi-source-intake with one or more ordered sources; allow auto-detection "
     "or name exact per-source lane overrides. Chat Lineage is always included."
@@ -97,11 +124,11 @@ BOOT_SUGGESTED_PROMPT = (
 
 
 def direct_command_map() -> dict[str, Any]:
-    """Return the one deterministic prompt-to-primary-control map."""
+    """Return the deterministic prompt-to-current-entrypoint map."""
 
     return {
         "schema": "evidence-lane.direct-command-map.v1",
-        "ordered_controls": list(PUBLIC_CONTROLS),
+        "ordered_entrypoints": list(human_entrypoints()),
         "routes": [
             {
                 "command": route["command"],
@@ -109,8 +136,9 @@ def direct_command_map() -> dict[str, Any]:
                 "explicit_invocation": route["command"],
                 "inferred_phrases": list(route["inferred_phrases"]),
             }
-            for route in _DIRECT_COMMAND_ROUTES
+            for route in _HUMAN_ENTRYPOINT_ROUTES
         ],
+        "entrypoint_count_is_behavior_ceiling": False,
         "explicit_and_inferred_share_skill": True,
         "route_selection_changes_authority": False,
         "selected_skill_must_run_native_gates": True,
@@ -158,7 +186,9 @@ def resolve_direct_command_route(
     )
     first_token = normalized.split(" ", 1)[0] if normalized else ""
     explicit = [
-        route for route in _DIRECT_COMMAND_ROUTES if first_token == route["command"]
+        route
+        for route in _HUMAN_ENTRYPOINT_ROUTES
+        if first_token == route["command"]
     ]
     if explicit:
         route = explicit[0]
@@ -201,7 +231,7 @@ def resolve_direct_command_route(
 
     matches = [
         (route, phrase)
-        for route in _DIRECT_COMMAND_ROUTES
+        for route in _HUMAN_ENTRYPOINT_ROUTES
         for phrase in route["inferred_phrases"]
         if phrase in normalized
     ]
@@ -242,7 +272,7 @@ def boot_next_action(*, entry_action: str) -> dict[str, Any]:
         "command": "/evi-source-intake",
         "suggested_next_prompt": BOOT_SUGGESTED_PROMPT,
         "ordered_source_intake_commands": list(SOURCE_INTAKE_COMMANDS),
-        "public_controls": list(PUBLIC_CONTROLS),
+        "human_entrypoints": list(human_entrypoints()),
         "direct_command_map": direct_command_map(),
         # Retain the compatibility key while making the no-auto-travel law
         # explicit for hosts that consumed the v0.6 contract.
@@ -275,11 +305,16 @@ def hil_next_action(
 
     result = {
         "schema": "evidence-lane.next-action.v1",
-        "state": "PRESENT_SIX_WAY_HIL",
+        "state": "PRESENT_PROJECT_AUTHORITY_HIL",
         "display_position": "BEFORE_HIL_DECISION",
         "command": "/evi-build",
         "suggested_next_prompt": HIL_SUGGESTED_PROMPT,
-        "choices": list(HIL_CHOICES),
+        "choices": list(PROJECT_HIL_DECISION_TOKENS),
+        "decision_registry": {
+            authority: list(tokens)
+            for authority, tokens in authority_hil_decision_registry().items()
+        },
+        "decision_count_is_behavior_ceiling": False,
         "project_id": project_id,
         "session_id": session_id,
         "candidate_id": candidate_id,
@@ -298,10 +333,10 @@ def hil_next_action(
             mode_execution.get("lane_hil_contracts") or []
         )
         result["hil_semantics"] = (
-            "UNIVERSAL_EXACT_TOKENS_WITH_SELECTED_LANE_SPECIFIC_EFFECTS"
+            "PROJECT_AUTHORITY_POLICY_WITH_SELECTED_LANE_SPECIFIC_EFFECTS"
         )
     else:
-        result["hil_semantics"] = "UNIVERSAL_EXACT_TOKENS_NO_MODE_SELECTED"
+        result["hil_semantics"] = "PROJECT_AUTHORITY_POLICY_NO_MODE_SELECTED"
     return result
 
 

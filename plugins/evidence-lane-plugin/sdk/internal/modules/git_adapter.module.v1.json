@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.git_adapter",
   "source_path": "src/evidence_lane_plugin/git_adapter.py",
-  "source_sha256": "EBA09BF8D6A7A8AE91CCFF2853CB4A6FD3C6661CAD77DDD7544CE00B05CBA7D5",
-  "source_bytes": 22804,
+  "source_sha256": "BF5424078C30961CCC341F7003AA2AB903BB9FDB493CB2857392F1E57DF5915F",
+  "source_bytes": 24008,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "B6E1662C116170DC4512AC4213EBEA199D3C291B8F9E9E4719890D4A22CDCD78"
+  "receipt_sha256": "AB53E3854F4F4DF07C5FF59004272042E1D6F4CED8A415709D91C5B5499688AF"
 }

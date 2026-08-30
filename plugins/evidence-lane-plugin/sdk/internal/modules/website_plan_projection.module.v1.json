@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.website_plan_projection",
   "source_path": "src/evidence_lane_plugin/website_plan_projection.py",
-  "source_sha256": "B0D1A39C8EF0B17B2516B2F6D7FF26ABFDA7FE73566B2EEA2EF5680D8E32100D",
-  "source_bytes": 17757,
+  "source_sha256": "0240FAEE761E8406B8842453281249DD699C989A5D13845BE138122B398A56ED",
+  "source_bytes": 17759,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "2D16687C1ED67CD1B6D16A28E41280D22C2BA5052CC7EA6B95375CF8A15E690F"
+  "receipt_sha256": "631615AF9DADD661AFD05A7F667DEDEE40385B6DBC3BCE74AEA506A27A68B3BA"
 }

@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_memory",
   "database": "memory.sqlite",
-  "database_sha256": "0E640961983DA01C6CE8F4E04D10C026A0446E2D9BE13DC6747CCB40DFA1F25A",
+  "database_sha256": "9B2A84C2CB7CF068FF0761AD2F376A1FBE0C077348D8612991E7E84AA63ACDF8",
   "database_integrity": "ok",
-  "schema_sha256": "E2E625B73388A38D4D6CADE759626FC99D8DA8E53BD5C6D2044ABC703D4C239D",
+  "schema_sha256": "222CB0823F801ADF0C35F1BBBBAC38179E83E2CBFD5C855B9DD753935EC4F8B0",
   "table_count": 22,
   "fts5_tables": [
     "authority_index_fts",
@@ -34,23 +34,23 @@
     },
     {
       "path": "authorities/project_memory/memory.dot",
-      "bytes": 40582,
-      "sha256": "D9D44D6F0371377E057FF75E968D7D99757FBF884B9085C77BC6269EC353DE3C"
+      "bytes": 54685,
+      "sha256": "B510506E1E5B74E91F3244BE44FA3EC8C3D094B9ABD7674BDD21ABCCC790CF72"
     },
     {
       "path": "authorities/project_memory/memory.mmd",
-      "bytes": 30436,
-      "sha256": "9EDE48A40DFA6EF4BA1C4D59EF983B1E22D182661498F703370216256AA72A16"
+      "bytes": 41116,
+      "sha256": "A1BDC76FC029B157127768EE784599FD49A4329C12016AB5405776911FF8296A"
     },
     {
       "path": "authorities/project_memory/memory.sqlite",
-      "bytes": 176128,
-      "sha256": "0E640961983DA01C6CE8F4E04D10C026A0446E2D9BE13DC6747CCB40DFA1F25A"
+      "bytes": 180224,
+      "sha256": "9B2A84C2CB7CF068FF0761AD2F376A1FBE0C077348D8612991E7E84AA63ACDF8"
     },
     {
       "path": "authorities/project_memory/memory.tools.json",
-      "bytes": 13172,
-      "sha256": "37397DA0AFF60D4BCED9728D6E73489EE2E886C32B7A9203B8F814491BE8D2B6"
+      "bytes": 13904,
+      "sha256": "39D5C5E3C7527A6DA03DF9947FB361008CD37F28FE4E3E84CD9A097FB435A4D6"
     },
     {
       "path": "authorities/project_memory/mmd-artifact.schema.json",
@@ -99,8 +99,8 @@
     },
     {
       "path": "authorities/project_memory/schema.sql",
-      "bytes": 5352,
-      "sha256": "68F24FC1B517AD4304659DE4C52C8779604B4C4299E2016AF698CCEB82F35092"
+      "bytes": 5868,
+      "sha256": "BD8A60B2973E7AA058382C717C30C10B0C5A2D642A480CDE0C4DFBBFE2528832"
     },
     {
       "path": "authorities/project_memory/sqlite-artifact.schema.json",
@@ -109,13 +109,28 @@
     },
     {
       "path": "authorities/project_memory/sqlite-schema.v1.json",
-      "bytes": 33834,
-      "sha256": "2103F6763F1D373CE2AF1F983FC457073D534FC64C33D66153EEE136562E9962"
+      "bytes": 34604,
+      "sha256": "167B67CF940CAF29287F2CB85138C6FCBDEB348C3462A44977DEE01C94AE2AC7"
     },
     {
       "path": "authorities/project_memory/tools.schema.json",
       "bytes": 530,
       "sha256": "7918E6B46795B30EB36A65BC127D7B2ED6D85322B5BD6C816D110392F3EEEE71"
+    },
+    {
+      "path": "authorities/project_memory/workflow.dot",
+      "bytes": 5888,
+      "sha256": "D8C1495905CE8BA462CFF2FD7E0143BDD2D89A36C5549CD0DF5ED5B6490D15B1"
+    },
+    {
+      "path": "authorities/project_memory/workflow.mmd",
+      "bytes": 4684,
+      "sha256": "28C35C674BA7EA363BC1EC2EDE8DC8FF58F698B38B1C700789217C27F5D930C3"
+    },
+    {
+      "path": "authorities/project_memory/workflow.v1.json",
+      "bytes": 13945,
+      "sha256": "B2F7AA90E2FF0CBAADD5E82ADADB04C79EA4541378117A0719664DC6DF938DBE"
     }
   ],
   "canonical_source_hashes": {
@@ -141,24 +156,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:05.621768Z",
-    "receipt_sha256": "0CF6CA21B72546E7358D7CF35824FE0BDABD0AE46F64ABB5D66EFDA03B4618EE"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "26B734536048DEAC274CE7A372C282AF900BF0FD2ED1D56AF1465627CE994E80"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "project_memory_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 151,
-    "edge_count": 156,
+    "node_count": 150,
+    "edge_count": 158,
     "group_count": 1,
-    "semantic_topology_sha256": "6EFF48B4C6650CC6F7D2AABB4558A93119106F0F8EAACF04E2EC691E6F088EFD",
-    "mmd_sha256": "9EDE48A40DFA6EF4BA1C4D59EF983B1E22D182661498F703370216256AA72A16",
-    "dot_sha256": "D9D44D6F0371377E057FF75E968D7D99757FBF884B9085C77BC6269EC353DE3C",
+    "semantic_topology_sha256": "7CB1BFF3A46A9ACE517D2F3894CA02EAF6633952CC45E2533D54AA2E61CEF464",
+    "mmd_sha256": "A1BDC76FC029B157127768EE784599FD49A4329C12016AB5405776911FF8296A",
+    "dot_sha256": "B510506E1E5B74E91F3244BE44FA3EC8C3D094B9ABD7674BDD21ABCCC790CF72",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "410F3F7A71A9B7B4FAF085CC8855BAD60154BEAA2C9E478F46A5D55BB9DD1FEF",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "9DDC5BD6217D50D522BEA8F2C80672214F3AA1623A433EC3CF3D6B9C87C32913",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -168,10 +183,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 151,
-      "edge_count": 156,
+      "node_count": 150,
+      "edge_count": 158,
       "weak_component_count": 1,
-      "strong_component_count": 151,
+      "strong_component_count": 150,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -207,12 +222,17 @@
         {
           "node_id": "support_table_authority_index_node",
           "in_degree": 1,
-          "out_degree": 9
+          "out_degree": 10
         },
         {
           "node_id": "support_table_authority_index_source",
           "in_degree": 2,
-          "out_degree": 7
+          "out_degree": 8
+        },
+        {
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_memory_rehydration_receipt",
@@ -223,11 +243,6 @@
           "node_id": "support_table_memory_locator_fts_content",
           "in_degree": 1,
           "out_degree": 7
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
         },
         {
           "node_id": "support_table_memory_locator_fts",
@@ -250,6 +265,11 @@
           "out_degree": 4
         },
         {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
           "node_id": "support_table_authority_index_fts_idx",
           "in_degree": 1,
           "out_degree": 3
@@ -268,23 +288,23 @@
           "node_id": "support_table_authority_index_fts_data",
           "in_degree": 1,
           "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 2
         }
       ],
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "4B4DE3C87411995132CE2F091CCF4314059053B093ADFF5EAE879BB30B1DA3A0",
+    "graph_analysis_sha256": "30925F38E7FC40721597F53F923CAACBDC81960DC96CFA1CAB4517CF5B1340A6",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 90,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "554D9369D8E7203FB91A4FBF3FFBE1B1404E187AC1FC289C76DC1F69EC956233"
+    "receipt_sha256": "3C28B63CA63DB0B9640000949DCBF8A7F439127038C3B8ACA2312C2D59262949"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "3381D1433913ACF70980E37FE7DD6C5FE8E9A0B164EF64B3B9AB4513FF4D0AD0"
+  "receipt_sha256": "30D2FE1E2790FB7B0E7D1D9EDE2984928FAD0D7BF6246A362C98366F24AD4349"
 }

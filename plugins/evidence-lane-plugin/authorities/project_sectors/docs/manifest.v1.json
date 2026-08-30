@@ -4,8 +4,8 @@
   "lane_id": "docs",
   "sqlite_filename": "docs_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 37,
-  "schema_contract_table_count": 27,
+  "sqlite_table_count": 36,
+  "schema_contract_table_count": 28,
   "members": [
     {
       "path": "authorities/project_sectors/docs/builder-contract.schema.json",
@@ -19,18 +19,18 @@
     },
     {
       "path": "authorities/project_sectors/docs/docs.dot",
-      "bytes": 17983,
-      "sha256": "1C1DF9DBC582F51AE8066A3E22C8C48A7B39EB862F7A6A25FDA2BB6E5C6EA246"
+      "bytes": 18849,
+      "sha256": "FD6457E2951B92B79274105E52100C4ED39FEF4C9E17C782C76796A70993D1B1"
     },
     {
       "path": "authorities/project_sectors/docs/docs.mmd",
-      "bytes": 14289,
-      "sha256": "FA7AB5A04E8BF97A6328F4FF236158A838A7976D3F64BC9E6C5601A64256C153"
+      "bytes": 14993,
+      "sha256": "460E94BB233695080CECEAEC7654554284D3BC820F09595E60C44BF883ADF971"
     },
     {
       "path": "authorities/project_sectors/docs/docs_sector_v001.sqlite",
-      "bytes": 245760,
-      "sha256": "5D20A4DF72A75D14F0B9E2AD61F5AF813CDA4286D4BBB8AB55630CD00F44337A"
+      "bytes": 249856,
+      "sha256": "842DB8267FFA1DB9AA9CB9C5AFB950B13871AA447458DF21A8889DFC03677F7F"
     },
     {
       "path": "authorities/project_sectors/docs/dot-artifact.schema.json",
@@ -39,8 +39,8 @@
     },
     {
       "path": "authorities/project_sectors/docs/lane-contract.v1.json",
-      "bytes": 7625,
-      "sha256": "B48D8A4C43A3B99DAA5AC91DC26B9C268749BEC9E87EE4A1215CF94CC571154D"
+      "bytes": 8581,
+      "sha256": "FF49DFF6C893A51447E24BEFE0643B74DBCC73F7DDEBD4EBEB2DF208A770D47A"
     },
     {
       "path": "authorities/project_sectors/docs/lane-pointer.schema.json",
@@ -79,8 +79,8 @@
     },
     {
       "path": "authorities/project_sectors/docs/schema.sql",
-      "bytes": 9312,
-      "sha256": "C53A648BE6C7CBFD8FC296764163323C20BA37935562D078B3B6268CF7EC044A"
+      "bytes": 9899,
+      "sha256": "7AA9B6825DB54A8877EC816A49591D63F11C7E4B0BA75A03997C81283653BEC6"
     },
     {
       "path": "authorities/project_sectors/docs/sqlite-artifact.schema.json",
@@ -89,19 +89,34 @@
     },
     {
       "path": "authorities/project_sectors/docs/tools.json",
-      "bytes": 1146,
-      "sha256": "5E3E671B978B9EA338BA4F296C0534BB4764D893CB006F91384CC613AF1E9C89"
+      "bytes": 14811,
+      "sha256": "2B022C0408EBFC75D8032AD05EFA44D5D774628CCBA13235A7D1AAB7F606AFB1"
     },
     {
       "path": "authorities/project_sectors/docs/tools.schema.json",
-      "bytes": 993,
-      "sha256": "54A3653D9B391EE614E299AD4D068E9E0EB78264DC11B63494960645BEB1D254"
+      "bytes": 1439,
+      "sha256": "6C92E4D4EE0018E2AEB716CCF6D1FEB6841F0D3F138329C00EC905943B4DC616"
+    },
+    {
+      "path": "authorities/project_sectors/docs/workflow.dot",
+      "bytes": 6424,
+      "sha256": "FFA65DEC4DDD6FB6D8B53DD40897764E4E535B183C051582762842291C9A1405"
+    },
+    {
+      "path": "authorities/project_sectors/docs/workflow.mmd",
+      "bytes": 4993,
+      "sha256": "0997F771BEC8B836E9CA9E443671EF13BA517A48DED72C25E7FFBAACC16F6047"
+    },
+    {
+      "path": "authorities/project_sectors/docs/workflow.v1.json",
+      "bytes": 29894,
+      "sha256": "E78BCE658CEADE21C277B44E3C669CF807A0EF98DA0FBA8E1CEB63A2E500A744"
     }
   ],
-  "schema_registry_sha256": "406B007307D414AF011137133CAD8C301D19CF690EE952DC5FF63DB302A33AD9",
+  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "EF416AB031773E42A639B630565929EF8248301EB7CA34C6E45ADBA3B445FB7B"
+  "receipt_sha256": "842E7C107EA4721293854D1CC9276B71B1470CFF2B5F404B64810D9C2FC4519E"
 }

@@ -42,27 +42,38 @@
     {
       "display_id": "5.1",
       "path": "hooks/events/PermissionRequest/handler-5.1.v1.json",
-      "sha256": "3BA8E11F5241ECE03DA7ED56255588A46738443EB38E09F22AE5174FA919F17E"
+      "sha256": "A8BBC720BE5E9074456428C6558225D10648F1D9058F4806CCC77B8FCB0AA427"
     },
     {
       "display_id": "5.2",
       "path": "hooks/events/PermissionRequest/handler-5.2.v1.json",
-      "sha256": "BF4275261DED7391CDB3FED534F45A1126831E5679964542125C7F104E204131"
+      "sha256": "30B385D23E12186A6B6B7BA8A3DC6349BFC2997CAB34B6BCF589D4C0B4806D4B"
     },
     {
       "display_id": "5.3",
       "path": "hooks/events/PermissionRequest/handler-5.3.v1.json",
-      "sha256": "8DD69D93827A398D9ED292AEAC86D70F0CB4129F771E8B0EA4D7A862D5CDF657"
+      "sha256": "72C080D9FAA169062B80C8E4B9D20ADD2DBC63991CC42FF76BECBBA121CEBF94"
     },
     {
       "display_id": "5.4",
       "path": "hooks/events/PermissionRequest/handler-5.4.v1.json",
-      "sha256": "F80B68FDED9057840398D22CD4D7D71E79F609C48468526258D2792C26F8D87E"
+      "sha256": "922CF5532825DBDF1A9044BBC6C1BA0B01ABD100881E6C1C57DD4AA4EAFA0B84"
     }
   ],
   "adapter": "hooks/permission_request.py",
   "adapter_sha256": "05283C844BCE39B541912BCC66500B76FC7BD93C8092E064D377F104B8D971A8",
+  "workflow_contract": {
+    "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
+    "action_scope": "BOUND_OBSERVATION_ONLY",
+    "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
+    "skill_consumer": "consume_optional_observer_transport",
+    "workflow_phases": [
+      "HOST_PERMISSION_OBSERVATION"
+    ],
+    "public_action_boundary": true
+  },
+  "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "11F2F240E298323F05D0406ECF26F46CA98F7C65D33BBCD0AC174A537890C1A8"
+  "receipt_sha256": "4C6AE64260C3BDD9BD9451BF3D56BBEAF90DB857661B6D6F74A9774508A628F3"
 }

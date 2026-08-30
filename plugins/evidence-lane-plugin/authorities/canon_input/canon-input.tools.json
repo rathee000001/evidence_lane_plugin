@@ -432,7 +432,7 @@
     },
     {
       "name": "pv_query",
-      "schema_sha256": "6B2E300C4703C0E804545265D94C4DCE7AC8C356C61E96164C8A365402A703BE",
+      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
       "route_contract": {
         "status": "CURRENT_ROUTE",
         "owner_skill": "evi",
@@ -445,7 +445,7 @@
         "skill_workflows": [
           {
             "owner_skill": "evi",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           },
           {
@@ -470,7 +470,7 @@
           },
           {
             "owner_skill": "evi-plan",
-            "workflow": "live-six-authority-read",
+            "workflow": "live-current-authority-read",
             "order": 3
           },
           {
@@ -485,7 +485,7 @@
           },
           {
             "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-six-authority-read",
+            "workflow": "live-root-current-authority-read",
             "order": 3
           }
         ],
@@ -618,7 +618,7 @@
     }
   ],
   "linked_skills": {
-    "skills/evi-canon/SKILL.md": "C7D28C2459DB6206EE01E88309B49DDD35B7F8ACA889BDA8BBEF1528738E7755"
+    "skills/evi-canon/SKILL.md": "EB55EF2290E1CC1ABC4D79FD719E897FA626B849EB500CC7083102C67310E653"
   },
   "canonical_source_hashes": {
     "src/evidence_lane_plugin/canon_task_graph.py": "F19A3643ED9216A89443EAFB7A77E7BF373F7FD7F3D418DD283EF32BA0E19F4F",
@@ -630,8 +630,8 @@
     {
       "authority_id": "canon_consequence_graph",
       "path": "authorities/canon_input/consequence_graph",
-      "manifest_sha256": "48479DBFC8786A227D0A9038350D8112F28499B9B041AA3D203C4D4EE853B733",
-      "database_sha256": "55B227A2A672F1F25C45DE2E5C1D0C2F41C74D58E1AD3EB34CD1A99EFFACD98E",
+      "manifest_sha256": "1B47114E7F56B3197792560CBE9B6AA85F15C8910B655AC6BA6435A0044F9260",
+      "database_sha256": "7EEDC0DD02519D2C5AC24E60161150EBA4AD1AA29CDF71DAF36EB1B889750787",
       "table_count": 18,
       "separate_sqlite_authority": true
     }
@@ -651,24 +651,24 @@
     "sqlite_remains_authority": true,
     "mmd_dot_remain_traversal_maps": true,
     "prior_receipt_sha256": null,
-    "recorded_at": "2026-08-28T10:19:05.207660Z",
-    "receipt_sha256": "58502CB71755A6A4BB06463CA0A29227BC1320B991C55032684435EAE577FCD4"
+    "recorded_at": "2000-01-01T00:00:00Z",
+    "receipt_sha256": "7B7E73E7D2A9B1314DD457CBF2E3DF92C84F8C4B7726D90C9C9BA0E4405BB0AD"
   },
   "graph_pipeline_receipt": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "canon_input_authority",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 126,
-    "edge_count": 128,
+    "node_count": 125,
+    "edge_count": 130,
     "group_count": 1,
-    "semantic_topology_sha256": "19BE82DFCB40E69748D06C152B94B51E5E3EDFF42A5C28311294A1F95AE14B2C",
-    "mmd_sha256": "7B1155632EA8B06794553374FF9EAE8969820E37272931EB0A70A51580D93AE3",
-    "dot_sha256": "F2E6CAB5F3804866BA0701EACBCD0ABE3088AE1DF0A5E687EA7A89D7CE6774BF",
+    "semantic_topology_sha256": "8E6286841E5E404AAEF77B9B50A845FEF6C4CF0D450DDDBE138B1561F1B51BE3",
+    "mmd_sha256": "E32F6F780999424DB76C935CFB286AD5D6EF83DE64F7C38F6018C2166AABDB1F",
+    "dot_sha256": "4F92634F0EA476FAB97E5FFE4AE996093E13788256E13B23FD6654478AEA6A37",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.0",
-    "langgraph_export_sha256": "BAADDDEAB5D6B180036F05C5EFC7F95874BE1BC1FEC7A2B0C6137BD071CE4023",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "4458D1D5881D22A3016224ABDB1E6E685632278C24C48B4A5AE1CC57279D2BB1",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": false,
@@ -678,10 +678,10 @@
       "status": "PASS",
       "engine": "rustworkx",
       "version": "0.18.1",
-      "node_count": 126,
-      "edge_count": 128,
+      "node_count": 125,
+      "edge_count": 130,
       "weak_component_count": 1,
-      "strong_component_count": 126,
+      "strong_component_count": 125,
       "is_directed_acyclic": true,
       "highest_degree_nodes": [
         {
@@ -707,22 +707,22 @@
         {
           "node_id": "support_table_authority_index_node",
           "in_degree": 1,
-          "out_degree": 9
+          "out_degree": 10
         },
         {
           "node_id": "support_table_authority_index_source",
           "in_degree": 2,
-          "out_degree": 7
+          "out_degree": 8
+        },
+        {
+          "node_id": "support_table_authority_index_content_cas",
+          "in_degree": 4,
+          "out_degree": 5
         },
         {
           "node_id": "support_table_canon_contract",
           "in_degree": 1,
           "out_degree": 7
-        },
-        {
-          "node_id": "support_table_authority_index_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
         },
         {
           "node_id": "support_table_canon_edge",
@@ -760,6 +760,11 @@
           "out_degree": 4
         },
         {
+          "node_id": "support_table_authority_index_fts_docsize",
+          "in_degree": 1,
+          "out_degree": 3
+        },
+        {
           "node_id": "support_table_authority_index_fts_idx",
           "in_degree": 1,
           "out_degree": 3
@@ -775,12 +780,7 @@
           "out_degree": 2
         },
         {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_column_authority_id",
+          "node_id": "support_table_authority_index_content_cas_column_compressed_bytes",
           "in_degree": 1,
           "out_degree": 0
         }
@@ -788,11 +788,24 @@
       "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "9DF84484F67C171C9CC2D802553FF9D0040770F98351102446EAFBA3BC1B10C5",
+    "graph_analysis_sha256": "C473AF4080557F66D397B9F1C711D0F8D59FCFBA45050AF5133C9A54AD786F5A",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 72,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "9BAD63ED4820D09387E1BE2A82E56003787A0B849E8491B8FEF94709F31FDA34"
+    "receipt_sha256": "8A48D2891837B8BE4280D3C7FA1CEDB30070E8DFB40D53DB53A4E16E3B91DB92"
   },
-  "receipt_sha256": "847EA812F0750963163D4CE3D81EEC97DDD6E67FA44ED29461FFB61850F38D05"
+  "dedicated_workflow": {
+    "json": "authorities/canon_input/workflow.v1.json",
+    "mmd": "authorities/canon_input/workflow.mmd",
+    "dot": "authorities/canon_input/workflow.dot",
+    "json_sha256": "1EB0AFCFEDBA94E4F73F213DD95418A5DA8F5128668EB63B780950EA0D1B575D",
+    "mmd_sha256": "649A8ADE899B48A18090D6119326B6B5D38BCC77272FF592D00B95088F5B54E1",
+    "dot_sha256": "58788994EC4AED42BBF85CBFEA2EB4B91FC75D8DA11210FE25ECFD71B81F275F"
+  },
+  "receipt_sha256": "36C36647DCA7550AB20D84ED2E392A83317D3CFD0D061B9DAC2F69A754E8753C"
 }

@@ -13,12 +13,6 @@ import {
   studioRouteContextFor,
   studioSuggestionsFor,
 } from "../../_data/studio-route-context";
-import {
-  externalGeneralConfiguration,
-  OPENROUTER_FREE_MODEL,
-  requestFreeGeneralAnswer,
-} from "./openrouter-general";
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -59,7 +53,7 @@ function noHitAnswer(mode: "project_no_hit" | "external_unavailable", answer: st
     answer,
     mode,
     provider: "none",
-    model: OPENROUTER_FREE_MODEL,
+    model: "none",
     grounded: false,
     sources: [{ label: "Evidence Lane proof boundary", href: "/proof" }],
     boundary: "NO_EXTERNAL_PROJECT_CLAIMS_NO_PAID_MODEL_FALLBACK",
@@ -67,7 +61,6 @@ function noHitAnswer(mode: "project_no_hit" | "external_unavailable", answer: st
 }
 
 export async function GET() {
-  const configuration = externalGeneralConfiguration();
   return NextResponse.json({
     status: retrievalConfidenceReport.pass ? "ready" : "blocked",
     route: "/api/studio-query",
@@ -85,10 +78,12 @@ export async function GET() {
     services: studioRetrievalServices,
     retrievalConfidenceGate: retrievalConfidenceReport,
     externalGeneralFallback: {
-      enabled: configuration.enabled && Boolean(configuration.apiKey),
-      model: OPENROUTER_FREE_MODEL,
+      enabled: false,
+      provider: "none",
+      model: "none",
       paidFallback: false,
       projectNoHitPolicy: "refuse",
+      publicProviderProxyPresent: false,
     },
   });
 }
@@ -148,18 +143,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const configuration = externalGeneralConfiguration();
-  if (!configuration.enabled || !configuration.apiKey) {
-    return noHitAnswer(
-      "external_unavailable",
-      "The committed corpus returned no hit. The optional free general-AI route is disabled until EVIDENCE_LANE_GENERAL_AI_ENABLED=true and a separate OPENROUTER_API_KEY are configured on this Vercel project. No paid model fallback exists.",
-    );
-  }
-
-  const result = await requestFreeGeneralAnswer({
-    question,
-    requestOrigin: request.nextUrl.origin,
-    apiKey: configuration.apiKey,
-  });
-  return NextResponse.json(result.payload, { status: result.status });
+  return noHitAnswer(
+    "external_unavailable",
+    "The committed corpus returned no hit. This public route has no external provider proxy and will not forward a visitor's prompt under a server-owned credential.",
+  );
 }

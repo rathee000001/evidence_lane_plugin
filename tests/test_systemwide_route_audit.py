@@ -29,8 +29,7 @@ def test_current_registry_assigns_every_live_tool_to_one_route() -> None:
     assert registry["obsolete_public_tools"] == []
     assert all(row["fallback_allowed"] is False for row in rows)
     assert all(
-        row["status"] == "CURRENT_ROUTE" or row["executable"] is False
-        for row in rows
+        row["status"] == "CURRENT_ROUTE" or row["executable"] is False for row in rows
     )
 
 
@@ -70,13 +69,14 @@ def test_systemwide_route_audit_covers_every_public_consumer() -> None:
             "routing_equals_mcp",
         )
     )
-    assert parity["sdk_subset_registered"] is True
+    assert parity["specialized_subset_registered"] is True
     assert parity["sdk_route_registry_shared"] is True
     assert parity["all_public_actions_enter_internal_sdk"] is True
     assert parity["env_uop_sdk_module_complete"] is True
-    assert parity["internal_sdk_public_dispatch"][
-        "internal_sdk_public_action_count"
-    ] == NATIVE_TOOL_COUNT
+    assert (
+        parity["internal_sdk_public_dispatch"]["internal_sdk_public_action_count"]
+        == NATIVE_TOOL_COUNT
+    )
     purge = receipt["obsolete_route_purge"]
     assert purge["status"] == "PASS"
     assert purge["active_workflow_violations"] == []
@@ -89,14 +89,17 @@ def test_systemwide_route_audit_covers_every_public_consumer() -> None:
         "required_before_local_package": True,
     }
     assert receipt["skill_current_route_audit"]["status"] == "PASS"
-    assert receipt["skill_current_route_audit"]["skill_count"] == 25
+    assert receipt["skill_current_route_audit"]["skill_count"] == 26
+    assert receipt["skill_current_route_audit"]["unclassified_skills"] == []
+    assert receipt["skill_current_route_audit"]["missing_skill_workflows"] == []
     assert receipt["skill_current_route_audit"]["skill_count_semantics"] == (
         "DERIVED_CURRENT_INVENTORY_NO_NUMERIC_CEILING"
     )
     assert receipt["skill_current_route_audit"]["issues"] == []
-    governance = receipt["env_uop_six_way_governance"]
+    governance = receipt["env_uop_current_authority_governance"]
     assert governance["status"] == "PASS"
     assert governance["sector_lane_count"] == 18
+    assert governance["current_authority_classes_derived"] is True
     assert governance["authority_merge_allowed"] is False
     assert governance["env_and_uop_are_governance_not_authority_arms"] is True
     whole_sdk = receipt["whole_plugin_sdk_governance"]

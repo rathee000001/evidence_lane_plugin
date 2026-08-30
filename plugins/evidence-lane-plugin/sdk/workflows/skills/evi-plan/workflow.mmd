@@ -1,0 +1,88 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=199D08DE413AC49C7C76F03F56551C1DA1F6665DFE2CF526B951A9B02C0C8A4B
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  ENTRY["evi-plan intent"]:::root
+  EXIT["Exact result / stop / next workflow"]:::output
+  subgraph WF_LIVE_PLAN_AUTHORITY_READ["live-plan-authority-read"]
+    direction TB
+    WF_LIVE_PLAN_AUTHORITY_READ_START["live-plan-authority-read"]:::lifecycle
+    WF_LIVE_PLAN_AUTHORITY_READ_ACTION_001["1. pv_status [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LIVE_PLAN_AUTHORITY_READ_ACTION_002["2. pv_task_backlog [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+  end
+  subgraph WF_LIVE_CURRENT_AUTHORITY_READ["live-current-authority-read"]
+    direction TB
+    WF_LIVE_CURRENT_AUTHORITY_READ_START["live-current-authority-read"]:::lifecycle
+    WF_LIVE_CURRENT_AUTHORITY_READ_ACTION_001["3. pv_query [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+    WF_LIVE_CURRENT_AUTHORITY_READ_ACTION_002["3. search [['GOVERNANCE', 'RETRIEVAL']]"]:::semantic
+  end
+  subgraph WF_CLASSIFY_PLAN_MODE["classify-plan-mode"]
+    direction TB
+    WF_CLASSIFY_PLAN_MODE_START["classify-plan-mode"]:::lifecycle
+    WF_CLASSIFY_PLAN_MODE_ACTION_001["4. mode_classify [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_PERSIST_PLAN["persist-plan"]
+    direction TB
+    WF_PERSIST_PLAN_START["persist-plan"]:::lifecycle
+    WF_PERSIST_PLAN_ACTION_001["5. pv_plan_tasks [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph WF_PLAN_STEER["plan-steer"]
+    direction TB
+    WF_PLAN_STEER_START["plan-steer"]:::lifecycle
+    WF_PLAN_STEER_ACTION_001["6. pv_plan_steer_delta [['GOVERNANCE']]"]:::semantic
+  end
+  subgraph EXECUTION["Shared typed execution contract"]
+    direction TB
+    SCHEMA["Current input/output schema"]:::semantic
+    INTERNAL_SDK["Internal SDK execution owner"]:::semantic
+    ENV["ENV15 environment selection"]:::semantic
+    UOP["UOP15 governance and gates"]:::warn
+    AUTHORITY["Owning authority and lane"]:::semantic
+    TOOLS["Conditional tool role resolution"]:::semantic
+    OUTER["Outer SDK / FastMCP / native compatibility"]:::semantic
+    HOOKS["Only emitted ordered hooks"]:::semantic
+    VALIDATE["Validate schema, result and effects"]:::warn
+    RECEIPT["Exact receipt"]:::output
+  end
+  ENTRY --> WF_LIVE_PLAN_AUTHORITY_READ_START
+  WF_LIVE_PLAN_AUTHORITY_READ_START --> WF_LIVE_PLAN_AUTHORITY_READ_ACTION_001
+  WF_LIVE_PLAN_AUTHORITY_READ_ACTION_001 -->|"ordered action"| WF_LIVE_PLAN_AUTHORITY_READ_ACTION_002
+  ENTRY --> WF_LIVE_CURRENT_AUTHORITY_READ_START
+  WF_LIVE_CURRENT_AUTHORITY_READ_START --> WF_LIVE_CURRENT_AUTHORITY_READ_ACTION_001
+  WF_LIVE_CURRENT_AUTHORITY_READ_ACTION_001 -->|"ordered action"| WF_LIVE_CURRENT_AUTHORITY_READ_ACTION_002
+  ENTRY --> WF_CLASSIFY_PLAN_MODE_START
+  WF_CLASSIFY_PLAN_MODE_START --> WF_CLASSIFY_PLAN_MODE_ACTION_001
+  ENTRY --> WF_PERSIST_PLAN_START
+  WF_PERSIST_PLAN_START --> WF_PERSIST_PLAN_ACTION_001
+  ENTRY --> WF_PLAN_STEER_START
+  WF_PLAN_STEER_START --> WF_PLAN_STEER_ACTION_001
+  SCHEMA --> INTERNAL_SDK
+  INTERNAL_SDK --> ENV
+  ENV --> UOP
+  UOP --> AUTHORITY
+  AUTHORITY --> TOOLS
+  TOOLS --> OUTER
+  OUTER --> HOOKS
+  HOOKS --> VALIDATE
+  VALIDATE --> RECEIPT
+  WF_LIVE_PLAN_AUTHORITY_READ_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_LIVE_PLAN_AUTHORITY_READ_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_LIVE_CURRENT_AUTHORITY_READ_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_LIVE_CURRENT_AUTHORITY_READ_ACTION_002 -->|"typed execution"| SCHEMA
+  WF_CLASSIFY_PLAN_MODE_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_PERSIST_PLAN_ACTION_001 -->|"typed execution"| SCHEMA
+  WF_PLAN_STEER_ACTION_001 -->|"typed execution"| SCHEMA
+  RECEIPT --> EXIT

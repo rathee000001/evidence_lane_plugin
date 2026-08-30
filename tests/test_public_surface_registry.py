@@ -91,11 +91,12 @@ def test_live_surface_counts_are_registry_derived_and_route_reconciled(
         "read": len(registry["tools"]["read_names"]),
         "write": len(registry["tools"]["write_names"]),
         "skills": len(registry["skills"]["records"]),
-        "commands": len(registry["commands"]["records"]),
         "hook_events": len(registry["hooks"]["event_names"]),
         "hook_handlers": registry["hooks"]["handler_action_count"],
         "providers": len(registry["providers"]["names"]),
     }
+    assert registry["legacy_command_surface_present"] is False
+    assert "commands" not in registry
     assert registry["tools"]["read_names"] == sorted(CODEX_READ_TOOL_NAMES)
     assert registry["hooks"]["registered_event_count"] == 11
     assert registry["hooks"]["handler_action_count"] == 44
@@ -118,7 +119,6 @@ def test_live_surface_counts_are_registry_derived_and_route_reconciled(
         "read": route["read_tool_count"],
         "write": route["write_tool_count"],
         "skills": route["skill_count"],
-        "commands": route["command_count"],
         "hook_events": route["hook_event_count"],
         "hook_handlers": route["hook_handler_count"],
         "providers": route["provider_count"],

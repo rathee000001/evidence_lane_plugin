@@ -111,16 +111,13 @@ export function FloatingEvidenceStudio() {
         body: JSON.stringify({ question, pagePath: pathname, history }),
       });
       const result = await response.json() as StudioQueryResponse;
-      const provider = result.mode === "external_general_free"
-        ? ` Provider: ${result.provider ?? "OpenRouter"}; model: ${result.model ?? "openrouter/free"}.`
-        : "";
       setMessages((current) => [
         ...current,
         {
           id: assistantId,
           role: "assistant",
           title: result.title ?? "Evidence Lane Studio",
-          text: `${result.answer ?? "No answer was returned."}${provider}`,
+          text: result.answer ?? "No answer was returned.",
           mode: result.mode ?? "boundary",
           sources: result.sources,
           retrieval: result.retrieval,

@@ -142,15 +142,13 @@ def test_explicit_mode_intersection_is_ordered_and_keeps_mode_separate() -> None
     code_contract = next(
         row for row in result["mode_governance"]["contracts"] if row["mode_id"] == "CD"
     )
-    assert code_contract["formula"]["rule"] == (
-        "plan -> sandbox build -> test -> hash -> package"
-    )
+    assert code_contract["formula"]["rule"] == "ALL_REQUIRED_GATES == PASS"
     assert code_contract["ci_cd"] == {
         "required": True,
-        "loop": "plan -> sandbox build -> test -> hash -> package",
+        "loop": "ALL_REQUIRED_GATES == PASS",
         "controlled": True,
         "autonomous_flash_fuse_deploy_allowed": False,
-        "authority": "lane_formula_execution_registry_v12",
+        "authority": "env_formula_registry_v17",
     }
     assert {"PHYSICS", "CHEMISTRY", "MATHS", "MBA"} <= set(
         code_contract["operator_families"]
@@ -285,7 +283,8 @@ def test_every_builtin_mode_emits_visible_governance_and_lane_hil() -> None:
         contract = governance["contracts"][0]
 
         assert governance["selection_source"] == "PLUGIN_OR_API_EXPLICIT_SELECTION"
-        assert governance["six_way_hil_is_lane_specific"] is True
+        assert governance["authority_hil_is_lane_specific"] is True
+        assert governance["decision_count_is_behavior_ceiling"] is False
         assert governance["lifecycle_effect"] == "NONE"
         assert governance["candidate_created"] is False
         assert governance["pointer_moved"] is False
@@ -403,8 +402,7 @@ def test_env_uop_authority_boundary_pins_hashes_ownership_and_effects() -> None:
     assert boundary["env_sqlite_sha256"] == ENV15_ENV_SQLITE_SHA256
     assert boundary["uop_sqlite_sha256"] == ENV15_UOP_SQLITE_SHA256
     assert (
-        boundary["mode_policy_projection_sha256"]
-        == ENV15_MODE_POLICY_PROJECTION_SHA256
+        boundary["mode_policy_projection_sha256"] == ENV15_MODE_POLICY_PROJECTION_SHA256
     )
     assert boundary["ownership"] == {
         "source_authority": "LOCKED_ENV15_UOP15",
@@ -469,7 +467,9 @@ def test_env_uop_external_secret_reference_is_redacted_and_effect_bounded() -> N
     assert wrong_effect.value.code == "ENV_UOP_OPERATOR_EFFECT_MISMATCH"
 
 
-@pytest.mark.parametrize("storage_target", ["PROMPT", "SQLITE", "LINEAGE", "ASSET", "TEST"])
+@pytest.mark.parametrize(
+    "storage_target", ["PROMPT", "SQLITE", "LINEAGE", "ASSET", "TEST"]
+)
 def test_env_uop_secret_reference_rejects_project_storage(storage_target: str) -> None:
     with pytest.raises(EvidenceLaneError) as blocked:
         validate_env_uop_external_secret_reference(
@@ -503,9 +503,9 @@ def test_env_uop_secret_values_and_authority_drift_fail_closed() -> None:
         explicit_modes=["CD"],
         code_lane="local_code",
     )["mode_governance"]
-    selected["contracts"][0]["env_uop_authority_boundary"][
-        "env_sqlite_sha256"
-    ] = "0" * 64
+    selected["contracts"][0]["env_uop_authority_boundary"]["env_sqlite_sha256"] = (
+        "0" * 64
+    )
     with pytest.raises(EvidenceLaneError) as authority_blocked:
         validate_mode_governance_selection(selected)
     assert authority_blocked.value.code == "ENV_UOP_AUTHORITY_BOUNDARY_MISMATCH"
@@ -614,9 +614,7 @@ def test_env_uop_router_rejects_budget_effect_and_binding_drift() -> None:
     assert over_budget.value.code == "ENV_UOP_ROUTE_BUDGET_EXCEEDED"
 
     with pytest.raises(EvidenceLaneError) as wrong_effect:
-        route_env_uop_operator(
-            **{**common, "requested_effect": "write project truth"}
-        )
+        route_env_uop_operator(**{**common, "requested_effect": "write project truth"})
     assert wrong_effect.value.code == "ENV_UOP_ROUTE_EFFECT_MISMATCH"
 
     with pytest.raises(EvidenceLaneError) as binding_drift:
