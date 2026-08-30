@@ -8,7 +8,7 @@
       "path": ".codex-plugin",
       "role": "HOST_DISCOVERY_MANIFEST",
       "member_count": 1,
-      "members_sha256": "C5A1D3625DAEBCE2FF2576D6B4D67AF76DA00CADBEFBE2869B5DBBC6B562199C"
+      "members_sha256": "3D3D24EF57E6E851FF7E21FB081B17BB0D9A6DBE81C98A2FEBAF2A77EAB5758F"
     },
     {
       "path": "assets",
@@ -32,7 +32,7 @@
       "path": "hooks",
       "role": "NATIVE_HOOK_EVENTS_HANDLERS_AND_HOST",
       "member_count": 102,
-      "members_sha256": "370513556A209D5C30981DFF0D49DA37D3AA127A7F98D438B33D2202597ADD14"
+      "members_sha256": "9904329671708914440B7CFB612398E4F9F1CA0A5DC05213B31DBF57B29D3421"
     },
     {
       "path": "manifests",
@@ -56,7 +56,7 @@
       "path": "scripts",
       "role": "RUNTIME_AND_MAINTAINER_ENTRYPOINTS",
       "member_count": 49,
-      "members_sha256": "2CF90F095BFA1106A2F9BCFC33645A28EB89D986CF89094C3F9F92BD88F5E35E"
+      "members_sha256": "6E6708C6BEC146738D1A884563379F91220F816E2A71E1F5FD7FD5090317C2D8"
     },
     {
       "path": "sdk",
@@ -68,7 +68,7 @@
       "path": "skills",
       "role": "GOVERNED_WORKFLOW_SKILLS",
       "member_count": 56,
-      "members_sha256": "CEF2A27E79E0F71FA643FA5D82F2D816F1F9C44E17ABE2A2186B224A987E888F"
+      "members_sha256": "1A4E47839CA8A56DBD4E63DDA9B6BF0409AE0E23A48E190CE66FE324BEAC4020"
     },
     {
       "path": "src",
@@ -86,7 +86,7 @@
       "path": "toolchains",
       "role": "PINNED_PACKAGE_LOCAL_TOOLCHAINS",
       "member_count": 145,
-      "members_sha256": "55E3C50B0A1E225F98BACEC28D248753CABD90E426C4F36F0ECF27840839ACE8"
+      "members_sha256": "854A9D490DC230454C9A684E1A625940636F7AC285F9145C30FC738A2DBAEE7A"
     },
     {
       "path": "tunnel",
@@ -118,8 +118,8 @@
   "members": [
     {
       "path": ".codex-plugin/plugin.json",
-      "bytes": 3071,
-      "sha256": "A0861B9FCD36E06B9A35F94918FE3A3FF59A5F83CB928F5FADA8B9FE80826D5C"
+      "bytes": 3029,
+      "sha256": "FF0805DE835AFB224FD37969F236467EEA0D0EA1C303DAAD60D072B3B893A528"
     },
     {
       "path": ".mcp.json",
@@ -3623,8 +3623,8 @@
     },
     {
       "path": "hooks/EvidenceLaneHookHost.build.json",
-      "bytes": 554,
-      "sha256": "015F99841381717B0AE88C62DEE710786F425A2F3E882136A1A26E0FC082371A"
+      "bytes": 543,
+      "sha256": "BB6751F94B5E23D1633436FA0D30BA833C9BAE4DE5F7768128B2ED72FA6E575C"
     },
     {
       "path": "hooks/EvidenceLaneHookHost.exe",
@@ -5488,8 +5488,8 @@
     },
     {
       "path": "scripts/build_release_candidate_rehearsal.py",
-      "bytes": 100587,
-      "sha256": "06BC9D302FF7631B5FA4C15DC05D83D3FF339629329223E9ECA10F9BCE9F0000"
+      "bytes": 100951,
+      "sha256": "F26291EA436F2FFF9195860EB1C0207CD2B5FA3DE13EECCC6BDEF2C98AA1A80E"
     },
     {
       "path": "scripts/build_source_disposition_receipt.py",
@@ -5628,8 +5628,8 @@
     },
     {
       "path": "scripts/generate_package_surface_projections.py",
-      "bytes": 214236,
-      "sha256": "DC6DF35158680F412C39646D0EFE4F976D97481DF391BBFE141BC2AE1F4A2FCC"
+      "bytes": 214629,
+      "sha256": "231DAEEF6BA0F0EABC0C6505C4559E1569BFCFB94B8EB7137A25B9BAF9693F3B"
     },
     {
       "path": "scripts/generate_public_schema_catalog.py",
@@ -5688,8 +5688,8 @@
     },
     {
       "path": "scripts/windows_tunnel/EvidenceLaneTunnelHost.build.json",
-      "bytes": 585,
-      "sha256": "AAD4AA0454F4B523B7B1B8597F574C9A0E53C2B4752288B4F7A68F8B8754631E"
+      "bytes": 574,
+      "sha256": "BDA15F8A945459A7FD89EF10B33CBF5548003B0F9F67FB81B07BA841E232D715"
     },
     {
       "path": "scripts/windows_tunnel/EvidenceLaneTunnelHost.exe",
@@ -8373,8 +8373,8 @@
     },
     {
       "path": "skills/evi-canon/agents/openai.yaml",
-      "bytes": 477,
-      "sha256": "AF844E23D272F462A778718AA8F8F1A94F9776E888D19BB8DA536A5D8A390CD5"
+      "bytes": 476,
+      "sha256": "DC16E1D6F0F154E06FB90BA6A1CD00B47EA7D58474BDF7EF0BBF393BA6E83F83"
     },
     {
       "path": "skills/evi-drop-additional-plugin/SKILL.md",
@@ -8433,8 +8433,8 @@
     },
     {
       "path": "skills/evi-learning/agents/openai.yaml",
-      "bytes": 320,
-      "sha256": "08B2689C54AD9C04FA30B904847E957245BA4064CB83AD5B9AAD6E14422238DF"
+      "bytes": 319,
+      "sha256": "5825BD6C5834D3E9B293C1ED6814EFDD83685CF97D948FF45C826BCF2CD456F0"
     },
     {
       "path": "skills/evi-memory/SKILL.md",
@@ -9368,8 +9368,8 @@
     },
     {
       "path": "toolchains/TOOLCHAIN_EXECUTION_MATRIX.md",
-      "bytes": 63718,
-      "sha256": "046B9F3F82219F1B6A590CA5B10464EFD46B427DB5DA1B925E845C10D50F0067"
+      "bytes": 63487,
+      "sha256": "E0CB1A6895FF9699BD4D4F0D5DE7960DB247BF5D59E5C5C129AA457999A4FBA9"
     },
     {
       "path": "toolchains/UNIVERSAL_PLUGIN_ARCHITECTURE.dot",
@@ -9423,8 +9423,8 @@
     },
     {
       "path": "toolchains/licenses/7-zip-26.01/LICENSE.txt",
-      "bytes": 6031,
-      "sha256": "519AC0A4BDED9C18EA02E0AFB71F663D8C47373BD9FACD3AC96A79F51D77765D"
+      "bytes": 5885,
+      "sha256": "32369594A3A9F7C643D124035120EAA6A7707E75E57C4386EF509F801447BC49"
     },
     {
       "path": "toolchains/licenses/requirements/001-git/LICENSE-RECORD.json",
@@ -10023,13 +10023,13 @@
     },
     {
       "path": "toolchains/licenses/ripgrep-15.2.0/LICENSE-MIT",
-      "bytes": 1102,
-      "sha256": "970813655A1BF777D2EAD189CEF71AB73AB92CE04DC864027D61A45DE03E6728"
+      "bytes": 1081,
+      "sha256": "0F96A83840E146E43C0EC96A22EC1F392E0680E6C1226E6F3BA87E0740AF850F"
     },
     {
       "path": "toolchains/licenses/ripgrep-15.2.0/UNLICENSE",
-      "bytes": 1235,
-      "sha256": "640514163B17F977ADC997CB16F51871122CFB0555EBAD1A3F01E167B7BA8857"
+      "bytes": 1211,
+      "sha256": "7E12E5DF4BAE12CB21581BA157CED20E1986A0508DD10D0E8A4AB9A4CF94E85C"
     },
     {
       "path": "toolchains/native-tools.v1.json",
@@ -10043,8 +10043,8 @@
     },
     {
       "path": "toolchains/tool-execution-routing.v1.json",
-      "bytes": 106783,
-      "sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182"
+      "bytes": 103225,
+      "sha256": "F6186D5B8307C48C44D9B377EB8AB7C5F13BCBCA07DA78C1298009F49730B3D9"
     },
     {
       "path": "toolchains/tool-license-inventory.v1.json",
@@ -10194,5 +10194,5 @@
   "local_cache_or_output_included": false,
   "historical_fallback_used": false,
   "all_installed_members_hash_bound": true,
-  "receipt_sha256": "F9EF4F994610739BFA8F9A8B9EEDE53FECD43B2BC29C8EDD34433B179A43633E"
+  "receipt_sha256": "1527481A38AD38DBC874D0D72CDEE16E3C79FB1E074014F474E32ADA085C01C9"
 }

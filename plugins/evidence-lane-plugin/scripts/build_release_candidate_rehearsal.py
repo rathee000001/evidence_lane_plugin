@@ -430,6 +430,23 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest().upper()
 
 
+def _canonical_package_member_bytes(path: Path) -> bytes:
+    """Match the LF-normalized bytes emitted by Git archive for tracked text."""
+
+    payload = path.read_bytes()
+    if b"\0" not in payload[:8000]:
+        return payload.replace(b"\r\n", b"\n")
+    return payload
+
+
+def _package_member_identity(path: Path) -> dict[str, object]:
+    payload = _canonical_package_member_bytes(path)
+    return {
+        "bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest().upper(),
+    }
+
+
 def _is_environment_file(name: str) -> bool:
     lowered = name.casefold()
     return lowered == ".env" or (
@@ -850,16 +867,10 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
             ):
                 continue
             relative = path.relative_to(plugin_root).as_posix()
-            actual_members[relative] = {
-                "bytes": path.stat().st_size,
-                "sha256": _sha256_file(path),
-            }
+            actual_members[relative] = _package_member_identity(path)
     for relative in executable_registry.get("installed_root_files") or []:
         path = plugin_root / str(relative)
-        actual_members[str(relative)] = {
-            "bytes": path.stat().st_size,
-            "sha256": _sha256_file(path),
-        }
+        actual_members[str(relative)] = _package_member_identity(path)
     if (
         executable_registry.get("schema")
         != "evidence-lane.executable-package-surface-registry.v1"

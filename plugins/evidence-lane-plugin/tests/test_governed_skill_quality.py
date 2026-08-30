@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 from pathlib import Path
 
@@ -41,3 +42,24 @@ def test_architecture_outputs_use_the_atomic_retry_writer() -> None:
     ):
         assert f'(toolchains_root / "{filename}").write_text' not in source
         assert f'toolchains_root / "{filename}",' in source
+
+
+def test_package_registry_uses_git_archive_line_endings(tmp_path: Path) -> None:
+    generator_module = _load(GENERATOR_PATH, "generate_package_surface_projections")
+    text_path = tmp_path / "member.txt"
+    text_path.write_bytes(b"first\r\nsecond\n")
+    record = generator_module._package_member_record(
+        text_path,
+        relative="member.txt",
+    )
+    assert record == {
+        "path": "member.txt",
+        "bytes": len(b"first\nsecond\n"),
+        "sha256": hashlib.sha256(b"first\nsecond\n").hexdigest().upper(),
+    }
+
+    binary_path = tmp_path / "member.bin"
+    binary_path.write_bytes(b"binary\0\r\n")
+    assert generator_module._canonical_package_member_bytes(binary_path) == (
+        b"binary\0\r\n"
+    )

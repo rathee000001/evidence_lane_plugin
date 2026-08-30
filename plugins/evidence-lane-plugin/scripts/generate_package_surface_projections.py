@@ -148,6 +148,24 @@ def _write_json(path: Path, body: dict[str, Any]) -> None:
     _write(path, _pretty_json(body))
 
 
+def _canonical_package_member_bytes(path: Path) -> bytes:
+    """Return the LF-normalized bytes emitted by Git archive for tracked text."""
+
+    payload = path.read_bytes()
+    if b"\0" not in payload[:8000]:
+        return payload.replace(b"\r\n", b"\n")
+    return payload
+
+
+def _package_member_record(path: Path, *, relative: str) -> dict[str, Any]:
+    payload = _canonical_package_member_bytes(path)
+    return {
+        "path": relative,
+        "bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest().upper(),
+    }
+
+
 def _refresh_flash_authority_pins() -> dict[str, str]:
     source = PACKAGE_ROOT / "flash_authority.py"
     text = source.read_text(encoding="utf-8")
@@ -4596,11 +4614,10 @@ def _generate_executable_surface_registry() -> dict[str, Any]:
             and path.suffix.casefold() not in {".pyc", ".pyo"}
         ]
         directory_members = [
-            {
-                "path": path.relative_to(PLUGIN_ROOT).as_posix(),
-                "bytes": path.stat().st_size,
-                "sha256": _sha256(path),
-            }
+            _package_member_record(
+                path,
+                relative=path.relative_to(PLUGIN_ROOT).as_posix(),
+            )
             for path in paths
         ]
         members.extend(directory_members)
@@ -4616,13 +4633,7 @@ def _generate_executable_surface_registry() -> dict[str, Any]:
         )
     for relative in installed_root_files:
         path = PLUGIN_ROOT / relative
-        members.append(
-            {
-                "path": relative,
-                "bytes": path.stat().st_size,
-                "sha256": _sha256(path),
-            }
-        )
+        members.append(_package_member_record(path, relative=relative))
     members.sort(key=lambda row: str(row["path"]))
     body = {
         "schema": "evidence-lane.executable-package-surface-registry.v1",

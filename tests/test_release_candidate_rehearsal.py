@@ -19,6 +19,8 @@ from build_release_candidate_rehearsal import (
     EXPECTED_BEHAVIOR_OWNERSHIP,
     EXPECTED_STABLE_ACTIVATION_GATE,
     PackageBoundaryError,
+    _canonical_package_member_bytes,
+    _package_member_identity,
     _package_surface_coherence,
     build_rehearsal,
 )
@@ -26,6 +28,22 @@ from build_release_candidate_rehearsal import (
 VERSION = "3.0.0+codex.20260816074428"
 COMMIT = "a" * 40
 TREE = "b" * 40
+
+
+def test_package_coherence_normalizes_tracked_text_like_git_archive(
+    tmp_path: Path,
+) -> None:
+    text_path = tmp_path / "tracked.txt"
+    text_path.write_bytes(b"first\r\nsecond\n")
+    assert _canonical_package_member_bytes(text_path) == b"first\nsecond\n"
+    assert _package_member_identity(text_path) == {
+        "bytes": len(b"first\nsecond\n"),
+        "sha256": hashlib.sha256(b"first\nsecond\n").hexdigest().upper(),
+    }
+
+    binary_path = tmp_path / "tracked.bin"
+    binary_path.write_bytes(b"binary\0\r\n")
+    assert _canonical_package_member_bytes(binary_path) == b"binary\0\r\n"
 
 
 def _write(root: Path, relative: str, content: bytes | str = b"fixture") -> None:
