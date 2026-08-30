@@ -132,6 +132,8 @@ def build_exact_commit_package(
     output_dir: Path,
     expected_version: str,
     package_version: str | None = None,
+    systemwide_route_audit_receipt: Path | None = None,
+    executable_fingerprint_refresh_receipt: Path | None = None,
 ) -> dict[str, Any]:
     repository = repository.resolve()
     output_dir = output_dir.resolve()
@@ -212,6 +214,10 @@ def build_exact_commit_package(
             base_tree=resolved_tree,
             expected_version=expected_version,
             package_version=package_version,
+            systemwide_route_audit_receipt=systemwide_route_audit_receipt,
+            executable_fingerprint_refresh_receipt=(
+                executable_fingerprint_refresh_receipt
+            ),
         )
         export_zip_sha256 = _sha256(export_zip)
 
@@ -284,6 +290,23 @@ def _parser() -> argparse.ArgumentParser:
             "Optional fresh Codex package identity on the same release line. "
             "The exact Git source remains unchanged; only the packaged plugin "
             "manifest receives this version through the rehearsal builder."
+        ),
+    )
+    freshness = parser.add_mutually_exclusive_group(required=True)
+    freshness.add_argument(
+        "--systemwide-route-audit-receipt",
+        type=Path,
+        help=(
+            "Passing Plan-history/system-wide route audit to seal into the exact "
+            "main package."
+        ),
+    )
+    freshness.add_argument(
+        "--executable-fingerprint-refresh-receipt",
+        type=Path,
+        help=(
+            "Passing project-neutral executable fingerprint Refresh to seal into "
+            "the exact main package."
         ),
     )
     return parser

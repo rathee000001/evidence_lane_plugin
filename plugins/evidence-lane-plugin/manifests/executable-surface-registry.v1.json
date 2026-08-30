@@ -56,7 +56,7 @@
       "path": "scripts",
       "role": "RUNTIME_AND_MAINTAINER_ENTRYPOINTS",
       "member_count": 49,
-      "members_sha256": "545ECCAAD441517BAA9163C9AFBB20123421413321C37823920C6318A25BA07C"
+      "members_sha256": "2CF90F095BFA1106A2F9BCFC33645A28EB89D986CF89094C3F9F92BD88F5E35E"
     },
     {
       "path": "sdk",
@@ -5533,8 +5533,8 @@
     },
     {
       "path": "scripts/codex_release/build_codex_exact_commit_package.py",
-      "bytes": 11300,
-      "sha256": "DB72A3C80134D1C595E04FB962872C1836B0A2D25D5FD9C020924D1FADD0A8E2"
+      "bytes": 12171,
+      "sha256": "F8A9B183AB89AD1205B96DBEF0EA190C797B967C103BD44C8CAF164FE45B466F"
     },
     {
       "path": "scripts/codex_release/fast_forward_github_app_feature_to_main.py",
@@ -10194,5 +10194,5 @@
   "local_cache_or_output_included": false,
   "historical_fallback_used": false,
   "all_installed_members_hash_bound": true,
-  "receipt_sha256": "4C939C02E7BBE2DED64E26A9285DE6B6BA9E2E9CA2201930A2B4D7CDDDB908C6"
+  "receipt_sha256": "F9EF4F994610739BFA8F9A8B9EEDE53FECD43B2BC29C8EDD34433B179A43633E"
 }

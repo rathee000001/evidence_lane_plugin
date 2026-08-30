@@ -77,11 +77,17 @@ def test_exact_commit_builder_exports_only_the_named_git_commit(
     _git(repository, "update-ref", "refs/remotes/origin/main", commit)
     (plugin / "marker.txt").write_text("dirty checkout\n", encoding="utf-8")
     (plugin / "untracked.txt").write_text("excluded\n", encoding="utf-8")
+    fingerprint_refresh = tmp_path / "executable-fingerprint-refresh.v1.json"
+    fingerprint_refresh.write_text("{}\n", encoding="utf-8")
 
     def fake_rehearsal(**arguments: object) -> dict[str, object]:
         exported = Path(str(arguments["plugin_root"]))
         assert (exported / "marker.txt").read_text("utf-8") == "committed\n"
         assert not (exported / "untracked.txt").exists()
+        assert arguments["systemwide_route_audit_receipt"] is None
+        assert arguments["executable_fingerprint_refresh_receipt"] == (
+            fingerprint_refresh
+        )
         output = Path(str(arguments["output_dir"]))
         output.mkdir(parents=True, exist_ok=True)
         archive = output / "fixture.zip"
@@ -120,6 +126,7 @@ def test_exact_commit_builder_exports_only_the_named_git_commit(
         commit=commit,
         output_dir=tmp_path / "output",
         expected_version="2.1.0+codex.fixture",
+        executable_fingerprint_refresh_receipt=fingerprint_refresh,
     )
 
     assert result["status"] == "PASS"
