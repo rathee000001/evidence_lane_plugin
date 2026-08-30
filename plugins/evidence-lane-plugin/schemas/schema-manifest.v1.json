@@ -803,8 +803,8 @@
     },
     {
       "path": "schemas/github-app-connection.schema.json",
-      "bytes": 5133,
-      "sha256": "36ACF6EC1F889B9E3C0A03BE9B129A35F1D4282D6B487659E0F04808327413ED",
+      "bytes": 5494,
+      "sha256": "93E5F5AC8AD024D38E81F8AF18735B10A3F40144D4BD15E33415F022A21B2989",
       "category": "github-app-connection.schema.json"
     },
     {
@@ -882,7 +882,7 @@
     {
       "path": "schemas/mcp/mcp-binding.v1.json",
       "bytes": 7258,
-      "sha256": "E0BBDF419D6F8519EC371F3688911FCD1E9E1E5A74F71EE534AAC745F1539CF9",
+      "sha256": "86C77A8CAFC8FD147942FA7B1AC008B90D5CDFD88482FF1ACC068E697C07FDBC",
       "category": "mcp"
     },
     {
@@ -1050,7 +1050,7 @@
     {
       "path": "schemas/sdk/sdk-binding.v1.json",
       "bytes": 75726,
-      "sha256": "909BFD2DC86BBEB0CBC146321C2067E06175ED7D45A690BF2400BC1DEC3DC33A",
+      "sha256": "7C59D11D750669C5734A5BB1056A920211A9694E270B59371C318086B73F6AAB",
       "category": "sdk"
     },
     {
@@ -1094,5 +1094,5 @@
   "canonical_public_catalog_sha256": "07245443366EBA937D4A8BF10382B3A90A7E0D4035BD0A4CF3104BCA9F0FCF86",
   "generated_from_current_executable_source_only": true,
   "historical_schema_fallback_allowed": false,
-  "receipt_sha256": "A1C59CB981B3AFBD5F4008498688D3665C8536AC635DC7BF38D122B2257B72E6"
+  "receipt_sha256": "1517891B2AC4B5828D713CE0791154F749350A5CA11CD0502102CD757D627FFE"
 }

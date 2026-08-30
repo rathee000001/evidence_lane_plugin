@@ -1,7 +1,7 @@
 {
   "name": "evidence-lane-plugin",
   "version": "3.0.0+codex.20260829234050",
-  "description": "Evidence Lane keeps long Codex projects grounded in their evidence, resumes the exact unfinished work, and leaves every important decision with the user.",
+  "description": "Evidence Lane turns fragmented long-running Codex work into one evidence-backed, resumable project without taking the user's decisions away.",
   "author": {
     "name": "Praveen Rathee",
     "url": "https://github.com/rathee000001"
@@ -19,8 +19,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Evidence Lane",
-    "shortDescription": "Keep long Codex projects grounded, resumable, and human-approved.",
-    "longDescription": "Evidence Lane helps people carry substantial Codex projects across tasks without losing what was decided, what is active, or what still needs human approval. It keeps the working folder, user-selected Project/PV root, Plan, evidence, memory, learning, history, and hidden installed runtime as separate identities, then reconnects them through one governed workflow. Each change remains traceable to its source and active Plan row. State Travel resumes the existing project instead of starting over. No proposal, rollback, Git delivery, or Project or Learning acceptance happens without the required human decision. The current 3.0.0 package exposes 91 native actions (30 read and 61 write), 26 governed skills with no separate command layer, and 11 lifecycle event classes with 44 ordered handlers. Its 18 project-sector lanes remain distinct from Learning, Canon, Project Memory, Project Universe, Sources, Instructions, receipts and sessions, connector brain, and Project Overlay. The internal ENV/UOP action plane and whole-plugin SDK choose and govern the right workflow without turning stored authority into passive documentation.",
+    "shortDescription": "Turn long Codex work into evidence-backed, resumable, human-governed projects.",
+    "longDescription": "Serious Codex projects rarely fail because the model cannot write code. They fail because the project fragments: source, dirty work, plans, research, databases, installed runtimes, deployments, and human decisions drift into separate realities. Evidence Lane reconnects those realities without collapsing them. It keeps source, worktree, Project Truth, Plan, ChatLineage, Project Memory, Canon, Agent Learning, installed runtime, candidates, and accepted PVs as separate authorities; retrieves only the bounded evidence needed by the active Delta; and carries unfinished work across tasks through governed State Travel. Every change stays traceable to its source and active Plan row. Tests, commits, deployments, and polished responses remain evidence, not approval. Project and Learning HIL decisions stay with the user. The 3.0.0 Codex package routes 91 native actions and 26 governed skills through ENV/UOP and the internal SDK. Its 18 project-sector lanes remain distinct, while 11 lifecycle event classes and 44 ordered handlers connect host signals to the governed workflow. Inspectable SQLite/FTS, Mermaid/DOT maps, conditional CPU/NVIDIA/AMD execution, exact Git/CI delivery, and receipts make refresh, rollback, installation, and continuity reviewable.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "websiteURL": "https://evidencelane.org",

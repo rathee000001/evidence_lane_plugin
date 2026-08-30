@@ -123,7 +123,7 @@ def test_current_codex_docs_and_runtime_surfaces_name_v300() -> None:
             "exactly two selectors",
         ],
         "plugins/evidence-lane-plugin/.codex-plugin/plugin.json": [
-            "Evidence Lane keeps long Codex projects grounded",
+            "Evidence Lane turns fragmented long-running Codex work",
         ],
         "plugins/evidence-lane-plugin/scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1": [
             'transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"',

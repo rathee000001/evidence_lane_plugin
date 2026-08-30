@@ -49,6 +49,17 @@ def test_github_app_live_profiles_encode_github_mutual_exclusion() -> None:
     assert alternate["setup_url"] == "https://evidencelane.org/api/github-app/setup"
     assert alternate["setup_on_update"] is True
 
+    webhook = contract["webhook"]
+    assert webhook["active"] is False
+    assert webhook["activation_policy"] == "OPTIONAL_CONDITION_BOUND"
+    assert webhook["unselected_status"] == "OPTIONAL_NOT_SELECTED"
+    assert webhook["activate_when"] == (
+        "REAL_TIME_EVENTS_MATERIALLY_HELP_THE_SELECTED_ROUTE"
+    )
+    assert webhook["fallback_readback"] == (
+        "GITHUB_ACTIONS_CHECKS_DEPLOYMENTS_POLLING"
+    )
+
 
 def test_github_app_backend_routes_are_complete_and_fail_closed() -> None:
     routes = {
@@ -79,6 +90,9 @@ def test_github_app_backend_routes_are_complete_and_fail_closed() -> None:
     assert "installation_lifecycle_handled" in webhook
     assert "repository_selection_update_handled" in webhook
     assert "secretValuesReturned: false" in testing
+    assert "webhookActiveByContract: false" in testing
+    assert 'webhookActivationPolicy: "OPTIONAL_CONDITION_BOUND"' in testing
+    assert 'webhookUnselectedStatus: "OPTIONAL_NOT_SELECTED"' in testing
 
 
 def test_remote_adapter_exposes_executable_github_app_backend_test() -> None:

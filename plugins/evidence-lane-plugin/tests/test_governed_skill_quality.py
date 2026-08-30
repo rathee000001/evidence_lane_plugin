@@ -29,3 +29,15 @@ def test_quoted_skill_descriptions_are_normalized_for_generated_json() -> None:
     assert rows["evi-learning"]["description"].startswith("Govern the project-isolated")
     assert not rows["evi-learning"]["description"].startswith('"')
     assert not rows["evi-refresh"]["description"].startswith('"')
+
+
+def test_architecture_outputs_use_the_atomic_retry_writer() -> None:
+    source = GENERATOR_PATH.read_text(encoding="utf-8")
+    for filename in (
+        "UNIVERSAL_PLUGIN_ARCHITECTURE.mmd",
+        "UNIVERSAL_PLUGIN_ARCHITECTURE.dot",
+        "MEMORY_AUTHORITY_ARCHITECTURE.mmd",
+        "MEMORY_AUTHORITY_ARCHITECTURE.dot",
+    ):
+        assert f'(toolchains_root / "{filename}").write_text' not in source
+        assert f'toolchains_root / "{filename}",' in source

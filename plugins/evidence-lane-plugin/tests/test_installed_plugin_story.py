@@ -16,14 +16,18 @@ def test_installed_story_is_plain_language_and_current() -> None:
     interface = manifest["interface"]
 
     assert manifest["description"].startswith(
-        "Evidence Lane keeps long Codex projects grounded"
+        "Evidence Lane turns fragmented long-running Codex work"
     )
     assert interface["shortDescription"] == (
-        "Keep long Codex projects grounded, resumable, and human-approved."
+        "Turn long Codex work into evidence-backed, resumable, human-governed projects."
     )
-    assert "Evidence Lane helps people carry substantial Codex projects" in (
+    assert "Serious Codex projects rarely fail because the model cannot write code" in (
         interface["longDescription"]
     )
+    assert "reconnects those realities without collapsing them" in (
+        interface["longDescription"]
+    )
+    assert "evidence, not approval" in interface["longDescription"]
     assert "Evidence Lane helps Codex stay oriented through a long project" in readme
 
     current_facts = (
@@ -65,8 +69,10 @@ def test_installed_prompts_explain_current_work_and_human_decisions() -> None:
 def test_github_app_story_is_the_delivery_arm_of_the_same_product() -> None:
     contract = _json(PLUGIN_ROOT / "sdk" / "host" / "github-app-connection.v1.json")
     description = contract["description"]
-    assert description.startswith("Evidence Lane keeps long Codex projects connected")
-    assert "exact reviewed branch" in description
-    assert "person decides whether it should merge" in description
+    assert description.startswith("Long Codex projects fail when source")
+    assert "governed delivery bridge" in description
+    assert "exact reviewed commits" in description
+    assert "explicit user approval" in description
+    assert "never owns Plan, Goal, Project/PV, memory, learning, or HIL authority" in description
     assert "test candidate" not in description.casefold()
     assert "tombstone" not in description.casefold()

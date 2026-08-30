@@ -2041,9 +2041,13 @@ def _generate_sdk(
             "app_name": "Evidence Lane",
             "app_slug": "evidence-lane",
             "description": (
-                "Evidence Lane keeps long Codex projects connected to the exact "
-                "reviewed branch in GitHub while preserving project and HIL "
-                "authority; a person decides whether it should merge."
+                "Long Codex projects fail when source, dirty work, plans, evidence, "
+                "installed runtimes, deployments, and human decisions drift apart. "
+                "Evidence Lane reconnects those authorities without collapsing them. "
+                "This private GitHub App is the governed delivery bridge: it recreates "
+                "exact reviewed commits, reads CI, CodeQL, Pages, and Vercel proof, "
+                "and advances delivery only after explicit user approval. It never "
+                "owns Plan, Goal, Project/PV, memory, learning, or HIL authority."
             ),
             "homepage_url": "https://evidencelane.org",
             "post_authorization_redirect_url": "https://evidencelane.org/connect",
@@ -2085,7 +2089,13 @@ def _generate_sdk(
                 "provider_expiry_enforced": True,
             },
             "webhook": {
-                "active": True,
+                "active": False,
+                "activation_policy": "OPTIONAL_CONDITION_BOUND",
+                "unselected_status": "OPTIONAL_NOT_SELECTED",
+                "activate_when": (
+                    "REAL_TIME_EVENTS_MATERIALLY_HELP_THE_SELECTED_ROUTE"
+                ),
+                "fallback_readback": "GITHUB_ACTIONS_CHECKS_DEPLOYMENTS_POLLING",
                 "url": "https://evidencelane.org/api/github-app/webhook",
                 "content_type": "json",
                 "tls_verification_required": True,
@@ -4815,21 +4825,21 @@ def main() -> int:
         toolchains_root / "action-skill-hook-schema-pairing.v1.json",
         architecture["action_skill_hook_schema_pairing"],
     )
-    (toolchains_root / "UNIVERSAL_PLUGIN_ARCHITECTURE.mmd").write_text(
+    _write(
+        toolchains_root / "UNIVERSAL_PLUGIN_ARCHITECTURE.mmd",
         render_universal_architecture_mmd(architecture),
-        encoding="utf-8",
-        newline="\n",
     )
-    (toolchains_root / "UNIVERSAL_PLUGIN_ARCHITECTURE.dot").write_text(
+    _write(
+        toolchains_root / "UNIVERSAL_PLUGIN_ARCHITECTURE.dot",
         render_universal_architecture_dot(architecture),
-        encoding="utf-8",
-        newline="\n",
     )
-    (toolchains_root / "MEMORY_AUTHORITY_ARCHITECTURE.mmd").write_text(
-        render_memory_architecture_mmd(), encoding="utf-8", newline="\n"
+    _write(
+        toolchains_root / "MEMORY_AUTHORITY_ARCHITECTURE.mmd",
+        render_memory_architecture_mmd(),
     )
-    (toolchains_root / "MEMORY_AUTHORITY_ARCHITECTURE.dot").write_text(
-        render_memory_architecture_dot(), encoding="utf-8", newline="\n"
+    _write(
+        toolchains_root / "MEMORY_AUTHORITY_ARCHITECTURE.dot",
+        render_memory_architecture_dot(),
     )
     dedicated_skills = build_dedicated_skill_workflows(architecture)
     dedicated_root = PLUGIN_ROOT / "sdk" / "workflows" / "skills"
