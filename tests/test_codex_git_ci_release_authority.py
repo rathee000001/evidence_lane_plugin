@@ -135,9 +135,7 @@ def test_exact_commit_builder_exports_only_the_named_git_commit(
     assert result["exact_commit_export"]["working_checkout_bytes_used"] is False
     assert result["exact_commit_export"]["untracked_bytes_used"] is False
     assert result["exact_commit_export"]["plugin_source_member_count"] == 1
-    assert len(
-        result["exact_commit_export"]["plugin_source_manifest_sha256"]
-    ) == 64
+    assert len(result["exact_commit_export"]["plugin_source_manifest_sha256"]) == 64
     assert result["git_write_invoked"] is False
     assert len(result["receipt_sha256"]) == 64
 
@@ -148,6 +146,7 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
     commit = "1" * 40
     tree = "2" * 40
     branch = "main"
+    source_branch = "agent/evi-v300-systemwide-release-hil-v3.0.0"
     package = _self_seal(
         {
             "schema": "evidence-lane.codex-exact-commit-package.v1.receipt",
@@ -179,33 +178,48 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
     )
     package_path = tmp_path / "package.json"
     _write_json(package_path, package)
-    remote = {
-        "schema": "evidence-lane.github-app-main-merge.v1",
-        "action_id": "remote_action_fixture",
-        "route": "GITHUB_APP_SDK",
-        "action": "MERGE_TO_MAIN",
-        "status": "EXECUTED",
-        "merge": {
-            "source_branch": "agent/evi-v300-systemwide-release-hil-v3.0.0",
-            "target_branch": "main",
-            "merge_commit": commit,
-            "merge_tree": tree,
-        },
-        "repository_identity": {
-            "branch": branch,
-            "commit_sha": commit,
-            "tree_sha": tree,
-        },
-        "authorization": {
-            "policy": "GOVERNED_FEATURE_TO_MAIN_MERGE",
-            "direct_main_push_authorized": False,
-            "merge_authorized": True,
-        },
-        "output_security": {
-            "infrastructure_status": "PASS",
-            "receipt_sha256": "B" * 64,
-        },
-    }
+    remote = _self_seal(
+        {
+            "schema": "evidence-lane.github-app-main-fast-forward.v1",
+            "route": "github_app_main_fast_forward_v3",
+            "action": "FAST_FORWARD_MAIN",
+            "status": "PASS",
+            "promotion": {
+                "source_branch": source_branch,
+                "target_branch": "main",
+                "source_commit": commit,
+                "main_commit": commit,
+                "main_tree": tree,
+                "merge_base_commit": "0" * 40,
+                "target_before_commit": "0" * 40,
+                "ahead_by": 1,
+                "behind_by": 0,
+            },
+            "repository_identity": {
+                "branch": branch,
+                "commit_sha": commit,
+                "tree_sha": tree,
+            },
+            "authorization": {
+                "policy": "GOVERNED_FEATURE_TO_MAIN_FAST_FORWARD",
+                "direct_main_implementation_authorized": False,
+                "fast_forward_authorized": True,
+                "merge_authorized": False,
+            },
+            "github_commit_author_login": "evidence-lane[bot]",
+            "source_tree_reused": True,
+            "blob_reupload_count": 0,
+            "force_push": False,
+            "direct_ref_patch_used": True,
+            "credential_values_persisted": False,
+            "private_key_persisted": False,
+            "installation_token_persisted": False,
+            "candidate_created_or_accepted": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+            "token_broker_receipt_sha256": "B" * 64,
+        }
+    )
     remote_path = tmp_path / "remote.json"
     _write_json(remote_path, remote)
     checks = [
@@ -222,7 +236,7 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
             "schema": "evidence-lane.github-ci-exact-head.v1",
             "status": "PASS",
             "repository": "owner/repository",
-            "branch": branch,
+            "branch": source_branch,
             "head_sha": commit,
             "clean_checkout": True,
             "required_check_names": ["python-ci", "codeql"],
@@ -239,7 +253,7 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
             "team_id": "team_fixture",
             "source": {
                 "repository": "owner/repository",
-                "branch": branch,
+                "branch": source_branch,
                 "head_sha": commit,
             },
             "deployment": {
@@ -284,7 +298,8 @@ def test_release_authority_joins_exact_package_native_push_and_clean_ci(
     assert result["status"] == "PASS"
     assert result["source"]["exact_commit_projection_clean"] is True
     assert result["source"]["working_checkout_clean_required"] is False
-    assert result["remote_git"]["route"] == "GITHUB_APP_SDK"
+    assert result["remote_git"]["route"] == "github_app_main_fast_forward_v3"
+    assert result["remote_git"]["promotion_status"] == "FAST_FORWARDED"
     assert result["remote_git"]["target_branch"] == "main"
     assert result["remote_git"]["protected_branch"] is True
     assert result["github_ci"]["required_check_count"] == 2

@@ -563,10 +563,12 @@ def _source_inventory(root: Path) -> dict[str, Any]:
             for retired in RETIRED_COMMAND_ROOTS
         ):
             raise InstallationError("The package contains the retired command layer.")
-        if (
-            set(relative.split("/")) & ignored_runtime_cache_directories
-            or path.suffix.lower() in {".pyc", ".pyo"}
-        ):
+        if set(
+            relative.split("/")
+        ) & ignored_runtime_cache_directories or path.suffix.lower() in {
+            ".pyc",
+            ".pyo",
+        }:
             ignored_python_runtime_artifacts += 1
             continue
         rows.append(
@@ -1572,8 +1574,7 @@ def _require_local_executable_fingerprint_refresh(
         not isinstance(audit, dict)
         or audit.get("schema") != "evidence-lane.executable-fingerprint-refresh.v1"
         or audit.get("status") != "PASS"
-        or audit.get("full_regression_status")
-        != "PASS_WITH_TARGETED_FAILURE_CLOSURE"
+        or audit.get("full_regression_status") != "PASS_WITH_TARGETED_FAILURE_CLOSURE"
         or audit.get("authorized_run_count") != 1
         or audit.get("targeted_closure_status") != "PASS"
         or int(audit.get("executable_member_count", 0)) <= 0
@@ -1628,6 +1629,7 @@ def _load_release_authority(
     source_commit = str(source.get("commit") or "").lower()
     source_tree = str(source.get("tree") or "").lower()
     branch = str(source.get("branch") or "")
+    proof_branch = str(remote.get("source_branch") or "")
     base_anchor = dict(package_receipt.get("base_anchor") or {})
     package_export = dict(package_receipt.get("exact_commit_export") or {})
     required_check_count = int(ci.get("required_check_count") or 0)
@@ -1661,18 +1663,22 @@ def _load_release_authority(
         or source.get("untracked_bytes_excluded") is not True
         or str(base_anchor.get("commit") or "").lower() != source_commit
         or str(base_anchor.get("tree") or "").lower() != source_tree
-        or remote.get("route") != "GITHUB_APP_SDK"
-        or remote.get("merge_status") != "EXECUTED"
+        or remote.get("route") != "github_app_main_fast_forward_v3"
+        or remote.get("promotion_status") != "FAST_FORWARDED"
         or remote.get("target_branch") != "main"
-        or not str(remote.get("source_branch") or "").startswith("agent/")
+        or not proof_branch.startswith("agent/")
         or str(remote.get("remote_branch_commit") or "").lower() != source_commit
         or remote.get("protected_branch") is not True
+        or remote.get("force_push") is not False
+        or remote.get("source_tree_reused") is not True
+        or remote.get("blob_reupload_count") != 0
         or re.fullmatch(
             r"[A-F0-9]{64}",
             str(remote.get("native_receipt_sha256") or "").upper(),
         )
         is None
         or ci.get("status") != "PASS"
+        or ci.get("branch") != proof_branch
         or str(ci.get("head_sha") or "").lower() != source_commit
         or ci.get("required_checks_complete") is not True
         or required_check_count < 1
@@ -1688,7 +1694,7 @@ def _load_release_authority(
         or preview.get("state") != "READY"
         or preview.get("target") != "PREVIEW"
         or preview.get("repository") != MARKETPLACE_SOURCE
-        or preview.get("branch") != branch
+        or preview.get("branch") != proof_branch
         or str(preview.get("head_sha") or "").lower() != source_commit
         or preview.get("git_integration") is not True
         or preview.get("manual_deploy") is not False
@@ -1706,7 +1712,7 @@ def _load_release_authority(
     ):
         raise InstallationError(
             "Activation requires one exact clean main commit, governed GitHub-App "
-            "merge, "
+            "non-force fast-forward, "
             "successful GitHub CI, and one READY non-production Vercel Git preview "
             "bound to this archive."
         )

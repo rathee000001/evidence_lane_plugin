@@ -44,25 +44,25 @@
       "path": "mcp",
       "role": "OUTER_NATIVE_MCP_BINDING",
       "member_count": 94,
-      "members_sha256": "BADF8A678439156077C8728E3939B308AA30D2C57DD49356D41732E9DDC2CD1B"
+      "members_sha256": "AF01F8219B4B93EA1505C05B8A65A91810C028870C7FDCD9F856F10EEBD33120"
     },
     {
       "path": "schemas",
       "role": "COMPLETE_EXECUTABLE_SCHEMA_SURFACE",
       "member_count": 166,
-      "members_sha256": "228C1569C92C6615EA39CEE25FF87D4F3C7F2B891D742D6416DC1F513233CB72"
+      "members_sha256": "23A94CAE73ED719A12B85FC1DA160DBC4420D0274EA6FD7EC26FFFC9ECB34498"
     },
     {
       "path": "scripts",
       "role": "RUNTIME_AND_MAINTAINER_ENTRYPOINTS",
       "member_count": 49,
-      "members_sha256": "6E6708C6BEC146738D1A884563379F91220F816E2A71E1F5FD7FD5090317C2D8"
+      "members_sha256": "CA053271F1AE3A3885D01B92D1E630DC02CA030DB9BA82A0AABD2A495368E174"
     },
     {
       "path": "sdk",
       "role": "INTERNAL_ENV_UOP_AND_OUTER_ROUTING_SDK",
       "member_count": 522,
-      "members_sha256": "D6F00B8061667D05D404EA9FE8D15D74A9F51666C41AB9F5C9345A6D2DD22956"
+      "members_sha256": "BFDADD0DAE086FB7CEA8A9D03134C906F89A73008C6316EB5033596199E7086C"
     },
     {
       "path": "skills",
@@ -4599,7 +4599,7 @@
     {
       "path": "mcp/mcp-manifest.v1.json",
       "bytes": 7258,
-      "sha256": "86C77A8CAFC8FD147942FA7B1AC008B90D5CDFD88482FF1ACC068E697C07FDBC"
+      "sha256": "224AFE934F9AED001BF524881A7D622014886DFA6D0FA859C491FD7510E6D890"
     },
     {
       "path": "pyproject.toml",
@@ -5284,7 +5284,7 @@
     {
       "path": "schemas/mcp/mcp-binding.v1.json",
       "bytes": 7258,
-      "sha256": "86C77A8CAFC8FD147942FA7B1AC008B90D5CDFD88482FF1ACC068E697C07FDBC"
+      "sha256": "224AFE934F9AED001BF524881A7D622014886DFA6D0FA859C491FD7510E6D890"
     },
     {
       "path": "schemas/memory/project-memory.v1.sql",
@@ -5424,12 +5424,12 @@
     {
       "path": "schemas/schema-manifest.v1.json",
       "bytes": 40957,
-      "sha256": "81DE002F8022496E9D55EAB84D524DF77712123181128CFDCBC84B9499D5DA25"
+      "sha256": "6A7BFF64BB7A1C7CE0CF9D763B65D46B87AD7E26F6B2FE451BF521ED060D9532"
     },
     {
       "path": "schemas/sdk/sdk-binding.v1.json",
       "bytes": 75726,
-      "sha256": "7C59D11D750669C5734A5BB1056A920211A9694E270B59371C318086B73F6AAB"
+      "sha256": "1205DDDABD10223A9C4D5A72F7959B54517FBD2A987714C63951533C2661A90B"
     },
     {
       "path": "schemas/skills/skill-registry.v1.json",
@@ -5543,8 +5543,8 @@
     },
     {
       "path": "scripts/codex_release/install_codex_stable.py",
-      "bytes": 236891,
-      "sha256": "C1DFE38596934294CAD244BF26F9F18FC5CF0782F9C38A4846FA1449782E4C9F"
+      "bytes": 237103,
+      "sha256": "6D8C25C66AD6C080296AAF49992A040F00CD4B8B26ED346C7191CAAF7521D62B"
     },
     {
       "path": "scripts/codex_release/install_native_toolchain.py",
@@ -5573,8 +5573,8 @@
     },
     {
       "path": "scripts/codex_release/seal_codex_git_ci_release_authority.py",
-      "bytes": 12114,
-      "sha256": "A11022FCBDE85A2C0BCCC5106C56BB7F58714159D4DB93637C860026D14D8F0F"
+      "bytes": 13066,
+      "sha256": "751D2D5A4C5DDEA6DEE4409664A7195E9BC640EE60DE8D76DE72BAF44F4022D2"
     },
     {
       "path": "scripts/codex_release/seal_external_release_receipts.py",
@@ -6504,7 +6504,7 @@
     {
       "path": "sdk/host/local-install.contract.v1.json",
       "bytes": 608,
-      "sha256": "629E4E6DF7B6C82924049B77E7CCC650B3523A2A7242D48BDC89CEE2B4E73D83"
+      "sha256": "0A63DD92A520CA957AD944C4F0D39ACF053C1FDC21134BFAC4E5B94B61AA6A20"
     },
     {
       "path": "sdk/host/plan-relock.contract.v1.json",
@@ -6519,7 +6519,7 @@
     {
       "path": "sdk/host/runtime-install-restart.v1.json",
       "bytes": 1557,
-      "sha256": "3DEF598AF9E6A4331E92452686190EF7ACC83E9DE9C63A0CE95AA1C161BD7C33"
+      "sha256": "D1CB74B28DC97DC60D616069546D99EFBBD2480C0476E5921AB7B5E67828C541"
     },
     {
       "path": "sdk/host/state-travel.contract.v1.json",
@@ -7784,7 +7784,7 @@
     {
       "path": "sdk/sdk-manifest.v1.json",
       "bytes": 75726,
-      "sha256": "7C59D11D750669C5734A5BB1056A920211A9694E270B59371C318086B73F6AAB"
+      "sha256": "1205DDDABD10223A9C4D5A72F7959B54517FBD2A987714C63951533C2661A90B"
     },
     {
       "path": "sdk/workflows/evi-additional-plugin.workflow.v1.json",
@@ -10194,5 +10194,5 @@
   "local_cache_or_output_included": false,
   "historical_fallback_used": false,
   "all_installed_members_hash_bound": true,
-  "receipt_sha256": "1527481A38AD38DBC874D0D72CDEE16E3C79FB1E074014F474E32ADA085C01C9"
+  "receipt_sha256": "D6030FA442386AD4F5B2D6ACFC9A2E973CB96B039008AF1E2D1D57F3BEA8BDC0"
 }

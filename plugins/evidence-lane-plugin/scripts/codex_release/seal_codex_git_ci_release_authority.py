@@ -1,4 +1,4 @@
-"""Join exact-main-package, GitHub-App merge, CI, and preview receipts.
+"""Join exact-main-package, GitHub-App fast-forward, CI, and preview receipts.
 
 This is a read-only receipt joiner. It never invokes Git, GitHub, Evidence Lane,
 Codex, installation, lifecycle, candidate, pointer, or HIL actions.
@@ -87,7 +87,11 @@ def seal_release_authority(
         package_receipt_sha256,
         schema="evidence-lane.codex-exact-commit-package.v1.receipt",
     )
-    remote = _load_exact(remote_git_receipt, remote_git_receipt_sha256)
+    remote = _load_self_sealed(
+        remote_git_receipt,
+        remote_git_receipt_sha256,
+        schema="evidence-lane.github-app-main-fast-forward.v1",
+    )
     ci = _load_self_sealed(
         github_ci_receipt,
         github_ci_receipt_sha256,
@@ -107,9 +111,9 @@ def seal_release_authority(
     ).upper()
     plugin_source_member_count = export.get("plugin_source_member_count")
     remote_repository = dict(remote.get("repository_identity") or {})
-    merge = dict(remote.get("merge") or {})
+    promotion = dict(remote.get("promotion") or {})
     authorization = dict(remote.get("authorization") or {})
-    output_security = dict(remote.get("output_security") or {})
+    source_branch = str(promotion.get("source_branch") or "")
     checks = [dict(row) for row in ci.get("checks") or [] if isinstance(row, dict)]
     required_names = [str(name) for name in ci.get("required_check_names") or []]
     check_names = [str(row.get("name") or "") for row in checks]
@@ -134,28 +138,40 @@ def seal_release_authority(
         or not isinstance(plugin_source_member_count, int)
         or plugin_source_member_count < 1
         or export.get("git_archive_member_count") != plugin_source_member_count
-        or remote.get("schema") != "evidence-lane.github-app-main-merge.v1"
-        or remote.get("route") != "GITHUB_APP_SDK"
-        or remote.get("action") != "MERGE_TO_MAIN"
-        or remote.get("status") != "EXECUTED"
-        or str(merge.get("target_branch") or "") != "main"
-        or not str(merge.get("source_branch") or "").startswith("agent/")
-        or str(merge.get("merge_commit") or "").lower() != commit
-        or str(merge.get("merge_tree") or "").lower() != tree
+        or remote.get("route") != "github_app_main_fast_forward_v3"
+        or remote.get("action") != "FAST_FORWARD_MAIN"
+        or remote.get("status") != "PASS"
+        or str(promotion.get("target_branch") or "") != "main"
+        or not source_branch.startswith("agent/")
+        or str(promotion.get("source_commit") or "").lower() != commit
+        or str(promotion.get("main_commit") or "").lower() != commit
+        or str(promotion.get("main_tree") or "").lower() != tree
+        or int(promotion.get("ahead_by") or 0) < 1
+        or promotion.get("behind_by") != 0
         or str(remote_repository.get("branch") or "") != "main"
         or str(remote_repository.get("commit_sha") or "").lower() != commit
         or str(remote_repository.get("tree_sha") or "").lower() != tree
-        or authorization.get("policy")
-        != "GOVERNED_FEATURE_TO_MAIN_MERGE"
-        or authorization.get("direct_main_push_authorized") is not False
-        or authorization.get("merge_authorized") is not True
-        or output_security.get("infrastructure_status") != "PASS"
+        or authorization.get("policy") != "GOVERNED_FEATURE_TO_MAIN_FAST_FORWARD"
+        or authorization.get("direct_main_implementation_authorized") is not False
+        or authorization.get("fast_forward_authorized") is not True
+        or authorization.get("merge_authorized") is not False
+        or remote.get("github_commit_author_login") != "evidence-lane[bot]"
+        or remote.get("source_tree_reused") is not True
+        or int(remote.get("blob_reupload_count") or 0) != 0
+        or remote.get("force_push") is not False
+        or remote.get("direct_ref_patch_used") is not True
+        or remote.get("credential_values_persisted") is not False
+        or remote.get("private_key_persisted") is not False
+        or remote.get("installation_token_persisted") is not False
+        or remote.get("candidate_created_or_accepted") is not False
+        or remote.get("pointer_moved") is not False
+        or remote.get("hil_inferred") is not False
         or _SHA256.fullmatch(
-            str(output_security.get("receipt_sha256") or "").upper()
+            str(remote.get("token_broker_receipt_sha256") or "").upper()
         )
         is None
         or ci.get("status") != "PASS"
-        or ci.get("branch") != branch
+        or ci.get("branch") != source_branch
         or str(ci.get("head_sha") or "").lower() != commit
         or ci.get("clean_checkout") is not True
         or not required_names
@@ -173,7 +189,7 @@ def seal_release_authority(
         or preview.get("production_deployment") is not False
         or str(preview_source.get("repository") or "")
         != str(ci.get("repository") or "")
-        or str(preview_source.get("branch") or "") != branch
+        or str(preview_source.get("branch") or "") != source_branch
         or str(preview_source.get("head_sha") or "").lower() != commit
         or preview_deployment.get("state") != "READY"
         or preview_deployment.get("target") != "PREVIEW"
@@ -183,7 +199,7 @@ def seal_release_authority(
         or not str(preview.get("team_id") or "").startswith("team_")
     ):
         raise ReleaseAuthorityError(
-            "The exact main package, GitHub-App merge, GitHub CI, and Vercel preview "
+            "The exact main package, GitHub-App fast-forward, GitHub CI, and Vercel preview "
             "receipts do not join."
         )
     core = {
@@ -192,9 +208,7 @@ def seal_release_authority(
         "boundary": BOUNDARY,
         "archive_sha256": _sha256(archive),
         "package_receipt_sha256": _sha256(package_receipt),
-        "working_source_manifest_sha256": package[
-            "working_source_manifest_sha256"
-        ],
+        "working_source_manifest_sha256": package["working_source_manifest_sha256"],
         "plugin_source_manifest_sha256": plugin_source_manifest_sha256,
         "plugin_source_member_count": plugin_source_member_count,
         "source": {
@@ -207,21 +221,23 @@ def seal_release_authority(
             "untracked_bytes_excluded": True,
         },
         "remote_git": {
-            "route": "GITHUB_APP_SDK",
-            "merge_status": "EXECUTED",
-            "source_branch": merge["source_branch"],
+            "route": "github_app_main_fast_forward_v3",
+            "promotion_status": "FAST_FORWARDED",
+            "source_branch": source_branch,
             "target_branch": "main",
             "remote_branch_commit": commit,
             "protected_branch": True,
+            "force_push": False,
+            "source_tree_reused": True,
+            "blob_reupload_count": 0,
             "native_receipt_sha256": _sha256(remote_git_receipt),
-            "action_id": remote.get("action_id"),
-            "output_security_receipt_sha256": output_security[
-                "receipt_sha256"
-            ],
+            "request_sha256": remote.get("request_sha256"),
+            "token_broker_receipt_sha256": remote["token_broker_receipt_sha256"],
         },
         "github_ci": {
             "status": "PASS",
             "repository": ci.get("repository"),
+            "branch": source_branch,
             "head_sha": commit,
             "clean_checkout": True,
             "required_checks_complete": True,
@@ -241,7 +257,7 @@ def seal_release_authority(
             "state": "READY",
             "target": "PREVIEW",
             "repository": preview_source["repository"],
-            "branch": branch,
+            "branch": source_branch,
             "head_sha": commit,
             "git_integration": True,
             "manual_deploy": False,
