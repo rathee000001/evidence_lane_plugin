@@ -1824,7 +1824,11 @@ def _load_comparison_baseline(
         or receipt.get("candidate_created_or_accepted") is not False
         or receipt.get("pointer_moved") is not False
         or receipt.get("hil_inferred") is not False
-        or activation.get("state") != "INSTALLED_RESTART_REQUIRED"
+        or activation.get("state")
+        not in {
+            "INSTALLED_RESTART_REQUIRED",
+            "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED",
+        }
         or plugin.get("plugin_id") != PLUGIN_NAME
         or plugin.get("version") != surface.get("plugin_version")
         or surface.get("schema") != "evidence-lane.codex-installed-surface-inventory.v2"
@@ -1849,7 +1853,12 @@ def _load_comparison_baseline(
         "installation_receipt_sha256": expected,
         "plugin_version": plugin["version"],
         "surface_inventory_sha256": surface["surface_inventory_sha256"],
-        "baseline_role": "EXACT_PRIOR_HOST_STABLE_INSTALLATION",
+        "baseline_role": (
+            "EXACT_PRIOR_HOST_ACTIVE_LOCAL_TESTING_INSTALLATION"
+            if activation.get("state")
+            == "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED"
+            else "EXACT_PRIOR_HOST_STABLE_INSTALLATION"
+        ),
         **enrichment,
     }
     return surface, identity
@@ -4529,6 +4538,169 @@ def _load_two_slot_update_authority(
     }
 
 
+def _bootstrap_two_slot_update_authority(
+    *,
+    data_root: Path,
+    codex_home: Path,
+    plugin_list: dict[str, Any],
+    comparison_baseline: dict[str, Any],
+    comparison_surface: dict[str, Any],
+) -> dict[str, Any]:
+    """Seal the first durable two-slot registry from exact live Codex readback."""
+
+    registry_path = (
+        data_root
+        / "installations"
+        / "codex-v300"
+        / "two-slot-main-local"
+        / "CODEX_TWO_SLOT_MAIN_LOCAL_REGISTRY.json"
+    )
+    if registry_path.exists():
+        return {
+            "status": "NOT_REQUIRED_ALREADY_MATERIALIZED",
+            "registry_path": str(registry_path),
+            "registry_file_sha256": _sha256(registry_path),
+        }
+    installed = plugin_list.get("installed")
+    if not isinstance(installed, list):
+        raise InstallationError("Codex plugin list did not expose installed plugins.")
+    evidence_plugins = {
+        str(row.get("pluginId") or ""): dict(row)
+        for row in installed
+        if isinstance(row, dict)
+        and str(row.get("pluginId") or "").startswith(f"{PLUGIN_NAME}@")
+    }
+    stable_selector = TWO_SLOT_SELECTORS["stable-git-main"]
+    local_selector = TWO_SLOT_SELECTORS["versioned-local-testing"]
+    if set(evidence_plugins) != {stable_selector, local_selector}:
+        raise InstallationError(
+            "First stable bootstrap requires exactly the stable-main and local-testing selectors."
+        )
+    stable_row = evidence_plugins[stable_selector]
+    local_row = evidence_plugins[local_selector]
+    stable_source = dict(stable_row.get("source") or {})
+    local_source = dict(local_row.get("source") or {})
+    stable_marketplace_source = dict(stable_row.get("marketplaceSource") or {})
+    local_marketplace_source = dict(local_row.get("marketplaceSource") or {})
+    stable_path = Path(str(stable_source.get("path") or "")).resolve()
+    local_path = Path(str(local_source.get("path") or "")).resolve()
+    stable_version = str(stable_row.get("version") or "")
+    local_version = str(local_row.get("version") or "")
+    if (
+        stable_row.get("enabled") is not False
+        or local_row.get("enabled") is not True
+        or stable_marketplace_source.get("sourceType") != "git"
+        or local_marketplace_source.get("sourceType") != "local"
+        or not stable_path.is_dir()
+        or not local_path.is_dir()
+        or not stable_version.startswith("3.0.0+codex.")
+        or not local_version.startswith("3.0.0+codex.")
+        or comparison_baseline.get("baseline_role")
+        != "EXACT_PRIOR_HOST_ACTIVE_LOCAL_TESTING_INSTALLATION"
+        or comparison_baseline.get("plugin_version") != local_version
+        or comparison_baseline.get("surface_inventory_sha256")
+        != comparison_surface.get("surface_inventory_sha256")
+    ):
+        raise InstallationError(
+            "The live selectors and sealed active-local baseline cannot bootstrap two-slot authority."
+        )
+
+    def slot(
+        *,
+        role: str,
+        selector: str,
+        row: dict[str, Any],
+        path: Path,
+        source_type: str,
+        byte_frozen: bool,
+        enabled: bool,
+        update_gate: str,
+    ) -> dict[str, Any]:
+        return {
+            "slot_role": role,
+            "plugin_selector": selector,
+            "plugin_version": str(row["version"]),
+            "marketplace_name": str(row["marketplaceName"]),
+            "installed_path_sha256": hashlib.sha256(
+                os.path.normcase(str(path)).encode("utf-8")
+            )
+            .hexdigest()
+            .upper(),
+            "marketplace_source_type": source_type,
+            "byte_frozen": byte_frozen,
+            "enabled": enabled,
+            "native_mcp_enabled": enabled,
+            "update_gate": update_gate,
+        }
+
+    registry: dict[str, Any] = {
+        "schema": TWO_SLOT_REGISTRY_SCHEMA,
+        "status": "PASS",
+        "active_slot": "versioned-local-testing",
+        "active_selector": local_selector,
+        "exact_live_slot_count": 2,
+        "max_enabled_plugin_count": 1,
+        "failure_target_slot": "stable-git-main",
+        "local_failure_targets_verified_main_only": True,
+        "obsolete_selector_present": False,
+        "pre_3_0_fallback_allowed": False,
+        "slots": {
+            "stable-git-main": slot(
+                role="stable-git-main",
+                selector=stable_selector,
+                row=stable_row,
+                path=stable_path,
+                source_type="git",
+                byte_frozen=True,
+                enabled=False,
+                update_gate="GOVERNED_VERIFIED_MAIN_FAST_FORWARD",
+            ),
+            "versioned-local-testing": slot(
+                role="versioned-local-testing",
+                selector=local_selector,
+                row=local_row,
+                path=local_path,
+                source_type="local",
+                byte_frozen=False,
+                enabled=True,
+                update_gate="FRESH_VERSIONED_LOCAL_PACKAGE",
+            ),
+        },
+        "bootstrap_proof": {
+            "source": "CODEX_PLUGIN_LIST_AND_SEALED_ACTIVE_LOCAL_RECEIPT",
+            "codex_home": str(codex_home.resolve()),
+            "plugin_list_sha256": hashlib.sha256(_json_bytes(plugin_list))
+            .hexdigest()
+            .upper(),
+            "comparison_receipt_sha256": comparison_baseline[
+                "installation_receipt_sha256"
+            ],
+            "comparison_surface_inventory_sha256": comparison_surface[
+                "surface_inventory_sha256"
+            ],
+            "candidate_created_or_accepted": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        },
+    }
+    registry["receipt_sha256"] = (
+        hashlib.sha256(_json_bytes(registry)).hexdigest().upper()
+    )
+    _write_atomic(registry_path, _json_bytes(registry))
+    return {
+        "schema": "evidence-lane.codex-two-slot-main-local-bootstrap.v1",
+        "status": "PASS",
+        "registry_path": str(registry_path),
+        "registry_file_sha256": _sha256(registry_path),
+        "registry_receipt_sha256": registry["receipt_sha256"],
+        "stable_selector": stable_selector,
+        "local_testing_selector": local_selector,
+        "candidate_created_or_accepted": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+    }
+
+
 def _advance_two_slot_stable_registry(
     *,
     authority: dict[str, Any] | None,
@@ -4640,7 +4812,7 @@ def _advance_two_slot_stable_registry(
             "plugin_selector": plugin_selector,
             "plugin_version": plugin_version,
             "slot_role": "stable-git-main",
-            "update_gate": "GOVERNED_VERIFIED_MAIN_MERGE",
+            "update_gate": "GOVERNED_VERIFIED_MAIN_FAST_FORWARD",
         }
     )
     slots["stable-git-main"] = stable
@@ -5083,14 +5255,43 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
     # sealed package.  It must not require, compare, or mutate the live
     # stable-main/local-testing two-slot authority. That authority is promotion state
     # and remains mandatory for an actual governed activation.
-    two_slot_authority = (
-        _load_two_slot_update_authority(
+    activation_executable: Path | None = None
+    two_slot_bootstrap: dict[str, Any] | None = None
+    if args.activate:
+        activation_executable = _resolve_codex_cli_executable(
+            getattr(args, "codex_executable", None),
+            verify_version=False,
+        )
+        registry_path = (
+            data_root
+            / "installations"
+            / "codex-v300"
+            / "two-slot-main-local"
+            / "CODEX_TWO_SLOT_MAIN_LOCAL_REGISTRY.json"
+        )
+        if not registry_path.is_file():
+            if comparison_baseline is None or comparison_surface is None:
+                raise InstallationError(
+                    "First stable activation requires the sealed active-local baseline."
+                )
+            plugin_list_before = _run_codex(
+                activation_executable,
+                codex_home,
+                ["plugin", "list", "--json"],
+            )
+            two_slot_bootstrap = _bootstrap_two_slot_update_authority(
+                data_root=data_root,
+                codex_home=codex_home,
+                plugin_list=plugin_list_before,
+                comparison_baseline=comparison_baseline,
+                comparison_surface=comparison_surface,
+            )
+        two_slot_authority = _load_two_slot_update_authority(
             data_root=data_root,
             comparison_baseline=comparison_baseline,
         )
-        if args.activate
-        else None
-    )
+    else:
+        two_slot_authority = None
     if requested_marketplace_name == LOCAL_TESTING_MARKETPLACE_NAME:
         if args.activate:
             raise InstallationError(
@@ -5165,12 +5366,11 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
     git_marketplace_source: dict[str, Any] | None = None
     post_proof_cleanup: dict[str, Any] | None = None
     hook_event_isolation: dict[str, Any] | None = None
-    two_slot_main_local_registry: dict[str, Any] | None = None
+    two_slot_main_local_registry: dict[str, Any] | None = two_slot_bootstrap
     if args.activate:
-        executable = _resolve_codex_cli_executable(
-            getattr(args, "codex_executable", None),
-            verify_version=False,
-        )
+        if activation_executable is None:
+            raise InstallationError("Activation executable was not resolved.")
+        executable = activation_executable
         if two_slot_authority is None:
             raise InstallationError(
                 "Activation requires the materialized stable-main/local-testing "

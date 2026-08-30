@@ -44,25 +44,25 @@
       "path": "mcp",
       "role": "OUTER_NATIVE_MCP_BINDING",
       "member_count": 94,
-      "members_sha256": "27C0302DC9BA06B7F29014FD10D93CBCFEF9895A75C84CAA8E86CC727DDE486E"
+      "members_sha256": "6116A6D22011C99BB3FDA069AAC9D41C53A3BC15266AE26EBCC496870E6624A6"
     },
     {
       "path": "schemas",
       "role": "COMPLETE_EXECUTABLE_SCHEMA_SURFACE",
       "member_count": 166,
-      "members_sha256": "BB2E81FC9632EDD97F8A404382B4D978C15F20A7BDC456CD80621B281776AD62"
+      "members_sha256": "F8425B5346250B74841CBB4F591524CB58DDA25BD07BCCDDEA412126607A9971"
     },
     {
       "path": "scripts",
       "role": "RUNTIME_AND_MAINTAINER_ENTRYPOINTS",
       "member_count": 49,
-      "members_sha256": "93F973A00423484A6F1861D5477B5DF1A277A0193D928EFED007E88C0A21BA81"
+      "members_sha256": "BE3921E5D4525840BECBB35FB15EA8D414A9B138F58640EC2D5173629C9134B9"
     },
     {
       "path": "sdk",
       "role": "INTERNAL_ENV_UOP_AND_OUTER_ROUTING_SDK",
       "member_count": 522,
-      "members_sha256": "9A95B14D38C951E0FA4DFEF0323E275605CFA59402D66EF40228C4E6E59F5513"
+      "members_sha256": "F73F49A6749B474D672ADA6F9E40AAE305A2675F871BD047FE9108069E336F1C"
     },
     {
       "path": "skills",
@@ -4599,7 +4599,7 @@
     {
       "path": "mcp/mcp-manifest.v1.json",
       "bytes": 7258,
-      "sha256": "D731D4CBF404C3ECFA8E24BC5B213778320AAFE581C32DE4D2B8073FD4928761"
+      "sha256": "4AFA937C174B46159ECCF28751891838A8532EF3E780DC99A942341BE7B688F8"
     },
     {
       "path": "pyproject.toml",
@@ -5284,7 +5284,7 @@
     {
       "path": "schemas/mcp/mcp-binding.v1.json",
       "bytes": 7258,
-      "sha256": "D731D4CBF404C3ECFA8E24BC5B213778320AAFE581C32DE4D2B8073FD4928761"
+      "sha256": "4AFA937C174B46159ECCF28751891838A8532EF3E780DC99A942341BE7B688F8"
     },
     {
       "path": "schemas/memory/project-memory.v1.sql",
@@ -5424,12 +5424,12 @@
     {
       "path": "schemas/schema-manifest.v1.json",
       "bytes": 40957,
-      "sha256": "8CD7FFDBD50E892CE6287800ABA54F2A845116694C29B327045FA2D71A81BE23"
+      "sha256": "88D119FE55564BAFD5A261D531B7186EFFF568591E73CF8A7F48375AA8C79F44"
     },
     {
       "path": "schemas/sdk/sdk-binding.v1.json",
       "bytes": 75726,
-      "sha256": "820DFD7B9B158F4814DB87CAA187CFCDA86C21B91E22E21177D8367027AAB04F"
+      "sha256": "971797279E5214403A142205A54F676E59993E2FF1A4A141A05EEF039B5B857E"
     },
     {
       "path": "schemas/skills/skill-registry.v1.json",
@@ -5543,8 +5543,8 @@
     },
     {
       "path": "scripts/codex_release/install_codex_stable.py",
-      "bytes": 237185,
-      "sha256": "13DA045447A01113746EE1F36F31C59C16FC30E88E43F6A4A797192973D534C9"
+      "bytes": 245114,
+      "sha256": "BF55E1DE5C981AD8D10ED985DD7E004058C5715578F18B948D07D26FC0788980"
     },
     {
       "path": "scripts/codex_release/install_native_toolchain.py",
@@ -6504,7 +6504,7 @@
     {
       "path": "sdk/host/local-install.contract.v1.json",
       "bytes": 608,
-      "sha256": "BF507DDFC7AF9F64DB224CDCAFD034AF461B6F430F9DA9296A6642C9DD9BDEFB"
+      "sha256": "349F6E6282C49ADD1A31B2ED39B9652A62106548DC938D622BABF719873B426E"
     },
     {
       "path": "sdk/host/plan-relock.contract.v1.json",
@@ -6519,7 +6519,7 @@
     {
       "path": "sdk/host/runtime-install-restart.v1.json",
       "bytes": 1557,
-      "sha256": "9DD36FE7361001BE03E7EC16636C8E3A47B32B299AEB249904CC7D8B411A2A4A"
+      "sha256": "7D0C394A7C0697CBE88048EEF66A5B26CE7AE92D0D98CB058194A84FA10EE284"
     },
     {
       "path": "sdk/host/state-travel.contract.v1.json",
@@ -7784,7 +7784,7 @@
     {
       "path": "sdk/sdk-manifest.v1.json",
       "bytes": 75726,
-      "sha256": "820DFD7B9B158F4814DB87CAA187CFCDA86C21B91E22E21177D8367027AAB04F"
+      "sha256": "971797279E5214403A142205A54F676E59993E2FF1A4A141A05EEF039B5B857E"
     },
     {
       "path": "sdk/workflows/evi-additional-plugin.workflow.v1.json",
@@ -10194,5 +10194,5 @@
   "local_cache_or_output_included": false,
   "historical_fallback_used": false,
   "all_installed_members_hash_bound": true,
-  "receipt_sha256": "DD0EFA31497751F53D1E1DCEE170AF456D1FA585006D69D2E452D4DCA70AF193"
+  "receipt_sha256": "535EF2A5BF46469C8E9A761F69B1F1F181B80BB09990F31B747D4551CCC70857"
 }

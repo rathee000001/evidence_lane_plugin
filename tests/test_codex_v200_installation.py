@@ -2111,6 +2111,74 @@ def test_stable_activation_advances_main_registry_without_changing_local_identit
     )
 
 
+def test_first_stable_activation_bootstraps_two_slot_registry_from_live_readback(
+    tmp_path: Path,
+) -> None:
+    module = _module()
+    data_root = tmp_path / "runtime"
+    codex_home = tmp_path / "codex"
+    stable_selector = module.TWO_SLOT_SELECTORS["stable-git-main"]
+    local_selector = module.TWO_SLOT_SELECTORS["versioned-local-testing"]
+    stable_path = tmp_path / "stable"
+    local_path = tmp_path / "local"
+    _write(stable_path / ".codex-plugin" / "plugin.json", "{}\n")
+    _write(local_path / ".codex-plugin" / "plugin.json", "{}\n")
+    surface_sha256 = "A" * 64
+    baseline_receipt = tmp_path / "INSTALL_LOCAL.json"
+    _write(baseline_receipt, "sealed local baseline\n")
+    plugin_list = {
+        "installed": [
+            {
+                "pluginId": stable_selector,
+                "marketplaceName": "evidence-lane-github",
+                "version": "3.0.0+codex.stable",
+                "enabled": False,
+                "source": {"path": str(stable_path)},
+                "marketplaceSource": {"sourceType": "git"},
+            },
+            {
+                "pluginId": local_selector,
+                "marketplaceName": "evidence-lane-v300-testing-new",
+                "version": "3.0.0+codex.local",
+                "enabled": True,
+                "source": {"path": str(local_path)},
+                "marketplaceSource": {"sourceType": "local"},
+            },
+        ]
+    }
+    baseline = {
+        "baseline_role": "EXACT_PRIOR_HOST_ACTIVE_LOCAL_TESTING_INSTALLATION",
+        "plugin_version": "3.0.0+codex.local",
+        "surface_inventory_sha256": surface_sha256,
+        "installation_receipt": str(baseline_receipt),
+        "installation_receipt_sha256": module._sha256(baseline_receipt),
+    }
+    result = module._bootstrap_two_slot_update_authority(
+        data_root=data_root,
+        codex_home=codex_home,
+        plugin_list=plugin_list,
+        comparison_baseline=baseline,
+        comparison_surface={"surface_inventory_sha256": surface_sha256},
+    )
+
+    assert result["status"] == "PASS"
+    registry_path = Path(result["registry_path"])
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    assert registry["active_slot"] == "versioned-local-testing"
+    assert registry["slots"]["stable-git-main"]["enabled"] is False
+    assert registry["slots"]["versioned-local-testing"]["enabled"] is True
+    assert registry["slots"]["stable-git-main"]["update_gate"] == (
+        "GOVERNED_VERIFIED_MAIN_FAST_FORWARD"
+    )
+    assert (
+        module._load_two_slot_update_authority(
+            data_root=data_root,
+            comparison_baseline=baseline,
+        )
+        is not None
+    )
+
+
 def test_explicit_host_stable_baseline_survives_two_pass_install(
     tmp_path: Path,
 ) -> None:
