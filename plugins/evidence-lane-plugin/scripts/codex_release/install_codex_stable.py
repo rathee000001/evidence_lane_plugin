@@ -623,6 +623,8 @@ def _assert_exact_git_marketplace_source(
     marketplace_root: Path,
     expected_git_manifest_sha256: str,
     expected_git_file_count: int,
+    source_version: str | None = None,
+    package_version: str | None = None,
 ) -> dict[str, Any]:
     plugin_root = marketplace_root / "plugins" / PLUGIN_NAME
     if not plugin_root.is_dir():
@@ -645,13 +647,44 @@ def _assert_exact_git_marketplace_source(
         str(row["path"]): row for row in marketplace_inventory["files"]
     }
     package_files = extracted_inventory.get("files")
+    package_by_path = {
+        str(row.get("path") or ""): row
+        for row in package_files or []
+        if isinstance(row, dict)
+    }
+    mismatched_paths = sorted(
+        path
+        for path, row in package_by_path.items()
+        if marketplace_by_path.get(path) != row
+    )
+    manifest_override: dict[str, str] | None = None
+    if mismatched_paths == [".codex-plugin/plugin.json"]:
+        git_manifest = json.loads(
+            (plugin_root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )
+        git_version = str(git_manifest.get("version") or "")
+        exact_source_version = str(source_version or "")
+        exact_package_version = str(package_version or "")
+        if (
+            git_version != exact_source_version
+            or not exact_source_version.startswith("3.0.0+codex.")
+            or not exact_package_version.startswith("3.0.0+codex.")
+            or exact_source_version == exact_package_version
+        ):
+            raise InstallationError(
+                "The package-local manifest changed more than its fresh cachebuster version."
+            )
+        manifest_override = {
+            "path": ".codex-plugin/plugin.json",
+            "git_version": exact_source_version,
+            "package_version": exact_package_version,
+            "release_line": "3.0.0",
+        }
     if (
         not isinstance(package_files, list)
-        or any(
-            not isinstance(row, dict)
-            or marketplace_by_path.get(str(row.get("path") or "")) != row
-            for row in package_files
-        )
+        or len(package_by_path) != len(package_files)
+        or any(path not in marketplace_by_path for path in package_by_path)
+        or mismatched_paths not in ([], [".codex-plugin/plugin.json"])
         or len(package_files) != extracted_inventory.get("file_count")
     ):
         raise InstallationError(
@@ -670,6 +703,7 @@ def _assert_exact_git_marketplace_source(
         ),
         "exact_git_commit_tree_match": True,
         "exact_commit_package_bytes_match": True,
+        "package_local_manifest_version_override": manifest_override,
     }
 
 
@@ -5444,6 +5478,8 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
                 )
                 or 0
             ),
+            source_version=str(rehearsal.get("source_version") or ""),
+            package_version=str(rehearsal.get("package_version") or ""),
         )
         git_marketplace_source["commit"] = source_commit
         plugin_add = _run_codex(

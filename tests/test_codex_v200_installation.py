@@ -1488,6 +1488,45 @@ def test_git_marketplace_rejects_full_tree_or_package_subset_drift(
         )
 
 
+def test_git_marketplace_allows_only_sealed_package_manifest_cachebuster(
+    tmp_path: Path,
+) -> None:
+    module = _module()
+    package_root = tmp_path / "package"
+    marketplace_plugin = tmp_path / "marketplace" / "plugins" / "evidence-lane-plugin"
+    source_version = "3.0.0+codex.source"
+    package_version = "3.0.0+codex.package"
+    common = {"name": "evidence-lane-plugin", "description": "fixture"}
+    _write(
+        marketplace_plugin / ".codex-plugin" / "plugin.json",
+        json.dumps({**common, "version": source_version}) + "\n",
+    )
+    _write(
+        package_root / ".codex-plugin" / "plugin.json",
+        json.dumps({**common, "version": package_version}) + "\n",
+    )
+    _write(marketplace_plugin / "README.md", "same\n")
+    _write(package_root / "README.md", "same\n")
+    git_inventory = module._source_inventory(marketplace_plugin)
+
+    result = module._assert_exact_git_marketplace_source(
+        extracted_inventory=module._source_inventory(package_root),
+        marketplace_root=tmp_path / "marketplace",
+        expected_git_manifest_sha256=git_inventory["manifest_sha256"],
+        expected_git_file_count=git_inventory["file_count"],
+        source_version=source_version,
+        package_version=package_version,
+    )
+
+    assert result["exact_commit_package_bytes_match"] is True
+    assert result["package_local_manifest_version_override"] == {
+        "path": ".codex-plugin/plugin.json",
+        "git_version": source_version,
+        "package_version": package_version,
+        "release_line": "3.0.0",
+    }
+
+
 def _seed_current_runtime_prewarm_fixture(plugin_root: Path) -> None:
     for relative in (
         "scripts/generate_runtime_license_bundle.py",
