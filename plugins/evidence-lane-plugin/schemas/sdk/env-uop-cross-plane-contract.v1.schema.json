@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidencelane.org/schemas/sdk-env-uop-cross-plane-contract.v1.schema.json",
+  "title": "Evidence Lane complete ENV/UOP cross-plane contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "authorities_separate",
+    "env_selects_context_lane_host_mode_and_pipeline",
+    "uop_authorizes_work_hil_permission_fallback_and_effects",
+    "actions",
+    "action_count",
+    "action_sets_equal",
+    "skills",
+    "skill_count",
+    "hooks",
+    "hook_event_count",
+    "hook_handler_count",
+    "lanes",
+    "lane_count",
+    "named_root_authority_count",
+    "named_root_authorities",
+    "tool_requirement_count",
+    "behavior_counts",
+    "mcp_action_count",
+    "internal_sdk_action_count",
+    "outer_route_action_count",
+    "missing_action_bindings",
+    "missing_sdk_bindings",
+    "missing_mcp_bindings",
+    "missing_uop_policies",
+    "negative_proofs",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "evidence-lane.sdk-env-uop-cross-plane-contract.v1"},
+    "status": {"const": "PASS"},
+    "authorities_separate": {"const": true},
+    "env_selects_context_lane_host_mode_and_pipeline": {"const": true},
+    "uop_authorizes_work_hil_permission_fallback_and_effects": {"const": true},
+    "actions": {
+      "type": "array",
+      "minItems": 91,
+      "maxItems": 91,
+      "items": {
+        "type": "object",
+        "required": [
+          "action_name",
+          "entry_event",
+          "workflow_classes",
+          "ordered_tools",
+          "env_selection",
+          "uop_authorization",
+          "internal_sdk",
+          "outer_route",
+          "mcp",
+          "skill_workflows",
+          "status",
+          "contract_sha256"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "action_count": {"const": 91},
+    "action_sets_equal": {"const": true},
+    "skills": {"type": "array", "minItems": 26, "maxItems": 26},
+    "skill_count": {"const": 26},
+    "hooks": {"type": "array", "minItems": 11, "maxItems": 11},
+    "hook_event_count": {"const": 11},
+    "hook_handler_count": {"const": 44},
+    "lanes": {"type": "array", "minItems": 18, "maxItems": 18},
+    "lane_count": {"const": 18},
+    "named_root_authority_count": {"const": 11},
+    "named_root_authorities": {"type": "array", "minItems": 11, "maxItems": 11},
+    "tool_requirement_count": {"const": 119},
+    "behavior_counts": {
+      "const": {
+        "env_subgraphs": 25,
+        "env_nodes": 275,
+        "env_edges": 256,
+        "uop_subgraphs": 8,
+        "uop_nodes": 80,
+        "uop_edges": 57
+      }
+    },
+    "mcp_action_count": {"const": 91},
+    "internal_sdk_action_count": {"const": 91},
+    "outer_route_action_count": {"const": 91},
+    "missing_action_bindings": {"type": "array", "maxItems": 0},
+    "missing_sdk_bindings": {"type": "array", "maxItems": 0},
+    "missing_mcp_bindings": {"type": "array", "maxItems": 0},
+    "missing_uop_policies": {"type": "array", "maxItems": 0},
+    "negative_proofs": {
+      "type": "object",
+      "required": [
+        "env_and_uop_merged",
+        "mcp_bypasses_internal_sdk",
+        "outer_sdk_owns_business_logic",
+        "tool_presence_is_permission",
+        "hook_presence_required_for_explicit_actions",
+        "chatgpt_host_identity_imported"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "env_and_uop_merged": {"const": false},
+        "mcp_bypasses_internal_sdk": {"const": false},
+        "outer_sdk_owns_business_logic": {"const": false},
+        "tool_presence_is_permission": {"const": false},
+        "hook_presence_required_for_explicit_actions": {"const": false},
+        "chatgpt_host_identity_imported": {"const": false}
+      }
+    },
+    "receipt_sha256": {"type": "string", "pattern": "^[A-F0-9]{64}$"}
+  }
+}

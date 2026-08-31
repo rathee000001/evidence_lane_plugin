@@ -14,16 +14,17 @@ import hashlib
 import hmac
 import json
 import re
+import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
-from typing import Any, Protocol, cast
+from typing import Any, Callable, Protocol, cast
 from urllib.parse import quote
 
 import httpx
 import jwt
 
-from .errors import require
+from .errors import EvidenceLaneError, require
 from .hashing import canonical_json_bytes, sha256_bytes
 
 GITHUB_APP_MANIFEST_SCHEMA = "evidence-lane.github-app-manifest.v1"
@@ -1151,11 +1152,40 @@ class GitHubAppExactCommitPushRoute:
         broker: InstallationTokenBroker,
         transport: GitHubJSONTransport,
         api_version: str = GITHUB_REST_API_VERSION,
+        write_interval_seconds: float = 0.0,
+        secondary_retry_delays: Sequence[float] = (),
+        sleep: Callable[[float], None] = time.sleep,
+        prefer_existing_blob_tree: bool = False,
     ) -> None:
         self.broker = broker
         self.transport = transport
         self.api_version = _identifier(api_version, field="api_version")
         self._replay: dict[str, tuple[str, dict[str, Any]]] = {}
+        self._write_interval_seconds = float(write_interval_seconds)
+        self._secondary_retry_delays = tuple(
+            float(value) for value in secondary_retry_delays
+        )
+        self._sleep = sleep
+        self._prefer_existing_blob_tree = bool(prefer_existing_blob_tree)
+        self._last_write_at: float | None = None
+        require(
+            0.0 <= self._write_interval_seconds <= 5.0
+            and len(self._secondary_retry_delays) <= 4
+            and all(0.0 <= value <= 300.0 for value in self._secondary_retry_delays),
+            "GITHUB_APP_WRITE_PACING_INVALID",
+            "GitHub write pacing and retry delays must remain bounded.",
+            status="BLOCKED",
+        )
+
+    def _pace_write(self) -> None:
+        if self._write_interval_seconds <= 0.0:
+            return
+        now = time.monotonic()
+        if self._last_write_at is not None:
+            remaining = self._write_interval_seconds - (now - self._last_write_at)
+            if remaining > 0.0:
+                self._sleep(remaining)
+        self._last_write_at = time.monotonic()
 
     @staticmethod
     def _oid_from_object(payload: Mapping[str, Any], *, field: str) -> str:
@@ -1177,26 +1207,49 @@ class GitHubAppExactCommitPushRoute:
         body: Mapping[str, Any],
         expected_status: int,
     ) -> GitHubAPIResponse:
-        response = self.transport.request_json(
-            method=method,
-            path=path,
-            headers={
-                "Accept": "application/vnd.github+json",
-                "Authorization": f"Bearer {token}",
-                "X-GitHub-Api-Version": self.api_version,
-            },
-            body=body,
-        )
-        require(
-            response.status_code == expected_status,
-            "GITHUB_APP_GIT_REQUEST_FAILED",
-            "GitHub rejected an exact Git Database route request.",
-            status="BLOCKED",
-            method=method,
-            path=path,
-            http_status=response.status_code,
-        )
-        return response
+        exact_method = str(method).upper()
+        response: GitHubAPIResponse | None = None
+        for attempt in range(len(self._secondary_retry_delays) + 1):
+            if exact_method in {"POST", "PATCH"}:
+                self._pace_write()
+            response = self.transport.request_json(
+                method=exact_method,
+                path=path,
+                headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {token}",
+                    "X-GitHub-Api-Version": self.api_version,
+                },
+                body=body,
+            )
+            if response.status_code == expected_status:
+                return response
+            message = str(response.body.get("message") or "")[:500]
+            lowered = message.casefold()
+            secondary_limit = response.status_code in {403, 429} and any(
+                marker in lowered
+                for marker in (
+                    "secondary rate limit",
+                    "abuse detection",
+                    "temporarily blocked",
+                )
+            )
+            if secondary_limit and attempt < len(self._secondary_retry_delays):
+                self._sleep(self._secondary_retry_delays[attempt])
+                continue
+            require(
+                False,
+                "GITHUB_APP_GIT_REQUEST_FAILED",
+                "GitHub rejected an exact Git Database route request.",
+                status="BLOCKED",
+                method=exact_method,
+                path=path,
+                http_status=response.status_code,
+                github_message=message,
+                secondary_limit=secondary_limit,
+                retry_attempt=attempt,
+            )
+        raise AssertionError("unreachable")
 
     def execute(
         self,
@@ -1312,55 +1365,88 @@ class GitHubAppExactCommitPushRoute:
             status="MISMATCH",
         )
 
-        tree_entries: list[dict[str, Any]] = []
-        for change in request.changes:
-            if change.content is None:
-                blob_sha = None
-            else:
-                blob_response = record(
+        tree_entries = [
+            {
+                "path": change.path,
+                "mode": change.mode,
+                "type": "blob",
+                "sha": change.blob_sha if change.content is not None else None,
+            }
+            for change in request.changes
+        ]
+        tree_response: GitHubAPIResponse | None = None
+        existing_blob_set_reused = False
+        if self._prefer_existing_blob_tree:
+            try:
+                tree_response = record(
                     self._request(
                         token=token,
                         method="POST",
-                        path=f"{repository_path}/git/blobs",
+                        path=f"{repository_path}/git/trees",
                         body={
-                            "content": base64.b64encode(change.content).decode("ascii"),
-                            "encoding": "base64",
+                            "base_tree": request.expected_parent_tree_sha,
+                            "tree": tree_entries,
                         },
                         expected_status=201,
                     )
                 )
-                blob_sha = _git_oid(
-                    blob_response.body.get("sha"),
-                    field="created_blob_sha",
-                )
-                require(
-                    blob_sha == change.blob_sha,
-                    "GITHUB_APP_BLOB_IDENTITY_MISMATCH",
-                    "GitHub created blob bytes that differ from the local Git object.",
-                    status="MISMATCH",
-                    path=change.path,
-                )
-            tree_entries.append(
-                {
-                    "path": change.path,
-                    "mode": change.mode,
-                    "type": "blob",
-                    "sha": blob_sha,
-                }
-            )
+                existing_blob_set_reused = True
+            except EvidenceLaneError as exc:
+                if int(exc.details.get("http_status") or 0) != 422:
+                    raise
 
-        tree_response = record(
-            self._request(
-                token=token,
-                method="POST",
-                path=f"{repository_path}/git/trees",
-                body={
-                    "base_tree": request.expected_parent_tree_sha,
-                    "tree": tree_entries,
-                },
-                expected_status=201,
+        if tree_response is None:
+            tree_entries = []
+            for change in request.changes:
+                if change.content is None:
+                    blob_sha = None
+                else:
+                    blob_response = record(
+                        self._request(
+                            token=token,
+                            method="POST",
+                            path=f"{repository_path}/git/blobs",
+                            body={
+                                "content": base64.b64encode(change.content).decode(
+                                    "ascii"
+                                ),
+                                "encoding": "base64",
+                            },
+                            expected_status=201,
+                        )
+                    )
+                    blob_sha = _git_oid(
+                        blob_response.body.get("sha"),
+                        field="created_blob_sha",
+                    )
+                    require(
+                        blob_sha == change.blob_sha,
+                        "GITHUB_APP_BLOB_IDENTITY_MISMATCH",
+                        "GitHub created blob bytes that differ from the local Git object.",
+                        status="MISMATCH",
+                        path=change.path,
+                    )
+                tree_entries.append(
+                    {
+                        "path": change.path,
+                        "mode": change.mode,
+                        "type": "blob",
+                        "sha": blob_sha,
+                    }
+                )
+
+            tree_response = record(
+                self._request(
+                    token=token,
+                    method="POST",
+                    path=f"{repository_path}/git/trees",
+                    body={
+                        "base_tree": request.expected_parent_tree_sha,
+                        "tree": tree_entries,
+                    },
+                    expected_status=201,
+                )
             )
-        )
         created_tree_sha = _git_oid(
             tree_response.body.get("sha"),
             field="created_tree_sha",
@@ -1456,6 +1542,7 @@ class GitHubAppExactCommitPushRoute:
             source_write_authorized=True,
             workflow_write_authorized=workflow_change,
             commit_created=True,
+            existing_blob_set_reused=existing_blob_set_reused,
             ref_pushed=True,
             force_push=False,
             remote_ref_verified=True,

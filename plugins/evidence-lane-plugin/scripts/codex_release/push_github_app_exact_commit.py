@@ -370,6 +370,9 @@ def execute_push(
         receipt = GitHubAppExactCommitPushRoute(
             broker=broker,
             transport=transport,
+            write_interval_seconds=0.85,
+            secondary_retry_delays=(60.0, 120.0, 180.0),
+            prefer_existing_blob_tree=True,
         ).execute(request, token_request=token_request, now=requested_at)
     finally:
         transport.close()

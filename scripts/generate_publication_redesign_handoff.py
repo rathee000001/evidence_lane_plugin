@@ -39,9 +39,11 @@ def build_contract() -> dict[str, Any]:
     source_paths = (
         "README.md",
         "ARCHITECTURE.md",
+        "docs/ADAPTIVE_DELTA_EXECUTION.md",
         "docs/AI_LEARNING.md",
         "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md",
         "docs/CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md",
+        "docs/ENV_AND_UOP.md",
         "docs/GIT_AND_CI_CD.md",
         "docs/HOOKS.md",
         "docs/HOST_AND_STORAGE_MATRIX.md",

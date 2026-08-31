@@ -36,6 +36,8 @@ def test_env_uop_action_planes_are_current_codex_authorities() -> None:
     uop_receipt = _latest_json(uop, "uop_action_plane_build_receipt", "receipt_json")
     matrix = _json(PLUGIN_ROOT / "toolchains" / "tool-requirement-matrix.v1.json")
     catalog = _json(PLUGIN_ROOT / "schemas" / "public-action-schemas.v001.json")
+    env_domain = _json(PLUGIN_ROOT / "toolchains" / "env-domain-catalog.v2.json")
+    uop_domain = _json(PLUGIN_ROOT / "toolchains" / "uop-domain-catalog.v2.json")
     lanes = _json(
         PLUGIN_ROOT
         / "schemas"
@@ -107,8 +109,105 @@ def test_env_uop_action_planes_are_current_codex_authorities() -> None:
             "SELECT entry_slip, delta_exit_append, exit_slip "
             "FROM env_workflow_event_v17 WHERE event_id = 'STATE_TRAVEL_EXIT'"
         ).fetchone() == (0, 0, 1)
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM env_behavior_subgraph_v18"
+            ).fetchone()[0]
+            == 25
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM env_behavior_node_v18").fetchone()[
+                0
+            ]
+            == 275
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM env_behavior_edge_v18").fetchone()[
+                0
+            ]
+            == 256
+        )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM env_pcm_mba_operator_v18"
+            ).fetchone()[0]
+            == 110
+        )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM env_formula_component_v18"
+            ).fetchone()[0]
+            == 6
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM env_matrix_axis_v18").fetchone()[0]
+            == 5
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM env_matrix_cell_v18").fetchone()[0]
+            == 5
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM env_mode_cluster_v18").fetchone()[
+                0
+            ]
+            == 14
+        )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM env_mode_namespace_v18"
+            ).fetchone()[0]
+            == 17
+        )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM env_mode_combination_v18"
+            ).fetchone()[0]
+            == 4
+        )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM env_source_lane_classification_v18"
+            ).fetchone()[0]
+            == 18
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM env_lane_formula_v18").fetchone()[
+                0
+            ]
+            == 6
+        )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM env_operator_registry_v17 "
+                "WHERE operator_id GLOB '[0-9]*'"
+            ).fetchone()[0]
+            == 110
+        )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM env_behavior_node_v18 "
+                "WHERE canonical_owner = '' OR execution_disposition = ''"
+            ).fetchone()[0]
+            == 0
+        )
     finally:
         connection.close()
+
+    assert env_domain["schema"] == "evidence-lane.env-domain-catalog.v2"
+    assert env_domain["status"] == "PASS_FULL_MMD_BEHAVIOR_BOUND"
+    assert env_domain["behavior_source"] == {
+        "packaged_path": "toolchains/references/env15_3-working-behavior.mmd",
+        "subgraph_count": 25,
+        "node_count": 275,
+        "edge_count": 256,
+        "dot_node_count": 280,
+        "dot_edge_count": 278,
+        "all_behaviors_require_codex_owner_or_exclusion": True,
+    }
+    assert env_domain["source_provenance"]["source_is_codex_authority"] is False
+    assert env_domain["import_policy"]["chatgpt_host_identity_imported"] is False
+    assert env_domain["import_policy"]["behavior_labels_are_commands"] is False
 
     connection = sqlite3.connect(
         f"file:{uop.resolve().as_posix()}?mode=ro&immutable=1", uri=True
@@ -124,8 +223,91 @@ def test_env_uop_action_planes_are_current_codex_authorities() -> None:
             ).fetchone()[0]
             == 0
         )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM uop_behavior_subgraph_v18"
+            ).fetchone()[0]
+            == 8
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM uop_behavior_node_v18").fetchone()[
+                0
+            ]
+            == 80
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM uop_behavior_edge_v18").fetchone()[
+                0
+            ]
+            == 57
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM uop_source_record_v18").fetchone()[
+                0
+            ]
+            == 57
+        )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM uop_public_operator_v18"
+            ).fetchone()[0]
+            == 14
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM uop_route_formula_v18").fetchone()[
+                0
+            ]
+            == 3
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM uop_hil_boundary_v18").fetchone()[
+                0
+            ]
+            == 5
+        )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM uop_delta_auto_admission_v18"
+            ).fetchone()[0]
+            == 2
+        )
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM uop_delta_auto_admission_v18 "
+                "WHERE individual_hil_required != 0 OR project_overlay_effect != 0 "
+                "OR accepted_zip_effect != 0 OR reused_at_event != 'NEXT_DELTA_ENTRY'"
+            ).fetchone()[0]
+            == 0
+        )
+        assert {
+            row[0]
+            for row in connection.execute(
+                "SELECT state_id FROM uop_delta_auto_admission_v18"
+            )
+        } == {
+            "AUTO_ACCEPTED_DELTA_ROW_WORK",
+            "AUTO_ACCEPTED_DELTA_LEARNING",
+        }
     finally:
         connection.close()
+
+    assert uop_domain["schema"] == "evidence-lane.uop-domain-catalog.v2"
+    assert uop_domain["status"] == "PASS_FULL_MMD_BEHAVIOR_BOUND"
+    assert uop_domain["behavior_source"] == {
+        "packaged_path": "toolchains/references/uop15-working-behavior.mmd",
+        "subgraph_count": 8,
+        "node_count": 80,
+        "edge_count": 57,
+        "dot_node_count": 89,
+        "dot_edge_count": 73,
+        "all_behaviors_require_codex_owner_or_exclusion": True,
+    }
+    assert uop_domain["source_provenance"]["source_is_codex_authority"] is False
+    assert uop_domain["import_policy"]["chatgpt_host_identity_imported"] is False
+    assert (
+        uop_domain["import_policy"]["per_delta_auto_admission_has_individual_hil"]
+        is False
+    )
 
 
 def test_env_uop_graph_flash_and_packaged_manifests_share_current_bytes() -> None:

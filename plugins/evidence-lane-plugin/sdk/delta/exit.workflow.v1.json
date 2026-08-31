@@ -21,7 +21,8 @@
       "canon_input",
       "project_memory",
       "project_universe",
-      "plan_delta_tasks"
+      "plan_delta_tasks",
+      "env_uop_operator_runtime"
     ],
     "hooks_required": false,
     "ordinary_project_overlay_allowed": false,
@@ -34,7 +35,9 @@
       "count": 3,
       "count_is_fixed_ceiling": false
     },
-    "ai_action_planes": [],
+    "ai_action_planes": [
+      "ENV_UOP_AI_ACTION_PLANE"
+    ],
     "env_uop_operations_counted_as_public_actions": 0
   },
   "public_actions": [
@@ -55,5 +58,5 @@
   "env_uop_ai_action_plane": true,
   "accepted_archive_queried": false,
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "1B42740C70A61CB953C8550E1BBCD84AEAFB57C3CC075942B397BA498981A929"
+  "receipt_sha256": "BBFFFD99B35EFB42E652CDDA6FE9ED5071F48C415FEB8999538938E237557E30"
 }

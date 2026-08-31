@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidencelane.org/schemas/tool-lane-authority-execution-parity.schema.json",
+  "title": "Evidence Lane tool, lane and authority execution parity receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "tool_count",
+    "tools",
+    "lane_count",
+    "lanes",
+    "authority_count",
+    "authorities",
+    "host_variant_count",
+    "host_variants",
+    "action_count",
+    "source_contracts",
+    "checks",
+    "negative_proofs",
+    "receipt_sha256"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "evidence-lane.tool-lane-authority-execution-parity.v1"},
+    "status": {"const": "PASS"},
+    "tool_count": {"const": 119},
+    "tools": {
+      "type": "array",
+      "minItems": 119,
+      "maxItems": 119,
+      "items": {
+        "type": "object",
+        "required": [
+          "tool",
+          "status",
+          "requirement",
+          "routing",
+          "license",
+          "tunnel",
+          "env",
+          "uop",
+          "action_bindings",
+          "lane_execution_evidence",
+          "authority_execution_evidence",
+          "condition_true_evidence_count",
+          "condition_true_invalid_count",
+          "presence_is_permission",
+          "presence_is_execution_proof",
+          "tool_receipt_sha256"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "lane_count": {"const": 18},
+    "lanes": {"type": "array", "minItems": 18, "maxItems": 18},
+    "authority_count": {"const": 11},
+    "authorities": {"type": "array", "minItems": 11, "maxItems": 11},
+    "host_variant_count": {"const": 5},
+    "host_variants": {"type": "array", "minItems": 5, "maxItems": 5},
+    "action_count": {"const": 91},
+    "source_contracts": {"type": "object"},
+    "checks": {
+      "type": "object",
+      "additionalProperties": {"const": true}
+    },
+    "negative_proofs": {
+      "type": "object",
+      "additionalProperties": {"const": false}
+    },
+    "receipt_sha256": {"type": "string", "pattern": "^[A-F0-9]{64}$"}
+  }
+}

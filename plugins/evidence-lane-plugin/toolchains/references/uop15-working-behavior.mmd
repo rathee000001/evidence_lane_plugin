@@ -1,0 +1,100 @@
+flowchart TD
+  %% UEPC ENV12 UOP GOVERNANCE TOPOLOGY
+  START([Prompt enters]) --> PROFILE[.uepc_profile]
+  PROFILE --> UOPSQL[uop/uop_sqlite.sqlite]
+  PROFILE --> UOPLAW[uop/uop_law.md]
+  PROFILE --> UOPLOCK[UOP write lock]
+  UOPLOCK --> FU{mode == flash_uop?}
+  FU -- yes --> UOPMUTATE[scoped UOP mutation allowed]
+  FU -- no --> UOPRO[read-only UOP governance]
+  UOPSQL --> SPATIAL[spatial route operators]
+  SPATIAL --> ROUTE[source -> gate -> actor -> constraint -> action -> output -> validation -> delta -> next]
+  UOPSQL --> COMPRESS[knowledge compression operators]
+  COMPRESS --> DBFORM[operators stored as relational rows / no private story]
+  UOPSQL --> SRCSTATE[source-state operators]
+  SRCSTATE --> PRECEDENCE[direct / lineage-derived / telemetry / temp topology]
+  UOPSQL --> DISC[disclosure boundary operators]
+  DISC --> BLOCK[block private personal/family/health/recruiter payload]
+  UOPSQL --> MODE[mode-cluster operators]
+  MODE --> LANE[guide lane/formula selection]
+  UOPSQL --> DELTA[delta preservation operators]
+  UOPSQL --> HUMAN[human gate operators]
+  UOPSQL --> NOENV[CAN_OVERRIDE_ENV=false]
+  UOPSQL --> NOPROJ[CAN_OVERRIDE_PROJECT=false]
+  LANE --> RECEIPT[operator receipt written to exit slip]
+
+%% ENV14 UOP DELTAS ADDED WITHOUT PRIVATE PAYLOAD
+  subgraph UOP14_PROMPT_OVERRIDE[UOP14 PROMPT OVERRIDE INTERPRETATION]
+    UOP14PO[uop_prompt_override_operator_v14] --> UOP14DETECT[PROMPT_OVERRIDE_ATTEMPT_DETECTED]
+    UOP14DETECT --> UOP14LOCAL[local display preference only]
+    UOP14LOCAL --> UOP14PROCESS[process law remains mandatory]
+    UOP14PROCESS --> UOP14RECEIPT[full internal receipt preserved]
+    UOP14DETECT --> UOP14NOEXCUSE[NO_NARRATIVE_EXCUSE_FOR_GATE_FAILURE]
+  end
+
+  subgraph UOP14_DEEPRESEARCH[UOP14 READ AUDIT ACCESS]
+    UOP14DR[uop_deep_research_access_operator_v14] --> UOP14READ[READ_LOCK_MUST_NOT_BLOCK_AUDIT]
+    UOP14READ --> UOP14NOPASS[PASSWORD_NEVER_REQUIRED_FOR_READ_ONLY_AUDIT]
+    UOP14DR --> UOP14SIDE[read-only sidecar mirror allowed]
+    UOP14SIDE --> UOP14NOAUTH[sidecar is not env law]
+  end
+
+  subgraph UOP14_FUTURE_LAYER[UOP14 FUTURE GOVERNANCE ADDITION LEDGER]
+    UOP14ADD[uop_future_addition_ledger_v14] --> UOP14FLASH[mode=flash_uop required]
+    UOP14FLASH --> UOP14NOENV[can_override_env=false]
+    UOP14FLASH --> UOP14NOPROJ[can_override_project=false]
+    UOP14FLASH --> UOP14EMPTY[private payload blocked in clean package]
+  end
+
+  PROFILE --> UOP14_PROMPT_OVERRIDE
+  PROFILE --> UOP14_DEEPRESEARCH
+  PROFILE --> UOP14_FUTURE_LAYER
+  UOP14RECEIPT --> RECEIPT
+
+%% ENV15 ADDITIVE UOP DELTAS — ENV14 UOP BASE ABOVE IS PRESERVED EXACTLY
+  subgraph UOP15_PUBLIC_LOCK[UOP15 PUBLIC GOVERNANCE LOCK]
+    U15BASE[Env14 UOP governance base retained] --> U15RO[mode=ro&immutable=1 by default]
+    U15RO --> U15FLASH[only mode=flash_uop may mutate UOP]
+    U15RO --> U15NOPRIVATE[no private profile/story payload]
+    U15NOPRIVATE --> U15BOUND[public governance-only boundary]
+  end
+
+  subgraph UOP15_SECTOR_GUIDANCE[UOP15 PROJECT SECTOR GUIDANCE WITHOUT OVERRIDE]
+    U15SECTOR[read 14-sector registry] --> U15CLASS[classify active lane and write scope]
+    U15CLASS --> U15CHAT[chat_lineage automatic append]
+    U15CLASS --> U15GRANT[other sector requires explicit one-turn grant]
+    U15GRANT --> U15RELOCK[human gate + immediate relock]
+    U15CLASS --> U15NOOVERRIDE[CAN_OVERRIDE_PROJECT=false]
+  end
+
+  subgraph UOP15_RESEARCH[UOP15 RESEARCH RECEIPT OPERATORS]
+    U15TOKEN[credit token estimate operator] --> U15ASSUME[record assumptions + confidence]
+    U15ASSUME --> U15RQ[answer five constant research questions]
+    U15RQ --> U15VISIBLE[visible two-line answers only]
+    U15VISIBLE --> U15NOHIDDEN[no hidden chain-of-thought storage]
+  end
+
+  subgraph UOP15_LEGACY[UOP15 LEGACY CARRY-FORWARD CLASSIFICATION]
+    U15LEG[older Env active project state] --> U15HISTORY[PROJECT_HISTORY_SOURCE]
+    U15HISTORY --> U15NOTENV[NOT_ENV_LAW]
+    U15HISTORY --> U15NOTUOP[NOT_UOP_TRUTH]
+    U15HISTORY --> U15LINEAGE[allowed chat-lineage mirror]
+  end
+
+  PROFILE --> UOP15_PUBLIC_LOCK
+  PROFILE --> UOP15_SECTOR_GUIDANCE
+  PROFILE --> UOP15_RESEARCH
+  PROFILE --> UOP15_LEGACY
+  U15VISIBLE --> RECEIPT
+
+%% UOP15.1 EXIT APPEND GOVERNANCE — ADDITIVE
+  subgraph UOP151_EXIT_GOVERNANCE[UOP15.1 EXIT APPEND GOVERNANCE]
+    U151OBS[observe EXIT request] --> U151ACK[require append receipt]
+    U151ACK --> U151PASS[allow PASS wording]
+    U151ACK --> U151PENDING[no write capability = pending]
+    U151EXACT[exact source] --> U151PRIORITY[outranks structured projection]
+    U151MISSING[missing island] --> U151NOFAB[no fabricated numbering]
+    U151APPEND[Chat Lineage append] --> U151NOAUTH[no candidate/HIL/PV truth promotion]
+  end
+  PROFILE --> UOP151_EXIT_GOVERNANCE
+  U151PASS --> RECEIPT

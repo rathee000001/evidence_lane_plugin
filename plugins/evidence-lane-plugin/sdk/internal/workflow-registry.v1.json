@@ -125,7 +125,8 @@
         "agent_learning",
         "project_memory",
         "canon_input",
-        "project_universe"
+        "project_universe",
+        "env_uop_operator_runtime"
       ],
       "hooks_required": false,
       "refire_order": [
@@ -149,7 +150,9 @@
         "count": 7,
         "count_is_fixed_ceiling": false
       },
-      "ai_action_planes": [],
+      "ai_action_planes": [
+        "ENV_UOP_AI_ACTION_PLANE"
+      ],
       "env_uop_operations_counted_as_public_actions": 0
     },
     {
@@ -172,7 +175,8 @@
         "canon_input",
         "project_memory",
         "project_universe",
-        "plan_delta_tasks"
+        "plan_delta_tasks",
+        "env_uop_operator_runtime"
       ],
       "hooks_required": false,
       "ordinary_project_overlay_allowed": false,
@@ -185,7 +189,9 @@
         "count": 3,
         "count_is_fixed_ceiling": false
       },
-      "ai_action_planes": [],
+      "ai_action_planes": [
+        "ENV_UOP_AI_ACTION_PLANE"
+      ],
       "env_uop_operations_counted_as_public_actions": 0
     },
     {
@@ -206,7 +212,8 @@
       "sdk_modules": [
         "hil_candidate_pointer",
         "agent_learning",
-        "plan_delta_tasks"
+        "plan_delta_tasks",
+        "env_uop_operator_runtime"
       ],
       "hooks_required": false,
       "two_explicit_human_decisions_required": true,
@@ -219,7 +226,9 @@
         "count": 3,
         "count_is_fixed_ceiling": false
       },
-      "ai_action_planes": [],
+      "ai_action_planes": [
+        "ENV_UOP_AI_ACTION_PLANE"
+      ],
       "env_uop_operations_counted_as_public_actions": 0
     },
     {
@@ -242,7 +251,8 @@
       "sdk_modules": [
         "host_entry_continuity",
         "lifecycle_hooks",
-        "plan_delta_tasks"
+        "plan_delta_tasks",
+        "env_uop_operator_runtime"
       ],
       "hooks_required": false,
       "sealed_prepare_or_resume_allowed": false,
@@ -257,7 +267,9 @@
         "count": 5,
         "count_is_fixed_ceiling": false
       },
-      "ai_action_planes": [],
+      "ai_action_planes": [
+        "ENV_UOP_AI_ACTION_PLANE"
+      ],
       "env_uop_operations_counted_as_public_actions": 0
     },
     {
@@ -279,7 +291,8 @@
       ],
       "sdk_modules": [
         "plan_delta_tasks",
-        "host_entry_continuity"
+        "host_entry_continuity",
+        "env_uop_operator_runtime"
       ],
       "hooks_required": false,
       "identical_fingerprint_reattachment_required": true,
@@ -292,7 +305,9 @@
         "count": 2,
         "count_is_fixed_ceiling": false
       },
-      "ai_action_planes": [],
+      "ai_action_planes": [
+        "ENV_UOP_AI_ACTION_PLANE"
+      ],
       "env_uop_operations_counted_as_public_actions": 0
     },
     {
@@ -308,7 +323,8 @@
       ],
       "sdk_modules": [
         "lifecycle_hooks",
-        "chat_lineage"
+        "chat_lineage",
+        "env_uop_operator_runtime"
       ],
       "hooks_required": false,
       "logical_sub_actions": 44,
@@ -320,7 +336,9 @@
         "count": 1,
         "count_is_fixed_ceiling": false
       },
-      "ai_action_planes": [],
+      "ai_action_planes": [
+        "ENV_UOP_AI_ACTION_PLANE"
+      ],
       "env_uop_operations_counted_as_public_actions": 0
     },
     {
@@ -339,7 +357,8 @@
       "sdk_modules": [
         "lifecycle_hooks",
         "host_entry_continuity",
-        "plan_delta_tasks"
+        "plan_delta_tasks",
+        "env_uop_operator_runtime"
       ],
       "hooks_required": false,
       "children_first_drain_required": true,
@@ -352,7 +371,9 @@
         "count": 2,
         "count_is_fixed_ceiling": false
       },
-      "ai_action_planes": [],
+      "ai_action_planes": [
+        "ENV_UOP_AI_ACTION_PLANE"
+      ],
       "env_uop_operations_counted_as_public_actions": 0
     }
   ],
@@ -377,7 +398,16 @@
         "counted_as_public_action": false,
         "owns_mcp_schema_and_public_action_dispatch": false,
         "owns_ai_formula_execution": true,
-        "authority_source": "LOCKED_ENV_UOP_SQLITE_PLUS_MMD"
+        "authority_source": "CURRENT_CODEX_LOCKED_ENV_UOP_PLUS_ADAPTED_CHATGPT15_3_WORKING_BEHAVIOR",
+        "cross_plane_action_count": 91,
+        "env_behavior_subgraphs": 25,
+        "env_behavior_nodes": 275,
+        "env_behavior_edges": 256,
+        "uop_behavior_subgraphs": 8,
+        "uop_behavior_nodes": 80,
+        "uop_behavior_edges": 57,
+        "chatgpt_host_identity_imported": false,
+        "env_and_uop_authorities_merged": false
       }
     ],
     "planes_merged": false,
@@ -466,7 +496,7 @@
       "support_components_inflate_public_action_count": false,
       "receipt_sha256": "991F7C7B40A28148EE9D0177AC695E620422C11C82485B1152CF7B4E2D857D11"
     },
-    "receipt_sha256": "28452E9665E8269E878CCFCADB3011A06E395ED8E65D577D2FD5C0340D6A9416"
+    "receipt_sha256": "D78955B5BB11E1442996090A9A38A961ED044DCA37D4F46791601153E27BB949"
   },
   "public_action_and_env_uop_planes_separate": true,
   "missing_public_actions": [],
@@ -475,5 +505,5 @@
   "host_skill_auto_selection_is_prompt_trigger": true,
   "sdk_claims_pre_reasoning_prompt_interception": false,
   "counts_are_derived_not_fixed": true,
-  "receipt_sha256": "E2106C2D9AC365462E9D847475BB5EF1D5792817C64A62A7D970322B2802D7A7"
+  "receipt_sha256": "0D335C8C815D85573C0D7201418603C442FC086F98D3BEC63B17A224320142D9"
 }

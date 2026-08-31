@@ -12624,7 +12624,7 @@
         {
           "path": "skills/evi/references/public-tool-conformance-release-gate.v1.json",
           "bytes": 3110,
-          "sha256": "BF5F109EDC982386C605DCC5443C7B064E9C5BDEA1BE91452EC6FCA98CD0E916"
+          "sha256": "7949754A52C3DA99726BCB36CA8697E168F8306655C7C612AA18794DA7F3252F"
         },
         {
           "path": "skills/evi/SKILL.md",
@@ -14960,5 +14960,5 @@
   "first_class_workflow_requires_first_class_skill": true,
   "separate_command_layer_present": false,
   "all_pairings_generated_from_current_source_graph": true,
-  "receipt_sha256": "779CCFEBA0063EC51632F24EA7C8402BC7DF490A8800BC6C00967BB9F94F5C3A"
+  "receipt_sha256": "3B2588B5A1C035ECA8956CE01B5426D54FA9D268371CC116A463B9F4CA0A6317"
 }

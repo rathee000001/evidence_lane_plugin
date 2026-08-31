@@ -35,7 +35,7 @@
     {
       "path": "authorities/project_sectors/images_ocr/images_ocr_sector_v001.sqlite",
       "bytes": 237568,
-      "sha256": "B320A0002CC5F158077A8A6CB41B51DE50DCA2C81967D3039EF2838972090BBB"
+      "sha256": "E9221C2901672215D968A7F65C2F9EC4B4A3C0D405654FA1708184AED8861292"
     },
     {
       "path": "authorities/project_sectors/images_ocr/lane-contract.v1.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/images_ocr/tools.json",
       "bytes": 14860,
-      "sha256": "2A6189A9F40738CF0A95296FCA1FF9BFE852A8C2B6B690904FF2BF16EF3171D1"
+      "sha256": "BD3D291DCE94D8C3324AD563E18F3935662FB90366558C9138152CF9FF9AB0D4"
     },
     {
       "path": "authorities/project_sectors/images_ocr/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/images_ocr/workflow.dot",
       "bytes": 6448,
-      "sha256": "817E9FC181B035560B7A908C6E106AC32B051B77DC127272DEDFD0A35A2AB5C4"
+      "sha256": "BB82AD196335839249EC8C51E894B8C18F792E5BBFAD20A55A9B357D9EBA8661"
     },
     {
       "path": "authorities/project_sectors/images_ocr/workflow.mmd",
       "bytes": 5011,
-      "sha256": "3E7BAA4228F38F668D9202554B5EB6BE21DF5D685849F17DE95E1050238E048F"
+      "sha256": "F0C50CA8EF1AF2C8D3C8F1F9E717D72F444DFB7F94D177635FDADB8CFAF33DD1"
     },
     {
       "path": "authorities/project_sectors/images_ocr/workflow.v1.json",
-      "bytes": 29810,
-      "sha256": "30A11BBC6E4285FC6B76CE52CA4FBB7BFB3E94EA8F4E265656BE5AECE5275E91"
+      "bytes": 23139,
+      "sha256": "BEF9B8CD2FE0CB16AC183417DF639EACFD537102260674D7D3D443FD30476CF3"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "A9CAAB45C7487E9A57A23947719A57138A5E902655F082CAEA411D171A62DF39"
+  "receipt_sha256": "1E7CA1CF68B2552B6CD453351EE935E612B2C133FB03D3A6FD2957E21BCF2217"
 }

@@ -14,20 +14,61 @@ A downstream user's project PV does not reinstall, cache-bust, restart, promote,
 
 ```mermaid
 flowchart TB
-    Prompt["Prompt or steer"] --> Slip["Entry Slip"]
-    Slip --> Intake["Source Intake + project recipe + Mode"]
-    Intake --> Action["Typed action + schema"]
-    Action --> SDK["Internal SDK owner"]
-    SDK --> ENV["ENV selection"]
-    ENV --> UOP["UOP governance"]
-    UOP --> Accelerator["Eligible CPU / NVIDIA / AMD execution provider"]
-    Accelerator --> Surface["Authority + sector lane"]
-    Surface --> Tools["Condition-true tools"]
-    Tools --> Transport["Local / outer SDK / MCP / tunnel"]
-    Transport --> Hooks["Ordered emitted hooks"]
-    Hooks --> Result["Validate + receipt + direct stale-route purge"]
-    Result --> Delta["Adaptive Delta-exit append"]
-    Result --> Exit["Exit Slip: Goal option 2 or State Travel only"]
+    subgraph Entry["1. Entry and source districts"]
+      direction LR
+      Prompt["Prompt"] --> Slip["Entry Slip"] --> Intake["Source Intake"]
+      Steer["Mid-goal steer"] --> Slip
+      Intake --> Recipe["Project recipe"] --> Mode["Mode"]
+      Intake --> Lineage["ChatLineage append"]
+    end
+    subgraph Control["2. Registry and dual control planes"]
+      direction LR
+      Skill["26 skills"] --> Action["91 typed actions"] --> Schema["Action schemas"] --> SDK["Internal SDK owner"]
+      SDK --> ENV["ENV: host, context, mode, lane, locality, provider"]
+      SDK --> UOP["UOP: operators, formulas, budgets, permission, HIL"]
+      ENV --> Join["Cross-plane decision"]
+      UOP --> Join
+    end
+    subgraph Execution["3. Authority, lane, tools and transport"]
+      direction LR
+      Join --> Lanes["18 sector lanes"]
+      Join --> Authorities["11 named authorities"]
+      Lanes --> Tools["119 conditional tool requirements"]
+      Authorities --> Tools
+      Tools --> Provider["CPU or explicitly eligible NVIDIA / AMD provider"]
+      Provider --> Transport["Local runtime / outer SDK / MCP / tunnel"]
+    end
+    subgraph Delta["4. Adaptive Delta recursion"]
+      direction LR
+      DEntry["Delta entry"] --> Work["Bounded work"] --> Mid["Mid-query / no-hit refire"] --> DExit["Verified Delta exit"]
+      DExit --> SubPV["Auto-accepted sub-PV row work"] --> Next["Next Delta entry"]
+      DExit --> DLearn["Auto-admitted Delta Learning"] --> Next
+    end
+    subgraph FullPV["5. Full-PV dual human boundary"]
+      direction LR
+      Candidate["Unaccepted full-PV candidate"] --> ProjectHIL["Project HIL"]
+      Candidate --> LearningHIL["Consolidated Learning HIL"]
+      LearningHIL --> Weave["Accepted learning weave or retained decision"]
+      ProjectHIL --> Fuse["Exact Project Fuse"]
+      Weave --> Fuse --> Accepted["Accepted pointer + one root ZIP + Project Overlay"]
+    end
+    subgraph Evidence["6. Validation, hooks and evidence rail"]
+      direction LR
+      Transport --> Hooks["11 events / 44 ordered handlers"] --> Validate["Schema + effect + provenance validation"]
+      Validate --> Receipts["Content-addressed receipts"] --> Refresh["Atomic changed-only refresh + direct purge"]
+      Validate -. mismatch .-> Fail["Visible fail-closed result"]
+    end
+    subgraph Truth["7. One-way truth progression"]
+      direction LR
+      SourceTruth["Source / worktree"] --> GitTruth["Git"] --> PackageTruth["Package"] --> InstalledTruth["Installed"] --> CandidateTruth["Candidate"] --> AcceptedTruth["Accepted"]
+    end
+    Mode --> Skill
+    Recipe --> Skill
+    Transport --> DEntry
+    Refresh --> DExit
+    DExit -->|ordinary row| Next
+    DExit -->|full-PV boundary only| Candidate
+    Receipts -. evidence only .-> Truth
 ```
 
 | Registry surface | Current value |
@@ -37,8 +78,8 @@ flowchart TB
 | Hook events / handlers | 11 / 44 |
 | Sector lanes | 18 |
 | Named authorities | 11 |
-| Source modules | 145 |
-| Schemas | 165 |
+| Source modules | 144 |
+| Schemas | 170 |
 | Tool requirements | 119 |
 
 ## Routing stages
@@ -158,6 +199,14 @@ flowchart TB
 - `toolchains/universal-plugin-architecture.v1.json`
 - `sdk/sdk-manifest.v1.json`
 - `authorities/authority-surface-registry.v1.json`
+
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `toolchains/universal-plugin-architecture.v1.json` | 1802575 | `AB776DF35FD7A37213DF463B009A5F2A17ABA7BA65067D3E43EB8AA2066CBD36` |
+| `sdk/sdk-manifest.v1.json` | 76103 | `2A0F6CE0ECFAFF14510E69D432E144A2F71D14C04E013DFC4298DAD22E6CA0E3` |
+| `authorities/authority-surface-registry.v1.json` | 5022 | `C81A48C03D9205C00310BD2026D2342126C5F272C796ECC8B70F1FEADF17BB32` |
 
 ## Cross-surface invariants
 

@@ -8,7 +8,13 @@ Current counts are derived release facts, not permanent ceilings.
 
 Exact source and chunk bytes are stored once by SHA-256 and reused across refreshes. SQLite remains canonical; MMD/DOT, vector indexes, renderings, and summaries are derived traversal/query surfaces. Atomic generation swap occurs only after schema, foreign-key, integrity, hash, and tool receipts pass.
 
-A full Project Version is immutable. The accepted pointer moves only through its governed decision. Unaccepted candidates and Project Overlay remain outside accepted truth. Logical rollback moves the pointer; it does not rewrite historical PV bytes.
+## Sub-PV work versus full Project Version
+
+Each verified ordinary Delta seals one auto-accepted sub-PV row-work receipt. The next Delta can reuse that predecessor without moving the immutable full-PV pointer. A sub-PV has no individual HIL, Project Overlay, or accepted-ZIP rotation.
+
+A full Project Version is immutable. The accepted pointer moves only through its governed Project decision. An unaccepted full-PV candidate and its HIL-only Project Overlay remain outside accepted truth. Only exact accepted Project Truth creates or rotates the one deterministic accepted root ZIP and the accepted Project Overlay. The ZIP is post-approval snapshot storage; normal entry, query, Learning, and State Travel routes never open it.
+
+Logical rollback moves the accepted pointer among immutable accepted versions; it does not rewrite historical PV bytes. Hard ZIP restore is a separate explicit recovery route with its own confirmation and validation.
 
 Project registration records the hidden plugin runtime/control root, the external Project/PV root, and the task workspace as distinct identities. ENV/UOP remains hidden runtime state and is not copied into every project folder.
 
@@ -54,6 +60,14 @@ flowchart TB
 - `schemas/lane-artifact-contract.v001.json`
 - `src/evidence_lane_plugin/store.py`
 - `src/evidence_lane_plugin/project_overlay.py`
+
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `schemas/lane-artifact-contract.v001.json` | 5937 | `453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2` |
+| `src/evidence_lane_plugin/store.py` | 412255 | `CB9E657ED52938A40B5C3E60EC346A2007ED78CB62771B57100227E166551A17` |
+| `src/evidence_lane_plugin/project_overlay.py` | 54320 | `F9C2D4D6339DEA0EC413A28F16F03AB8D99CF083F796B5B73815974490EAEF86` |
 
 ## Cross-surface invariants
 

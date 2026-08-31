@@ -1768,7 +1768,7 @@ def _enrich_legacy_hook_surface(
     """
 
     archive_sha256 = str(receipt.get("archive_sha256") or "").upper()
-    archive_root = data_root / "installations" / "codex-v200" / "marketplace-archives"
+    archive_root = data_root / "installations" / "codex-v300" / "marketplace-archives"
     matches: list[tuple[dict[str, Any], Path]] = []
     for stage_path in sorted(archive_root.glob("*/EVIDENCE_LANE_STAGE.json")):
         stage = json.loads(stage_path.read_text(encoding="utf-8"))
@@ -1830,7 +1830,7 @@ def _load_comparison_baseline(
     """Load one explicitly sealed prior host-stable installation surface."""
 
     expected = str(expected_sha256 or "").strip().upper()
-    authority_root = data_root / "installations" / "codex-v200"
+    authority_root = data_root / "installations" / "codex-v300"
     resolved = path.resolve()
     if (
         re.fullmatch(r"[A-F0-9]{64}", expected) is None
@@ -2394,7 +2394,7 @@ def _stage_marketplace(
                         "surface_change_display": preserved_change,
                     }
             archive_root = (
-                data_root / "installations" / "codex-v200" / "marketplace-archives"
+                data_root / "installations" / "codex-v300" / "marketplace-archives"
             )
             archive_root.mkdir(parents=True, exist_ok=True)
             prior_sha = (
@@ -4395,7 +4395,7 @@ def _set_native_hook_event_states(
         receipt_path = (
             exact_data_root
             / "installations"
-            / "codex-v200"
+            / "codex-v300"
             / "hook-event-control"
             / f"HOOK_EVENT_CONTROL_{receipt['receipt_sha256'][:16]}.json"
         )
@@ -4969,7 +4969,7 @@ def _seal_plugin_creator_local_cache_restart(
 
     exact_codex_home = codex_home.resolve()
     exact_data_root = data_root.resolve()
-    authority_root = exact_data_root / "installations" / "codex-v200"
+    authority_root = exact_data_root / "installations" / "codex-v300"
     stage, exact_stage, exact_stage_sha256 = _load_self_sealed_json(
         path=stage_receipt_path,
         expected_file_sha256=stage_receipt_sha256,
@@ -5365,7 +5365,7 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
     plugin_selector = f"{PLUGIN_NAME}@{marketplace_name}"
     marketplace_root = codex_home / "local-marketplaces" / marketplace_name
     extracted_inventory: dict[str, Any]
-    with tempfile.TemporaryDirectory(prefix="evidence-lane-v200-install-") as raw:
+    with tempfile.TemporaryDirectory(prefix="evidence-lane-v300-install-") as raw:
         extracted = Path(raw) / "plugin"
         extracted.mkdir()
         _safe_extract(archive, extracted)
@@ -5661,7 +5661,7 @@ def install(args: argparse.Namespace) -> dict[str, Any]:
         ),
     }
     body["receipt_sha256"] = hashlib.sha256(_json_bytes(body)).hexdigest().upper()
-    receipt_dir = data_root / "installations" / "codex-v200"
+    receipt_dir = data_root / "installations" / "codex-v300"
     install_receipt = receipt_dir / f"INSTALL_{body['archive_sha256'][:16]}.json"
     _write_atomic(install_receipt, _json_bytes(body))
     _write_atomic(receipt_dir / "CURRENT_INSTALLATION.json", _json_bytes(body))

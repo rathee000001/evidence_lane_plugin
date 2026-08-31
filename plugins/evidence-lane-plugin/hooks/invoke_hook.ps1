@@ -108,7 +108,7 @@ try {
     $lockSha256 = Get-Sha256 -LiteralPath $lockPath
     $failureStage = 'RUNTIME_PATHS'
     $runtimeRoot = Join-Path $dataRoot 'runtime\codex'
-    $installReceiptRoot = Join-Path $dataRoot 'installations\codex-v200'
+    $installReceiptRoot = Join-Path $dataRoot 'installations\codex-v300'
     $failureStage = 'PLUGIN_ROOT_KEY'
     $pluginRootKey = [IO.Path]::GetFullPath($pluginRoot).TrimEnd('\').ToLowerInvariant()
     $failureStage = 'RUNTIME_ROOT_PREFIX'

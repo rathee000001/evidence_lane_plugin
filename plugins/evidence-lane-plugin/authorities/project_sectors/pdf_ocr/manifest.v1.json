@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
       "bytes": 253952,
-      "sha256": "EE797DA26B0DF1807027742EB376A91E9168AEF30BB227A0064EFB1598204324"
+      "sha256": "049AC91CA423759B7B88C9FE843D80C6B827B31E2C973A2371CA754A349E3FA0"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/reader-contract.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/pdf_ocr/tools.json",
       "bytes": 15087,
-      "sha256": "1DB25843152910C40BFB47A19353B80F00C9FCF61AFD11C7C7F9548C5B71E549"
+      "sha256": "1C5FD034308452C3395DFCB5EE143C9971AF3F6B2041527B537D49FA31A10D90"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/pdf_ocr/workflow.dot",
       "bytes": 6429,
-      "sha256": "58CE6927402E71EB9BB940E71880F53CBB7A54E132BA81D953D168234CE910A4"
+      "sha256": "BA14518EA8BD34B62E2E50212CB461F2EC6C8E4FA3054F86A3FD785561A248C3"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/workflow.mmd",
       "bytes": 4995,
-      "sha256": "8D1F1175FFFC540339F6C48594BBBE2004266E508098F016F8A2FA8E0F0AFDF5"
+      "sha256": "47B080CA596C9B944926F115D99D3B57A75BBB0CE46FFFA1CA9D7EB8DBC7AE24"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/workflow.v1.json",
-      "bytes": 31406,
-      "sha256": "135B621445451343E9BB98758B1502078FDDF39013023B8383D34BE1CE8879E7"
+      "bytes": 24735,
+      "sha256": "28D7550494AA1F06408C0600565226B63FB5D65BDD3C5DDD3F6BCEC8DAC43BC2"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "D7F16C5C0503723736A46ED9CD91D9E34824F7E672B2637DF58024833D1DF999"
+  "receipt_sha256": "346B4E1F1F01EF1FEA99C49D0AD46D8AB31EA666C380D1D16BCF56DE3063008C"
 }

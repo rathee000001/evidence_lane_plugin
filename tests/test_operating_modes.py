@@ -143,6 +143,9 @@ def test_explicit_mode_intersection_is_ordered_and_keeps_mode_separate() -> None
         row for row in result["mode_governance"]["contracts"] if row["mode_id"] == "CD"
     )
     assert code_contract["formula"]["rule"] == "ALL_REQUIRED_GATES == PASS"
+    assert code_contract["formula"]["source_route_formula"] == (
+        "plan -> sandbox build -> test -> hash -> package"
+    )
     assert code_contract["ci_cd"] == {
         "required": True,
         "loop": "ALL_REQUIRED_GATES == PASS",
@@ -454,10 +457,16 @@ def test_env_uop_external_secret_reference_is_redacted_and_effect_bounded() -> N
 
     effect_receipt = bind_env_uop_operator_effect(
         29,
-        requested_effect="dependency and leak safety",
+        requested_effect=(
+            "Environmental Chemistry controls sandbox safety, dependency health, "
+            "public/private leak checks"
+        ),
         credential_reference=credential,
     )
-    assert effect_receipt["declared_effect"] == "dependency and leak safety"
+    assert effect_receipt["declared_effect"] == (
+        "Environmental Chemistry controls sandbox safety, dependency health, "
+        "public/private leak checks"
+    )
     assert effect_receipt["effect_executed"] is False
     assert effect_receipt["cross_authority_mutation"] is False
     assert effect_receipt["credential_receipt"] == credential_receipt

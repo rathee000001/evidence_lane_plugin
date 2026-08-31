@@ -135,7 +135,7 @@ def test_plugin_creator_local_cache_boundary_seals_exact_task_restart(
     module = _module()
     codex_home = tmp_path / "codex-home"
     data_root = tmp_path / "pv"
-    authority_root = data_root / "installations" / "codex-v200"
+    authority_root = data_root / "installations" / "codex-v300"
     stage_path = authority_root / "INSTALL_STAGE.json"
     _write(stage_path, "{}")
     selector = f"{module.PLUGIN_NAME}@{module.LOCAL_TESTING_MARKETPLACE_NAME}"
@@ -643,7 +643,7 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     }
     for name, proof in package_proofs.items():
         _write(source / "manifests" / "package" / name, json.dumps(proof))
-    archive = tmp_path / "evidence-lane-v200.zip"
+    archive = tmp_path / "evidence-lane-v300.zip"
     with zipfile.ZipFile(archive, "w") as package:
         files = sorted(
             (item for item in source.rglob("*") if item.is_file()),
@@ -1019,7 +1019,7 @@ def test_installer_stages_supported_marketplace_without_writing_cache(
         "changed_from_previous": False,
     }
     assert (
-        data_root / "installations" / "codex-v200" / "CURRENT_INSTALLATION.json"
+        data_root / "installations" / "codex-v300" / "CURRENT_INSTALLATION.json"
     ).is_file()
     assert not (codex_home / "plugins" / "cache").exists()
     assert not (installed / "_evidence_lane_rehearsal").exists()
@@ -1083,7 +1083,7 @@ def test_installer_rejects_build_specific_stable_selector_growth(
     module = _module()
     archive, receipt, _ = _fixture_archive(tmp_path)
     codex_home = tmp_path / "codex-home"
-    marketplace_name = "evidence-lane-v200-task2-build-606841c9"
+    marketplace_name = "evidence-lane-v300-task2-build-606841c9"
 
     with pytest.raises(module.InstallationError, match="build hash"):
         module.install(
@@ -1106,13 +1106,13 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     module = _module()
-    legacy_marketplace = "evidence-lane-v200-task2-build-stable"
+    legacy_marketplace = "evidence-lane-v300-task2-build-stable"
     legacy_selector = f"evidence-lane-plugin@{legacy_marketplace}"
     stable_marketplace = "evidence-lane-github"
     stable_selector = f"evidence-lane-plugin@{stable_marketplace}"
     local_testing_marketplace = "evidence-lane-v300-testing-new"
     local_testing_selector = f"evidence-lane-plugin@{local_testing_marketplace}"
-    obsolete_marketplace = "evidence-lane-v200-task2-build-obsolete"
+    obsolete_marketplace = "evidence-lane-v300-task2-build-obsolete"
     obsolete_selector = f"evidence-lane-plugin@{obsolete_marketplace}"
     state = {
         "plugins": {
@@ -1340,7 +1340,7 @@ def test_legacy_migration_rejects_wrong_canonical_marketplace_source(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     module = _module()
-    legacy_selector = "evidence-lane-plugin@evidence-lane-v200-task2-build-stable"
+    legacy_selector = "evidence-lane-plugin@evidence-lane-v300-task2-build-stable"
     stable_selector = "evidence-lane-plugin@evidence-lane-github"
     local_testing_selector = "evidence-lane-plugin@evidence-lane-v300-testing-new"
     calls: list[list[str]] = []
@@ -2083,7 +2083,7 @@ def test_stable_activation_advances_main_registry_without_changing_local_identit
         / "two-slot-main-local"
         / "CODEX_TWO_SLOT_MAIN_LOCAL_REGISTRY.json"
     )
-    baseline = data_root / "installations" / "codex-v200" / "INSTALL_OLD.json"
+    baseline = data_root / "installations" / "codex-v300" / "INSTALL_OLD.json"
     _write(baseline, "old stable\n")
     stable_marketplace = "evidence-lane-github"
     stable_selector = f"evidence-lane-plugin@{stable_marketplace}"
@@ -2158,7 +2158,7 @@ def test_stable_activation_advances_main_registry_without_changing_local_identit
         marketplace_root / ".agents" / "plugins" / "marketplace.json",
         json.dumps({"name": stable_marketplace}),
     )
-    new_install = data_root / "installations" / "codex-v200" / "INSTALL_NEW.json"
+    new_install = data_root / "installations" / "codex-v300" / "INSTALL_NEW.json"
     _write(new_install, "new stable\n")
     _write(
         codex_home / "config.toml",
@@ -2393,7 +2393,7 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
     archived_stage = (
         data_root
         / "installations"
-        / "codex-v200"
+        / "codex-v300"
         / "marketplace-archives"
         / "host-stable"
     )
@@ -2411,7 +2411,7 @@ def test_explicit_host_stable_baseline_survives_two_pass_install(
         ),
     )
     baseline_path = (
-        data_root / "installations" / "codex-v200" / "INSTALL_HOST_STABLE.json"
+        data_root / "installations" / "codex-v300" / "INSTALL_HOST_STABLE.json"
     )
     _write(baseline_path, json.dumps(baseline))
     baseline_file_sha256 = (
@@ -2543,8 +2543,12 @@ def test_installer_accepts_current_local_v300_package_contract(
             "remote_adapter",
             "evidence",
             "release-channels.json",
-        ),
-    )
+            ),
+        )
+    packaged_manifest_path = packaged / ".codex-plugin" / "plugin.json"
+    packaged_manifest = json.loads(packaged_manifest_path.read_text(encoding="utf-8"))
+    packaged_manifest["version"] = "3.0.0+codex.20260831000000"
+    _write(packaged_manifest_path, json.dumps(packaged_manifest, indent=2) + "\n")
     proof_rows = {
         "source-manifest.json": {
             "schema": (

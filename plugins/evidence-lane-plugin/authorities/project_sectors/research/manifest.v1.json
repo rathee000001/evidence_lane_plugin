@@ -75,7 +75,7 @@
     {
       "path": "authorities/project_sectors/research/research_sector_v001.sqlite",
       "bytes": 253952,
-      "sha256": "0575EEBD24681872BB666305A821C4A56DDDFDC350B41EC4E7DC61EAB4D60BD2"
+      "sha256": "02B9EA31F804AEAF1DF6EB0789E8C136D4172D866C4546ED6CAAF54C54B037BF"
     },
     {
       "path": "authorities/project_sectors/research/schema.sql",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/research/tools.json",
       "bytes": 14992,
-      "sha256": "AA7ECD7ABD2BF29689BFC5BD4C2C364EF5360387A4C93BB99CDB1FA48A198E43"
+      "sha256": "391F4C825AD1A0A759FF92C1780D1E55316A434BA5A290F1F97308C685B9504A"
     },
     {
       "path": "authorities/project_sectors/research/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/research/workflow.dot",
       "bytes": 6441,
-      "sha256": "5DDC6B4D5EE96F71A93C8ABB40D688798D5D42C9F18A46B924BD32FEA2AD2DE9"
+      "sha256": "6782A8798FFD344A826B6DE3613A6E8542385BF1510CB80FC343653F31EB347E"
     },
     {
       "path": "authorities/project_sectors/research/workflow.mmd",
       "bytes": 5006,
-      "sha256": "4A4D45BCF3270377B3C2E32167C48FA1EE8BECFC9E7687D4F3501181EA4ECB51"
+      "sha256": "D3670A2CC2488CC01339A68C4595BDC0262C485FF4BE02BB2A048726CD6F3D89"
     },
     {
       "path": "authorities/project_sectors/research/workflow.v1.json",
-      "bytes": 31225,
-      "sha256": "8A126818C361A150405D3864BC8027B42E365B5D4076E1865488AFC3147E7B58"
+      "bytes": 24574,
+      "sha256": "B9D5D9758D091A0D74A6165EB01BC86BA9A791A0CA4AB357E05D5E55AEBF672C"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "49BF9B04AA7FD9A9E227B4FBD964C4A863BB7F5C7B6067174EE50CDEDE4EE28E"
+  "receipt_sha256": "0C3177DE6CD106EE91A831DAF73B8C4C002CF9323B5A5CAB06111578E72F40DE"
 }

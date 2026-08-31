@@ -1,3 +1,5 @@
+"""Current universal-brain ingestion, refresh, and governance coverage."""
+
 from __future__ import annotations
 
 import hashlib

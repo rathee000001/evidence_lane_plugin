@@ -24,7 +24,7 @@ FLASH_MANIFEST_SCHEMA = "evidence-lane.session-flash-manifest.v1"
 FLASH_RECEIPT_SCHEMA = "evidence-lane.session-flash-receipt.v1"
 FLASH_AUTHORITY_VERSION = "ENV15_UOP15_PUBLIC_LOCKED_20260807"
 FLASH_MANIFEST_SHA256 = (
-    "7F2914854E1A3325E44FA44F585C4A09FEFD1240D5235E9B42B8EF82565B7AD2"
+    "BD756D0303E5A9E1695FD2A5DD492232BB40CDE551BAFBD310D2AA824396AEB9"
 )
 NESTED_SOURCE_LAYOUT_FLASH_MANIFEST_SHA256 = (
     "4585D703515D2DE245F688E3047F192C6BD3D507475B57855918561933C5293A"
@@ -42,10 +42,10 @@ _MIGRATABLE_NEW_BUILD_FLASH_ERRORS = {
     "SESSION_FLASH_BUILD_IDENTITY_CHANGED",
     "SESSION_FLASH_AUTHORITY_CHANGED",
 }
-ENV_MMD_SHA256 = "B6C4053914AFDB9DEA3F6E5A4A844E0EAB6108BAEF3CC118E22CCC0F2126C7EA"
-UOP_MMD_SHA256 = "6F4FB299BECD2B775B8259D50633DE65ABF4611C4F378B3E70535E3186416FD2"
-ENV_DOT_SHA256 = "B2BA7E6E7CCEC16B142DEEC3AEB23802B52078681626ABB8475EDF23A7B51A9D"
-UOP_DOT_SHA256 = "50E47D933B9F3A128FC79621FEAA14E440CC3775451F76C99B87A05927AC386C"
+ENV_MMD_SHA256 = "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB"
+UOP_MMD_SHA256 = "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9"
+ENV_DOT_SHA256 = "F766A1BE94DCA98A18AE840806FA8067078AB692776F867425CF0FF8FA0E1A8A"
+UOP_DOT_SHA256 = "95186C96941E36E77944A7447FD4F88FB90E57A70FDB2AFD553B4B9AC4E402CA"
 
 
 class SessionFlashAuthority:
@@ -301,9 +301,12 @@ class SessionFlashAuthority:
         )
         require(
             source_audit.get("overall_status") == "PASS"
-            and source_audit.get("whole_packet_accepted") is True
+            and source_audit.get("whole_packet_accepted") is False
+            and source_audit.get("complete_working_behavior_graph_adapted") is True
             and source_audit.get("usable_boundary")
-            == "CURRENT_CODEX_ACTION_PLANE_ONLY",
+            == "CURRENT_CODEX_ACTION_PLANE_PLUS_ADAPTED_ENV15_3_BEHAVIOR"
+            and source_audit.get("chatgpt_host_identity_imported") is False
+            and source_audit.get("historical_active_state_imported") is False,
             "SESSION_FLASH_SOURCE_AUDIT_INVALID",
             "The source audit does not bind the clean current Codex action plane.",
             status="FAIL",
@@ -337,6 +340,9 @@ class SessionFlashAuthority:
             "source_packet": {
                 "status": source_audit["overall_status"],
                 "whole_packet_accepted": bool(source_audit["whole_packet_accepted"]),
+                "complete_working_behavior_graph_adapted": bool(
+                    source_audit["complete_working_behavior_graph_adapted"]
+                ),
                 "usable_boundary": source_audit["usable_boundary"],
             },
             "authorities": authority_reports,

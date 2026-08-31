@@ -48,10 +48,10 @@
   "native_toolchain_local_update_only": true,
   "maintainer_helper_included_until_final_project_hil": true,
   "maintainer_helpers": {
-    "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1": "4970D1507F23E1A0EDCA50E9925F3EA8D1FA36F39DF358CCFD7C041B76E5ACC7"
+    "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1": "B8E09181960264E406A63E261BC81428451B8D44F33918F6123505450EC46F17"
   },
   "restart_preparation_only": true,
   "programmatic_app_stop_allowed": false,
   "turn_drain_utility_present": false,
-  "receipt_sha256": "1D2118A51EBA9D12FAC8D560BE419DE9756F14BC710A4DA8D8AF7EDB15613CC9"
+  "receipt_sha256": "32EC32B7B1A4502998F92942F9BF525E1CDE186EC10847099DA9843E117BC581"
 }

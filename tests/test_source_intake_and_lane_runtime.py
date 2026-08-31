@@ -1,3 +1,5 @@
+"""Current Source Intake, lane runtime, and optional-Git behavior."""
+
 from __future__ import annotations
 
 import json

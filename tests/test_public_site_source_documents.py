@@ -23,8 +23,10 @@ ROUTE_DOCUMENTS = {
     "/plan": "docs/PLAN_AND_CHANGE_DISPLAY.md",
     "/git-ci": "docs/GIT_AND_CI_CD.md",
     "/architecture": "ARCHITECTURE.md",
+    "/env-uop": "docs/ENV_AND_UOP.md",
+    "/adaptive-delta": "docs/ADAPTIVE_DELTA_EXECUTION.md",
     "/lanes": "docs/SOURCE_INTAKE_AND_LANES.md",
-    "/operators": "docs/HOST_AND_STORAGE_MATRIX.md",
+    "/operators": "docs/ENV_AND_UOP.md",
     "/studio": "README.md",
     "/proof": "docs/REPOSITORY_MAP.md",
     "/provenance": "docs/UPSTREAM_REFERENCE_PROVENANCE.md",
@@ -45,7 +47,7 @@ ROUTE_DOCUMENTS = {
 
 def _tracked_paths() -> set[str]:
     output = subprocess.run(
-        ["git", "ls-files", "-z"],
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
         cwd=ROOT,
         check=True,
         capture_output=True,
@@ -116,7 +118,7 @@ def test_github_pages_complete_projection_is_current_and_receipted(
     assert refresh["status"] == "PASS"
     assert refresh["current_release"] == "3.0.0"
     assert refresh["scope"] == "ALL_GITHUB_DOCUMENTS_AND_ALL_GITHUB_PAGES_EVERY_COMMIT"
-    assert refresh["page_count"] == len(PAGES) == 27
+    assert refresh["page_count"] == len(PAGES) == 29
     assert refresh["source_paths"] == sorted({source for _, _, source in PAGES})
     assert len(refresh["source_set_sha256"]) == 64
 
@@ -134,7 +136,8 @@ def test_github_pages_workflow_requires_every_source_refresh_per_commit() -> Non
     workflow = (ROOT / ".github/workflows/evidence-lane-github-pages.yml").read_text(
         encoding="utf-8"
     )
-    assert "fetch-depth: 2" in workflow
+    assert "fetch-depth: 3" in workflow
+    assert "Receipt HEAD -> feature commit -> baseline commit" in workflow
     assert "prepare_github_pages.py --require-current-commit-refresh" in workflow
 
 

@@ -17,6 +17,8 @@
 
 <p align="center">
   <a href="ARCHITECTURE.md">Architecture</a> ·
+  <a href="docs/ENV_AND_UOP.md">ENV and UOP</a> ·
+  <a href="docs/ADAPTIVE_DELTA_EXECUTION.md">Adaptive Delta</a> ·
   <a href="docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md">Canon</a> ·
   <a href="docs/AI_LEARNING.md">Agent Learning</a> ·
   <a href="docs/MEMORY.md">Memory</a> ·
@@ -80,14 +82,14 @@ These values are derived from the current executable registries. They are a rele
 
 | Surface | Current source value | Authority |
 | --- | ---: | --- |
-| Package base version | `3.0.0` | `.codex-plugin/plugin.json` (`3.0.0+codex.20260829234050` current cache-busted source identity) |
+| Package base version | `3.0.0` | `.codex-plugin/plugin.json` (`3.0.0` current cache-busted source identity) |
 | Canonical native actions | **91** | 30 read-only + 61 write-capable; public schema, MCP, and SDK agree |
 | Governed skills | **26** | Registry-derived; no separate command layer |
 | Hook structure | **11 events / 44 ordered handlers** | Hooks are ordered event adapters, not business-logic owners |
 | Project-sector lanes | **18** | Each lane owns a distinct schema, SQLite template, workflow, MMD, DOT, tools, and manifest |
 | Named root authorities | **11** | Separate from the sector-lane count |
 | Declared AI/toolchain capabilities | **119** | Conditional primary/fallback selection; presence is not execution |
-| Internal SDK modules | **145** | Internal execution ownership |
+| Internal SDK modules | **144** | Internal execution ownership |
 | Registered skill workflow steps | **127** | Current workflow registry, not a ceiling |
 
 The 30-row `SPECIALIZED_NATIVE_ACTIONS` tuple in the server source is an explicit specialized subset (9 reads / 21 writes), not the canonical total. The complete native catalog remains the source-derived 91-action registry above.

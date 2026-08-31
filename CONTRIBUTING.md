@@ -1,4 +1,4 @@
-<!-- evidence-lane-current-route-refresh: 3.0.0 / 2026-08-23 -->
+<!-- evidence-lane-source-version: 3.0.0 -->
 
 # Contributing to Evidence Lane
 

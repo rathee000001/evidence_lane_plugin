@@ -5,6 +5,8 @@ import json
 import re
 from pathlib import Path
 
+from evidence_lane_plugin.graph_pipeline import semantic_graph_from_mermaid
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "generate_github_docs.py"
 TOOL_MATRIX = (
@@ -38,7 +40,7 @@ def test_root_readme_requires_current_linked_docs_and_is_reviewed_after_commit(
     assert parsed == review
     assert parsed["status"] == "SOURCE_VERIFIED_REVIEW_AFTER_GIT_COMMIT"
     assert parsed["linked_docs_current"] is True
-    assert parsed["linked_page_count"] == 20
+    assert parsed["linked_page_count"] == 22
     assert parsed["user_review_timing"] == "AFTER_GITHUB_COMMIT"
     assert parsed["staging_authorized"] is False
     assert parsed["commit_authorized"] is False
@@ -102,6 +104,45 @@ def test_every_generated_technical_page_has_source_bound_depth_and_workflow() ->
         if page != "docs/UPSTREAM_REFERENCE_PROVENANCE.md":
             assert "## Contract and readback" in text, page
             assert "## Canonical source owners" in text, page
+
+
+def test_every_generated_mermaid_block_roundtrips_as_a_semantic_graph() -> None:
+    module = _module()
+    pages = [
+        ROOT / "README.md",
+        ROOT / "plugins" / "evidence-lane-plugin" / "README.md",
+        *(ROOT / page for page in module.TECHNICAL_PAGES),
+    ]
+    diagram_count = 0
+    for page in pages:
+        text = page.read_text(encoding="utf-8")
+        blocks = re.findall(r"```mermaid\s*\n(.*?)```", text, flags=re.DOTALL)
+        assert blocks, page
+        for ordinal, block in enumerate(blocks, 1):
+            graph = semantic_graph_from_mermaid(
+                block,
+                name=f"docs_{page.stem}_{ordinal}",
+            )
+            assert graph.nodes, (page, ordinal)
+            assert graph.edges, (page, ordinal)
+            diagram_count += 1
+    assert diagram_count >= len(pages)
+
+
+def test_package_readme_exposes_full_delta_and_dual_plane_story() -> None:
+    text = (
+        ROOT / "plugins" / "evidence-lane-plugin" / "README.md"
+    ).read_text(encoding="utf-8")
+    for fragment in (
+        "```mermaid",
+        "AUTO_ACCEPTED_DELTA_ROW_WORK",
+        "AUTO_ACCEPTED_DELTA_LEARNING",
+        "Project HIL",
+        "consolidated Learning HIL",
+        "119 condition-selected tool requirements",
+        "ENV/UOP execution-plane contract",
+    ):
+        assert fragment in text
 
 
 def test_maintained_markdown_local_links_resolve() -> None:

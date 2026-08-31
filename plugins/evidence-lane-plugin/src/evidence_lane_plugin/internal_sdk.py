@@ -355,7 +355,19 @@ def sdk_plane_registry() -> dict[str, Any]:
                 "counted_as_public_action": False,
                 "owns_mcp_schema_and_public_action_dispatch": False,
                 "owns_ai_formula_execution": True,
-                "authority_source": "LOCKED_ENV_UOP_SQLITE_PLUS_MMD",
+                "authority_source": (
+                    "CURRENT_CODEX_LOCKED_ENV_UOP_PLUS_ADAPTED_CHATGPT15_3_"
+                    "WORKING_BEHAVIOR"
+                ),
+                "cross_plane_action_count": public_action_count,
+                "env_behavior_subgraphs": 25,
+                "env_behavior_nodes": 275,
+                "env_behavior_edges": 256,
+                "uop_behavior_subgraphs": 8,
+                "uop_behavior_nodes": 80,
+                "uop_behavior_edges": 57,
+                "chatgpt_host_identity_imported": False,
+                "env_and_uop_authorities_merged": False,
             },
         ],
         "planes_merged": False,
@@ -643,6 +655,11 @@ def runtime_workflow_sdk_registry() -> dict[str, Any]:
         },
     ]
     for workflow in workflows:
+        if (
+            workflow["public_actions"]
+            and "env_uop_operator_runtime" not in workflow["sdk_modules"]
+        ):
+            workflow["sdk_modules"].append("env_uop_operator_runtime")
         workflow["public_action_sdk"] = {
             "actions": list(workflow["public_actions"]),
             "count": len(workflow["public_actions"]),

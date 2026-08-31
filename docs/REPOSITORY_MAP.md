@@ -66,8 +66,16 @@ flowchart TB
 ## Canonical source owners
 
 - `manifests/executable-surface-registry.v1.json`
-- `manifests/package/source-manifest.json`
-- `src/evidence_lane_plugin/source_disposition.py`
+- `src/evidence_lane_plugin/source_fingerprint.py`
+- `scripts/audit_repository_semantic_currentness.py`
+
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `manifests/executable-surface-registry.v1.json` | 374599 | `8BF0685313E6E2E08CF61A833A532E848E6312767DC8ECDD165E56ECE9AAFFA4` |
+| `src/evidence_lane_plugin/source_fingerprint.py` | 6916 | `EA31A7B001B85E2D8C19679D50004E88831C8E8635E032E012420F0588D33D16` |
+| `scripts/audit_repository_semantic_currentness.py` | 24898 | `54AB4162615852BB61B83F656E70A2289ACF203375364447607D0CC7C7AA166D` |
 
 ## Cross-surface invariants
 

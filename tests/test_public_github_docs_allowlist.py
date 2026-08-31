@@ -18,6 +18,6 @@ def _validator():
 def test_public_github_docs_are_exact_current_allowlist() -> None:
     receipt = _validator().validate()
     assert receipt["status"] == "PASS"
-    assert receipt["public_docs_count"] == 23
+    assert receipt["public_docs_count"] == 25
     assert receipt["historical_or_internal_docs_in_public_root"] == 0
     assert receipt["broken_internal_references"] == 0

@@ -171,7 +171,7 @@ def _write_active_runtime_and_installation(
     current_installation = (
         root
         / "installations"
-        / "codex-v200"
+        / "codex-v300"
         / "CURRENT_INSTALLATION.json"
     )
     current_installation.parent.mkdir(parents=True, exist_ok=True)

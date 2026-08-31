@@ -684,6 +684,93 @@ def test_private_app_route_creates_exact_git_objects_and_fast_forwards() -> None
     assert transport.calls[-2]["body"] == {"sha": "4" * 40, "force": False}
 
 
+def test_private_app_route_retries_one_secondary_write_limit() -> None:
+    change = GitTreeChange.create(
+        path="README.md",
+        mode="100644",
+        content=b"Evidence Lane\n",
+    )
+    transport = _SequenceGitHubTransport(
+        [
+            GitHubAPIResponse(200, {"object": {"sha": "1" * 40}}, "req-1"),
+            GitHubAPIResponse(200, {"tree": {"sha": "2" * 40}}, "req-2"),
+            GitHubAPIResponse(
+                403,
+                {"message": "You have exceeded a secondary rate limit."},
+                "req-limit",
+            ),
+            GitHubAPIResponse(201, {"sha": change.blob_sha}, "req-3"),
+            GitHubAPIResponse(201, {"sha": "3" * 40}, "req-4"),
+            GitHubAPIResponse(201, {"sha": "4" * 40}, "req-5"),
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "req-6"),
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "req-7"),
+        ]
+    )
+    sleeps: list[float] = []
+    route = GitHubAppExactCommitPushRoute(
+        broker=InstallationTokenBroker(
+            manifest=_write_manifest(),
+            binding=_write_binding(),
+            provider=DeterministicMockGitHubProvider(
+                b"secondary-limit-retry-provider-seed"
+            ),
+        ),
+        transport=transport,
+        secondary_retry_delays=(0.0,),
+        sleep=sleeps.append,
+    )
+
+    receipt = route.execute(
+        _exact_push_request(change),
+        token_request=_write_token_request(),
+        now=NOW,
+    )
+
+    assert receipt["status"] == "PASS"
+    assert len(transport.calls) == 8
+    assert sleeps == [0.0]
+
+
+def test_private_app_route_reuses_existing_blob_tree_on_idempotent_recovery() -> None:
+    change = GitTreeChange.create(
+        path="README.md",
+        mode="100644",
+        content=b"Evidence Lane\n",
+    )
+    transport = _SequenceGitHubTransport(
+        [
+            GitHubAPIResponse(200, {"object": {"sha": "1" * 40}}, "req-1"),
+            GitHubAPIResponse(200, {"tree": {"sha": "2" * 40}}, "req-2"),
+            GitHubAPIResponse(201, {"sha": "3" * 40}, "req-tree"),
+            GitHubAPIResponse(201, {"sha": "4" * 40}, "req-commit"),
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "req-patch"),
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "req-ref"),
+        ]
+    )
+    route = GitHubAppExactCommitPushRoute(
+        broker=InstallationTokenBroker(
+            manifest=_write_manifest(),
+            binding=_write_binding(),
+            provider=DeterministicMockGitHubProvider(
+                b"existing-blob-tree-recovery-seed"
+            ),
+        ),
+        transport=transport,
+        prefer_existing_blob_tree=True,
+    )
+
+    receipt = route.execute(
+        _exact_push_request(change),
+        token_request=_write_token_request(),
+        now=NOW,
+    )
+
+    assert receipt["status"] == "PASS"
+    assert receipt["existing_blob_set_reused"] is True
+    assert len(transport.calls) == 6
+    assert not any(call["path"].endswith("/git/blobs") for call in transport.calls)
+
+
 def test_private_app_route_allows_remote_ancestor_before_exact_parent() -> None:
     change = GitTreeChange.create(
         path="README.md",

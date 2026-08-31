@@ -20,7 +20,7 @@
     {
       "path": "authorities/project_sectors/analysis/analysis_sector_v001.sqlite",
       "bytes": 249856,
-      "sha256": "2302901FBA65CD581AC65D58B28FD1B29DD72D3312BFDCAC0D136965E28011E2"
+      "sha256": "785EF8DEEC0EC91A0A79FC80B10593754C5E57B60E9F0BA0F7EA0667FFB9BCE3"
     },
     {
       "path": "authorities/project_sectors/analysis/builder-contract.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/analysis/tools.json",
       "bytes": 16314,
-      "sha256": "3E133004C37A860F050DF92F4A554CE29BC6D022304E35814EA632F049FA31CB"
+      "sha256": "F0AD5D2F9E9BB1027FA5E03126E51968A0AE430F019A1F8BA6C37CCAFCBABC05"
     },
     {
       "path": "authorities/project_sectors/analysis/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/analysis/workflow.dot",
       "bytes": 6443,
-      "sha256": "E0FAAC1836D444FBBCB2D243224CB8DCBA58387EF541EC8DDB9B15B3DCB06FD0"
+      "sha256": "61D95E0EF57C45FFBCE467FB50EC0938866E36EEF9CD3226BA6C7792A2D59088"
     },
     {
       "path": "authorities/project_sectors/analysis/workflow.mmd",
       "bytes": 5008,
-      "sha256": "0AC2110B305FA053DD8C31CD613F136B742B9186D09E69FECEBEA7C12634683B"
+      "sha256": "D4DF7155973A43A34ABECE38BEB64BAAA1C84F4399C6F96A5D18FF23553EBD15"
     },
     {
       "path": "authorities/project_sectors/analysis/workflow.v1.json",
-      "bytes": 31252,
-      "sha256": "776363D4CD1AB2AF1B7BA70785AF774F2656525BFD9AF7DBA5A6422B9822EEF3"
+      "bytes": 23175,
+      "sha256": "1065A83FF253BCBCE80270F664D01BA5CFDB38D921AB63FF60CD6C99616B25D5"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "71A9995ED4CF06C1C27F307864937B5AE7CED2DB7DAE967B8638F8769136CAC7"
+  "receipt_sha256": "7D574854BCAD526F757CEFF77061F11E766270CBF90221F9689830F0B0574D94"
 }

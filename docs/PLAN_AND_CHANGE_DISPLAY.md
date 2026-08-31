@@ -63,6 +63,14 @@ flowchart TB
 - `src/evidence_lane_plugin/plan_runtime.py`
 - `skills/evi-plan/SKILL.md`
 
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `schemas/plan/project-bootstrap.v1.json` | 1415 | `AA95AECC5946DACB68025F398373D9B8A552D0508C067F0ECA3F8E9CF0863871` |
+| `src/evidence_lane_plugin/plan_runtime.py` | 115201 | `0EFBEBCAD2B8C984A94EBAD5603FD3D2BE559B42F83C5064F3B1EBE4ACB0DFFC` |
+| `skills/evi-plan/SKILL.md` | 3996 | `EFE51ACA320F6E9B6BE96FE77F76351A9B31F103578FC66EEB10DF2A1B476C03` |
+
 ## Cross-surface invariants
 
 - The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.

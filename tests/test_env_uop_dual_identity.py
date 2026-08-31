@@ -44,8 +44,11 @@ def test_dual_identity_preserves_clean_current_codex_action_plane(
     projection = dual["codex_projection"]["manifest"]
 
     assert source["source_packet_status"] == "PASS"
-    assert source["whole_packet_accepted"] is True
-    assert source["usable_boundary"] == "CURRENT_CODEX_ACTION_PLANE_ONLY"
+    assert source["whole_packet_accepted"] is False
+    assert source["complete_working_behavior_graph_adapted"] is True
+    assert source["usable_boundary"] == (
+        "CURRENT_CODEX_ACTION_PLANE_PLUS_ADAPTED_ENV15_3_BEHAVIOR"
+    )
     assert source["missing_declared_members"] == []
     source_hashes = {row["path"]: row["sha256"] for row in source["members"]}
     expected_source_hashes = {

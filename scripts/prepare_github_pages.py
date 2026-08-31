@@ -26,6 +26,12 @@ REPOSITORY_FINGERPRINT_SCHEMA = "evidence-lane.repository-source-fingerprints.v2
 PAGES = (
     ("index", "README", "README.md"),
     ("architecture", "Architecture", "ARCHITECTURE.md"),
+    ("env-uop", "ENV and UOP", "docs/ENV_AND_UOP.md"),
+    (
+        "adaptive-delta",
+        "Adaptive Delta",
+        "docs/ADAPTIVE_DELTA_EXECUTION.md",
+    ),
     ("canon", "Canon", "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md"),
     ("ai-learning", "AI Learning", "docs/AI_LEARNING.md"),
     ("memory", "Memory", "docs/MEMORY.md"),
@@ -284,6 +290,7 @@ def build(
     output: Path,
     *,
     require_current_commit_refresh: bool = False,
+    readme_override: Path | None = None,
 ) -> dict[str, object]:
     output = output.resolve()
     if (
@@ -297,6 +304,11 @@ def build(
     shutil.copytree(TEMPLATE, output)
 
     revision = _exact_revision()
+    resolved_readme_override = (
+        readme_override.resolve() if readme_override is not None else None
+    )
+    if resolved_readme_override is not None and not resolved_readme_override.is_file():
+        raise FileNotFoundError(resolved_readme_override)
     page_sources = {source for _, _, source in PAGES}
     changed_paths = (
         _current_commit_refresh_paths() if require_current_commit_refresh else set()
@@ -319,14 +331,19 @@ def build(
         )
     generated: list[dict[str, str]] = []
     for slug, title, relative_source in PAGES:
-        source = ROOT / relative_source
+        repository_source = ROOT / relative_source
+        source = (
+            resolved_readme_override
+            if relative_source == "README.md" and resolved_readme_override is not None
+            else repository_source
+        )
         if not source.is_file():
             raise FileNotFoundError(relative_source)
         source_text = source.read_text(encoding="utf-8")
         _assert_current_public_document(relative_source, source_text)
         body = _rewrite_relative_markdown_links(
             source_text,
-            source_path=source,
+            source_path=repository_source,
             revision=revision,
         )
         source_url = (
@@ -385,6 +402,9 @@ def build(
             "public_docs_binding": PUBLIC_DOCS_BINDING,
             "public_docs_binding_schema": PUBLIC_DOCS_BINDING_SCHEMA,
             "unchanged_sources_verified_by_fingerprint": True,
+            "readme_projected_from_exact_future_bytes_before_repository_write": (
+                resolved_readme_override is not None
+            ),
             "source_paths": sorted(page_sources),
             "source_set_sha256": hashlib.sha256(
                 json.dumps(
@@ -421,12 +441,21 @@ def main() -> int:
             "content-address verified."
         ),
     )
+    parser.add_argument(
+        "--readme-override",
+        type=Path,
+        help=(
+            "Project the exact future README bytes before README is physically "
+            "written last to the repository."
+        ),
+    )
     args = parser.parse_args()
     print(
         json.dumps(
             build(
                 args.output,
                 require_current_commit_refresh=args.require_current_commit_refresh,
+                readme_override=args.readme_override,
             ),
             sort_keys=True,
         )

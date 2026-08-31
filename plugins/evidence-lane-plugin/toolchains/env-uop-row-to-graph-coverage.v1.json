@@ -7,7 +7,17 @@
     "lanes": 18,
     "skills": 26,
     "hooks": 11,
-    "hosts": 5
+    "hosts": 5,
+    "env_behavior_subgraphs": 25,
+    "env_behavior_nodes": 275,
+    "env_behavior_edges": 256,
+    "env_pcm_mba_operators": 110,
+    "env_formula_components": 6,
+    "uop_behavior_subgraphs": 8,
+    "uop_behavior_nodes": 80,
+    "uop_behavior_edges": 57,
+    "uop_source_records": 57,
+    "uop_public_operators": 14
   },
   "codex_is_sole_agent": true,
   "chatgpt_surface_rows": 0,
@@ -16,20 +26,20 @@
   "predecessor_database_copied": false,
   "final_graphs": {
     "env": {
-      "node_count": 148,
-      "edge_count": 147,
-      "group_count": 6,
-      "semantic_topology_sha256": "5E4A6278FD43C158795F144CEF07D75211BAD5B180C9217D3E57B4DBEADBDE1A",
-      "mmd_sha256": "B6C4053914AFDB9DEA3F6E5A4A844E0EAB6108BAEF3CC118E22CCC0F2126C7EA",
-      "dot_sha256": "B2BA7E6E7CCEC16B142DEEC3AEB23802B52078681626ABB8475EDF23A7B51A9D"
+      "node_count": 424,
+      "edge_count": 445,
+      "group_count": 31,
+      "semantic_topology_sha256": "A7E484D36910FDAB3983FCFBD547AAA184C8DCCCE9A402785612615A8164982B",
+      "mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
+      "dot_sha256": "F766A1BE94DCA98A18AE840806FA8067078AB692776F867425CF0FF8FA0E1A8A"
     },
     "uop": {
-      "node_count": 48,
-      "edge_count": 47,
-      "group_count": 5,
-      "semantic_topology_sha256": "6ACC7F5DCEB822C919D7938364BD431BF05F150BDFAE99469BCCA9E9C1125245",
-      "mmd_sha256": "6F4FB299BECD2B775B8259D50633DE65ABF4611C4F378B3E70535E3186416FD2",
-      "dot_sha256": "50E47D933B9F3A128FC79621FEAA14E440CC3775451F76C99B87A05927AC386C"
+      "node_count": 129,
+      "edge_count": 131,
+      "group_count": 13,
+      "semantic_topology_sha256": "728B02DCB2E746BE6A71A7ED512F04DC7777E2296D710F4F9A6602BB7616E211",
+      "mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
+      "dot_sha256": "95186C96941E36E77944A7447FD4F88FB90E57A70FDB2AFD553B4B9AC4E402CA"
     }
   },
   "graph_tool_execution_evidence": {
@@ -43,5 +53,5 @@
       "state": "EXECUTED"
     }
   },
-  "receipt_sha256": "D7118E3B91768677482155D6251171C7D69C42EC73E1136526E4EDF043A46571"
+  "receipt_sha256": "89B3D194C873EEBB883F70279719AE80EF5D9EA738655A75A671651443DC94F7"
 }

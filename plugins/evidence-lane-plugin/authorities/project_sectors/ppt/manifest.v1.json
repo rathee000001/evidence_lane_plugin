@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/ppt/ppt_sector_v001.sqlite",
       "bytes": 258048,
-      "sha256": "AA562F069FD33E7A97598B970A8E028F9A59CCFC7652E0586453C99555A1D9E6"
+      "sha256": "34FA5D87CE5C0F6869140D6DDA7EE5477128263C26376DB4A3D8CAC103FE9EAB"
     },
     {
       "path": "authorities/project_sectors/ppt/reader-contract.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/ppt/tools.json",
       "bytes": 14772,
-      "sha256": "8E37EEFB441541D9271EC56CD7DA5CD7A18140BAB9077F124C1D9D0BCD90B548"
+      "sha256": "52AA1A4CF069D0C485F33BEFF5801D3B5E11DC16CA1A4781857E55222C100FDD"
     },
     {
       "path": "authorities/project_sectors/ppt/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/ppt/workflow.dot",
       "bytes": 6422,
-      "sha256": "C6719F18BE0AF0C9F32F1363688B700F2253218C1B845CC2AE93D27D1129FBAB"
+      "sha256": "10EB8465F907D84F8DE6AC0F10BE2A4FF21C3D95291C0CCB6CB2CD848605E8AF"
     },
     {
       "path": "authorities/project_sectors/ppt/workflow.mmd",
       "bytes": 4992,
-      "sha256": "1533A09354917801DC3482022F6D57F664E33D68AFF2776BFBB8693A045D8F5B"
+      "sha256": "78E40056D9DC9828880B0C3AF525D8AABCC9C0BBE12F1CA6D742A6CCF12D96EE"
     },
     {
       "path": "authorities/project_sectors/ppt/workflow.v1.json",
-      "bytes": 29508,
-      "sha256": "C66766DCAD233DA123CFFD11D41A11DB6C825EAD81951F0E88893854D31A053C"
+      "bytes": 22834,
+      "sha256": "BA595B9287A82F5925B5E77C88D19B52D4D596121F8E1DDE5B069A5FC4E54A33"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "D5241F788C0D7FB9752214338841CCE0BC69A609AF38B06B9533BDBE595966E7"
+  "receipt_sha256": "E3210FD8120D33B660FBAF609D89394EA1795F42C8E622798583CCA42C84EFE8"
 }

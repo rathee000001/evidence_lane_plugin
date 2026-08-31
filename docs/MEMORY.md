@@ -63,6 +63,14 @@ flowchart TB
 - `schemas/memory/project-memory.v1.sql`
 - `skills/evi-memory/SKILL.md`
 
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `authorities/project_memory/manifest.v1.json` | 10717 | `B3844798A16FBF9E560768F851FF3007FED8495553113A81435447B94B464026` |
+| `schemas/memory/project-memory.v1.sql` | 3281 | `4622D826BA67B21589255EB58211FA954C51AA4148FACCFEC2B498F0C491C17B` |
+| `skills/evi-memory/SKILL.md` | 2153 | `6617AD64BDA4ABF6E4FA5EB62EAA614D5C609DF1332101420F32233181E7DC09` |
+
 ## Cross-surface invariants
 
 - The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.

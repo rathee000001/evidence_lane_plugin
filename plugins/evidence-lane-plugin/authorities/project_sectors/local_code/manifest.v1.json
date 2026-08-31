@@ -45,7 +45,7 @@
     {
       "path": "authorities/project_sectors/local_code/local_code_sector_v001.sqlite",
       "bytes": 327680,
-      "sha256": "E42294014583E61E609A6571F1208DBE8EC5E30ABF2C41453232F8A8FAAD2075"
+      "sha256": "08BA970ECF63CC43D0B6574CC32FE5E11E6605CE0A6DDE159A6956F30AA356F3"
     },
     {
       "path": "authorities/project_sectors/local_code/manifest.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/local_code/tools.json",
       "bytes": 15362,
-      "sha256": "5838D33947FEAA97B5D9E603C55A4F15471F1FF792DC96F974CDEC5B996BB9EA"
+      "sha256": "5313DBA79C584A2AD52C161FB1D6EE327DA0EB757A69C317B7198C5829E14A8F"
     },
     {
       "path": "authorities/project_sectors/local_code/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/local_code/workflow.dot",
       "bytes": 6469,
-      "sha256": "E15D3C1997061C0548E2BBDD0E2ABC676701BEC7B0BA49B4051BC3CD416840D0"
+      "sha256": "05F9E5B06EE91C28F98C7555FEF48AE86D3BCF2B90946272B6BAEE98899BD37B"
     },
     {
       "path": "authorities/project_sectors/local_code/workflow.mmd",
       "bytes": 5032,
-      "sha256": "61E2F30E522DA425CC8238370E0EDBA07F54BB214BB4C3A895FE8470CA347511"
+      "sha256": "46A61E7488C962F4137D7B1F472E2B6E1791A3F84F757A07FE69D4C36DDF51F4"
     },
     {
       "path": "authorities/project_sectors/local_code/workflow.v1.json",
-      "bytes": 32470,
-      "sha256": "5575821414410DB7B43404F97B1C287D9D0A684D03ED597ABCE8E9E06C2F96E4"
+      "bytes": 26370,
+      "sha256": "AEF7B7A3FC423FF78A25D509E72252DF86453D36DE9634B0E5010E002F8547DB"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "EF5211D4AE98C0D6996B90C8EE9B10891A52B8CAC1CD0347A27DC8452CF51381"
+  "receipt_sha256": "5964C1660036298001DEF228D980B20EA939333C1AEE3443DB26637DB07A038B"
 }

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from textwrap import dedent
@@ -9,10 +10,12 @@ from typing import Any
 
 TECHNICAL_PAGES = {
     "ARCHITECTURE.md",
+    "docs/ADAPTIVE_DELTA_EXECUTION.md",
     "docs/AI_LEARNING.md",
     "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md",
     "docs/CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md",
     "docs/GIT_AND_CI_CD.md",
+    "docs/ENV_AND_UOP.md",
     "docs/HOOKS.md",
     "docs/HOST_AND_STORAGE_MATRIX.md",
     "docs/LIFECYCLE_AND_HIL.md",
@@ -75,17 +78,25 @@ PAGE_FLOW_SPECS: dict[str, dict[str, Any]] = {
         "nodes": ("Evidence-backed lesson proposal", "Learning candidate classification", "Agent Learning authority", "Separate Learning HIL", "Accept, reject, or research", "Evidence and scope validation", "Learning decision receipt", "Bounded later retrieval or revocation", "Keep Project Truth unchanged"),
         "sources": ("authorities/agent_learning/manifest.v1.json", "skills/evi-learning/SKILL.md", "schemas/actions/learning_seal_candidate.schema.json"),
     },
+    "docs/ADAPTIVE_DELTA_EXECUTION.md": {
+        "nodes": ("Prompt or execution-changing steer", "Entry Slip and Source Intake", "Adaptive Delta entry", "Active Plan row plus predecessor sub-PV", "Bounded work and mid-query refire", "Exact acceptance and installed-behavior checks", "Verified Delta-exit receipt", "Auto-admitted sub-PV plus Delta Learning", "No full-PV pointer, Overlay, ZIP, or inferred HIL effect"),
+        "sources": ("sdk/delta/entry-mid-exit.v1.json", "sdk/delta/entry.workflow.v1.json", "sdk/delta/exit.workflow.v1.json"),
+    },
     "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md": {
         "nodes": ("Typed cross-task requirement or result", "Envelope and contract classification", "Receiver-owned Canon authority", "Canon Input HIL", "Bind edge, backfire, or return", "Cycle, expiry, and schema validation", "Canon continuity receipt", "Exact linked-task continuation", "Reject ambiguity without merging tasks"),
         "sources": ("authorities/canon_input/manifest.v1.json", "authorities/canon_input/consequence_graph/manifest.v1.json", "skills/evi-canon/SKILL.md"),
     },
     "docs/CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md": {
         "nodes": ("Reviewed exact package bytes", "Plugin Creator validation", "Local-testing selector", "Hidden runtime profile", "Prewarm and installed smoke", "Catalog and member parity", "Install and restart receipts", "Exact app and task reload", "No Project/PV or HIL effect"),
-        "sources": (".codex-plugin/plugin.json", "scripts/codex_release/install_codex_stable.py", "manifests/package/package-surface-coherence.json"),
+        "sources": (".codex-plugin/plugin.json", "scripts/codex_release/install_codex_stable.py", "manifests/executable-surface-registry.v1.json"),
     },
     "docs/GIT_AND_CI_CD.md": {
         "nodes": ("Preserved worktree and dirty bytes", "Reviewed staging allowlist", "Feature-branch Git index", "Required CI workflows", "Exact commit and branch preview", "Checks and fingerprint validation", "Git and CI receipts", "Explicit merge or release decision", "No implicit HIL, merge, or deployment"),
         "sources": ("schemas/github-app-manifest.schema.json", "src/evidence_lane_plugin/remote_git.py", "scripts/codex_release/push_github_app_exact_commit.py"),
+    },
+    "docs/ENV_AND_UOP.md": {
+        "nodes": ("Entry Slip plus current host and project context", "ENV context, mode, lane, locality and provider selection", "UOP operator, formula, budget and permission decision", "Typed action and internal SDK owner", "Condition-true lane, authority and tool route", "Cross-plane effect and receipt validation", "Bounded execution receipt", "Delta continuation, explicit HIL, or fail-closed result", "Never import ChatGPT host identity or merge ENV with UOP"),
+        "sources": ("toolchains/env-domain-catalog.v2.json", "toolchains/uop-domain-catalog.v2.json", "sdk/env_uop/cross-plane-contract.v1.json"),
     },
     "docs/HOOKS.md": {
         "nodes": ("Native Codex host event", "Event and timing classification", "One of 11 hook classes", "Four ordered handlers", "Validate, emit, transport, and seal", "Trust and invocation proof", "Hook receipt", "Bounded lifecycle strengthening", "Disable only the failing untrusted event"),
@@ -93,7 +104,7 @@ PAGE_FLOW_SPECS: dict[str, dict[str, Any]] = {
     },
     "docs/HOST_AND_STORAGE_MATRIX.md": {
         "nodes": ("Observed Codex host", "Lifetime and capability classification", "ENV host profile", "Durable storage selection", "Local, mounted, or connector route", "Runtime attestation and integrity", "Host and storage receipt", "Boot/resume eligibility", "Fail closed without durable authority"),
-        "sources": ("env/authority-manifest.v1.json", "schemas/install/local-install.v1.json", "src/evidence_lane_plugin/storage_connector.py"),
+        "sources": ("env/authority-manifest.v1.json", "schemas/install/local-install.v1.json", "src/evidence_lane_plugin/storage_selection.py"),
     },
     "docs/LIFECYCLE_AND_HIL.md": {
         "nodes": ("Prompt, steer, or carried task", "Entry Slip and Delta entry", "Active Plan row", "Bounded execution and refresh", "Candidate or continuing work", "Authority-owned validation", "Delta, HIL, or Exit receipt", "Fuse, rollback, State Travel, or Goal", "Never infer approval from execution"),
@@ -121,11 +132,11 @@ PAGE_FLOW_SPECS: dict[str, dict[str, Any]] = {
     },
     "docs/RELEASE_AND_COMPATIBILITY.md": {
         "nodes": ("Reviewed source and release intent", "Version and compatibility classification", "Exact package and Git identity", "Branch CI and installed proof", "Main-slot release candidate", "Release authority validation", "Release receipts", "Explicit promotion and readback", "Historical receipts stay non-executable"),
-        "sources": (".codex-plugin/plugin.json", "release-channels.json", "scripts/codex_release/accept_codex_stable.py"),
+        "sources": (".codex-plugin/plugin.json", "scripts/codex-release-channel.json", "scripts/codex_release/accept_codex_stable.py"),
     },
     "docs/REPOSITORY_MAP.md": {
         "nodes": ("Repository member", "Executable, generated, docs, test, or local classification", "Canonical owner directory", "Manifest and source-impact graph", "Package or Git allowlist", "Hash and path-policy validation", "Membership receipt", "Included release member or excluded local byte", "Purge stale duplicate ownership"),
-        "sources": ("manifests/executable-surface-registry.v1.json", "manifests/package/source-manifest.json", "src/evidence_lane_plugin/source_disposition.py"),
+        "sources": ("manifests/executable-surface-registry.v1.json", "src/evidence_lane_plugin/source_fingerprint.py", "scripts/audit_repository_semantic_currentness.py"),
     },
     "docs/SKILLS.md": {
         "nodes": ("User-selected intent", "Skill routing classification", "One of 26 governed skills", "Ordered MCP workflow groups", "Typed action owner", "Tool existence and result validation", "Skill routing receipt", "Bounded reusable workflow", "Fail closed on missing or ambiguous route"),
@@ -195,10 +206,24 @@ def _facts(values: dict[str, dict[str, Any]]) -> dict[str, Any]:
         "authorities": authorities,
         "sdk": sdk,
         "mcp": mcp,
+        "env_catalog": values["toolchains/env-domain-catalog.v2.json"],
+        "uop_catalog": values["toolchains/uop-domain-catalog.v2.json"],
+        "env_uop_action_plane": values["sdk/env_uop/action-plane.v1.json"],
+        "cross_plane": values["sdk/env_uop/cross-plane-contract.v1.json"],
+        "delta_contract": values["sdk/delta/entry-mid-exit.v1.json"],
+        "delta_entry": values["sdk/delta/entry.workflow.v1.json"],
+        "delta_mid_query": values["sdk/delta/mid-query.workflow.v1.json"],
+        "delta_exit": values["sdk/delta/exit.workflow.v1.json"],
+        "delta_hil": values["sdk/delta/hil-overlay.workflow.v1.json"],
+        "delta_fuse": values["sdk/delta/fuse.workflow.v1.json"],
     }
 
 
-def _contract_depth(page: str, facts: dict[str, Any]) -> list[str]:
+def _contract_depth(
+    page: str,
+    facts: dict[str, Any],
+    plugin_root: Path,
+) -> list[str]:
     """Render the common source-bound depth contract with a page-specific map."""
 
     spec = PAGE_FLOW_SPECS[page]
@@ -250,6 +275,22 @@ def _contract_depth(page: str, facts: dict[str, Any]) -> list[str]:
     lines.extend(
         [
             "",
+            "### Exact backend readback",
+            "",
+            "| Source contract | Bytes | SHA-256 |",
+            "| --- | ---: | --- |",
+        ]
+    )
+    for source in sources:
+        source_path = plugin_root / source
+        if not source_path.is_file():
+            raise RuntimeError(f"DOCUMENTATION_SOURCE_CONTRACT_MISSING:{page}:{source}")
+        lines.append(
+            f"| `{source}` | {source_path.stat().st_size} | `{hashlib.sha256(source_path.read_bytes()).hexdigest().upper()}` |"
+        )
+    lines.extend(
+        [
+            "",
             "## Cross-surface invariants",
             "",
             f"- The current snapshot contains {counts['public_actions']} public actions, {counts['skills']} skills, {counts['hook_events']} hook events / {counts['hook_handler_actions']} handlers, {counts['tool_requirements']} tool requirements, {counts['sector_lanes']} sector lanes, and {counts['named_root_authorities']} named authorities. These are derived counts, not fixed ceilings.",
@@ -266,13 +307,20 @@ def _enrich_technical_page(
     page: str,
     rendered: str,
     facts: dict[str, Any],
+    plugin_root: Path,
 ) -> str:
     footer = "\n".join(_footer()).strip("\n")
     suffix = footer + "\n"
     if not rendered.endswith(suffix):
         raise RuntimeError(f"TECHNICAL_PAGE_FOOTER_MISSING:{page}")
     core = rendered[: -len(suffix)].rstrip()
-    return core + "\n\n" + "\n".join(_contract_depth(page, facts)) + "\n\n" + suffix
+    return (
+        core
+        + "\n\n"
+        + "\n".join(_contract_depth(page, facts, plugin_root))
+        + "\n\n"
+        + suffix
+    )
 
 
 def _action_rows(facts: dict[str, Any], owners: set[str]) -> list[dict[str, Any]]:
@@ -334,20 +382,61 @@ def _architecture(facts: dict[str, Any]) -> str:
             "",
             "```mermaid",
             "flowchart TB",
-            '    Prompt["Prompt or steer"] --> Slip["Entry Slip"]',
-            '    Slip --> Intake["Source Intake + project recipe + Mode"]',
-            '    Intake --> Action["Typed action + schema"]',
-            '    Action --> SDK["Internal SDK owner"]',
-            '    SDK --> ENV["ENV selection"]',
-            '    ENV --> UOP["UOP governance"]',
-            '    UOP --> Accelerator["Eligible CPU / NVIDIA / AMD execution provider"]',
-            '    Accelerator --> Surface["Authority + sector lane"]',
-            '    Surface --> Tools["Condition-true tools"]',
-            '    Tools --> Transport["Local / outer SDK / MCP / tunnel"]',
-            '    Transport --> Hooks["Ordered emitted hooks"]',
-            '    Hooks --> Result["Validate + receipt + direct stale-route purge"]',
-            '    Result --> Delta["Adaptive Delta-exit append"]',
-            '    Result --> Exit["Exit Slip: Goal option 2 or State Travel only"]',
+            '    subgraph Entry["1. Entry and source districts"]',
+            "      direction LR",
+            '      Prompt["Prompt"] --> Slip["Entry Slip"] --> Intake["Source Intake"]',
+            '      Steer["Mid-goal steer"] --> Slip',
+            '      Intake --> Recipe["Project recipe"] --> Mode["Mode"]',
+            '      Intake --> Lineage["ChatLineage append"]',
+            "    end",
+            '    subgraph Control["2. Registry and dual control planes"]',
+            "      direction LR",
+            '      Skill["26 skills"] --> Action["91 typed actions"] --> Schema["Action schemas"] --> SDK["Internal SDK owner"]',
+            '      SDK --> ENV["ENV: host, context, mode, lane, locality, provider"]',
+            '      SDK --> UOP["UOP: operators, formulas, budgets, permission, HIL"]',
+            '      ENV --> Join["Cross-plane decision"]',
+            '      UOP --> Join',
+            "    end",
+            '    subgraph Execution["3. Authority, lane, tools and transport"]',
+            "      direction LR",
+            '      Join --> Lanes["18 sector lanes"]',
+            '      Join --> Authorities["11 named authorities"]',
+            '      Lanes --> Tools["119 conditional tool requirements"]',
+            '      Authorities --> Tools',
+            '      Tools --> Provider["CPU or explicitly eligible NVIDIA / AMD provider"]',
+            '      Provider --> Transport["Local runtime / outer SDK / MCP / tunnel"]',
+            "    end",
+            '    subgraph Delta["4. Adaptive Delta recursion"]',
+            "      direction LR",
+            '      DEntry["Delta entry"] --> Work["Bounded work"] --> Mid["Mid-query / no-hit refire"] --> DExit["Verified Delta exit"]',
+            '      DExit --> SubPV["Auto-accepted sub-PV row work"] --> Next["Next Delta entry"]',
+            '      DExit --> DLearn["Auto-admitted Delta Learning"] --> Next',
+            "    end",
+            '    subgraph FullPV["5. Full-PV dual human boundary"]',
+            "      direction LR",
+            '      Candidate["Unaccepted full-PV candidate"] --> ProjectHIL["Project HIL"]',
+            '      Candidate --> LearningHIL["Consolidated Learning HIL"]',
+            '      LearningHIL --> Weave["Accepted learning weave or retained decision"]',
+            '      ProjectHIL --> Fuse["Exact Project Fuse"]',
+            '      Weave --> Fuse --> Accepted["Accepted pointer + one root ZIP + Project Overlay"]',
+            "    end",
+            '    subgraph Evidence["6. Validation, hooks and evidence rail"]',
+            "      direction LR",
+            '      Transport --> Hooks["11 events / 44 ordered handlers"] --> Validate["Schema + effect + provenance validation"]',
+            '      Validate --> Receipts["Content-addressed receipts"] --> Refresh["Atomic changed-only refresh + direct purge"]',
+            '      Validate -. mismatch .-> Fail["Visible fail-closed result"]',
+            "    end",
+            '    subgraph Truth["7. One-way truth progression"]',
+            "      direction LR",
+            '      SourceTruth["Source / worktree"] --> GitTruth["Git"] --> PackageTruth["Package"] --> InstalledTruth["Installed"] --> CandidateTruth["Candidate"] --> AcceptedTruth["Accepted"]',
+            "    end",
+            "    Mode --> Skill",
+            "    Recipe --> Skill",
+            "    Transport --> DEntry",
+            "    Refresh --> DExit",
+            "    DExit -->|ordinary row| Next",
+            "    DExit -->|full-PV boundary only| Candidate",
+            "    Receipts -. evidence only .-> Truth",
             "```",
             "",
             "| Registry surface | Current value |",
@@ -408,6 +497,229 @@ def _architecture(facts: dict[str, Any]) -> str:
             "## Storage and refresh",
             "",
             "Project/PV roots own or link project authorities. Source bytes and chunks are content-addressed once; SQLite/FTS indexes, lane facts, and graphs are refreshed atomically; unchanged atoms are reused. A replacement route directly purges superseded executable/schema/generated/test/doc references in the same Delta while immutable receipts remain non-executable history.",
+        ]
+    )
+    lines.extend(_footer())
+    return "\n".join(lines)
+
+
+def _env_uop(facts: dict[str, Any]) -> str:
+    env = facts["env_catalog"]
+    uop = facts["uop_catalog"]
+    action_plane = facts["env_uop_action_plane"]
+    cross = facts["cross_plane"]
+    env_tables = dict(env["tables"])
+    uop_tables = dict(uop["tables"])
+    lines = _header(
+        "ENV and UOP execution planes",
+        "ENV and UOP are separate executable decision planes. ENV selects the current Codex context and eligible route; UOP independently authorizes operators, formulas, budgets, effects, privacy boundaries, fallback, and human gates.",
+    )
+    lines.extend(
+        [
+            "## Full cross-plane route",
+            "",
+            "```mermaid",
+            "flowchart LR",
+            '    Entry["Entry Slip + exact source identity"] --> Context["Current host / workspace / project / Delta"]',
+            '    Context --> ENV["ENV selection"]',
+            '    ENV --> Host["Host + locality + capability grants"]',
+            '    ENV --> Mode["Mode + project recipe + 18-lane classification"]',
+            '    ENV --> Provider["CPU / eligible NVIDIA / AMD provider"]',
+            '    Mode --> Join["Cross-plane decision"]',
+            '    Host --> Join',
+            '    Provider --> Join',
+            '    Context --> UOP["UOP governance"]',
+            '    UOP --> Operators["110 PCM/MBA activations + 14 public operators"]',
+            '    UOP --> Formula["State + gates + operator tensor + validator"]',
+            '    UOP --> Gates["Permission / privacy / disclosure / HIL / budget"]',
+            '    Operators --> Join',
+            '    Formula --> Join',
+            '    Gates --> Join',
+            '    Join --> SDK["Typed internal SDK owner"] --> Route["Lane + authority + condition-true tools"]',
+            '    Route --> Validate["Schema + effect + receipt validation"]',
+            '    Validate --> Pass["Bounded result and next eligible state"]',
+            '    Validate -. mismatch .-> Fail["Fail closed with no authority effect"]',
+            "```",
+            "",
+            "## Adapted working behavior, not imported host authority",
+            "",
+            f"The current action plane records **{action_plane['plane']['env_behavior_subgraphs']} ENV behavior groups / {action_plane['plane']['env_behavior_nodes']} nodes / {action_plane['plane']['env_behavior_edges']} edges** and **{action_plane['plane']['uop_behavior_subgraphs']} UOP behavior groups / {action_plane['plane']['uop_behavior_nodes']} nodes / {action_plane['plane']['uop_behavior_edges']} edges**. The original working topology is preserved as content-addressed reference evidence, then mapped to current Codex owners.",
+            "",
+            "ChatGPT host identity, historical active state, old project templates, old command authority, and predecessor databases are not imported as executable authority. Deferred project-template and successor-root behavior remains queryable but cannot execute until its current owner and preconditions exist.",
+            "",
+            "## ENV working behavior groups",
+            "",
+            "| Source group | Current Codex owner | Boundary |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for row in env["subgraph_contracts"]:
+        lines.append(
+            f"| `{row['source_subgraph_id']}` — {row['source_label']} | `{row['canonical_codex_owner']}` | `{row['classification']}` |"
+        )
+    lines.extend(
+        [
+            "",
+            "## ENV formula components",
+            "",
+            "| Symbol | Role | Meaning |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for row in env_tables["formula_component"]["rows"]:
+        lines.append(
+            f"| `{row['symbol']}` | `{row['role']}` | {row['meaning']} |"
+        )
+    lines.extend(
+        [
+            "",
+            f"ENV currently contains **{env['counts']['pcm_mba_operator']}** PCM/MBA operators and the same number of exact activation rules. Registration is not execution: an operator fires only when its declared trigger, lane, action phase, effect, tool route, and budget match the compiled formula receipt.",
+            "",
+            "### Mode and lane selection",
+            "",
+            f"The imported working catalog contains {env['counts']['mode_cluster']} mode clusters, {env['counts']['mode_namespace_registry']} namespaces, {env['counts']['mode_combination_rule']} combination rules, {env['counts']['lane_registry']} working lane classifications, and {env['counts']['lane_formula_execution_registry_v12']} formula-driven lane routes. These classifications are mapped into the current canonical 18-sector registry; they do not create extra project lanes.",
+            "",
+            "| Formula lane | Execution rule | Validation loop |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for row in env_tables["lane_formula_execution_registry_v12"]["rows"]:
+        lines.append(
+            f"| `{row['lane_id']}` / `{row['lane_name']}` | {row['formula_rule']} | {row['validation_loop']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## UOP working behavior groups",
+            "",
+            "| Source group | Current Codex owner | Boundary |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for row in uop["subgraph_contracts"]:
+        lines.append(
+            f"| `{row['source_subgraph_id']}` — {row['source_label']} | `{row['canonical_codex_owner']}` | `{row['classification']}` |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Current UOP public operators",
+            "",
+            "| Operator | Class | Fires when | Rule |",
+            "| --- | --- | --- | --- |",
+        ]
+    )
+    for row in uop_tables["uop_public_operator_registry_v15"]["rows"]:
+        lines.append(
+            f"| `{row['operator_code']}` | `{row['operator_class']}` | {row['fires_when']} | {row['rule_text']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Delta and human-decision boundaries",
+            "",
+            "UOP preserves additive Delta history, visible warnings, and explicit supersession. `AUTO_ACCEPTED_DELTA_ROW_WORK` and `AUTO_ACCEPTED_DELTA_LEARNING` are admitted only at verified Delta exit and can feed the next Delta entry. Neither has an individual HIL, Project Overlay effect, or accepted-ZIP effect.",
+            "",
+            "Full-PV Project HIL and consolidated Learning HIL remain separate human decisions. Only exact accepted Project Truth can move the Project pointer, create the Project Overlay, and rotate the one accepted root ZIP. Learning approval moves only its own pointer.",
+            "",
+            "## Cross-plane parity",
+            "",
+            "| Bound surface | Count | Missing bindings |",
+            "| --- | ---: | ---: |",
+            f"| Public actions | {cross['action_count']} | {len(cross['missing_action_bindings'])} |",
+            f"| Skills | {cross['skill_count']} | 0 |",
+            f"| Hook events / handlers | {cross['hook_event_count']} / {cross['hook_handler_count']} | 0 |",
+            f"| Sector lanes | {cross['lane_count']} | 0 |",
+            f"| Named authorities | {cross['named_root_authority_count']} | 0 |",
+            f"| Conditional tools | {cross['tool_requirement_count']} | 0 |",
+            "",
+            "MCP never bypasses the internal SDK, the outer SDK owns no business logic, tool presence is not permission, and hooks are not required for explicit actions. ENV and UOP remain separate authorities throughout the route.",
+        ]
+    )
+    lines.extend(_footer())
+    return "\n".join(lines)
+
+
+def _adaptive_delta(facts: dict[str, Any]) -> str:
+    contract = facts["delta_contract"]
+    entry = facts["delta_entry"]["workflow"]
+    mid = facts["delta_mid_query"]["workflow"]
+    exit_workflow = facts["delta_exit"]["workflow"]
+    hil = facts["delta_hil"]["workflow"]
+    fuse = facts["delta_fuse"]["dual_hil_fuse"]
+    lines = _header(
+        "Adaptive Delta execution, sub-PV, and Delta Learning",
+        "Every executable Plan row uses one recursive Delta contract: exact entry, bounded work, optional mid-query refire, verified exit, auto-admitted row work and learning, then either the next Delta or a separate full-PV dual-HIL boundary.",
+    )
+    lines.extend(
+        [
+            "## Complete recursive flow",
+            "",
+            "```mermaid",
+            "flowchart TB",
+            '    Prompt["Prompt or steer"] --> Intake["Entry Slip + Source Intake + ChatLineage"]',
+            '    Intake --> Plan["Sole active Plan row + linked Deltas"]',
+            '    Plan --> Entry["Adaptive Delta entry"]',
+            '    PrevPV["Immutable full-PV baseline PV(n-1)"] --> Entry',
+            '    PrevSub["Latest verified predecessor sub-PV"] --> Entry',
+            '    PrevLearn["Auto-admitted predecessor Delta Learning"] --> Entry',
+            '    Entry --> Query["Bounded current-authority query across lanes and authorities"] --> Work["Current dirty implementation"]',
+            '    Work --> Mid["Mid-query / no-hit refresh and one refire"] --> Validate["Exact task acceptance + source/test/install disposition"]',
+            '    Validate --> Exit["Verified adaptive Delta exit"]',
+            '    Exit --> Refresh["Changed-only refresh: sectors, Learning, Canon, Memory, Universe, connector"]',
+            '    Refresh --> SubPV["AUTO_ACCEPTED_DELTA_ROW_WORK"]',
+            '    Refresh --> DLearn["AUTO_ACCEPTED_DELTA_LEARNING"]',
+            '    SubPV --> Next["Next Delta entry"]',
+            '    DLearn --> Next',
+            '    Exit -->|ordinary row| Next',
+            '    Exit -->|full-PV HIL row only| Candidate["Unaccepted full-PV candidate + bounded learning weave"]',
+            '    Candidate --> PHIL["Project HIL"]',
+            '    Candidate --> LHIL["Consolidated Learning HIL"]',
+            '    LHIL --> Weave["Learning decision"]',
+            '    PHIL --> Fuse["Exact Fuse after matching Learning weave"]',
+            '    Weave --> Fuse --> Accepted["Accepted pointer + root ZIP + Project Overlay"]',
+            '    Validate -. mismatch .-> Fail["Fail closed; row remains active"]',
+            "```",
+            "",
+            "## Entry contract",
+            "",
+            f"`{entry['workflow']}` fires on {', '.join(f'`{value}`' for value in entry['triggers'])}. It binds the active Plan row, linked steers, immutable full-PV baseline, latest verified sub-PV, accepted Delta Learning, live sector lanes, Agent Learning, Canon, Project Memory, Project Universe, connector integrity, AGENTS.md, and host MEMORY.md.",
+            "",
+            "| Entry action | SDK binding role |",
+            "| --- | --- |",
+        ]
+    )
+    for row in facts["delta_entry"]["public_actions"]:
+        lines.append(f"| `{row['name']}` | `{row['binding']}` |")
+    lines.extend(
+        [
+            "",
+            "Hooks are optional for explicit entry actions. Accepted archives are never queried. Re-entry reuses the existing entry formula; it does not append a second entry or rebuild the Plan from chat.",
+            "",
+            "## Mid-query contract",
+            "",
+            f"`{mid['workflow']}` is triggered only by {', '.join(f'`{value}`' for value in mid['triggers'])}. Its no-hit order is " + " → ".join(f"`{value}`" for value in mid["refire_order"]) + ". It refires at most once and never substitutes an accepted ZIP.",
+            "",
+            "## Exit contract",
+            "",
+            f"`{exit_workflow['workflow']}` uses `{', '.join(exit_workflow['public_actions'])}` and refreshes the exact changed authorities only after targeted validation passes. Ordinary rows cannot refresh Project Overlay.",
+            "",
+            "| Exit fact | Current rule |",
+            "| --- | --- |",
+            f"| Full-PV pointer while row is open | `{contract['delta_exit']['full_pv_pointer_role']}` |",
+            f"| Live sectors | `{contract['delta_exit']['live_sector_role']}` |",
+            f"| Predecessor learning | `{contract['delta_exit']['predecessor_learning_role']}` |",
+            f"| Current dirty Delta already in lanes | `{str(contract['delta_exit']['current_active_delta_present_in_lanes']).lower()}` |",
+            f"| Source tests prove installed behavior | `{str(contract['delta_exit']['source_tests_prove_installed_behavior']).lower()}` |",
+            f"| Installed proof | `{str(contract['delta_exit']['installed_behavior_requires_local_package_and_reattachment']).lower()}` |",
+            "",
+            "## Auto-admitted states versus full-PV HIL",
+            "",
+            "Sub-PV row work and Delta Learning are verified continuing-work inputs, not miniature full-PV approvals. They are automatically admitted at Delta exit, reused by the next Delta, and retain exact receipts. They create no individual HIL, candidate, Overlay, accepted ZIP, or full-PV pointer movement.",
+            "",
+            f"`{hil['workflow']}` is distinct and requires two explicit human decisions. The Fuse contract declares `individual_delta_learning_hil={str(fuse['individual_delta_learning_hil']).lower()}`, `project_and_learning_decisions_separate={str(fuse['project_and_learning_decisions_separate']).lower()}`, and acceptance authority `{fuse['acceptance_authority']}`.",
+            "",
+            "The accepted ZIP is post-approval snapshot storage only and is never an entry, query, Learning, or State Travel source. Project Overlay is created only by the full-PV HIL path after the exact Project decision permits it.",
         ]
     )
     lines.extend(_footer())
@@ -634,6 +946,16 @@ def _learning(facts: dict[str, Any]) -> str:
         dedent(
             """
 
+            ## Two learning lifecycles
+
+            | Learning surface | Admission | Reuse | Human decision | Project effect |
+            | --- | --- | --- | --- | --- |
+            | Per-Delta Learning | `AUTO_ACCEPTED_DELTA_LEARNING` only at verified Delta exit | Bounded input to the next Delta entry | No individual Learning HIL | No Project pointer, Overlay, or accepted-ZIP effect |
+            | Full-PV consolidated weave | `PENDING_LEARNING_HIL` after the full-PV candidate is sealed | Accepted weave can inform later work | Separate six-way Learning HIL | Moves only the Learning pointer |
+            | Evidence-backed reusable lesson candidate | Explicit `learning_seal_candidate` route | Bounded retrieval after acceptance | Separate Learning HIL | Never becomes Project Truth |
+
+            Automatic Delta Learning exists so verified procedural evidence from one row can inform the next row without forcing a human decision after every Delta. It remains distinct from the row's auto-accepted sub-PV work receipt and from the later consolidated full-PV Learning weave.
+
             Candidates remain unaccepted until the separate Learning HIL records the exact decision. Accepted Learning moves only the Learning pointer; revocation is append-only and does not erase historical evidence. Host MEMORY.md can be linked only through an explicit nonauthoritative provenance receipt.
 
             Learning may inform later work through bounded retrieval. It cannot change a Project pointer, accept a Project proposal, alter Canon, replace Project Memory, or infer HIL from repetition or model confidence.
@@ -738,7 +1060,13 @@ def _pv_storage() -> str:
             """
             Exact source and chunk bytes are stored once by SHA-256 and reused across refreshes. SQLite remains canonical; MMD/DOT, vector indexes, renderings, and summaries are derived traversal/query surfaces. Atomic generation swap occurs only after schema, foreign-key, integrity, hash, and tool receipts pass.
 
-            A full Project Version is immutable. The accepted pointer moves only through its governed decision. Unaccepted candidates and Project Overlay remain outside accepted truth. Logical rollback moves the pointer; it does not rewrite historical PV bytes.
+            ## Sub-PV work versus full Project Version
+
+            Each verified ordinary Delta seals one auto-accepted sub-PV row-work receipt. The next Delta can reuse that predecessor without moving the immutable full-PV pointer. A sub-PV has no individual HIL, Project Overlay, or accepted-ZIP rotation.
+
+            A full Project Version is immutable. The accepted pointer moves only through its governed Project decision. An unaccepted full-PV candidate and its HIL-only Project Overlay remain outside accepted truth. Only exact accepted Project Truth creates or rotates the one deterministic accepted root ZIP and the accepted Project Overlay. The ZIP is post-approval snapshot storage; normal entry, query, Learning, and State Travel routes never open it.
+
+            Logical rollback moves the accepted pointer among immutable accepted versions; it does not rewrite historical PV bytes. Hard ZIP restore is a separate explicit recovery route with its own confirmation and validation.
 
             Project registration records the hidden plugin runtime/control root, the external Project/PV root, and the task workspace as distinct identities. ENV/UOP remains hidden runtime state and is not copied into every project folder.
             """
@@ -784,13 +1112,14 @@ def _host_storage(facts: dict[str, Any]) -> str:
             """
             | Host profile | Durable project authority | Transport |
             | --- | --- | --- |
-            | Codex Desktop, persistent local host | Project-scoped local SQLite | Native/local route; tunnel only for a proven gap |
+            | `CODEX_DESKTOP_STABLE`, persistent local host | Project-scoped local SQLite | Stable app-channel task/runtime binding; native/local route; tunnel only for a proven gap |
+            | `CODEX_DESKTOP_BETA`, persistent local host | Project-scoped local SQLite | Beta app-channel task/runtime binding; native/local route; tunnel only for a proven gap |
             | Codex CLI, persistent local host | Project-scoped local SQLite | Native/local route or version-bound tunnel |
             | Persistent Codex VM | Mounted/local durable SQLite | Direct transport when available |
             | Ephemeral Codex VM with durable mount | Mounted SQLite | Exact VM-lifetime route |
             | Ephemeral Codex VM without durable mount | Explicit transactional connector | Fail closed without durable storage |
 
-            The current host plane is Codex Desktop, Codex CLI, and Codex VM. ChatGPT and external model-agent planes are not mixed into this package. A caller-supplied PID, title, CWD, or host ID is not runtime attestation.
+            Stable and Beta are separate Codex Desktop host identities. Installation, restart preparation, task reattachment, and runtime attestation bind the exact selected channel; neither channel may borrow the other's task or runtime proof. The broader current host plane is Codex Desktop Stable, Codex Desktop Beta, Codex CLI, and Codex VM. ChatGPT and external model-agent planes are not mixed into this package. A caller-supplied PID, title, CWD, or host ID is not runtime attestation.
 
             The maintainer release registry exposes exactly two selectors: the verified Git-main stable slot and the versioned local-testing slot. Selector identity is a locator, not Project/PV, Plan, Goal, HIL, or runtime attestation.
 
@@ -1087,10 +1416,12 @@ def render_technical_page(
     facts = _facts(values)
     renderers = {
         "ARCHITECTURE.md": lambda: _architecture(facts),
+        "docs/ADAPTIVE_DELTA_EXECUTION.md": lambda: _adaptive_delta(facts),
         "docs/AI_LEARNING.md": lambda: _learning(facts),
         "docs/CANON_TASK_GRAPH_AND_INPUT_HIL.md": lambda: _canon(facts),
         "docs/CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md": _install,
         "docs/GIT_AND_CI_CD.md": _git_ci,
+        "docs/ENV_AND_UOP.md": lambda: _env_uop(facts),
         "docs/HOOKS.md": lambda: _hooks(facts),
         "docs/HOST_AND_STORAGE_MATRIX.md": lambda: _host_storage(facts),
         "docs/LIFECYCLE_AND_HIL.md": lambda: _lifecycle(facts),
@@ -1114,7 +1445,7 @@ def render_technical_page(
     rendered = renderers[page]()
     if page == "docs/UPSTREAM_REFERENCE_PROVENANCE.md":
         return rendered
-    return _enrich_technical_page(page, rendered, facts)
+    return _enrich_technical_page(page, rendered, facts, plugin_root)
 
 
 __all__ = ["TECHNICAL_PAGES", "render_technical_page"]

@@ -528,7 +528,7 @@ def _powershell_ordered_json_sha256(value: dict[str, Any]) -> str:
 
 def _package_update_status(root: Path) -> dict[str, Any]:
     current = _package_surface_inventory()
-    receipt_path = root / "installations" / "codex-v200" / "CURRENT_INSTALLATION.json"
+    receipt_path = root / "installations" / "codex-v300" / "CURRENT_INSTALLATION.json"
     installation: dict[str, Any] | None = None
     change: dict[str, Any] | None = None
     if receipt_path.is_file():
@@ -685,7 +685,7 @@ def _read_codex_task_binding(
     task_id = str(observed_host_session_id or "").strip()
     if not _CODEX_TASK_ID_RE.fullmatch(task_id):
         return None
-    installation_root = root / "installations" / "codex-v200"
+    installation_root = root / "installations" / "codex-v300"
     path = installation_root / "task-bindings" / f"{task_id.lower()}.json"
     if not path.is_file():
         return None
@@ -2125,7 +2125,7 @@ def seal_exact_task_project_session_binding(
             atomic_write_json(receipt_path, receipt)
         return receipt
 
-    installation_root = exact_root / "installations" / "codex-v200"
+    installation_root = exact_root / "installations" / "codex-v300"
     binding_root = installation_root / "task-bindings"
     _require(
         binding_root.is_dir(),

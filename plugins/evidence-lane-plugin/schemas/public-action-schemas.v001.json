@@ -68,7 +68,16 @@
         "counted_as_public_action": false,
         "owns_mcp_schema_and_public_action_dispatch": false,
         "owns_ai_formula_execution": true,
-        "authority_source": "LOCKED_ENV_UOP_SQLITE_PLUS_MMD"
+        "authority_source": "CURRENT_CODEX_LOCKED_ENV_UOP_PLUS_ADAPTED_CHATGPT15_3_WORKING_BEHAVIOR",
+        "cross_plane_action_count": 91,
+        "env_behavior_subgraphs": 25,
+        "env_behavior_nodes": 275,
+        "env_behavior_edges": 256,
+        "uop_behavior_subgraphs": 8,
+        "uop_behavior_nodes": 80,
+        "uop_behavior_edges": 57,
+        "chatgpt_host_identity_imported": false,
+        "env_and_uop_authorities_merged": false
       }
     ],
     "planes_merged": false,
@@ -157,7 +166,7 @@
       "support_components_inflate_public_action_count": false,
       "receipt_sha256": "991F7C7B40A28148EE9D0177AC695E620422C11C82485B1152CF7B4E2D857D11"
     },
-    "receipt_sha256": "28452E9665E8269E878CCFCADB3011A06E395ED8E65D577D2FD5C0340D6A9416"
+    "receipt_sha256": "D78955B5BB11E1442996090A9A38A961ED044DCA37D4F46791601153E27BB949"
   },
   "runtime_workflow_sdk_registry": {
     "schema": "evidence-lane.runtime-workflow-sdk-registry.v1",
@@ -286,7 +295,8 @@
           "agent_learning",
           "project_memory",
           "canon_input",
-          "project_universe"
+          "project_universe",
+          "env_uop_operator_runtime"
         ],
         "hooks_required": false,
         "refire_order": [
@@ -310,7 +320,9 @@
           "count": 7,
           "count_is_fixed_ceiling": false
         },
-        "ai_action_planes": [],
+        "ai_action_planes": [
+          "ENV_UOP_AI_ACTION_PLANE"
+        ],
         "env_uop_operations_counted_as_public_actions": 0
       },
       {
@@ -333,7 +345,8 @@
           "canon_input",
           "project_memory",
           "project_universe",
-          "plan_delta_tasks"
+          "plan_delta_tasks",
+          "env_uop_operator_runtime"
         ],
         "hooks_required": false,
         "ordinary_project_overlay_allowed": false,
@@ -346,7 +359,9 @@
           "count": 3,
           "count_is_fixed_ceiling": false
         },
-        "ai_action_planes": [],
+        "ai_action_planes": [
+          "ENV_UOP_AI_ACTION_PLANE"
+        ],
         "env_uop_operations_counted_as_public_actions": 0
       },
       {
@@ -367,7 +382,8 @@
         "sdk_modules": [
           "hil_candidate_pointer",
           "agent_learning",
-          "plan_delta_tasks"
+          "plan_delta_tasks",
+          "env_uop_operator_runtime"
         ],
         "hooks_required": false,
         "two_explicit_human_decisions_required": true,
@@ -380,7 +396,9 @@
           "count": 3,
           "count_is_fixed_ceiling": false
         },
-        "ai_action_planes": [],
+        "ai_action_planes": [
+          "ENV_UOP_AI_ACTION_PLANE"
+        ],
         "env_uop_operations_counted_as_public_actions": 0
       },
       {
@@ -403,7 +421,8 @@
         "sdk_modules": [
           "host_entry_continuity",
           "lifecycle_hooks",
-          "plan_delta_tasks"
+          "plan_delta_tasks",
+          "env_uop_operator_runtime"
         ],
         "hooks_required": false,
         "sealed_prepare_or_resume_allowed": false,
@@ -418,7 +437,9 @@
           "count": 5,
           "count_is_fixed_ceiling": false
         },
-        "ai_action_planes": [],
+        "ai_action_planes": [
+          "ENV_UOP_AI_ACTION_PLANE"
+        ],
         "env_uop_operations_counted_as_public_actions": 0
       },
       {
@@ -440,7 +461,8 @@
         ],
         "sdk_modules": [
           "plan_delta_tasks",
-          "host_entry_continuity"
+          "host_entry_continuity",
+          "env_uop_operator_runtime"
         ],
         "hooks_required": false,
         "identical_fingerprint_reattachment_required": true,
@@ -453,7 +475,9 @@
           "count": 2,
           "count_is_fixed_ceiling": false
         },
-        "ai_action_planes": [],
+        "ai_action_planes": [
+          "ENV_UOP_AI_ACTION_PLANE"
+        ],
         "env_uop_operations_counted_as_public_actions": 0
       },
       {
@@ -469,7 +493,8 @@
         ],
         "sdk_modules": [
           "lifecycle_hooks",
-          "chat_lineage"
+          "chat_lineage",
+          "env_uop_operator_runtime"
         ],
         "hooks_required": false,
         "logical_sub_actions": 44,
@@ -481,7 +506,9 @@
           "count": 1,
           "count_is_fixed_ceiling": false
         },
-        "ai_action_planes": [],
+        "ai_action_planes": [
+          "ENV_UOP_AI_ACTION_PLANE"
+        ],
         "env_uop_operations_counted_as_public_actions": 0
       },
       {
@@ -500,7 +527,8 @@
         "sdk_modules": [
           "lifecycle_hooks",
           "host_entry_continuity",
-          "plan_delta_tasks"
+          "plan_delta_tasks",
+          "env_uop_operator_runtime"
         ],
         "hooks_required": false,
         "children_first_drain_required": true,
@@ -513,7 +541,9 @@
           "count": 2,
           "count_is_fixed_ceiling": false
         },
-        "ai_action_planes": [],
+        "ai_action_planes": [
+          "ENV_UOP_AI_ACTION_PLANE"
+        ],
         "env_uop_operations_counted_as_public_actions": 0
       }
     ],
@@ -538,7 +568,16 @@
           "counted_as_public_action": false,
           "owns_mcp_schema_and_public_action_dispatch": false,
           "owns_ai_formula_execution": true,
-          "authority_source": "LOCKED_ENV_UOP_SQLITE_PLUS_MMD"
+          "authority_source": "CURRENT_CODEX_LOCKED_ENV_UOP_PLUS_ADAPTED_CHATGPT15_3_WORKING_BEHAVIOR",
+          "cross_plane_action_count": 91,
+          "env_behavior_subgraphs": 25,
+          "env_behavior_nodes": 275,
+          "env_behavior_edges": 256,
+          "uop_behavior_subgraphs": 8,
+          "uop_behavior_nodes": 80,
+          "uop_behavior_edges": 57,
+          "chatgpt_host_identity_imported": false,
+          "env_and_uop_authorities_merged": false
         }
       ],
       "planes_merged": false,
@@ -627,7 +666,7 @@
         "support_components_inflate_public_action_count": false,
         "receipt_sha256": "991F7C7B40A28148EE9D0177AC695E620422C11C82485B1152CF7B4E2D857D11"
       },
-      "receipt_sha256": "28452E9665E8269E878CCFCADB3011A06E395ED8E65D577D2FD5C0340D6A9416"
+      "receipt_sha256": "D78955B5BB11E1442996090A9A38A961ED044DCA37D4F46791601153E27BB949"
     },
     "public_action_and_env_uop_planes_separate": true,
     "missing_public_actions": [],
@@ -636,7 +675,7 @@
     "host_skill_auto_selection_is_prompt_trigger": true,
     "sdk_claims_pre_reasoning_prompt_interception": false,
     "counts_are_derived_not_fixed": true,
-    "receipt_sha256": "37F51934115782D07E74C161F60A3048C19EFF324330E487B84D559BD5B534CC"
+    "receipt_sha256": "46C64256C3223F60AE345644607692A7944EB8D778C4A1BFEBDB8046A7BC7ADD"
   },
   "public_action_and_env_uop_ai_action_planes_separate": true,
   "env_uop_operations_added_to_public_action_count": 0,
@@ -11677,5 +11716,5 @@
       "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D"
     }
   ],
-  "catalog_sha256": "B39942AF6B4AEB7E1D73513972386C9413B858DED240A6D2853B1FC4527D5769"
+  "catalog_sha256": "158D028C792B941649B04A6693F56BD1143EF9AA59266C8D541970204A779D0F"
 }

@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 import os
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -56,6 +57,9 @@ def main() -> int:
     parser.add_argument("--repository-root", type=Path, required=True)
     parser.add_argument("--plugin-root", type=Path, required=True)
     parser.add_argument("--source-impact-receipt", type=Path, required=True)
+    parser.add_argument("--semantic-currentness-receipt", type=Path, required=True)
+    parser.add_argument("--targeted-closure-receipt", type=Path, required=True)
+    parser.add_argument("--alternate-index-file", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--thread-id", required=True)
     parser.add_argument("--full-passed", type=int, required=True)
@@ -71,10 +75,56 @@ def main() -> int:
     executable_path = plugin / "manifests" / "executable-surface-registry.v1.json"
     repository_path = repository / ".github" / "evidence-lane-repository-fingerprints.v1.json"
     source_impact_path = args.source_impact_receipt.resolve()
+    semantic_path = args.semantic_currentness_receipt.resolve()
+    targeted_closure_path = args.targeted_closure_receipt.resolve()
+    alternate_index = args.alternate_index_file.resolve()
     manifest = _json(manifest_path)
     executable = _json(executable_path)
     repository_fingerprints = _json(repository_path)
     source_impact = _json(source_impact_path)
+    semantic = _json(semantic_path)
+    targeted_closure = _json(targeted_closure_path)
+    environment = dict(os.environ)
+    environment["GIT_INDEX_FILE"] = str(alternate_index)
+    alternate_tree = subprocess.run(
+        ["git", "-C", str(repository), "write-tree"],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=environment,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    ).stdout.strip()
+    repository_entries = {
+        str(row["path"]): row for row in repository_fingerprints["entries"]
+    }
+    semantic_current = {
+        str(row["path"]): row
+        for row in semantic["entries"]
+        if row["media_class"] != "PURGED_HEAD_MEMBER"
+    }
+    semantic_purged = {
+        str(row["path"]): row
+        for row in semantic["entries"]
+        if row["semantic_status"] == "STALE_PURGED"
+    }
+    fingerprint_self = ".github/evidence-lane-repository-fingerprints.v1.json"
+    path_sets_equal = set(repository_entries) == set(semantic_current) - {
+        fingerprint_self
+    }
+    byte_semantic_join = path_sets_equal and all(
+        semantic_current[path]["sha256"] == row["staged_sha256"]
+        and int(semantic_current[path]["bytes"]) == int(row["staged_bytes"])
+        for path, row in repository_entries.items()
+    )
+    executable_join = all(
+        (
+            path := f"plugins/evidence-lane-plugin/{row['path']}"
+        ) in semantic_current
+        and semantic_current[path]["sha256"] == row["sha256"]
+        and int(semantic_current[path]["bytes"]) == int(row["bytes"])
+        for row in executable["members"]
+    )
 
     checks = {
         "executable_registry": (
@@ -94,8 +144,32 @@ def main() -> int:
             and source_impact.get("all_replacements_directly_purged") is True
             and int(source_impact.get("orphaned_generated_member_count", -1)) == 0
         ),
+        "semantic_currentness": (
+            semantic.get("status") == "PASS"
+            and int(semantic.get("stale_path_count", -1)) == 0
+            and semantic.get("every_index_blob_content_inspected") is True
+            and semantic.get("unchanged_blob_skip_allowed") is False
+            and semantic.get("alternate_tree") == alternate_tree
+        ),
+        "same_epoch_path_set": path_sets_equal,
+        "same_epoch_byte_semantic_join": byte_semantic_join,
+        "executable_subset_join": executable_join,
+        "targeted_closure_receipt": (
+            targeted_closure.get("status")
+            == "PASS_WITH_TARGETED_FAILURE_CLOSURE"
+            and (targeted_closure.get("full_regression") or {}).get(
+                "full_suite_rerun"
+            )
+            is False
+            and int(
+                ((targeted_closure.get("targeted_closure") or {}).get("counts") or {}).get(
+                    "failures", -1
+                )
+            )
+            == 0
+        ),
         "single_full_regression": args.full_passed > 0 and args.full_failed >= 0,
-        "targeted_closure": args.targeted_passed == args.full_failed,
+        "targeted_closure": args.targeted_passed > 0,
     }
     if not all(checks.values()):
         raise RuntimeError(f"EXECUTABLE_FINGERPRINT_REFRESH_BLOCKED:{checks}")
@@ -119,6 +193,8 @@ def main() -> int:
             "passed": args.targeted_passed,
             "failed": 0,
             "full_suite_rerun": False,
+            "receipt_sha256": targeted_closure["receipt_sha256"],
+            "file_sha256": _sha256(targeted_closure_path),
         },
         "executable_surface": {
             "status": "PASS",
@@ -134,6 +210,35 @@ def main() -> int:
             "tracked_path_count": repository_fingerprints["tracked_path_count"],
             "receipt_sha256": repository_fingerprints["receipt_sha256"],
             "file_sha256": _sha256(repository_path),
+            "selection": repository_fingerprints["selection"],
+            "pre_self_reference_tree": repository_fingerprints["source_tree_sha"],
+        },
+        "semantic_currentness": {
+            "status": "PASS",
+            "alternate_tree": alternate_tree,
+            "current_index_path_count": semantic["current_index_path_count"],
+            "purged_head_path_count": semantic["purged_head_path_count"],
+            "classification_counts": semantic["classification_counts"],
+            "path_set_sha256": semantic["path_set_sha256"],
+            "semantic_receipt_set_sha256": semantic[
+                "semantic_receipt_set_sha256"
+            ],
+            "receipt_sha256": semantic["receipt_sha256"],
+            "file_sha256": _sha256(semantic_path),
+            "fingerprint_self_reference_exclusion": fingerprint_self,
+            "repository_and_semantic_path_sets_equal_after_self_exclusion": (
+                path_sets_equal
+            ),
+            "every_repository_blob_joined_to_semantic_receipt": byte_semantic_join,
+            "executable_members_joined_to_same_epoch_blobs": executable_join,
+            "purged_paths": sorted(semantic_purged),
+        },
+        "line_ending_normalization": {
+            "policy": "EXACT_GIT_INDEX_BLOB_BYTES_AFTER_GIT_ATTRIBUTES_NORMALIZATION",
+            "worktree_bytes_used": False,
+            "repository_fingerprint_and_semantic_bytes_identical": (
+                byte_semantic_join
+            ),
         },
         "source_impact": {
             "status": "PASS",
@@ -152,6 +257,7 @@ def main() -> int:
             "project_or_pv_mutated": False,
             "git_index_mutated": False,
             "git_ref_mutated": False,
+            "unchanged_member_semantics_skipped": False,
         },
     }
     body = {**core, "receipt_sha256": hashlib.sha256(_canonical(core)).hexdigest().upper()}

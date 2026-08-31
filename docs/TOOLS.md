@@ -293,6 +293,14 @@ flowchart TB
 - `toolchains/tool-execution-routing.v1.json`
 - `toolchains/tool-license-inventory.v1.json`
 
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `toolchains/tool-requirement-matrix.v1.json` | 23840 | `5F8B1604A59BB8B758AF995AE43A1502D89068B327E99A7C32125EFF1C19B10A` |
+| `toolchains/tool-execution-routing.v1.json` | 106783 | `D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182` |
+| `toolchains/tool-license-inventory.v1.json` | 93179 | `B643124CFDA71BB0272E5330FD46F0FCDC3914DF58989F1545888269EE8D37F8` |
+
 ## Cross-surface invariants
 
 - The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.

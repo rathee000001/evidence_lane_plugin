@@ -20,7 +20,7 @@
     {
       "path": "authorities/project_sectors/brain_loader/brain_loader_sector_v001.sqlite",
       "bytes": 253952,
-      "sha256": "2AABD0782F79D7D57D6004213BA1C322CB1ACDDCD721D475D79B7190775607F7"
+      "sha256": "92E6921E5150FE7F1E8C4CCB84BD70EA7F96F767E51E04AB22A7B93207F6BD7C"
     },
     {
       "path": "authorities/project_sectors/brain_loader/builder-contract.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/brain_loader/tools.json",
       "bytes": 14835,
-      "sha256": "6833EB4F1BF4DDA8D0BEC78D7F6FC2F9D284FAE4A12693A5C21935262CEF9FEF"
+      "sha256": "2A5495EC999C84AC032E6B2A093F939E46BF462CAD6D82AB9CF545FC4BA7A354"
     },
     {
       "path": "authorities/project_sectors/brain_loader/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/brain_loader/workflow.dot",
       "bytes": 6464,
-      "sha256": "63EE6CDC968DF5B160D5A7E45F4A16E14FCD7AE2B68058D47F3E97985A10DA62"
+      "sha256": "A0AA5D4C266C8E34D7405AC10967406FF72836F2A952D8C19F713D1D27D3FA27"
     },
     {
       "path": "authorities/project_sectors/brain_loader/workflow.mmd",
       "bytes": 5025,
-      "sha256": "615C5E974197A55DD02F1885E58637EEEEF3DDFA94FA1476DC4D080201ECDA6F"
+      "sha256": "AF0BAA39B9D9FAD222EC46DA0102AC118CDD23653677E3528183D62B7572F1ED"
     },
     {
       "path": "authorities/project_sectors/brain_loader/workflow.v1.json",
-      "bytes": 29463,
-      "sha256": "46B6BFF574BF16659A5AD5C410C7462DCD64C316A60D986D5C49A7ED3F50D3D8"
+      "bytes": 22806,
+      "sha256": "8569F45D16A7E06669ED80217089B3D916CBB127108D06452BDD1EFD1640CDBC"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "E2F3CAF6B5FA5D4E3CB6556AB6CAB42A1C068CE2C4990F1B354E84AF5F454BD8"
+  "receipt_sha256": "B15068A76ABA403903FBC8F5F181A0BC3B2F54DABC8740C156A7F5233C0A34F9"
 }

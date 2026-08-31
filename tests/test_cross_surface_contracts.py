@@ -1,3 +1,5 @@
+"""Current cross-surface skill, SDK, hook, and website contracts."""
+
 from __future__ import annotations
 
 import json
@@ -82,12 +84,12 @@ def test_exact_six_control_order_matches_skills_and_website() -> None:
         assert (PLUGIN / "skills" / skill / "SKILL.md").is_file()
 
 
-def test_v2_codex_package_has_no_active_chatgpt_host_surface() -> None:
+def test_current_codex_package_has_no_active_chatgpt_host_surface() -> None:
     manifest = json.loads(_read(PLUGIN / ".codex-plugin" / "plugin.json"))
     skill_files = sorted((PLUGIN / "skills").glob("*/SKILL.md"))
 
     assert manifest["interface"]["displayName"] == "Evidence Lane"
-    assert manifest["version"].startswith("3.0.0+")
+    assert manifest["version"] == "3.0.0"
     assert manifest["skills"] == "./skills/"
     assert manifest["mcpServers"] == "./.mcp.json"
     assert "apps" not in manifest

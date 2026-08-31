@@ -14,6 +14,16 @@ Current counts are derived release facts, not permanent ceilings.
 | `learning_retrieve` | read | `agent_learning:retrieve` |
 | `learning_revoke` | write-capable | `agent_learning:revoke` |
 | `learning_seal_candidate` | write-capable | `agent_learning:seal_candidate` |
+## Two learning lifecycles
+
+| Learning surface | Admission | Reuse | Human decision | Project effect |
+| --- | --- | --- | --- | --- |
+| Per-Delta Learning | `AUTO_ACCEPTED_DELTA_LEARNING` only at verified Delta exit | Bounded input to the next Delta entry | No individual Learning HIL | No Project pointer, Overlay, or accepted-ZIP effect |
+| Full-PV consolidated weave | `PENDING_LEARNING_HIL` after the full-PV candidate is sealed | Accepted weave can inform later work | Separate six-way Learning HIL | Moves only the Learning pointer |
+| Evidence-backed reusable lesson candidate | Explicit `learning_seal_candidate` route | Bounded retrieval after acceptance | Separate Learning HIL | Never becomes Project Truth |
+
+Automatic Delta Learning exists so verified procedural evidence from one row can inform the next row without forcing a human decision after every Delta. It remains distinct from the row's auto-accepted sub-PV work receipt and from the later consolidated full-PV Learning weave.
+
 Candidates remain unaccepted until the separate Learning HIL records the exact decision. Accepted Learning moves only the Learning pointer; revocation is append-only and does not erase historical evidence. Host MEMORY.md can be linked only through an explicit nonauthoritative provenance receipt.
 
 Learning may inform later work through bounded retrieval. It cannot change a Project pointer, accept a Project proposal, alter Canon, replace Project Memory, or infer HIL from repetition or model confidence.
@@ -60,6 +70,14 @@ flowchart TB
 - `authorities/agent_learning/manifest.v1.json`
 - `skills/evi-learning/SKILL.md`
 - `schemas/actions/learning_seal_candidate.schema.json`
+
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `authorities/agent_learning/manifest.v1.json` | 10656 | `19670A7382620D764209CA4447F82525C9389860DAD165EE51EDBB082753EEDE` |
+| `skills/evi-learning/SKILL.md` | 10124 | `42AB4B361F38BD7744078B647190D28FB642D1F701CC90D79C53BEA12913E8E5` |
+| `schemas/actions/learning_seal_candidate.schema.json` | 3782 | `1701BFA110AD78A7AA299B333E0BBF0DA4E59A7E1478F7247BED1BE306F7C1E0` |
 
 ## Cross-surface invariants
 

@@ -2,7 +2,7 @@
   "schema": "evidence-lane.remote-public-action-registry.v1",
   "status": "GENERATED_READ_ONLY_PROJECTION",
   "source_catalog_path": "schemas/public-action-schemas.v001.json",
-  "source_catalog_sha256": "B39942AF6B4AEB7E1D73513972386C9413B858DED240A6D2853B1FC4527D5769",
+  "source_catalog_sha256": "158D028C792B941649B04A6693F56BD1143EF9AA59266C8D541970204A779D0F",
   "tool_count": 91,
   "read_tool_count": 30,
   "write_tool_count": 61,
@@ -45,7 +45,16 @@
         "counted_as_public_action": false,
         "owns_mcp_schema_and_public_action_dispatch": false,
         "owns_ai_formula_execution": true,
-        "authority_source": "LOCKED_ENV_UOP_SQLITE_PLUS_MMD"
+        "authority_source": "CURRENT_CODEX_LOCKED_ENV_UOP_PLUS_ADAPTED_CHATGPT15_3_WORKING_BEHAVIOR",
+        "cross_plane_action_count": 91,
+        "env_behavior_subgraphs": 25,
+        "env_behavior_nodes": 275,
+        "env_behavior_edges": 256,
+        "uop_behavior_subgraphs": 8,
+        "uop_behavior_nodes": 80,
+        "uop_behavior_edges": 57,
+        "chatgpt_host_identity_imported": false,
+        "env_and_uop_authorities_merged": false
       }
     ],
     "planes_merged": false,
@@ -134,7 +143,7 @@
       "support_components_inflate_public_action_count": false,
       "receipt_sha256": "991F7C7B40A28148EE9D0177AC695E620422C11C82485B1152CF7B4E2D857D11"
     },
-    "receipt_sha256": "28452E9665E8269E878CCFCADB3011A06E395ED8E65D577D2FD5C0340D6A9416"
+    "receipt_sha256": "D78955B5BB11E1442996090A9A38A961ED044DCA37D4F46791601153E27BB949"
   },
   "public_action_and_env_uop_ai_action_planes_separate": true,
   "authority_support_systems": {
@@ -817,5 +826,5 @@
     }
   ],
   "execution_authority": false,
-  "projection_sha256": "2DFB0F5C05F41DEC03F4F528956EA7DAA5862F3D5FA71392DF8B6EDDAE53F469"
+  "projection_sha256": "B2401A3C1799B7E0EDEFCF43DC116CE73AD5ACC0D5772E23FC2D9712037F8E61"
 }

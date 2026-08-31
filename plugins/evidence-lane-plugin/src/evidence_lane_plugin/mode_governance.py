@@ -23,13 +23,13 @@ from .package_root import resolve_plugin_root
 from .redaction import contains_secret
 
 ENV15_ENV_SQLITE_SHA256 = (
-    "B887FE0989FE72F3B8E8F67891163D89EF2785E768B5A50D76CEAB522062D8CB"
+    "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B"
 )
 ENV15_UOP_SQLITE_SHA256 = (
-    "E295F8592799784EFF8BB63C31F27331BDBA0EA8092A63E307E0C9FBF80ACF1D"
+    "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
 )
 ENV15_MODE_POLICY_PROJECTION_SHA256 = (
-    "591877720DCCA75102798C005721A35813B1DB6B3F8547D309B96A7A936B2C16"
+    "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B"
 )
 ENV_UOP_AUTHORITY_BOUNDARY_SCHEMA = "evidence-lane.env-uop-authority-boundary.v1"
 ENV_UOP_EXTERNAL_SECRET_REFERENCE_SCHEMA = (
@@ -171,6 +171,18 @@ def load_env_uop_runtime_authority() -> dict[str, Any]:
             "env_workflow_event_v17",
             "env_mode_registry_v17",
             "env_project_class_policy_v17",
+            "env_behavior_subgraph_v18",
+            "env_behavior_node_v18",
+            "env_behavior_edge_v18",
+            "env_formula_component_v18",
+            "env_matrix_axis_v18",
+            "env_matrix_cell_v18",
+            "env_mode_cluster_v18",
+            "env_mode_namespace_v18",
+            "env_mode_combination_v18",
+            "env_source_lane_classification_v18",
+            "env_lane_formula_v18",
+            "env_pcm_mba_operator_v18",
             "env_formula_registry_v17",
             "env_operator_registry_v17",
             "env_tool_registry_v17",
@@ -184,6 +196,14 @@ def load_env_uop_runtime_authority() -> dict[str, Any]:
         _UOP_SQLITE_PATH,
         tables=(
             "uop_authority_meta",
+            "uop_behavior_subgraph_v18",
+            "uop_behavior_node_v18",
+            "uop_behavior_edge_v18",
+            "uop_source_record_v18",
+            "uop_public_operator_v18",
+            "uop_route_formula_v18",
+            "uop_hil_boundary_v18",
+            "uop_delta_auto_admission_v18",
             "uop_governance_operator_v17",
             "uop_project_class_hil_policy_v17",
             "uop_workflow_gate_v17",
@@ -213,17 +233,24 @@ def load_env_uop_runtime_authority() -> dict[str, Any]:
     )
     clean_modes = {str(row["mode_id"]): row for row in env["env_mode_registry_v17"]}
     mode_namespace = {
-        alias: {
-            "mode_prefix": alias,
-            "mode_name": clean_modes[mode]["mode_id"],
-            "purpose": clean_modes[mode]["hil_policy"],
-            "project_classes_json": clean_modes[mode]["project_classes_json"],
-            "ci_applicable": clean_modes[mode]["ci_applicable"],
-            "status": clean_modes[mode]["status"],
-            "codex_mode_id": mode,
+        str(row["mode_prefix"]): {
+            **row,
+            "project_classes_json": clean_modes[str(row["codex_mode_id"])][
+                "project_classes_json"
+            ],
+            "ci_applicable": clean_modes[str(row["codex_mode_id"])]["ci_applicable"],
+            "hil_policy": clean_modes[str(row["codex_mode_id"])]["hil_policy"],
         }
-        for alias, mode in _MODE_ALIAS_TO_CODEX_MODE.items()
+        for row in env["env_mode_namespace_v18"]
     }
+    require(
+        all(
+            str(row["codex_mode_id"]) in clean_modes for row in mode_namespace.values()
+        ),
+        "ENV_UOP_MODE_CROSSWALK_INVALID",
+        "Every adapted ENV mode namespace must map to one current Codex mode.",
+        status="MISMATCH",
+    )
     formulas = {str(row["formula_id"]): row for row in env["env_formula_registry_v17"]}
     formula_for_alias = {
         "CD": "CODE_BOOLEAN_GATE",
@@ -232,37 +259,55 @@ def load_env_uop_runtime_authority() -> dict[str, Any]:
         "CE": "GOAL_OPTION_2_READY",
         "RCV": "STATE_TRAVEL_READY",
     }
-    formula_registry = {}
+    formula_registry = {
+        str(row["lane_id"]): {
+            "lane_id": row["lane_id"],
+            "lane_name": row["lane_name"],
+            "formula_rule": row["formula_rule"],
+            "ci_cd_applicable": row["ci_cd_applicable"],
+            "validation_loop": row["validation_loop"],
+            "codex_mode_id": row["codex_mode_id"],
+            "source": "ENV15_3_ADAPTED_LANE_FORMULA",
+        }
+        for row in env["env_lane_formula_v18"]
+    }
     for alias in mode_namespace:
+        lane_id = f"LANE_{alias}"
+        adapted = dict(formula_registry.get(lane_id) or {})
         selected = formulas[formula_for_alias.get(alias, "DELTA_COMPLETION")]
-        formula_registry[f"LANE_{alias}"] = {
-            "lane_id": f"LANE_{alias}",
+        formula_registry[lane_id] = {
+            **adapted,
+            "lane_id": lane_id,
             "lane_name": mode_namespace[alias]["mode_name"],
             "formula_rule": selected["boolean_expression"],
+            "source_route_formula": adapted.get("formula_rule"),
             "ci_cd_applicable": int(selected["formula_id"] == "CODE_BOOLEAN_GATE"),
             "validation_loop": selected["rerun_scope"],
             "formula_id": selected["formula_id"],
         }
-    operators = {}
-    operator_activation = {}
-    for row in env["env_operator_registry_v17"]:
-        operator_id = str(row["operator_id"])
-        if not operator_id.isdigit():
-            continue
-        operators[operator_id] = {
-            "operator_id": int(operator_id),
-            "engine_group": row["operator_family"],
-            "chapter": row["phase"],
-            "route_function": row["selection_rule"],
-            "fire_trigger": row["phase"],
-            "output_effect": row["output_contract"],
-            "activation_state": "BASELINE_REGISTERED",
+    operators = {
+        str(row["operator_id"]): {
+            "operator_id": row["operator_id"],
+            "engine_group": row["engine_group"],
+            "class_layer": row["class_layer"],
+            "chapter": row["chapter"],
+            "route_function": row["route_function"],
+            "fire_trigger": row["fire_trigger"],
+            "output_effect": row["output_effect"],
+            "activation_state": row["activation_state"],
+            "source_row_sha256": row["source_row_sha256"],
         }
-        operator_activation[operator_id] = {
-            "operator_id": int(operator_id),
-            "formula_depth": "CURRENT_CODEX_MODE_FORMULA",
-            "activation_state": "FORMULA_ACTIVE",
+        for row in env["env_pcm_mba_operator_v18"]
+    }
+    operator_activation = {
+        str(row["operator_id"]): {
+            "operator_id": row["operator_id"],
+            "task_trigger": row["task_trigger"],
+            "formula_depth": row["formula_depth"],
+            "activation_state": row["formula_activation_state"],
         }
+        for row in env["env_pcm_mba_operator_v18"]
+    }
     lane_bindings = {
         str(row["lane_id"]): {
             **row,
@@ -295,29 +340,50 @@ def load_env_uop_runtime_authority() -> dict[str, Any]:
         },
         "uop_root": uop_root,
         "mode_namespace": mode_namespace,
-        "lane_activation_rules": [],
+        "lane_activation_rules": env["env_source_lane_classification_v18"],
         "recursive_policies": {},
         "formula_registry": formula_registry,
-        "formula_components": formulas,
+        "formula_components": {
+            str(row["symbol"]): row for row in env["env_formula_component_v18"]
+        },
+        "lifecycle_formulas": formulas,
+        "matrix_axes": env["env_matrix_axis_v18"],
+        "matrix_cells": env["env_matrix_cell_v18"],
+        "mode_clusters": env["env_mode_cluster_v18"],
+        "mode_combinations": env["env_mode_combination_v18"],
         "operators": operators,
         "operator_activation": operator_activation,
+        "complete_working_behavior": {
+            "subgraphs": env["env_behavior_subgraph_v18"],
+            "nodes": env["env_behavior_node_v18"],
+            "edges": env["env_behavior_edge_v18"],
+        },
         "no_autonomous_cicd_gate": {
             "rule": "NO_AUTONOMOUS_FLASH_FUSE_DEPLOY",
             "active": 1,
         },
-        "uop_mode_routes": uop["uop_governance_operator_v17"],
-        "uop_public_operators": uop["uop_governance_operator_v17"],
-        "uop_spatial_operators": [],
-        "uop_human_gates": [
-            row
-            for row in uop["uop_governance_operator_v17"]
-            if str(row["operator_family"]) in {"HIL", "ENTRY", "EXIT"}
+        "uop_mode_routes": uop["uop_route_formula_v18"],
+        "uop_public_operators": uop["uop_public_operator_v18"],
+        "uop_governance_operators": uop["uop_governance_operator_v17"],
+        "uop_spatial_operators": [
+            json.loads(str(row["record_json"]))
+            for row in uop["uop_source_record_v18"]
+            if str(row["source_table"]) == "uop_spatial_operator"
         ],
+        "uop_human_gates": uop["uop_hil_boundary_v18"],
         "uop_disclosure_boundaries": [
-            row
-            for row in uop["uop_governance_operator_v17"]
-            if str(row["operator_family"]) in {"PRIVACY", "DISCLOSURE"}
+            json.loads(str(row["record_json"]))
+            for row in uop["uop_source_record_v18"]
+            if str(row["source_table"])
+            in {"uop_disclosure_boundary_operator", "uop_public_boundary_v15"}
         ],
+        "uop_delta_auto_admission": uop["uop_delta_auto_admission_v18"],
+        "complete_uop_working_behavior": {
+            "subgraphs": uop["uop_behavior_subgraph_v18"],
+            "nodes": uop["uop_behavior_node_v18"],
+            "edges": uop["uop_behavior_edge_v18"],
+            "source_records": uop["uop_source_record_v18"],
+        },
         "ai_toolchain_registry": {
             str(row["tool_id"]): row for row in env["env_tool_registry_v17"]
         },
@@ -1333,6 +1399,35 @@ _OPERATORS: dict[int, dict[str, Any]] = {
     },
 }
 
+_ENV_DOMAIN_CATALOG_PATH = (
+    resolve_plugin_root(__file__) / "toolchains" / "env-domain-catalog.v2.json"
+)
+_ENV_DOMAIN_CATALOG = json.loads(_ENV_DOMAIN_CATALOG_PATH.read_text(encoding="utf-8"))
+_ENV_DOMAIN_CATALOG_RECEIPT = str(_ENV_DOMAIN_CATALOG.pop("receipt_sha256", ""))
+require(
+    _ENV_DOMAIN_CATALOG.get("schema") == "evidence-lane.env-domain-catalog.v2"
+    and _ENV_DOMAIN_CATALOG.get("status") == "PASS_FULL_MMD_BEHAVIOR_BOUND"
+    and _ENV_DOMAIN_CATALOG_RECEIPT
+    == sha256_bytes(canonical_json_bytes(_ENV_DOMAIN_CATALOG)),
+    "ENV_DOMAIN_OPERATOR_CATALOG_INVALID",
+    "The complete adapted PCM/MBA operator catalog is invalid.",
+    status="MISMATCH",
+)
+_OPERATORS = {
+    int(row["operator_id"]): {
+        "family": str(row["engine_group"]),
+        "chapter": str(row["chapter"]),
+        "effect": str(row["output_effect"]),
+    }
+    for row in _ENV_DOMAIN_CATALOG["tables"]["pcm_mba_operator"]["rows"]
+}
+require(
+    len(_OPERATORS) == 110,
+    "ENV_DOMAIN_OPERATOR_CATALOG_INCOMPLETE",
+    "The adapted PCM/MBA catalog must preserve all 110 supplied operators.",
+    status="MISMATCH",
+)
+
 _MODE_OPERATORS: dict[str, tuple[int, ...]] = {
     "D": (43, 55),
     "AL": (42, 56, 57),
@@ -1405,6 +1500,7 @@ def _runtime_policy(
         policy.update(
             {
                 "formula_rule": str(formula["formula_rule"]),
+                "source_route_formula": formula.get("source_route_formula"),
                 "formula_authority": (
                     f"lane_formula_execution_registry_v15:LANE_{mode_id}"
                 ),
@@ -1636,6 +1732,7 @@ def govern_mode_selection(
             "operator_law": policy["operator_law"],
             "formula": {
                 "rule": policy["formula_rule"],
+                "source_route_formula": policy.get("source_route_formula"),
                 "authority": policy["formula_authority"],
                 "components": runtime["formula_components"],
                 "visible_in_response": True,

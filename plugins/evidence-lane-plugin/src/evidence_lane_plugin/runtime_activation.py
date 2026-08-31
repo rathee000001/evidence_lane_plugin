@@ -169,7 +169,7 @@ class RuntimeActivation:
         installation_path = (
             self.data_root
             / "installations"
-            / "codex-v200"
+            / "codex-v300"
             / "CURRENT_INSTALLATION.json"
         )
         unavailable = {

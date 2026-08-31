@@ -4,10 +4,10 @@
   "contract": "terminal-safe-restart-preparation",
   "law": "PREPARE_ONLY_THEN_USER_RESTARTS_AFTER_TERMINAL_RESPONSE",
   "owner": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
-  "owner_sha256": "4970D1507F23E1A0EDCA50E9925F3EA8D1FA36F39DF358CCFD7C041B76E5ACC7",
+  "owner_sha256": "B8E09181960264E406A63E261BC81428451B8D44F33918F6123505450EC46F17",
   "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
   "project_root_hardcoded": false,
   "workspace_hardcoded": false,
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "91E7EB4CA8C44F6F947FC42CD5791AC93009F21C31304504132F8C4581EA4BDA"
+  "receipt_sha256": "89D645CE56E512CF15FD168F5EB1E1AAB6B5143C07E5573A66BED7D0B27DB9AF"
 }

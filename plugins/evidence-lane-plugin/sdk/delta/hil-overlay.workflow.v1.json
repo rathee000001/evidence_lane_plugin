@@ -19,7 +19,8 @@
     "sdk_modules": [
       "hil_candidate_pointer",
       "agent_learning",
-      "plan_delta_tasks"
+      "plan_delta_tasks",
+      "env_uop_operator_runtime"
     ],
     "hooks_required": false,
     "two_explicit_human_decisions_required": true,
@@ -32,7 +33,9 @@
       "count": 3,
       "count_is_fixed_ceiling": false
     },
-    "ai_action_planes": [],
+    "ai_action_planes": [
+      "ENV_UOP_AI_ACTION_PLANE"
+    ],
     "env_uop_operations_counted_as_public_actions": 0
   },
   "public_actions": [
@@ -53,5 +56,5 @@
   "env_uop_ai_action_plane": true,
   "accepted_archive_queried": false,
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "E9F17A2FC17C1AD02EAFC15F43F3A69DDB771E151ED8C478D2D328460F566622"
+  "receipt_sha256": "758F6BFEE202430494D05DB03E7354DC71F9FE6FC3442FBF5452BA02D1EF4C10"
 }

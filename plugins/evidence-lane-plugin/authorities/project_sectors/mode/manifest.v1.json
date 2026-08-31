@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/mode/mode_sector_v001.sqlite",
       "bytes": 253952,
-      "sha256": "A45CBB95EE1D82B720B3C48869F680ACE9EEF9EC5F0C892BC8E136186948E9A6"
+      "sha256": "EF9334CEA83CDF475ADD82270CF58A1D5D0732359A1FD1117099CC454F3B01D1"
     },
     {
       "path": "authorities/project_sectors/mode/reader-contract.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/mode/tools.json",
       "bytes": 16283,
-      "sha256": "D9175548F2B9E062F1B87F9A161C86EB6D2C358C29CBD06AAF7FC8ECAD1462F3"
+      "sha256": "633432E45DBCC8ECB4C328976C6C4BB4B1A54E85439DF38AFECBFC4E704166A2"
     },
     {
       "path": "authorities/project_sectors/mode/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/mode/workflow.dot",
       "bytes": 6414,
-      "sha256": "F3E80153607111870DFB440502876971D6D7610B0325AD07C3B0CC0E87D1BADD"
+      "sha256": "A66EADA5DA3D99C4960124FF708E0E684BED5C3ADAA3047C04A0FCDD735E56EC"
     },
     {
       "path": "authorities/project_sectors/mode/workflow.mmd",
       "bytes": 4983,
-      "sha256": "CC73D93AE454D8D3F5EC54A1FD8DC3DF8D4C3D42BBB86A9748640FF158CE4414"
+      "sha256": "05CC86C78871BB8F14C89D3B42B830847A67E7C1FDE6970092E89590629FD73F"
     },
     {
       "path": "authorities/project_sectors/mode/workflow.v1.json",
-      "bytes": 30664,
-      "sha256": "8A534D372AB4289379A94098691E9DA8488D653728891CD261AE06CA4A350CA7"
+      "bytes": 22553,
+      "sha256": "D59F289E1ECBA9DF5617F05225773365E0E3286084BC94E3E6034EC86C8CCB70"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "5A2E75000D42C99A15DD2AA2C2B0B4736AB9721A65B5388F1FCA51021570AD60"
+  "receipt_sha256": "26B4109DE33647C07618BE3E9E37634808DCD2ADED57F75AE3ADB293F622269C"
 }

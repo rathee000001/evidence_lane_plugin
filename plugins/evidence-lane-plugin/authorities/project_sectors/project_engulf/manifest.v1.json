@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/project_engulf/project_engulf_sector_v001.sqlite",
       "bytes": 266240,
-      "sha256": "B2749DE5E55D0282815C23EDAC05FADBB175D6C0643630048EBEB3B8ECEE8FE4"
+      "sha256": "BE2C838691686485309405D262A0928136656F8F1E624A0B76764A4DEAA1DE03"
     },
     {
       "path": "authorities/project_sectors/project_engulf/reader-contract.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/project_engulf/tools.json",
       "bytes": 15247,
-      "sha256": "10329F047D19EFD89F0138CA3A05FBDAE9A7A3FEB5FD3B4F03B562B113C2CDA2"
+      "sha256": "FA3684C679085A80EF3F9DC55CFE14CE63F68F4A787074740CD627FD22ED92BB"
     },
     {
       "path": "authorities/project_sectors/project_engulf/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/project_engulf/workflow.dot",
       "bytes": 6471,
-      "sha256": "192A249657C53B713488EDAA402FF37E26B1FEE1D38272E09C4179D89DB1AB17"
+      "sha256": "5162DBF0206866F459559F092D18D626DDD55A0DDA757272CB3C60F8625B528C"
     },
     {
       "path": "authorities/project_sectors/project_engulf/workflow.mmd",
       "bytes": 5030,
-      "sha256": "48B44E1ED9EDBB7011B7AF8502F4F280EDBCC645D41820C380C5BB2FE690BAC1"
+      "sha256": "57BC3CB34C44552054BA11AD6E7DFCF35F8915C0F0A1576E55C5E71BF80773F9"
     },
     {
       "path": "authorities/project_sectors/project_engulf/workflow.v1.json",
-      "bytes": 31734,
-      "sha256": "26C9FA5DA8663A2EF10E9CACA4CE3AD9DA783EBD0EE4FB12644CD8F7388A9FB7"
+      "bytes": 25864,
+      "sha256": "61D098EE46FA5D6C9A5E995E5DC59FCF7D04860BB48DA500BDF1B3E1FB086CBE"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "6EA635586E8E0AAF200091A0ACEBADF54A93BF05B77D15D23E5AD4C320289001"
+  "receipt_sha256": "C78E5CD6EB71CAE94A519ADC9E3380FA2A3A23D31582383B4E919D1B924BCB6E"
 }

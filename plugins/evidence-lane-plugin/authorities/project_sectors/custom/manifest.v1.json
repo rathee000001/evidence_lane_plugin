@@ -30,7 +30,7 @@
     {
       "path": "authorities/project_sectors/custom/custom_sector_v001.sqlite",
       "bytes": 233472,
-      "sha256": "6034A8727369167114FEFB4EFEA02B1DB7824D010268282F921801A0D76F64C8"
+      "sha256": "8E2954F21B56121D095E665F13278EF5F79A9574DCC6EDDF1BED467F1CAEDA6E"
     },
     {
       "path": "authorities/project_sectors/custom/dot-artifact.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/custom/tools.json",
       "bytes": 16337,
-      "sha256": "3F7B78E1AF9BA2925A5C509F3EECDE7FB5913E47F7F9C3DB8E0BA249C64BC6B7"
+      "sha256": "43FA6B6CE6F5BEBDC4F4E3C4BD0C69D9F9EBA1CDFDE2CFE0BC27EF3299CB86A8"
     },
     {
       "path": "authorities/project_sectors/custom/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/custom/workflow.dot",
       "bytes": 6429,
-      "sha256": "B3A0E4BB184C8821A269379334F5EA05C992F601AF3BC55144AED43C4783643F"
+      "sha256": "F22F33DBD747A79A7B95E3BC6AE1F0F4343E249CFB4AE9241A97B6ED38143254"
     },
     {
       "path": "authorities/project_sectors/custom/workflow.mmd",
       "bytes": 4996,
-      "sha256": "7F50C0D776D57153BDF2627D1A2AE7846DF8DA9F677F9B161CC0DD551DA448AB"
+      "sha256": "A379302E0272CF884096A17EDCC908F0366473E8EE37570C9C942F53B7A0444A"
     },
     {
       "path": "authorities/project_sectors/custom/workflow.v1.json",
-      "bytes": 31408,
-      "sha256": "2EA7E35AADA90E336F5EBF5108A1289F45A589AEC09DFAA9EEE7FDB0A0C6BAB0"
+      "bytes": 23331,
+      "sha256": "520CFA2B9005DB3FBE1B4A23B07A61B1D6585A6C06787A649B96DB29DE06AA13"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "F6E50F16235765B4E406BB394169444323B2A8A309E87538CB2EB7B7A0ABD5BB"
+  "receipt_sha256": "BFCEAC76ED984842D7F8522EAF33CF514C751BDF44C54CF4E17F3CACDBD014BF"
 }

@@ -1354,6 +1354,172 @@ def _generate_sdk(
     )
     env_manifest_path = PLUGIN_ROOT / "env" / "authority-manifest.v1.json"
     uop_manifest_path = PLUGIN_ROOT / "uop" / "authority-manifest.v1.json"
+    env_database = PLUGIN_ROOT / "env" / "env_sqlite.sqlite"
+    uop_database = PLUGIN_ROOT / "uop" / "uop_sqlite.sqlite"
+    env_connection = sqlite3.connect(
+        f"file:{env_database.resolve().as_posix()}?mode=ro&immutable=1", uri=True
+    )
+    uop_connection = sqlite3.connect(
+        f"file:{uop_database.resolve().as_posix()}?mode=ro&immutable=1", uri=True
+    )
+    env_connection.row_factory = sqlite3.Row
+    uop_connection.row_factory = sqlite3.Row
+    try:
+        env_action_rows = {
+            str(row["action_name"]): dict(row)
+            for row in env_connection.execute(
+                "SELECT * FROM env_action_binding_v17 ORDER BY action_name"
+            )
+        }
+        env_sdk_rows = {
+            str(row["action_name"]): dict(row)
+            for row in env_connection.execute(
+                "SELECT * FROM env_sdk_action_binding_v17 ORDER BY action_name"
+            )
+        }
+        env_mcp_rows = {
+            str(row["action_name"]): dict(row)
+            for row in env_connection.execute(
+                "SELECT * FROM env_mcp_action_binding_v17 ORDER BY action_name"
+            )
+        }
+        uop_policy_rows = {
+            str(row["action_name"]): dict(row)
+            for row in uop_connection.execute(
+                "SELECT * FROM uop_action_policy_v17 ORDER BY action_name"
+            )
+        }
+        public_names = {str(row["name"]) for row in public["tools"]}
+        action_sets_equal = (
+            public_names
+            == set(env_action_rows)
+            == set(env_sdk_rows)
+            == set(env_mcp_rows)
+            == set(uop_policy_rows)
+        )
+        cross_action_rows = []
+        for action_name in sorted(public_names):
+            env_action = env_action_rows[action_name]
+            env_sdk = env_sdk_rows[action_name]
+            env_mcp = env_mcp_rows[action_name]
+            uop_policy = uop_policy_rows[action_name]
+            body = {
+                "action_name": action_name,
+                "entry_event": env_action["entry_event"],
+                "owner_skill": env_action["owner_skill"],
+                "workflow_classes": json.loads(env_action["workflow_classes_json"]),
+                "ordered_tools": json.loads(env_action["ordered_tools_json"]),
+                "env_selection": {
+                    "binding_sha256": env_action["binding_sha256"],
+                    "schema_sha256": env_action["schema_sha256"],
+                    "lane_and_host_selected_at_runtime": True,
+                },
+                "uop_authorization": {
+                    "read_only": bool(uop_policy["read_only"]),
+                    "destructive": bool(uop_policy["destructive"]),
+                    "idempotent": bool(uop_policy["idempotent"]),
+                    "requires_exact_hil": bool(uop_policy["requires_exact_hil"]),
+                    "direct_purge_required": bool(uop_policy["direct_purge_required"]),
+                    "authority_effects": json.loads(
+                        uop_policy["authority_effects_json"]
+                    ),
+                },
+                "internal_sdk": json.loads(env_sdk["internal_sdk_json"]),
+                "outer_route": json.loads(env_sdk["outer_route_json"]),
+                "mcp": {
+                    "server_identity": env_mcp["server_identity"],
+                    "tool_name": env_mcp["tool_name"],
+                },
+                "skill_workflows": json.loads(env_action["skill_workflows_json"]),
+                "status": "PASS",
+            }
+            cross_action_rows.append(
+                {
+                    **body,
+                    "contract_sha256": hashlib.sha256(_json_bytes(body))
+                    .hexdigest()
+                    .upper(),
+                }
+            )
+        skill_rows = [
+            dict(row)
+            for row in env_connection.execute(
+                "SELECT * FROM env_skill_binding_v17 ORDER BY skill_name"
+            )
+        ]
+        hook_rows = [
+            dict(row)
+            for row in env_connection.execute(
+                "SELECT * FROM env_hook_binding_v17 ORDER BY event_number"
+            )
+        ]
+        lane_rows = [
+            dict(row)
+            for row in env_connection.execute(
+                "SELECT * FROM env_lane_binding_v17 ORDER BY lane_id"
+            )
+        ]
+        behavior_counts = {
+            "env_subgraphs": env_connection.execute(
+                "SELECT COUNT(*) FROM env_behavior_subgraph_v18"
+            ).fetchone()[0],
+            "env_nodes": env_connection.execute(
+                "SELECT COUNT(*) FROM env_behavior_node_v18"
+            ).fetchone()[0],
+            "env_edges": env_connection.execute(
+                "SELECT COUNT(*) FROM env_behavior_edge_v18"
+            ).fetchone()[0],
+            "uop_subgraphs": uop_connection.execute(
+                "SELECT COUNT(*) FROM uop_behavior_subgraph_v18"
+            ).fetchone()[0],
+            "uop_nodes": uop_connection.execute(
+                "SELECT COUNT(*) FROM uop_behavior_node_v18"
+            ).fetchone()[0],
+            "uop_edges": uop_connection.execute(
+                "SELECT COUNT(*) FROM uop_behavior_edge_v18"
+            ).fetchone()[0],
+        }
+        cross_plane = {
+            "schema": "evidence-lane.sdk-env-uop-cross-plane-contract.v1",
+            "status": "PASS" if action_sets_equal else "BLOCKED",
+            "authorities_separate": True,
+            "env_selects_context_lane_host_mode_and_pipeline": True,
+            "uop_authorizes_work_hil_permission_fallback_and_effects": True,
+            "actions": cross_action_rows,
+            "action_count": len(cross_action_rows),
+            "action_sets_equal": action_sets_equal,
+            "skills": skill_rows,
+            "skill_count": len(skill_rows),
+            "hooks": hook_rows,
+            "hook_event_count": len(hook_rows),
+            "hook_handler_count": sum(int(row["handler_count"]) for row in hook_rows),
+            "lanes": lane_rows,
+            "lane_count": len(lane_rows),
+            "named_root_authority_count": int(authorities["authority_count"]),
+            "named_root_authorities": authorities["authorities"],
+            "tool_requirement_count": int(toolchain_surface["requirement_count"]),
+            "behavior_counts": behavior_counts,
+            "mcp_action_count": len(env_mcp_rows),
+            "internal_sdk_action_count": len(env_sdk_rows),
+            "outer_route_action_count": len(env_sdk_rows),
+            "missing_action_bindings": sorted(public_names - set(env_action_rows)),
+            "missing_sdk_bindings": sorted(public_names - set(env_sdk_rows)),
+            "missing_mcp_bindings": sorted(public_names - set(env_mcp_rows)),
+            "missing_uop_policies": sorted(public_names - set(uop_policy_rows)),
+            "negative_proofs": {
+                "env_and_uop_merged": False,
+                "mcp_bypasses_internal_sdk": False,
+                "outer_sdk_owns_business_logic": False,
+                "tool_presence_is_permission": False,
+                "hook_presence_required_for_explicit_actions": False,
+                "chatgpt_host_identity_imported": False,
+            },
+        }
+    finally:
+        env_connection.close()
+        uop_connection.close()
+    _write_json(sdk_root / "env_uop" / "cross-plane-contract.v1.json", cross_plane)
+    cross_plane_path = sdk_root / "env_uop" / "cross-plane-contract.v1.json"
     _write_json(
         sdk_root / "env_uop" / "action-plane.v1.json",
         {
@@ -1373,6 +1539,17 @@ def _generate_sdk(
             "env_authority_manifest_sha256": _sha256(env_manifest_path),
             "uop_authority_manifest_sha256": _sha256(uop_manifest_path),
             "canonical_implementation": "src/evidence_lane_plugin/mode_governance.py",
+            "cross_plane_contract": "sdk/env_uop/cross-plane-contract.v1.json",
+            "cross_plane_contract_sha256": _sha256(cross_plane_path),
+            "cross_plane_counts": {
+                "actions": cross_plane["action_count"],
+                "skills": cross_plane["skill_count"],
+                "hook_events": cross_plane["hook_event_count"],
+                "hook_handlers": cross_plane["hook_handler_count"],
+                "lanes": cross_plane["lane_count"],
+                "named_root_authorities": cross_plane["named_root_authority_count"],
+                "tools": cross_plane["tool_requirement_count"],
+            },
         },
     )
     env_uop_operations = {

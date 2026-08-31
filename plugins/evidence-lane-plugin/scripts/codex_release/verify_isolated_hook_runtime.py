@@ -850,7 +850,7 @@ def verify_isolated_installed_runtime(
     dependencies = _dependency_site_packages(dependency_site_packages)
     runtime = _create_derived_runtime(plugin_root, data_root, dependencies)
     kill_switch = _initialize_kill_switch(plugin_root, data_root)
-    install_path = data_root / "installations/codex-v200/INSTALL_ROW210.json"
+    install_path = data_root / "installations/codex-v300/INSTALL_ROW210.json"
     install_binding = _write_install_binding(
         install_path,
         plugin_root=plugin_root,

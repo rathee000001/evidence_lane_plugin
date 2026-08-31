@@ -8,13 +8,14 @@ Current counts are derived release facts, not permanent ceilings.
 
 | Host profile | Durable project authority | Transport |
 | --- | --- | --- |
-| Codex Desktop, persistent local host | Project-scoped local SQLite | Native/local route; tunnel only for a proven gap |
+| `CODEX_DESKTOP_STABLE`, persistent local host | Project-scoped local SQLite | Stable app-channel task/runtime binding; native/local route; tunnel only for a proven gap |
+| `CODEX_DESKTOP_BETA`, persistent local host | Project-scoped local SQLite | Beta app-channel task/runtime binding; native/local route; tunnel only for a proven gap |
 | Codex CLI, persistent local host | Project-scoped local SQLite | Native/local route or version-bound tunnel |
 | Persistent Codex VM | Mounted/local durable SQLite | Direct transport when available |
 | Ephemeral Codex VM with durable mount | Mounted SQLite | Exact VM-lifetime route |
 | Ephemeral Codex VM without durable mount | Explicit transactional connector | Fail closed without durable storage |
 
-The current host plane is Codex Desktop, Codex CLI, and Codex VM. ChatGPT and external model-agent planes are not mixed into this package. A caller-supplied PID, title, CWD, or host ID is not runtime attestation.
+Stable and Beta are separate Codex Desktop host identities. Installation, restart preparation, task reattachment, and runtime attestation bind the exact selected channel; neither channel may borrow the other's task or runtime proof. The broader current host plane is Codex Desktop Stable, Codex Desktop Beta, Codex CLI, and Codex VM. ChatGPT and external model-agent planes are not mixed into this package. A caller-supplied PID, title, CWD, or host ID is not runtime attestation.
 
 The maintainer release registry exposes exactly two selectors: the verified Git-main stable slot and the versioned local-testing slot. Selector identity is a locator, not Project/PV, Plan, Goal, HIL, or runtime attestation.
 
@@ -61,7 +62,15 @@ flowchart TB
 
 - `env/authority-manifest.v1.json`
 - `schemas/install/local-install.v1.json`
-- `src/evidence_lane_plugin/storage_connector.py`
+- `src/evidence_lane_plugin/storage_selection.py`
+
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `env/authority-manifest.v1.json` | 1801 | `00D3CAA86C11250E8D9673FA5B41636A9F229BE306C580B25DEE73720EAB456B` |
+| `schemas/install/local-install.v1.json` | 715 | `EECE0A620DA2BF17E0F79ECFC0099C2854F838F0B1BF45B62568C3DFDA233C11` |
+| `src/evidence_lane_plugin/storage_selection.py` | 8948 | `72B03657EDC1822E6B3A2059A04D2A170EAE3E228280927CB566EE6828B05910` |
 
 ## Cross-surface invariants
 

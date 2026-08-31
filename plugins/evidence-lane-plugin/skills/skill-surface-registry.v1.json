@@ -20,7 +20,7 @@
         {
           "path": "skills/evi/references/public-tool-conformance-release-gate.v1.json",
           "bytes": 3110,
-          "sha256": "BF5F109EDC982386C605DCC5443C7B064E9C5BDEA1BE91452EC6FCA98CD0E916"
+          "sha256": "7949754A52C3DA99726BCB36CA8697E168F8306655C7C612AA18794DA7F3252F"
         },
         {
           "path": "skills/evi/SKILL.md",
@@ -1531,5 +1531,5 @@
   "mcp_server": "evidence-lane",
   "all_skill_members_hash_bound": true,
   "competing_workflow_implementations_allowed": false,
-  "receipt_sha256": "F0DC6A1BAA7F51CE51F62224E6A263E967E73155674B7E890BE4C75F0349F900"
+  "receipt_sha256": "2227B20E6A8CB558A30E8415AE50D03F21984B3516092CA6044CFEE33BFF570E"
 }

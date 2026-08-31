@@ -1,3 +1,5 @@
+"""Current authority isolation, integrity, and searchable-lineage coverage."""
+
 from __future__ import annotations
 
 import sqlite3

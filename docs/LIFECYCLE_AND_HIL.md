@@ -87,6 +87,14 @@ flowchart TB
 - `skills/evidence-lane-code-lifecycle/SKILL.md`
 - `schemas/fuse/dual-hil-fuse.v1.json`
 
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `schemas/lifecycle/runtime-workflow-registry.v1.json` | 14195 | `7088B8A9D890E515A7A4EC56C97C1914F196F4DB774D4850356F9575A4159C19` |
+| `skills/evidence-lane-code-lifecycle/SKILL.md` | 41631 | `A4AA856D1FE094F7DF17FF65492F77CB0F5095F0CB40E8C9E186068B1DE102FA` |
+| `schemas/fuse/dual-hil-fuse.v1.json` | 717 | `D5219CD384AC2CD94046F2303A261934DACA3CFFDB4599653933278737896DFF` |
+
 ## Cross-surface invariants
 
 - The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.

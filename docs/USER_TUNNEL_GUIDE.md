@@ -61,6 +61,14 @@ flowchart TB
 - `tunnel/README.md`
 - `src/evidence_lane_plugin/tunnel_identity_routing.py`
 
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `toolchains/tunnel-runtime-toolchain.v1.json` | 109554 | `23027693F389A79951194DE4BFA9A64A96F787DB52D302E39D98432679E0AFB1` |
+| `tunnel/README.md` | 279 | `9EA8A0EE3C4D12CFEDC583A16F0F1E0799182F0A07E9E2E5B12063798132D90A` |
+| `src/evidence_lane_plugin/tunnel_identity_routing.py` | 3915 | `00E8E2BB23045481A9444CDDFF0B2CF4470F112BF8B59A9E4996FB30B6C00719` |
+
 ## Cross-surface invariants
 
 - The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.

@@ -30,7 +30,7 @@
     {
       "path": "authorities/project_sectors/discussion/discussion_sector_v001.sqlite",
       "bytes": 245760,
-      "sha256": "18BF0EBE01EB71BF3907B664F2F6892956DA1FCF99141D41983E0236A246F735"
+      "sha256": "255780F76FA5B270BB201CEC1997C93CA337D50FE19DD8AC1EAD2267F850F9CD"
     },
     {
       "path": "authorities/project_sectors/discussion/dot-artifact.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/discussion/tools.json",
       "bytes": 15952,
-      "sha256": "E6C1506FAACCE0AC6CC13FB624C912B77B53CE4A446A5E19E299511AD0657463"
+      "sha256": "84F6C2283B1ED5DD9ACF1E794A13963DCDD2893E09613BC9BA6BA0E9F5F5A47E"
     },
     {
       "path": "authorities/project_sectors/discussion/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/discussion/workflow.dot",
       "bytes": 6455,
-      "sha256": "917AA6AFC4580F16C1267C1CAED31FF524EC7964399264C4AD1CDD4F97CD6BD9"
+      "sha256": "C2B35CD09E2253B749244441826BE6731A270DDD6E1F7DBC2973BDBD84C4739A"
     },
     {
       "path": "authorities/project_sectors/discussion/workflow.mmd",
       "bytes": 5018,
-      "sha256": "9EF655ECE61AB531B21B94A3FF46AB2B330DB2FFD9C90B5CE57F1FC927604657"
+      "sha256": "2EB3CDA786BA5B6B212B1F143F15E9E55C617EE2F9928E63EE750E5003E9DC00"
     },
     {
       "path": "authorities/project_sectors/discussion/workflow.v1.json",
-      "bytes": 28675,
-      "sha256": "E64992AC53563B928344641317DAF44DAF11553273539AFC3B474B2059D59BD1"
+      "bytes": 20216,
+      "sha256": "364BECE9EA973E17BBBE1E255191C56CBFB7004644F4CE688818AF2267A36DA9"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "FB4D000B7A2E129C9822BA3450AEBF6D23DDC205222E36DC14190E06740C62FC"
+  "receipt_sha256": "F3E05ECB622F478B42A6A102FB4CC7C3487AF041494C331EFE96A8B183A01CCC"
 }

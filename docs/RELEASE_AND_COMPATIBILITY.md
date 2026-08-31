@@ -52,8 +52,16 @@ flowchart TB
 ## Canonical source owners
 
 - `.codex-plugin/plugin.json`
-- `release-channels.json`
+- `scripts/codex-release-channel.json`
 - `scripts/codex_release/accept_codex_stable.py`
+
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `.codex-plugin/plugin.json` | 3049 | `757AB0CA7396811CB3AB3EDC83535FF1E7729AA61289D52062029F8EC2F3A9CD` |
+| `scripts/codex-release-channel.json` | 25148 | `597424B4D631A8D2C6E715FE9BCDF72CA33D12A72B93205A99A4887023850603` |
+| `scripts/codex_release/accept_codex_stable.py` | 60096 | `3BFEB9A17026766D9A5045020C7D4DFD4917CDB2419910452AB03DC0EC301A0C` |
 
 ## Cross-surface invariants
 

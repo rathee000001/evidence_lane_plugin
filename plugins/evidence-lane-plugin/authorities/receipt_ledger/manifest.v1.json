@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "receipt_ledger",
   "database": "receipt-ledger.sqlite",
-  "database_sha256": "5E0220C125688C45152633C8C1D2DEF6B3DE452B6E43B6C60C5FED4548642526",
+  "database_sha256": "625DD9B9572FF88A61817E57967488CB4F1068A03723928775796122B71CDCEB",
   "database_integrity": "ok",
-  "schema_sha256": "0C4D1E3E5E069565D4FE795C3402C7278337CC21D38E8751593B0B7007E25736",
+  "schema_sha256": "CC6C538F215D475CAF5A90E0626441C8EAF209AC2C216199B6B17BE463078D3E",
   "table_count": 18,
   "fts5_tables": [
     "authority_index_fts",
@@ -75,7 +75,7 @@
     {
       "path": "authorities/receipt_ledger/receipt-ledger.sqlite",
       "bytes": 147456,
-      "sha256": "5E0220C125688C45152633C8C1D2DEF6B3DE452B6E43B6C60C5FED4548642526"
+      "sha256": "625DD9B9572FF88A61817E57967488CB4F1068A03723928775796122B71CDCEB"
     },
     {
       "path": "authorities/receipt_ledger/receipt-ledger.tools.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/receipt_ledger/sqlite-schema.v1.json",
       "bytes": 28236,
-      "sha256": "275E9DDD1A2BA89451889BDFAA3E3D23530056B02F9DD5F063435D80263CF615"
+      "sha256": "B422661CB648128B9A9C83D572842BF876E7E5307F11DF77109B409979507D87"
     },
     {
       "path": "authorities/receipt_ledger/tools.schema.json",
@@ -303,5 +303,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "059D8B4CF95CF2CC3DECE74C5161E3ECB3349197C148200D005D1D35ED9B0510"
+  "receipt_sha256": "3957B826673D7BA44708E3BDC52478323734DA5D5323ABE08482418F5DBE64F5"
 }

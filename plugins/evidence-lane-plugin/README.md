@@ -24,6 +24,45 @@ eleven lifecycle event classes with 44 ordered handlers, 119 conditional tool
 requirements, CPU/NVIDIA/AMD execution-provider routing, durable project storage,
 persistent Plan/Delta continuity, and authority-specific governed HIL policies.
 
+## Full runtime workflow
+
+```mermaid
+flowchart TB
+    Prompt["Prompt or steer"] --> Slip["Entry Slip + Source Intake + ChatLineage"]
+    Slip --> Skill["26 governed skills"] --> Action["91 typed actions + schemas"] --> SDK["Internal SDK owner"]
+    SDK --> ENV["ENV: host, context, mode, lane, locality, provider"]
+    SDK --> UOP["UOP: operators, formulas, budgets, permission, HIL"]
+    ENV --> Route["Cross-plane route"]
+    UOP --> Route
+    Route --> Lanes["18 sector lanes"]
+    Route --> Authorities["11 named authorities"]
+    Lanes --> Tools["119 condition-selected tool requirements"]
+    Authorities --> Tools
+    Tools --> Transport["Local runtime / outer SDK / MCP / tunnel"]
+    Transport --> Hooks["11 events / 44 ordered handlers"] --> Validate["Schema + effect + provenance validation"]
+    Validate --> Exit["Verified adaptive Delta exit"]
+    Exit --> SubPV["AUTO_ACCEPTED_DELTA_ROW_WORK"] --> Next["Next Delta entry"]
+    Exit --> DLearn["AUTO_ACCEPTED_DELTA_LEARNING"] --> Next
+    Exit -->|full-PV row only| Candidate["Unaccepted full-PV candidate"]
+    Candidate --> PHIL["Project HIL"]
+    Candidate --> LHIL["Consolidated Learning HIL"]
+    LHIL --> Weave["Learning decision"]
+    PHIL --> Fuse["Exact Fuse"]
+    Weave --> Fuse --> Accepted["Accepted pointer + root ZIP + Project Overlay"]
+    Validate -. mismatch .-> Fail["Fail closed with no authority effect"]
+```
+
+Each verified ordinary Delta creates two separate automatically admitted inputs:
+`AUTO_ACCEPTED_DELTA_ROW_WORK` is the predecessor sub-PV work receipt and
+`AUTO_ACCEPTED_DELTA_LEARNING` is bounded procedural Learning for the next
+Delta. Neither has an individual HIL, Project Overlay effect, accepted-ZIP
+rotation, or full-PV pointer effect. At a full-PV boundary, Project HIL and the
+consolidated Learning HIL remain two independent human decisions. Only exact
+accepted Project Truth may create the Project Overlay and rotate the accepted
+root ZIP; Learning acceptance moves only the Learning pointer. See the
+[adaptive Delta contract](../../docs/ADAPTIVE_DELTA_EXECUTION.md) and the
+[ENV/UOP execution-plane contract](../../docs/ENV_AND_UOP.md).
+
 ## Detailed architecture and governance
 
 Agent Learning is a separate project-scoped authority, not another name for

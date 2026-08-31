@@ -69,7 +69,7 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
     assert unproven["prompt_response_capture_decoupled_from_hooks"] is True
     assert unproven["host_hook_status"]["status"] == "UNAVAILABLE"
 
-    selector = "evidence-lane-plugin@evidence-lane-v200-task2-build-test"
+    selector = "evidence-lane-plugin@evidence-lane-v300-task2-build-test"
     events = [
         "permissionRequest",
         "postCompact",
@@ -122,7 +122,7 @@ def test_runtime_status_requires_sealed_host_hook_trust(tmp_path: Path) -> None:
     }
     installation["receipt_sha256"] = _sealed_json_sha256(installation)
     current_installation = (
-        tmp_path / "installations" / "codex-v200" / "CURRENT_INSTALLATION.json"
+        tmp_path / "installations" / "codex-v300" / "CURRENT_INSTALLATION.json"
     )
     current_installation.parent.mkdir(parents=True, exist_ok=True)
     current_installation.write_text(
@@ -243,8 +243,9 @@ def test_locked_env_uop_flash_is_visible_idempotent_and_outside_pv(service) -> N
     )
     assert before["source_packet"] == {
         "status": "PASS",
-        "whole_packet_accepted": True,
-        "usable_boundary": "CURRENT_CODEX_ACTION_PLANE_ONLY",
+        "whole_packet_accepted": False,
+        "complete_working_behavior_graph_adapted": True,
+        "usable_boundary": ("CURRENT_CODEX_ACTION_PLANE_PLUS_ADAPTED_ENV15_3_BEHAVIOR"),
     }
 
     boot = boot_local(service)

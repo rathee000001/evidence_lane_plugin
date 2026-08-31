@@ -4,9 +4,9 @@
   "authority_id": "canon_consequence_graph",
   "parent_authority_id": "canon_input",
   "database": "canon-consequence-graph.sqlite",
-  "database_sha256": "7EEDC0DD02519D2C5AC24E60161150EBA4AD1AA29CDF71DAF36EB1B889750787",
+  "database_sha256": "FD95982FDA9910D5EE30B07186137AD05B4B2AC8BC2BFAD9FE60EE2743AE289C",
   "database_integrity": "ok",
-  "schema_sha256": "88FDE8F8AD32175C3221C450A9A71A9E5336E363D608F263F9180A1C08080AF5",
+  "schema_sha256": "986E6DAE46FCE4C9FA0A0A1CED833C3239F54040CAB7F3964809A329C39009E8",
   "table_count": 18,
   "fts5_tables": [
     "authority_index_fts",
@@ -26,7 +26,7 @@
     {
       "path": "authorities/canon_input/consequence_graph/canon-consequence-graph.sqlite",
       "bytes": 147456,
-      "sha256": "7EEDC0DD02519D2C5AC24E60161150EBA4AD1AA29CDF71DAF36EB1B889750787"
+      "sha256": "FD95982FDA9910D5EE30B07186137AD05B4B2AC8BC2BFAD9FE60EE2743AE289C"
     },
     {
       "path": "authorities/canon_input/consequence_graph/dot-artifact.schema.json",
@@ -81,7 +81,7 @@
     {
       "path": "authorities/canon_input/consequence_graph/sqlite-schema.v1.json",
       "bytes": 23341,
-      "sha256": "3EE97F77A50121C8EAD2B59CDBDD7E05E35A64AF131579E643698824C2703F95"
+      "sha256": "C1B9A5C81DFB946991C3942FDEA8CD58414FBBE308F18EFF6FC38A8A4CDCA60C"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.json",
@@ -263,5 +263,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_parent_or_peer": false,
-  "receipt_sha256": "3AA04EEC1F9523753820EBB5BC69F6E11801E5DD59462F01500F732EB2EA56D2"
+  "receipt_sha256": "7773984ECF76AA5C4E757261CE2BC6C6E2FF5473BF6548A117849BD44A2B3C79"
 }

@@ -75,18 +75,63 @@
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
         "CODE",
-        "DATA",
         "DEPLOYMENT",
+        "EVALUATION",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
-        "RUNTIME_API",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "git_sync_selected",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_begin_next_turn",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "pv_task_transition",
+        "remote_git_execute_push",
+        "remote_git_prepare_push",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 46,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -105,23 +150,11 @@
         },
         {
           "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
           "workflow": "same-host-next-turn"
         },
         {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -148,58 +181,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -208,32 +189,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -244,24 +201,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -273,15 +214,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -293,19 +226,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -321,10 +242,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -333,23 +250,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -358,14 +263,6 @@
         {
           "skill": "evi-universe",
           "workflow": "project-universe-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -378,14 +275,6 @@
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -475,18 +364,63 @@
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
         "CODE",
-        "DATA",
         "DEPLOYMENT",
+        "EVALUATION",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
-        "RUNTIME_API",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "git_sync_selected",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_begin_next_turn",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "pv_task_transition",
+        "remote_git_execute_push",
+        "remote_git_prepare_push",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 46,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -505,23 +439,11 @@
         },
         {
           "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
           "workflow": "same-host-next-turn"
         },
         {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -548,58 +470,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -608,32 +478,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -644,24 +490,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -673,15 +503,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -693,19 +515,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -721,10 +531,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -733,23 +539,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -758,14 +552,6 @@
         {
           "skill": "evi-universe",
           "workflow": "project-universe-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -778,14 +564,6 @@
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -862,17 +640,56 @@
       ],
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
-        "DATA",
-        "GOVERNANCE",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -890,24 +707,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -934,58 +735,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -994,32 +743,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -1030,24 +755,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -1059,15 +768,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -1079,19 +780,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -1107,10 +796,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -1119,23 +804,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -1147,35 +820,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -1238,16 +887,52 @@
       ],
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
-        "DATA",
-        "GOVERNANCE",
+        "OBSERVABILITY",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 38,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -1265,24 +950,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -1309,58 +978,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -1369,32 +986,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -1405,24 +998,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -1434,15 +1011,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -1451,22 +1020,6 @@
         {
           "skill": "evi-source-intake",
           "workflow": "classify-source-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -1482,10 +1035,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -1494,23 +1043,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -1522,35 +1059,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -1629,16 +1142,57 @@
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
         "DATA",
-        "GOVERNANCE",
+        "EVALUATION",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -1656,24 +1210,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -1700,58 +1238,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -1760,32 +1246,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -1796,24 +1258,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -1825,15 +1271,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -1845,19 +1283,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -1873,10 +1299,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -1885,23 +1307,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -1913,35 +1323,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -2013,17 +1399,57 @@
       ],
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
-        "DATA",
-        "GOVERNANCE",
+        "EVALUATION",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -2041,24 +1467,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -2085,58 +1495,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -2145,32 +1503,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -2181,24 +1515,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -2210,15 +1528,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -2230,19 +1540,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -2258,10 +1556,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -2270,23 +1564,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -2298,35 +1580,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -2401,17 +1659,56 @@
       ],
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
-        "DATA",
-        "GOVERNANCE",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -2429,24 +1726,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -2473,58 +1754,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -2533,32 +1762,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -2569,24 +1774,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -2598,15 +1787,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -2618,19 +1799,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -2646,10 +1815,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -2658,23 +1823,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -2686,35 +1839,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -2793,18 +1922,57 @@
       ],
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
-        "DATA",
         "DOCUMENT",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
-        "SOURCE_ROUTING",
-        "WEB_RESEARCH"
+        "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -2822,24 +1990,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -2866,58 +2018,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -2926,32 +2026,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -2962,24 +2038,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -2991,15 +2051,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -3011,19 +2063,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -3039,10 +2079,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -3051,23 +2087,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -3079,35 +2103,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -3196,16 +2196,56 @@
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
         "DATA",
-        "DOCUMENT",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -3223,24 +2263,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -3267,58 +2291,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -3327,32 +2299,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -3363,24 +2311,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -3392,15 +2324,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -3412,19 +2336,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -3440,10 +2352,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -3452,23 +2360,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -3480,35 +2376,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -3585,18 +2457,58 @@
       ],
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
-        "DATA",
         "DOCUMENT",
         "GRAPH",
+        "OBSERVABILITY",
+        "OCR_MEDIA",
         "RETRIEVAL",
-        "SOURCE_ROUTING",
-        "WEB_RESEARCH"
+        "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -3614,24 +2526,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -3658,58 +2554,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -3718,32 +2562,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -3754,24 +2574,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -3783,15 +2587,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -3803,19 +2599,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -3831,10 +2615,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -3843,23 +2623,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -3871,35 +2639,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -3988,18 +2732,58 @@
       ],
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
-        "DATA",
         "DOCUMENT",
         "GRAPH",
+        "OBSERVABILITY",
         "OCR_MEDIA",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -4017,24 +2801,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -4061,58 +2829,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -4121,32 +2837,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -4157,24 +2849,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -4186,15 +2862,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -4206,19 +2874,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -4234,10 +2890,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -4246,23 +2898,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -4274,35 +2914,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -4381,17 +2997,57 @@
       ],
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
-        "DATA",
         "GRAPH",
+        "OBSERVABILITY",
         "OCR_MEDIA",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -4409,24 +3065,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -4453,58 +3093,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -4513,32 +3101,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -4549,24 +3113,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -4578,15 +3126,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -4598,19 +3138,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -4626,10 +3154,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -4638,23 +3162,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -4666,35 +3178,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -4775,16 +3263,61 @@
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
         "DATA",
+        "DEPLOYMENT",
+        "DOCUMENT",
         "GRAPH",
+        "OBSERVABILITY",
         "OCR_MEDIA",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "remote_git_execute_push",
+        "remote_git_prepare_push",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 43,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -4802,24 +3335,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -4846,58 +3363,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -4906,32 +3371,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -4942,24 +3383,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -4971,15 +3396,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -4991,19 +3408,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -5019,10 +3424,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -5031,23 +3432,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -5056,14 +3445,6 @@
         {
           "skill": "evi-universe",
           "workflow": "project-universe-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -5076,18 +3457,6 @@
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -5165,16 +3534,57 @@
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
         "DATA",
-        "GOVERNANCE",
+        "EVALUATION",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -5192,24 +3602,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -5236,58 +3630,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -5296,32 +3638,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -5332,24 +3650,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -5361,15 +3663,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -5381,19 +3675,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -5409,10 +3691,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -5421,23 +3699,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -5449,35 +3715,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -5555,14 +3797,55 @@
         "DATA",
         "DOCUMENT",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -5580,24 +3863,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -5624,58 +3891,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -5684,32 +3899,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -5720,24 +3911,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -5749,15 +3924,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -5769,19 +3936,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -5797,10 +3952,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -5809,23 +3960,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -5837,35 +3976,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -5951,17 +4066,58 @@
       ],
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
-        "DATA",
+        "EVALUATION",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
         "SOURCE_ROUTING",
         "WEB_RESEARCH"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -5979,24 +4135,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -6023,58 +4163,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -6083,32 +4171,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -6119,24 +4183,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -6148,15 +4196,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -6168,19 +4208,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -6196,10 +4224,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -6208,23 +4232,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -6236,35 +4248,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -6354,15 +4342,64 @@
       "execution_action_classes": [
         "CODE",
         "DATA",
+        "DOCUMENT",
+        "EVALUATION",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
-        "SOURCE_ROUTING"
+        "SOURCE_ROUTING",
+        "WEB_RESEARCH"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "git_sync_selected",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_begin_next_turn",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "pv_task_transition",
+        "remote_git_execute_push",
+        "remote_git_prepare_push",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 46,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -6381,23 +4418,11 @@
         },
         {
           "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
           "workflow": "same-host-next-turn"
         },
         {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -6424,58 +4449,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -6484,32 +4457,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -6520,24 +4469,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -6549,15 +4482,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -6569,19 +4494,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -6597,10 +4510,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -6609,23 +4518,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -6634,14 +4531,6 @@
         {
           "skill": "evi-universe",
           "workflow": "project-universe-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -6654,14 +4543,6 @@
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -6744,16 +4625,56 @@
       "tool_role_classes_are_mutually_exclusive": true,
       "execution_action_classes": [
         "DATA",
-        "DOCUMENT",
         "GRAPH",
+        "OBSERVABILITY",
         "RETRIEVAL",
         "SOURCE_ROUTING"
       ],
+      "eligible_public_actions": [
+        "adaptive_delta_exit",
+        "ai_toolchain_route",
+        "brain_scaling_select",
+        "canon_graph",
+        "canon_inbox",
+        "canon_inspect",
+        "connector_plugin_catalog",
+        "connector_plugin_settings",
+        "fetch",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "learning_inspect",
+        "learning_retrieve",
+        "lifecycle_transition_law",
+        "project_memory_query",
+        "project_recipe_compile",
+        "project_register",
+        "prompt_index_status",
+        "pv_build_initial",
+        "pv_diff",
+        "pv_enroll_project",
+        "pv_query",
+        "pv_status",
+        "pv_summary",
+        "pv_task_backlog",
+        "render_project_panel",
+        "render_runtime_panel",
+        "runtime_activation_status",
+        "runtime_doctor",
+        "search",
+        "session_flash_status",
+        "source_graph_build",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_intake_classify",
+        "source_intake_schema_configure",
+        "source_sqlite_inspect",
+        "storage_connector_inspect",
+        "task_classify"
+      ],
+      "eligible_public_action_count": 41,
       "eligible_skill_workflows": [
-        {
-          "skill": "evi",
-          "workflow": "exact-fuse"
-        },
         {
           "skill": "evi",
           "workflow": "governance-read"
@@ -6771,24 +4692,8 @@
           "workflow": "live-root-current-authority-read"
         },
         {
-          "skill": "evi",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi",
-          "workflow": "same-host-next-turn"
-        },
-        {
           "skill": "evi-additional-plugin",
           "workflow": "register-connector"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "explicit-hash-only-cross-project-link"
-        },
-        {
-          "skill": "evi-bigger-universe",
-          "workflow": "register-changed-project-mini-brain-heads"
         },
         {
           "skill": "evi-boot",
@@ -6815,58 +4720,6 @@
           "workflow": "canon-authority-read"
         },
         {
-          "skill": "evi-canon",
-          "workflow": "canon-backfire"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-contract"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-decision"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-envelope"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-result"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-state-travel-continuity"
-        },
-        {
-          "skill": "evi-canon",
-          "workflow": "canon-task-edge"
-        },
-        {
-          "skill": "evi-drop-additional-plugin",
-          "workflow": "drop-connector"
-        },
-        {
-          "skill": "evi-exit-boot",
-          "workflow": "close-session"
-        },
-        {
-          "skill": "evi-formula",
-          "workflow": "bounded-env-uop-formula-execution"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-intent-classification"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "dual-hil-non-promotion-decision"
-        },
-        {
-          "skill": "evi-fuse",
-          "workflow": "exact-learning-then-project-approval-promotion"
-        },
-        {
           "skill": "evi-instructions",
           "workflow": "agents-and-host-memory-read"
         },
@@ -6875,32 +4728,8 @@
           "workflow": "learning-authority-read"
         },
         {
-          "skill": "evi-learning",
-          "workflow": "learning-candidate"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-host-memory-import"
-        },
-        {
-          "skill": "evi-learning",
-          "workflow": "learning-revoke"
-        },
-        {
           "skill": "evi-memory",
           "workflow": "project-memory-authority-read"
-        },
-        {
-          "skill": "evi-memory",
-          "workflow": "project-memory-link"
-        },
-        {
-          "skill": "evi-mode",
-          "workflow": "classify-mode"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "classify-plan-mode"
         },
         {
           "skill": "evi-plan",
@@ -6911,24 +4740,8 @@
           "workflow": "live-plan-authority-read"
         },
         {
-          "skill": "evi-plan",
-          "workflow": "persist-plan"
-        },
-        {
-          "skill": "evi-plan",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "change-connector-registration"
-        },
-        {
           "skill": "evi-plugin",
           "workflow": "inspect-connectors"
-        },
-        {
-          "skill": "evi-plugin",
-          "workflow": "route-connector"
         },
         {
           "skill": "evi-project-recipe",
@@ -6940,15 +4753,7 @@
         },
         {
           "skill": "evi-refresh",
-          "workflow": "hil-live-root-project-overlay-proposal"
-        },
-        {
-          "skill": "evi-refresh",
           "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-        },
-        {
-          "skill": "evi-rollback",
-          "workflow": "pointer-rollback"
         },
         {
           "skill": "evi-source-intake",
@@ -6960,19 +4765,7 @@
         },
         {
           "skill": "evi-source-intake",
-          "workflow": "custom-schema-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "git-read-intake"
-        },
-        {
-          "skill": "evi-source-intake",
           "workflow": "source-graph-intake"
-        },
-        {
-          "skill": "evi-source-intake",
-          "workflow": "source-identity-intake"
         },
         {
           "skill": "evi-source-intake",
@@ -6988,10 +4781,6 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-destination-existing-session-attachment"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "direct-destination-locked-flash"
         },
         {
@@ -7000,23 +4789,11 @@
         },
         {
           "skill": "evi-state-travel",
-          "workflow": "direct-force-same-worktree-state-travel"
-        },
-        {
-          "skill": "evi-state-travel",
           "workflow": "post-entry-plan-authority-read"
-        },
-        {
-          "skill": "evi-state-travel",
-          "workflow": "state-travel-plan-steer"
         },
         {
           "skill": "evi-storage",
           "workflow": "inspect-storage"
-        },
-        {
-          "skill": "evi-storage",
-          "workflow": "select-storage"
         },
         {
           "skill": "evi-toolchain",
@@ -7028,35 +4805,11 @@
         },
         {
           "skill": "evidence-lane-code-lifecycle",
-          "workflow": "boot-or-resume"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "exact-fuse"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "governed-git-delivery"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-authority-read"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
           "workflow": "live-root-current-authority-read"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "plan-steer"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "record-task-activity"
-        },
-        {
-          "skill": "evidence-lane-code-lifecycle",
-          "workflow": "same-host-next-turn"
         },
         {
           "skill": "evidence-lane-code-lifecycle",
@@ -7496,5 +5249,5 @@
   ],
   "counts_are_derived_not_fixed": true,
   "all_surfaces_use_same_registry_driven_pairing_law": true,
-  "receipt_sha256": "FC47B12B07514651997932934857A54133C0B265602B378AE2BA8EC152A8ECC8"
+  "receipt_sha256": "BB1C1A5109302B0DE7E9D4798173F0900B8B8B08AD2959E686573A83A614C84B"
 }

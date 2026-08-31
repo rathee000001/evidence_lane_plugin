@@ -30,7 +30,7 @@
     {
       "path": "authorities/project_sectors/data_excel/data_excel_sector_v001.sqlite",
       "bytes": 311296,
-      "sha256": "0C0E5214176AB0AD1511C51C0DABCAD7F965EA0FE609F9948763BE680E2E81A0"
+      "sha256": "BFBF34F6440CF60321D5D22BF1ECD52AC013872FA74717C2DACF154CA6BAAB59"
     },
     {
       "path": "authorities/project_sectors/data_excel/dot-artifact.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/data_excel/tools.json",
       "bytes": 15046,
-      "sha256": "55CC8A0D4BC34B70DD550FDB57BAA31D8EED718F3777C73D975744553E03C4F8"
+      "sha256": "52EB535EBAF448BE381FC62761F154BEC95CFCFC74B0D4B8C118D5A2A7EA83B0"
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/data_excel/workflow.dot",
       "bytes": 6451,
-      "sha256": "7B3AFAD3847EF8CFD0D9AFCADBC1276A1C350516F8FE63EE9E74C2F2A27A1C66"
+      "sha256": "6D4C059C3DF1C828724F2CAC3FA248B8633B1707FF18BBB6BAE0EEBABE3B5153"
     },
     {
       "path": "authorities/project_sectors/data_excel/workflow.mmd",
       "bytes": 5014,
-      "sha256": "2E2B255B60AF2646F4D392A4E155D52DBB29D467518761399AF53CE002BB1AD4"
+      "sha256": "9A8015B83DCCCC4EF6396BD485E6B91FA61B8938DF9CA0DCBC98FB0089471107"
     },
     {
       "path": "authorities/project_sectors/data_excel/workflow.v1.json",
-      "bytes": 31956,
-      "sha256": "EED4A2D0450A64E5FE268869843B4CAA3C20381EEE59634ACD58F049EA3C5EA7"
+      "bytes": 25281,
+      "sha256": "A0EE25A88FC6769DE3B12A7DC93250A251497D9CEF910069FFA36BC3A3FBDC1F"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "E70697395F97F0583D984B6967E98F6C34715058869D102E4294DA14F59FD7B4"
+  "receipt_sha256": "1E8B24AB8B01FA78EC7B07D318506726C1C66ABDCD77952C3B945BA1D5603E07"
 }

@@ -16,7 +16,7 @@ param(
     [string]$ActivePlanTaskId,
     [Parameter(Mandatory = $true)]
     [int]$TargetProcessId,
-    [string]$ReceiptDirectory = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v200\restart",
+    [string]$ReceiptDirectory = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin\installations\codex-v300\restart",
     [string]$RuntimeControlRoot = "$env:USERPROFILE\.codex\plugins\runtime\evidence-lane-plugin",
     [Parameter(Mandatory = $true)]
     [ValidateSet(

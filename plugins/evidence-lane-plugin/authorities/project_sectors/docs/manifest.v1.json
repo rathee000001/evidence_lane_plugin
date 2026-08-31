@@ -30,7 +30,7 @@
     {
       "path": "authorities/project_sectors/docs/docs_sector_v001.sqlite",
       "bytes": 249856,
-      "sha256": "842DB8267FFA1DB9AA9CB9C5AFB950B13871AA447458DF21A8889DFC03677F7F"
+      "sha256": "985939D93DC068FCA4BCEBA9701F69284F82C9E28BDAB76107CB70DFFC54E1BD"
     },
     {
       "path": "authorities/project_sectors/docs/dot-artifact.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/docs/tools.json",
       "bytes": 14811,
-      "sha256": "2B022C0408EBFC75D8032AD05EFA44D5D774628CCBA13235A7D1AAB7F606AFB1"
+      "sha256": "40D1854CA637B3B07FF39910E6989390F854E060361D8976F7F33DD4EB6EB92D"
     },
     {
       "path": "authorities/project_sectors/docs/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/docs/workflow.dot",
       "bytes": 6424,
-      "sha256": "FFA65DEC4DDD6FB6D8B53DD40897764E4E535B183C051582762842291C9A1405"
+      "sha256": "682A2BB35EB44A1896906021F49745E2F194FE16EBA0DB6C92ED2A93CA3D3E5D"
     },
     {
       "path": "authorities/project_sectors/docs/workflow.mmd",
       "bytes": 4993,
-      "sha256": "0997F771BEC8B836E9CA9E443671EF13BA517A48DED72C25E7FFBAACC16F6047"
+      "sha256": "D55FA3FF69CAE7D589E23D66DBA94F9EE60C4924F5257B20F25416589D3275B9"
     },
     {
       "path": "authorities/project_sectors/docs/workflow.v1.json",
-      "bytes": 29894,
-      "sha256": "E78BCE658CEADE21C277B44E3C669CF807A0EF98DA0FBA8E1CEB63A2E500A744"
+      "bytes": 23201,
+      "sha256": "BCAD6A4CEBCAB76439311E147E543E3B15B7BFA812D59857069DA5168F2DD1CD"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "842E7C107EA4721293854D1CC9276B71B1470CFF2B5F404B64810D9C2FC4519E"
+  "receipt_sha256": "DC9E3E3751A63FA0F4EEDB4FECCAA4B1A1AC3FE5EDE66215848A301DEEA39F9B"
 }

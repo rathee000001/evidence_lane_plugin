@@ -65,6 +65,14 @@ flowchart TB
 - `hooks/hooks.json`
 - `schemas/hooks/hook-runtime.v1.json`
 
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `hooks/hook-event-registry.v1.json` | 8476 | `67DDC5EBD44F858D53C207F773C2893CC0C79D5AD64A87CE2F2A41B2B29E7549` |
+| `hooks/hooks.json` | 18829 | `C37DB05DD4701087EAD0BD31203C843AAFA79ED39A081F2E9DFF313A77631EEF` |
+| `schemas/hooks/hook-runtime.v1.json` | 18435 | `1D6F173942EB94C6E26FB3E50628001B4854391FC9B72BE15528A998FEFE6F34` |
+
 ## Cross-surface invariants
 
 - The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.

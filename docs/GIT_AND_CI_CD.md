@@ -60,6 +60,14 @@ flowchart TB
 - `src/evidence_lane_plugin/remote_git.py`
 - `scripts/codex_release/push_github_app_exact_commit.py`
 
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `schemas/github-app-manifest.schema.json` | 1614 | `1DBE95B64B74C60AB78E5F752EB1E144F144D96C32D06F545F2093BB6AC93FC2` |
+| `src/evidence_lane_plugin/remote_git.py` | 13448 | `5146955FB1FC17239F941EFC9DF244F236886291428A5CAE54C4D8119A748D8C` |
+| `scripts/codex_release/push_github_app_exact_commit.py` | 15059 | `E4EAA56A1F4004253A36108CC7EB74F8071A6F211A456E830F425A0055B3E1B4` |
+
 ## Cross-surface invariants
 
 - The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.

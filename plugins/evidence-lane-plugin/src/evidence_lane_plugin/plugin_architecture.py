@@ -7,6 +7,7 @@ from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
+from .ai_toolchain import LANE_ACTION_CLASSES
 from .codex_action_plane import classify_action_workflow_classes
 from .ecosystem_toolchain import validate_ecosystem_adapter_catalog
 from .graph_pipeline import SemanticGraph
@@ -15,6 +16,18 @@ from .hook_contract import HOOK_EVENT_NAMES, HOOK_EVENT_WORKFLOW_CONTRACTS
 from .package_root import resolve_plugin_root
 
 PLUGIN_ARCHITECTURE_SCHEMA = "evidence-lane.universal-plugin-architecture.v1"
+
+LANE_COMMON_PUBLIC_ACTIONS = frozenset(
+    {
+        "ai_toolchain_route",
+        "lane_catalog",
+        "lane_fetch",
+        "lane_search",
+        "lane_status",
+        "source_intake_classify",
+        "task_classify",
+    }
+)
 
 TOOL_ROLE_CLASSES = (
     "TASK_EXECUTION",
@@ -691,6 +704,18 @@ def build_universal_plugin_architecture(plugin_root: str | Path) -> dict[str, An
     sector_pairings: list[dict[str, Any]] = []
     for lane in values["lanes"]["lanes"]:
         lane_id = str(lane["lane_id"])
+        lane_action_classes = set(LANE_ACTION_CLASSES[lane_id]) - {"GOVERNANCE"}
+        lane_action_names = sorted(
+            (
+                {
+                    name
+                    for name, classes in action_classes.items()
+                    if (set(classes) - {"GOVERNANCE"}) & lane_action_classes
+                }
+                | (LANE_COMMON_PUBLIC_ACTIONS & catalog_names)
+            )
+            & catalog_names
+        )
         lane_rows = [
             row for row in unified_pairings if lane_id in row["eligible_lanes"]
         ]
@@ -715,22 +740,8 @@ def build_universal_plugin_architecture(plugin_root: str | Path) -> dict[str, An
             if row["role_class"] == "OBSERVABILITY_OR_EVALUATION_ATTACHMENT"
         )
         tools = execution_tools
-        workflows = sorted(
-            {
-                (str(item["skill"]), str(item["workflow"]))
-                for row in lane_rows
-                if row["role_class"] == "TASK_EXECUTION"
-                for item in row["eligible_skill_workflows"]
-            }
-        )
-        execution_action_classes = sorted(
-            {
-                str(action_class)
-                for row in lane_rows
-                if row["role_class"] == "TASK_EXECUTION"
-                for action_class in row["action_classes"]
-            }
-        )
+        workflows = workflows_for_actions(set(lane_action_names))
+        execution_action_classes = sorted(lane_action_classes)
         sector_pairings.append(
             {
                 **non_circular_surface_identity(dict(lane)),
@@ -742,6 +753,8 @@ def build_universal_plugin_architecture(plugin_root: str | Path) -> dict[str, An
                 "observability_evaluation_attachments": cross_cutting_attachments,
                 "tool_role_classes_are_mutually_exclusive": True,
                 "execution_action_classes": execution_action_classes,
+                "eligible_public_actions": lane_action_names,
+                "eligible_public_action_count": len(lane_action_names),
                 "eligible_skill_workflows": [
                     {"skill": skill, "workflow": workflow}
                     for skill, workflow in workflows
@@ -1509,20 +1522,29 @@ def build_surface_workflows(architecture: dict[str, Any]) -> dict[str, Any]:
             ),
         }
         task_execution_tools = set(tools_by_role["task_execution"])
-        public_actions = sorted(
-            {
-                str(action)
-                for tool in task_execution_tools
-                for action in unified[tool]["eligible_public_actions"]
-            }
-        )
-        workflows = sorted(
-            {
-                (str(item["skill"]), str(item["workflow"]))
-                for tool in task_execution_tools
-                for item in unified[tool]["eligible_skill_workflows"]
-            }
-        )
+        if kind == "PROJECT_SECTOR" and "eligible_public_actions" in row:
+            public_actions = sorted(map(str, row["eligible_public_actions"]))
+            workflows = sorted(
+                {
+                    (str(item["skill"]), str(item["workflow"]))
+                    for item in row["eligible_skill_workflows"]
+                }
+            )
+        else:
+            public_actions = sorted(
+                {
+                    str(action)
+                    for tool in task_execution_tools
+                    for action in unified[tool]["eligible_public_actions"]
+                }
+            )
+            workflows = sorted(
+                {
+                    (str(item["skill"]), str(item["workflow"]))
+                    for tool in task_execution_tools
+                    for item in unified[tool]["eligible_skill_workflows"]
+                }
+            )
         tool_phase_order = {
             "GOVERNANCE": "GOVERN",
             "CODE": "PARSE_FACTS",

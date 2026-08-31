@@ -80,6 +80,14 @@ flowchart TB
 - `skills/evi/references/mcp-tool-routing.v1.json`
 - `sdk/workflows/skill-workflow-registry.v1.json`
 
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `skills/skill-surface-registry.v1.json` | 46886 | `25E9B40FF82732C2E9900D9E68A4D1A939CF5B13BF16A597AE8E927AF5AB6E09` |
+| `skills/evi/references/mcp-tool-routing.v1.json` | 32089 | `70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8` |
+| `sdk/workflows/skill-workflow-registry.v1.json` | 661432 | `60B301D8822B4354CFB17D55B06F7F9D6F48C7251C58C7F682B766FF0A4F5B23` |
+
 ## Cross-surface invariants
 
 - The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.

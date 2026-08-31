@@ -136,8 +136,12 @@ def build_flash_dual_identity(
     )
     require(
         source_audit.get("overall_status") == "PASS"
-        and source_audit.get("whole_packet_accepted") is True
-        and source_audit.get("usable_boundary") == "CURRENT_CODEX_ACTION_PLANE_ONLY",
+        and source_audit.get("whole_packet_accepted") is False
+        and source_audit.get("complete_working_behavior_graph_adapted") is True
+        and source_audit.get("usable_boundary")
+        == "CURRENT_CODEX_ACTION_PLANE_PLUS_ADAPTED_ENV15_3_BEHAVIOR"
+        and source_audit.get("chatgpt_host_identity_imported") is False
+        and source_audit.get("historical_active_state_imported") is False,
         "SESSION_FLASH_DUAL_IDENTITY_SOURCE_BOUNDARY_INVALID",
         "Dual identity must bind the clean current Codex action-plane boundary.",
         status="FAIL",
@@ -157,8 +161,9 @@ def build_flash_dual_identity(
         "schema": SOURCE_AUTHORITY_MANIFEST_SCHEMA,
         "status": "PASS",
         "source_packet_status": "PASS",
-        "whole_packet_accepted": True,
-        "usable_boundary": "CURRENT_CODEX_ACTION_PLANE_ONLY",
+        "whole_packet_accepted": False,
+        "complete_working_behavior_graph_adapted": True,
+        "usable_boundary": ("CURRENT_CODEX_ACTION_PLANE_PLUS_ADAPTED_ENV15_3_BEHAVIOR"),
         "member_count": len(source_members),
         "members": source_members,
         "subset_members_sha256": subset_members_sha256,

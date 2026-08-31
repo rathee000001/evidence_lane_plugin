@@ -9,7 +9,16 @@
     "counted_as_public_action": false,
     "owns_mcp_schema_and_public_action_dispatch": false,
     "owns_ai_formula_execution": true,
-    "authority_source": "LOCKED_ENV_UOP_SQLITE_PLUS_MMD"
+    "authority_source": "CURRENT_CODEX_LOCKED_ENV_UOP_PLUS_ADAPTED_CHATGPT15_3_WORKING_BEHAVIOR",
+    "cross_plane_action_count": 91,
+    "env_behavior_subgraphs": 25,
+    "env_behavior_nodes": 275,
+    "env_behavior_edges": 256,
+    "uop_behavior_subgraphs": 8,
+    "uop_behavior_nodes": 80,
+    "uop_behavior_edges": 57,
+    "chatgpt_host_identity_imported": false,
+    "env_and_uop_authorities_merged": false
   },
   "operations": [
     "classify_mode",
@@ -17,8 +26,19 @@
     "route_operator",
     "status"
   ],
-  "env_authority_manifest_sha256": "0519B50B15C30FB5A8A5EE8B8336789F368898CA34585FBE1D3FC9FD40827391",
-  "uop_authority_manifest_sha256": "2BAFB6C1B399ABF23CF76CB60FBA217169F081427A7F952158B70E66FF889DE2",
+  "env_authority_manifest_sha256": "00D3CAA86C11250E8D9673FA5B41636A9F229BE306C580B25DEE73720EAB456B",
+  "uop_authority_manifest_sha256": "B4F0C4EAD5C6D3D52CFB4375185DED320CB1DDD2F13F91F25A42EA50ACF4B3CD",
   "canonical_implementation": "src/evidence_lane_plugin/mode_governance.py",
-  "receipt_sha256": "5613338C62F231F14CA558D5C9FB10645F5789088A4D912B164EAFAF650FB500"
+  "cross_plane_contract": "sdk/env_uop/cross-plane-contract.v1.json",
+  "cross_plane_contract_sha256": "7E03B3C9966D10B0B3B6AEF31F52EFB9EB518115DEA3A86A044FDA58F3826C26",
+  "cross_plane_counts": {
+    "actions": 91,
+    "skills": 26,
+    "hook_events": 11,
+    "hook_handlers": 44,
+    "lanes": 18,
+    "named_root_authorities": 11,
+    "tools": 119
+  },
+  "receipt_sha256": "52FAFDAC744D06D9E87E6C50B6E7478281F3E2965142DAEE9E46BCCC8475C24B"
 }

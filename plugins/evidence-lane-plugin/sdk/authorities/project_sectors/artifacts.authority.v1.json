@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "artifacts",
   "authority_root": "authorities/project_sectors/artifacts",
-  "authority_manifest_sha256": "33B5499353C39A7B58914D452198DB3C3B988A1E0CA78046F95BBE1A8117BF2A",
+  "authority_manifest_sha256": "9645CFF947DD12005CC31D5EDAA273905BC18D6AD41324EE6B3757A65710342A",
   "schema_surface": "schemas/project-sectors/artifacts/schema-surface.v1.json",
   "builder": "authorities/project_sectors/artifacts/builder.py",
   "reader": "authorities/project_sectors/artifacts/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "180A866D886AFF0F35FFFDAE8C1995FFF7128BC55E17F3F14E22CD132623D515"
+  "receipt_sha256": "CFEEC05D1BD68F7B7C571CDFCDCC2C1253323E16EE94A9B334D932F472B93A3C"
 }

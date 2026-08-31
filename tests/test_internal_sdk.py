@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import time
 from pathlib import Path
 
@@ -20,6 +21,7 @@ from evidence_lane_plugin.internal_sdk import (
 )
 
 PROJECT_ID = "sdk-fixture"
+PLUGIN_ROOT = Path(__file__).resolve().parents[1] / "plugins" / "evidence-lane-plugin"
 
 
 def _hash(label: str) -> str:
@@ -218,6 +220,64 @@ def test_runtime_workflows_bind_prompt_delta_relock_and_hooks_to_sdk() -> None:
         is False
     )
     assert by_name["HOOK_EVENT_TRANSPORT"]["logical_sub_actions"] == 44
+    assert all(
+        "env_uop_operator_runtime" in row["sdk_modules"]
+        and row["ai_action_planes"] == ["ENV_UOP_AI_ACTION_PLANE"]
+        for row in receipt["workflows"]
+        if row["public_actions"]
+    )
+    env_plane = next(
+        row
+        for row in receipt["sdk_planes"]["planes"]
+        if row["plane_id"] == "ENV_UOP_AI_ACTION_PLANE"
+    )
+    assert env_plane["cross_plane_action_count"] == NATIVE_TOOL_COUNT
+    assert env_plane["env_behavior_nodes"] == 275
+    assert env_plane["uop_behavior_nodes"] == 80
+    assert env_plane["chatgpt_host_identity_imported"] is False
+    assert env_plane["env_and_uop_authorities_merged"] is False
+
+
+def test_generated_cross_plane_contract_binds_every_executable_surface() -> None:
+    contract = json.loads(
+        (PLUGIN_ROOT / "sdk" / "env_uop" / "cross-plane-contract.v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert contract["status"] == "PASS"
+    assert contract["action_sets_equal"] is True
+    assert contract["action_count"] == NATIVE_TOOL_COUNT
+    assert contract["skill_count"] == 26
+    assert contract["hook_event_count"] == 11
+    assert contract["hook_handler_count"] == 44
+    assert contract["lane_count"] == 18
+    assert contract["named_root_authority_count"] == 11
+    assert contract["tool_requirement_count"] == 119
+    assert contract["mcp_action_count"] == NATIVE_TOOL_COUNT
+    assert contract["internal_sdk_action_count"] == NATIVE_TOOL_COUNT
+    assert contract["outer_route_action_count"] == NATIVE_TOOL_COUNT
+    assert contract["behavior_counts"] == {
+        "env_subgraphs": 25,
+        "env_nodes": 275,
+        "env_edges": 256,
+        "uop_subgraphs": 8,
+        "uop_nodes": 80,
+        "uop_edges": 57,
+    }
+    assert contract["missing_action_bindings"] == []
+    assert contract["missing_sdk_bindings"] == []
+    assert contract["missing_mcp_bindings"] == []
+    assert contract["missing_uop_policies"] == []
+    assert all(row["status"] == "PASS" for row in contract["actions"])
+    assert contract["negative_proofs"] == {
+        "env_and_uop_merged": False,
+        "mcp_bypasses_internal_sdk": False,
+        "outer_sdk_owns_business_logic": False,
+        "tool_presence_is_permission": False,
+        "hook_presence_required_for_explicit_actions": False,
+        "chatgpt_host_identity_imported": False,
+    }
 
 
 def test_canon_sdk_arm_exposes_full_engine_with_fail_closed_host_dispatch() -> None:

@@ -20,7 +20,7 @@
     {
       "path": "authorities/project_sectors/artifacts/artifacts_sector_v001.sqlite",
       "bytes": 237568,
-      "sha256": "C204DF8F84B9D06EA41ECC59D89201710AE0FE6377D3563C2AB4AC69396EDEA6"
+      "sha256": "19C3F2F878232C7B44F50504616CE6F48F8651B5F0B12439792E5C7C023D0D0B"
     },
     {
       "path": "authorities/project_sectors/artifacts/builder-contract.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/artifacts/tools.json",
       "bytes": 14831,
-      "sha256": "1B011A07133AA40D4CDDD435186843982FEDCD821D6C1760F97D03EE29A6C8AC"
+      "sha256": "6ABC9018C57FB5BB55553FB6FACE5532CA75BC47F938E587B809F3807AE0D8EF"
     },
     {
       "path": "authorities/project_sectors/artifacts/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/artifacts/workflow.dot",
       "bytes": 6447,
-      "sha256": "7743A0FFCBC783A5A22E3DACBFA540F12534346EE30EBF6151A5ECB50E4D20FA"
+      "sha256": "B47E05AC8675230D7CFB9B6C6D6EFB0BD900F6C794EAC2791FF0771651EFF09D"
     },
     {
       "path": "authorities/project_sectors/artifacts/workflow.mmd",
       "bytes": 5011,
-      "sha256": "E02A592D7EF28406B53C8838834CE78412A94FBAD76F4CB565553ADBC1F93916"
+      "sha256": "203309007091429230B57249BE39F2FA5BD3027D0DAA5B78626871A9C597316A"
     },
     {
       "path": "authorities/project_sectors/artifacts/workflow.v1.json",
-      "bytes": 31140,
-      "sha256": "C0474611C6BA68ED22A6BB624DC4EF7F3C2AC9182D083939A045C9629F197C4B"
+      "bytes": 24861,
+      "sha256": "C7372A067AA2427E2327B6F25CB4107821507D87FA71FEEAA671072550459235"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "1C05E3D03911AFF1FD87859C8BDB7A272517F9016D1795A4FA5E422114454F3B"
+  "receipt_sha256": "1957388FFE087467BA68D0D0B3AD657EE8D80786EC94A4D690DFC2143D5AA96E"
 }

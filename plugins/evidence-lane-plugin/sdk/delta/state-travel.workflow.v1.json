@@ -21,7 +21,8 @@
     "sdk_modules": [
       "host_entry_continuity",
       "lifecycle_hooks",
-      "plan_delta_tasks"
+      "plan_delta_tasks",
+      "env_uop_operator_runtime"
     ],
     "hooks_required": false,
     "sealed_prepare_or_resume_allowed": false,
@@ -36,7 +37,9 @@
       "count": 5,
       "count_is_fixed_ceiling": false
     },
-    "ai_action_planes": [],
+    "ai_action_planes": [
+      "ENV_UOP_AI_ACTION_PLANE"
+    ],
     "env_uop_operations_counted_as_public_actions": 0
   },
   "public_actions": [
@@ -65,5 +68,5 @@
   "env_uop_ai_action_plane": true,
   "accepted_archive_queried": false,
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "D1252340E8AEF5E7BE376D64B6AD1442B74352D0235D85BD7D1D09B8618AC351"
+  "receipt_sha256": "8EF37DAA47D8868779F225FA36A1C1CB14A28FF7AC919F7ED2AA0DF231774EE4"
 }

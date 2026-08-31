@@ -24,10 +24,15 @@ export const repositoryDocumentsByRoute = {
   "/plan": { path: "docs/PLAN_AND_CHANGE_DISPLAY.md", label: "Plan and Changes contract" },
   "/git-ci": { path: "docs/GIT_AND_CI_CD.md", label: "Git and CI contract" },
   "/architecture": { path: "ARCHITECTURE.md", label: "System architecture" },
+  "/env-uop": { path: "docs/ENV_AND_UOP.md", label: "ENV and UOP execution planes" },
+  "/adaptive-delta": {
+    path: "docs/ADAPTIVE_DELTA_EXECUTION.md",
+    label: "Adaptive Delta, sub-PV, and Delta Learning",
+  },
   "/lanes": { path: "docs/SOURCE_INTAKE_AND_LANES.md", label: "Source Intake and lane architecture" },
   "/operators": {
-    path: "docs/HOST_AND_STORAGE_MATRIX.md",
-    label: "Host, storage, ENV/UOP, and mode contract",
+    path: "docs/ENV_AND_UOP.md",
+    label: "ENV/UOP operators, formulas, modes, and gates",
   },
   "/studio": { path: "README.md", label: "Repository overview" },
   "/proof": {

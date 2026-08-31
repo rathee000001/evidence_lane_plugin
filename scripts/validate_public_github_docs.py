@@ -12,11 +12,13 @@ DOCS = ROOT / "docs"
 ALLOWED_DOCS = frozenset(
     {
         "AI_LEARNING.md",
+        "ADAPTIVE_DELTA_EXECUTION.md",
         "CANON_TASK_GRAPH_AND_INPUT_HIL.md",
         "CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md",
         "COPYRIGHT.md",
         "CREDITS_AND_CONTRIBUTIONS.md",
         "GIT_AND_CI_CD.md",
+        "ENV_AND_UOP.md",
         "HOOKS.md",
         "HOST_AND_STORAGE_MATRIX.md",
         "LIFECYCLE_AND_HIL.md",

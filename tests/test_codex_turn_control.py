@@ -236,7 +236,7 @@ def _seal_exact_task_goal_binding(
     plugin_version = json.loads(
         (plugin_root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
     )["version"]
-    installation_root = root / "installations" / "codex-v200"
+    installation_root = root / "installations" / "codex-v300"
     install_path = installation_root / "INSTALL_goal-continuation.json"
     installation = {
         "schema": "evidence-lane.codex-stable-installation.v2",
@@ -516,7 +516,7 @@ def test_authoritative_prepare_commit_is_redacted_idempotent_and_fts_complete(
     assert prepared_display["turn_status"]["uncommitted_count"] == 1
     assert prepared_display["composer_mutated"] is False
     package_status = prepared_display["package_change_status"]
-    assert package_status["source_plugin_version"].startswith("3.0.0+codex.")
+    assert package_status["source_plugin_version"] == "3.0.0"
     assert package_status["installed_plugin_version"] is None
     assert package_status["runtime_engine_version"] == "3.0.0"
     assert package_status["version_state"] == (

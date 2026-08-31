@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidencelane.org/schemas/env-domain-catalog.v2.schema.json",
+  "title": "Evidence Lane adapted ENV15.3 domain catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "authority",
+    "source_provenance",
+    "behavior_source",
+    "subgraph_contracts",
+    "tables",
+    "counts",
+    "import_policy",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.env-domain-catalog.v2"
+    },
+    "status": {
+      "const": "PASS_FULL_MMD_BEHAVIOR_BOUND"
+    },
+    "authority": {
+      "const": "ENV15_CODEX_DOMAIN_CATALOG"
+    },
+    "source_provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "classification",
+        "source_is_codex_authority",
+        "source_database_sha256",
+        "source_mmd_sha256",
+        "source_dot_sha256",
+        "source_database_mutated"
+      ],
+      "properties": {
+        "source_is_codex_authority": {
+          "const": false
+        },
+        "source_database_mutated": {
+          "const": false
+        },
+        "source_database_sha256": {
+          "type": "string",
+          "pattern": "^[A-F0-9]{64}$"
+        },
+        "source_mmd_sha256": {
+          "type": "string",
+          "pattern": "^[A-F0-9]{64}$"
+        },
+        "source_dot_sha256": {
+          "type": "string",
+          "pattern": "^[A-F0-9]{64}$"
+        }
+      }
+    },
+    "behavior_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packaged_path",
+        "subgraph_count",
+        "node_count",
+        "edge_count",
+        "dot_node_count",
+        "dot_edge_count",
+        "all_behaviors_require_codex_owner_or_exclusion"
+      ],
+      "properties": {
+        "packaged_path": {
+          "const": "toolchains/references/env15_3-working-behavior.mmd"
+        },
+        "subgraph_count": {
+          "const": 25
+        },
+        "node_count": {
+          "const": 275
+        },
+        "edge_count": {
+          "const": 256
+        },
+        "dot_node_count": {
+          "const": 280
+        },
+        "dot_edge_count": {
+          "const": 278
+        },
+        "all_behaviors_require_codex_owner_or_exclusion": {
+          "const": true
+        }
+      }
+    },
+    "subgraph_contracts": {
+      "type": "array",
+      "minItems": 25,
+      "maxItems": 25,
+      "items": {
+        "type": "object",
+        "required": [
+          "source_subgraph_id",
+          "canonical_codex_owner",
+          "classification",
+          "source_sha256"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "tables": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "formula_component",
+        "matrix_axis",
+        "matrix_cell",
+        "mode_cluster",
+        "mode_namespace_registry",
+        "mode_combination_rule",
+        "lane_registry",
+        "lane_formula_execution_registry_v12",
+        "pcm_mba_operator",
+        "operator_activation_rule"
+      ],
+      "properties": {
+        "formula_component": {
+          "$ref": "#/$defs/table"
+        },
+        "matrix_axis": {
+          "$ref": "#/$defs/table"
+        },
+        "matrix_cell": {
+          "$ref": "#/$defs/table"
+        },
+        "mode_cluster": {
+          "$ref": "#/$defs/table"
+        },
+        "mode_namespace_registry": {
+          "$ref": "#/$defs/table"
+        },
+        "mode_combination_rule": {
+          "$ref": "#/$defs/table"
+        },
+        "lane_registry": {
+          "$ref": "#/$defs/table"
+        },
+        "lane_formula_execution_registry_v12": {
+          "$ref": "#/$defs/table"
+        },
+        "pcm_mba_operator": {
+          "$ref": "#/$defs/table"
+        },
+        "operator_activation_rule": {
+          "$ref": "#/$defs/table"
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "import_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chatgpt_host_identity_imported",
+        "historical_active_state_imported",
+        "project_template_imported",
+        "behavior_labels_are_commands",
+        "current_codex_owner_required",
+        "current_18_sector_ids_preserved",
+        "current_named_authorities_preserved",
+        "historical_and_successor_deferred_behaviors_queryable_but_not_executable"
+      ],
+      "properties": {
+        "chatgpt_host_identity_imported": {
+          "const": false
+        },
+        "historical_active_state_imported": {
+          "const": false
+        },
+        "project_template_imported": {
+          "const": false
+        },
+        "behavior_labels_are_commands": {
+          "const": false
+        },
+        "current_codex_owner_required": {
+          "const": true
+        },
+        "current_18_sector_ids_preserved": {
+          "const": true
+        },
+        "current_named_authorities_preserved": {
+          "const": true
+        },
+        "historical_and_successor_deferred_behaviors_queryable_but_not_executable": {
+          "const": true
+        }
+      }
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    }
+  },
+  "$defs": {
+    "table": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "row_count",
+        "rows",
+        "row_set_sha256"
+      ],
+      "properties": {
+        "row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "row_set_sha256": {
+          "type": "string",
+          "pattern": "^[A-F0-9]{64}$"
+        }
+      }
+    }
+  }
+}
+

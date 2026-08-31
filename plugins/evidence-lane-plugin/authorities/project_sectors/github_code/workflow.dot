@@ -9,8 +9,8 @@ digraph surface_project_sector_github_code {
   subgraph cluster_flow {
     label="Current surface execution flow" rankdir=TB
     SCHEMA [label="Resolve current surface + action schemas" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    SKILLS [label="Resolve 79 current skill workflows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ACTIONS [label="Resolve 51 current typed actions" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    SKILLS [label="Resolve 39 current skill workflows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ACTIONS [label="Resolve 46 current typed actions" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
     INTERNAL_SDK [label="Internal SDK execution owner" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
     ENV [label="ENV15 environment selection" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
     UOP [label="UOP15 governance and gates" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]

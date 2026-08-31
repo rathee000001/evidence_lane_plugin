@@ -9,8 +9,8 @@
     {
       "path": "env/SOURCE_PACKET_AUDIT.json",
       "canonical_path": "env/SOURCE_PACKET_AUDIT.json",
-      "bytes": 470,
-      "sha256": "8D79D86C5807AA13FC2B5092362241DC548B402D31E98CB41B61C5ED1C4AB03D"
+      "bytes": 923,
+      "sha256": "7AC8B0BFD9C03E8A2F2F701231CAC85C5059317AB4DF89DDBB62CB1CD0C2D023"
     },
     {
       "path": "env/UNIVERSAL_FLASH_PROMPT.md",
@@ -27,29 +27,29 @@
     {
       "path": "env/env_mmd.dot",
       "canonical_path": "env/env_mmd.dot",
-      "bytes": 41988,
-      "sha256": "B2BA7E6E7CCEC16B142DEEC3AEB23802B52078681626ABB8475EDF23A7B51A9D"
+      "bytes": 119968,
+      "sha256": "F766A1BE94DCA98A18AE840806FA8067078AB692776F867425CF0FF8FA0E1A8A"
     },
     {
       "path": "env/env_mmd.mmd",
       "canonical_path": "env/env_mmd.mmd",
-      "bytes": 29205,
-      "sha256": "B6C4053914AFDB9DEA3F6E5A4A844E0EAB6108BAEF3CC118E22CCC0F2126C7EA"
+      "bytes": 88722,
+      "sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB"
     },
     {
       "path": "env/env_sqlite.sqlite",
       "canonical_path": "env/env_sqlite.sqlite",
-      "bytes": 2146304,
-      "sha256": "B887FE0989FE72F3B8E8F67891163D89EF2785E768B5A50D76CEAB522062D8CB"
+      "bytes": 5394432,
+      "sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B"
     },
     {
       "path": "env/locked_mmd_hash.txt",
       "canonical_path": "env/locked_mmd_hash.txt",
       "bytes": 609,
-      "sha256": "6F21EC156B70BC4CC9B275152D39D408B5E88FB617453515364AA5053F0CB8A9"
+      "sha256": "343D1730EFB2BFA257CC578823B558757CE5C713997B98BBE130D1368F72F208"
     }
   ],
   "canonical_packaged_authority": true,
   "duplicate_authority_copy_present": false,
-  "receipt_sha256": "32789B6EC6D083CF601226B2110090414AE8C87645930EED412A209A01282843"
+  "receipt_sha256": "3DE0FBBC1963E84038CC4AD6905EB817863C3A11E5AE6FCDD8253524620E76A6"
 }

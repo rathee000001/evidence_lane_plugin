@@ -1,0 +1,112 @@
+{
+  "schema": "evidence-lane.executable-lane-harness.v1",
+  "status": "READY",
+  "scope": "BOUNDED_PRE_FULL_REGRESSION_EXECUTABLE_PLUGIN_LANE_HARNESS",
+  "categories": [
+    {
+      "id": "SECTOR_AND_AUTHORITY_LANES",
+      "selectors": [
+        "tests/test_universal_lanes.py::test_all_eighteen_lanes_emit_full_contract_and_fixture_facts",
+        "tests/test_universal_lanes.py::test_lane_build_fails_closed_when_source_snapshot_changes",
+        "tests/test_universal_lanes.py::test_pv1_full_build_and_pvn_incremental_lane_reuse",
+        "tests/test_dedicated_skill_workflows.py::test_every_current_lane_and_named_authority_has_one_bound_workflow",
+        "tests/test_authority_support.py"
+      ]
+    },
+    {
+      "id": "ENV_UOP_AND_MODES",
+      "selectors": [
+        "plugins/evidence-lane-plugin/tests/test_env_uop_backend_regeneration.py",
+        "tests/test_env_uop_dual_identity.py",
+        "tests/test_env_uop_graph_coverage.py",
+        "tests/test_operating_modes.py",
+        "tests/test_session_flash.py"
+      ]
+    },
+    {
+      "id": "ACTION_SKILL_MCP_SDK_HOOK",
+      "selectors": [
+        "tests/test_internal_sdk.py",
+        "tests/test_internal_sdk_handler_parity.py",
+        "tests/test_internal_sdk_service_route_parity.py",
+        "tests/test_internal_sdk_service_route_review.py",
+        "tests/test_internal_sdk_skill_mcp_routing.py",
+        "tests/test_public_surface_parity_matrix.py::test_public_surface_matrix_matches_executable_catalog",
+        "tests/test_public_surface_parity_matrix.py::test_every_current_group_declares_all_delta_surface_dimensions",
+        "tests/test_public_surface_parity_matrix.py::test_every_source_public_tool_runs_the_bounded_eval_matrix",
+        "tests/test_hook_lifecycle_contract.py",
+        "tests/test_hook_event_isolation.py",
+        "tests/test_hook_stop_contract.py",
+        "tests/test_hook_behavior_handoff.py"
+      ]
+    },
+    {
+      "id": "DELTA_HIL_FUSE_ROLLBACK",
+      "selectors": [
+        "tests/test_adaptive_delta_entry.py",
+        "tests/test_adaptive_delta_exit.py",
+        "tests/test_agent_learning.py",
+        "tests/test_exact_task_binding_task_advance.py",
+        "tests/test_per_delta_local_verification.py",
+        "tests/test_project_authority.py",
+        "tests/test_live_root_rollback.py"
+      ]
+    },
+    {
+      "id": "TOOLCHAIN_POSITIVE_BLOCKED_FALLBACK",
+      "selectors": [
+        "tests/test_ai_toolchain_execution.py",
+        "tests/test_git_toolchain_execution.py",
+        "tests/test_ecosystem_toolchain_architecture.py",
+        "tests/test_native_toolchain_contract.py",
+        "tests/test_web_toolchain_execution.py"
+      ]
+    },
+    {
+      "id": "SOURCE_STAGED_PACKAGE_PARITY",
+      "selectors": [
+        "tests/test_release_candidate_rehearsal.py::test_package_coherence_normalizes_tracked_text_like_git_archive",
+        "tests/test_release_candidate_rehearsal.py::test_current_plugin_package_surface_is_one_coherent_version",
+        "tests/test_release_candidate_rehearsal.py::test_live_release_policy_matches_every_package_and_install_validator",
+        "tests/test_release_candidate_rehearsal.py::test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle",
+        "tests/test_source_fingerprint.py",
+        "tests/test_src_package_topology.py",
+        "tests/test_test_surface_policy.py"
+      ]
+    }
+  ],
+  "coverage_requirements": {
+    "sector_lanes": 18,
+    "named_root_authorities": 11,
+    "actions": 91,
+    "skills": 26,
+    "hook_events": 11,
+    "hook_handlers": 44,
+    "tool_requirements": 119,
+    "env_behavior_nodes": 275,
+    "uop_behavior_nodes": 80,
+    "positive_paths_required": true,
+    "negative_paths_required": true,
+    "blocked_paths_required": true,
+    "fallback_paths_required": true,
+    "hil_required_paths_required": true,
+    "auto_admitted_delta_paths_required": true,
+    "receipt_paths_required": true,
+    "source_worktree_staged_package_parity_required": true
+  },
+  "environment": {
+    "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT": "HOST_HIDDEN_RUNTIME_CURRENT",
+    "EVIDENCE_LANE_TEST_EMBEDDING_MODEL": "REVISION_PINNED_BGE_SMALL_EN_V1_5",
+    "network_required": false,
+    "credential_values_required": false
+  },
+  "negative_proofs": {
+    "full_system_regression_run": false,
+    "real_git_index_mutated": false,
+    "project_or_pv_mutated": false,
+    "accepted_zip_queried": false,
+    "candidate_created": false,
+    "pointer_moved": false
+  }
+}
+

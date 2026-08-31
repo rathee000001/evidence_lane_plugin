@@ -6,8 +6,8 @@
     {
       "authority_id": "agent_learning",
       "path": "authorities/agent_learning",
-      "manifest_sha256": "A3AB9BC83AE4246489F8C9A6BD810794B546351A1F5B16002199943144CE059B",
-      "database_sha256": "EEBDA87D83B03D9C3D9472217CFA7A4FFC745EF0012F5DF41A6643A55E937921",
+      "manifest_sha256": "19670A7382620D764209CA4447F82525C9389860DAD165EE51EDBB082753EEDE",
+      "database_sha256": "CE6BDA57CB37A041EE994A140AB542F7E84DE5BC6D1390E2F46D9BD605AE432E",
       "table_count": 28,
       "linked_public_action_count": 9,
       "persistent_sqlite_authority": true
@@ -15,8 +15,8 @@
     {
       "authority_id": "canon_input",
       "path": "authorities/canon_input",
-      "manifest_sha256": "B655CA4C91284A843B6534336F4D12DEA57ED0E29BE7898F481B810DB645274E",
-      "database_sha256": "D682CE7314AC3E33D668DD4D5707FA2719C105FFA50484279A697FCD1A0CD5AB",
+      "manifest_sha256": "DD404333352B3C09EEF3429838377CBE94FD4E66FFC689C255E93736B9C92C99",
+      "database_sha256": "188F41B2CE6BE056D26B43AFEEE3D57A8D93F8DC77F14D5C1DA90389974F120C",
       "table_count": 18,
       "linked_public_action_count": 19,
       "persistent_sqlite_authority": true
@@ -24,8 +24,8 @@
     {
       "authority_id": "project_memory",
       "path": "authorities/project_memory",
-      "manifest_sha256": "3EE5BF13C400631484E9F1D7448F94BDE9B22D514CD5A10E5CF14C2075312CBA",
-      "database_sha256": "9B2A84C2CB7CF068FF0761AD2F376A1FBE0C077348D8612991E7E84AA63ACDF8",
+      "manifest_sha256": "B3844798A16FBF9E560768F851FF3007FED8495553113A81435447B94B464026",
+      "database_sha256": "E65ECA44D786C9C8181B68BE37A812F36F6818E68B96BC05D1CA00AAC79D1D86",
       "table_count": 22,
       "linked_public_action_count": 5,
       "persistent_sqlite_authority": true
@@ -33,8 +33,8 @@
     {
       "authority_id": "project_overlay",
       "path": "authorities/project_overlay",
-      "manifest_sha256": "C43B9D64EE065868749FE29AB4FDA3551FF0BA8FD7E0ECF65FA39900E6D561B2",
-      "database_sha256": "E54785A60DF858293829A649116C792E6AF7DA8D3BA83619B6E59E79660C56BF",
+      "manifest_sha256": "F22D5EA477AF7A3AA78DB8CE9E15591042AC41EE35AA83E2A96635A96E7774C7",
+      "database_sha256": "DFBA12290F779EC56DE5B39BC037CE8AD9F9D4A3E9A2D240AB2A01CA1F014ACA",
       "table_count": 28,
       "linked_public_action_count": 10,
       "persistent_sqlite_authority": true
@@ -42,8 +42,8 @@
     {
       "authority_id": "source_authority",
       "path": "authorities/source_authority",
-      "manifest_sha256": "DBC8F7BD0ED9A0E50AB744C88AC463129E18FF794BF77C9B70217E12D8F92004",
-      "database_sha256": "1910906C64CE34B966C77468C4B159FDE2BCF4EE8A07897649ACBDCE391A0AB1",
+      "manifest_sha256": "FDA08B5C4F1F335FCF0B5FA2A7F544B8E288C4AE2DC9DCCC7495C8F7665FFD8B",
+      "database_sha256": "CFE778D1DD81843FBBA55098E1113077E07C0EA428C907C2D25A157E6CB8C8F0",
       "table_count": 56,
       "linked_public_action_count": 18,
       "persistent_sqlite_authority": true
@@ -51,8 +51,8 @@
     {
       "authority_id": "project_universe",
       "path": "authorities/project_universe",
-      "manifest_sha256": "C436E1E341C80D5CC6E5778B0B1E3C1F3FB763523DC100182EFE87AB68F617C1",
-      "database_sha256": "BB9CB7D81824ABF8B2F43AC5F592C6562A80A004C78825C54CCD0ED131638468",
+      "manifest_sha256": "8A66A7F056D7EC449C4F33E6DB277F99728A3ED1A0B851E158ED30CE77DC0E69",
+      "database_sha256": "7B8B902C4AA01281F070D6A48DDE944A5A5A38A70A39BFA051E1433997F4082A",
       "table_count": 20,
       "linked_public_action_count": 4,
       "persistent_sqlite_authority": true
@@ -60,8 +60,8 @@
     {
       "authority_id": "connector_brain",
       "path": "authorities/connector_brain",
-      "manifest_sha256": "415A3B09465890547B0C34EA5A966A7A34D92E723287CC447F1BE785B5935A57",
-      "database_sha256": "CFCEAF91150061DA86C7976C3F848DF78C396A42F1AEBBBE87FFDC1254F0502F",
+      "manifest_sha256": "7C478EDACDD02D23AA7873533FAE4A49C8DC60615A74CB03D23C2A9FEE4C4CBC",
+      "database_sha256": "DF7572FE25E19C7A17A17A35B99278736CA30BF0A001EDB579BE1B4EE8BF7C9C",
       "table_count": 29,
       "linked_public_action_count": 5,
       "persistent_sqlite_authority": true
@@ -69,8 +69,8 @@
     {
       "authority_id": "project_authority",
       "path": "authorities/project_authority",
-      "manifest_sha256": "2D57E8CFD1C9F78EB662625822EB601D1DA3B22A65D2C5FEF5B70DBFE3020AF8",
-      "database_sha256": "8CAF9F4B4015D25FD15D051E0A564166593EBD923C69C060817C45CD1D923083",
+      "manifest_sha256": "5BCC0A6E0511966F57E6DC260D19E98671F88860D17B0C62BE102190BAE08B5F",
+      "database_sha256": "A05A8406833B1FB3832556F1DB8C090EEAC95A2776FBFCEB48FCEE62F8E857CE",
       "table_count": 20,
       "linked_public_action_count": 21,
       "persistent_sqlite_authority": true
@@ -78,8 +78,8 @@
     {
       "authority_id": "receipt_ledger",
       "path": "authorities/receipt_ledger",
-      "manifest_sha256": "8BA4CFEFBB522FE622519036B433405C0C0F877D5FFE79D4BB2D0617CA56548B",
-      "database_sha256": "5E0220C125688C45152633C8C1D2DEF6B3DE452B6E43B6C60C5FED4548642526",
+      "manifest_sha256": "C2F43515B0DC0697B7E3D53335FD26EF66AE8DC58A43AD0E4662F9F3C1B5745A",
+      "database_sha256": "625DD9B9572FF88A61817E57967488CB4F1068A03723928775796122B71CDCEB",
       "table_count": 18,
       "linked_public_action_count": 17,
       "persistent_sqlite_authority": true
@@ -87,8 +87,8 @@
     {
       "authority_id": "session_authority",
       "path": "authorities/session_authority",
-      "manifest_sha256": "E684D2E7BC4165737C30E56781403CB91FCF0917DAFB3DB0A8A5052D80DF1B76",
-      "database_sha256": "2F82E8623DA169AF937ED24C02C94E8BA44809B5F9A25468C3ED28D7806BBD43",
+      "manifest_sha256": "BF187AB151592CEFBC50D85FC38295556C6B3ADB454948DCEC22C83BCF409638",
+      "database_sha256": "2D6D7D358A96EBEF6EB3777E0AAA94A86D393623C331E2AD6E8C0EA83583977F",
       "table_count": 19,
       "linked_public_action_count": 12,
       "persistent_sqlite_authority": true
@@ -110,9 +110,9 @@
   ],
   "sector_lane_count": 18,
   "project_sector_registry": "authorities/project_sectors/lane-surface-registry.v1.json",
-  "project_sector_registry_sha256": "5319E480150A57349CEA5580A324E9F901384D7A46E7B3497ECAAF08887E7B23",
+  "project_sector_registry_sha256": "1BA59466CB35C62DC0DF998FD3D5649F9BEFB89032D4423AE3757E2781544009",
   "authorities_are_outside_sector_count": true,
   "sqlite_mmd_dot_tools_pointer_runtime_complete": true,
   "shared_support_source_sha256": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B",
-  "receipt_sha256": "E7F228E2007125A91DD762C75DC27EC6C58872AF6545A5BB77C5EF047C83C610"
+  "receipt_sha256": "CEEEE077E9AF6E519718DA253A2459BB19C47986E279E527C7E49FB72C455BCD"
 }

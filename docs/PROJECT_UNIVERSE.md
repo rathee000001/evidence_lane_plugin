@@ -57,6 +57,14 @@ flowchart TB
 - `schemas/universe/project-universe.v1.sql`
 - `skills/evi-bigger-universe/SKILL.md`
 
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `authorities/project_universe/manifest.v1.json` | 10601 | `8A66A7F056D7EC449C4F33E6DB277F99728A3ED1A0B851E158ED30CE77DC0E69` |
+| `schemas/universe/project-universe.v1.sql` | 1536 | `4D622EF599FD738ADCA064EB02DDF6D1CA9564DDEEC0A86A7E054AF9C574AA98` |
+| `skills/evi-bigger-universe/SKILL.md` | 1367 | `E95EBC5C8F430DC184435E0AC3A1C12BDB234341B4E92F8DFBD45C3D3F03F4C0` |
+
 ## Cross-surface invariants
 
 - The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.

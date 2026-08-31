@@ -1,4 +1,4 @@
-# Evidence Lane current-route refresh: 3.0.0 / 2026-08-23
+# Evidence Lane source version: 3.0.0
 FROM python:3.14.2-slim-bookworm@sha256:e87711ef5c86aaeaa7031718a69db79d334d94c545c709583f651b8185870941
 
 ARG EVIDENCE_LANE_RELEASE_SHA

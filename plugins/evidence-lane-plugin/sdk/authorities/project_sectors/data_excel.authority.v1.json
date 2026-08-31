@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "data_excel",
   "authority_root": "authorities/project_sectors/data_excel",
-  "authority_manifest_sha256": "AD09CA2342B5C76B9178FA41B6541E39E321FCD85D8F3A5C5D9C69A677D96F95",
+  "authority_manifest_sha256": "A3A8D2574DEE00798C562137CB199D3D7FD52BDCE9FEB963B762795565EE827B",
   "schema_surface": "schemas/project-sectors/data_excel/schema-surface.v1.json",
   "builder": "authorities/project_sectors/data_excel/builder.py",
   "reader": "authorities/project_sectors/data_excel/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "45532A35F85542E602C2F3529304F493E1ED9C942E4B12EC43D4E65F73F4E6B0"
+  "receipt_sha256": "D201338DC152FFADFFD6BCD603B6F3A6467FAD674E2A2040891C432FA6ECFB0D"
 }

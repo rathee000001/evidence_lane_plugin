@@ -30,6 +30,15 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
 
 
+def _canonical_package_bytes(path: Path) -> bytes:
+    """Match the Git-archive text normalization used by the package registry."""
+
+    payload = path.read_bytes()
+    if b"\0" not in payload[:8000]:
+        return payload.replace(b"\r\n", b"\n")
+    return payload
+
+
 def test_installed_package_has_complete_visible_surface() -> None:
     for name in (
         ".codex-plugin",
@@ -281,8 +290,9 @@ def test_installed_executable_tree_registry_hashes_every_declared_member() -> No
     for row in registry["members"]:
         path = PLUGIN / row["path"]
         assert path.is_file(), row["path"]
-        assert path.stat().st_size == row["bytes"]
-        assert _sha256(path) == row["sha256"]
+        payload = _canonical_package_bytes(path)
+        assert len(payload) == row["bytes"]
+        assert hashlib.sha256(payload).hexdigest().upper() == row["sha256"]
     assert "remote_adapter/" not in registry["repository_only_exclusions"]
     assert registry["repository_companion_surfaces"] == ["apps/evidence-lane-app/"]
     assert "tests/tools/" in registry["repository_only_exclusions"]

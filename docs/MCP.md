@@ -72,6 +72,14 @@ flowchart TB
 - `schemas/public-action-schemas.v001.json`
 - `sdk/sdk-manifest.v1.json`
 
+### Exact backend readback
+
+| Source contract | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `mcp/mcp-manifest.v1.json` | 7258 | `6065AA7923D72B14ED84950FC0C47AD050C672B0237228EA323FA592266247B2` |
+| `schemas/public-action-schemas.v001.json` | 360281 | `78BCC5C9797ECBCE3B5DAA5FCFC7B5E83E35315A912EDB5C34E7354CE4D68CED` |
+| `sdk/sdk-manifest.v1.json` | 76103 | `2A0F6CE0ECFAFF14510E69D432E144A2F71D14C04E013DFC4298DAD22E6CA0E3` |
+
 ## Cross-surface invariants
 
 - The current snapshot contains 91 public actions, 26 skills, 11 hook events / 44 handlers, 119 tool requirements, 18 sector lanes, and 11 named authorities. These are derived counts, not fixed ceilings.

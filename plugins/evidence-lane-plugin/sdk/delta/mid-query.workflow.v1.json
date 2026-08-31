@@ -29,7 +29,8 @@
       "agent_learning",
       "project_memory",
       "canon_input",
-      "project_universe"
+      "project_universe",
+      "env_uop_operator_runtime"
     ],
     "hooks_required": false,
     "refire_order": [
@@ -53,7 +54,9 @@
       "count": 7,
       "count_is_fixed_ceiling": false
     },
-    "ai_action_planes": [],
+    "ai_action_planes": [
+      "ENV_UOP_AI_ACTION_PLANE"
+    ],
     "env_uop_operations_counted_as_public_actions": 0
   },
   "public_actions": [
@@ -90,5 +93,5 @@
   "env_uop_ai_action_plane": true,
   "accepted_archive_queried": false,
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "7117793D804B0DB8B2FB86ED27F83533ABF674CBCB3B5EE91BB371320B382044"
+  "receipt_sha256": "E19C17D6234DBC20187B7D7B075B4AA64053D73EFF90A6F2C747CD191CD0BB4B"
 }

@@ -30,7 +30,7 @@
     {
       "path": "authorities/project_sectors/chat_lineage/chat_lineage_sector_v001.sqlite",
       "bytes": 286720,
-      "sha256": "7769E1BE0379403988622C38681F1170A104DC135E5C5350ED8B32BE465345EF"
+      "sha256": "7303E7E304D7E739B43B243F3766737CA167693FC567E49847C052EAA1CC7CF9"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/dot-artifact.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/chat_lineage/tools.json",
       "bytes": 16267,
-      "sha256": "BECF81AF9E8D7F5ED2BBA27AFB90293380B2E9AF4C5E6A2E4AEB69DAE732C495"
+      "sha256": "9AAEEBD87EA74BE91D1A62B500E4122D83A96EDF325B1B2BA32E35C06D0E3F59"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/tools.schema.json",
@@ -100,17 +100,17 @@
     {
       "path": "authorities/project_sectors/chat_lineage/workflow.dot",
       "bytes": 6471,
-      "sha256": "D8CDB72EEF8A4A8CAF7F7F59AB081A2593EC0F0A532B19437A26DC99D03F9866"
+      "sha256": "E106BD46651A56DDD35234980B2405369968FBCCE01C6F736A4C0564D304030C"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/workflow.mmd",
       "bytes": 5032,
-      "sha256": "B79244763E64A0D25B941821AC0BA3F54EC793F35F5C4F1947183DD64BF6DED1"
+      "sha256": "AD84A3F7DA46273FEBBE6AC2838DCE3CAA2317869F5CE78D94DB55168DEC06AF"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/workflow.v1.json",
-      "bytes": 30675,
-      "sha256": "968A8BC60F21C3A0D10B0774C3C3E0B551B8971CB987EDD4815E5D7C927D2316"
+      "bytes": 22564,
+      "sha256": "6B8FE033821F632F3AFDBB8D372A550519F414F1156A844A6D3F0C13CB4E20B5"
     }
   ],
   "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "9E401462226E7321C0B752D098AFB75A37A633893B3DCDA22D1462C5D56F7D3D"
+  "receipt_sha256": "33547D3BCE9B7C19414E64047098C3C7A655A6CADCA3F1BD3B81F597DEB89B27"
 }
