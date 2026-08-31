@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_authority",
   "database": "project-authority.sqlite",
-  "database_sha256": "A05A8406833B1FB3832556F1DB8C090EEAC95A2776FBFCEB48FCEE62F8E857CE",
+  "database_sha256": "8CAF9F4B4015D25FD15D051E0A564166593EBD923C69C060817C45CD1D923083",
   "database_integrity": "ok",
-  "schema_sha256": "FF043291FCEC58CC8C95B9B5ACC348000B365A085AB9CEC9D5CBB1039950026B",
+  "schema_sha256": "B17789C2203345F3E6FD06C1EDB3F3352D59935631EF7C7C25F939B3254C1710",
   "table_count": 20,
   "fts5_tables": [
     "authority_index_fts",
@@ -60,7 +60,7 @@
     {
       "path": "authorities/project_authority/project-authority.sqlite",
       "bytes": 155648,
-      "sha256": "A05A8406833B1FB3832556F1DB8C090EEAC95A2776FBFCEB48FCEE62F8E857CE"
+      "sha256": "8CAF9F4B4015D25FD15D051E0A564166593EBD923C69C060817C45CD1D923083"
     },
     {
       "path": "authorities/project_authority/project_authority.dot",
@@ -120,7 +120,7 @@
     {
       "path": "authorities/project_authority/sqlite-schema.v1.json",
       "bytes": 31794,
-      "sha256": "8C696D4E84FB0F54F7C2BB3B6CF5290912035C464BC30EEBE46B41C128A1C899"
+      "sha256": "B4643535FDF81422C7588B825041405B55A929F22242CBD32021CB2D44B2399A"
     },
     {
       "path": "authorities/project_authority/tools.schema.json",
@@ -315,5 +315,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "826020254F7D1441A19FB86BB6DFB07DD71264AC3544B03CF1AA7166DECAC4F4"
+  "receipt_sha256": "571C2F891E42E3746D85FF3610B59842EFD0B501930227C1EBC00214BDF134BB"
 }

@@ -857,6 +857,10 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
                 not path.is_file()
                 or path == executable_registry_path
                 or set(path.relative_to(plugin_root).parts) & excluded_parts
+                or any(
+                    part.endswith(".egg-info")
+                    for part in path.relative_to(plugin_root).parts
+                )
                 or path.relative_to(plugin_root).as_posix().startswith("tests/tools/")
                 or (
                     path.relative_to(plugin_root).as_posix().startswith("tests/")
@@ -1112,12 +1116,12 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
             "mmd-artifact.schema.json",
             "refresh-receipt.schema.json",
             "sqlite-artifact.schema.json",
-                "tools.json",
-                "tools.schema.json",
-                "workflow.dot",
-                "workflow.mmd",
-                "workflow.v1.json",
-                lane.sqlite_filename,
+            "tools.json",
+            "tools.schema.json",
+            "workflow.dot",
+            "workflow.mmd",
+            "workflow.v1.json",
+            lane.sqlite_filename,
             lane.mmd_filename,
             lane.dot_filename,
         }
@@ -1586,8 +1590,7 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
         or schema_manifest.get("receipt_sha256")
         != _sha256_bytes(_json_bytes(schema_manifest_body))
         or len(action_schema_files) != expected_counts["tools"]
-        or {row.get("name") for row in action_schema_rows}
-        != set(public_tools_by_name)
+        or {row.get("name") for row in action_schema_rows} != set(public_tools_by_name)
         or any(
             row.get("input_schema")
             != public_tools_by_name[str(row.get("name"))]["input_schema"]
@@ -1887,7 +1890,8 @@ def _load_executable_fingerprint_refresh(
         or impact.get("all_replacements_directly_purged") is not True
         or impact.get("orphaned_generated_member_count") != 0
         or any(negative.get(key) is not False for key in negative)
-        or re.fullmatch(r"[A-F0-9]{64}", str(receipt.get("receipt_sha256") or "")) is None
+        or re.fullmatch(r"[A-F0-9]{64}", str(receipt.get("receipt_sha256") or ""))
+        is None
     ):
         raise PackageBoundaryError(
             "The package requires a passing project-neutral executable fingerprint Refresh."
@@ -2071,7 +2075,9 @@ def build_rehearsal(
             expected_version=expected_version,
         )
     )
-    if surface_coherence_required and ((route_audit is None) == (fingerprint_refresh is None)):
+    if surface_coherence_required and (
+        (route_audit is None) == (fingerprint_refresh is None)
+    ):
         raise PackageBoundaryError(
             "Supply exactly one passing Plan-history audit or executable fingerprint Refresh."
         )

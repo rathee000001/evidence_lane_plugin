@@ -35,7 +35,7 @@
     {
       "path": "authorities/project_sectors/images_ocr/images_ocr_sector_v001.sqlite",
       "bytes": 237568,
-      "sha256": "E9221C2901672215D968A7F65C2F9EC4B4A3C0D405654FA1708184AED8861292"
+      "sha256": "B320A0002CC5F158077A8A6CB41B51DE50DCA2C81967D3039EF2838972090BBB"
     },
     {
       "path": "authorities/project_sectors/images_ocr/lane-contract.v1.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "B9C33E5178F6FA4192C183F74C60D3B962BAE129210AA97D428BCFE88077F57A"
+  "receipt_sha256": "A9CAAB45C7487E9A57A23947719A57138A5E902655F082CAEA411D171A62DF39"
 }

@@ -10,7 +10,7 @@
       "path": "uop/locked_mmd_hash.txt",
       "canonical_path": "uop/locked_mmd_hash.txt",
       "bytes": 609,
-      "sha256": "8098A663191DA5B4A8E3082FA2B28CCA4E734F80B1175250DAF38302C95FA21B"
+      "sha256": "E6BB44434E6EDDEBB20BB8FE0391ADF63DAF6B4B8E063CF71AD0C3D59D7C21B2"
     },
     {
       "path": "uop/uop_law.md",
@@ -34,10 +34,10 @@
       "path": "uop/uop_sqlite.sqlite",
       "canonical_path": "uop/uop_sqlite.sqlite",
       "bytes": 937984,
-      "sha256": "435159C5449DA08C2CCB4901AE5129D29681AF3094BC24B6D3B5E4F9CB8E036E"
+      "sha256": "E295F8592799784EFF8BB63C31F27331BDBA0EA8092A63E307E0C9FBF80ACF1D"
     }
   ],
   "canonical_packaged_authority": true,
   "duplicate_authority_copy_present": false,
-  "receipt_sha256": "8AD051F100C1E854264EB5FEB56DDCF585FB269464FF79F9C2BBCF8A31C9B090"
+  "receipt_sha256": "034A557959ED9C9B1A83A6A1B32BD2A6E0848608EAC668A952BEABF8E3F995F3"
 }

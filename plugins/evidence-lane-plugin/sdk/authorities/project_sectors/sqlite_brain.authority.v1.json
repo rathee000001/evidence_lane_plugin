@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "sqlite_brain",
   "authority_root": "authorities/project_sectors/sqlite_brain",
-  "authority_manifest_sha256": "74639F83E33DEC53965634D319ED5B82677BB6DEEA4A4CB713A11435D069A1BE",
+  "authority_manifest_sha256": "D2B4CAD2338CA5EC0A335CCEE86DB651A9FC5F01D52BE3168A69BA1907DEF517",
   "schema_surface": "schemas/project-sectors/sqlite_brain/schema-surface.v1.json",
   "builder": "authorities/project_sectors/sqlite_brain/builder.py",
   "reader": "authorities/project_sectors/sqlite_brain/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "C007D5C8C81CF0AD1787C59752A98E5A7F30E2A3F9EB7DFFEE73972C3F4E9052"
+  "receipt_sha256": "667C3C2BFB28337B3344A59D7E098E3736FD78308F0C71A3B56871C6BA414AA3"
 }

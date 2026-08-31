@@ -3,10 +3,10 @@
   "status": "PASS",
   "authority_id": "receipt_ledger",
   "authority_root": "authorities/receipt_ledger",
-  "authority_manifest_sha256": "C2F43515B0DC0697B7E3D53335FD26EF66AE8DC58A43AD0E4662F9F3C1B5745A",
+  "authority_manifest_sha256": "8BA4CFEFBB522FE622519036B433405C0C0F877D5FFE79D4BB2D0617CA56548B",
   "schema_surface": "schemas/authorities/receipt_ledger/schema-surface.v1.json",
   "persistent_sqlite_authority": true,
   "linked_public_action_count": 17,
   "merged_with_project_sector_or_peer": false,
-  "receipt_sha256": "4C94F07C492DB0D53911C4254D8697DB7B0FD25CE2AE446F3B312A6AE96BD322"
+  "receipt_sha256": "E873FCD069343F852AE58CDF8830300E7EAAAEB757BEE4E6F231AEEE71BA6A16"
 }

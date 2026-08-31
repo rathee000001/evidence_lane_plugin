@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "project_engulf",
   "authority_root": "authorities/project_sectors/project_engulf",
-  "authority_manifest_sha256": "79F05C47D7353829F8114488F28C027E4D27E6164E2C4BEB64A27C39F96D2395",
+  "authority_manifest_sha256": "3E103503D0F803EE18D4CA52AD40218EF2B667C2135FB486100E01F9A73D3E08",
   "schema_surface": "schemas/project-sectors/project_engulf/schema-surface.v1.json",
   "builder": "authorities/project_sectors/project_engulf/builder.py",
   "reader": "authorities/project_sectors/project_engulf/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "30489223C7B03872B35489158AE19C107F7F2ED78A4C47D84FAC275E62C10F5E"
+  "receipt_sha256": "5459B530B58BAC962F92735B9FA522BC9D09011728B325864B0EA96C4ECC6EAF"
 }

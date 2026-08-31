@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "images_ocr",
   "authority_root": "authorities/project_sectors/images_ocr",
-  "authority_manifest_sha256": "9498AF202EAA75D325DD15D098FF9DBA1C7E35E083C199236A693F63C82D351E",
+  "authority_manifest_sha256": "0D0329A08B2EC331210269112CC80402B95433A1489FE523C2FC38C25858D511",
   "schema_surface": "schemas/project-sectors/images_ocr/schema-surface.v1.json",
   "builder": "authorities/project_sectors/images_ocr/builder.py",
   "reader": "authorities/project_sectors/images_ocr/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "7B070253676C5DADD93FC6916A5275D8CC451315C8A81FE1289A4F90AB5CD916"
+  "receipt_sha256": "8ACF992761CE3BD20A043A4153F74D77AC2A2AE36CDD50C8B8DDF3ED5A662168"
 }

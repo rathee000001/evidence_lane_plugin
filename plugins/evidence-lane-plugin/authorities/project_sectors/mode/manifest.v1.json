@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/mode/mode_sector_v001.sqlite",
       "bytes": 253952,
-      "sha256": "EF9334CEA83CDF475ADD82270CF58A1D5D0732359A1FD1117099CC454F3B01D1"
+      "sha256": "A45CBB95EE1D82B720B3C48869F680ACE9EEF9EC5F0C892BC8E136186948E9A6"
     },
     {
       "path": "authorities/project_sectors/mode/reader-contract.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "0C3923888CFC3D459BE84FA7D3F2946B349C174E8FB1F89953D05D864027B440"
+  "receipt_sha256": "5A2E75000D42C99A15DD2AA2C2B0B4736AB9721A65B5388F1FCA51021570AD60"
 }

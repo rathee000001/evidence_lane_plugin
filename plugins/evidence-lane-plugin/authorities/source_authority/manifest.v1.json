@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "source_authority",
   "database": "source_authority.sqlite",
-  "database_sha256": "CFE778D1DD81843FBBA55098E1113077E07C0EA428C907C2D25A157E6CB8C8F0",
+  "database_sha256": "1910906C64CE34B966C77468C4B159FDE2BCF4EE8A07897649ACBDCE391A0AB1",
   "database_integrity": "ok",
-  "schema_sha256": "A8AFADAB233C280AF71EB42AFB91E46D948FA229EB0A96EE59428A8C1DC1469D",
+  "schema_sha256": "9743D10322F8BB4E256651ABBD8037FAFD6B46A77AD6CAC1A4BB628DF05BD91E",
   "table_count": 56,
   "fts5_tables": [
     "authority_index_fts",
@@ -95,7 +95,7 @@
     {
       "path": "authorities/source_authority/source_authority.sqlite",
       "bytes": 561152,
-      "sha256": "CFE778D1DD81843FBBA55098E1113077E07C0EA428C907C2D25A157E6CB8C8F0"
+      "sha256": "1910906C64CE34B966C77468C4B159FDE2BCF4EE8A07897649ACBDCE391A0AB1"
     },
     {
       "path": "authorities/source_authority/source_authority.tools.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/source_authority/sqlite-schema.v1.json",
       "bytes": 129634,
-      "sha256": "F4ECB9A3AE93731E9E2F962235B03D5F8BDC7317D401FE02258B0B3F19F5F394"
+      "sha256": "6A97F9339CE8CA0B146EAB4A900E9F2C8F32AD95DDEABFBE14533D0C649D2858"
     },
     {
       "path": "authorities/source_authority/tools.schema.json",
@@ -310,5 +310,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "0B400DA4196074A6F55B7B54209792302BDDAC82C4175CA8B198999123462EB0"
+  "receipt_sha256": "EDE0D1521DE69AEB7EC2F0E53E833A0A83733CD96EF9CE570305639B34946CD7"
 }

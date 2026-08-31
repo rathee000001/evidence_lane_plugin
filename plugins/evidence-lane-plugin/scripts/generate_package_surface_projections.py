@@ -4606,6 +4606,10 @@ def _generate_executable_surface_registry() -> dict[str, Any]:
             if path.is_file()
             and path != registry_path
             and not set(path.relative_to(PLUGIN_ROOT).parts) & excluded_parts
+            and not any(
+                part.endswith(".egg-info")
+                for part in path.relative_to(PLUGIN_ROOT).parts
+            )
             and not path.relative_to(PLUGIN_ROOT).as_posix().startswith("tests/tools/")
             and (
                 not path.relative_to(PLUGIN_ROOT).as_posix().startswith("tests/")

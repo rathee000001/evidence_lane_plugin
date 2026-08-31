@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "connector_brain",
   "database": "connector-brain.sqlite",
-  "database_sha256": "DF7572FE25E19C7A17A17A35B99278736CA30BF0A001EDB579BE1B4EE8BF7C9C",
+  "database_sha256": "CFCEAF91150061DA86C7976C3F848DF78C396A42F1AEBBBE87FFDC1254F0502F",
   "database_integrity": "ok",
-  "schema_sha256": "AE23270CD45C52B7C74D53E96319AB9FD45E8EB91470364A9EFF353CB3788E93",
+  "schema_sha256": "48DC208E1CC7F742943311B967FAB2AAB71C949FF940F69D1EAF5D348F4AAAF0",
   "table_count": 29,
   "fts5_tables": [
     "authority_index_fts",
@@ -26,7 +26,7 @@
     {
       "path": "authorities/connector_brain/connector-brain.sqlite",
       "bytes": 200704,
-      "sha256": "DF7572FE25E19C7A17A17A35B99278736CA30BF0A001EDB579BE1B4EE8BF7C9C"
+      "sha256": "CFCEAF91150061DA86C7976C3F848DF78C396A42F1AEBBBE87FFDC1254F0502F"
     },
     {
       "path": "authorities/connector_brain/connector_brain.dot",
@@ -111,7 +111,7 @@
     {
       "path": "authorities/connector_brain/sqlite-schema.v1.json",
       "bytes": 42990,
-      "sha256": "D144401B5980E1810BAF390E4CE27CE5EFFFABEDBAEC5E1BB5213CE0CD3B892E"
+      "sha256": "A80BF641C7EB73ED2FE09FCEF39C7230440684C3F4208B93EE011541E0B39E85"
     },
     {
       "path": "authorities/connector_brain/tools.schema.json",
@@ -304,5 +304,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "C27D9EEF47EA2FECAB00E9DC7EA14CC42A3727024215D860F9A29D949A904EFB"
+  "receipt_sha256": "A59E86F5D6B54368371106676C56BB604BBD7745EAD75090999C900C6AA85B34"
 }
