@@ -160,14 +160,15 @@ def test_maintained_markdown_local_links_resolve() -> None:
     assert failures == []
 
 
-def test_pages_workflow_fetches_receipt_feature_and_baseline_commits() -> None:
+def test_pages_and_ci_workflows_fetch_cumulative_baseline_ancestry() -> None:
     workflow = (
         ROOT / ".github" / "workflows" / "evidence-lane-github-pages.yml"
     ).read_text(encoding="utf-8")
-    assert "fetch-depth: 3" in workflow
-    assert "Receipt HEAD -> feature commit -> baseline commit" in workflow
+    assert "fetch-depth: 0" in workflow
+    assert "immutable cumulative main baseline" in workflow
     governed = (
         ROOT / ".github" / "workflows" / "evidence-lane-ci.yml"
     ).read_text(encoding="utf-8")
-    assert "fetch-depth: 3" in governed
-    assert "Receipt HEAD -> feature commit -> baseline commit" in governed
+    assert "fetch-depth: 0" in governed
+    assert "immutable cumulative main" in governed
+    assert "baseline even after bounded correction" in governed

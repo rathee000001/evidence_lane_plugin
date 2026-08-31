@@ -75,7 +75,7 @@ flowchart TB
 | --- | ---: | --- |
 | `manifests/executable-surface-registry.v1.json` | 374599 | `8BF0685313E6E2E08CF61A833A532E848E6312767DC8ECDD165E56ECE9AAFFA4` |
 | `src/evidence_lane_plugin/source_fingerprint.py` | 6916 | `EA31A7B001B85E2D8C19679D50004E88831C8E8635E032E012420F0588D33D16` |
-| `scripts/audit_repository_semantic_currentness.py` | 24898 | `54AB4162615852BB61B83F656E70A2289ACF203375364447607D0CC7C7AA166D` |
+| `scripts/audit_repository_semantic_currentness.py` | 25126 | `10C84091017B0A5626121F96ECF718BCF3D407C7D282B8A1000A2F860A24DBEC` |
 
 ## Cross-surface invariants
 

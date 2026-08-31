@@ -137,6 +137,36 @@ def _commit_refresh_paths(revision: str) -> set[str]:
     }
 
 
+def _commit_range_refresh_paths(baseline: str, revision: str) -> set[str]:
+    result = subprocess.run(
+        ["git", "diff", "--name-only", baseline, revision, "--"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    return {
+        line.strip().replace("\\", "/")
+        for line in result.stdout.splitlines()
+        if line.strip()
+    }
+
+
+def _is_commit_ancestor(ancestor: str, revision: str) -> bool:
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", ancestor, revision],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    if result.returncode not in {0, 1}:
+        raise RuntimeError("Unable to verify repository fingerprint ancestry.")
+    return result.returncode == 0
+
+
 def _git_revision(value: str) -> str:
     result = subprocess.run(
         ["git", "rev-parse", "--verify", f"{value}^{{commit}}"],
@@ -180,12 +210,15 @@ def _current_commit_refresh_paths() -> set[str]:
     baseline_commit = str(manifest.get("baseline_commit_sha") or "")
     if (
         _git_revision(f"{revision}^") != source_commit
-        or _git_revision(f"{source_commit}^") != baseline_commit
+        or _git_revision(source_commit) != source_commit
+        or _git_revision(baseline_commit) != baseline_commit
+        or source_commit == baseline_commit
+        or not _is_commit_ancestor(baseline_commit, source_commit)
     ):
         raise RuntimeError(
             "The receipt commit does not bind its exact feature and baseline commits."
         )
-    current_paths.update(_commit_refresh_paths(source_commit))
+    current_paths.update(_commit_range_refresh_paths(baseline_commit, source_commit))
     return current_paths
 
 

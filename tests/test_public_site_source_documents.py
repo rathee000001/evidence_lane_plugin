@@ -136,9 +136,19 @@ def test_github_pages_workflow_requires_every_source_refresh_per_commit() -> Non
     workflow = (ROOT / ".github/workflows/evidence-lane-github-pages.yml").read_text(
         encoding="utf-8"
     )
-    assert "fetch-depth: 3" in workflow
-    assert "Receipt HEAD -> feature commit -> baseline commit" in workflow
+    assert "fetch-depth: 0" in workflow
+    assert "immutable cumulative main baseline" in workflow
     assert "prepare_github_pages.py --require-current-commit-refresh" in workflow
+
+
+def test_github_pages_refresh_supports_bounded_cumulative_correction_chain() -> None:
+    source = (ROOT / "scripts" / "prepare_github_pages.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert '"merge-base", "--is-ancestor"' in source
+    assert '_commit_range_refresh_paths(baseline_commit, source_commit)' in source
+    assert '_git_revision(f"{source_commit}^") != baseline_commit' not in source
 
 
 def test_readme_leads_with_public_site_and_pages_projection_links() -> None:
