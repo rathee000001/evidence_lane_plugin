@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Seal the bounded pre-regression executable-lane harness."""
 
 from __future__ import annotations

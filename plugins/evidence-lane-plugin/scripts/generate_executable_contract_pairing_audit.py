@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Audit every action, skill, hook, schema and SDK/MCP route one by one."""
 
 from __future__ import annotations

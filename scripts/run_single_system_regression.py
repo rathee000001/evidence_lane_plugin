@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Run the one authorized full repository regression and preserve exact evidence."""
 
 from __future__ import annotations
@@ -8,14 +7,12 @@ import hashlib
 import json
 import os
 import subprocess
-import sys
 import tempfile
 import time
 import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-
 
 SCHEMA = "evidence-lane.single-system-regression-receipt.v1"
 

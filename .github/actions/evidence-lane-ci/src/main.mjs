@@ -118,10 +118,10 @@ function commandPlan(profile, pythonExecutable, pnpmExecutable) {
           'tests/test_operating_modes.py',
           'tests/test_topology_reconciliation.py',
           'tests/test_topology_rendering.py',
-          'tests/test_universal_brain_v060.py',
+          'tests/test_universal_brain.py',
           'tests/test_universal_lanes.py',
-          'tests/test_v070_improvements.py',
-          'tests/test_v080_authorities.py'
+          'tests/test_source_intake_and_lane_runtime.py',
+          'tests/test_authority_integrity.py'
         ]
       ]
     ],

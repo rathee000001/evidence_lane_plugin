@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Join real lane executions to the complete tool/lane/authority contract."""
 
 from __future__ import annotations

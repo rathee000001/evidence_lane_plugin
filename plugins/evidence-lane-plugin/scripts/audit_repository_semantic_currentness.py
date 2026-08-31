@@ -19,9 +19,9 @@ import sqlite3
 import subprocess
 import tempfile
 import tomllib
+from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
-from typing import Any, Iterable
-
+from typing import Any
 
 SCHEMA = "evidence-lane.repository-semantic-currentness-audit.v1"
 FINAL_CLASSIFICATIONS = {
@@ -411,7 +411,7 @@ def _load_index_json(path: str, rows: dict[str, dict[str, str]], blobs: dict[str
         raise RuntimeError(f"SEMANTIC_AUDIT_REQUIRED_REGISTRY_MISSING:{path}")
     value = json.loads(_decode_text(path, blobs[row["index_object_id"]]), object_pairs_hook=_duplicate_key_guard)
     if not isinstance(value, dict):
-        raise RuntimeError(f"SEMANTIC_AUDIT_REQUIRED_REGISTRY_INVALID:{path}")
+        raise TypeError(f"SEMANTIC_AUDIT_REQUIRED_REGISTRY_INVALID:{path}")
     return value
 
 
@@ -496,7 +496,16 @@ def build_audit(repository: Path, index_file: Path) -> dict[str, Any]:
                 media_class = "NONSEMANTIC_BINARY_ASSET"
                 structure = _binary_structure(path, payload)
                 semantic_status = "NONSEMANTIC_BINARY_VERIFIED"
-        except Exception as exc:  # diagnostic receipt retains the exact parser failure
+        except (
+            KeyError,
+            OSError,
+            RuntimeError,
+            SyntaxError,
+            TypeError,
+            UnicodeError,
+            ValueError,
+            sqlite3.Error,
+        ) as exc:  # diagnostic receipt retains the exact expected parser failure
             findings.append(f"STRUCTURAL_PARSE_FAILURE:{type(exc).__name__}:{exc}")
             structure = {"parser": "FAILED", "error_type": type(exc).__name__}
             semantic_status = "STALE_REQUIRES_CORRECTION"

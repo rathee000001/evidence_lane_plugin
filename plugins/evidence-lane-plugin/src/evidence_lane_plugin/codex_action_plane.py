@@ -665,6 +665,7 @@ def _parse_mermaid_behavior(
                 status="MISMATCH",
                 group_id=group_id,
             )
+            assert contract is not None
             disposition = (
                 "DEFERRED_NON_EXECUTABLE"
                 if group_id in deferred_groups
@@ -1131,32 +1132,32 @@ def _build_graphs(
         "adapted behavior evidence",
         conditional=True,
     )
-    behavior_groups = [
+    env_behavior_groups = [
         dict(row)
         for row in env.execute(
             "SELECT * FROM env_behavior_subgraph_v18 ORDER BY group_id"
         )
     ]
-    behavior_nodes = [
+    env_behavior_nodes = [
         dict(row)
         for row in env.execute("SELECT * FROM env_behavior_node_v18 ORDER BY node_id")
     ]
-    behavior_edges = [
+    env_behavior_edges = [
         dict(row)
         for row in env.execute("SELECT * FROM env_behavior_edge_v18 ORDER BY edge_id")
     ]
-    behavior_node_ids: dict[str, str] = {}
-    behavior_nodes_by_group: dict[str, list[dict[str, Any]]] = {
-        str(row["group_id"]): [] for row in behavior_groups
+    env_behavior_node_ids: dict[str, str] = {}
+    env_behavior_nodes_by_group: dict[str, list[dict[str, Any]]] = {
+        str(row["group_id"]): [] for row in env_behavior_groups
     }
-    ungrouped_behavior_nodes: list[dict[str, Any]] = []
-    for row in behavior_nodes:
+    env_ungrouped_behavior_nodes: list[dict[str, Any]] = []
+    for row in env_behavior_nodes:
         groups = json.loads(str(row["groups_json"]))
-        if groups and str(groups[0]) in behavior_nodes_by_group:
-            behavior_nodes_by_group[str(groups[0])].append(row)
+        if groups and str(groups[0]) in env_behavior_nodes_by_group:
+            env_behavior_nodes_by_group[str(groups[0])].append(row)
         else:
-            ungrouped_behavior_nodes.append(row)
-    for group in behavior_groups:
+            env_ungrouped_behavior_nodes.append(row)
+    for group in env_behavior_groups:
         group_id = str(group["group_id"])
         graph_group_id = (
             "ENV153_GROUP_" + re.sub(r"[^A-Za-z0-9_]+", "_", group_id).upper()
@@ -1166,11 +1167,11 @@ def _build_graphs(
             f"{group['label']} | owner={group['canonical_owner']} | {group['execution_disposition']}",
             direction="TB",
         )
-        for row in behavior_nodes_by_group[group_id]:
+        for row in env_behavior_nodes_by_group[group_id]:
             node_id = (
                 "ENV153_" + re.sub(r"[^A-Za-z0-9_]+", "_", str(row["node_id"])).upper()
             )
-            behavior_node_ids[str(row["node_id"])] = node_id
+            env_behavior_node_ids[str(row["node_id"])] = node_id
             env_graph.add_node(
                 node_id,
                 (
@@ -1182,11 +1183,11 @@ def _build_graphs(
                 else "source",
             )
         env_graph.end_group()
-    for row in ungrouped_behavior_nodes:
+    for row in env_ungrouped_behavior_nodes:
         node_id = (
             "ENV153_" + re.sub(r"[^A-Za-z0-9_]+", "_", str(row["node_id"])).upper()
         )
-        behavior_node_ids[str(row["node_id"])] = node_id
+        env_behavior_node_ids[str(row["node_id"])] = node_id
         env_graph.add_node(
             node_id,
             (
@@ -1197,8 +1198,8 @@ def _build_graphs(
             if row["execution_disposition"] == "ACTIVE_ADAPTED"
             else "source",
         )
-    target_ids = {str(row["target_node_id"]) for row in behavior_edges}
-    for source_id, graph_id in sorted(behavior_node_ids.items()):
+    target_ids = {str(row["target_node_id"]) for row in env_behavior_edges}
+    for source_id, graph_id in sorted(env_behavior_node_ids.items()):
         if source_id not in target_ids:
             env_graph.add_edge(
                 "ENV153_BEHAVIOR_ROOT",
@@ -1206,10 +1207,10 @@ def _build_graphs(
                 "behavior district entry",
                 conditional=True,
             )
-    for row in behavior_edges:
+    for row in env_behavior_edges:
         env_graph.add_edge(
-            behavior_node_ids[str(row["source_node_id"])],
-            behavior_node_ids[str(row["target_node_id"])],
+            env_behavior_node_ids[str(row["source_node_id"])],
+            env_behavior_node_ids[str(row["target_node_id"])],
             str(row["operator"]),
             conditional=row["execution_disposition"] != "ACTIVE_ADAPTED",
         )
@@ -1295,32 +1296,32 @@ def _build_graphs(
         "adapted governance evidence",
         conditional=True,
     )
-    behavior_groups = [
+    uop_behavior_groups = [
         dict(row)
         for row in uop.execute(
             "SELECT * FROM uop_behavior_subgraph_v18 ORDER BY group_id"
         )
     ]
-    behavior_nodes = [
+    uop_behavior_nodes = [
         dict(row)
         for row in uop.execute("SELECT * FROM uop_behavior_node_v18 ORDER BY node_id")
     ]
-    behavior_edges = [
+    uop_behavior_edges = [
         dict(row)
         for row in uop.execute("SELECT * FROM uop_behavior_edge_v18 ORDER BY edge_id")
     ]
-    behavior_node_ids: dict[str, str] = {}
-    behavior_nodes_by_group: dict[str, list[dict[str, Any]]] = {
-        str(row["group_id"]): [] for row in behavior_groups
+    uop_behavior_node_ids: dict[str, str] = {}
+    uop_behavior_nodes_by_group: dict[str, list[dict[str, Any]]] = {
+        str(row["group_id"]): [] for row in uop_behavior_groups
     }
-    ungrouped_behavior_nodes: list[dict[str, Any]] = []
-    for row in behavior_nodes:
+    uop_ungrouped_behavior_nodes: list[dict[str, Any]] = []
+    for row in uop_behavior_nodes:
         groups = json.loads(str(row["groups_json"]))
-        if groups and str(groups[0]) in behavior_nodes_by_group:
-            behavior_nodes_by_group[str(groups[0])].append(row)
+        if groups and str(groups[0]) in uop_behavior_nodes_by_group:
+            uop_behavior_nodes_by_group[str(groups[0])].append(row)
         else:
-            ungrouped_behavior_nodes.append(row)
-    for group in behavior_groups:
+            uop_ungrouped_behavior_nodes.append(row)
+    for group in uop_behavior_groups:
         group_id = str(group["group_id"])
         graph_group_id = (
             "UOP15_GROUP_" + re.sub(r"[^A-Za-z0-9_]+", "_", group_id).upper()
@@ -1330,11 +1331,11 @@ def _build_graphs(
             f"{group['label']} | owner={group['canonical_owner']} | {group['execution_disposition']}",
             direction="TB",
         )
-        for row in behavior_nodes_by_group[group_id]:
+        for row in uop_behavior_nodes_by_group[group_id]:
             node_id = (
                 "UOP15_" + re.sub(r"[^A-Za-z0-9_]+", "_", str(row["node_id"])).upper()
             )
-            behavior_node_ids[str(row["node_id"])] = node_id
+            uop_behavior_node_ids[str(row["node_id"])] = node_id
             uop_graph.add_node(
                 node_id,
                 (
@@ -1346,9 +1347,9 @@ def _build_graphs(
                 else "source",
             )
         uop_graph.end_group()
-    for row in ungrouped_behavior_nodes:
+    for row in uop_ungrouped_behavior_nodes:
         node_id = "UOP15_" + re.sub(r"[^A-Za-z0-9_]+", "_", str(row["node_id"])).upper()
-        behavior_node_ids[str(row["node_id"])] = node_id
+        uop_behavior_node_ids[str(row["node_id"])] = node_id
         uop_graph.add_node(
             node_id,
             (
@@ -1359,8 +1360,8 @@ def _build_graphs(
             if row["execution_disposition"] == "ACTIVE_ADAPTED"
             else "source",
         )
-    target_ids = {str(row["target_node_id"]) for row in behavior_edges}
-    for source_id, graph_id in sorted(behavior_node_ids.items()):
+    target_ids = {str(row["target_node_id"]) for row in uop_behavior_edges}
+    for source_id, graph_id in sorted(uop_behavior_node_ids.items()):
         if source_id not in target_ids:
             uop_graph.add_edge(
                 "UOP15_BEHAVIOR_ROOT",
@@ -1368,10 +1369,10 @@ def _build_graphs(
                 "behavior district entry",
                 conditional=True,
             )
-    for row in behavior_edges:
+    for row in uop_behavior_edges:
         uop_graph.add_edge(
-            behavior_node_ids[str(row["source_node_id"])],
-            behavior_node_ids[str(row["target_node_id"])],
+            uop_behavior_node_ids[str(row["source_node_id"])],
+            uop_behavior_node_ids[str(row["target_node_id"])],
             str(row["operator"]),
             conditional=row["execution_disposition"] != "ACTIVE_ADAPTED",
         )

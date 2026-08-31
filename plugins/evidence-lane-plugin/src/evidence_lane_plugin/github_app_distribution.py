@@ -15,10 +15,10 @@ import hmac
 import json
 import re
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
-from typing import Any, Callable, Protocol, cast
+from typing import Any, Protocol, cast
 from urllib.parse import quote
 
 import httpx

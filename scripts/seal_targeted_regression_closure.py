@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Seal targeted closure against one preserved full-regression failure receipt."""
 
 from __future__ import annotations
@@ -11,7 +10,6 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
-
 
 SCHEMA = "evidence-lane.targeted-regression-closure.v1"
 
@@ -81,7 +79,7 @@ def main() -> int:
     full = json.loads(full_receipt_path.read_text(encoding="utf-8"))
     full_counts, failed_selectors = _junit(full_junit_path)
     targeted_counts, targeted_selectors = _junit(targeted_junit_path)
-    purged = sorted(set(str(value).replace("\\", "/") for value in arguments.purged_path))
+    purged = sorted({str(value).replace("\\", "/") for value in arguments.purged_path})
     present = [path for path in purged if (repository / path).exists()]
     if not (
         full.get("status") == "FAIL_REQUIRES_TARGETED_CLOSURE"
