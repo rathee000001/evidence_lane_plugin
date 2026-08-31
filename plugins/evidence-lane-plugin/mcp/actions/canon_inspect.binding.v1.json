@@ -61,11 +61,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/canon_inspect.action.v1.json",
-  "sdk_action_binding_sha256": "73BB46120E59EECD0B4083D40C64DA2490B3AD9F8EC6D0D1CA706B7238D0F8F0",
+  "sdk_action_binding_sha256": "AFE6E66BC9F783BFD37941AA1127A6B07752C72E9D5A9FEFB27EBE7BDE7BA326",
   "public_action_schema": "schemas/actions/canon_inspect.schema.json",
   "public_action_schema_sha256": "9DE6D15F87F3E00CFABE36F4CA571EEE70A4AD77BB95821170868A3CCF4BBA38",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "03CE9F84E9ADFF20A3CFABB64595806D7CD1DB75EBC9912273312FFD797992E2"
+  "receipt_sha256": "E96E0FD6392397CD5A60907F6D8BD20DD808584A7462CA43E651EEE0045A4460"
 }

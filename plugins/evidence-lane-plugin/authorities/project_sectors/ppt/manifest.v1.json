@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/ppt/ppt_sector_v001.sqlite",
       "bytes": 258048,
-      "sha256": "AA562F069FD33E7A97598B970A8E028F9A59CCFC7652E0586453C99555A1D9E6"
+      "sha256": "34FA5D87CE5C0F6869140D6DDA7EE5477128263C26376DB4A3D8CAC103FE9EAB"
     },
     {
       "path": "authorities/project_sectors/ppt/reader-contract.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "D5241F788C0D7FB9752214338841CCE0BC69A609AF38B06B9533BDBE595966E7"
+  "receipt_sha256": "75800244B134E561CE9869D4DD86F2637DF26CD78B4ED01AD23FC4D0803B2CB8"
 }

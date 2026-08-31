@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
       "bytes": 253952,
-      "sha256": "EE797DA26B0DF1807027742EB376A91E9168AEF30BB227A0064EFB1598204324"
+      "sha256": "049AC91CA423759B7B88C9FE843D80C6B827B31E2C973A2371CA754A349E3FA0"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/reader-contract.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "D7F16C5C0503723736A46ED9CD91D9E34824F7E672B2637DF58024833D1DF999"
+  "receipt_sha256": "5265463B08410C17CAB54FCD75C9A835E0CB3C2ECB93C700A8959FA42728C3DC"
 }

@@ -20,7 +20,7 @@
     {
       "path": "authorities/project_sectors/analysis/analysis_sector_v001.sqlite",
       "bytes": 249856,
-      "sha256": "2302901FBA65CD581AC65D58B28FD1B29DD72D3312BFDCAC0D136965E28011E2"
+      "sha256": "785EF8DEEC0EC91A0A79FC80B10593754C5E57B60E9F0BA0F7EA0667FFB9BCE3"
     },
     {
       "path": "authorities/project_sectors/analysis/builder-contract.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "71A9995ED4CF06C1C27F307864937B5AE7CED2DB7DAE967B8638F8769136CAC7"
+  "receipt_sha256": "0DE0392ED3413F2A6C235C9265F58A91BCD30AC61650AE1BA3411567A16C1508"
 }

@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_memory",
   "database": "memory.sqlite",
-  "database_sha256": "9B2A84C2CB7CF068FF0761AD2F376A1FBE0C077348D8612991E7E84AA63ACDF8",
+  "database_sha256": "E65ECA44D786C9C8181B68BE37A812F36F6818E68B96BC05D1CA00AAC79D1D86",
   "database_integrity": "ok",
-  "schema_sha256": "222CB0823F801ADF0C35F1BBBBAC38179E83E2CBFD5C855B9DD753935EC4F8B0",
+  "schema_sha256": "3CD0141207646790A98C56507C6F36F782918DDE0ECFCCF225FAC26FC572F8C9",
   "table_count": 22,
   "fts5_tables": [
     "authority_index_fts",
@@ -45,7 +45,7 @@
     {
       "path": "authorities/project_memory/memory.sqlite",
       "bytes": 180224,
-      "sha256": "9B2A84C2CB7CF068FF0761AD2F376A1FBE0C077348D8612991E7E84AA63ACDF8"
+      "sha256": "E65ECA44D786C9C8181B68BE37A812F36F6818E68B96BC05D1CA00AAC79D1D86"
     },
     {
       "path": "authorities/project_memory/memory.tools.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/project_memory/sqlite-schema.v1.json",
       "bytes": 34604,
-      "sha256": "167B67CF940CAF29287F2CB85138C6FCBDEB348C3462A44977DEE01C94AE2AC7"
+      "sha256": "5673146EED7B3CD41DDC369788DBDFAED03755AA454D4024A22CB52B77C50BBD"
     },
     {
       "path": "authorities/project_memory/tools.schema.json",
@@ -306,5 +306,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "30D2FE1E2790FB7B0E7D1D9EDE2984928FAD0D7BF6246A362C98366F24AD4349"
+  "receipt_sha256": "F3B736BA345D79F96197291B0B4EEDC5E957338CC846F5B054FB10622DB147B5"
 }

@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/plan/plan_sector_v001.sqlite",
       "bytes": 253952,
-      "sha256": "A1C34F46C9D2D9B8DC0C11CDE193A028C551F9ED19B816BCAB2FACCC8B2CF411"
+      "sha256": "2ABF094A9891E95C6353DEA8CBA1515AC48F5F69EAC6D19ACBF3736215CA3D05"
     },
     {
       "path": "authorities/project_sectors/plan/reader-contract.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "C78E7A6DA9550BC8429F4838823108002E88BCBBD01D2668AFE874B2203D339A"
+  "receipt_sha256": "DC07B2DC44095E85DEA133E972E70591DAE1B28CECE8EB2B860642068FA5B99B"
 }

@@ -30,7 +30,7 @@
     {
       "path": "authorities/project_sectors/docs/docs_sector_v001.sqlite",
       "bytes": 249856,
-      "sha256": "842DB8267FFA1DB9AA9CB9C5AFB950B13871AA447458DF21A8889DFC03677F7F"
+      "sha256": "985939D93DC068FCA4BCEBA9701F69284F82C9E28BDAB76107CB70DFFC54E1BD"
     },
     {
       "path": "authorities/project_sectors/docs/dot-artifact.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "842E7C107EA4721293854D1CC9276B71B1470CFF2B5F404B64810D9C2FC4519E"
+  "receipt_sha256": "6A344DC728F8B7596F81A71ABB3AC28540C58C665A7C86BB90D1006943B9D4E0"
 }

@@ -3740,17 +3740,23 @@ def _prepare_in_place_stable_reinstall(
         prior_stable_selector = str(stable.get("plugin_selector") or "")
         local_testing_selector = str(local_testing.get("plugin_selector") or "")
         by_selector = {str(row.get("pluginId") or ""): row for row in evidence_plugins}
-        if (
+        enabled_rows = [row for row in evidence_plugins if row.get("enabled") is True]
+        stable_missing_recovery = (
             prior_stable_selector not in by_selector
-            or local_testing_selector not in by_selector
-            or len([row for row in evidence_plugins if row.get("enabled") is True]) != 1
-            or any(
-                row.get("enabled") is True
-                and row.get("pluginId")
-                not in {prior_stable_selector, local_testing_selector}
-                for row in evidence_plugins
+            and set(by_selector) == {local_testing_selector}
+            and len(enabled_rows) == 1
+            and enabled_rows[0].get("pluginId") == local_testing_selector
+        )
+        ordinary_safe_state = (
+            prior_stable_selector in by_selector
+            and local_testing_selector in by_selector
+            and len(enabled_rows) == 1
+            and all(
+                row.get("pluginId") in {prior_stable_selector, local_testing_selector}
+                for row in enabled_rows
             )
-        ):
+        )
+        if not ordinary_safe_state and not stable_missing_recovery:
             raise InstallationError(
                 "The sealed stable-main/local-testing slots are not safe for an "
                 "in-place update."
@@ -3760,6 +3766,14 @@ def _prepare_in_place_stable_reinstall(
         row.get("pluginId") == plugin_selector for row in evidence_plugins
     )
     same_selector_refresh = prior_stable_selector == plugin_selector
+    stable_missing_recovery = bool(
+        two_slot_authority is not None
+        and same_selector_refresh
+        and not target_was_installed
+        and local_testing_selector is not None
+        and {str(row.get("pluginId") or "") for row in evidence_plugins}
+        == {local_testing_selector}
+    )
     if target_was_installed and not same_selector_refresh:
         raise InstallationError(
             "The canonical Git selector is unexpectedly installed during legacy "
@@ -3825,6 +3839,7 @@ def _prepare_in_place_stable_reinstall(
         "target_was_installed": target_was_installed,
         "one_time_legacy_selector_migration": legacy_selector_migration,
         "same_selector_refresh": same_selector_refresh,
+        "recovered_after_prior_stable_selector_removal": stable_missing_recovery,
         "stable_removed_for_same_selector_reinstall": (
             same_selector_refresh and target_was_installed
         ),

@@ -134,11 +134,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/project_recipe_compile.action.v1.json",
-  "sdk_action_binding_sha256": "B5164F7AE9AD842370862A53A960759BCB312CE1CEAD5B4B313CB0DBB3E2BBBA",
+  "sdk_action_binding_sha256": "3B9BD9D210DF9580EB54539A20FA23558C0F1528B7A53A2DDD5AEAF2E1E1ACF4",
   "public_action_schema": "schemas/actions/project_recipe_compile.schema.json",
   "public_action_schema_sha256": "F93A4CF5EB77DD7AF9BB3C5580DAD3DCB14D287BC517A1BDB10590A2FF191FA3",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "169DD57A06F029A5BCF2E4F8EC759CC0D04C19D1FC6B9B2B1B960C13412B1B61"
+  "receipt_sha256": "6C622365243C8EA9C73AC3DBFF551E147A39B01FA0C89D856C19D4F2060554F3"
 }

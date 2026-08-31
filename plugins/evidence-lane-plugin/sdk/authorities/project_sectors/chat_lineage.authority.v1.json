@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "chat_lineage",
   "authority_root": "authorities/project_sectors/chat_lineage",
-  "authority_manifest_sha256": "8065DD24AF89EAAA8EABF11CF3349847953B37BAC14DFE5B041E7AD37D368020",
+  "authority_manifest_sha256": "9F5021A0169BDBE107874400CC94F2803FAD91417C6A7AFC5AE12374C4292C2A",
   "schema_surface": "schemas/project-sectors/chat_lineage/schema-surface.v1.json",
   "builder": "authorities/project_sectors/chat_lineage/builder.py",
   "reader": "authorities/project_sectors/chat_lineage/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "C09348465536FD6E3101067F3D5094EC50DAF0229E0D5FB2122E3256DBFB0F21"
+  "receipt_sha256": "881E397A35C55D75DBBC7E50490D4270563C820D5CF3F33406D2C8CF237D7500"
 }

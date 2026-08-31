@@ -30,7 +30,7 @@
     {
       "path": "authorities/project_sectors/data_excel/data_excel_sector_v001.sqlite",
       "bytes": 311296,
-      "sha256": "0C0E5214176AB0AD1511C51C0DABCAD7F965EA0FE609F9948763BE680E2E81A0"
+      "sha256": "BFBF34F6440CF60321D5D22BF1ECD52AC013872FA74717C2DACF154CA6BAAB59"
     },
     {
       "path": "authorities/project_sectors/data_excel/dot-artifact.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "E70697395F97F0583D984B6967E98F6C34715058869D102E4294DA14F59FD7B4"
+  "receipt_sha256": "BDAFA86FCD0D31D1899DF51EA8D178E01FDDB905531535AC8E53F414C0229990"
 }

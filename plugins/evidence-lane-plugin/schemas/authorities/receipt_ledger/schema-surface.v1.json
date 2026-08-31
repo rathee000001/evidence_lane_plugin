@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "receipt_ledger",
   "authority_root": "authorities/receipt_ledger",
-  "authority_manifest_sha256": "8BA4CFEFBB522FE622519036B433405C0C0F877D5FFE79D4BB2D0617CA56548B",
+  "authority_manifest_sha256": "C2F43515B0DC0697B7E3D53335FD26EF66AE8DC58A43AD0E4662F9F3C1B5745A",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "7FD8D5C035E14ABC350F3470DF75495E86AAC37F1351D44E5291A851A9C018B2"
+  "receipt_sha256": "4CA14FF80C5A37FDF9324B8D96C037D2F3278EA197833C18377C960679C9D7D0"
 }

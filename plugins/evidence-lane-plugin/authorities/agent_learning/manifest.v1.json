@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "agent_learning",
   "database": "agent-learning.sqlite",
-  "database_sha256": "EEBDA87D83B03D9C3D9472217CFA7A4FFC745EF0012F5DF41A6643A55E937921",
+  "database_sha256": "CE6BDA57CB37A041EE994A140AB542F7E84DE5BC6D1390E2F46D9BD605AE432E",
   "database_integrity": "ok",
-  "schema_sha256": "3812EA8CFE7621A58EFF5210E5EF12B717905D06DAFF7214925FCE37DA0616BB",
+  "schema_sha256": "1D94526FF0EEEC59AC92A75EE959E9ECB601E0C64908697F3BE17E91C7ED0E62",
   "table_count": 28,
   "fts5_tables": [
     "authority_index_fts",
@@ -26,7 +26,7 @@
     {
       "path": "authorities/agent_learning/agent-learning.sqlite",
       "bytes": 225280,
-      "sha256": "EEBDA87D83B03D9C3D9472217CFA7A4FFC745EF0012F5DF41A6643A55E937921"
+      "sha256": "CE6BDA57CB37A041EE994A140AB542F7E84DE5BC6D1390E2F46D9BD605AE432E"
     },
     {
       "path": "authorities/agent_learning/agent-learning.tools.json",
@@ -111,7 +111,7 @@
     {
       "path": "authorities/agent_learning/sqlite-schema.v1.json",
       "bytes": 39122,
-      "sha256": "0DE3FB416633D385F2062B9951C370B295E450D76229DE45E77D26EFF215D21B"
+      "sha256": "592F3C0673B9B1CCE2EF8084C30C685D256112AA065E54BEB099DEF4B69D33EA"
     },
     {
       "path": "authorities/agent_learning/tools.schema.json",
@@ -306,5 +306,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "D6B2066F32A9E63209C91EF3F26696BDF4226C287175F85E9359BCE0A94CC7C6"
+  "receipt_sha256": "C10C62DC81CAB904FF1BA99ED76C6E041B8A5CBA13E3A450DC190009512A7D58"
 }

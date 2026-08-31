@@ -1251,6 +1251,90 @@ def test_two_consecutive_updates_reuse_one_stable_selector(
     assert state["marketplaces"] == {local_testing_marketplace}
 
 
+def test_stable_update_recovers_after_prior_selector_was_already_removed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    stable_marketplace = "evidence-lane-github"
+    stable_selector = f"evidence-lane-plugin@{stable_marketplace}"
+    local_marketplace = "evidence-lane-v300-testing-new"
+    local_selector = f"evidence-lane-plugin@{local_marketplace}"
+    state = {
+        "plugins": {local_selector: True},
+        "marketplaces": {stable_marketplace, local_marketplace},
+    }
+
+    def fake_run(
+        executable: Path,
+        codex_home: Path,
+        arguments: list[str],
+    ) -> dict[str, object]:
+        del executable, codex_home
+        if arguments == ["plugin", "list", "--json"]:
+            return {
+                "installed": [
+                    {"pluginId": selector, "enabled": enabled}
+                    for selector, enabled in sorted(state["plugins"].items())
+                ]
+            }
+        if arguments == ["plugin", "marketplace", "list", "--json"]:
+            return {
+                "marketplaces": [
+                    {
+                        "name": name,
+                        "root": str(tmp_path / name),
+                        **(
+                            {
+                                "marketplaceSource": {
+                                    "sourceType": "git",
+                                    "source": (
+                                        "https://github.com/rathee000001/"
+                                        "evidence_lane_plugin.git"
+                                    ),
+                                }
+                            }
+                            if name == stable_marketplace
+                            else {}
+                        ),
+                    }
+                    for name in sorted(state["marketplaces"])
+                ]
+            }
+        if arguments == [
+            "plugin",
+            "marketplace",
+            "remove",
+            stable_marketplace,
+            "--json",
+        ]:
+            state["marketplaces"].remove(stable_marketplace)
+            return {"marketplaceName": stable_marketplace}
+        raise AssertionError(arguments)
+
+    monkeypatch.setattr(module, "_run_codex", fake_run)
+    result = module._prepare_in_place_stable_reinstall(
+        executable=tmp_path / "codex.exe",
+        codex_home=tmp_path / "codex-home",
+        plugin_selector=stable_selector,
+        marketplace_name=stable_marketplace,
+        two_slot_authority={
+            "registry": {
+                "slots": {
+                    "stable-git-main": {"plugin_selector": stable_selector},
+                    "versioned-local-testing": {"plugin_selector": local_selector},
+                }
+            }
+        },
+    )
+
+    assert result["recovered_after_prior_stable_selector_removal"] is True
+    assert result["stable_removed_for_same_selector_reinstall"] is False
+    assert result["target_marketplace_removed_for_exact_ref_refresh"] is True
+    assert state["plugins"] == {local_selector: True}
+    assert state["marketplaces"] == {local_marketplace}
+
+
 def test_legacy_migration_rejects_wrong_canonical_marketplace_source(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
