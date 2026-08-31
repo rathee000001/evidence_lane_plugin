@@ -37,7 +37,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           # Receipt HEAD -> feature commit -> baseline commit.
-          fetch-depth: 3
+          # Pages validates the same immutable cumulative main baseline as CI,
+          # including after bounded source and fingerprint correction commits.
+          fetch-depth: 0
       - name: Project Git-tracked authorities into GitHub Pages
         run: python scripts/prepare_github_pages.py --require-current-commit-refresh
       - name: Configure GitHub Pages
