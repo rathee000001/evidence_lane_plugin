@@ -321,120 +321,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 184,
-      "edge_count": 194,
-      "weak_component_count": 1,
-      "strong_component_count": 184,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 28
-        },
-        {
-          "node_id": "support_table_pv_hil_transition",
-          "in_degree": 4,
-          "out_degree": 13
-        },
-        {
-          "node_id": "support_table_chat_lineage_event",
-          "in_degree": 3,
-          "out_degree": 13
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_overlay_history_baseline",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_hil_transition_receipt",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_sector_candidate_snapshot",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_fusion_receipt",
-          "in_degree": 1,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_sector_hil_snapshot",
-          "in_degree": 1,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_chat_lineage_sector_fanout",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_project_sector_registry",
-          "in_degree": 3,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_sector_hil_delta",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_output_link",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_overlay_fts_content",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_sector_hil_baseline_snapshot",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_overlay_fts",
-          "in_degree": 1,
-          "out_degree": 4
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "F9505490AB0DC67978B177880F6117000C280FF6C22D452F69037458E3FCB281",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 111,
@@ -443,7 +334,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "18C61D6BC7A3DC024FD90A6B64F7B799994D000571C359B13CCEF65298D1444A"
+    "receipt_sha256": "BE6B3F48473D781A2E5C2B0E246ACC9BB9C6589AB041D7850EA99E92F3783544"
   },
   "dedicated_workflow": {
     "json": "authorities/project_overlay/workflow.v1.json",
@@ -453,5 +344,5 @@
     "mmd_sha256": "92119D001AAD61C4F9FBF9EE1E633911AB3A88B4F6D205CFAB7D040FB1A34BCB",
     "dot_sha256": "BD8CB4332734FEF158984B6557F82F13E8A1071E7E07C98186BFBF3BED248D68"
   },
-  "receipt_sha256": "0F1E9DC52F50DADBB6A740327EFDF7BD0CD870803F717B965E62D6EB56FD6A78"
+  "receipt_sha256": "CB024431CB26921A970E568979FB408C76274332D43B21A77CB8F7F8B8D70271"
 }

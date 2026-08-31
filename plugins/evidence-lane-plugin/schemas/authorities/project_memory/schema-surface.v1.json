@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "project_memory",
   "authority_root": "authorities/project_memory",
-  "authority_manifest_sha256": "B3844798A16FBF9E560768F851FF3007FED8495553113A81435447B94B464026",
+  "authority_manifest_sha256": "B85EF6F68A84C0263945E3F4CFAD222F209203FE31D46D9F5C927A7D5084242A",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "5F16215C6594C6BB7B15708E2AD3434892108FAD870897F45DB6C9CD491C6415"
+  "receipt_sha256": "C0DD9AE95AEC790485713ADBAD9C50D4D351E52202EC593CB73647B7FB2CC568"
 }

@@ -630,8 +630,8 @@
     {
       "authority_id": "canon_consequence_graph",
       "path": "authorities/canon_input/consequence_graph",
-      "manifest_sha256": "B72A7E899C171CB18DA42ECFB05EF1948FD4DB66B3EFC6589FB16B76FD36E877",
-      "database_sha256": "FD95982FDA9910D5EE30B07186137AD05B4B2AC8BC2BFAD9FE60EE2743AE289C",
+      "manifest_sha256": "6CEBE81843CDF7685EC9BC18FF68BAF9CDBEC8200DE4334A113196B2DCA4A1F6",
+      "database_sha256": "7EEDC0DD02519D2C5AC24E60161150EBA4AD1AA29CDF71DAF36EB1B889750787",
       "table_count": 18,
       "separate_sqlite_authority": true
     }
@@ -675,120 +675,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 125,
-      "edge_count": 130,
-      "weak_component_count": 1,
-      "strong_component_count": 125,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 18
-        },
-        {
-          "node_id": "support_table_canon_packet",
-          "in_degree": 3,
-          "out_degree": 14
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_canon_event",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_canon_contract",
-          "in_degree": 1,
-          "out_degree": 7
-        },
-        {
-          "node_id": "support_table_canon_edge",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_canon_schema_migration",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_canon_receipt",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_canon_backfire_dedup",
-          "in_degree": 1,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_canon_continuity_receipt",
-          "in_degree": 1,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_canon_dispatch",
-          "in_degree": 1,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas_column_compressed_bytes",
-          "in_degree": 1,
-          "out_degree": 0
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "C473AF4080557F66D397B9F1C711D0F8D59FCFBA45050AF5133C9A54AD786F5A",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 72,
@@ -797,7 +688,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "8A48D2891837B8BE4280D3C7FA1CEDB30070E8DFB40D53DB53A4E16E3B91DB92"
+    "receipt_sha256": "D33425C59CB08E0349829F0B9654BBC2411F3096B8A2E7A910C17804AC81A11A"
   },
   "dedicated_workflow": {
     "json": "authorities/canon_input/workflow.v1.json",
@@ -807,5 +698,5 @@
     "mmd_sha256": "649A8ADE899B48A18090D6119326B6B5D38BCC77272FF592D00B95088F5B54E1",
     "dot_sha256": "58788994EC4AED42BBF85CBFEA2EB4B91FC75D8DA11210FE25ECFD71B81F275F"
   },
-  "receipt_sha256": "65F2BB622D9F9FD5902A63E559B66C9B2123A92248DF303CF90F61869A871EB6"
+  "receipt_sha256": "DB29851D6EDBF13FF15FC485C46A56C1C440C44A1501D69C62F2D847C02CB189"
 }

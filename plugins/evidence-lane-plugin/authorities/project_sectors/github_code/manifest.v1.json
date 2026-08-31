@@ -35,7 +35,7 @@
     {
       "path": "authorities/project_sectors/github_code/github_code_sector_v001.sqlite",
       "bytes": 327680,
-      "sha256": "ABF6F3E915ECEDBB9663ADBC602684E95A40237520E8B402A268A9FEE632FC27"
+      "sha256": "1EA8C24910ACE52A5C838A3BCE90FBE1DE6CA0891E12B77D8A06DDE8D91AE402"
     },
     {
       "path": "authorities/project_sectors/github_code/lane-contract.v1.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "EF447BD1052DB50A3371947459AD57F7ADE3624FE6DEF1B1BC59A156DCEC8145"
+  "receipt_sha256": "248A4D263D67F0BE8B8666A1CFD02EC8A1D30DA9E8E0E3DFB6633AD31A66092A"
 }

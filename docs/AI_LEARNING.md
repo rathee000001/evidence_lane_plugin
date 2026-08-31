@@ -75,7 +75,7 @@ flowchart TB
 
 | Source contract | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `authorities/agent_learning/manifest.v1.json` | 10656 | `19670A7382620D764209CA4447F82525C9389860DAD165EE51EDBB082753EEDE` |
+| `authorities/agent_learning/manifest.v1.json` | 7742 | `A23A8299F02569AEA1934BAA2B4D2A55BA018A157470757906F1C6C4D778F521` |
 | `skills/evi-learning/SKILL.md` | 10124 | `42AB4B361F38BD7744078B647190D28FB642D1F701CC90D79C53BEA12913E8E5` |
 | `schemas/actions/learning_seal_candidate.schema.json` | 3782 | `1701BFA110AD78A7AA299B333E0BBF0DA4E59A7E1478F7247BED1BE306F7C1E0` |
 

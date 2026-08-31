@@ -54710,7 +54710,7 @@
     },
     "modules": {
       "path": "src/evidence_lane_plugin/module-registry.v1.json",
-      "sha256": "107619248A1B47B9EFFEA10E82F6806955917861DFC993F28479163DBA01A539",
+      "sha256": "713B42222C1DED402481189C154F77E7B4AF0AADF095D61D29E951180EDC9E43",
       "direct_hash_embedded": true
     },
     "tools": {
@@ -54739,5 +54739,5 @@
   "human_entrypoint_count_defines_backend_workflow_limit": false,
   "human_entrypoints_derive_from_registered_skill_routes": true,
   "historical_fallback_allowed": false,
-  "receipt_sha256": "22A7240D3BEEF7CDC63AB4362801EAFA17F8D24795416BCA97FF39E07D3FCCEF"
+  "receipt_sha256": "8EB703587CF02578236C750B189992BAB89F168AD50ECDBDADE8ABDDBD68F75C"
 }

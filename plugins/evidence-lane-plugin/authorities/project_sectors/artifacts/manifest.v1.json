@@ -20,7 +20,7 @@
     {
       "path": "authorities/project_sectors/artifacts/artifacts_sector_v001.sqlite",
       "bytes": 237568,
-      "sha256": "19C3F2F878232C7B44F50504616CE6F48F8651B5F0B12439792E5C7C023D0D0B"
+      "sha256": "C204DF8F84B9D06EA41ECC59D89201710AE0FE6377D3563C2AB4AC69396EDEA6"
     },
     {
       "path": "authorities/project_sectors/artifacts/builder-contract.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "1957388FFE087467BA68D0D0B3AD657EE8D80786EC94A4D690DFC2143D5AA96E"
+  "receipt_sha256": "E14E2D9AFB7C83BD3740EA28CC7F84BFA7BC1F9E5374B67CEB9F67AB8910A8F3"
 }

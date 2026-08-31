@@ -75,8 +75,8 @@ flowchart TB
 
 | Source contract | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `authorities/canon_input/manifest.v1.json` | 14440 | `DD404333352B3C09EEF3429838377CBE94FD4E66FFC689C255E93736B9C92C99` |
-| `authorities/canon_input/consequence_graph/manifest.v1.json` | 9510 | `B72A7E899C171CB18DA42ECFB05EF1948FD4DB66B3EFC6589FB16B76FD36E877` |
+| `authorities/canon_input/manifest.v1.json` | 11538 | `6424F74F749C5A131C930925B4BC002EEF38C0445C01242E22D8347BFC294A61` |
+| `authorities/canon_input/consequence_graph/manifest.v1.json` | 6548 | `6CEBE81843CDF7685EC9BC18FF68BAF9CDBEC8200DE4334A113196B2DCA4A1F6` |
 | `skills/evi-canon/SKILL.md` | 8166 | `EB55EF2290E1CC1ABC4D79FD719E897FA626B849EB500CC7083102C67310E653` |
 
 ## Cross-surface invariants

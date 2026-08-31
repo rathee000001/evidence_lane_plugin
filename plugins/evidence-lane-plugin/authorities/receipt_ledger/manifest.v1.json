@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "receipt_ledger",
   "database": "receipt-ledger.sqlite",
-  "database_sha256": "625DD9B9572FF88A61817E57967488CB4F1068A03723928775796122B71CDCEB",
+  "database_sha256": "5E0220C125688C45152633C8C1D2DEF6B3DE452B6E43B6C60C5FED4548642526",
   "database_integrity": "ok",
-  "schema_sha256": "CC6C538F215D475CAF5A90E0626441C8EAF209AC2C216199B6B17BE463078D3E",
+  "schema_sha256": "0C4D1E3E5E069565D4FE795C3402C7278337CC21D38E8751593B0B7007E25736",
   "table_count": 18,
   "fts5_tables": [
     "authority_index_fts",
@@ -75,12 +75,12 @@
     {
       "path": "authorities/receipt_ledger/receipt-ledger.sqlite",
       "bytes": 147456,
-      "sha256": "625DD9B9572FF88A61817E57967488CB4F1068A03723928775796122B71CDCEB"
+      "sha256": "5E0220C125688C45152633C8C1D2DEF6B3DE452B6E43B6C60C5FED4548642526"
     },
     {
       "path": "authorities/receipt_ledger/receipt-ledger.tools.json",
-      "bytes": 24198,
-      "sha256": "9070E66312F0DEC5B885E11AB6435644D959CFC5659D862A7C7BD772DC97A05B"
+      "bytes": 21289,
+      "sha256": "627EEC0E0E5E586A8F0572F1297983F5E01011CC8832B7EEAB3523B3D42BD8AA"
     },
     {
       "path": "authorities/receipt_ledger/refresh-receipt.schema.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/receipt_ledger/sqlite-schema.v1.json",
       "bytes": 28236,
-      "sha256": "B422661CB648128B9A9C83D572842BF876E7E5307F11DF77109B409979507D87"
+      "sha256": "275E9DDD1A2BA89451889BDFAA3E3D23530056B02F9DD5F063435D80263CF615"
     },
     {
       "path": "authorities/receipt_ledger/tools.schema.json",
@@ -177,120 +177,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 116,
-      "edge_count": 121,
-      "weak_component_count": 1,
-      "strong_component_count": 116,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 18
-        },
-        {
-          "node_id": "support_table_receipt_record",
-          "in_degree": 2,
-          "out_degree": 16
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_receipt_migration_batch",
-          "in_degree": 1,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_receipt_content_cas",
-          "in_degree": 2,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_receipt_link",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_receipt_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_receipt_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_receipt_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_receipt_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_receipt_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas_column_compressed_bytes",
-          "in_degree": 1,
-          "out_degree": 0
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "93F4B35DE7C4FA4CB46BA2FCFCCA12F65B25C54368EEC8BF792ABED9575A24E9",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 69,
@@ -299,9 +190,9 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "995A7252CC5606AFFEC47AB8AC1F7AE737FA2F7CFA7FBE4A823D9C4D3F54C926"
+    "receipt_sha256": "7AB0CE0842BB85FCBAF28BEC51C03B1A87A46369310ED7E255FDFF665F263971"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "3957B826673D7BA44708E3BDC52478323734DA5D5323ABE08482418F5DBE64F5"
+  "receipt_sha256": "EB649A8EEF5E32E842D4DEC9FBE9FCEFB6AFFE104C6718AEB6E27FBE15CDEE50"
 }

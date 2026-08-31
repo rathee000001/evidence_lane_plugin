@@ -85,7 +85,7 @@
     {
       "path": "authorities/project_sectors/sqlite_brain/sqlite_brain_sector_v001.sqlite",
       "bytes": 270336,
-      "sha256": "A0339E47F9E71CC183E153501A02344C9A6A9BD4C6D42983A03790E02A2658CF"
+      "sha256": "30598BFA9C25F30D71E31B82E8DDF75B981575EE784B80F40276502B85A5923F"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/tools.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "DB39310D9800BC1FCFC7F95F6E0A13C9A9622CF999F8688334B1F8B1D3E1565A"
+  "receipt_sha256": "F62D38A7120C5B34676DE94B72FE6A35B4AFCB723203642D75A6B658E20714B7"
 }

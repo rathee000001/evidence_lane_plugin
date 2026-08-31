@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "github_code",
   "authority_root": "authorities/project_sectors/github_code",
-  "authority_manifest_sha256": "0EE56B855C60C519EACD28AC0EA89898B6F055012AA6C991462BEE5F3EE62586",
+  "authority_manifest_sha256": "C0BDF5D40BA42F35E04304B840A919E8C72B82F275F146D6908195B6EE68E44D",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -60,5 +60,5 @@
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
   "canonical_lane_contract_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "2BB41942EF1AE76DD0E4502F2822C8BD13AD2B8F6128C0B6303A1841F4BF7059"
+  "receipt_sha256": "7BA20234CDFEEE240D224923B743D77A5E5766BC14FD7C7461B92ABB41C45BAA"
 }

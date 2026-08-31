@@ -30,7 +30,7 @@
     {
       "path": "authorities/project_sectors/discussion/discussion_sector_v001.sqlite",
       "bytes": 245760,
-      "sha256": "255780F76FA5B270BB201CEC1997C93CA337D50FE19DD8AC1EAD2267F850F9CD"
+      "sha256": "18BF0EBE01EB71BF3907B664F2F6892956DA1FCF99141D41983E0236A246F735"
     },
     {
       "path": "authorities/project_sectors/discussion/dot-artifact.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "F3E05ECB622F478B42A6A102FB4CC7C3487AF041494C331EFE96A8B183A01CCC"
+  "receipt_sha256": "3959997DA9032F54302BA78D67169E9B91C4BA489DC6F20DCC794FA43FF6D0F3"
 }

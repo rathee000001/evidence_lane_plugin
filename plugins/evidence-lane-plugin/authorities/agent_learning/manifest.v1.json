@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "agent_learning",
   "database": "agent-learning.sqlite",
-  "database_sha256": "CE6BDA57CB37A041EE994A140AB542F7E84DE5BC6D1390E2F46D9BD605AE432E",
+  "database_sha256": "EEBDA87D83B03D9C3D9472217CFA7A4FFC745EF0012F5DF41A6643A55E937921",
   "database_integrity": "ok",
-  "schema_sha256": "1D94526FF0EEEC59AC92A75EE959E9ECB601E0C64908697F3BE17E91C7ED0E62",
+  "schema_sha256": "3812EA8CFE7621A58EFF5210E5EF12B717905D06DAFF7214925FCE37DA0616BB",
   "table_count": 28,
   "fts5_tables": [
     "authority_index_fts",
@@ -26,12 +26,12 @@
     {
       "path": "authorities/agent_learning/agent-learning.sqlite",
       "bytes": 225280,
-      "sha256": "CE6BDA57CB37A041EE994A140AB542F7E84DE5BC6D1390E2F46D9BD605AE432E"
+      "sha256": "EEBDA87D83B03D9C3D9472217CFA7A4FFC745EF0012F5DF41A6643A55E937921"
     },
     {
       "path": "authorities/agent_learning/agent-learning.tools.json",
-      "bytes": 16926,
-      "sha256": "187665BF700312ABEAACA08735277665484776F24E130E865757B5ED7508F13D"
+      "bytes": 14012,
+      "sha256": "A1DBEBBA75A84BA1A3561855499C79D84C497FB2359062963D77AC5490E9C86C"
     },
     {
       "path": "authorities/agent_learning/build-refresh-contract.schema.json",
@@ -111,7 +111,7 @@
     {
       "path": "authorities/agent_learning/sqlite-schema.v1.json",
       "bytes": 39122,
-      "sha256": "592F3C0673B9B1CCE2EF8084C30C685D256112AA065E54BEB099DEF4B69D33EA"
+      "sha256": "0DE3FB416633D385F2062B9951C370B295E450D76229DE45E77D26EFF215D21B"
     },
     {
       "path": "authorities/agent_learning/tools.schema.json",
@@ -180,120 +180,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 171,
-      "edge_count": 179,
-      "weak_component_count": 1,
-      "strong_component_count": 171,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 28
-        },
-        {
-          "node_id": "support_table_memory_locator",
-          "in_degree": 3,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_learning_candidate",
-          "in_degree": 4,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_memory_edge",
-          "in_degree": 1,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_learning_event",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_learning_pointer_history",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_memory_locator_fts_content",
-          "in_degree": 1,
-          "out_degree": 7
-        },
-        {
-          "node_id": "support_table_learning_candidate_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_memory_locator_fts",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_learning_candidate_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_learning_decision_receipt",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_learning_schema_metadata",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_learning_candidate_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "DEE09DA3EA01ECCE6BFDD58867D0D9CACE82837CEB3C0734FBF894CED7E9BB4B",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 101,
@@ -302,9 +193,9 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "C174520B955F8459807EB0DBC08DACC2129684DDCC95D2E6CA4D82525D15288F"
+    "receipt_sha256": "D098A104316FDB6C9053B46A89A6F09F4EDCC77E7109A97EF6C66A6E2714E9CB"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "C10C62DC81CAB904FF1BA99ED76C6E041B8A5CBA13E3A450DC190009512A7D58"
+  "receipt_sha256": "3F2CAA49A5E647D39554D254C1D5729B035B888D957A776AF45D5A4C6CE4DDB5"
 }

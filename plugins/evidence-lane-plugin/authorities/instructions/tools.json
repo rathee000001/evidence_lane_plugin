@@ -267,35 +267,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 3,
-      "edge_count": 2,
-      "weak_component_count": 1,
-      "strong_component_count": 3,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "WORK",
-          "in_degree": 2,
-          "out_degree": 0
-        },
-        {
-          "node_id": "AGENTS",
-          "in_degree": 0,
-          "out_degree": 1
-        },
-        {
-          "node_id": "MEMORY",
-          "in_degree": 0,
-          "out_degree": 1
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "9FA4DDE3A552BD36920357B42D013A5236CCBA0219D0F97F5E4B4F73026B744D",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 0,
@@ -304,7 +280,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "7F87F3511EE29DECF1A357FB97E73C62537B83AB64E9F521BA05B446EC4C948C"
+    "receipt_sha256": "5E52EED70A186C5D02A58C04430F2591DCC36B006CBC19AD6C0F25D880575AFF"
   },
   "dedicated_workflow": {
     "json": "authorities/instructions/workflow.v1.json",
@@ -314,5 +290,5 @@
     "mmd_sha256": "0C4CB802BA979C80EF5879B2EA8E57087753DB70B832BD855781DBDF5F4F2CFF",
     "dot_sha256": "3A489B38EE048A3F7709A372C6D5E37FA134021DC18D530431F7373CF86A3F95"
   },
-  "receipt_sha256": "1610BBFEB9614C59FC9C87E973B6AFA2FC2CE7407A4E952B42B401803819BD26"
+  "receipt_sha256": "FB41ED2FBD09A87050CC828E5ADC1239B8C454E2BF21345CAABB61C20DF9D5DC"
 }

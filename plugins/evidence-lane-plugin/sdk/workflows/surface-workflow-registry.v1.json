@@ -24381,120 +24381,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -24503,7 +24394,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "F70FD601652D050989956A682DB6E7535A81806F4B2FCD53164BE22DB3AF080E"
+        "receipt_sha256": "6C7775E2BB5FFAF7B930358B6A9AF53C61D8B4A5DDF1C3721858D2BAB1C608B3"
       }
     },
     {
@@ -24536,120 +24427,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -24658,7 +24440,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "A8B733226FA55AF61756A8AD64065A6347C76CC9F088B96EF700E40264A51729"
+        "receipt_sha256": "01A5EDFFA3A2D19D764E7F32910435D165362BA9AA43583FD6D5CD16F23DD206"
       }
     },
     {
@@ -24691,120 +24473,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -24813,7 +24486,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "0609D397D0F3327C50DA72FA76013058BDDB81602C1EEE6CADF9CD946F7EF2BB"
+        "receipt_sha256": "BF35B842A25014A965F0A09B2A3BC6F6DB7FB0A84E7A549D6A68977AD0506977"
       }
     },
     {
@@ -24846,120 +24519,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -24968,7 +24532,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "9869D96868F76A2D2A378A2FFEEF76D6C838F8E8FD65F733A27189224A5A583F"
+        "receipt_sha256": "8218F9EC65A9EFD77DD6CEED55704C92529EA3C9B3FA4E0E3DE2EF3EF56F6BF8"
       }
     },
     {
@@ -25001,120 +24565,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -25123,7 +24578,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "19F1BAB3A941B339DB7B167130196E6EB036D0FBB3AD23B8302819CEE9C73E52"
+        "receipt_sha256": "E99E5B4F3DE19EEFADB9DEF7ABAE879CE905179B489F74356993F74A5191CE05"
       }
     },
     {
@@ -25156,120 +24611,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -25278,7 +24624,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "6E075FE6DFF862047C5C2944E758E6572341648F75A80493FDE959E2D49219EA"
+        "receipt_sha256": "681A1702074DCB0D09A333122232F35464D7C1F88DCF25560985DEBC91E71461"
       }
     },
     {
@@ -25311,120 +24657,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -25433,7 +24670,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "D58D3857D94551B98CD4054AAB5023EBECF4B92741E050972702ABAE85E75915"
+        "receipt_sha256": "15766745B792C3AB1B4E186E502B3A78572843137CB3C61C02AEED9062CA95B3"
       }
     },
     {
@@ -25466,120 +24703,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -25588,7 +24716,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "60D68AC12191E0E96246A378F7E22BBC668C5D0E12EC01B3E4E67A88BA0B6A92"
+        "receipt_sha256": "9506713076E17FC1D6CA86EC51E62ABCEDF41768651FB45EADFABAFB76E287BA"
       }
     },
     {
@@ -25621,120 +24749,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -25743,7 +24762,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "2664E8D7A6294E5ACAC4CC78212DC95617D8177D4C182268A337F8C4004FB767"
+        "receipt_sha256": "1BFD8F83A13F1E87EDFB54308E9084AB63D59163F5AF2C2CE496988CC7E438CF"
       }
     },
     {
@@ -25776,120 +24795,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -25898,7 +24808,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "B4ABC10026397EA7B6220A94FFF0C4E4ADEF5ED1F07B669B8CE5F0B20E4C6420"
+        "receipt_sha256": "F65AA72A456E1C005E4B197C99D42048B09EB6AF5C1D268DA9992D9F358F2841"
       }
     },
     {
@@ -25931,120 +24841,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -26053,7 +24854,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "888204FCC38C3A5153DFF9F01B8B205A53DA91AD389FEC0C05C07EFEB5A8836F"
+        "receipt_sha256": "764048B9A708F3A538EEF9BB33A6CBBA99F836996CC816DCED4932E3A8E038CB"
       }
     },
     {
@@ -26086,120 +24887,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -26208,7 +24900,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "060C227812DDCAE2DD354720CDE3AB6B3B5063E2488E038736F878F04B5A2A2F"
+        "receipt_sha256": "9AE47E162B4746A6AF29637B5708A7D23B1F2085C0A7CA5163FDEB238C3C198F"
       }
     },
     {
@@ -26241,120 +24933,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -26363,7 +24946,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "D4B68EB382F4A6B829DACAFE79DAD40CFF99F7BD51229AD0003EFEA338307665"
+        "receipt_sha256": "5E147B54FD425D921C81311A11D606743F97FFB9221865AFB43657FEF37A6BEF"
       }
     },
     {
@@ -26396,120 +24979,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -26518,7 +24992,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "CB974586ED7423ABEF7E66E2198F6B0B793A457FC1A1A82FBF31D6C4ECEEAAAC"
+        "receipt_sha256": "CA51BB437977A8ED5EFD89424B31A3FB7A1F7CBD42D821AB76BF47D5A1BCFD68"
       }
     },
     {
@@ -26551,120 +25025,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -26673,7 +25038,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "005408C579E7B2B8A38ED6B695BAAE10D7ADFE8D92863531FB8446ACD15EB20F"
+        "receipt_sha256": "9E3E50A9EEFBB3225CED3B69B7C23B3DCE9B9CA96D3C85D53005BD5A9D15BED7"
       }
     },
     {
@@ -26706,120 +25071,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -26828,7 +25084,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "EE43CDD9210FD87C024972C7B0E6CD23B386FDA3506D2094FC32C48B64E29024"
+        "receipt_sha256": "EB761158ABEE3E34F78C75C15413313A28DDFDD8DF037D830B1CBBE88AB0E94E"
       }
     },
     {
@@ -26861,120 +25117,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -26983,7 +25130,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "B0DD0C35603ADBAF3E589926D6CEE377A7934698871565E4835879F937B924D1"
+        "receipt_sha256": "5B7A22104FADBBC6074FA20657857B6FCEA91695C5CD3F7BD98D07B48FB23EDA"
       }
     },
     {
@@ -27016,120 +25163,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 30,
-          "edge_count": 36,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 2,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SQLITE_COMMIT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_EXACT_SOURCE_CAS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_CHUNK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_LANE_PARSE",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_RETRIEVAL_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_SOURCE_CLASSIFY",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_STRUCTURED_FACTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_TOPOLOGY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "D838FD4D4EABCB3CB0D30AADE5D48367F8D74A0D6555F27D700C4381247C3C1C",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -27138,7 +25176,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "5930DB5C4240F0F0930BBB5EE61BD19A28580F760D6636602890369566131379"
+        "receipt_sha256": "F61ED2D2360DDD21A09CA246897626D85BAEF717E88B4B4F18FA3B2F6C522AC9"
       }
     },
     {
@@ -27171,120 +25209,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -27293,7 +25222,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "566C7540BB06CFB9183B7B025C518595829E7297082A7D851059352DABF12AD0"
+        "receipt_sha256": "4F0D81F16DBE3CA9649287A17A29D4E1A518F20D1899F8E5C7B392C4B094EDCE"
       }
     },
     {
@@ -27326,120 +25255,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -27448,7 +25268,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "9920391BA37BA109B99AE9077A9CDC4995AA71B360E153D741B5EE988F5D871C"
+        "receipt_sha256": "BC0AAB7CB7F7128E5921969A8772E76D2AFAB133093C7ED4FF776E5EBF1D3B0A"
       }
     },
     {
@@ -27481,120 +25301,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -27603,7 +25314,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "554931DBFA9AB6BA715E4529D3D889B387DAC65C58266F3D9601C7EE93E542FC"
+        "receipt_sha256": "43C0ABC80DBFFEBAFFB62D95FD0010F3B1B35F83B97E367B99CAFFD27D5CEF55"
       }
     },
     {
@@ -27636,120 +25347,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -27758,7 +25360,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "60AC474956DAC8BCA3A5F1B419BA20F91F5F0C9290910B1341BE3E7124F7D667"
+        "receipt_sha256": "93321F1884444D49EB7C20A43178280CCFE3355F6FB5828A8ADD6BD5F5E59492"
       }
     },
     {
@@ -27791,120 +25393,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -27913,7 +25406,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "97BEB990A26B20E26D9DAA3C5D52B8E18AC3E2816207A108F48E1C985F595AB2"
+        "receipt_sha256": "B1B8E3254AC3E1BAD2B3F2A8BC2832C00D9720F53B620ACFE988704487BD1A76"
       }
     },
     {
@@ -27946,120 +25439,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -28068,7 +25452,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "DE7F426C1688C533416D89334D84FED85638A449F2D5F4B17F467159C6C704C0"
+        "receipt_sha256": "5142407331E01AD8DB8B2B462320C4025D37DC7E57534521E9DEE31493A44180"
       }
     },
     {
@@ -28101,120 +25485,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -28223,7 +25498,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "42AFAA873A688A4DBC2B3320477FF7BF1A3A3B30ADEF7FF241CCAA324D7C840F"
+        "receipt_sha256": "CDF517F04B8130ED8F0E421D72E27E8FBB0F4B5545AC250E0CB13F943B363CE3"
       }
     },
     {
@@ -28256,120 +25531,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -28378,7 +25544,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "343385CD0492FC1576B291F1BE5E86E127CBD3A68F1A2DBF082288CCC58BC3AE"
+        "receipt_sha256": "BB821B00DCAFB4F1BA50E2ED07901A6E0CB66E1ED3B91969D4BA1B528572A440"
       }
     },
     {
@@ -28411,120 +25577,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -28533,7 +25590,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "0DF68D80B5BCA1265CDD2E97D81B65F5F927BE92A5F2EA1715E77BED177726B1"
+        "receipt_sha256": "402F572CC36B30326C14BCCDC4CDC236DD7B3639E8ADB4D738DAF694BFFBF4DB"
       }
     },
     {
@@ -28566,120 +25623,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -28688,7 +25636,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "E3B049C404644A7019BADC1A6F2F1DD9D3CBA6AC2C307B0D46323E53C918E631"
+        "receipt_sha256": "6BF04748E2258DAD431343716568D5FE4A59021CBB1047D941F4CB63BDB08947"
       }
     },
     {
@@ -28721,120 +25669,11 @@
         "native_graphviz_hidden_runtime_available": false,
         "native_graphviz_validation": null,
         "graph_analysis": {
-          "status": "PASS",
+          "status": "UNAVAILABLE",
           "engine": "rustworkx",
-          "version": "0.18.1",
-          "node_count": 26,
-          "edge_count": 33,
-          "weak_component_count": 1,
-          "strong_component_count": 5,
-          "is_directed_acyclic": false,
-          "highest_degree_nodes": [
-            {
-              "node_id": "OUTER",
-              "in_degree": 5,
-              "out_degree": 1
-            },
-            {
-              "node_id": "TOOLS",
-              "in_degree": 1,
-              "out_degree": 5
-            },
-            {
-              "node_id": "PHASE_RESULT_VALIDATE",
-              "in_degree": 3,
-              "out_degree": 2
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_OPERATION",
-              "in_degree": 1,
-              "out_degree": 3
-            },
-            {
-              "node_id": "ENTRY",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "HOOKS",
-              "in_degree": 2,
-              "out_degree": 1
-            },
-            {
-              "node_id": "RECEIPT",
-              "in_degree": 1,
-              "out_degree": 2
-            },
-            {
-              "node_id": "ACTIONS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_02",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "BASELINE_03",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ENV",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "INTERNAL_SDK",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_ATOMIC_REFRESH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_BIND",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_GRAPH",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "PHASE_AUTHORITY_INDEX",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_EXTERNAL_SERVICES_OR_STORES",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TASK_EXECUTION",
-              "in_degree": 1,
-              "out_degree": 1
-            },
-            {
-              "node_id": "ROLE_TRANSPORT_ORCHESTRATION",
-              "in_degree": 1,
-              "out_degree": 1
-            }
-          ],
-          "bounded_analysis": true,
           "authority_replaced": false
         },
-        "graph_analysis_sha256": "F2CC3EE81910B6D5C3EA227BF345F6F69745B587DC6575108BD97CAA1ED9EF26",
+        "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
         "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
         "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
         "layout_constraint_count": 0,
@@ -28843,9 +25682,9 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "97FC0240B9364B6E2FA0D093437AC61001A6DF15BAB837AD3F79BFFC95EFFCFE"
+        "receipt_sha256": "3004707EA8D1C1F1934984D7DAD24A422791969706C88CE8C4E5F9B74D21EE82"
       }
     }
   ],
-  "receipt_sha256": "F7876022F665297347329737A3EE8457EF5AFAD1FFBB62543A159ECFA5C88EB1"
+  "receipt_sha256": "16F32EE4C99B95D2D52B5C3386AC2246059BB2FB31C16946C42CB5AC9ACBCF1A"
 }

@@ -3,10 +3,10 @@
   "status": "PASS",
   "authority_id": "canon_input",
   "authority_root": "authorities/canon_input",
-  "authority_manifest_sha256": "DD404333352B3C09EEF3429838377CBE94FD4E66FFC689C255E93736B9C92C99",
+  "authority_manifest_sha256": "6424F74F749C5A131C930925B4BC002EEF38C0445C01242E22D8347BFC294A61",
   "schema_surface": "schemas/authorities/canon_input/schema-surface.v1.json",
   "persistent_sqlite_authority": true,
   "linked_public_action_count": 19,
   "merged_with_project_sector_or_peer": false,
-  "receipt_sha256": "3103D732D7EBDBE073AC49F0B4C4C9A73CC4787582C91E405BD2798C49E0FBE6"
+  "receipt_sha256": "9C72575DEC5EA19270065F90DB5507B85A6C338EC96C40F2A74F07D5B920C6CC"
 }

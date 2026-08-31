@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.github_app_distribution",
   "source_path": "src/evidence_lane_plugin/github_app_distribution.py",
-  "source_sha256": "97E5942343C90E740A65B940629DDC97B060DAA1F127724747102A23B039C8F5",
+  "source_sha256": "9D83C807AE9E91F4C28E7C39E4AB35231A7234FBAA5D1B28F5DEE38BE1FDB0AB",
   "source_bytes": 116806,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "E60D62EA17A2CC19E3B2375D0A917B048253EDB1F5321CD4F65F78157CFFBEAA"
+  "receipt_sha256": "9C18BA62FA1D12E21AD7D239DDCCAB4B0D4E9D0661922E97F50D41E722EAFA93"
 }

@@ -303,120 +303,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 150,
-      "edge_count": 158,
-      "weak_component_count": 1,
-      "strong_component_count": 150,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 22
-        },
-        {
-          "node_id": "support_table_memory_authority_head",
-          "in_degree": 3,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_memory_locator",
-          "in_degree": 3,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_memory_compaction_checkpoint",
-          "in_degree": 2,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_memory_edge",
-          "in_degree": 1,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_memory_rehydration_receipt",
-          "in_degree": 1,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_memory_locator_fts_content",
-          "in_degree": 1,
-          "out_degree": 7
-        },
-        {
-          "node_id": "support_table_memory_locator_fts",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_memory_migration_receipt",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_memory_schema_metadata",
-          "in_degree": 1,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_memory_locator_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "30925F38E7FC40721597F53F923CAACBDC81960DC96CFA1CAB4517CF5B1340A6",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 90,
@@ -425,7 +316,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "3C28B63CA63DB0B9640000949DCBF8A7F439127038C3B8ACA2312C2D59262949"
+    "receipt_sha256": "04A96FE416A41BC52D2E652BD5E371E752871D920FDD2E1A26A989721BC55622"
   },
   "dedicated_workflow": {
     "json": "authorities/project_memory/workflow.v1.json",
@@ -435,5 +326,5 @@
     "mmd_sha256": "28C35C674BA7EA363BC1EC2EDE8DC8FF58F698B38B1C700789217C27F5D930C3",
     "dot_sha256": "D8C1495905CE8BA462CFF2FD7E0143BDD2D89A36C5549CD0DF5ED5B6490D15B1"
   },
-  "receipt_sha256": "4DF0BBC050C0A27BCCE9639051396765246367EFAF376C069B0821B6B8F3CD67"
+  "receipt_sha256": "B7493BC6EB253C492A6CC0182AD591C16B17F7AC151DDF98C200C37F661BD169"
 }

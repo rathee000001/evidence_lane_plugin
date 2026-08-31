@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/project_engulf/project_engulf_sector_v001.sqlite",
       "bytes": 266240,
-      "sha256": "BE2C838691686485309405D262A0928136656F8F1E624A0B76764A4DEAA1DE03"
+      "sha256": "B2749DE5E55D0282815C23EDAC05FADBB175D6C0643630048EBEB3B8ECEE8FE4"
     },
     {
       "path": "authorities/project_sectors/project_engulf/reader-contract.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "C78E5CD6EB71CAE94A519ADC9E3380FA2A3A23D31582383B4E919D1B924BCB6E"
+  "receipt_sha256": "B2649CF90E831A7D5367E66F24E48215561C6C367DF2624D6A69697B01E900FD"
 }

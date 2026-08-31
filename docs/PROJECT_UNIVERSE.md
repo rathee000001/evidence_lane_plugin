@@ -61,7 +61,7 @@ flowchart TB
 
 | Source contract | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `authorities/project_universe/manifest.v1.json` | 10601 | `8A66A7F056D7EC449C4F33E6DB277F99728A3ED1A0B851E158ED30CE77DC0E69` |
+| `authorities/project_universe/manifest.v1.json` | 7733 | `CEF5E51E6E09AFA3A371E8895000C22E936A2070375D62690DEE8DC1D44A96CB` |
 | `schemas/universe/project-universe.v1.sql` | 1536 | `4D622EF599FD738ADCA064EB02DDF6D1CA9564DDEEC0A86A7E054AF9C574AA98` |
 | `skills/evi-bigger-universe/SKILL.md` | 1367 | `E95EBC5C8F430DC184435E0AC3A1C12BDB234341B4E92F8DFBD45C3D3F03F4C0` |
 

@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "connector_brain",
   "authority_root": "authorities/connector_brain",
-  "authority_manifest_sha256": "7C478EDACDD02D23AA7873533FAE4A49C8DC60615A74CB03D23C2A9FEE4C4CBC",
+  "authority_manifest_sha256": "C9911F7CD4346B71B88FDEF1309445E08F5FFF2CFD4F1A10E9ADC210351484EB",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "84E076172785AF2905801C38A21075D2C901846A127196AEC4CFED5E03B20EA6"
+  "receipt_sha256": "ED1BCFBF9333C8AD8B4D49BC4F0B60B4D692709D0C50AE975093CA14B538A41F"
 }

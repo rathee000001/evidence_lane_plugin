@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_universe",
   "database": "project_universe.sqlite",
-  "database_sha256": "7B8B902C4AA01281F070D6A48DDE944A5A5A38A70A39BFA051E1433997F4082A",
+  "database_sha256": "BB9CB7D81824ABF8B2F43AC5F592C6562A80A004C78825C54CCD0ED131638468",
   "database_integrity": "ok",
-  "schema_sha256": "13B9D01BDF6DF994BE6C0AD2ECEC607283DB9D3E4BEB928CAF83A25C59A9573A",
+  "schema_sha256": "FB97DEFB59B518E0B5E438DAB5F02FDCEDEBA07CCBACC3CB53B467B442D5491E",
   "table_count": 20,
   "fts5_tables": [
     "authority_index_fts",
@@ -60,12 +60,12 @@
     {
       "path": "authorities/project_universe/project_universe.sqlite",
       "bytes": 159744,
-      "sha256": "7B8B902C4AA01281F070D6A48DDE944A5A5A38A70A39BFA051E1433997F4082A"
+      "sha256": "BB9CB7D81824ABF8B2F43AC5F592C6562A80A004C78825C54CCD0ED131638468"
     },
     {
       "path": "authorities/project_universe/project_universe.tools.json",
-      "bytes": 13593,
-      "sha256": "4E1BAB5AEE5A72788A250CDE0E9B93EE9E798CA66A8635FFB9BD9BBBA29C864E"
+      "bytes": 10725,
+      "sha256": "7F9CF24461A54E8CFBB115B7310082A38949C9800FDF9468C1F14D3B4EAB3E95"
     },
     {
       "path": "authorities/project_universe/reader-contract.schema.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/project_universe/sqlite-schema.v1.json",
       "bytes": 25397,
-      "sha256": "EFF6CC86E125251727080E71E14F3261754E2778DC9E5BDCFD5904724A6042FC"
+      "sha256": "EAC72728BE431A78CCEDA6D7079A3F1DED98CC97AA7CF4AEADCA182E3F08E01E"
     },
     {
       "path": "authorities/project_universe/tools.schema.json",
@@ -177,120 +177,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 109,
-      "edge_count": 114,
-      "weak_component_count": 1,
-      "strong_component_count": 109,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 20
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_universe_edge",
-          "in_degree": 1,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_universe_node",
-          "in_degree": 3,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_universe_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_universe_refresh",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_universe_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_universe_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_universe_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_universe_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_universe_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_universe_meta",
-          "in_degree": 1,
-          "out_degree": 2
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "6E6F46F8DD4C08294996FB06BAD8ED628A2966CBD8B4D754A0190B18D89DBCE6",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 60,
@@ -299,9 +190,9 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "E371E49F30D865466BB4899D6D59F31A8D47EC69A91A6AAB86BDA6A8C6BA706D"
+    "receipt_sha256": "CDC7A1983FA1339DE166A90AE32CC933D0C27E561453986AC312CE91A8880325"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "9FABCB046F2B37D7BCB616D3F76823853D5669D1C8935B00DA90498C9433C78E"
+  "receipt_sha256": "AFCAD543ED77F6A71E8BA161F97819C8D6B64D9BEAABF92F35D52F05E46D92F0"
 }

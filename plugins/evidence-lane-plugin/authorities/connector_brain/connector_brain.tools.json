@@ -189,120 +189,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 185,
-      "edge_count": 196,
-      "weak_component_count": 1,
-      "strong_component_count": 185,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 29
-        },
-        {
-          "node_id": "support_table_plugin_registration",
-          "in_degree": 4,
-          "out_degree": 19
-        },
-        {
-          "node_id": "support_table_universe_mini_brain_ref",
-          "in_degree": 4,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_route_decision",
-          "in_degree": 1,
-          "out_degree": 13
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_universe_cross_project_edge",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_plugin_event",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_universe_project_ref",
-          "in_degree": 3,
-          "out_degree": 7
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_universe_project_lane_head",
-          "in_degree": 1,
-          "out_degree": 7
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_plugin_fts_content",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_role_schema_field",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_universe_federation_fts_content",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_plugin_fts",
-          "in_degree": 1,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_universe_federation_fts",
-          "in_degree": 1,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "5394E7AAFD263CB7BF1CCB099E0EC179F8AE815FA22EFB049BDBF78B9AE274D6",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 107,
@@ -311,7 +202,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "2F97AD4C845F88BC95A13A0EDD6678F940D967FC3C7D6D955B297C715CB58B70"
+    "receipt_sha256": "78849D829C1A7FAC9C7B0C7D7F0411B30815096C8E69615414BFBF16B4B4D8CC"
   },
   "dedicated_workflow": {
     "json": "authorities/connector_brain/workflow.v1.json",
@@ -321,5 +212,5 @@
     "mmd_sha256": "DF65E796683C8D5A2500D96E8D2EBB973E2A347E290B7428F722EA90C402DE73",
     "dot_sha256": "A17A374BFD7E0FAFA200CEDC6DA0167D58F1E7EDB1B2B59384EF4671F5DC8917"
   },
-  "receipt_sha256": "2F2CF7E04BE7EBC254329E6F3A906CEEF3276168C710F42D1981E46A9C18C2B7"
+  "receipt_sha256": "B61C6FC25C42BA90EB16ACD0DAA2387830DE0A716EDEEB31C3C0A8C440C1F299"
 }

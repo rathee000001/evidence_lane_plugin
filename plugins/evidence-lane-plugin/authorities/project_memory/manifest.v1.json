@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_memory",
   "database": "memory.sqlite",
-  "database_sha256": "E65ECA44D786C9C8181B68BE37A812F36F6818E68B96BC05D1CA00AAC79D1D86",
+  "database_sha256": "9B2A84C2CB7CF068FF0761AD2F376A1FBE0C077348D8612991E7E84AA63ACDF8",
   "database_integrity": "ok",
-  "schema_sha256": "3CD0141207646790A98C56507C6F36F782918DDE0ECFCCF225FAC26FC572F8C9",
+  "schema_sha256": "222CB0823F801ADF0C35F1BBBBAC38179E83E2CBFD5C855B9DD753935EC4F8B0",
   "table_count": 22,
   "fts5_tables": [
     "authority_index_fts",
@@ -45,12 +45,12 @@
     {
       "path": "authorities/project_memory/memory.sqlite",
       "bytes": 180224,
-      "sha256": "E65ECA44D786C9C8181B68BE37A812F36F6818E68B96BC05D1CA00AAC79D1D86"
+      "sha256": "9B2A84C2CB7CF068FF0761AD2F376A1FBE0C077348D8612991E7E84AA63ACDF8"
     },
     {
       "path": "authorities/project_memory/memory.tools.json",
-      "bytes": 13904,
-      "sha256": "39D5C5E3C7527A6DA03DF9947FB361008CD37F28FE4E3E84CD9A097FB435A4D6"
+      "bytes": 10979,
+      "sha256": "CE8C66C447DFA8E9217B0DBF0D7D7EEAEA94DE080DC5BD704E8FA20E0A77A830"
     },
     {
       "path": "authorities/project_memory/mmd-artifact.schema.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/project_memory/sqlite-schema.v1.json",
       "bytes": 34604,
-      "sha256": "5673146EED7B3CD41DDC369788DBDFAED03755AA454D4024A22CB52B77C50BBD"
+      "sha256": "167B67CF940CAF29287F2CB85138C6FCBDEB348C3462A44977DEE01C94AE2AC7"
     },
     {
       "path": "authorities/project_memory/tools.schema.json",
@@ -180,120 +180,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 150,
-      "edge_count": 158,
-      "weak_component_count": 1,
-      "strong_component_count": 150,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 22
-        },
-        {
-          "node_id": "support_table_memory_authority_head",
-          "in_degree": 3,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_memory_locator",
-          "in_degree": 3,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_memory_compaction_checkpoint",
-          "in_degree": 2,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_memory_edge",
-          "in_degree": 1,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_memory_rehydration_receipt",
-          "in_degree": 1,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_memory_locator_fts_content",
-          "in_degree": 1,
-          "out_degree": 7
-        },
-        {
-          "node_id": "support_table_memory_locator_fts",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_memory_migration_receipt",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_memory_schema_metadata",
-          "in_degree": 1,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_memory_locator_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "30925F38E7FC40721597F53F923CAACBDC81960DC96CFA1CAB4517CF5B1340A6",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 90,
@@ -302,9 +193,9 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "3C28B63CA63DB0B9640000949DCBF8A7F439127038C3B8ACA2312C2D59262949"
+    "receipt_sha256": "04A96FE416A41BC52D2E652BD5E371E752871D920FDD2E1A26A989721BC55622"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "F3B736BA345D79F96197291B0B4EEDC5E957338CC846F5B054FB10622DB147B5"
+  "receipt_sha256": "9A653A980D07F91976086ABABC9890EC259874751754ABFD1D887A83077BDB34"
 }

@@ -86,7 +86,7 @@ flowchart TB
 | --- | ---: | --- |
 | `skills/skill-surface-registry.v1.json` | 46886 | `25E9B40FF82732C2E9900D9E68A4D1A939CF5B13BF16A597AE8E927AF5AB6E09` |
 | `skills/evi/references/mcp-tool-routing.v1.json` | 32089 | `70013308DCD3799F7F460A58FA6176B4CFC0444C0C7780DA07088E0C53313AD8` |
-| `sdk/workflows/skill-workflow-registry.v1.json` | 661432 | `60B301D8822B4354CFB17D55B06F7F9D6F48C7251C58C7F682B766FF0A4F5B23` |
+| `sdk/workflows/skill-workflow-registry.v1.json` | 594085 | `50537ADD54A31852347830392AAA6E71C9F2863755C776948CE0DDFBA0F5AB1E` |
 
 ## Cross-surface invariants
 

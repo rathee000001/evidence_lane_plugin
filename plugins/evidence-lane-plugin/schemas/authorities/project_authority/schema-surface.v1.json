@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "project_authority",
   "authority_root": "authorities/project_authority",
-  "authority_manifest_sha256": "5BCC0A6E0511966F57E6DC260D19E98671F88860D17B0C62BE102190BAE08B5F",
+  "authority_manifest_sha256": "696BCF47A0FEACC648C3712AE80E57410B70E18111F477B94BB81FCC679A60DD",
   "persistent_sqlite_authority": true,
   "schema_file_count": 12,
   "schema_files": [
@@ -69,5 +69,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "5321677DDB8F41BD093F9AAB0BC3D7D7C90BE391020193DB9BD1EAE0BDDCAA9A"
+  "receipt_sha256": "08D84394EA8BF3974AE263FACE2592E3DFEB4AE7C749893E735BC262E6A03FF1"
 }

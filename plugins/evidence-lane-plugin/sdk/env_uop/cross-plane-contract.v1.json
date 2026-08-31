@@ -6595,8 +6595,8 @@
     {
       "authority_id": "agent_learning",
       "path": "authorities/agent_learning",
-      "manifest_sha256": "19670A7382620D764209CA4447F82525C9389860DAD165EE51EDBB082753EEDE",
-      "database_sha256": "CE6BDA57CB37A041EE994A140AB542F7E84DE5BC6D1390E2F46D9BD605AE432E",
+      "manifest_sha256": "A23A8299F02569AEA1934BAA2B4D2A55BA018A157470757906F1C6C4D778F521",
+      "database_sha256": "EEBDA87D83B03D9C3D9472217CFA7A4FFC745EF0012F5DF41A6643A55E937921",
       "table_count": 28,
       "linked_public_action_count": 9,
       "persistent_sqlite_authority": true
@@ -6604,8 +6604,8 @@
     {
       "authority_id": "canon_input",
       "path": "authorities/canon_input",
-      "manifest_sha256": "DD404333352B3C09EEF3429838377CBE94FD4E66FFC689C255E93736B9C92C99",
-      "database_sha256": "188F41B2CE6BE056D26B43AFEEE3D57A8D93F8DC77F14D5C1DA90389974F120C",
+      "manifest_sha256": "6424F74F749C5A131C930925B4BC002EEF38C0445C01242E22D8347BFC294A61",
+      "database_sha256": "D682CE7314AC3E33D668DD4D5707FA2719C105FFA50484279A697FCD1A0CD5AB",
       "table_count": 18,
       "linked_public_action_count": 19,
       "persistent_sqlite_authority": true
@@ -6613,8 +6613,8 @@
     {
       "authority_id": "project_memory",
       "path": "authorities/project_memory",
-      "manifest_sha256": "B3844798A16FBF9E560768F851FF3007FED8495553113A81435447B94B464026",
-      "database_sha256": "E65ECA44D786C9C8181B68BE37A812F36F6818E68B96BC05D1CA00AAC79D1D86",
+      "manifest_sha256": "B85EF6F68A84C0263945E3F4CFAD222F209203FE31D46D9F5C927A7D5084242A",
+      "database_sha256": "9B2A84C2CB7CF068FF0761AD2F376A1FBE0C077348D8612991E7E84AA63ACDF8",
       "table_count": 22,
       "linked_public_action_count": 5,
       "persistent_sqlite_authority": true
@@ -6622,8 +6622,8 @@
     {
       "authority_id": "project_overlay",
       "path": "authorities/project_overlay",
-      "manifest_sha256": "F22D5EA477AF7A3AA78DB8CE9E15591042AC41EE35AA83E2A96635A96E7774C7",
-      "database_sha256": "DFBA12290F779EC56DE5B39BC037CE8AD9F9D4A3E9A2D240AB2A01CA1F014ACA",
+      "manifest_sha256": "D9E592AD34710ECB3E268BA5CD1E538360552AEB4F65B470B4DA9C30A52DB4A6",
+      "database_sha256": "E54785A60DF858293829A649116C792E6AF7DA8D3BA83619B6E59E79660C56BF",
       "table_count": 28,
       "linked_public_action_count": 10,
       "persistent_sqlite_authority": true
@@ -6631,8 +6631,8 @@
     {
       "authority_id": "source_authority",
       "path": "authorities/source_authority",
-      "manifest_sha256": "FDA08B5C4F1F335FCF0B5FA2A7F544B8E288C4AE2DC9DCCC7495C8F7665FFD8B",
-      "database_sha256": "CFE778D1DD81843FBBA55098E1113077E07C0EA428C907C2D25A157E6CB8C8F0",
+      "manifest_sha256": "F1EDBC8B51E9BAC220DDBA2B0EAF23FD519A67B2EBDBEDD418070E4E0B3E6EF1",
+      "database_sha256": "1910906C64CE34B966C77468C4B159FDE2BCF4EE8A07897649ACBDCE391A0AB1",
       "table_count": 56,
       "linked_public_action_count": 18,
       "persistent_sqlite_authority": true
@@ -6640,8 +6640,8 @@
     {
       "authority_id": "project_universe",
       "path": "authorities/project_universe",
-      "manifest_sha256": "8A66A7F056D7EC449C4F33E6DB277F99728A3ED1A0B851E158ED30CE77DC0E69",
-      "database_sha256": "7B8B902C4AA01281F070D6A48DDE944A5A5A38A70A39BFA051E1433997F4082A",
+      "manifest_sha256": "CEF5E51E6E09AFA3A371E8895000C22E936A2070375D62690DEE8DC1D44A96CB",
+      "database_sha256": "BB9CB7D81824ABF8B2F43AC5F592C6562A80A004C78825C54CCD0ED131638468",
       "table_count": 20,
       "linked_public_action_count": 4,
       "persistent_sqlite_authority": true
@@ -6649,8 +6649,8 @@
     {
       "authority_id": "connector_brain",
       "path": "authorities/connector_brain",
-      "manifest_sha256": "7C478EDACDD02D23AA7873533FAE4A49C8DC60615A74CB03D23C2A9FEE4C4CBC",
-      "database_sha256": "DF7572FE25E19C7A17A17A35B99278736CA30BF0A001EDB579BE1B4EE8BF7C9C",
+      "manifest_sha256": "C9911F7CD4346B71B88FDEF1309445E08F5FFF2CFD4F1A10E9ADC210351484EB",
+      "database_sha256": "CFCEAF91150061DA86C7976C3F848DF78C396A42F1AEBBBE87FFDC1254F0502F",
       "table_count": 29,
       "linked_public_action_count": 5,
       "persistent_sqlite_authority": true
@@ -6658,8 +6658,8 @@
     {
       "authority_id": "project_authority",
       "path": "authorities/project_authority",
-      "manifest_sha256": "5BCC0A6E0511966F57E6DC260D19E98671F88860D17B0C62BE102190BAE08B5F",
-      "database_sha256": "A05A8406833B1FB3832556F1DB8C090EEAC95A2776FBFCEB48FCEE62F8E857CE",
+      "manifest_sha256": "696BCF47A0FEACC648C3712AE80E57410B70E18111F477B94BB81FCC679A60DD",
+      "database_sha256": "8CAF9F4B4015D25FD15D051E0A564166593EBD923C69C060817C45CD1D923083",
       "table_count": 20,
       "linked_public_action_count": 21,
       "persistent_sqlite_authority": true
@@ -6667,8 +6667,8 @@
     {
       "authority_id": "receipt_ledger",
       "path": "authorities/receipt_ledger",
-      "manifest_sha256": "C2F43515B0DC0697B7E3D53335FD26EF66AE8DC58A43AD0E4662F9F3C1B5745A",
-      "database_sha256": "625DD9B9572FF88A61817E57967488CB4F1068A03723928775796122B71CDCEB",
+      "manifest_sha256": "65F0C6326BD06D55F6FF5A040F57E55067BE8A4AF091377CCAA69F3B2CA59175",
+      "database_sha256": "5E0220C125688C45152633C8C1D2DEF6B3DE452B6E43B6C60C5FED4548642526",
       "table_count": 18,
       "linked_public_action_count": 17,
       "persistent_sqlite_authority": true
@@ -6676,8 +6676,8 @@
     {
       "authority_id": "session_authority",
       "path": "authorities/session_authority",
-      "manifest_sha256": "BF187AB151592CEFBC50D85FC38295556C6B3ADB454948DCEC22C83BCF409638",
-      "database_sha256": "2D6D7D358A96EBEF6EB3777E0AAA94A86D393623C331E2AD6E8C0EA83583977F",
+      "manifest_sha256": "8AFEBE001924E69FC856114E1AFD3B905F9DBB716B62E6EC3F3A6DBCAAC2164E",
+      "database_sha256": "2F82E8623DA169AF937ED24C02C94E8BA44809B5F9A25468C3ED28D7806BBD43",
       "table_count": 19,
       "linked_public_action_count": 12,
       "persistent_sqlite_authority": true
@@ -6685,7 +6685,7 @@
     {
       "authority_id": "instructions",
       "path": "authorities/instructions",
-      "manifest_sha256": "BF7BA349A3C7ED0D227E2B5C0BA78BF19E7D264DE0C861EF69D2B8DE4D1EAE5B",
+      "manifest_sha256": "F8BA27A3154AD3E684956DB5D156B7521CC24386E2D4C33338C69D4183B8699D",
       "database_sha256": null,
       "table_count": null,
       "linked_public_action_count": 4,
@@ -6716,5 +6716,5 @@
     "hook_presence_required_for_explicit_actions": false,
     "chatgpt_host_identity_imported": false
   },
-  "receipt_sha256": "8E393369861420E641CB1D7F031A6EDDBE8DC28C98E5E7E87CC4F83F8718B117"
+  "receipt_sha256": "1D0EF88B728085A9A93DEA88290E9AFEDB036B6F163BDA917876647E555AA02A"
 }

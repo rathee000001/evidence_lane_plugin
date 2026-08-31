@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_overlay",
   "database": "project_overlay.sqlite",
-  "database_sha256": "DFBA12290F779EC56DE5B39BC037CE8AD9F9D4A3E9A2D240AB2A01CA1F014ACA",
+  "database_sha256": "E54785A60DF858293829A649116C792E6AF7DA8D3BA83619B6E59E79660C56BF",
   "database_integrity": "ok",
-  "schema_sha256": "4E10CE4BC87FE1CB99B10344B70B74255B20B1AAAC8059171BF1BE104E6F5AA3",
+  "schema_sha256": "0BE6DE1C173C884E719164EA906CEE3811925B9095410D813DE87BB17A3FC9AB",
   "table_count": 28,
   "fts5_tables": [
     "authority_index_fts",
@@ -60,12 +60,12 @@
     {
       "path": "authorities/project_overlay/project_overlay.sqlite",
       "bytes": 221184,
-      "sha256": "DFBA12290F779EC56DE5B39BC037CE8AD9F9D4A3E9A2D240AB2A01CA1F014ACA"
+      "sha256": "E54785A60DF858293829A649116C792E6AF7DA8D3BA83619B6E59E79660C56BF"
     },
     {
       "path": "authorities/project_overlay/project_overlay.tools.json",
-      "bytes": 14999,
-      "sha256": "123474C075392D191637C4CC5D67C9C6DB048EA9B60547A9EF9B873F596529CB"
+      "bytes": 12114,
+      "sha256": "713F46279BDA070C03FA70DB34FD73B44178009337EFC62456BD672381DCF75B"
     },
     {
       "path": "authorities/project_overlay/reader-contract.schema.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/project_overlay/sqlite-schema.v1.json",
       "bytes": 42901,
-      "sha256": "24A3C6621EC7F10E7A7F7BF8116D8C88A65BBE04596166322EEA13996BAF169A"
+      "sha256": "04200F56EEE3D61AD41ACA290E3FCCEE2FC9E9666EC0226171BCCD9E85ADC5BE"
     },
     {
       "path": "authorities/project_overlay/tools.schema.json",
@@ -179,120 +179,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 184,
-      "edge_count": 194,
-      "weak_component_count": 1,
-      "strong_component_count": 184,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 28
-        },
-        {
-          "node_id": "support_table_pv_hil_transition",
-          "in_degree": 4,
-          "out_degree": 13
-        },
-        {
-          "node_id": "support_table_chat_lineage_event",
-          "in_degree": 3,
-          "out_degree": 13
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_overlay_history_baseline",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_hil_transition_receipt",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_sector_candidate_snapshot",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_fusion_receipt",
-          "in_degree": 1,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_sector_hil_snapshot",
-          "in_degree": 1,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_chat_lineage_sector_fanout",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_project_sector_registry",
-          "in_degree": 3,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_sector_hil_delta",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_output_link",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_overlay_fts_content",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_sector_hil_baseline_snapshot",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_overlay_fts",
-          "in_degree": 1,
-          "out_degree": 4
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "F9505490AB0DC67978B177880F6117000C280FF6C22D452F69037458E3FCB281",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 111,
@@ -301,9 +192,9 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "18C61D6BC7A3DC024FD90A6B64F7B799994D000571C359B13CCEF65298D1444A"
+    "receipt_sha256": "BE6B3F48473D781A2E5C2B0E246ACC9BB9C6589AB041D7850EA99E92F3783544"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "B02563EA012CAE5D7C99FE4BF57E383872C2873A061E104DB519C17A1FDA19AC"
+  "receipt_sha256": "BA8767C13F4D595B6587F2223F3CBBBACD6D97140253EE5614DDACB7DF3C6DC6"
 }

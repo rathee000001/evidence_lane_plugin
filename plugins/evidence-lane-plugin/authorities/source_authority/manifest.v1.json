@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "source_authority",
   "database": "source_authority.sqlite",
-  "database_sha256": "CFE778D1DD81843FBBA55098E1113077E07C0EA428C907C2D25A157E6CB8C8F0",
+  "database_sha256": "1910906C64CE34B966C77468C4B159FDE2BCF4EE8A07897649ACBDCE391A0AB1",
   "database_integrity": "ok",
-  "schema_sha256": "A8AFADAB233C280AF71EB42AFB91E46D948FA229EB0A96EE59428A8C1DC1469D",
+  "schema_sha256": "9743D10322F8BB4E256651ABBD8037FAFD6B46A77AD6CAC1A4BB628DF05BD91E",
   "table_count": 56,
   "fts5_tables": [
     "authority_index_fts",
@@ -95,12 +95,12 @@
     {
       "path": "authorities/source_authority/source_authority.sqlite",
       "bytes": 561152,
-      "sha256": "CFE778D1DD81843FBBA55098E1113077E07C0EA428C907C2D25A157E6CB8C8F0"
+      "sha256": "1910906C64CE34B966C77468C4B159FDE2BCF4EE8A07897649ACBDCE391A0AB1"
     },
     {
       "path": "authorities/source_authority/source_authority.tools.json",
-      "bytes": 21040,
-      "sha256": "41DFE952932E3BCCBE43A25EACF476A7066CA198975271B3EFF047E65BF341A3"
+      "bytes": 18158,
+      "sha256": "82F1B78B7C2A8497023266DB6CA87163C9C158EE8C4AE6F0C983B0B8D73653EE"
     },
     {
       "path": "authorities/source_authority/sqlite-artifact.schema.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/source_authority/sqlite-schema.v1.json",
       "bytes": 129634,
-      "sha256": "F4ECB9A3AE93731E9E2F962235B03D5F8BDC7317D401FE02258B0B3F19F5F394"
+      "sha256": "6A97F9339CE8CA0B146EAB4A900E9F2C8F32AD95DDEABFBE14533D0C649D2858"
     },
     {
       "path": "authorities/source_authority/tools.schema.json",
@@ -184,120 +184,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 533,
-      "edge_count": 599,
-      "weak_component_count": 1,
-      "strong_component_count": 533,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 56
-        },
-        {
-          "node_id": "support_table_source_git_snapshot",
-          "in_degree": 5,
-          "out_degree": 35
-        },
-        {
-          "node_id": "support_table_source_git_file_change",
-          "in_degree": 9,
-          "out_degree": 19
-        },
-        {
-          "node_id": "support_table_source_object",
-          "in_degree": 13,
-          "out_degree": 13
-        },
-        {
-          "node_id": "support_table_source_graph_snapshot",
-          "in_degree": 8,
-          "out_degree": 17
-        },
-        {
-          "node_id": "support_table_source_graph_node",
-          "in_degree": 5,
-          "out_degree": 18
-        },
-        {
-          "node_id": "support_table_intake_batch",
-          "in_degree": 13,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_source_git_commit",
-          "in_degree": 7,
-          "out_degree": 14
-        },
-        {
-          "node_id": "support_table_source_git_hunk",
-          "in_degree": 6,
-          "out_degree": 15
-        },
-        {
-          "node_id": "support_table_source_graph_edge",
-          "in_degree": 1,
-          "out_degree": 19
-        },
-        {
-          "node_id": "support_table_source_git_changed_line",
-          "in_degree": 1,
-          "out_degree": 18
-        },
-        {
-          "node_id": "support_table_source_sqlite_receipt",
-          "in_degree": 2,
-          "out_degree": 17
-        },
-        {
-          "node_id": "support_table_source_git_impact",
-          "in_degree": 1,
-          "out_degree": 16
-        },
-        {
-          "node_id": "support_table_source_graph_diff",
-          "in_degree": 1,
-          "out_degree": 16
-        },
-        {
-          "node_id": "support_table_source_archive_receipt",
-          "in_degree": 1,
-          "out_degree": 15
-        },
-        {
-          "node_id": "support_table_source_graph_file_coverage",
-          "in_degree": 1,
-          "out_degree": 15
-        },
-        {
-          "node_id": "support_table_source_custom_schema_mapping",
-          "in_degree": 1,
-          "out_degree": 14
-        },
-        {
-          "node_id": "support_table_source_graph_impact",
-          "in_degree": 1,
-          "out_degree": 13
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_source_git_rename",
-          "in_degree": 1,
-          "out_degree": 12
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "D422EFC93B8789956D578A93E64A1CC7FC13381AAE0F58403176D1A497AE5C40",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 387,
@@ -306,9 +197,9 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "AB86FA7AA5A3589084BB6B6C91321696421FF50771212C189F4DA2B68BD6B747"
+    "receipt_sha256": "A9302C89A934792F637834E4C5CC50B03D9D1265FC1C28E97555DF55AE892150"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "0B400DA4196074A6F55B7B54209792302BDDAC82C4175CA8B198999123462EB0"
+  "receipt_sha256": "380A54D410E6091FD9043620FB81E73C56B26C6261A54136B0955392DE566479"
 }

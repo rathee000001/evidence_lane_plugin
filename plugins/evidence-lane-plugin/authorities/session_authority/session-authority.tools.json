@@ -495,120 +495,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 123,
-      "edge_count": 127,
-      "weak_component_count": 1,
-      "strong_component_count": 123,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 19
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_task_attachment",
-          "in_degree": 1,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_session_record",
-          "in_degree": 2,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_goal_projection",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_state_travel_entry",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_session_authority_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_session_authority_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_session_authority_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_session_authority_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_session_authority_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_session_authority_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 2
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "C3C91FB2090442480895BA8FCF3C5C530983A9C3929C308273338CA264C5ABCF",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 73,
@@ -617,7 +508,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "DB88884AB0039251C06CCC33B09DC2B4BBCA096CAB6A73027D5F395EF9B934DD"
+    "receipt_sha256": "1AEA24568B83C5941A76FF4941AF3CF4CA00D1C7ED8FB4F52A9E4C96C52730DF"
   },
   "dedicated_workflow": {
     "json": "authorities/session_authority/workflow.v1.json",
@@ -627,5 +518,5 @@
     "mmd_sha256": "82D6F152EF0BDDBE2C43BDBF4E297610AF26FA786B57E46DFEE7434ADC0E2FF8",
     "dot_sha256": "01B8E0F012EFD072C71B6055CBEFCDF1242339E75CB9C446B2A3E744AAB57A81"
   },
-  "receipt_sha256": "B3B7ACC95FB5DB9270904A6CED3CB28390AF8254C21DD2161DC2042ECCAA67C5"
+  "receipt_sha256": "EC2901AA20E77DA5FD878742B2DCBCE9285351CA052F0B680BCC9D09BD83CA21"
 }

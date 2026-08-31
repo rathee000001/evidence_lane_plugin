@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "artifacts",
   "authority_root": "authorities/project_sectors/artifacts",
-  "authority_manifest_sha256": "9645CFF947DD12005CC31D5EDAA273905BC18D6AD41324EE6B3757A65710342A",
+  "authority_manifest_sha256": "A78AFCE5E9EBC727920AC06F0D0969882C9D486E6AF216322D3839539C557B64",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -60,5 +60,5 @@
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
   "canonical_lane_contract_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "B106FCE2A3FBCB10C42F4043E8288451E7A75D70AD0C1B19B9FF16EB8A003976"
+  "receipt_sha256": "D9F3C10986B018D90027AFB5F04DE131F8FC4F69ABE9E1A950ECF76A6ED3CA58"
 }

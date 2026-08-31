@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.codex_action_plane",
   "source_path": "src/evidence_lane_plugin/codex_action_plane.py",
-  "source_sha256": "E0AEF0A6447B5D1F16C65286ABC4C5774C6F7B58C55EA4D02808FEC832FDBAEB",
-  "source_bytes": 102225,
+  "source_sha256": "A7BC8CEAFB0CF454C216F25E3BA83037EE7DDD4387E528DC498E5F8EB629E51F",
+  "source_bytes": 102433,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "281112F262701FDDF5E97245A47CA720A6DC010EFAA0898E6355E7442ED93812"
+  "receipt_sha256": "A5029540704B19443B7E846F1F1C87F3AB68952B35AA0491FC7642EEB6BB6727"
 }

@@ -61,8 +61,8 @@
     },
     {
       "path": "authorities/instructions/tools.json",
-      "bytes": 10252,
-      "sha256": "7E28833B0C1353A0CFFF0206534FF4C00948E63C2858746DAC3E8572E7009411"
+      "bytes": 9701,
+      "sha256": "B750995C41BE67822FC4BD502D543BC701F3C710E17229122F049292CBD67AEA"
     },
     {
       "path": "authorities/instructions/tools.schema.json",
@@ -110,35 +110,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 3,
-      "edge_count": 2,
-      "weak_component_count": 1,
-      "strong_component_count": 3,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "WORK",
-          "in_degree": 2,
-          "out_degree": 0
-        },
-        {
-          "node_id": "AGENTS",
-          "in_degree": 0,
-          "out_degree": 1
-        },
-        {
-          "node_id": "MEMORY",
-          "in_degree": 0,
-          "out_degree": 1
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "9FA4DDE3A552BD36920357B42D013A5236CCBA0219D0F97F5E4B4F73026B744D",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 0,
@@ -147,8 +123,8 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "7F87F3511EE29DECF1A357FB97E73C62537B83AB64E9F521BA05B446EC4C948C"
+    "receipt_sha256": "5E52EED70A186C5D02A58C04430F2591DCC36B006CBC19AD6C0F25D880575AFF"
   },
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "6AB03D98BCF6DED095AFB9A00FE7EEA1D877528D0F83A401A0D2BB917F52E6BF"
+  "receipt_sha256": "D5A888FEAA80A67667F8FF28302FD415E93E0FAA3525E9386D2C658135D1CA33"
 }

@@ -93,7 +93,7 @@ flowchart TB
 
 | Source contract | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `authorities/project_sectors/lane-surface-registry.v1.json` | 9856 | `1BA59466CB35C62DC0DF998FD3D5649F9BEFB89032D4423AE3757E2781544009` |
+| `authorities/project_sectors/lane-surface-registry.v1.json` | 9856 | `9A776405266B1527A54206887AB1F786CE41D90D589DD3B4B2381D9F6244D637` |
 | `schemas/source-intake/source-intake-code-routing.v1.json` | 1555 | `896F98CC10794925B00EE6ADE8DC88317167340D9F3BF80C3F38494C62D245F4` |
 | `src/evidence_lane_plugin/source_intake.py` | 33466 | `0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47` |
 

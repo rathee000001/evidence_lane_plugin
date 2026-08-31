@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "session_authority",
   "database": "session-authority.sqlite",
-  "database_sha256": "2D6D7D358A96EBEF6EB3777E0AAA94A86D393623C331E2AD6E8C0EA83583977F",
+  "database_sha256": "2F82E8623DA169AF937ED24C02C94E8BA44809B5F9A25468C3ED28D7806BBD43",
   "database_integrity": "ok",
-  "schema_sha256": "ED2D7964DCBEB79798F3769F3DC9731293CD0D5F6783F08B74215A0879F94A51",
+  "schema_sha256": "7525B4EA382166111593B8FC280EBDBC4DCED075712A361A0A2D7B153626DDFF",
   "table_count": 19,
   "fts5_tables": [
     "authority_index_fts",
@@ -95,12 +95,12 @@
     {
       "path": "authorities/session_authority/session-authority.sqlite",
       "bytes": 147456,
-      "sha256": "2D6D7D358A96EBEF6EB3777E0AAA94A86D393623C331E2AD6E8C0EA83583977F"
+      "sha256": "2F82E8623DA169AF937ED24C02C94E8BA44809B5F9A25468C3ED28D7806BBD43"
     },
     {
       "path": "authorities/session_authority/session-authority.tools.json",
-      "bytes": 19959,
-      "sha256": "7FDB0B71F0F9BD0DAEEF87FA10BDF5F431605DD21F09D32B9D56D8773C9226FF"
+      "bytes": 17029,
+      "sha256": "0BF911C6BEC03AD908572729E298515B15EA53B457C9583273EE650BB5F48392"
     },
     {
       "path": "authorities/session_authority/sqlite-artifact.schema.json",
@@ -110,7 +110,7 @@
     {
       "path": "authorities/session_authority/sqlite-schema.v1.json",
       "bytes": 28407,
-      "sha256": "B31001C919672CA8D92AAC9A383CF4CEF61B5E0B254FB120BE6A6AF9ED787B75"
+      "sha256": "76C8F976EA52540B1E53BFC586BB0E97876DF003B1C0773C2F678A788A46A0E3"
     },
     {
       "path": "authorities/session_authority/tools.schema.json",
@@ -180,120 +180,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 123,
-      "edge_count": 127,
-      "weak_component_count": 1,
-      "strong_component_count": 123,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 19
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_task_attachment",
-          "in_degree": 1,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_session_record",
-          "in_degree": 2,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_goal_projection",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_state_travel_entry",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_session_authority_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_session_authority_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_session_authority_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_session_authority_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_session_authority_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_session_authority_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 2
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "C3C91FB2090442480895BA8FCF3C5C530983A9C3929C308273338CA264C5ABCF",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 73,
@@ -302,9 +193,9 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "DB88884AB0039251C06CCC33B09DC2B4BBCA096CAB6A73027D5F395EF9B934DD"
+    "receipt_sha256": "1AEA24568B83C5941A76FF4941AF3CF4CA00D1C7ED8FB4F52A9E4C96C52730DF"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "44B2548C5AA043E2A29758A54B4C20729A1C007681E4932FA851D0A87629743D"
+  "receipt_sha256": "DA2A6F4DEDBEFCCBACBB89884494B8CF6F359AD4E7DD67FF48D69C71CC12C815"
 }

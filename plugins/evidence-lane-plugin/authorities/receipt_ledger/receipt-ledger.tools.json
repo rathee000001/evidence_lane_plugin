@@ -652,120 +652,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 116,
-      "edge_count": 121,
-      "weak_component_count": 1,
-      "strong_component_count": 116,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 18
-        },
-        {
-          "node_id": "support_table_receipt_record",
-          "in_degree": 2,
-          "out_degree": 16
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_receipt_migration_batch",
-          "in_degree": 1,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_receipt_content_cas",
-          "in_degree": 2,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_receipt_link",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_receipt_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_receipt_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_receipt_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_receipt_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_receipt_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas_column_compressed_bytes",
-          "in_degree": 1,
-          "out_degree": 0
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "93F4B35DE7C4FA4CB46BA2FCFCCA12F65B25C54368EEC8BF792ABED9575A24E9",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 69,
@@ -774,7 +665,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "995A7252CC5606AFFEC47AB8AC1F7AE737FA2F7CFA7FBE4A823D9C4D3F54C926"
+    "receipt_sha256": "7AB0CE0842BB85FCBAF28BEC51C03B1A87A46369310ED7E255FDFF665F263971"
   },
   "dedicated_workflow": {
     "json": "authorities/receipt_ledger/workflow.v1.json",
@@ -784,5 +675,5 @@
     "mmd_sha256": "B00EDFA680A0664EDFB3A2F940588426EF0DF89DBD60CC2A539DE1EFA78F3A4B",
     "dot_sha256": "BF08B19DBED142019D376DE7A09252611236F13D4268ACF3F0D64D2E5BA9384E"
   },
-  "receipt_sha256": "745EF16E13E7CA36CB18709E0FAD23408C46237A1F7F9E30871A56843FBD50CB"
+  "receipt_sha256": "E56A5542A5D08BF6F2B352E27478D956F93E9B064ACF0B571772A41A126D0214"
 }

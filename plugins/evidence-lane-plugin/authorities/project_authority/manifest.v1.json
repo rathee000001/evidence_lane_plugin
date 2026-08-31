@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "project_authority",
   "database": "project-authority.sqlite",
-  "database_sha256": "A05A8406833B1FB3832556F1DB8C090EEAC95A2776FBFCEB48FCEE62F8E857CE",
+  "database_sha256": "8CAF9F4B4015D25FD15D051E0A564166593EBD923C69C060817C45CD1D923083",
   "database_integrity": "ok",
-  "schema_sha256": "FF043291FCEC58CC8C95B9B5ACC348000B365A085AB9CEC9D5CBB1039950026B",
+  "schema_sha256": "B17789C2203345F3E6FD06C1EDB3F3352D59935631EF7C7C25F939B3254C1710",
   "table_count": 20,
   "fts5_tables": [
     "authority_index_fts",
@@ -60,7 +60,7 @@
     {
       "path": "authorities/project_authority/project-authority.sqlite",
       "bytes": 155648,
-      "sha256": "A05A8406833B1FB3832556F1DB8C090EEAC95A2776FBFCEB48FCEE62F8E857CE"
+      "sha256": "8CAF9F4B4015D25FD15D051E0A564166593EBD923C69C060817C45CD1D923083"
     },
     {
       "path": "authorities/project_authority/project_authority.dot",
@@ -74,8 +74,8 @@
     },
     {
       "path": "authorities/project_authority/project_authority.tools.json",
-      "bytes": 27429,
-      "sha256": "1DDC800F8A56BEB4540A8F7D1886DAB50F1E32960DE0AF32DEC535175A7D0351"
+      "bytes": 24469,
+      "sha256": "9C48CFA940CED1C4ACC3B6DF0ADFBC8D1715D7000650F742C0C048C1F04C8CE0"
     },
     {
       "path": "authorities/project_authority/reader-contract.schema.json",
@@ -120,7 +120,7 @@
     {
       "path": "authorities/project_authority/sqlite-schema.v1.json",
       "bytes": 31794,
-      "sha256": "8C696D4E84FB0F54F7C2BB3B6CF5290912035C464BC30EEBE46B41C128A1C899"
+      "sha256": "B4643535FDF81422C7588B825041405B55A929F22242CBD32021CB2D44B2399A"
     },
     {
       "path": "authorities/project_authority/tools.schema.json",
@@ -189,120 +189,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 138,
-      "edge_count": 141,
-      "weak_component_count": 1,
-      "strong_component_count": 138,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 20
-        },
-        {
-          "node_id": "support_table_workspace_binding",
-          "in_degree": 1,
-          "out_degree": 13
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_project_authority_member",
-          "in_degree": 1,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_project_authority_migration_receipt",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_project_pointer_history",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_project_registration",
-          "in_degree": 1,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_project_authority_fts_content",
-          "in_degree": 1,
-          "out_degree": 6
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_project_authority_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_project_authority_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_authority_index_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_project_authority_fts_config",
-          "in_degree": 1,
-          "out_degree": 2
-        },
-        {
-          "node_id": "support_table_project_authority_fts_data",
-          "in_degree": 1,
-          "out_degree": 2
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "DE58A2FBC670F1A726B2EBB0C3A376F7090368FF8D9046B8A6F433421DDC5CEC",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 83,
@@ -311,9 +202,9 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "783C48CEE01144DC0916F96BBF8753223B0276724CFD100660E570C5B78D41D9"
+    "receipt_sha256": "225D0E83E37E1B5A5A2CEFB76F34CAC3D64C2E11ED25E5F52AD545432C29076C"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "826020254F7D1441A19FB86BB6DFB07DD71264AC3544B03CF1AA7166DECAC4F4"
+  "receipt_sha256": "B6A607B730E371E93AFBA0E97FE23F4CB724C3880514E8DC26720E5EB5FD89DC"
 }

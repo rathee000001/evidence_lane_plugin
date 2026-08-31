@@ -20,7 +20,7 @@
     {
       "path": "authorities/project_sectors/brain_loader/brain_loader_sector_v001.sqlite",
       "bytes": 253952,
-      "sha256": "92E6921E5150FE7F1E8C4CCB84BD70EA7F96F767E51E04AB22A7B93207F6BD7C"
+      "sha256": "2AABD0782F79D7D57D6004213BA1C322CB1ACDDCD721D475D79B7190775607F7"
     },
     {
       "path": "authorities/project_sectors/brain_loader/builder-contract.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "B15068A76ABA403903FBC8F5F181A0BC3B2F54DABC8740C156A7F5233C0A34F9"
+  "receipt_sha256": "644DF10787083F32EBD7D5E660BFE81578143E2EBB0351FC951103F6D34BA945"
 }

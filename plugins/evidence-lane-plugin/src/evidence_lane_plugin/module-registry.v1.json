@@ -127,8 +127,8 @@
     {
       "module": "evidence_lane_plugin.codex_action_plane",
       "path": "src/evidence_lane_plugin/codex_action_plane.py",
-      "bytes": 102225,
-      "sha256": "E0AEF0A6447B5D1F16C65286ABC4C5774C6F7B58C55EA4D02808FEC832FDBAEB",
+      "bytes": 102433,
+      "sha256": "A7BC8CEAFB0CF454C216F25E3BA83037EE7DDD4387E528DC498E5F8EB629E51F",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -296,7 +296,7 @@
       "module": "evidence_lane_plugin.flash_authority",
       "path": "src/evidence_lane_plugin/flash_authority.py",
       "bytes": 28044,
-      "sha256": "2468A23BCE4F98AECEDE0AF093F71F35253D6813C30D61E35454A007AA0C2CA5",
+      "sha256": "431686BA5531D5ABAEA2CF7F3E8BCB52BB0ACCBED83511E62EE8C6B41A3ADE89",
       "role": "ENV_UOP_AI_ACTION_PLANE"
     },
     {
@@ -359,7 +359,7 @@
       "module": "evidence_lane_plugin.github_app_distribution",
       "path": "src/evidence_lane_plugin/github_app_distribution.py",
       "bytes": 116806,
-      "sha256": "97E5942343C90E740A65B940629DDC97B060DAA1F127724747102A23B039C8F5",
+      "sha256": "9D83C807AE9E91F4C28E7C39E4AB35231A7234FBAA5D1B28F5DEE38BE1FDB0AB",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -569,7 +569,7 @@
       "module": "evidence_lane_plugin.mode_governance",
       "path": "src/evidence_lane_plugin/mode_governance.py",
       "bytes": 81531,
-      "sha256": "F7C002439E5BA0F045EF8D2533A481CC377E3D53D49C0E3CE0F7211A91A17412",
+      "sha256": "9898F391E071A178D1896EC670C74C08651D01C70620C9F4FDCB42AA67D3D68C",
       "role": "ENV_UOP_AI_ACTION_PLANE"
     },
     {
@@ -1033,5 +1033,5 @@
   ],
   "root_surfaces_duplicated_inside_python_namespace": false,
   "loose_python_modules_directly_under_src_allowed": false,
-  "receipt_sha256": "4C5EFB6398260E12896268607FE13C3731CE838BA4289805794981D339B754BA"
+  "receipt_sha256": "5FBE38D5386BE312A354338AB1F143097FECF4F837A2BC60E5D8BCB41FDB7318"
 }

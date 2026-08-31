@@ -3,9 +3,9 @@
   "status": "PASS",
   "authority_id": "connector_brain",
   "database": "connector-brain.sqlite",
-  "database_sha256": "DF7572FE25E19C7A17A17A35B99278736CA30BF0A001EDB579BE1B4EE8BF7C9C",
+  "database_sha256": "CFCEAF91150061DA86C7976C3F848DF78C396A42F1AEBBBE87FFDC1254F0502F",
   "database_integrity": "ok",
-  "schema_sha256": "AE23270CD45C52B7C74D53E96319AB9FD45E8EB91470364A9EFF353CB3788E93",
+  "schema_sha256": "48DC208E1CC7F742943311B967FAB2AAB71C949FF940F69D1EAF5D348F4AAAF0",
   "table_count": 29,
   "fts5_tables": [
     "authority_index_fts",
@@ -26,7 +26,7 @@
     {
       "path": "authorities/connector_brain/connector-brain.sqlite",
       "bytes": 200704,
-      "sha256": "DF7572FE25E19C7A17A17A35B99278736CA30BF0A001EDB579BE1B4EE8BF7C9C"
+      "sha256": "CFCEAF91150061DA86C7976C3F848DF78C396A42F1AEBBBE87FFDC1254F0502F"
     },
     {
       "path": "authorities/connector_brain/connector_brain.dot",
@@ -40,8 +40,8 @@
     },
     {
       "path": "authorities/connector_brain/connector_brain.tools.json",
-      "bytes": 10819,
-      "sha256": "663A87517DDAE0A16DE6CBFDB818D1BA7430A39B8E9B41574713DD04410BC728"
+      "bytes": 7916,
+      "sha256": "C6659DE70DF78F5E308BE3AA4268446872D86234F76C42917D792CC7177BF9FF"
     },
     {
       "path": "authorities/connector_brain/dot-artifact.schema.json",
@@ -111,7 +111,7 @@
     {
       "path": "authorities/connector_brain/sqlite-schema.v1.json",
       "bytes": 42990,
-      "sha256": "D144401B5980E1810BAF390E4CE27CE5EFFFABEDBAEC5E1BB5213CE0CD3B892E"
+      "sha256": "A80BF641C7EB73ED2FE09FCEF39C7230440684C3F4208B93EE011541E0B39E85"
     },
     {
       "path": "authorities/connector_brain/tools.schema.json",
@@ -178,120 +178,11 @@
     "native_graphviz_hidden_runtime_available": false,
     "native_graphviz_validation": null,
     "graph_analysis": {
-      "status": "PASS",
+      "status": "UNAVAILABLE",
       "engine": "rustworkx",
-      "version": "0.18.1",
-      "node_count": 185,
-      "edge_count": 196,
-      "weak_component_count": 1,
-      "strong_component_count": 185,
-      "is_directed_acyclic": true,
-      "highest_degree_nodes": [
-        {
-          "node_id": "AUTHORITY_ROOT",
-          "in_degree": 0,
-          "out_degree": 29
-        },
-        {
-          "node_id": "support_table_plugin_registration",
-          "in_degree": 4,
-          "out_degree": 19
-        },
-        {
-          "node_id": "support_table_universe_mini_brain_ref",
-          "in_degree": 4,
-          "out_degree": 11
-        },
-        {
-          "node_id": "support_table_route_decision",
-          "in_degree": 1,
-          "out_degree": 13
-        },
-        {
-          "node_id": "support_table_authority_index_refresh_receipt",
-          "in_degree": 1,
-          "out_degree": 12
-        },
-        {
-          "node_id": "support_table_authority_index_node",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_universe_cross_project_edge",
-          "in_degree": 1,
-          "out_degree": 10
-        },
-        {
-          "node_id": "support_table_authority_index_source",
-          "in_degree": 2,
-          "out_degree": 8
-        },
-        {
-          "node_id": "support_table_plugin_event",
-          "in_degree": 1,
-          "out_degree": 9
-        },
-        {
-          "node_id": "support_table_universe_project_ref",
-          "in_degree": 3,
-          "out_degree": 7
-        },
-        {
-          "node_id": "support_table_authority_index_content_cas",
-          "in_degree": 4,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_universe_project_lane_head",
-          "in_degree": 1,
-          "out_degree": 7
-        },
-        {
-          "node_id": "support_table_authority_index_fts",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_plugin_fts_content",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_role_schema_field",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_universe_federation_fts_content",
-          "in_degree": 1,
-          "out_degree": 5
-        },
-        {
-          "node_id": "support_table_plugin_fts",
-          "in_degree": 1,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_universe_federation_fts",
-          "in_degree": 1,
-          "out_degree": 4
-        },
-        {
-          "node_id": "support_table_authority_index_fts_docsize",
-          "in_degree": 1,
-          "out_degree": 3
-        },
-        {
-          "node_id": "support_table_authority_index_fts_idx",
-          "in_degree": 1,
-          "out_degree": 3
-        }
-      ],
-      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "5394E7AAFD263CB7BF1CCB099E0EC179F8AE815FA22EFB049BDBF78B9AE274D6",
+    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 107,
@@ -300,9 +191,9 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "2F97AD4C845F88BC95A13A0EDD6678F940D967FC3C7D6D955B297C715CB58B70"
+    "receipt_sha256": "78849D829C1A7FAC9C7B0C7D7F0411B30815096C8E69615414BFBF16B4B4D8CC"
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "C27D9EEF47EA2FECAB00E9DC7EA14CC42A3727024215D860F9A29D949A904EFB"
+  "receipt_sha256": "50A1545C8B8BA60A3A2E3AEF78E9DACBC62D669B181EF12F51311D6E3133B379"
 }

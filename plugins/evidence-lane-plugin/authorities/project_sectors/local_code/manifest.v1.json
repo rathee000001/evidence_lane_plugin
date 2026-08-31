@@ -45,7 +45,7 @@
     {
       "path": "authorities/project_sectors/local_code/local_code_sector_v001.sqlite",
       "bytes": 327680,
-      "sha256": "08BA970ECF63CC43D0B6574CC32FE5E11E6605CE0A6DDE159A6956F30AA356F3"
+      "sha256": "E42294014583E61E609A6571F1208DBE8EC5E30ABF2C41453232F8A8FAAD2075"
     },
     {
       "path": "authorities/project_sectors/local_code/manifest.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "5964C1660036298001DEF228D980B20EA939333C1AEE3443DB26637DB07A038B"
+  "receipt_sha256": "0B7B0AB704DDAD1511856F19DD79B97C5213BE601D985909519BC1DB371A11B6"
 }
