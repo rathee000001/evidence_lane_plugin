@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="color-scheme" content="light" />
     <title>{{ page.title }} · Evidence Lane</title>
     <meta name="description" content="Evidence Lane 3.0.0 governed documentation" />
     <meta name="evidence-lane-projection" content="{{ site.evidence_lane_projection }}" />
@@ -11,52 +11,40 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="{{ '/' | relative_url }}" aria-label="Evidence Lane README">
-        <img src="{{ '/assets/evidence-lane-icon.png' | relative_url }}" alt="" />
-        <span>Evidence Lane</span>
-      </a>
-      <a class="repository" href="https://github.com/rathee000001/evidence_lane_plugin">
-        GitHub repository
-      </a>
-    </header>
+      <div class="header-inner">
+        <a class="brand" href="{{ '/' | relative_url }}" aria-label="Evidence Lane README">
+          <img src="{{ '/assets/evidence-lane-icon.png' | relative_url }}" alt="" />
+          <span><strong>Evidence Lane</strong><small>Governed backend atlas</small></span>
+        </a>
+        <a class="repository" href="https://github.com/rathee000001/evidence_lane_plugin">
+          View repository
+        </a>
+      </div>
 
-    <nav class="tabs" aria-label="Evidence Lane documentation">
-      <a href="{{ '/' | relative_url }}"{% if page.url == '/' %} aria-current="page"{% endif %}>README</a>
-      <a href="{{ '/architecture/' | relative_url }}"{% if page.url == '/architecture/' %} aria-current="page"{% endif %}>Architecture</a>
-      <a href="{{ '/env-uop/' | relative_url }}"{% if page.url == '/env-uop/' %} aria-current="page"{% endif %}>ENV and UOP</a>
-      <a href="{{ '/adaptive-delta/' | relative_url }}"{% if page.url == '/adaptive-delta/' %} aria-current="page"{% endif %}>Adaptive Delta</a>
-      <a href="{{ '/canon/' | relative_url }}"{% if page.url == '/canon/' %} aria-current="page"{% endif %}>Canon</a>
-      <a href="{{ '/ai-learning/' | relative_url }}"{% if page.url == '/ai-learning/' %} aria-current="page"{% endif %}>AI Learning</a>
-      <a href="{{ '/memory/' | relative_url }}"{% if page.url == '/memory/' %} aria-current="page"{% endif %}>Memory</a>
-      <a href="{{ '/project-universe/' | relative_url }}"{% if page.url == '/project-universe/' %} aria-current="page"{% endif %}>Project Universe</a>
-      <a href="{{ '/pv-storage/' | relative_url }}"{% if page.url == '/pv-storage/' %} aria-current="page"{% endif %}>PV Storage</a>
-      <a href="{{ '/host-matrix/' | relative_url }}"{% if page.url == '/host-matrix/' %} aria-current="page"{% endif %}>Host Matrix</a>
-      <a href="{{ '/skills/' | relative_url }}"{% if page.url == '/skills/' %} aria-current="page"{% endif %}>Skills</a>
-      <a href="{{ '/mcp/' | relative_url }}"{% if page.url == '/mcp/' %} aria-current="page"{% endif %}>MCP</a>
-      <a href="{{ '/tools/' | relative_url }}"{% if page.url == '/tools/' %} aria-current="page"{% endif %}>Tools</a>
-      <a href="{{ '/hooks/' | relative_url }}"{% if page.url == '/hooks/' %} aria-current="page"{% endif %}>Hooks</a>
-      <a href="{{ '/plan/' | relative_url }}"{% if page.url == '/plan/' %} aria-current="page"{% endif %}>Plan and Changes</a>
-      <a href="{{ '/lanes/' | relative_url }}"{% if page.url == '/lanes/' %} aria-current="page"{% endif %}>Source Intake and Lanes</a>
-      <a href="{{ '/helper/' | relative_url }}"{% if page.url == '/helper/' %} aria-current="page"{% endif %}>Helper install</a>
-      <a href="{{ '/tunnel/' | relative_url }}"{% if page.url == '/tunnel/' %} aria-current="page"{% endif %}>Tunnel guide</a>
-      <a href="{{ '/installation/' | relative_url }}"{% if page.url == '/installation/' %} aria-current="page"{% endif %}>Installation</a>
-      <a href="{{ '/git-ci/' | relative_url }}"{% if page.url == '/git-ci/' %} aria-current="page"{% endif %}>Git and CI</a>
-      <a href="{{ '/lifecycle/' | relative_url }}"{% if page.url == '/lifecycle/' %} aria-current="page"{% endif %}>Lifecycle and HIL</a>
-      <a href="{{ '/release/' | relative_url }}"{% if page.url == '/release/' %} aria-current="page"{% endif %}>Release</a>
-      <a href="{{ '/provenance/' | relative_url }}"{% if page.url == '/provenance/' %} aria-current="page"{% endif %}>Provenance</a>
-      <a href="{{ '/contributors/' | relative_url }}"{% if page.url == '/contributors/' %} aria-current="page"{% endif %}>Contributors</a>
-      <a href="{{ '/license/' | relative_url }}"{% if page.url == '/license/' %} aria-current="page"{% endif %}>License</a>
-      <a href="{{ '/copyright/' | relative_url }}"{% if page.url == '/copyright/' %} aria-current="page"{% endif %}>Copyright</a>
-      <a href="{{ '/third-party/' | relative_url }}"{% if page.url == '/third-party/' %} aria-current="page"{% endif %}>Third-party licenses</a>
-      <a href="{{ '/terms/' | relative_url }}"{% if page.url == '/terms/' %} aria-current="page"{% endif %}>Terms</a>
-      <a href="{{ '/security/' | relative_url }}"{% if page.url == '/security/' %} aria-current="page"{% endif %}>Security</a>
-      <a href="{{ '/repository-map/' | relative_url }}"{% if page.url == '/repository-map/' %} aria-current="page"{% endif %}>Repository Map</a>
-    </nav>
+      <nav class="primary-nav" aria-label="Primary documentation">
+        {% for item in site.data.navigation.primary %}
+        <a href="{{ item.url | relative_url }}"{% if page.url == item.url %} aria-current="page"{% endif %}>{{ item.title }}</a>
+        {% endfor %}
+        <details class="docs-menu">
+          <summary>Browse all docs <span aria-hidden="true">⌄</span></summary>
+          <div class="docs-menu-panel">
+            {% for group in site.data.navigation.groups %}
+            <section>
+              <h2>{{ group.title }}</h2>
+              {% for item in group.items %}
+              <a href="{{ item.url | relative_url }}"{% if page.url == item.url %} aria-current="page"{% endif %}>{{ item.title }}</a>
+              {% endfor %}
+            </section>
+            {% endfor %}
+          </div>
+        </details>
+      </nav>
+    </header>
 
     <main>
       {% if page.source_url %}
       <div class="source-strip">
-        <span>Git-tracked authority: <code>{{ page.source_path }}</code></span>
+        <span><strong>Exact Git-tracked source</strong><code>{{ page.source_path }}</code></span>
         <a href="{{ page.source_url }}">View exact source</a>
       </div>
       {% endif %}
@@ -67,5 +55,6 @@
       <span>Copyright © 2026 Praveen Rathee. All rights reserved.</span>
       <span>Evidence Lane {{ site.evidence_lane_release }} · Published from exact Git-tracked documentation.</span>
     </footer>
+    <script type="module" src="{{ '/assets/site.js' | relative_url }}"></script>
   </body>
 </html>

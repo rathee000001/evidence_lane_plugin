@@ -79,6 +79,26 @@ PAGES = (
     ("repository-map", "Repository Map", "docs/REPOSITORY_MAP.md"),
 )
 
+PRIMARY_NAVIGATION_SLUGS = (
+    "index",
+    "architecture",
+    "env-uop",
+    "adaptive-delta",
+    "lifecycle",
+    "skills",
+    "mcp",
+    "tools",
+)
+NAVIGATION_GROUPS = (
+    ("Start", ("index", "architecture")),
+    ("Execution", ("env-uop", "adaptive-delta", "lifecycle", "plan", "lanes")),
+    ("Authorities", ("canon", "ai-learning", "memory", "project-universe", "pv-storage")),
+    ("Surfaces", ("host-matrix", "skills", "mcp", "tools", "hooks")),
+    ("Delivery", ("installation", "tunnel", "git-ci", "release", "provenance")),
+    ("Repository", ("repository-map", "contributors")),
+    ("Legal", ("license", "copyright", "third-party", "terms", "security")),
+)
+
 PUBLIC_DOC_REFRESH_MARKER = "evidence-lane-public-docs-full-refresh: 3.0.0"
 STALE_PUBLIC_DOC_PATTERNS = (
     re.compile(
@@ -319,6 +339,54 @@ def _rewrite_relative_markdown_links(
     )
 
 
+def _normalize_markdown_for_pages(text: str) -> str:
+    """Keep GFM tables distinct when Kramdown follows Liquid processing."""
+
+    normalized: list[str] = []
+    in_fence = False
+    for line in text.replace("\r\n", "\n").splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+        is_table_row = not in_fence and stripped.startswith("|")
+        previous_is_table = bool(normalized) and normalized[-1].lstrip().startswith("|")
+        needs_blank_before_table = (
+            is_table_row and bool(normalized) and bool(normalized[-1].strip()) and not previous_is_table
+        )
+        needs_blank_after_table = (
+            not is_table_row and previous_is_table and bool(line.strip())
+        )
+        if needs_blank_before_table or needs_blank_after_table:
+            normalized.append("")
+        normalized.append(line)
+    return "\n".join(normalized).rstrip() + "\n"
+
+
+def _navigation_payload() -> dict[str, object]:
+    by_slug = {
+        slug: {
+            "slug": slug,
+            "title": title,
+            "url": "/" if slug == "index" else f"/{slug}/",
+            "source": source,
+        }
+        for slug, title, source in PAGES
+    }
+    grouped_slugs = [slug for _, slugs in NAVIGATION_GROUPS for slug in slugs]
+    if len(grouped_slugs) != len(set(grouped_slugs)) or set(grouped_slugs) != set(by_slug):
+        raise RuntimeError("GITHUB_PAGES_NAVIGATION_ALLOWLIST_MISMATCH")
+    return {
+        "schema": "evidence-lane.github-pages-navigation.v1",
+        "status": "PASS",
+        "primary": [by_slug[slug] for slug in PRIMARY_NAVIGATION_SLUGS],
+        "groups": [
+            {"title": title, "items": [by_slug[slug] for slug in slugs]}
+            for title, slugs in NAVIGATION_GROUPS
+        ],
+        "all": [by_slug[slug] for slug, _, _ in PAGES],
+    }
+
+
 def build(
     output: Path,
     *,
@@ -363,6 +431,13 @@ def build(
             f"missing: {', '.join(missing_refresh)}"
         )
     generated: list[dict[str, str]] = []
+    navigation = _navigation_payload()
+    data_directory = output / "_data"
+    data_directory.mkdir(parents=True, exist_ok=True)
+    (data_directory / "navigation.json").write_text(
+        json.dumps(navigation, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     for slug, title, relative_source in PAGES:
         repository_source = ROOT / relative_source
         source = (
@@ -374,10 +449,12 @@ def build(
             raise FileNotFoundError(relative_source)
         source_text = source.read_text(encoding="utf-8")
         _assert_current_public_document(relative_source, source_text)
-        body = _rewrite_relative_markdown_links(
-            source_text,
-            source_path=repository_source,
-            revision=revision,
+        body = _normalize_markdown_for_pages(
+            _rewrite_relative_markdown_links(
+                source_text,
+                source_path=repository_source,
+                revision=revision,
+            )
         )
         source_url = (
             f"https://github.com/{REPOSITORY}/blob/"
@@ -392,9 +469,7 @@ def build(
             f'source_path: "{relative_source}"\n'
             f'source_url: "{source_url}"\n'
             "---\n\n"
-            "{% raw %}\n"
             f"{body.rstrip()}\n"
-            "{% endraw %}\n"
         )
         (output / f"{slug}.md").write_text(page, encoding="utf-8")
         generated.append(
@@ -422,6 +497,22 @@ def build(
         "repository": REPOSITORY,
         "revision": revision,
         "page_count": len(generated),
+        "navigation": {
+            "schema": navigation["schema"],
+            "status": navigation["status"],
+            "route_count": len(navigation["all"]),
+            "primary_route_count": len(navigation["primary"]),
+            "group_count": len(navigation["groups"]),
+            "removed_route_count": 1,
+            "route_set_sha256": hashlib.sha256(
+                json.dumps(
+                    navigation["all"],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            ).hexdigest().upper(),
+        },
         "pages": generated,
         "documentation_refresh": {
             "status": "PASS",

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import re
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -99,14 +99,23 @@ def test_primary_plugin_pages_are_first_class_routes() -> None:
         assert f'"/{deep_linked_route}"' in sitemap
 
 
-def test_github_pages_navigation_wraps_without_horizontal_scroll() -> None:
+def test_github_pages_navigation_is_generated_from_current_allowlist() -> None:
+    layout = (ROOT / "github-pages" / "_layouts" / "default.html").read_text(
+        encoding="utf-8"
+    )
     css = (ROOT / "github-pages" / "assets" / "site.css").read_text(encoding="utf-8")
-    tabs_rule = re.search(r"\.tabs \{([^}]+)\}", css)
+    script = (ROOT / "github-pages" / "assets" / "site.js").read_text(
+        encoding="utf-8"
+    )
 
-    assert tabs_rule is not None
-    assert "flex-wrap: wrap" in tabs_rule.group(1)
-    assert "overflow-x: visible" in tabs_rule.group(1)
-    assert "overflow-x: auto" not in tabs_rule.group(1)
+    assert "site.data.navigation.primary" in layout
+    assert "site.data.navigation.groups" in layout
+    assert 'href="{{ item.url | relative_url }}"' in layout
+    assert ".primary-nav" in css
+    assert ".docs-menu-panel" in css
+    assert "mermaid@11.17.2" in script
+    assert 'mermaid.run({ querySelector: ".diagram-card .mermaid" })' in script
+    assert "Rendered workflow map" in script
 
 
 def test_github_pages_complete_projection_is_current_and_receipted(
@@ -121,6 +130,26 @@ def test_github_pages_complete_projection_is_current_and_receipted(
     assert refresh["page_count"] == len(PAGES) == 29
     assert refresh["source_paths"] == sorted({source for _, _, source in PAGES})
     assert len(refresh["source_set_sha256"]) == 64
+    assert receipt["navigation"]["status"] == "PASS"
+    assert receipt["navigation"]["route_count"] == len(PAGES) == 29
+    assert receipt["navigation"]["removed_route_count"] == 1
+
+    navigation = json.loads(
+        (tmp_path / "pages" / "_data" / "navigation.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert len(navigation["all"]) == 29
+    assert {row["url"] for row in navigation["all"]} == {
+        "/" if slug == "index" else f"/{slug}/" for slug, _, _ in PAGES
+    }
+
+    learning_page = (tmp_path / "pages" / "ai-learning.md").read_text(
+        encoding="utf-8"
+    )
+    assert "{% raw %}" not in learning_page
+    assert "{% endraw %}" not in learning_page
+    assert "`agent_learning:seal_candidate` |\n\n## Two learning lifecycles" in learning_page
 
     generated = {
         (row["slug"], row["source"]): row["source_sha256"] for row in receipt["pages"]
