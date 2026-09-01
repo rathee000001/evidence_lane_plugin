@@ -367,8 +367,8 @@
   "bundled_license_files": [
     {
       "path": "toolchains/licenses/7-zip-26.01/LICENSE.txt",
-      "bytes": 6031,
-      "sha256": "519AC0A4BDED9C18EA02E0AFB71F663D8C47373BD9FACD3AC96A79F51D77765D"
+      "bytes": 5885,
+      "sha256": "32369594A3A9F7C643D124035120EAA6A7707E75E57C4386EF509F801447BC49"
     },
     {
       "path": "toolchains/licenses/requirements/001-git/LICENSE-RECORD.json",
@@ -633,7 +633,7 @@
     {
       "path": "toolchains/licenses/requirements/053-sevenzip-nsis-extractor/LICENSE-RECORD.json",
       "bytes": 1231,
-      "sha256": "DE8D0B2FF705ADEB15E0B114D27CA43D6EC47F8DEBF258D9B1BC5F5674A6A299"
+      "sha256": "58682C9F120E88B7AEBEAE86C97C0C91C6445940A89EED0FFC1CAB090603B054"
     },
     {
       "path": "toolchains/licenses/requirements/054-jq/LICENSE-RECORD.json",
@@ -1295,7 +1295,7 @@
       "tool": "SevenZip_NSIS_extractor",
       "path": "toolchains/licenses/requirements/053-sevenzip-nsis-extractor/LICENSE-RECORD.json",
       "bytes": 1231,
-      "sha256": "DE8D0B2FF705ADEB15E0B114D27CA43D6EC47F8DEBF258D9B1BC5F5674A6A299"
+      "sha256": "58682C9F120E88B7AEBEAE86C97C0C91C6445940A89EED0FFC1CAB090603B054"
     },
     {
       "tool": "jq",
@@ -1695,7 +1695,7 @@
     }
   ],
   "tool_license_inventory": "toolchains/tool-license-inventory.v1.json",
-  "tool_license_inventory_sha256": "B643124CFDA71BB0272E5330FD46F0FCDC3914DF58989F1545888269EE8D37F8",
+  "tool_license_inventory_sha256": "E8239D6D1BCA227EDED5688681B8B3F709EAEF0625EE26613C9A99B8ABC9E12F",
   "hardware_accelerator_catalog_sha256": "ED6F59CCDE58E7F5A90854BF785340F254F3F44C10077C7F5120A7E733B8D69C",
   "hardware_accelerator_schema_sha256": "F87C5FAE23BCB3D6DFB6C3FE00555977D87EF116E13C50E6863166D9D56F45DA",
   "hardware_accelerators_are_execution_providers_not_tools": true,
@@ -1711,5 +1711,5 @@
   "ghostscript_default_bundled": false,
   "ghostscript_license_grant_required": true,
   "poppler_separate_process_and_source_offer_required": true,
-  "receipt_sha256": "44AFF82EFDC98900CBD0422C7726812BA3E10883B0D5F21551AE4E74DBBEFCE1"
+  "receipt_sha256": "AAC7302D4E67627A2F07562FB7F2086FE26247E3B9019AD52096A3841C481D44"
 }

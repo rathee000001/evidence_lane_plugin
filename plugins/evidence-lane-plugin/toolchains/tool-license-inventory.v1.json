@@ -749,7 +749,7 @@
       "mcp_action_counted_here": false,
       "native_tool_id": "seven_zip_extractor",
       "license_record": "toolchains/licenses/requirements/053-sevenzip-nsis-extractor/LICENSE-RECORD.json",
-      "license_record_sha256": "DE8D0B2FF705ADEB15E0B114D27CA43D6EC47F8DEBF258D9B1BC5F5674A6A299"
+      "license_record_sha256": "58682C9F120E88B7AEBEAE86C97C0C91C6445940A89EED0FFC1CAB090603B054"
     },
     {
       "tool": "jq",
@@ -1676,5 +1676,5 @@
       "license_record_sha256": "8F8AD92DE6CA6337BFE40FA38A731674ACE58C8692BA65E9165E038818E84DA8"
     }
   ],
-  "receipt_sha256": "E810CAB7592362966AD8E2B906E9F2481F0D687265925C7BE935980D4F65CE92"
+  "receipt_sha256": "404337D879B8C47CDDA4E3D52FC23866F2B386B184088F9F9A92C2668F5EDF7E"
 }

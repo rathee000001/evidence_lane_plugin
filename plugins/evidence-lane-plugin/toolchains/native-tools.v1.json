@@ -91,8 +91,8 @@
       "license_files": [
         {
           "path": "toolchains/licenses/7-zip-26.01/LICENSE.txt",
-          "sha256": "519AC0A4BDED9C18EA02E0AFB71F663D8C47373BD9FACD3AC96A79F51D77765D",
-          "size_bytes": 6031
+          "sha256": "32369594A3A9F7C643D124035120EAA6A7707E75E57C4386EF509F801447BC49",
+          "size_bytes": 5885
         }
       ]
     },

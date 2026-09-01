@@ -44,13 +44,13 @@
       "path": "mcp",
       "role": "OUTER_NATIVE_MCP_BINDING",
       "member_count": 94,
-      "members_sha256": "CFA3A5BB45FF4A59F84513CD5F15FE59A7E5AB5D99B20D9F50C3D2C0714BA7E7"
+      "members_sha256": "3C08AD69D919AC00C1FECC9885D57692AAE5AB8DCEF86BAA507779F1E97750B1"
     },
     {
       "path": "schemas",
       "role": "COMPLETE_EXECUTABLE_SCHEMA_SURFACE",
       "member_count": 171,
-      "members_sha256": "53C3D25538ACFAD093EBDAA91E7534D219C5642CBDADAE74921FABA8EF62D1FA"
+      "members_sha256": "41CB3C38FF846F24AA6BB1F633986636356057FB27058F2416F255DA9BEE68B8"
     },
     {
       "path": "scripts",
@@ -62,7 +62,7 @@
       "path": "sdk",
       "role": "INTERNAL_ENV_UOP_AND_OUTER_ROUTING_SDK",
       "member_count": 522,
-      "members_sha256": "14CC2A8A4E4FAB3AC6311712EA9B8C7E3B3874EBE0DDC78986D2FB71C60CF42E"
+      "members_sha256": "6B853D97E45C070EB79035726603D8C94FCABC09FEA2C8364EAA3FE06DAFD036"
     },
     {
       "path": "skills",
@@ -86,13 +86,13 @@
       "path": "toolchains",
       "role": "PINNED_PACKAGE_LOCAL_TOOLCHAINS",
       "member_count": 149,
-      "members_sha256": "CB539487F29BA48D519724011A854DCD8C1898A067BC87E17F91A36B09E99A53"
+      "members_sha256": "E90E46758215EFA7ACC82D2715352308F3D0C77EAF662FF0623B1173D0772D65"
     },
     {
       "path": "tunnel",
       "role": "VISIBLE_TUNNEL_RUNTIME_AND_TOOLCHAIN_BINDING",
       "member_count": 3,
-      "members_sha256": "4B6652386D5AA67EA5DC376DE64A71778F6240FE9862004DBB3D56A9FCFD9D71"
+      "members_sha256": "5EA354159F782488E04F791CEB32DAB6996C6323D75F7525EA684197068602F1"
     },
     {
       "path": "uop",
@@ -4599,7 +4599,7 @@
     {
       "path": "mcp/mcp-manifest.v1.json",
       "bytes": 7258,
-      "sha256": "07C6EAB2D8597390C0AC37886695656CA42EDE363D71BBBBC7320D399A3ADF25"
+      "sha256": "BDFB8CF9043F6A3374EA91FA19566D4B8975D075159513351F40BE88274E1ED6"
     },
     {
       "path": "pyproject.toml",
@@ -5294,7 +5294,7 @@
     {
       "path": "schemas/mcp/mcp-binding.v1.json",
       "bytes": 7258,
-      "sha256": "07C6EAB2D8597390C0AC37886695656CA42EDE363D71BBBBC7320D399A3ADF25"
+      "sha256": "BDFB8CF9043F6A3374EA91FA19566D4B8975D075159513351F40BE88274E1ED6"
     },
     {
       "path": "schemas/memory/project-memory.v1.sql",
@@ -5434,7 +5434,7 @@
     {
       "path": "schemas/schema-manifest.v1.json",
       "bytes": 42098,
-      "sha256": "6501631305AA868C4385CC1A23D211707DAFD098C20EC83C2DAC414D6CC82643"
+      "sha256": "F65FC869AFFDB7E5D03FB80DEA37962EF4A314569A295CF9C2347D8564730394"
     },
     {
       "path": "schemas/sdk/env-uop-cross-plane-contract.v1.schema.json",
@@ -5444,7 +5444,7 @@
     {
       "path": "schemas/sdk/sdk-binding.v1.json",
       "bytes": 76103,
-      "sha256": "353D1026EB043EC12FFAF84C3CF2D8669FDCD8F1BC7E961F20C3DD1E3BA2C3E0"
+      "sha256": "B97D608619CE2EFD385D96F17FC655F8FDD43782F3EC8715B2C91566BA696340"
     },
     {
       "path": "schemas/skills/skill-registry.v1.json",
@@ -6584,7 +6584,7 @@
     {
       "path": "sdk/host/tunnel.contract.v1.json",
       "bytes": 581,
-      "sha256": "3C011B73159E2E2FD8B8AF542B8A4C1EB5FBE13ADE0D0B516FA0D00CC7A5BD1F"
+      "sha256": "FB3CCBADAF97510C9E00395696E10592DD686EFFA847ABB6057A64461240C1AF"
     },
     {
       "path": "sdk/internal/authority-surface-routing.v1.json",
@@ -7819,7 +7819,7 @@
     {
       "path": "sdk/sdk-manifest.v1.json",
       "bytes": 76103,
-      "sha256": "353D1026EB043EC12FFAF84C3CF2D8669FDCD8F1BC7E961F20C3DD1E3BA2C3E0"
+      "sha256": "B97D608619CE2EFD385D96F17FC655F8FDD43782F3EC8715B2C91566BA696340"
     },
     {
       "path": "sdk/workflows/evi-additional-plugin.workflow.v1.json",
@@ -9454,7 +9454,7 @@
     {
       "path": "toolchains/license-policy.v1.json",
       "bytes": 62706,
-      "sha256": "F1F9F1D4B611D7F8C33A02679B1E0799BBF532A1E9E459F09DC3E8E024BB7F4F"
+      "sha256": "8D2C437B3FADEADE99B26A1AB0348D049844C927AA7AEF63B3FD3101ADC2D9CF"
     },
     {
       "path": "toolchains/licenses/7-zip-26.01/LICENSE.txt",
@@ -9724,7 +9724,7 @@
     {
       "path": "toolchains/licenses/requirements/053-sevenzip-nsis-extractor/LICENSE-RECORD.json",
       "bytes": 1231,
-      "sha256": "DE8D0B2FF705ADEB15E0B114D27CA43D6EC47F8DEBF258D9B1BC5F5674A6A299"
+      "sha256": "58682C9F120E88B7AEBEAE86C97C0C91C6445940A89EED0FFC1CAB090603B054"
     },
     {
       "path": "toolchains/licenses/requirements/054-jq/LICENSE-RECORD.json",
@@ -10069,7 +10069,7 @@
     {
       "path": "toolchains/native-tools.v1.json",
       "bytes": 7161,
-      "sha256": "5DF224BEC3C79A72053B1A0B080C6C1E4B4394A2A20F4D8CEB07CB7AAA5E6F45"
+      "sha256": "A91607A0E1BB2DDECF6373851A7E8F9B4F4F7B698E677345D67A403214EF0D9E"
     },
     {
       "path": "toolchains/references/env15_3-working-behavior.mmd",
@@ -10094,7 +10094,7 @@
     {
       "path": "toolchains/tool-license-inventory.v1.json",
       "bytes": 93179,
-      "sha256": "B643124CFDA71BB0272E5330FD46F0FCDC3914DF58989F1545888269EE8D37F8"
+      "sha256": "E8239D6D1BCA227EDED5688681B8B3F709EAEF0625EE26613C9A99B8ABC9E12F"
     },
     {
       "path": "toolchains/tool-requirement-matrix.v1.json",
@@ -10104,7 +10104,7 @@
     {
       "path": "toolchains/toolchain-surface.v1.json",
       "bytes": 1683,
-      "sha256": "5E05F876B82B687CC4253E04E7D0B37C9D38A6CDEF1A432FB47333DDE2D4C2D6"
+      "sha256": "2A782159FFBAB588541DB13B009CE8D2F904B029E61AA61D802BF5F2B037CBC8"
     },
     {
       "path": "toolchains/tunnel-runtime-toolchain.v1.json",
@@ -10139,7 +10139,7 @@
     {
       "path": "tunnel/tunnel-manifest.v1.json",
       "bytes": 2543,
-      "sha256": "3FDB82EB85A76791AB24E83274D3330A16B0FC8B37F873F77AA0097CD65275ED"
+      "sha256": "A9D0E27A8A424DE4AF42D66E3E96DCBAF3B941E1E19395E8BF1D449E5FD9F30E"
     },
     {
       "path": "uop/README.md",
@@ -10244,5 +10244,5 @@
   "local_cache_or_output_included": false,
   "historical_fallback_used": false,
   "all_installed_members_hash_bound": true,
-  "receipt_sha256": "7D5784FAEBB1AA655639EA03F0A31770298D2FF96BDB947CFE7C470A4C02EAFD"
+  "receipt_sha256": "E38F5B97C4B9B58BF4A63A28F5B6C1CF70862759E854C96A0A57F6ED85C0BFC3"
 }

@@ -57,6 +57,20 @@ def test_native_manifest_is_hidden_runtime_and_license_complete() -> None:
         assert len(rows[tool_id]["license"]["sha256"]) == 64
 
 
+def test_package_local_native_members_match_manifest_bytes() -> None:
+    manifest = native_manifest(PLUGIN)
+    checked = 0
+    for row in manifest["tools"]:
+        for field in ("package_files", "license_files"):
+            for member in row.get(field, []):
+                path = PLUGIN / member["path"]
+                assert path.is_file(), member["path"]
+                assert path.stat().st_size == member["size_bytes"], member["path"]
+                assert sha256_file(path) == member["sha256"], member["path"]
+                checked += 1
+    assert checked == 3
+
+
 def test_runtime_root_rejects_workspace_and_accepts_hidden_shape(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="HIDDEN_RUNTIME_ROOT_REQUIRED"):
         validate_hidden_runtime_root(tmp_path / "workspace")

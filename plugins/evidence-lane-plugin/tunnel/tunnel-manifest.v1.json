@@ -37,13 +37,13 @@
   "runtime_toolchain": "toolchains/tunnel-runtime-toolchain.v1.json",
   "runtime_toolchain_sha256": "23027693F389A79951194DE4BFA9A64A96F787DB52D302E39D98432679E0AFB1",
   "license_policy": "toolchains/license-policy.v1.json",
-  "license_policy_sha256": "F1F9F1D4B611D7F8C33A02679B1E0799BBF532A1E9E459F09DC3E8E024BB7F4F",
+  "license_policy_sha256": "8D2C437B3FADEADE99B26A1AB0348D049844C927AA7AEF63B3FD3101ADC2D9CF",
   "installed_runtime_license_bundle_required": true,
   "tunnel_client_license_source_and_sha256_required": true,
   "installer_runtime_prewarm_required": true,
   "runtime_toolchain_prewarm_required": true,
   "native_toolchain_manifest": "toolchains/native-tools.v1.json",
-  "native_toolchain_manifest_sha256": "5DF224BEC3C79A72053B1A0B080C6C1E4B4394A2A20F4D8CEB07CB7AAA5E6F45",
+  "native_toolchain_manifest_sha256": "A91607A0E1BB2DDECF6373851A7E8F9B4F4F7B698E677345D67A403214EF0D9E",
   "native_toolchain_install_owner": "scripts/codex_release/install_native_toolchain.py",
   "native_toolchain_local_update_only": true,
   "maintainer_helper_included_until_final_project_hil": true,
@@ -53,5 +53,5 @@
   "restart_preparation_only": true,
   "programmatic_app_stop_allowed": false,
   "turn_drain_utility_present": false,
-  "receipt_sha256": "32EC32B7B1A4502998F92942F9BF525E1CDE186EC10847099DA9843E117BC581"
+  "receipt_sha256": "AF3CDE73E98A6236DF7AD207D9A4314723A74245643B065AE6173C6A9CC668E4"
 }
