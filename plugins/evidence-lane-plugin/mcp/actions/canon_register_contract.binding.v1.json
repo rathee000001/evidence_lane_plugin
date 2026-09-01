@@ -67,11 +67,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/canon_register_contract.action.v1.json",
-  "sdk_action_binding_sha256": "6ABC201D4C0D28CC13AC55EB8526E06FBAA8A63E5A33E7682797BC59578CED39",
+  "sdk_action_binding_sha256": "0602B51DC8FBD5C4AD47C6B0B200CB5AD575AD8C11CF0DC0CA9B4EA139884261",
   "public_action_schema": "schemas/actions/canon_register_contract.schema.json",
   "public_action_schema_sha256": "11CF024A5F40E3FD86BD809CF8D0A5DC9241E0D37FBD47C61FA066F81A53CB0D",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
+  "canonical_server_sha256": "28D95BB846108471E38AD0D6222FC91E86D3357A2F43493991449E6C65F923D0",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "D00E4F49BD7B07D981A3D70AAE19DF8F1C5CCC220612D315A6F11BF7472979B3"
+  "receipt_sha256": "ECDFE0169EB248AF0C66FD3E15ABB2C9779818A57734FD6B927C6566084F7D60"
 }

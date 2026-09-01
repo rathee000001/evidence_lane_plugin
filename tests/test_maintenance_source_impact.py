@@ -60,7 +60,19 @@ def test_live_changed_paths_do_not_collapse_direct_delete_and_add_as_rename(
     old.write_text('{"same":"payload"}\n', encoding="utf-8")
     subprocess.run(["git", "add", "old.json"], cwd=repository, check=True)
     subprocess.run(["git", "commit", "-m", "baseline"], cwd=repository, check=True)
+    baseline = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repository,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    (repository / "committed.json").write_text("committed\n", encoding="utf-8")
+    subprocess.run(["git", "add", "committed.json"], cwd=repository, check=True)
+    subprocess.run(["git", "commit", "-m", "later"], cwd=repository, check=True)
     old.unlink()
     (repository / "new.json").write_text('{"same":"payload"}\n', encoding="utf-8")
     changed = _module()._live_changed_paths(repository)
     assert changed == ["new.json", "old.json"]
+    changed_from_baseline = _module()._live_changed_paths(repository, baseline)
+    assert changed_from_baseline == ["committed.json", "new.json", "old.json"]

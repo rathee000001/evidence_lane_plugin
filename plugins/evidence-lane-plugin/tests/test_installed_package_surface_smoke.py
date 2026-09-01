@@ -82,7 +82,7 @@ def test_installed_mcp_sdk_skill_and_hook_counts_match_without_commands() -> Non
     assert handler_count == sum(map(len, logical["logicalActions"].values())) == 44
 
 
-def test_installed_mcp_stdio_catalog_is_ready_without_eager_ocr(
+def test_installed_mcp_stdio_catalog_is_ready_after_explicit_bootstrap(
     tmp_path: Path,
 ) -> None:
     messages = [
@@ -117,6 +117,42 @@ def test_installed_mcp_stdio_catalog_is_ready_without_eager_ocr(
     environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(
         tmp_path / "runtime-control"
     )
+    blocked = subprocess.run(
+        [
+            sys.executable,
+            str(PLUGIN / "scripts" / "run_mcp.py"),
+            "--transport",
+            "stdio",
+        ],
+        input="".join(
+            json.dumps(message, sort_keys=True, separators=(",", ":")) + "\n"
+            for message in messages
+        ),
+        text=True,
+        encoding="utf-8",
+        capture_output=True,
+        cwd=PLUGIN,
+        env=environment,
+        check=False,
+        timeout=30,
+    )
+    assert blocked.returncode != 0
+    assert "runtime is not prewarmed" in blocked.stderr
+    bootstrap = subprocess.run(
+        [
+            sys.executable,
+            str(PLUGIN / "scripts" / "run_mcp.py"),
+            "--bootstrap-only",
+        ],
+        text=True,
+        encoding="utf-8",
+        capture_output=True,
+        cwd=PLUGIN,
+        env=environment,
+        check=False,
+        timeout=600,
+    )
+    assert bootstrap.returncode == 0, bootstrap.stderr[-2000:]
     process = subprocess.run(
         [
             sys.executable,

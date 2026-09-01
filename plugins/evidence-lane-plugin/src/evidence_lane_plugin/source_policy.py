@@ -167,20 +167,31 @@ def _assigned_value_is_secret(value: str) -> bool:
     return normalized not in {"password", "passwd", "token", "secret", "api_key"}
 
 
-def content_exclusion_reason(data: bytes) -> str | None:
+def content_exclusion_reason(
+    data: bytes,
+    *,
+    exclude_opaque_binary: bool = False,
+) -> str | None:
     """Return a stable exclusion code without returning or logging secret bytes."""
 
     if any(secret in data for secret in known_environment_secrets()):
         return "CONFIGURED_SECRET_VALUE_EXCLUDED"
-    if b"\x00" in data[:8192]:
-        return None
-    try:
-        text = data.decode("utf-8-sig")
-    except UnicodeDecodeError:
+    is_binary = b"\x00" in data[:8192]
+    if is_binary:
+        # Token and PEM signatures are ASCII-compatible and must be checked even
+        # when the enclosing file is binary. Latin-1 preserves byte positions
+        # without dropping content or fabricating decoder failures.
+        text = data.decode("latin-1")
+    else:
         try:
-            text = data.decode("cp1252")
+            text = data.decode("utf-8-sig")
         except UnicodeDecodeError:
-            return None
+            try:
+                text = data.decode("cp1252")
+            except UnicodeDecodeError:
+                return (
+                    "OPAQUE_BINARY_CONTENT_EXCLUDED" if exclude_opaque_binary else None
+                )
     if PRIVATE_KEY_PATTERN.search(text):
         return "PRIVATE_KEY_MATERIAL_EXCLUDED"
     if any(
@@ -194,6 +205,11 @@ def content_exclusion_reason(data: bytes) -> str | None:
         for match in _ASSIGNED_SECRET.finditer(text)
     ):
         return "ASSIGNED_SECRET_MATERIAL_EXCLUDED"
+    if is_binary and exclude_opaque_binary:
+        # Current source lanes may parse safe binary files through their
+        # dedicated contracts. Historical Git CAS stores them hash-only by
+        # excluding payload bytes from this legacy content index.
+        return "OPAQUE_BINARY_CONTENT_EXCLUDED"
     return None
 
 

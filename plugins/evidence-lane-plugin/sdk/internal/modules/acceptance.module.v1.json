@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.acceptance",
   "source_path": "src/evidence_lane_plugin/acceptance.py",
-  "source_sha256": "8103827984E5DD9340E5A47AE16B6341E4CAA259FC635017D1B2091E1A4AF54B",
-  "source_bytes": 14547,
+  "source_sha256": "897F96F6A34B7E21E1707E70C0F54191F0B0A7853DF97F0B8EAA272AD517DDE5",
+  "source_bytes": 17021,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "C9ED989CEA8B0E29B50E2FB687265BC0CFAF831844AF5171FF4CC1A3B4371F8D"
+  "receipt_sha256": "BDCD7598580A36E7FF29E9834E1E97CBD0E10DEE7836019C1E98D286B389A543"
 }

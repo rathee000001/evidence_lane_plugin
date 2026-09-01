@@ -9,7 +9,7 @@ import subprocess
 import sys
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, overload
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = PLUGIN_ROOT / "src"
@@ -32,6 +32,16 @@ EXCLUDED_CANDIDATE_PATHS = {
 }
 
 
+@overload
+def _git(
+    repository: Path, *arguments: str, binary: Literal[False] = False
+) -> str: ...
+
+
+@overload
+def _git(repository: Path, *arguments: str, binary: Literal[True]) -> bytes: ...
+
+
 def _git(repository: Path, *arguments: str, binary: bool = False) -> bytes | str:
     result = subprocess.run(
         [resolve_git_executable(repository), *arguments],
@@ -44,11 +54,11 @@ def _git(repository: Path, *arguments: str, binary: bool = False) -> bytes | str
     return result.stdout
 
 
-def _live_changed_paths(repository: Path) -> list[str]:
+def _live_changed_paths(repository: Path, baseline_ref: str = "HEAD") -> list[str]:
     tracked = {
         line.strip().replace("\\", "/")
         for line in str(
-            _git(repository, "diff", "--no-renames", "--name-only", "HEAD")
+            _git(repository, "diff", "--no-renames", "--name-only", baseline_ref)
         ).splitlines()
         if line.strip()
     }
@@ -303,6 +313,7 @@ def build_source_impact_closure(
     plugin_root: Path,
     output_root: Path,
     changed_paths: Iterable[str] | None = None,
+    baseline_ref: str = "HEAD",
 ) -> dict[str, Any]:
     repository = repository_root.resolve()
     plugin = plugin_root.resolve()
@@ -315,13 +326,13 @@ def build_source_impact_closure(
             for path in (
                 changed_paths
                 if changed_paths is not None
-                else _live_changed_paths(repository)
+                else _live_changed_paths(repository, baseline_ref)
             )
             if str(path).strip()
         )
     )
     groups = _member_groups(repository, plugin)
-    mappings = [
+    mappings: list[dict[str, Any]] = [
         {
             "source_path": path,
             "source_exists": (repository / path).is_file(),
@@ -346,6 +357,8 @@ def build_source_impact_closure(
         else "FAIL",
         "repository_root": repository.as_posix(),
         "plugin_root": plugin.as_posix(),
+        "baseline_ref": baseline_ref,
+        "baseline_commit_sha": str(_git(repository, "rev-parse", baseline_ref)).strip(),
         "external_non_executable_receipt": True,
         "changed_path_count": len(paths),
         "changed_paths": paths,
@@ -403,11 +416,13 @@ def main() -> int:
     parser.add_argument("--repository-root", type=Path, required=True)
     parser.add_argument("--plugin-root", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
+    parser.add_argument("--baseline-ref", default="HEAD")
     args = parser.parse_args()
     result = build_source_impact_closure(
         repository_root=args.repository_root,
         plugin_root=args.plugin_root,
         output_root=args.output_root,
+        baseline_ref=args.baseline_ref,
     )
     print(json.dumps(result, sort_keys=True))
     return 0 if result["status"] == "PASS" else 1

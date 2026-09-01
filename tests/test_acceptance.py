@@ -5,7 +5,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-from evidence_lane_plugin.acceptance import run_acceptance_checks
+from evidence_lane_plugin.acceptance import (
+    _safe_subprocess_environment,
+    run_acceptance_checks,
+)
 
 
 def _git(repository: Path, *args: str) -> None:
@@ -48,25 +51,20 @@ def test_exact_command_passes_only_when_source_bytes_stay_fixed(
     repository = _repository(tmp_path)
     stable = run_acceptance_checks(
         repository,
-        [f'cmd:"{sys.executable}" -c "print(123)"'],
+        [f'cmd:"{sys.executable}" --version'],
         timeout_seconds=30,
     )
     assert stable["verdict"] == "ALL_EXECUTABLE_CHECKS_PASS"
     assert stable["source_unchanged"] is True
 
-    mutating = run_acceptance_checks(
+    inline = run_acceptance_checks(
         repository,
-        [
-            (
-                f'cmd:"{sys.executable}" -c '
-                '"from pathlib import Path; '
-                "Path('source.txt').write_text('changed')\""
-            )
-        ],
+        [f'cmd:"{sys.executable}" -c "print(123)"'],
         timeout_seconds=30,
     )
-    assert mutating["verdict"] == "SOURCE_MUTATED_BY_CHECKS"
-    assert mutating["source_unchanged"] is False
+    assert inline["verdict"] == "INVALID_CHECK_DECLARATION"
+    assert inline["counts"]["BLOCKED_INVALID_COMMAND"] == 1
+    assert inline["executed"] == 0
 
 
 def test_shell_operators_and_secret_shaped_commands_are_blocked(
@@ -77,14 +75,10 @@ def test_shell_operators_and_secret_shaped_commands_are_blocked(
     result = run_acceptance_checks(
         repository,
         [
+            (f'cmd:"{sys.executable}" --version && "{sys.executable}" --version'),
             (
-                f'cmd:"{sys.executable}" -c "print(123)" && '
-                f'"{sys.executable}" -c '
-                f"\"from pathlib import Path; Path(r'{marker}').touch()\""
-            ),
-            (
-                f'cmd:"{sys.executable}" -c "print('
-                "'sk-proj-abcdefghijklmnopqrstuvwxyz123456')\""
+                f'cmd:"{sys.executable}" --version '
+                "sk-proj-abcdefghijklmnopqrstuvwxyz123456"
             ),
         ],
         timeout_seconds=30,
@@ -95,11 +89,13 @@ def test_shell_operators_and_secret_shaped_commands_are_blocked(
     assert marker.exists() is False
 
 
-def test_exact_manifest_binds_and_executes_all_twelve_prose_checks(
+def test_repository_manifest_is_declaration_only_and_never_executes(
     tmp_path: Path,
 ) -> None:
     repository = _repository(tmp_path)
-    declarations = [f"AC{index:02d} executable: exact check {index}." for index in range(1, 13)]
+    declarations = [
+        f"AC{index:02d} executable: exact check {index}." for index in range(1, 13)
+    ]
     manifest_path = repository / "evidence" / "acceptance" / "commands.json"
     manifest_path.parent.mkdir(parents=True)
     manifest_path.write_text(
@@ -127,19 +123,19 @@ def test_exact_manifest_binds_and_executes_all_twelve_prose_checks(
     result = run_acceptance_checks(repository, declarations, timeout_seconds=30)
     assert result["bounded_to"] == 12
     assert result["declared"] == 12
-    assert result["executed"] == 12
-    assert result["verdict"] == "ALL_EXECUTABLE_CHECKS_PASS"
-    assert result["counts"]["PASS"] == 12
+    assert result["executed"] == 0
+    assert result["verdict"] == "REPOSITORY_COMMAND_APPROVAL_REQUIRED"
+    assert result["counts"]["PENDING_EXPLICIT_COMMAND_APPROVAL"] == 12
     assert result["command_manifest"]["status"] == "PASS"
     assert len(result["command_manifest"]["sha256"]) == 64
     assert all(
-        row["declared_via"] == "repository_manifest_exact_match"
+        row["declared_via"] == "repository_manifest_declaration_only"
         for row in result["checks"]
     )
     assert result["commands_inferred"] is False
 
 
-def test_postseal_manifest_check_waits_then_executes_with_candidate_context(
+def test_postseal_manifest_never_executes_with_candidate_context(
     tmp_path: Path,
 ) -> None:
     repository = _repository(tmp_path)
@@ -173,9 +169,9 @@ def test_postseal_manifest_check_waits_then_executes_with_candidate_context(
         encoding="utf-8",
     )
     pending = run_acceptance_checks(repository, [declaration], timeout_seconds=30)
-    assert pending["verdict"] == "POSTSEAL_CHECKS_PENDING"
-    assert pending["executed"] == 1
-    assert pending["checks"][0]["status"] == "PENDING_POSTSEAL"
+    assert pending["verdict"] == "REPOSITORY_COMMAND_APPROVAL_REQUIRED"
+    assert pending["executed"] == 0
+    assert pending["checks"][0]["status"] == "PENDING_EXPLICIT_COMMAND_APPROVAL"
 
     postseal = run_acceptance_checks(
         repository,
@@ -184,11 +180,12 @@ def test_postseal_manifest_check_waits_then_executes_with_candidate_context(
         phase="POSTSEAL",
         environment={"CANDIDATE_TEST": "sealed"},
     )
-    assert postseal["verdict"] == "ALL_EXECUTABLE_CHECKS_PASS"
-    assert postseal["checks"][0]["status"] == "PASS"
+    assert postseal["verdict"] == "REPOSITORY_COMMAND_APPROVAL_REQUIRED"
+    assert postseal["executed"] == 0
+    assert postseal["checks"][0]["status"] == "PENDING_EXPLICIT_COMMAND_APPROVAL"
 
 
-def test_prebuild_summary_passes_when_exact_prebuild_runs_before_postseal(
+def test_manifest_prebuild_and_postseal_both_require_external_approval(
     tmp_path: Path,
 ) -> None:
     repository = _repository(tmp_path)
@@ -221,14 +218,11 @@ def test_prebuild_summary_passes_when_exact_prebuild_runs_before_postseal(
 
     result = run_acceptance_checks(repository, [prebuild, postseal])
     assert result["status"] == "PARTIAL"
-    assert result["verdict"] == "POSTSEAL_CHECKS_PENDING"
-    assert result["prebuild_status"] == "PASS"
-    assert (
-        result["prebuild_verdict"]
-        == "ALL_PREBUILD_EXECUTABLE_CHECKS_PASS_POSTSEAL_PENDING"
-    )
-    assert result["prebuild_executed"] == 1
-    assert result["postseal_pending"] == 1
+    assert result["verdict"] == "REPOSITORY_COMMAND_APPROVAL_REQUIRED"
+    assert result["prebuild_status"] == "PARTIAL"
+    assert result["prebuild_executed"] == 0
+    assert result["postseal_pending"] == 0
+    assert result["counts"]["PENDING_EXPLICIT_COMMAND_APPROVAL"] == 2
 
 
 def test_manifest_registry_may_map_more_entries_than_one_bounded_task_executes(
@@ -236,8 +230,7 @@ def test_manifest_registry_may_map_more_entries_than_one_bounded_task_executes(
 ) -> None:
     repository = _repository(tmp_path)
     declarations = [
-        f"AC{index:02d} executable: registry check {index}."
-        for index in range(1, 22)
+        f"AC{index:02d} executable: registry check {index}." for index in range(1, 22)
     ]
     manifest_path = repository / "evidence" / "acceptance" / "commands.json"
     manifest_path.parent.mkdir(parents=True)
@@ -268,6 +261,26 @@ def test_manifest_registry_may_map_more_entries_than_one_bounded_task_executes(
     assert result["command_manifest"]["status"] == "PASS"
     assert result["command_manifest"]["entry_count"] == 21
     assert result["declared"] == 6
-    assert result["executed"] == 6
-    assert result["counts"]["PASS"] == 6
-    assert result["verdict"] == "ALL_EXECUTABLE_CHECKS_PASS"
+    assert result["executed"] == 0
+    assert result["counts"]["PENDING_EXPLICIT_COMMAND_APPROVAL"] == 6
+    assert result["verdict"] == "REPOSITORY_COMMAND_APPROVAL_REQUIRED"
+
+
+def test_acceptance_subprocess_environment_is_minimal_and_secret_free(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-proj-secret-value-01234567890123456789")
+    monkeypatch.setenv("PATH", "safe-path")
+    safe, error = _safe_subprocess_environment(
+        {"EVIDENCE_LANE_PROJECT_ID": "project-a"}
+    )
+    assert error is None
+    assert safe is not None
+    assert safe["PATH"] == "safe-path"
+    assert safe["EVIDENCE_LANE_PROJECT_ID"] == "project-a"
+    assert safe["PYTHONDONTWRITEBYTECODE"] == "1"
+    assert "OPENAI_API_KEY" not in safe
+
+    blocked, reason = _safe_subprocess_environment({"UNSCOPED_VALUE": "value"})
+    assert blocked is None
+    assert "Evidence Lane namespace" in str(reason)

@@ -6,14 +6,14 @@
   "configuration": ".mcp.json",
   "configuration_sha256": "60249F25B6097862178DB807F0A2B81C9CE17B227EE7EFA0EF51FEC941057272",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
+  "canonical_server_sha256": "28D95BB846108471E38AD0D6222FC91E86D3357A2F43493991449E6C65F923D0",
   "tool_count": 91,
   "read_tool_count": 30,
   "write_tool_count": 61,
   "public_schema_catalog": "schemas/public-action-schemas.v001.json",
   "public_schema_catalog_sha256": "78BCC5C9797ECBCE3B5DAA5FCFC7B5E83E35315A912EDB5C34E7354CE4D68CED",
   "sdk_manifest": "sdk/sdk-manifest.v1.json",
-  "sdk_manifest_sha256": "194119C16711651803323AD6A0E200412BF31D6E3EF29A4F8EAD7FB9783E2D6D",
+  "sdk_manifest_sha256": "0FF3939EE9FB3704B86FFADE9F1167CD763AA78C0C9C3CD9C312A5A124EEFB75",
   "sdk_public_action_count": 91,
   "sector_lane_count": 18,
   "sector_lane_registry_sha256": "9A776405266B1527A54206887AB1F786CE41D90D589DD3B4B2381D9F6244D637",
@@ -24,7 +24,7 @@
   "legacy_command_surface_present": false,
   "hook_manifest_sha256": "C37DB05DD4701087EAD0BD31203C843AAFA79ED39A081F2E9DFF313A77631EEF",
   "all_surfaces_derived_from_current_executable_catalog": true,
-  "source_module_registry_sha256": "713B42222C1DED402481189C154F77E7B4AF0AADF095D61D29E951180EDC9E43",
+  "source_module_registry_sha256": "8F5D7243642172D5EA8563E7B5695F7103745FB13EB72061949168B965D099D7",
   "source_module_count": 144,
   "action_binding_count": 91,
   "action_bindings": [
@@ -128,5 +128,5 @@
   "toolchain_surface_sha256": "5E05F876B82B687CC4253E04E7D0B37C9D38A6CDEF1A432FB47333DDE2D4C2D6",
   "tool_requirement_count": 119,
   "tunnel_manifest_sha256": "3FDB82EB85A76791AB24E83274D3330A16B0FC8B37F873F77AA0097CD65275ED",
-  "receipt_sha256": "85A189080D7F593DC5F681BCF29B9DF5D232AEC103D7EBDD72084B608C13961A"
+  "receipt_sha256": "310C7B4D957A3F664B037DE62D6BC2B7864D390D3FE6A98104D3D1D9F56C0150"
 }

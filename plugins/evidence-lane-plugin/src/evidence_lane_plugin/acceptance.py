@@ -32,6 +32,35 @@ _SHELL_OPERATOR_TOKENS = frozenset(
     {"&", "&&", "|", "||", ";", "<", ">", ">>", "2>", "2>>"}
 )
 _SHELL_WRAPPER_SUFFIXES = frozenset({".bat", ".cmd", ".ps1", ".sh"})
+_ALLOWED_EXECUTABLE_NAMES = frozenset(
+    {
+        "python",
+        "python.exe",
+        "pytest",
+        "pytest.exe",
+        "ruff",
+        "ruff.exe",
+        "mypy",
+        "mypy.exe",
+    }
+)
+_ALLOWED_PYTHON_MODULES = frozenset({"pytest", "unittest"})
+_SAFE_INHERITED_ENVIRONMENT = frozenset(
+    {
+        "CI",
+        "LANG",
+        "LC_ALL",
+        "PATH",
+        "PATHEXT",
+        "PYTHONIOENCODING",
+        "PYTHONUTF8",
+        "SYSTEMROOT",
+        "TEMP",
+        "TMP",
+        "TMPDIR",
+        "WINDIR",
+    }
+)
 
 
 def _strip_balanced_quotes(value: str) -> str:
@@ -70,8 +99,49 @@ def _parse_argv(repository: Path, command: str) -> tuple[list[str] | None, str |
         return None, "The declared executable does not resolve to a file."
     if resolved.suffix.lower() in _SHELL_WRAPPER_SUFFIXES:
         return None, "Shell and batch wrappers are forbidden acceptance executors."
+    try:
+        resolved.relative_to(repository.resolve())
+    except ValueError:
+        pass
+    else:
+        return (
+            None,
+            "Repository-controlled executables cannot run as acceptance checks.",
+        )
+    if resolved.name.casefold() not in _ALLOWED_EXECUTABLE_NAMES:
+        return None, "The acceptance executor is not in the verification allowlist."
+    if resolved == Path(sys.executable).resolve():
+        if "-c" in argv[1:] or "-" in argv[1:]:
+            return None, "Inline or stdin Python execution is forbidden."
+        if "-m" in argv[1:]:
+            index = argv.index("-m")
+            if index + 1 >= len(argv) or argv[index + 1] not in _ALLOWED_PYTHON_MODULES:
+                return None, "The Python verification module is not allowlisted."
     argv[0] = str(resolved)
     return argv, None
+
+
+def _safe_subprocess_environment(
+    overrides: dict[str, str] | None,
+) -> tuple[dict[str, str] | None, str | None]:
+    safe = {
+        key: value
+        for key, value in os.environ.items()
+        if key.upper() in _SAFE_INHERITED_ENVIRONMENT
+    }
+    for key, value in (overrides or {}).items():
+        exact_key = str(key)
+        exact_value = str(value)
+        if not exact_key.startswith("EVIDENCE_LANE_"):
+            return (
+                None,
+                "Acceptance environment overrides must use the Evidence Lane namespace.",
+            )
+        if contains_secret(f"{exact_key}={exact_value}"):
+            return None, "The acceptance environment contains secret-shaped data."
+        safe[exact_key] = exact_value
+    safe["PYTHONDONTWRITEBYTECODE"] = "1"
+    return safe, None
 
 
 def _parse_manifest_argv(
@@ -192,36 +262,29 @@ def _run_one(
             }
         argv, invalid_reason = _parse_argv(repository, command)
     elif isinstance(manifest_entry, dict):
-        declared_via = "repository_manifest_exact_match"
+        declared_via = "repository_manifest_declaration_only"
         declared_phase = str(manifest_entry.get("phase") or "PREBUILD").upper()
-        if declared_phase == POSTSEAL_PHASE and phase != POSTSEAL_PHASE:
-            return {
-                "declaration": value,
-                "command": subprocess.list2cmdline(manifest_entry.get("argv", [])),
-                "declared_via": declared_via,
-                "phase": declared_phase,
-                "status": "PENDING_POSTSEAL",
-                "returncode": None,
-                "duration_seconds": 0.0,
-                "output_tail": "",
-                "output_truncated": False,
-                "reason": (
-                    "This executable check requires the immutable candidate path and "
-                    "therefore runs immediately after the candidate is sealed."
-                ),
-            }
-        argv, invalid_reason = _parse_manifest_argv(
-            repository,
-            manifest_entry.get("argv"),
-        )
         command = (
             subprocess.list2cmdline(manifest_entry.get("argv", []))
             if isinstance(manifest_entry.get("argv"), list)
             else ""
         )
-        entry_timeout = manifest_entry.get("timeout_seconds", timeout_seconds)
-        if isinstance(entry_timeout, int):
-            timeout_seconds = max(1, min(entry_timeout, MAX_TIMEOUT_SECONDS))
+        return {
+            "declaration": value,
+            "command": None,
+            "declared_via": declared_via,
+            "phase": declared_phase,
+            "status": "PENDING_EXPLICIT_COMMAND_APPROVAL",
+            "returncode": None,
+            "duration_seconds": 0.0,
+            "output_tail": "",
+            "output_truncated": False,
+            "reason": (
+                "Repository manifests are untrusted declarations and cannot execute. "
+                "Record an exact visible cmd: verification or a separate trusted receipt."
+            ),
+            "proposed_command": redact_text(command),
+        }
     else:
         return {
             "declaration": value,
@@ -249,11 +312,20 @@ def _run_one(
         }
     started = time.monotonic()
     try:
-        safe_environment = os.environ.copy()
-        if environment:
-            safe_environment.update(
-                {str(key): str(item) for key, item in environment.items()}
-            )
+        safe_environment, environment_error = _safe_subprocess_environment(environment)
+        if safe_environment is None:
+            return {
+                "declaration": redact_text(value),
+                "command": redact_text(command),
+                "declared_via": declared_via,
+                "phase": phase.upper(),
+                "status": "BLOCKED_INVALID_COMMAND",
+                "returncode": None,
+                "duration_seconds": 0.0,
+                "output_tail": "",
+                "output_truncated": False,
+                "reason": environment_error,
+            }
         completed = subprocess.run(  # nosec B603
             argv,
             cwd=str(repository),
@@ -292,6 +364,7 @@ def _run_one(
         "command": redact_text(command),
         "declared_via": declared_via,
         "resolved_executable": argv[0],
+        "resolved_executable_sha256": sha256_file(Path(argv[0])),
         "status": status,
         "returncode": returncode,
         "duration_seconds": round(time.monotonic() - started, 3),
@@ -337,6 +410,7 @@ def run_acceptance_checks(
             "TIMEOUT",
             "ERROR",
             "PENDING_HUMAN_REVIEW",
+            "PENDING_EXPLICIT_COMMAND_APPROVAL",
             "BLOCKED_INVALID_COMMAND",
             "PENDING_POSTSEAL",
         )
@@ -351,6 +425,8 @@ def run_acceptance_checks(
         verdict = "INVALID_CHECK_DECLARATION"
     elif counts["PENDING_POSTSEAL"]:
         verdict = "POSTSEAL_CHECKS_PENDING"
+    elif counts["PENDING_EXPLICIT_COMMAND_APPROVAL"]:
+        verdict = "REPOSITORY_COMMAND_APPROVAL_REQUIRED"
     elif counts["PENDING_HUMAN_REVIEW"]:
         verdict = "PARTIAL_PROSE_CHECKS_NOT_EXECUTED"
     else:
@@ -362,6 +438,7 @@ def run_acceptance_checks(
             "TIMEOUT",
             "ERROR",
             "PENDING_HUMAN_REVIEW",
+            "PENDING_EXPLICIT_COMMAND_APPROVAL",
             "BLOCKED_INVALID_COMMAND",
         )
     )
@@ -382,7 +459,9 @@ def run_acceptance_checks(
         "verdict": verdict,
         "declared": len(declarations),
         "bounded_to": MAX_CHECKS,
-        "executed": sum(1 for row in checks if row["command"]),
+        "executed": sum(
+            1 for row in checks if row["status"] in {"PASS", "FAIL", "TIMEOUT", "ERROR"}
+        ),
         "counts": counts,
         "checks": checks,
         "source_worktree_sha256_before": before,

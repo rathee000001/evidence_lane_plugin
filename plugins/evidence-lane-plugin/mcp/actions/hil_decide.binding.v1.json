@@ -122,11 +122,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/hil_decide.action.v1.json",
-  "sdk_action_binding_sha256": "D04A96DFE2B205EDCE4B615C6AB14A6832CB850468058F08D13D3907A3EF2F09",
+  "sdk_action_binding_sha256": "ABF87D343F914C2D3BC286084E1C39A1C897E958BAA3402C5F0E1A7FBD0064A3",
   "public_action_schema": "schemas/actions/hil_decide.schema.json",
   "public_action_schema_sha256": "0E1B1519A44B45083168A500BFE9D27196962633BA5F1BF529C7F026AB0A5955",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "72837828F14CBCEE0D6E7E576121E725850E3E82BB3A5DBF66405C8E63B9D162",
+  "canonical_server_sha256": "28D95BB846108471E38AD0D6222FC91E86D3357A2F43493991449E6C65F923D0",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "F4601BC14DEF78F4B2FBF3B79A8AAE51E6F6D1787EDE836CF5C05979952C0F4E"
+  "receipt_sha256": "5627702AD6A6B28970AA82AE0E7BBFEDBD493A9A7689B8FB9D001BFE3DEDCCBB"
 }

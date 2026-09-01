@@ -1629,12 +1629,23 @@ def test_native_skill_surface_covers_lifecycle_and_plan_sidecar() -> None:
 def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parents[1]
     runner = root / "plugins" / "evidence-lane-plugin" / "scripts" / "run_mcp.py"
+    environment = os.environ.copy()
+    environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(tmp_path / "stdio-store")
+    bootstrap = subprocess.run(
+        [sys.executable, str(runner), "--bootstrap-only"],
+        cwd=root / "plugins" / "evidence-lane-plugin",
+        env=environment,
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+        timeout=600,
+    )
+    assert bootstrap.returncode == 0, bootstrap.stderr[-2000:]
 
     async def exercise() -> None:
-        environment = os.environ.copy()
-        environment["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(
-            tmp_path / "stdio-store"
-        )
         parameters = StdioServerParameters(
             command=sys.executable,
             args=[str(runner), "--transport", "stdio"],
@@ -1685,10 +1696,9 @@ def test_real_stdio_transport_lists_tools_and_calls_doctor(tmp_path: Path) -> No
             assert namespaced_text["duplicate_structured_json_returned"] is False
             assert namespaced_text["raw_payload_returned"] is False
 
-    # A genuinely new dependency-lock/Python-ABI pair may need one governed,
-    # hash-locked durable bootstrap before stdio becomes ready. Installed
-    # packages prewarm it before task reopen; subsequent cache reconstruction
-    # reuses the sealed runtime rather than invoking pip during the handshake.
+    # A genuinely new dependency-lock/Python-ABI pair needs one explicit,
+    # hash-locked bootstrap before stdio becomes ready. Normal MCP startup
+    # never installs; installed packages prewarm the runtime before task reopen.
     asyncio.run(asyncio.wait_for(exercise(), timeout=900))
 
 
@@ -1716,6 +1726,27 @@ def test_non_loopback_http_fails_closed_without_auth(
             host="0.0.0.0",
             port=8765,
         )
+
+
+def test_loopback_http_also_fails_closed_without_auth(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_BEARER_TOKEN", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_BASE_URL", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ISSUER_URL", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_JWKS_URL", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_AUDIENCE", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ENVIRONMENT", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ALLOWED_CLIENT_IDS", raising=False)
+    monkeypatch.delenv("EVIDENCE_LANE_MCP_OAUTH_ALLOWED_ROLES", raising=False)
+    with pytest.raises(RuntimeError, match="including on loopback"):
+        run_server(
+            transport="streamable-http",
+            host="127.0.0.1",
+            port=8765,
+        )
+    with pytest.raises(RuntimeError, match="including on loopback"):
+        create_mcp_server(transport="streamable-http")
 
 
 def test_server_start_installs_but_leaves_flash_and_runtime_detached(

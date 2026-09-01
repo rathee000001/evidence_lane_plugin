@@ -73,7 +73,7 @@ flowchart TB
 
 | Source contract | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `manifests/executable-surface-registry.v1.json` | 374588 | `AFF0F026E2487FFE4CA8B27BD4E0605F2A0321C3FA2A5A4BEC36BF6ABAF16F89` |
+| `manifests/executable-surface-registry.v1.json` | 374588 | `585B0B26E26B710D645CF9A63FBB2A437DF70CA37F41FB72A876CCE23B8FE1C3` |
 | `src/evidence_lane_plugin/source_fingerprint.py` | 6916 | `EA31A7B001B85E2D8C19679D50004E88831C8E8635E032E012420F0588D33D16` |
 | `scripts/audit_repository_semantic_currentness.py` | 25126 | `10C84091017B0A5626121F96ECF718BCF3D407C7D282B8A1000A2F860A24DBEC` |
 

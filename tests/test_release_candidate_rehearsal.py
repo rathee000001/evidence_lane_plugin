@@ -594,6 +594,33 @@ def test_current_plugin_package_surface_is_one_coherent_version() -> None:
     assert receipt["hooks"]["handler_action_count"] == 44
 
 
+def test_preprojected_cachebuster_manifest_is_packaged_without_second_override(
+    tmp_path: Path,
+) -> None:
+    plugin = _plugin_fixture(tmp_path)
+    package_version = "3.0.0+codex.preprojected"
+    manifest_path = plugin / ".codex-plugin" / "plugin.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["version"] = package_version
+    manifest_path.write_text(
+        json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+    receipt = build_rehearsal(
+        plugin_root=plugin,
+        output_dir=tmp_path / "preprojected",
+        base_commit=COMMIT,
+        base_tree=TREE,
+        expected_version=VERSION,
+        package_version=package_version,
+        surface_coherence_required=False,
+    )
+    archive = Path(receipt["receipt_path"]).parent / receipt["archive"]["filename"]
+    with zipfile.ZipFile(archive) as package:
+        packaged = json.loads(package.read(".codex-plugin/plugin.json"))
+    assert packaged["version"] == package_version
+
+
 def test_live_release_policy_matches_every_package_and_install_validator() -> None:
     plugin = ROOT / "plugins" / "evidence-lane-plugin"
     contract = json.loads(

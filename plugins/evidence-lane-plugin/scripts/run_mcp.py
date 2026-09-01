@@ -212,13 +212,19 @@ def main() -> int:
     environment = runtime_environment(plugin_root)
     marker = runtime_marker(plugin_root)
     python = _venv_python(environment)
-    if not _runtime_ready(
+    runtime_ready = _runtime_ready(
         python,
         plugin_root,
         marker,
         expected_version,
         expected_pydantic_version,
-    ):
+    )
+    if not runtime_ready and not (args.bootstrap_only or args.prewarm_only):
+        raise SystemExit(
+            "Evidence Lane runtime is not prewarmed. Run the explicit installer/prewarm "
+            "route before starting the MCP server; normal startup never installs."
+        )
+    if not runtime_ready:
         _bootstrap_runtime(plugin_root, environment, marker)
     if not _runtime_ready(
         python,

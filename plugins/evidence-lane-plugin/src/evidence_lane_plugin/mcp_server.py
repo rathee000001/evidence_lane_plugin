@@ -2034,6 +2034,7 @@ def create_mcp_server(
     public_site_url: str | None = None,
     allowed_tool_names: str | tuple[str, ...] | list[str] | None = None,
     exposure_profile: str | None = None,
+    transport: str = "stdio",
     canon_dispatcher: CanonTaskDispatcher | None = None,
 ) -> FastMCP:
     backend_application = service or EvidenceLaneService()
@@ -2057,6 +2058,11 @@ def create_mcp_server(
     verifier: TokenVerifier | None = None
     if bearer_token and oauth_config:
         raise ValueError("Choose either static bearer or OAuth JWT authentication.")
+    if transport == "streamable-http" and not bearer_token and oauth_config is None:
+        raise RuntimeError(
+            "Streamable HTTP requires static bearer or OAuth authentication, "
+            "including on loopback."
+        )
     if bearer_token:
         exact_base = (base_url or f"http://{host}:{port}").rstrip("/")
         exact_resource = f"{exact_base}/mcp"
@@ -4561,12 +4567,15 @@ def run_server(
             ),
             algorithms=algorithms,
         )
-    if transport == "streamable-http" and host not in {"127.0.0.1", "localhost", "::1"}:
+    if transport == "streamable-http":
         if not bearer and oauth_config is None:
             raise RuntimeError(
-                "Non-loopback HTTP requires static bearer or OAuth authentication."
+                "Streamable HTTP requires static bearer or OAuth authentication, "
+                "including on loopback."
             )
-        if not base_url or not base_url.startswith("https://"):
+        if host not in {"127.0.0.1", "localhost", "::1"} and (
+            not base_url or not base_url.startswith("https://")
+        ):
             raise RuntimeError(
                 "Non-loopback HTTP requires an HTTPS EVIDENCE_LANE_MCP_BASE_URL."
             )
@@ -4587,6 +4596,7 @@ def run_server(
         oauth_config=oauth_config,
         allowed_tool_names=os.environ.get("EVIDENCE_LANE_MCP_ALLOWED_TOOLS"),
         exposure_profile=os.environ.get("EVIDENCE_LANE_MCP_EXPOSURE_PROFILE"),
+        transport=transport,
     )
     if transport == "stdio":
         anyio.run(run_discovery_compatible_stdio, server)

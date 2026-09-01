@@ -14,7 +14,10 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import sqlite3
+import subprocess  # nosec B404
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -1133,7 +1136,7 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
             integrity = [
                 str(item[0]) for item in connection.execute("PRAGMA integrity_check")
             ]
-            tables = {
+            table_names = {
                 str(item[0])
                 for item in connection.execute(
                     "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
@@ -1174,7 +1177,7 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
             != {path.name for path in lane_root.iterdir() if path.is_file()}
             - {"manifest.v1.json"}
             or integrity != ["ok"]
-            or not set(schema_asset["tables"]).issubset(tables)
+            or not set(schema_asset["tables"]).issubset(table_names)
             or identity
             != {
                 "lane_id": lane_id,
@@ -1946,10 +1949,11 @@ def build_rehearsal(
 
     plugin_manifest_path = plugin_root / ".codex-plugin" / "plugin.json"
     plugin_manifest = json.loads(plugin_manifest_path.read_text(encoding="utf-8"))
-    if plugin_manifest.get("version") != expected_version:
+    if plugin_manifest.get("version") not in {expected_version, package_version}:
         raise PackageBoundaryError(
             "Plugin version mismatch: "
-            f"expected {expected_version}, got {plugin_manifest.get('version')!r}."
+            f"expected {expected_version} or preprojected {package_version}, "
+            f"got {plugin_manifest.get('version')!r}."
         )
     if plugin_manifest.get("mcpServers") != "./.mcp.json":
         raise PackageBoundaryError(
@@ -1964,6 +1968,62 @@ def build_rehearsal(
         raise PackageBoundaryError(
             "The Codex package must declare exactly one native evidence-lane server."
         )
+    if (
+        package_version != expected_version
+        and plugin_manifest.get("version") == expected_version
+    ):
+        # Cachebuster identity is package metadata, but every hash-bearing
+        # consumer must see the final packaged manifest before coherence is
+        # evaluated. Work in an isolated copy so source bytes remain exact.
+        with tempfile.TemporaryDirectory(
+            prefix="evidence-lane-package-projection-"
+        ) as raw:
+            projected_root = Path(raw) / "plugin"
+            shutil.copytree(plugin_root, projected_root)
+            projected_manifest_path = projected_root / ".codex-plugin" / "plugin.json"
+            projected_manifest = dict(plugin_manifest)
+            projected_manifest["version"] = package_version
+            projected_manifest_path.write_bytes(_json_bytes(projected_manifest))
+            generator = (
+                projected_root / "scripts" / "generate_package_surface_projections.py"
+            )
+            if not generator.is_file():
+                raise PackageBoundaryError(
+                    "The package lacks its cachebuster projection generator."
+                )
+            environment = os.environ.copy()
+            environment["PYTHONDONTWRITEBYTECODE"] = "1"
+            completed = subprocess.run(  # nosec B603 - exact package-local script
+                [sys.executable, str(generator)],
+                cwd=projected_root,
+                env=environment,
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=False,
+                timeout=900,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+            if completed.returncode != 0:
+                raise PackageBoundaryError(
+                    "Cachebuster projection regeneration failed: "
+                    + (completed.stderr or completed.stdout)[-2000:]
+                )
+            return build_rehearsal(
+                plugin_root=projected_root,
+                output_dir=output_dir,
+                base_commit=base_commit,
+                base_tree=base_tree,
+                expected_version=expected_version,
+                package_version=package_version,
+                systemwide_route_audit_receipt=systemwide_route_audit_receipt,
+                executable_fingerprint_refresh_receipt=(
+                    executable_fingerprint_refresh_receipt
+                ),
+                surface_coherence_required=surface_coherence_required,
+            )
     release_channels = json.loads(
         (plugin_root / "scripts" / "codex-release-channel.json").read_text(
             encoding="utf-8"
@@ -2092,7 +2152,10 @@ def build_rehearsal(
         }
     )
     source_overrides: dict[str, bytes] = {}
-    if package_version != expected_version:
+    if (
+        package_version != expected_version
+        and plugin_manifest.get("version") == expected_version
+    ):
         packaged_manifest = dict(plugin_manifest)
         packaged_manifest["version"] = package_version
         packaged_manifest_bytes = _json_bytes(packaged_manifest)

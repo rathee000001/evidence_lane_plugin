@@ -19,7 +19,9 @@ def _sha256(path: Path) -> str:
 
 
 def _canonical(value: Any) -> bytes:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
 
 
 def _junit(path: Path) -> tuple[dict[str, Any], list[str]]:
@@ -67,6 +69,7 @@ def main() -> int:
     parser.add_argument("--targeted-junit", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--purged-path", action="append", default=[])
+    parser.add_argument("--root-cause", action="append", default=[])
     arguments = parser.parse_args()
 
     repository = arguments.repository.resolve()
@@ -81,18 +84,24 @@ def main() -> int:
     targeted_counts, targeted_selectors = _junit(targeted_junit_path)
     purged = sorted({str(value).replace("\\", "/") for value in arguments.purged_path})
     present = [path for path in purged if (repository / path).exists()]
+    root_causes = sorted(
+        {str(value).strip() for value in arguments.root_cause if str(value).strip()}
+    )
+    failed_selector_set = set(failed_selectors)
+    targeted_selector_set = set(targeted_selectors)
     if not (
         full.get("status") == "FAIL_REQUIRES_TARGETED_CLOSURE"
         and full.get("full_run_count") == 1
         and full.get("full_suite_rerun") is False
-        and full_counts["failures"] == 8
+        and full_counts["failures"] > 0
         and full_counts["errors"] == 0
-        and len(failed_selectors) == 8
-        and targeted_counts["tests"] == 14
+        and len(failed_selectors) == full_counts["failures"]
+        and targeted_counts["tests"] >= full_counts["failures"]
         and targeted_counts["failures"] == 0
         and targeted_counts["errors"] == 0
+        and failed_selector_set.issubset(targeted_selector_set)
+        and root_causes
         and not present
-        and len(purged) == 6
     ):
         raise SystemExit("TARGETED_CLOSURE_EVIDENCE_INVALID")
     core = {
@@ -108,22 +117,14 @@ def main() -> int:
             "full_run_count": 1,
             "full_suite_rerun": False,
         },
-        "root_causes": [
-            "SOURCE_VERSION_VERSUS_PACKAGE_CACHEBUSTER_BOUNDARY",
-            "TRANSITIVE_PYYAML_IMPORT_REMOVED_FROM_SEMANTIC_AUDITOR",
-            "PURGED_HISTORICAL_EVIDENCE_BOUND_EXECUTABLE_ROUTES",
-            "REGENERATED_ENV_UOP_AND_DOCUMENTATION_PUBLIC_CONSUMERS",
-        ],
+        "root_causes": root_causes,
         "targeted_closure": {
             "junit_sha256": _sha256(targeted_junit_path),
             "counts": targeted_counts,
             "selectors": targeted_selectors,
             "purged_paths": purged,
             "purged_paths_present": present,
-            "replacement_live_security_selector": (
-                "tests.test_live_dependency_security_floors::"
-                "test_live_dependency_manifests_hold_current_security_floors"
-            ),
+            "failed_selector_set_fully_covered": True,
         },
         "negative_proofs": {
             "full_suite_rerun": False,
@@ -134,7 +135,10 @@ def main() -> int:
             "historical_evidence_tree_recreated": False,
         },
     }
-    receipt = {**core, "receipt_sha256": hashlib.sha256(_canonical(core)).hexdigest().upper()}
+    receipt = {
+        **core,
+        "receipt_sha256": hashlib.sha256(_canonical(core)).hexdigest().upper(),
+    }
     _write(output, receipt)
     print(
         json.dumps(

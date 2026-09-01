@@ -71,7 +71,7 @@ flowchart TB
 | --- | ---: | --- |
 | `.codex-plugin/plugin.json` | 3049 | `757AB0CA7396811CB3AB3EDC83535FF1E7729AA61289D52062029F8EC2F3A9CD` |
 | `scripts/codex_release/install_codex_stable.py` | 247493 | `C08E7BC9EDAC221AA724A6854DFD967DCB60E49D378C4DD32E3E5075D7467311` |
-| `manifests/executable-surface-registry.v1.json` | 374588 | `AFF0F026E2487FFE4CA8B27BD4E0605F2A0321C3FA2A5A4BEC36BF6ABAF16F89` |
+| `manifests/executable-surface-registry.v1.json` | 374588 | `585B0B26E26B710D645CF9A63FBB2A437DF70CA37F41FB72A876CCE23B8FE1C3` |
 
 ## Cross-surface invariants
 

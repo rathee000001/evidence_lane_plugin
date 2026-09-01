@@ -420,6 +420,8 @@ def test_bootstrap_installs_self_contained_noneditable_runtime() -> None:
     assert "runtime_environment(plugin_root)" in runner
     assert '"--identity-file"' in runner
     assert '"--prewarm-only"' in runner
+    assert "normal startup never installs" in runner
+    assert "not (args.bootstrap_only or args.prewarm_only)" in runner
 
     mcp_config = json.loads(
         (root / "plugins" / "evidence-lane-plugin" / ".mcp.json").read_text(

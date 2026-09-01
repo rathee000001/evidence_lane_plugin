@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import sqlite3
 import subprocess  # nosec B404
+import time
 from pathlib import Path
 from typing import Any, BinaryIO, cast
 
+from .bounded_io import run_bounded_process
 from .compact_storage import compress_exact_bytes, decompress_exact_bytes
 from .errors import EvidenceLaneError, require
 from .git_adapter import resolve_git_executable
@@ -20,17 +22,23 @@ from .source_policy import (
 
 _TEXT_CHUNK_CHARS = 6000
 _TEXT_CHUNK_OVERLAP = 500
+MAX_HISTORY_COMMITS = 20_000
+MAX_HISTORY_TREE_ENTRIES = 2_000_000
+MAX_HISTORY_UNIQUE_BLOBS = 100_000
+MAX_HISTORY_SINGLE_BLOB_BYTES = 64 * 1024 * 1024
+MAX_HISTORY_TOTAL_BLOB_BYTES = 512 * 1024 * 1024
+MAX_HISTORY_OPERATION_SECONDS = 900
+MAX_GIT_COMMAND_STDOUT_BYTES = 256 * 1024 * 1024
+MAX_GIT_COMMAND_STDERR_BYTES = 2 * 1024 * 1024
 
 
 def _git(root: Path, *args: str, timeout: int = 180) -> bytes:
-    completed = subprocess.run(  # nosec B603
+    completed = run_bounded_process(
         [resolve_git_executable(root), *args],
         cwd=root,
-        stdin=subprocess.DEVNULL,
-        capture_output=True,
-        check=False,
-        timeout=timeout,
-        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        timeout_seconds=timeout,
+        max_stdout_bytes=MAX_GIT_COMMAND_STDOUT_BYTES,
+        max_stderr_bytes=MAX_GIT_COMMAND_STDERR_BYTES,
     )
     if completed.returncode != 0:
         raise EvidenceLaneError(
@@ -335,7 +343,12 @@ def _purge_unsafe_history(connection: sqlite3.Connection) -> dict[str, int]:
     }
 
 
-def _read_blobs(root: Path, blob_shas: list[str]) -> dict[str, bytes]:
+def _read_blobs(
+    root: Path,
+    blob_shas: list[str],
+    *,
+    deadline: float,
+) -> dict[str, bytes]:
     if not blob_shas:
         return {}
     process = subprocess.Popen(  # nosec B603
@@ -355,8 +368,16 @@ def _read_blobs(root: Path, blob_shas: list[str]) -> dict[str, bytes]:
     stdin = cast(BinaryIO, process.stdin)
     stdout = cast(BinaryIO, process.stdout)
     values: dict[str, bytes] = {}
+    total_bytes = 0
     try:
         for expected_sha in blob_shas:
+            require(
+                time.monotonic() <= deadline,
+                "GIT_HISTORY_DURATION_BUDGET_EXCEEDED",
+                "Git history exceeded its aggregate duration budget.",
+                status="BLOCKED",
+                max_seconds=MAX_HISTORY_OPERATION_SECONDS,
+            )
             stdin.write((expected_sha + "\n").encode("ascii"))
             stdin.flush()
             header = stdout.readline().decode("ascii", errors="replace").strip()
@@ -370,6 +391,24 @@ def _read_blobs(root: Path, blob_shas: list[str]) -> dict[str, bytes]:
                 header=header,
             )
             size = int(parts[2])
+            require(
+                0 <= size <= MAX_HISTORY_SINGLE_BLOB_BYTES,
+                "GIT_HISTORY_SINGLE_BLOB_BUDGET_EXCEEDED",
+                "A Git history blob exceeded the per-object byte budget.",
+                status="BLOCKED",
+                blob_sha=expected_sha,
+                declared_bytes=size,
+                max_bytes=MAX_HISTORY_SINGLE_BLOB_BYTES,
+            )
+            total_bytes += size
+            require(
+                total_bytes <= MAX_HISTORY_TOTAL_BLOB_BYTES,
+                "GIT_HISTORY_TOTAL_BLOB_BUDGET_EXCEEDED",
+                "Git history exceeded its aggregate new-blob byte budget.",
+                status="BLOCKED",
+                total_bytes=total_bytes,
+                max_bytes=MAX_HISTORY_TOTAL_BLOB_BYTES,
+            )
             data = stdout.read(size)
             separator = stdout.read(1)
             require(
@@ -408,6 +447,7 @@ def index_git_history(
     """Append every reachable commit and reuse every existing blob/chunk CAS row."""
 
     root = Path(repository_root).resolve()
+    deadline = time.monotonic() + MAX_HISTORY_OPERATION_SECONDS
     signature = git_history_signature(root)
     create_git_history_schema(connection)
     purge_report = _purge_unsafe_history(connection)
@@ -418,6 +458,14 @@ def index_git_history(
         .splitlines()
         if item
     ]
+    require(
+        len(commits) <= MAX_HISTORY_COMMITS,
+        "GIT_HISTORY_COMMIT_BUDGET_EXCEEDED",
+        "Git history exceeded the reachable-commit budget.",
+        status="BLOCKED",
+        commit_count=len(commits),
+        max_commits=MAX_HISTORY_COMMITS,
+    )
     existing_commits = {
         str(row[0])
         for row in connection.execute("SELECT commit_sha FROM git_commit_registry")
@@ -425,18 +473,48 @@ def index_git_history(
     existing_blobs = {
         str(row[0]) for row in connection.execute("SELECT blob_sha FROM git_blob_cas")
     }
-    commit_rows = [_commit(root, commit_sha) for commit_sha in commits]
-    trees = {row["commit_sha"]: _tree(root, row["commit_sha"]) for row in commit_rows}
+    commit_rows = []
+    trees: dict[str, list[dict[str, str]]] = {}
+    total_tree_entries = 0
+    for commit_sha in commits:
+        require(
+            time.monotonic() <= deadline,
+            "GIT_HISTORY_DURATION_BUDGET_EXCEEDED",
+            "Git history exceeded its aggregate duration budget.",
+            status="BLOCKED",
+            max_seconds=MAX_HISTORY_OPERATION_SECONDS,
+        )
+        row = _commit(root, commit_sha)
+        commit_rows.append(row)
+        tree = _tree(root, row["commit_sha"])
+        total_tree_entries += len(tree)
+        require(
+            total_tree_entries <= MAX_HISTORY_TREE_ENTRIES,
+            "GIT_HISTORY_TREE_ENTRY_BUDGET_EXCEEDED",
+            "Git history exceeded the aggregate tree-entry budget.",
+            status="BLOCKED",
+            tree_entry_count=total_tree_entries,
+            max_tree_entries=MAX_HISTORY_TREE_ENTRIES,
+        )
+        trees[row["commit_sha"]] = tree
     first_commit_for_blob: dict[str, str] = {}
     for row in commit_rows:
         for item in trees[row["commit_sha"]]:
             first_commit_for_blob.setdefault(item["blob_sha"], row["commit_sha"])
     missing_blobs = sorted(set(first_commit_for_blob) - existing_blobs)
-    blob_bytes = _read_blobs(root, missing_blobs)
+    require(
+        len(first_commit_for_blob) <= MAX_HISTORY_UNIQUE_BLOBS,
+        "GIT_HISTORY_BLOB_COUNT_BUDGET_EXCEEDED",
+        "Git history exceeded the unique-blob budget.",
+        status="BLOCKED",
+        blob_count=len(first_commit_for_blob),
+        max_blobs=MAX_HISTORY_UNIQUE_BLOBS,
+    )
+    blob_bytes = _read_blobs(root, missing_blobs, deadline=deadline)
     excluded_blob_shas = {
         blob_sha
         for blob_sha, data in blob_bytes.items()
-        if content_exclusion_reason(data) is not None
+        if content_exclusion_reason(data, exclude_opaque_binary=True) is not None
     }
     safe_missing_blobs = [
         blob_sha for blob_sha in missing_blobs if blob_sha not in excluded_blob_shas

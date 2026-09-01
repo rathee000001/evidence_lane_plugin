@@ -2,13 +2,13 @@
   "schema": "evidence-lane.public-docs-backend-binding.v1",
   "status": "PASS",
   "plugin_version": "3.0.0",
-  "refreshed_at_utc": "2026-08-31T10:32:01Z",
+  "refreshed_at_utc": "2026-09-01T00:59:38Z",
   "document_count": 29,
   "documents": [
     {
       "path": "ARCHITECTURE.md",
       "bytes": 12647,
-      "sha256": "0F8FB429EBDF935C888569667E9C39B5A047EA4E36E56637B9A76F1B6398570B"
+      "sha256": "CD7DC805E53E97D6F929195148703821DFCF4E71FA74FBA9FFA18D300FCADCCD"
     },
     {
       "path": "LICENSE.md",
@@ -43,7 +43,7 @@
     {
       "path": "docs/CODEX_V300_LOCAL_INSTALL_AND_RELOAD.md",
       "bytes": 5514,
-      "sha256": "8051FB16B4DA98ADC4C8DBFDE8C3C4337E2116B63AFA5F23E60B6E4342F7458B"
+      "sha256": "25EE7C566DFA0D83E2595607CE5E6619DE6B05E8399679DA8992225CD9376061"
     },
     {
       "path": "docs/COPYRIGHT.md",
@@ -83,7 +83,7 @@
     {
       "path": "docs/MCP.md",
       "bytes": 5304,
-      "sha256": "8F5FDE3EE45B93A707A2F86A5C88424ED7A20C3C90A23B540A84A6E370638865"
+      "sha256": "EDE0FC1C9FCA4A95CBA859C2933476FEF3AB019779C431462065642734DACEDC"
     },
     {
       "path": "docs/MEMORY.md",
@@ -113,7 +113,7 @@
     {
       "path": "docs/REPOSITORY_MAP.md",
       "bytes": 5482,
-      "sha256": "07FAF4959295885C217A0796ADBCF032A7426F6390920344E0377452A7F5627D"
+      "sha256": "BBEE3078516D5A3162E90207F060CD120578F84F0C98034E9AF4591734DA9C28"
     },
     {
       "path": "docs/SKILLS.md",
@@ -156,8 +156,8 @@
     "plugins/evidence-lane-plugin/schemas/public-action-schemas.v001.json": "78BCC5C9797ECBCE3B5DAA5FCFC7B5E83E35315A912EDB5C34E7354CE4D68CED",
     "plugins/evidence-lane-plugin/skills/skill-surface-registry.v1.json": "25E9B40FF82732C2E9900D9E68A4D1A939CF5B13BF16A597AE8E927AF5AB6E09",
     "plugins/evidence-lane-plugin/hooks/hooks.json": "C37DB05DD4701087EAD0BD31203C843AAFA79ED39A081F2E9DFF313A77631EEF",
-    "plugins/evidence-lane-plugin/sdk/sdk-manifest.v1.json": "194119C16711651803323AD6A0E200412BF31D6E3EF29A4F8EAD7FB9783E2D6D",
-    "plugins/evidence-lane-plugin/mcp/mcp-manifest.v1.json": "94D561EEB31D5B0BA58F8570DFD171FF962A22D6A254366A25A37131142D3B3F",
+    "plugins/evidence-lane-plugin/sdk/sdk-manifest.v1.json": "0FF3939EE9FB3704B86FFADE9F1167CD763AA78C0C9C3CD9C312A5A124EEFB75",
+    "plugins/evidence-lane-plugin/mcp/mcp-manifest.v1.json": "5ED76A13B9F2AF2196467415CEE5D41F99AD5533556CA9FC4B744C5802897D63",
     "plugins/evidence-lane-plugin/env/authority-manifest.v1.json": "5CE9C8D4469FC25AB541964EA5EC6D24C8DE3AB118A4C57FE54FFC8475CC6263",
     "plugins/evidence-lane-plugin/uop/authority-manifest.v1.json": "7EC43F6A458842B6D22FB0668943BB7FE37300258A592FFCE80E0C5CC4641068",
     "plugins/evidence-lane-plugin/toolchains/TOOLCHAIN_EXECUTION_MATRIX.md": "046B9F3F82219F1B6A590CA5B10464EFD46B427DB5DA1B925E845C10D50F0067",

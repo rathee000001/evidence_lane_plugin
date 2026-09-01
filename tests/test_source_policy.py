@@ -4,7 +4,10 @@ import sqlite3
 import subprocess
 from pathlib import Path
 
+import pytest
+from evidence_lane_plugin import git_history
 from evidence_lane_plugin.compact_storage import decompress_exact_bytes
+from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.git_history import index_git_history
 from evidence_lane_plugin.ingest import governed_source_files
 from evidence_lane_plugin.source_policy import (
@@ -126,3 +129,44 @@ def test_obvious_token_fixtures_remain_source_but_realistic_tokens_fail_closed()
     assert content_exclusion_reason(fixture) is None
     assert content_exclusion_reason(synthetic_sequence) is None
     assert content_exclusion_reason(realistic) == "TOKEN_SHAPED_MATERIAL_EXCLUDED"
+
+
+def test_binary_content_is_never_assumed_secret_safe() -> None:
+    binary = b"SQLite format 3\x00sk-proj-A7b9C2d4E6f8G0h2J4k6L8m0N2p4R6t8"
+    assert content_exclusion_reason(binary) == "TOKEN_SHAPED_MATERIAL_EXCLUDED"
+    safe_binary = b"SQLite format 3\x00safe fixture bytes"
+    assert content_exclusion_reason(safe_binary) is None
+    assert (
+        content_exclusion_reason(safe_binary, exclude_opaque_binary=True)
+        == "OPAQUE_BINARY_CONTENT_EXCLUDED"
+    )
+
+
+def test_git_history_enforces_commit_and_blob_byte_budgets(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "bounded-history"
+    root.mkdir()
+    _init_repository(root)
+    (root / "one.txt").write_text("one\n", encoding="utf-8")
+    _git(root, "add", "one.txt")
+    _git(root, "commit", "-m", "one")
+    (root / "two.txt").write_text("two\n", encoding="utf-8")
+    _git(root, "add", "two.txt")
+    _git(root, "commit", "-m", "two")
+
+    monkeypatch.setattr(git_history, "MAX_HISTORY_COMMITS", 1)
+    connection = sqlite3.connect(":memory:")
+    with pytest.raises(EvidenceLaneError) as commits:
+        index_git_history(connection, root)
+    assert commits.value.code == "GIT_HISTORY_COMMIT_BUDGET_EXCEEDED"
+    connection.close()
+
+    monkeypatch.setattr(git_history, "MAX_HISTORY_COMMITS", 20_000)
+    monkeypatch.setattr(git_history, "MAX_HISTORY_SINGLE_BLOB_BYTES", 2)
+    connection = sqlite3.connect(":memory:")
+    with pytest.raises(EvidenceLaneError) as blob:
+        index_git_history(connection, root)
+    assert blob.value.code == "GIT_HISTORY_SINGLE_BLOB_BUDGET_EXCEEDED"
+    connection.close()
