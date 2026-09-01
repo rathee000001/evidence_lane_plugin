@@ -171,11 +171,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/canon_backfire_hil.action.v1.json",
-  "sdk_action_binding_sha256": "A489643B2BE0B5F6D3D09AAE682571A408DE8148005DB0200CB7A13CB830271B",
+  "sdk_action_binding_sha256": "85DF92C42F6185DC9DADE91CCCF24D43E1C928DC99E1CA42DDFE7911D2EAAC42",
   "public_action_schema": "schemas/actions/canon_backfire_hil.schema.json",
   "public_action_schema_sha256": "6A9BEAFA568B2D2EEC6EAC9B50AA4A99B2141A41EF08D54903C8D98AEEDE2C57",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "28D95BB846108471E38AD0D6222FC91E86D3357A2F43493991449E6C65F923D0",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "DACF34F95C25CF3E217B4F33AF0964D440267ABE2F5FF88D237D392EBF3CDAA9"
+  "receipt_sha256": "63B7FB786B837D660286B6D4531FAFFE5034327271A4EDE57C189A16E4BB5E3E"
 }

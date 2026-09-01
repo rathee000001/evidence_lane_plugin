@@ -204,8 +204,8 @@ flowchart TB
 
 | Source contract | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `toolchains/universal-plugin-architecture.v1.json` | 1802575 | `BA6F0CCD239B03A5A5E0D2CDC60C8D7DC5733322BD99E6BA9061EEFF7C8B1CE2` |
-| `sdk/sdk-manifest.v1.json` | 76103 | `0FF3939EE9FB3704B86FFADE9F1167CD763AA78C0C9C3CD9C312A5A124EEFB75` |
+| `toolchains/universal-plugin-architecture.v1.json` | 1802575 | `C06F59826A30C39C14B973AA043BABCB84FFF8758C73F0B8B6A1C847A38A3B29` |
+| `sdk/sdk-manifest.v1.json` | 76103 | `353D1026EB043EC12FFAF84C3CF2D8669FDCD8F1BC7E961F20C3DD1E3BA2C3E0` |
 | `authorities/authority-surface-registry.v1.json` | 5022 | `C10CCF0AD086D13F8D73FA627101CA2349D82D44404E0AC508E4FD51E2432B43` |
 
 ## Cross-surface invariants

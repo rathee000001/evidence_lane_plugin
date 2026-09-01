@@ -63,6 +63,13 @@ _SAFE_INHERITED_ENVIRONMENT = frozenset(
 )
 
 
+def _is_allowed_verification_executable(resolved: Path) -> bool:
+    return (
+        resolved == Path(sys.executable).resolve()
+        or resolved.name.casefold() in _ALLOWED_EXECUTABLE_NAMES
+    )
+
+
 def _strip_balanced_quotes(value: str) -> str:
     if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
         return value[1:-1]
@@ -108,7 +115,7 @@ def _parse_argv(repository: Path, command: str) -> tuple[list[str] | None, str |
             None,
             "Repository-controlled executables cannot run as acceptance checks.",
         )
-    if resolved.name.casefold() not in _ALLOWED_EXECUTABLE_NAMES:
+    if not _is_allowed_verification_executable(resolved):
         return None, "The acceptance executor is not in the verification allowlist."
     if resolved == Path(sys.executable).resolve():
         if "-c" in argv[1:] or "-" in argv[1:]:

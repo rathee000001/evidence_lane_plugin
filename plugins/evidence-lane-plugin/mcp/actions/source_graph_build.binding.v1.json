@@ -119,11 +119,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/source_graph_build.action.v1.json",
-  "sdk_action_binding_sha256": "AD3830322BF02E72F6C19DC9ED4BF9A4BC68AE6EC3466386BEC4C11EE9AC55B0",
+  "sdk_action_binding_sha256": "52F95779BF0398516595B141C33039ADC08CBBD9FCE541E3848B21BBEDCD3E1C",
   "public_action_schema": "schemas/actions/source_graph_build.schema.json",
   "public_action_schema_sha256": "A1873D925B7BDA997E1F7EDA77EE19B1BC41D795518FDA8AEB1E3A7104B395CD",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "28D95BB846108471E38AD0D6222FC91E86D3357A2F43493991449E6C65F923D0",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "97E0C374D3840C67536A1F4C50D3255ED4B143B2179888799E191C9F835FFE0D"
+  "receipt_sha256": "004DFC563EBAE687BBBACEE0EB0914E1D0F64AE49879514BB24D3715095BD2CF"
 }

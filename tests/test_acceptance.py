@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from evidence_lane_plugin.acceptance import (
+    _is_allowed_verification_executable,
     _safe_subprocess_environment,
     run_acceptance_checks,
 )
@@ -65,6 +66,10 @@ def test_exact_command_passes_only_when_source_bytes_stay_fixed(
     assert inline["verdict"] == "INVALID_CHECK_DECLARATION"
     assert inline["counts"]["BLOCKED_INVALID_COMMAND"] == 1
     assert inline["executed"] == 0
+
+
+def test_active_python_identity_is_allowlisted_across_platform_names() -> None:
+    assert _is_allowed_verification_executable(Path(sys.executable).resolve()) is True
 
 
 def test_shell_operators_and_secret_shaped_commands_are_blocked(

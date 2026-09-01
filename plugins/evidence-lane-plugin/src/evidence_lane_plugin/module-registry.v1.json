@@ -15,8 +15,8 @@
     {
       "module": "evidence_lane_plugin.acceptance",
       "path": "src/evidence_lane_plugin/acceptance.py",
-      "bytes": 17021,
-      "sha256": "897F96F6A34B7E21E1707E70C0F54191F0B0A7853DF97F0B8EAA272AD517DDE5",
+      "bytes": 17215,
+      "sha256": "9BE2233D1B565A91E7256AE83FE31739C4576EA28AA164A86236EF3A59BC5F05",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -1033,5 +1033,5 @@
   ],
   "root_surfaces_duplicated_inside_python_namespace": false,
   "loose_python_modules_directly_under_src_allowed": false,
-  "receipt_sha256": "66AB9F70EAEE9C69E87F4A33B620C9E1EB9211269557F022E58CB237094E2710"
+  "receipt_sha256": "EB6F73B48F18D782A80859CD16F62B8B6FCD1B7B20F1FD6AECF73922BAD9FDCB"
 }
