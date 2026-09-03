@@ -8,28 +8,28 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_validate.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_validate.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_validate.py",
           "timeout": 10,
           "statusMessage": "Validating and bounding Evidence Lane hook signal"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_seal.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_seal.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_seal.py",
           "timeout": 10,
           "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_transport.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_transport.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_transport.py",
           "timeout": 10,
           "statusMessage": "Guarding Evidence Lane governed tool use"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_emit.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_emit.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_emit.py",
           "timeout": 10,
           "statusMessage": "Verifying and emitting Evidence Lane hook result"
@@ -42,22 +42,22 @@
     {
       "display_id": "4.1",
       "path": "hooks/events/PreToolUse/handler-4.1.v1.json",
-      "sha256": "FC5D4F2298DF1F1749A28EAAF44D7C4DD09A7E78176DCA03598AB9132F06E219"
+      "sha256": "57DC40CAE434814AC3E2A291CF0CD96CD79775D85CCCE3706CD8CEE5382C4111"
     },
     {
       "display_id": "4.2",
       "path": "hooks/events/PreToolUse/handler-4.2.v1.json",
-      "sha256": "3F108867738D93562B22A8B5254B82CCBE84C0C0CB6CCD04C3D5760D8A568EBD"
+      "sha256": "7FFB62CCB448A227FD8E9663D3DEA51F17C0A3B439D45980820F75A0E8AD6558"
     },
     {
       "display_id": "4.3",
       "path": "hooks/events/PreToolUse/handler-4.3.v1.json",
-      "sha256": "E6AE27F8B0A8530AE761A03567E76B3937A957448030F39709DCE12CA3FC041C"
+      "sha256": "1D1D4CB305816DCB612ED530AE9AEA49219DDEF97A5B86A6668ED11EB3D11660"
     },
     {
       "display_id": "4.4",
       "path": "hooks/events/PreToolUse/handler-4.4.v1.json",
-      "sha256": "ABAEE124F321E2446BCEF7F6DC90D68D27FE30E5D0AF02E821DF99494F186F87"
+      "sha256": "C460B03474CE51FA217BFF5E339F5BD79122EABD4AFB0E3AB5B1882C146F6E48"
     }
   ],
   "adapter": "hooks/pre_tool_use.py",
@@ -76,5 +76,5 @@
   "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "8930AE78E31BFB067D08CB38AD7D615CB23BC2F260F65C3A4B99920FD9B80AC2"
+  "receipt_sha256": "431DC9A46DD5CBA27577C462985EEB8B7DDE0C42DF421A069F1D87464022AB9E"
 }

@@ -739,11 +739,13 @@ class SemanticGraph:
         native_validation: dict[str, Any] | None = None
         runtime_root = configured_runtime_root()
         host_profile = os.environ.get("EVIDENCE_LANE_HOST_PROFILE", "").strip().upper()
-        if (
-            runtime_root is not None
-            and host_profile in {"CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"}
-            and try_resolve_native_tool("graphviz") is not None
-        ):
+        if runtime_root is not None and host_profile in {
+            "CODEX_DESKTOP",
+            "CODEX_CLI",
+            "CODEX_VM",
+        }:
+            if try_resolve_native_tool("graphviz") is None:
+                raise ValueError("NATIVE_GRAPHVIZ_DOT_REQUIRED_RUNTIME_TOOL_MISSING")
             native_validation = validate_dot_source(
                 source,
                 runtime_root=runtime_root,
@@ -767,6 +769,17 @@ class SemanticGraph:
         body = {
             **mmd_receipt,
             "dot_sha256": dot_receipt["dot_sha256"],
+            "dot_exporter": dot_receipt["dot_exporter"],
+            "python_graphviz_version": dot_receipt["python_graphviz_version"],
+            "native_graphviz_dot_available": dot_receipt[
+                "native_graphviz_dot_available"
+            ],
+            "native_graphviz_hidden_runtime_available": dot_receipt[
+                "native_graphviz_hidden_runtime_available"
+            ],
+            "native_graphviz_validation": dot_receipt[
+                "native_graphviz_validation"
+            ],
             "mmd_dot_same_semantic_topology": True,
         }
         body["receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
@@ -791,6 +804,8 @@ class SemanticGraph:
             "edges": [asdict(edge) for edge in self.edges],
         }
         graph_analysis = _rustworkx_analysis(self.nodes, self.edges)
+        if configured_runtime_root() is not None and graph_analysis["status"] != "PASS":
+            raise ValueError("RUSTWORKX_REQUIRED_RUNTIME_TOOL_MISSING")
         return {
             "schema": GRAPH_PIPELINE_SCHEMA,
             "status": "PASS",

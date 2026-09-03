@@ -26,6 +26,7 @@ from .hashing import (
 )
 from .project_authority import resolved_plan_runtime_path
 from .project_memory import MEMORY_SECTOR_LOCATOR_PREFIXES
+from .project_root_binding import validate_project_root_binding
 from .redaction import contains_secret
 
 LEARNING_CANDIDATE_SCHEMA = "evidence-lane.learning-candidate.v1"
@@ -42,7 +43,7 @@ HOST_MEMORY_AUTHORITY = "NONAUTHORITATIVE_HELPFUL_RECALL_ONLY"
 HOST_MEMORY_OFFICIAL_DOCS = "https://learn.chatgpt.com/docs/customization/memories"
 LEARNING_RUNTIME_CONTRACT_SCHEMA = "evidence-lane.learning-runtime-contract.v1"
 LEARNING_LEDGER_SCHEMA = "evidence-lane.agent-learning-ledger.v1"
-LEARNING_LEDGER_SCHEMA_VERSION = 2
+LEARNING_LEDGER_SCHEMA_VERSION = 3
 LEARNING_EXPIRY_RECEIPT_SCHEMA = "evidence-lane.learning-expiry-receipt.v1"
 LEARNING_EXPIRY_OWNER = "AGENT_LEARNING_AUTHORITY_MAINTENANCE"
 LEARNING_BOOTSTRAP_RECEIPT_SCHEMA = "evidence-lane.learning-bootstrap-receipt.v1"
@@ -248,8 +249,8 @@ CREATE VIRTUAL TABLE IF NOT EXISTS memory_locator_fts USING fts5(
 );
 """
 
-_LEARNING_SCHEMA_DDL = _LEARNING_V1_SCHEMA_DDL + _LEARNING_V2_EXTENSION_DDL
-_LEARNING_EXPECTED_SCHEMA = {
+_LEARNING_V2_SCHEMA_DDL = _LEARNING_V1_SCHEMA_DDL + _LEARNING_V2_EXTENSION_DDL
+_LEARNING_V2_EXPECTED_SCHEMA = {
     "tables": {
         **cast(dict[str, list[list[str]]], _LEARNING_V1_EXPECTED_SCHEMA["tables"]),
         "memory_locator": [
@@ -315,6 +316,48 @@ _LEARNING_EXPECTED_SCHEMA = {
         "memory_engine": "fts5",
         "memory_ranking": "bm25",
     },
+}
+
+_LEARNING_V3_EXTENSION_DDL = """
+CREATE TABLE IF NOT EXISTS learning_receipt(
+    receipt_sha256 TEXT PRIMARY KEY,
+    schema_id TEXT NOT NULL,
+    receipt_kind TEXT NOT NULL,
+    project_id TEXT NOT NULL,
+    candidate_id TEXT REFERENCES learning_candidate(candidate_id),
+    occurred_at TEXT,
+    receipt_json TEXT NOT NULL
+) STRICT;
+CREATE INDEX IF NOT EXISTS idx_learning_receipt_project_schema
+ON learning_receipt(project_id,schema_id,receipt_sha256);
+"""
+_LEARNING_SCHEMA_DDL = _LEARNING_V2_SCHEMA_DDL + _LEARNING_V3_EXTENSION_DDL
+_LEARNING_EXPECTED_SCHEMA = {
+    "tables": {
+        **cast(dict[str, list[list[str]]], _LEARNING_V2_EXPECTED_SCHEMA["tables"]),
+        "learning_receipt": [
+            ["receipt_sha256", "TEXT"],
+            ["schema_id", "TEXT"],
+            ["receipt_kind", "TEXT"],
+            ["project_id", "TEXT"],
+            ["candidate_id", "TEXT"],
+            ["occurred_at", "TEXT"],
+            ["receipt_json", "TEXT"],
+        ],
+    },
+    "indexes": {
+        **cast(
+            dict[str, dict[str, Any]],
+            _LEARNING_V2_EXPECTED_SCHEMA["indexes"],
+        ),
+        "idx_learning_receipt_project_schema": {
+            "table": "learning_receipt",
+            "columns": ["project_id", "schema_id", "receipt_sha256"],
+            "unique": False,
+            "partial": False,
+        },
+    },
+    "fts": cast(dict[str, Any], _LEARNING_V2_EXPECTED_SCHEMA["fts"]),
 }
 
 _SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
@@ -462,15 +505,11 @@ def _timestamp(value: Any, *, field: str, nullable: bool = False) -> str | None:
 
 
 def _project_root(project_root: str | Path, *, project_id: str) -> Path:
-    root = Path(project_root).resolve()
-    require(
-        root.name == project_id,
-        "LEARNING_CROSS_PROJECT_ROUTE_DENIED",
-        "The Agent Learning root does not match the exact project identity.",
-        status="BLOCKED",
+    return validate_project_root_binding(
+        project_root,
         project_id=project_id,
+        error_code="LEARNING_CROSS_PROJECT_ROUTE_DENIED",
     )
-    return root
 
 
 def _directory_file_manifest(path: Path) -> list[dict[str, Any]]:
@@ -613,14 +652,6 @@ def _ledger_path(root: Path) -> Path:
 
 def _pointer_path(root: Path) -> Path:
     return _learning_root(root) / "active_pointer.json"
-
-
-def _candidate_path(root: Path, candidate_id: str) -> Path:
-    return _learning_root(root) / "candidates" / f"{candidate_id}.json"
-
-
-def _receipt_path(root: Path, receipt_sha256: str) -> Path:
-    return _learning_root(root) / "receipts" / f"{receipt_sha256}.json"
 
 
 def _host_memory_import_path(root: Path, receipt_sha256: str) -> Path:
@@ -916,7 +947,11 @@ def _apply_learning_schema(connection: sqlite3.Connection) -> None:
         )
         _validate_learning_schema(connection, _LEARNING_V1_EXPECTED_SCHEMA)
         try:
-            connection.executescript("BEGIN IMMEDIATE;\n" + _LEARNING_V2_EXTENSION_DDL)
+            connection.executescript(
+                "BEGIN IMMEDIATE;\n"
+                + _LEARNING_V2_EXTENSION_DDL
+                + _LEARNING_V3_EXTENSION_DDL
+            )
             _validate_learning_schema(connection)
             _rebuild_memory_fts(connection)
             connection.execute(
@@ -937,7 +972,49 @@ def _apply_learning_schema(connection: sqlite3.Connection) -> None:
             require(
                 False,
                 "LEARNING_LEDGER_SCHEMA_MISMATCH",
-                "The Agent Learning v1-to-v2 additive migration failed closed.",
+                "The Agent Learning v1-to-v3 additive migration failed closed.",
+                status="MISMATCH",
+                error_type=type(exc).__name__,
+            )
+        except Exception:
+            connection.rollback()
+            raise
+        return
+    if version == 2:
+        legacy_ddl_sha256 = sha256_bytes(_LEARNING_V2_SCHEMA_DDL.encode("utf-8"))
+        legacy_signature_sha256 = sha256_bytes(
+            canonical_json_bytes(_LEARNING_V2_EXPECTED_SCHEMA)
+        )
+        require(
+            str(rows[0]["ddl_sha256"]) == legacy_ddl_sha256
+            and str(rows[0]["schema_signature_sha256"]) == legacy_signature_sha256,
+            "LEARNING_LEDGER_SCHEMA_VERSION_MISMATCH",
+            "The Agent Learning v2 ledger metadata is byte-drifted.",
+            status="MISMATCH",
+        )
+        _validate_learning_schema(connection, _LEARNING_V2_EXPECTED_SCHEMA)
+        try:
+            connection.executescript("BEGIN IMMEDIATE;\n" + _LEARNING_V3_EXTENSION_DDL)
+            _validate_learning_schema(connection)
+            connection.execute(
+                """
+                UPDATE learning_schema_metadata
+                SET schema_version=?,ddl_sha256=?,schema_signature_sha256=?
+                WHERE singleton=1
+                """,
+                (
+                    LEARNING_LEDGER_SCHEMA_VERSION,
+                    contract["ledger_ddl_sha256"],
+                    contract["ledger_schema_signature_sha256"],
+                ),
+            )
+            connection.commit()
+        except sqlite3.DatabaseError as exc:
+            connection.rollback()
+            require(
+                False,
+                "LEARNING_LEDGER_SCHEMA_MISMATCH",
+                "The Agent Learning v2-to-v3 additive migration failed closed.",
                 status="MISMATCH",
                 error_type=type(exc).__name__,
             )
@@ -1459,6 +1536,67 @@ def _immutable_json(path: Path, value: dict[str, Any]) -> None:
         )
         return
     atomic_write_json(path, value)
+
+
+def _candidate_locator(candidate_id: str) -> str:
+    return f"sqlite://ai_learning/learning_candidate/{candidate_id}"
+
+
+def _receipt_locator(receipt_sha256: str) -> str:
+    return f"sqlite://ai_learning/learning_receipt/{receipt_sha256}"
+
+
+def _record_learning_receipt(
+    connection: sqlite3.Connection,
+    receipt: dict[str, Any],
+    *,
+    project_id: str,
+    receipt_kind: str,
+    candidate_id: str | None = None,
+    occurred_at: str | None = None,
+) -> str:
+    receipt_sha256 = _sha256(
+        receipt.get("receipt_sha256"), field="receipt_sha256"
+    )
+    body = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+    require(
+        receipt_sha256 == sha256_bytes(canonical_json_bytes(body))
+        and receipt.get("project_id") == project_id,
+        "LEARNING_RECEIPT_HASH_OR_PROJECT_MISMATCH",
+        "A Learning receipt is not self-sealed for the selected project.",
+        status="MISMATCH",
+    )
+    encoded = canonical_json_bytes(receipt).decode("utf-8")
+    existing = connection.execute(
+        "SELECT receipt_json FROM learning_receipt WHERE receipt_sha256=?",
+        (receipt_sha256,),
+    ).fetchone()
+    if existing is not None:
+        require(
+            str(existing[0]) == encoded,
+            "LEARNING_RECEIPT_IDENTITY_CONFLICT",
+            "A Learning receipt identity already names different bytes.",
+            status="MISMATCH",
+        )
+        return _receipt_locator(receipt_sha256)
+    connection.execute(
+        """
+        INSERT INTO learning_receipt(
+            receipt_sha256,schema_id,receipt_kind,project_id,candidate_id,
+            occurred_at,receipt_json
+        ) VALUES(?,?,?,?,?,?,?)
+        """,
+        (
+            receipt_sha256,
+            str(receipt.get("schema") or "UNKNOWN"),
+            receipt_kind,
+            project_id,
+            candidate_id,
+            occurred_at,
+            encoded,
+        ),
+    )
+    return _receipt_locator(receipt_sha256)
 
 
 def _load_json(path: Path, *, code: str) -> dict[str, Any]:
@@ -2295,8 +2433,7 @@ def seal_learning_candidate(
     }
     candidate["candidate_sha256"] = _candidate_hash(candidate)
     _verify_candidate(candidate)
-    path = _candidate_path(root, candidate["candidate_id"])
-    _immutable_json(path, candidate)
+    candidate_locator = _candidate_locator(str(candidate["candidate_id"]))
 
     connection = _connect(root)
     try:
@@ -2317,7 +2454,7 @@ def seal_learning_candidate(
                 "status": "PASS",
                 "state": _current_state(connection, candidate["candidate_id"]),
                 "candidate": candidate,
-                "candidate_path": str(path),
+                "candidate_locator": candidate_locator,
                 "idempotent_reuse": True,
                 "project_truth_pointer_moved": False,
                 "project_hil_invoked": False,
@@ -2377,7 +2514,7 @@ def seal_learning_candidate(
         "status": "PASS",
         "state": "PENDING_LEARNING_HIL",
         "candidate": candidate,
-        "candidate_path": str(path),
+        "candidate_locator": candidate_locator,
         "seal_event": event,
         "idempotent_reuse": False,
         "project_truth_pointer_moved": False,
@@ -2689,15 +2826,29 @@ def _seal_learning_pv_weave(
         **receipt_body,
         "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
     }
-    receipt_path = _receipt_path(root, str(receipt["receipt_sha256"]))
-    _immutable_json(receipt_path, receipt)
+    connection = _connect(root)
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        receipt_locator = _record_learning_receipt(
+            connection,
+            receipt,
+            project_id=project_id,
+            receipt_kind="LEARNING_WEAVE",
+            candidate_id=str(weave_candidate["candidate_id"]),
+        )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
     return {
         "status": "PASS",
         "candidate": weave_candidate,
         "state": sealed["state"],
         "idempotent_reuse": sealed["idempotent_reuse"],
         "receipt": receipt,
-        "receipt_path": str(receipt_path),
+        "receipt_locator": receipt_locator,
     }
 
 
@@ -3032,8 +3183,21 @@ def bootstrap_verified_learning_history(
     }
     receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_body))
     receipt = {**receipt_body, "receipt_sha256": receipt_sha256}
-    receipt_path = _receipt_path(root, receipt_sha256)
-    _immutable_json(receipt_path, receipt)
+    connection = _connect(root)
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        receipt_locator = _record_learning_receipt(
+            connection,
+            receipt,
+            project_id=project_id,
+            receipt_kind="VERIFIED_HISTORY_BOOTSTRAP",
+        )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
     return {
         "status": "PASS",
         "state": "BOOTSTRAP_DELTA_LEARNING_AUTO_ACCEPTED_WEAVE_SEALED"
@@ -3050,11 +3214,13 @@ def bootstrap_verified_learning_history(
         "weave_candidate": weave["candidate"] if weave is not None else None,
         "weave_candidate_state": weave["state"] if weave is not None else None,
         "weave_receipt": weave["receipt"] if weave is not None else None,
-        "weave_receipt_path": weave["receipt_path"] if weave is not None else None,
+        "weave_receipt_locator": (
+            weave["receipt_locator"] if weave is not None else None
+        ),
         "excluded_ambiguous_or_unverified_count": excluded_count,
         "source_kind_counts": source_kind_counts,
         "receipt": receipt,
-        "receipt_path": str(receipt_path),
+        "receipt_locator": receipt_locator,
         "project_truth_pointer_moved": False,
         "learning_pointer_moved": False,
         "project_candidate_created": False,
@@ -3084,16 +3250,6 @@ def _candidate_from_db(
     candidate = cast(dict[str, Any], json.loads(str(row["candidate_json"])))
     _verify_candidate(candidate)
     _validate_candidate_evidence_authority(root, candidate)
-    file_candidate = _load_json(
-        _candidate_path(root, candidate_id), code="LEARNING_CANDIDATE_FILE_REQUIRED"
-    )
-    require(
-        canonical_json_bytes(file_candidate) == canonical_json_bytes(candidate),
-        "LEARNING_CANDIDATE_FILE_LEDGER_MISMATCH",
-        "The Learning Candidate file and SQLite authority disagree.",
-        status="MISMATCH",
-        candidate_id=candidate_id,
-    )
     return candidate
 
 
@@ -3390,7 +3546,14 @@ def decide_learning_candidate(
         }
         receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_body))
         receipt = {**receipt_body, "receipt_sha256": receipt_sha256}
-        _immutable_json(_receipt_path(root, receipt_sha256), receipt)
+        _record_learning_receipt(
+            connection,
+            receipt,
+            project_id=project_id,
+            receipt_kind="LEARNING_HIL_DECISION",
+            candidate_id=candidate_id,
+            occurred_at=exact_decided_at,
+        )
         connection.execute(
             """
             INSERT INTO learning_decision_receipt(
@@ -3493,7 +3656,23 @@ def expire_learning_candidates(
         **receipt_body,
         "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
     }
-    return {**receipt_body, "receipt": receipt}
+    connection = _connect(root)
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        receipt_locator = _record_learning_receipt(
+            connection,
+            receipt,
+            project_id=project_id,
+            receipt_kind="LEARNING_EXPIRY",
+            occurred_at=exact_as_of,
+        )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+    return {**receipt_body, "receipt": receipt, "receipt_locator": receipt_locator}
 
 
 def revoke_learning_candidate(
@@ -3731,7 +3910,7 @@ def retrieve_accepted_learning(
 def inspect_learning_authority(
     project_root: str | Path, *, project_id: str
 ) -> dict[str, Any]:
-    """Verify SQLite, immutable candidate files, event seals, and pointer history."""
+    """Verify SQLite-first candidates, receipts, event seals, and pointer history."""
 
     root = _project_root(project_root, project_id=project_id)
     connection = _connect(root)
@@ -3755,6 +3934,10 @@ def inspect_learning_authority(
         memory_edge_rows = connection.execute(
             "SELECT edge_json FROM memory_edge ORDER BY edge_id"
         ).fetchall()
+        receipt_rows = connection.execute(
+            "SELECT receipt_sha256,receipt_json FROM learning_receipt "
+            "ORDER BY receipt_sha256"
+        ).fetchall()
         states: dict[str, str] = {}
         expected_fts: list[tuple[str, str, str, str, str]] = []
         for row in candidates:
@@ -3762,16 +3945,6 @@ def inspect_learning_authority(
             _verify_candidate(candidate)
             _validate_candidate_evidence_authority(root, candidate)
             expected_fts.append(_fts_document(candidate))
-            file_value = _load_json(
-                _candidate_path(root, candidate["candidate_id"]),
-                code="LEARNING_CANDIDATE_FILE_REQUIRED",
-            )
-            require(
-                canonical_json_bytes(file_value) == canonical_json_bytes(candidate),
-                "LEARNING_CANDIDATE_FILE_LEDGER_MISMATCH",
-                "A Learning Candidate file differs from its SQLite row.",
-                status="MISMATCH",
-            )
             states[candidate["candidate_id"]] = _current_state(
                 connection, candidate["candidate_id"]
             )
@@ -3863,9 +4036,25 @@ def inspect_learning_authority(
             )
         current_pointer = _read_pointer(root, project_id=project_id)
         learning_weaves: list[dict[str, Any]] = []
-        receipts_root = _learning_root(root) / "receipts"
-        for receipt_path in sorted(receipts_root.glob("*.json")):
-            receipt_value = json.loads(receipt_path.read_text(encoding="utf-8"))
+        for receipt_row in receipt_rows:
+            receipt_value = json.loads(str(receipt_row["receipt_json"]))
+            require(
+                receipt_value.get("receipt_sha256")
+                == str(receipt_row["receipt_sha256"])
+                and str(receipt_row["receipt_sha256"])
+                == sha256_bytes(
+                    canonical_json_bytes(
+                        {
+                            key: value
+                            for key, value in receipt_value.items()
+                            if key != "receipt_sha256"
+                        }
+                    )
+                ),
+                "LEARNING_RECEIPT_HASH_MISMATCH",
+                "A SQLite-first Learning receipt failed its immutable hash.",
+                status="MISMATCH",
+            )
             if receipt_value.get("schema") != LEARNING_WEAVE_RECEIPT_SCHEMA:
                 continue
             claimed = _sha256(
@@ -3893,7 +4082,7 @@ def inspect_learning_authority(
                 "LEARNING_WEAVE_RECEIPT_INVALID",
                 "The consolidated Learning weave failed membership or receipt validation.",
                 status="MISMATCH",
-                receipt_path=str(receipt_path),
+                receipt_locator=_receipt_locator(claimed),
             )
             acceptance_rows = connection.execute(
                 """
@@ -3995,6 +4184,11 @@ def inspect_learning_authority(
         "candidate_count": len(candidates),
         "indexed_candidate_count": len(indexed),
         "event_count": len(events),
+        "receipt_count": len(receipt_rows),
+        "candidate_storage": "SQLITE_ONLY",
+        "receipt_storage": "SQLITE_ONLY",
+        "raw_candidate_directory_required": False,
+        "raw_receipt_directory_required": False,
         "pointer_generation_count": len(pointer_rows),
         "current_pointer": current_pointer,
         "candidate_states": states,

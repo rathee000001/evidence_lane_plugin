@@ -4,8 +4,8 @@
   "lane_id": "chat_lineage",
   "sqlite_filename": "chat_lineage_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 44,
-  "schema_contract_table_count": 36,
+  "sqlite_table_count": 46,
+  "schema_contract_table_count": 38,
   "members": [
     {
       "path": "authorities/project_sectors/chat_lineage/builder-contract.schema.json",
@@ -19,18 +19,18 @@
     },
     {
       "path": "authorities/project_sectors/chat_lineage/chat_lineage.dot",
-      "bytes": 24359,
-      "sha256": "53E8E1BC7878DD5F692285172B4F7A7F6999BA1A1DCD732B65A42EC44613FBAC"
+      "bytes": 24977,
+      "sha256": "03ECEAD163EAEB1BF9D78D65040F9A13F30E00F5413EB2623ED3ABD11AE90503"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/chat_lineage.mmd",
-      "bytes": 19216,
-      "sha256": "062BD041609DB9D8E7E0F80E0016C2610523338A04FA9ADA2212EFC9FD91A58C"
+      "bytes": 19715,
+      "sha256": "7B29BF4C87E9C8DBA426060B58D0BE3E2A276F0E8B537C57991F8D1F61E2166A"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/chat_lineage_sector_v001.sqlite",
-      "bytes": 286720,
-      "sha256": "7769E1BE0379403988622C38681F1170A104DC135E5C5350ED8B32BE465345EF"
+      "bytes": 516096,
+      "sha256": "9FB6341D0581C170C94B6A23D6C8FF2CDDD5039DEA9A4B81A0290A46FD3D0728"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/dot-artifact.schema.json",
@@ -39,8 +39,8 @@
     },
     {
       "path": "authorities/project_sectors/chat_lineage/lane-contract.v1.json",
-      "bytes": 9175,
-      "sha256": "F134AA506EA9D420D261FF524593282B6FD15E0423313B46F86D94FA9C140A50"
+      "bytes": 79793,
+      "sha256": "D55C9C8DEA0C88608B8C643C26F0B2BDB22599DBCC05DD05B0F9A1A23880F0DC"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/lane-pointer.schema.json",
@@ -79,8 +79,8 @@
     },
     {
       "path": "authorities/project_sectors/chat_lineage/schema.sql",
-      "bytes": 12266,
-      "sha256": "C1AFA7F9477EF7851B0BDE452D32852B3F13E149C582FE70B79BD9FBCA322B46"
+      "bytes": 13568,
+      "sha256": "5C087603C82396549350B53A1B55C7E61D2BDE754517314E9F2BBA35A101AC33"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/sqlite-artifact.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/chat_lineage/tools.json",
-      "bytes": 16267,
-      "sha256": "9AAEEBD87EA74BE91D1A62B500E4122D83A96EDF325B1B2BA32E35C06D0E3F59"
+      "bytes": 176491,
+      "sha256": "640B6AA0FC0188691631AB96C195EF33A4311B432CEE8009A74C01DA396CE3A6"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/tools.schema.json",
@@ -113,10 +113,10 @@
       "sha256": "6B8FE033821F632F3AFDBB8D372A550519F414F1156A844A6D3F0C13CB4E20B5"
     }
   ],
-  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
+  "schema_registry_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "920CF162997D5CB2ABEB41148A353F3221DCC3B68795165F8231935D9117C8CF"
+  "receipt_sha256": "5F25EA6158E7F59A24BD53D4A20E79BB7765E8DFA4CE535A9C16439DB079342F"
 }

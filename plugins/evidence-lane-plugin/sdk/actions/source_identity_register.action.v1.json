@@ -98,7 +98,7 @@
   "canonical_internal_sdk": "src/evidence_lane_plugin/internal_sdk.py",
   "canonical_mcp_server": "src/evidence_lane_plugin/mcp_server.py",
   "source_module_registry": "src/evidence_lane_plugin/module-registry.v1.json",
-  "source_module_registry_sha256": "D916AEBD31DEA3486992D8A416C09081D6A5D1BBFB10A626D79ADA5E7E4DD8D0",
+  "source_module_registry_sha256": "3873042A69C8566BDA680B3917B4CB8207E99359C54E4552C672F96A218C5941",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "5C7FF4B8FDC6DC81CBBFF23E0108F59AC063C9F2CA17D563F7F66DE2CFFB6151"
+  "receipt_sha256": "D6135B575C4F5761A2F85EC572929BB867B08C0EF68AA7E216EAA267BC3DD5E8"
 }

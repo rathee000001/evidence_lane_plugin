@@ -317,6 +317,23 @@ def _discard_tree_sitter_pool() -> None:
         pool.shutdown(wait=False, cancel_futures=True)
 
 
+def shutdown_tree_sitter_runtime() -> None:
+    """Close the reusable native parser worker after one bounded lane build.
+
+    A project Refresh owns a transaction directory.  Leaving the shared worker
+    alive after all parser futures have resolved can keep Windows resources
+    open while a failed transaction is being removed.  The active pool has no
+    outstanding jobs at this boundary, so a deterministic close is safe.
+    """
+
+    global _TREE_SITTER_PROCESS_POOL
+    with _TREE_SITTER_POOL_LOCK:
+        pool = _TREE_SITTER_PROCESS_POOL
+        _TREE_SITTER_PROCESS_POOL = None
+    if pool is not None:
+        pool.shutdown(wait=True, cancel_futures=True)
+
+
 def extract_tree_sitter_facts(path: str, text: str) -> TreeSitterExtraction:
     """Extract bounded syntax facts with native crashes isolated from the host.
 
@@ -377,5 +394,6 @@ __all__ = [
     "TreeSitterExtraction",
     "extract_tree_sitter_facts",
     "initialize_hidden_tree_sitter_runtime",
+    "shutdown_tree_sitter_runtime",
     "tree_sitter_available",
 ]

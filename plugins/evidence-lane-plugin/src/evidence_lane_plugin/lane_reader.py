@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gc
 import json
 import math
 import re
@@ -246,6 +247,32 @@ class LaneReader:
         return fts, terms
 
     def search(
+        self,
+        project_id: str,
+        lane_alias: str,
+        query: str,
+        *,
+        pv_ref: str | None = None,
+        limit: int = 20,
+        retrieval: str = "hybrid",
+    ) -> dict[str, Any]:
+        """Search one lane and release immutable SQLite handles on every error."""
+
+        try:
+            return self._search_impl(
+                project_id,
+                lane_alias,
+                query,
+                pv_ref=pv_ref,
+                limit=limit,
+                retrieval=retrieval,
+            )
+        except BaseException as error:
+            error.__traceback__ = None
+            gc.collect()
+            raise
+
+    def _search_impl(
         self,
         project_id: str,
         lane_alias: str,
@@ -2100,6 +2127,30 @@ class LaneReader:
         }
 
     def fetch_source(
+        self,
+        project_id: str,
+        lane_alias: str,
+        path: str,
+        *,
+        pv_ref: str | None = None,
+        max_bytes: int = 100_000,
+    ) -> dict[str, Any]:
+        """Fetch one source and release immutable SQLite handles on every error."""
+
+        try:
+            return self._fetch_source_impl(
+                project_id,
+                lane_alias,
+                path,
+                pv_ref=pv_ref,
+                max_bytes=max_bytes,
+            )
+        except BaseException as error:
+            error.__traceback__ = None
+            gc.collect()
+            raise
+
+    def _fetch_source_impl(
         self,
         project_id: str,
         lane_alias: str,

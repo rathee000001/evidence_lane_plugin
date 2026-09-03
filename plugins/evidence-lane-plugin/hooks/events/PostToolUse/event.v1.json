@@ -8,28 +8,28 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_validate.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_validate.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostToolUse subhook_validate.py",
           "timeout": 10,
           "statusMessage": "Validating and bounding Evidence Lane hook signal"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_seal.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_seal.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostToolUse subhook_seal.py",
           "timeout": 10,
           "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_transport.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_transport.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostToolUse subhook_transport.py",
           "timeout": 10,
           "statusMessage": "Projecting Evidence Lane Plan and changes"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_emit.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostToolUse --handler subhook_emit.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostToolUse subhook_emit.py",
           "timeout": 10,
           "statusMessage": "Verifying and emitting Evidence Lane hook result"
@@ -42,22 +42,22 @@
     {
       "display_id": "6.1",
       "path": "hooks/events/PostToolUse/handler-6.1.v1.json",
-      "sha256": "D9B0AB704C1007B7A6B5669C02EF120589B3BB69793D1E60797D226738DEE1A7"
+      "sha256": "993D94668A677B541F5BEB928CE8A2382FB25BE310E467584A7B08AC51868580"
     },
     {
       "display_id": "6.2",
       "path": "hooks/events/PostToolUse/handler-6.2.v1.json",
-      "sha256": "201286542BCFF5182BB1D77AB2AAF3597946425F6AB49480DF250C40BEDD7FCB"
+      "sha256": "B09A22BE42D563C95CBC0F5AE338DC312441E67CF39903598F360A95200188E9"
     },
     {
       "display_id": "6.3",
       "path": "hooks/events/PostToolUse/handler-6.3.v1.json",
-      "sha256": "4141CB362151923E37AD963D15E665C7634B7EF900658C670776827164BA2443"
+      "sha256": "5550525C487B48CC67B4449D2F6F5342E77CFB8F86A8678133FE8C3E00BB3D8D"
     },
     {
       "display_id": "6.4",
       "path": "hooks/events/PostToolUse/handler-6.4.v1.json",
-      "sha256": "670CFBA366A2A94ED1FFDC518DA64DC90884217CF9A3F3BC0FC9165F94D80C45"
+      "sha256": "AB0017FD2AEF9536CC035C89726A8782FF2982E74A40975A32402A8CE063C3CD"
     }
   ],
   "adapter": "hooks/post_tool_use.py",
@@ -76,5 +76,5 @@
   "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "74561DD4F5F7673155FBC97C53491149C443D4C8438BC815ADF14A012BDDB658"
+  "receipt_sha256": "0E1C1648B279CECE78C0CD8812D26D93064C6326FB422274526E68D51E875D93"
 }

@@ -8,28 +8,28 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_validate.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_validate.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" Stop subhook_validate.py",
           "timeout": 10,
           "statusMessage": "Validating and bounding Evidence Lane hook signal"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_seal.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_seal.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" Stop subhook_seal.py",
           "timeout": 10,
           "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_transport.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_transport.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" Stop subhook_transport.py",
           "timeout": 10,
           "statusMessage": "Committing Evidence Lane governed turn"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_emit.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_emit.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" Stop subhook_emit.py",
           "timeout": 10,
           "statusMessage": "Verifying and emitting Evidence Lane hook result"
@@ -42,22 +42,22 @@
     {
       "display_id": "10.1",
       "path": "hooks/events/Stop/handler-10.1.v1.json",
-      "sha256": "373914AA324452F63118EF7B3EBE50EA91C1844E3FEBA1CCFBEBBD88254B5C78"
+      "sha256": "8D35A2A0BC3EB84BAED39F093946F215468B6C9090278EC246FFE53BE5BC125C"
     },
     {
       "display_id": "10.2",
       "path": "hooks/events/Stop/handler-10.2.v1.json",
-      "sha256": "0FB4096995F6ACC97B7FC5C384436ECB4730BB3EF991250146F18B481DD28DAD"
+      "sha256": "CCCC103EA60DAA515D7FFFBFB5586D4AF7BA3109F38B515843B50730A4C5D7FB"
     },
     {
       "display_id": "10.3",
       "path": "hooks/events/Stop/handler-10.3.v1.json",
-      "sha256": "8ACF72E2B8E74B2C8D3D5A15D04376855F71293E5D1AABDB97D93D474F8583FC"
+      "sha256": "2656AE35DE9787B8940C606848D69C5EC5EE5468279EFB3EB7F1A24E3BCCF66A"
     },
     {
       "display_id": "10.4",
       "path": "hooks/events/Stop/handler-10.4.v1.json",
-      "sha256": "D65DCB0B003301530BDDF7A62940BA3FB0DD218BABCD8FEB639A5427185CE3B8"
+      "sha256": "5B2D045A3EEF2272698DE37663F4338629571C5C63BF8B5DFBE48B3900BE8255"
     }
   ],
   "adapter": "hooks/stop_response.py",
@@ -75,5 +75,5 @@
   "workflow_contract_sha256": "BA134A158786419D7D6AA9D8395897C445ACA2DD257D5C8E1F72BA68305D8F38",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "B941C732C82C7B45CD11617F4B991472CFDA9BB9E24D3876C61CEB9F9EA66380"
+  "receipt_sha256": "AEF20C1F801101940092564CA8F1C2C8FFF246D2AE0F3D9572C0C57B308727DE"
 }

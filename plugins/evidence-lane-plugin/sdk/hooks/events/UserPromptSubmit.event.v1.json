@@ -5,27 +5,27 @@
   "event": "UserPromptSubmit",
   "handler_count": 4,
   "event_binding": "hooks/events/UserPromptSubmit/event.v1.json",
-  "event_binding_sha256": "371479827D1C2D400ED1921E3DBCD1994C06677AF4AAFE01606B001735803125",
+  "event_binding_sha256": "773E03D8738555F2A6816B9B5E97B76AEA6431F8F16A1D673D3047AE568A8EE2",
   "handlers": [
     {
       "display_id": "3.1",
       "path": "hooks/events/UserPromptSubmit/handler-3.1.v1.json",
-      "sha256": "B630D54311ABFD9EAA4325D246FE20B5ADD2AF53FA5A7019111E169425372CA4"
+      "sha256": "C533E3847DE833B66C8B8D1E48C9A513EB0969B38452AC803CC7443E2A0693D5"
     },
     {
       "display_id": "3.2",
       "path": "hooks/events/UserPromptSubmit/handler-3.2.v1.json",
-      "sha256": "7EBB9D7508F116F59017277AB76FCEC72E7C55FA6388DB956A4D1EC3DD88F10B"
+      "sha256": "40B1AAF366AF63377C4174CF130D37D25856CC14C85DC680DC9CDBB8FF263530"
     },
     {
       "display_id": "3.3",
       "path": "hooks/events/UserPromptSubmit/handler-3.3.v1.json",
-      "sha256": "9AD6429F5D2700A445353E766612FAC87A7839C5AC3332857E9200A79D8D3527"
+      "sha256": "BFE22278838669610D11A81FDF4B91EF7F9AF2589A8CC2AED22373761354A810"
     },
     {
       "display_id": "3.4",
       "path": "hooks/events/UserPromptSubmit/handler-3.4.v1.json",
-      "sha256": "E1A2AFFF00942089BC2B3F7B6FB9A76E5CBC2E6E348CF216B79346B9C5F59810"
+      "sha256": "BF36E35448DD29D2B5FB28863C29FD63A7DC51F1F5CF105BD2C3899889C8D028"
     }
   ],
   "workflow_contract": {
@@ -44,5 +44,5 @@
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "78B221430E9921B8C6C4DF6C8BBC6D60D9E901DF02FB8DE4A925CF9C2BA61433"
+  "receipt_sha256": "B37E3F014ABE4C387E22B2790E9268D11790349A620FE93303FF3194C8E6D80E"
 }

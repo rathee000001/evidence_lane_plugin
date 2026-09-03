@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "agent_learning",
   "authority_root": "authorities/agent_learning",
-  "authority_manifest_sha256": "A23A8299F02569AEA1934BAA2B4D2A55BA018A157470757906F1C6C4D778F521",
+  "authority_manifest_sha256": "B1190DCF7F7787CC401DF00A24AA56A8218F5D4E16E291FAF06F309E17569F66",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -45,12 +45,12 @@
     {
       "path": "authorities/agent_learning/runtime-binding.schema.json",
       "bytes": 596,
-      "sha256": "B5AD6D7CAC02AEB48EC30EE13E09046AD5C98C1C0C1F8A6D82F1A15A142C6505"
+      "sha256": "562298A64FEAE90E6B1F41D7E8DF78BF5F225F43E9A414D0268EEBA2919097DB"
     },
     {
       "path": "authorities/agent_learning/schema.sql",
-      "bytes": 5978,
-      "sha256": "571E1B3F1DC32693B861C0B08C727ADF276376E2C589492E7184E659EA7C7021"
+      "bytes": 6376,
+      "sha256": "3CA90053A250C5B858288D8F212074CEFBBB3DDECC26D47FD8AF04DB39F0CBF2"
     },
     {
       "path": "authorities/agent_learning/sqlite-artifact.schema.json",
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "2F1B3ED45E3FAC0FD41C6F2E2A988A087C972DA09963CBDFCBB9AF60E5664841"
+  "receipt_sha256": "BFC2961C6624C894BB802A859E81D62FED36C6487CF89FA19F7558B01D249BDE"
 }

@@ -7,7 +7,7 @@
   "event": "SubagentStop",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_transport.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_transport.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_transport.py",
     "timeout": 10,
     "statusMessage": "Observing a bound Evidence Lane subagent stop"
@@ -32,5 +32,5 @@
   "adapter_sha256": "66384595963FB09B79472A1E29EE92953D1B7182B5A5C20084410265D8A3FBED",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "F1E6FE5DFD554C47F98F19CB7060CEC441FB3E8D5572FE7820F6A0166F695AEC"
+  "receipt_sha256": "B194AC2060BE056A32E08232F089D87141A610B8ADF7DCC0CB23AD4BF47A41A1"
 }

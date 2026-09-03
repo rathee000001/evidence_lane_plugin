@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=AFFB5ABBF05C9BFC98A88DCFC7C5E4484C02F924B375288EFAF619F48897B5E0
+%% LANGGRAPH_EXPORT_SHA256=B2E3EABB37245EC021F2E875E9C70F49C7257AA9521CC237B5498B8058E0F531
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=101
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=107
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -132,6 +132,14 @@ flowchart TB
     support_table_learning_pointer_history_column_reason["reason : TEXT"]:::column
     support_table_learning_pointer_history_column_pointer_sha256["pointer_sha256 : TEXT"]:::column
     support_table_learning_pointer_history_column_pointer_json["pointer_json : TEXT"]:::column
+    support_table_learning_receipt["learning_receipt"]:::table
+    support_table_learning_receipt_column_receipt_sha256["receipt_sha256 : TEXT"]:::column
+    support_table_learning_receipt_column_schema_id["schema_id : TEXT"]:::column
+    support_table_learning_receipt_column_receipt_kind["receipt_kind : TEXT"]:::column
+    support_table_learning_receipt_column_project_id["project_id : TEXT"]:::column
+    support_table_learning_receipt_column_candidate_id["candidate_id : TEXT"]:::column
+    support_table_learning_receipt_column_occurred_at["occurred_at : TEXT"]:::column
+    support_table_learning_receipt_column_receipt_json["receipt_json : TEXT"]:::column
     support_table_learning_schema_metadata["learning_schema_metadata"]:::table
     support_table_learning_schema_metadata_column_singleton["singleton : INTEGER"]:::column
     support_table_learning_schema_metadata_column_schema_id["schema_id : TEXT"]:::column
@@ -310,6 +318,15 @@ flowchart TB
   support_table_learning_pointer_history -->|"column"| support_table_learning_pointer_history_column_pointer_sha256
   support_table_learning_pointer_history -->|"column"| support_table_learning_pointer_history_column_pointer_json
   support_table_learning_pointer_history -->|"FK candidate_id-&gt;candidate_id"| support_table_learning_candidate
+  AUTHORITY_ROOT -->|"owns"| support_table_learning_receipt
+  support_table_learning_receipt -->|"column"| support_table_learning_receipt_column_receipt_sha256
+  support_table_learning_receipt -->|"column"| support_table_learning_receipt_column_schema_id
+  support_table_learning_receipt -->|"column"| support_table_learning_receipt_column_receipt_kind
+  support_table_learning_receipt -->|"column"| support_table_learning_receipt_column_project_id
+  support_table_learning_receipt -->|"column"| support_table_learning_receipt_column_candidate_id
+  support_table_learning_receipt -->|"column"| support_table_learning_receipt_column_occurred_at
+  support_table_learning_receipt -->|"column"| support_table_learning_receipt_column_receipt_json
+  support_table_learning_receipt -->|"FK candidate_id-&gt;candidate_id"| support_table_learning_candidate
   AUTHORITY_ROOT -->|"owns"| support_table_learning_schema_metadata
   support_table_learning_schema_metadata -->|"column"| support_table_learning_schema_metadata_column_singleton
   support_table_learning_schema_metadata -->|"column"| support_table_learning_schema_metadata_column_schema_id
@@ -384,10 +401,11 @@ flowchart TB
   support_table_learning_candidate_fts_docsize ~~~ support_table_learning_candidate_fts_idx
   support_table_learning_candidate_fts_idx ~~~ support_table_learning_decision_receipt
   support_table_learning_decision_receipt ~~~ support_table_learning_event
-  support_table_learning_pointer_history ~~~ support_table_learning_schema_metadata
+  support_table_learning_pointer_history ~~~ support_table_learning_receipt
+  support_table_learning_receipt ~~~ support_table_learning_schema_metadata
   support_table_learning_schema_metadata ~~~ support_table_memory_edge
   support_table_memory_locator ~~~ support_table_memory_locator_fts
-  support_table_memory_locator_fts ~~~ support_table_memory_locator_fts_config
+  support_table_memory_locator_fts_config ~~~ support_table_memory_locator_fts_content
   support_table_memory_locator_fts_content ~~~ support_table_memory_locator_fts_data
   support_table_memory_locator_fts_data ~~~ support_table_memory_locator_fts_docsize
   support_table_memory_locator_fts_docsize ~~~ support_table_memory_locator_fts_idx
@@ -444,6 +462,11 @@ flowchart TB
   support_table_learning_pointer_history_column_prior_generation ~~~ support_table_learning_pointer_history_column_reason
   support_table_learning_pointer_history_column_pointer_sha256 ~~~ support_table_learning_pointer_history_column_pointer_json
   support_table_learning_pointer_history_column_pointer_json ~~~ support_table_learning_candidate
+  support_table_learning_receipt_column_receipt_sha256 ~~~ support_table_learning_receipt_column_schema_id
+  support_table_learning_receipt_column_schema_id ~~~ support_table_learning_receipt_column_receipt_kind
+  support_table_learning_receipt_column_project_id ~~~ support_table_learning_receipt_column_candidate_id
+  support_table_learning_receipt_column_candidate_id ~~~ support_table_learning_receipt_column_occurred_at
+  support_table_learning_receipt_column_receipt_json ~~~ support_table_learning_candidate
   support_table_learning_schema_metadata_column_singleton ~~~ support_table_learning_schema_metadata_column_schema_id
   support_table_learning_schema_metadata_column_schema_id ~~~ support_table_learning_schema_metadata_column_schema_version
   support_table_learning_schema_metadata_column_ddl_sha256 ~~~ support_table_learning_schema_metadata_column_schema_signature_sha256

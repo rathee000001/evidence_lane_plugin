@@ -12,6 +12,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -331,7 +332,13 @@ def derive_public_surface_registry(
         ) from exc
     package_identity_matches = (
         plugin_id == project_name == "evidence-lane-plugin"
-        and bool(plugin_version)
+        and re.fullmatch(
+            r"\d+\.\d+\.\d+\+codex\."
+            r"[0-9A-Za-z](?:[0-9A-Za-z.-]*[0-9A-Za-z])?",
+            plugin_version,
+        )
+        is not None
+        and plugin_version.count("+codex.") == 1
         and plugin_version.split("+", 1)[0] == project_version
     )
 

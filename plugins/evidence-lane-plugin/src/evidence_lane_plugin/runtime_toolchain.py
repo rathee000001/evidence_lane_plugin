@@ -29,7 +29,10 @@ def _plugin_root() -> Path:
 
 
 def _module_available(name: str) -> bool:
-    return importlib.util.find_spec(name) is not None
+    try:
+        return importlib.util.find_spec(name) is not None
+    except (ImportError, ModuleNotFoundError, ValueError):
+        return False
 
 
 def _command_available(*names: str) -> str | None:

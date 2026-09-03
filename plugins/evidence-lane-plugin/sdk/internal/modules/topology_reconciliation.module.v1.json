@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.topology_reconciliation",
   "source_path": "src/evidence_lane_plugin/topology_reconciliation.py",
-  "source_sha256": "D9BD0323CEF09D85382B522BC8F6AFEB5A4BCFDB68A122168DF071900D5FBD62",
-  "source_bytes": 34095,
+  "source_sha256": "2154B784B5C02E04EED92D95FCA935D4F0ECE6BCA16B7B91EE058EE493C4AFA1",
+  "source_bytes": 34990,
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "70DA56995BA6073AD1BE21EBD2525A6D98AFBDAE92554ECCC669ED4DBD871C19"
+  "receipt_sha256": "B3D1D0410BB7E15756B683F53C2ED199B91FD48C7FCC287C419EBD70D6082226"
 }

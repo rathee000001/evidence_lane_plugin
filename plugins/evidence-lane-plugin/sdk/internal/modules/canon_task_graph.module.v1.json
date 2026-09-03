@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.canon_task_graph",
   "source_path": "src/evidence_lane_plugin/canon_task_graph.py",
-  "source_sha256": "F19A3643ED9216A89443EAFB7A77E7BF373F7FD7F3D418DD283EF32BA0E19F4F",
-  "source_bytes": 136654,
+  "source_sha256": "9F745AC65FFF25679F15193CAFD8CB79D171C303024FFBED595E87FD7B1CD985",
+  "source_bytes": 136628,
   "role": "PROJECT_AUTHORITIES",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "70CD9AF9DD059D7E1561314B8EEA9C79467C2128A8F6A2C917745F37EEEC6062"
+  "receipt_sha256": "849018CF567E649924F3D1A6A06B0FACE8A269D720D0728A40752A5F76BD8E44"
 }

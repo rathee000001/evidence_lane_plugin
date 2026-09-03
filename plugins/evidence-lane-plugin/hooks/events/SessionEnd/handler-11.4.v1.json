@@ -7,7 +7,7 @@
   "event": "SessionEnd",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_emit.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_emit.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_emit.py",
     "timeout": 3,
     "statusMessage": "Verifying and emitting Evidence Lane hook result"
@@ -32,5 +32,5 @@
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "926B95DBAD8A739F04191DA0D4BD51BB210A541B778F7B18C771DB4D0D8D022C"
+  "receipt_sha256": "02E830BB6B0350D07BD1DC441E549BBAE311C5476C811F84EA726D937B1A0C3B"
 }

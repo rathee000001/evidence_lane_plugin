@@ -5,13 +5,154 @@
   "runtime_root_hidden": true,
   "project_root_hardcoded": false,
   "workspace_hardcoded": false,
+  "host_wide_project_neutral": true,
+  "per_project_or_task_tunnel_allowed": false,
+  "multi_project_and_task_routing": "EXPLICIT_PLUGIN_PROJECT_ID_AND_TASK_BINDINGS",
   "routes_by_project_id": true,
   "one_active_tunnel": true,
+  "tunnel_compatibility_schema": "evidence-lane.tunnel-capability-compatibility.v1",
+  "tunnel_compatibility_sha256": "33820399C6FFA53FC46E3AE09840137EF61ED036BF47FDA59875B479A41B9290",
+  "tunnel_compatibility_inputs": [
+    {
+      "path": ".mcp.json",
+      "bytes": 275,
+      "sha256": "39ABA552BC2E160857615B97DDF0BB4D46DF03FC218D398A0F6C27435A03D1AA"
+    },
+    {
+      "path": "hooks/hooks.json",
+      "bytes": 18961,
+      "sha256": "6FC9AF1BEDCC3552B0E0839B8907ADFA960DC81D5E9AA8BEFB88C7EC9391A4B8"
+    },
+    {
+      "path": "hooks/logical-actions.json",
+      "bytes": 1864,
+      "sha256": "B63F604D0610EFC6D192534E3E54851D86171A42AB54E0221FD3F861312549C8"
+    },
+    {
+      "path": "requirements.lock.txt",
+      "bytes": 422408,
+      "sha256": "1C86511D155A955E931EA69AC6C34D9498D7C3333A27489113625985A163038B"
+    },
+    {
+      "path": "requirements.onnx-directml.lock.txt",
+      "bytes": 720,
+      "sha256": "A9654179BD83FC95B9216EEF95767ED5F280CC6DDC657DBD7C2C71176E2299D5"
+    },
+    {
+      "path": "requirements.toolchain.lock.txt",
+      "bytes": 336699,
+      "sha256": "A02720DB599F60B54044D07FC34AED2B53EBCB7CC2EC1742B3DB8156BE458FF7"
+    },
+    {
+      "path": "requirements.torch-cpu.lock.txt",
+      "bytes": 5838,
+      "sha256": "5F39C8B9F6B42164D2FE921C0E219F47F3569FA23B486D89A002134964176A3A"
+    },
+    {
+      "path": "requirements.torch-nvidia.lock.txt",
+      "bytes": 2442,
+      "sha256": "67FA261D448ED2050F1E2BA13005194C505B79FEE766E4D4167DC15D0DE5D5E8"
+    },
+    {
+      "path": "schemas/public-action-schemas.v001.json",
+      "bytes": 361683,
+      "sha256": "6408DF34A1E61226E09D5BEC1620DEB845893EA969AE4D42660B86055ECB744F"
+    },
+    {
+      "path": "scripts/run_mcp.py",
+      "bytes": 14954,
+      "sha256": "71FEF3053624C54AD959B5CD12AE03D83B8A6C453734BFF93FAFF59220ED6C93"
+    },
+    {
+      "path": "scripts/windows_tunnel/EvidenceLaneTunnel.Boot.ps1",
+      "bytes": 16531,
+      "sha256": "71481ADC48850C53D5E034AAD1A4DF62353541E8A706A08CD8E9DB17BA9E191F"
+    },
+    {
+      "path": "scripts/windows_tunnel/EvidenceLaneTunnelHost.build.json",
+      "bytes": 574,
+      "sha256": "BDA15F8A945459A7FD89EF10B33CBF5548003B0F9F67FB81B07BA841E232D715"
+    },
+    {
+      "path": "scripts/windows_tunnel/EvidenceLaneTunnelHost.exe",
+      "bytes": 7168,
+      "sha256": "CB2CC80BA7C66A41AC43232CEE5400F1850D1BEF2644958E6BF5DE8411131DBF"
+    },
+    {
+      "path": "scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1",
+      "bytes": 78244,
+      "sha256": "571F46755E768E5F634C9E4253B082261E0BE60ADB8FEFA2480C65F0774B10F3"
+    },
+    {
+      "path": "scripts/windows_tunnel/Manage-EvidenceLaneTunnel.ps1",
+      "bytes": 21127,
+      "sha256": "20872953F860D48C594FE289678864224C73E5CFD1D30318B37E9CAABA0CD1ED"
+    },
+    {
+      "path": "skills/skill-surface-registry.v1.json",
+      "bytes": 46886,
+      "sha256": "532DFAF8DC4EF2ADC31C0EC8D44B81F264644291EC431CBAA57A84B1996715C4"
+    },
+    {
+      "path": "src/evidence_lane_plugin/ecosystem_toolchain.py",
+      "bytes": 16197,
+      "sha256": "3E1716FFF4C723E5C889E0476AAD9BD5DAD930DF61250927D09C2A15D6EB45EC"
+    },
+    {
+      "path": "src/evidence_lane_plugin/lane_engine.py",
+      "bytes": 394722,
+      "sha256": "E4A3773B3EB281B4527D193074954E450E36C2F3927AAF29A122C10F2F38301D"
+    },
+    {
+      "path": "src/evidence_lane_plugin/mcp_server.py",
+      "bytes": 179622,
+      "sha256": "46465CE68730BF4160F6EBD446CB11FCB693C59947083B090842B34A291388CE"
+    },
+    {
+      "path": "src/evidence_lane_plugin/mcp_stdio_compat.py",
+      "bytes": 9347,
+      "sha256": "5729899F62FAC78A44CE78648B4D341B1A647462964A6B85A263997C7E10011F"
+    },
+    {
+      "path": "src/evidence_lane_plugin/runtime_toolchain.py",
+      "bytes": 15865,
+      "sha256": "EBAAF0157F7F66D1E1237F6038DCDBA8F00DAEE424632EC61789AE9D489090F5"
+    },
+    {
+      "path": "src/evidence_lane_plugin/tunnel_identity_routing.py",
+      "bytes": 3915,
+      "sha256": "00E8E2BB23045481A9444CDDFF0B2CF4470F112BF8B59A9E4996FB30B6C00719"
+    },
+    {
+      "path": "toolchains/native-tools.v1.json",
+      "bytes": 7161,
+      "sha256": "A91607A0E1BB2DDECF6373851A7E8F9B4F4F7B698E677345D67A403214EF0D9E"
+    },
+    {
+      "path": "toolchains/tool-execution-routing.v1.json",
+      "bytes": 103225,
+      "sha256": "F6186D5B8307C48C44D9B377EB8AB7C5F13BCBCA07DA78C1298009F49730B3D9"
+    },
+    {
+      "path": "toolchains/tool-requirement-matrix.v1.json",
+      "bytes": 23840,
+      "sha256": "5F8B1604A59BB8B758AF995AE43A1502D89068B327E99A7C32125EFF1C19B10A"
+    },
+    {
+      "path": "toolchains/tunnel-runtime-toolchain.v1.json",
+      "bytes": 109554,
+      "sha256": "23027693F389A79951194DE4BFA9A64A96F787DB52D302E39D98432679E0AFB1"
+    }
+  ],
+  "tunnel_rebuild_trigger": "CAPABILITY_FINGERPRINT_CHANGED_ONLY",
+  "exact_plugin_rebind_required_every_install": true,
+  "compatible_runtime_key_and_prewarm_reused": true,
+  "runtime_key_prompt_policy": "FIRST_REGISTRATION_OR_MISSING_INVALID_CREDENTIAL_ONLY",
   "tunnel_sources": [
     {
       "path": "scripts/windows_tunnel/EvidenceLaneTunnel.Boot.ps1",
-      "bytes": 7175,
-      "sha256": "75A6321FBF2F7BB0D35E3382FF130EAD6B7BE0BFBF8A03324CA668C7E05F0218"
+      "bytes": 16531,
+      "sha256": "71481ADC48850C53D5E034AAD1A4DF62353541E8A706A08CD8E9DB17BA9E191F"
     },
     {
       "path": "scripts/windows_tunnel/EvidenceLaneTunnelHost.build.json",
@@ -25,13 +166,13 @@
     },
     {
       "path": "scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1",
-      "bytes": 44059,
-      "sha256": "1EC38F084C7ECE386EF89C58256F6DAB6A738D4A2513C9A0875314190CF971CA"
+      "bytes": 78244,
+      "sha256": "571F46755E768E5F634C9E4253B082261E0BE60ADB8FEFA2480C65F0774B10F3"
     },
     {
       "path": "scripts/windows_tunnel/Manage-EvidenceLaneTunnel.ps1",
-      "bytes": 11255,
-      "sha256": "23FFC4B847575ECB6A9342D21A3E2BC5AE834DD4D47DBE33BFC9237706592B00"
+      "bytes": 21127,
+      "sha256": "20872953F860D48C594FE289678864224C73E5CFD1D30318B37E9CAABA0CD1ED"
     }
   ],
   "runtime_toolchain": "toolchains/tunnel-runtime-toolchain.v1.json",
@@ -46,12 +187,10 @@
   "native_toolchain_manifest_sha256": "A91607A0E1BB2DDECF6373851A7E8F9B4F4F7B698E677345D67A403214EF0D9E",
   "native_toolchain_install_owner": "scripts/codex_release/install_native_toolchain.py",
   "native_toolchain_local_update_only": true,
-  "maintainer_helper_included_until_final_project_hil": true,
-  "maintainer_helpers": {
-    "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1": "B8E09181960264E406A63E261BC81428451B8D44F33918F6123505450EC46F17"
-  },
-  "restart_preparation_only": true,
+  "restart_helper_present": false,
+  "install_receipt_is_restart_boundary": true,
+  "user_manual_restart_required": true,
   "programmatic_app_stop_allowed": false,
   "turn_drain_utility_present": false,
-  "receipt_sha256": "AF3CDE73E98A6236DF7AD207D9A4314723A74245643B065AE6173C6A9CC668E4"
+  "receipt_sha256": "29F01AC8A43F4B908FA4994746D03ABE739704C2B28E508A68E650193250F545"
 }

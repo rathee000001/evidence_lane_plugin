@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "3.0.0",
+  "version": "3.0.0+codex.20260903042602",
   "description": "Evidence Lane turns fragmented long-running Codex work into one evidence-backed, resumable project without taking the user's decisions away.",
   "author": {
     "name": "Praveen Rathee",
@@ -32,7 +32,7 @@
     "privacyPolicyURL": "https://evidencelane.org/privacy",
     "termsOfServiceURL": "https://evidencelane.org/terms",
     "defaultPrompt": [
-      "Open my Evidence Lane project, verify that it is ready, show the current safe human entrypoints, and route every registered first-class workflow through the installed SDK automatically.",
+      "Open my Evidence Lane project, verify readiness, show safe entrypoints, and route through the installed SDK.",
       "Show the accepted project state, current Plan row, recent changes, and supporting evidence without changing anything.",
       "Explain the current governed HIL, the exact next human decision, and what each choice would change."
     ],

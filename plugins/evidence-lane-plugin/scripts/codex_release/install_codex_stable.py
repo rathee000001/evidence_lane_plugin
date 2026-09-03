@@ -5,14 +5,17 @@ APIs. Maintainer-local execution has exactly two persistent selectors: exact
 verified Git ``main`` and versioned local testing. The retired branch-recovery
 selector is purge-only and can never be installed or selected. Build hashes belong in
 receipts, never in new plugin identities.  The script never writes a generated
-plugin cache directly and never asks for or stores Git, OpenAI, OAuth, PAT, or
-tunnel credentials.
+plugin cache directly. For each newly materialized local version it launches the
+installed tunnel helper in one visible console so the user can enter the Runtime
+API key directly into a SecureString/DPAPI envelope; plaintext credentials never
+enter this process, arguments, environment output, logs, source, or receipts.
 """
 
 from __future__ import annotations
 
 import argparse
 import ast
+import base64
 import hashlib
 import importlib.util
 import json
@@ -44,6 +47,15 @@ PLUGIN_CREATOR_LOCAL_CACHE_RESTART_STATE = (
 )
 PLUGIN_CREATOR_LOCAL_CACHE_RESTART_CONFIRMATION = (
     "EXPLICIT_PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART"
+)
+LOCAL_INSTALLED_STATIC_TUNNEL_PENDING_STATE = (
+    "LOCAL_INSTALLED_STATIC_ACCEPTANCE_TUNNEL_PENDING"
+)
+LOCAL_TUNNEL_ACTIVATION_SCHEMA = (
+    "evidence-lane.plugin-creator-local-tunnel-activation.v1"
+)
+LOCAL_TUNNEL_FAILURE_SCHEMA = (
+    "evidence-lane.plugin-creator-local-tunnel-failure.v1"
 )
 NPM_CODEX_CLI_RELATIVE_PATH = Path(
     "npm/node_modules/@openai/codex/node_modules/@openai/"
@@ -208,26 +220,14 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
         "exact_task_reopen_count": 0,
         "black_terminal_popup_allowed": False,
     },
-    "maintainer_release_helper": {
-        "script": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
-        "audience": "EVIDENCE_LANE_MAINTAINER_ONLY",
-        "used_in_governed_development_build": True,
-        "public_marketplace_user_surface": False,
-        "release_bound": True,
-        "supported_update_modes": [
-            "PrepareRestartInstalledMainGit",
-            "PrepareRestartInstalledLocalTesting",
-        ],
-        "install_completed_before_helper": True,
-        "helper_installs_plugin": False,
+    "manual_restart_boundary": {
+        "restart_helper_present": False,
+        "user_performs_app_restart": True,
+        "install_receipt_is_restart_boundary": True,
+        "terminal_response_required_before_user_restart": True,
+        "programmatic_process_stop_allowed": False,
         "same_local_testing_marketplace_new_version_required": True,
-        "single_flight": False,
-        "exact_app_stop_count": 0,
-        "exact_task_reopen_count": 0,
-        "fixed_delay_allowed": False,
-        "condition_driven_readiness_polling": False,
-        "version_matched_tunnel_starts_before_host": False,
-        "maximized_full_window_required": False,
+        "version_matched_tunnel_starts_before_host": True,
         "combined_post_stop_installer_retired": True,
         "plugin_creator_local_update_route": {
             "route_law": PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW,
@@ -238,25 +238,30 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
             "source_sync": "IN_PLACE_EXISTING_LOCAL_MARKETPLACE",
             "cache_materialization": "CODEX_PLUGIN_ADD",
             "loaded_old_cache_boundary": (PLUGIN_CREATOR_LOCAL_CACHE_RESTART_STATE),
-            "restart_authority_mode": (
-                "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART"
-            ),
+            "restart_authority_mode": "INSTALL_RECEIPT_THEN_USER_MANUAL_RESTART",
             "windows_marketplace_root_rotation_allowed": False,
             "exact_same_task_hidden_restart_required": False,
             "terminal_response_required_before_user_restart": True,
             "manual_exact_channel_restart_required": True,
-            "helper_scope": "PREPARE_ONLY_NO_PROCESS_CONTROL",
-            "separate_exact_task_turn_drain_required_before_helper": False,
-            "helper_installs_plugin": False,
+            "restart_helper_present": False,
             "child_lease_acknowledgement_before_app_stop_required": False,
             "child_launch_shape": "ABSENT",
             "redirected_parent_pipe_handles_allowed": False,
             "terminal_success_or_failure_receipt_required": False,
-            "preparation_receipt_required": True,
+            "preparation_receipt_required": False,
             "post_restart_native_readback_required": True,
             "windows_ui_control_allowed": False,
             "cross_task_rehydration_allowed": False,
-            "tunnel_start_allowed": False,
+            "local_install_tunnel_activation_required": True,
+            "local_install_tunnel_activation_before_user_restart": True,
+            "visible_runtime_key_entry_policy": (
+                "FIRST_REGISTRATION_OR_MISSING_INVALID_CREDENTIAL_ONLY"
+            ),
+            "compatible_runtime_key_envelope_reuse_allowed": True,
+            "tunnel_rebuild_trigger": "CAPABILITY_FINGERPRINT_CHANGED_ONLY",
+            "exact_plugin_rebind_required_every_local_install": True,
+            "persistent_tunnel_runtime_hidden": True,
+            "remote_tunnel_crud_authorized": False,
         },
     },
     "user_stable_tunnel": {
@@ -265,8 +270,20 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
         "public_marketplace_user_surface": True,
         "release": BASE_RELEASE,
         "release_token": "v300",
-        "runtime_root_suffix": "tunnel-runtime-v300-stable-build",
-        "scheduled_task_name": "EvidenceLane-Tunnel-v300-stable-build",
+        "runtime_root_suffix_template": (
+            "tunnel-runtime-{release_token}-{slot_role}-abi-"
+            "{tunnel_compatibility_digest}"
+        ),
+        "scheduled_task_name_template": (
+            "EvidenceLane-Tunnel-{release_token}-{slot_role}-abi-"
+            "{tunnel_compatibility_digest}"
+        ),
+        "tunnel_compatibility_schema": (
+            "evidence-lane.tunnel-capability-compatibility.v1"
+        ),
+        "tunnel_rebuild_trigger": "CAPABILITY_FINGERPRINT_CHANGED_ONLY",
+        "exact_plugin_rebind_required_every_install": True,
+        "compatible_runtime_and_key_reuse_allowed": True,
         "at_logon": True,
         "scheduled_task_transport_allowed": True,
         "host_wide_project_neutral": True,
@@ -275,11 +292,12 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
         ),
         "persistent_or_hidden_no_transient_console": True,
         "one_active_version": True,
-        "prior_versions_retained": False,
-        "prior_versions_deleted": True,
+        "prior_versions_retained": True,
+        "prior_versions_disabled": True,
+        "prior_versions_deleted": False,
     },
     "post_hil_release_rotation": {
-        "schema": "evidence-lane.plugin-slot-helper-tunnel-rotation.v1",
+        "schema": "evidence-lane.plugin-slot-tunnel-rotation.v1",
         "applies_to_plugin_maintainer_route_only": True,
         "downstream_project_inherits_rotation": False,
         "local_test_green_can_promote_only_through_exact_main_merge": True,
@@ -291,14 +309,14 @@ EXPECTED_HELPER_DISTRIBUTION_POLICY = {
             "VERIFY_MAIN_EQUALS_ACCEPTED_COMMIT",
             "INSTALL_ACCEPTED_RELEASE_IN_STABLE_GIT_MAIN_SLOT",
             "PRESERVE_VERSIONED_LOCAL_TESTING_AS_THE_ONLY_SECOND_SLOT",
-            "ROTATE_MATCHING_HELPER_AND_TUNNEL_IDENTITIES",
+            "ROTATE_MATCHING_TUNNEL_IDENTITY",
             "VERIFY_EXACTLY_TWO_SLOTS_AND_ONE_ACTIVE_RUNTIME",
         ],
         "stable_git_main_must_equal_exact_merged_release": True,
-        "helper_and_tunnel_release_must_match_owning_slot": True,
-        "prior_versioned_helpers_and_tunnels_retained": False,
-        "prior_versioned_helpers_and_tunnels_disabled": False,
-        "prior_versioned_helpers_and_tunnels_deleted": True,
+        "tunnel_release_must_match_owning_slot": True,
+        "prior_versioned_tunnels_retained": True,
+        "prior_versioned_tunnels_disabled": True,
+        "prior_versioned_tunnels_deleted": False,
         "repeat_for_each_later_plugin_release_cycle": True,
         "current_row_may_execute_rotation": False,
     },
@@ -345,9 +363,8 @@ EXPECTED_STABLE_ACTIVATION_GATE = {
         "scripts/codex_release/seal_external_release_receipts.py"
     ),
     "stable_install_command": "scripts/codex_release/install_codex_stable.py",
-    "stable_update_helper": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
-    "install_completed_before_restart_helper": True,
-    "restart_helper_installs_plugin": False,
+    "restart_helper_present": False,
+    "install_receipt_is_restart_boundary": True,
     "stable_update_reopens_same_bound_host_app": False,
     "stable_update_requires_user_restart_after_terminal_response": True,
     "stable_update_rebinds_exact_task_via_native_binding": True,
@@ -1076,7 +1093,7 @@ def _surface_inventory(
 
 
 def _historical_search_toolchain_absence() -> dict[str, Any]:
-    body = {
+    body: dict[str, Any] = {
         "schema": "evidence-lane.codex-packaged-search-toolchain.v1",
         "status": "NOT_DECLARED_HISTORICAL_PACKAGE",
         "manifest_sha256": None,
@@ -1220,8 +1237,13 @@ def _catalog(plugin_root: Path) -> dict[str, Any]:
             for target in targets
         ):
             continue
+        value_node = node.value
+        if value_node is None:
+            raise InstallationError(
+                "SPECIALIZED_NATIVE_ACTIONS must have one literal value."
+            )
         try:
-            specialized_actions = ast.literal_eval(node.value)
+            specialized_actions = ast.literal_eval(value_node)
         except (TypeError, ValueError, SyntaxError) as exc:
             raise InstallationError(
                 "SPECIALIZED_NATIVE_ACTIONS must be one literal immutable subset catalog."
@@ -2048,10 +2070,6 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         / "scripts"
         / "codex_release"
         / "seal_github_app_production_delivery.py",
-        plugin_root
-        / "scripts"
-        / "codex_release"
-        / "Prepare-EvidenceLaneCodexRestart.ps1",
         plugin_root / "scripts" / "codex_release" / "accept_codex_stable.py",
     )
     if (
@@ -2768,6 +2786,22 @@ def _plugin_creator_active_local_slot_update(
     return None
 
 
+def _mcp_server_info_matches_exact_plugin(
+    server_info: dict[str, Any],
+    *,
+    expected_plugin_version: str,
+) -> bool:
+    return (
+        server_info.get("name") == "Evidence Lane"
+        and server_info.get("version") == expected_plugin_version
+        and re.fullmatch(
+            r"\d+\.\d+\.\d+\+codex\.[0-9A-Za-z](?:[0-9A-Za-z.-]*[0-9A-Za-z])?",
+            expected_plugin_version,
+        )
+        is not None
+    )
+
+
 def _prewarm_installed_runtime(
     plugin_root: Path,
     *,
@@ -2849,6 +2883,8 @@ def _prewarm_installed_runtime(
         runtime_authority.get("schema")
         != "evidence-lane.codex-installed-runtime-authority-prewarm.v1"
         or runtime_authority.get("status") != "PASS"
+        or runtime_authority.get("installation_version")
+        != expected_plugin_version
         or runtime_authority.get("flash_plugin_version") != expected_plugin_version
         or runtime_authority.get("flash_action")
         not in {"CREATED", "REUSED", "BUILD_IDENTITY_MIGRATED"}
@@ -3382,8 +3418,10 @@ def _prewarm_installed_runtime(
         or initialize_response.get("error") is not None
         or tools_response is None
         or tools_response.get("error") is not None
-        or server_info.get("name") != "Evidence Lane"
-        or server_info.get("version") != BASE_RELEASE
+        or not _mcp_server_info_matches_exact_plugin(
+            server_info,
+            expected_plugin_version=expected_plugin_version,
+        )
         or len(set(listed_tool_names)) != len(listed_tool_names)
         or set(listed_tool_names) != set(expected_tool_names)
         or len(listed_tool_names) != EXPECTED_CATALOG["tools"]
@@ -4957,6 +4995,788 @@ def _advance_two_slot_stable_registry(
     }
 
 
+def _versioned_local_tunnel_identity(
+    *, plugin_version: str, plugin_root: Path, data_root: Path
+) -> dict[str, str]:
+    if not plugin_version.startswith(f"{BASE_RELEASE}+codex."):
+        raise InstallationError(
+            "Local tunnel activation requires the exact cachebuster package version."
+        )
+    release_token = "v" + BASE_RELEASE.replace(".", "")
+    tunnel_manifest_path = plugin_root / "tunnel" / "tunnel-manifest.v1.json"
+    try:
+        tunnel_manifest = json.loads(tunnel_manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise InstallationError("The tunnel compatibility manifest is unavailable.") from exc
+    compatibility_sha256 = str(
+        tunnel_manifest.get("tunnel_compatibility_sha256") or ""
+    )
+    if (
+        tunnel_manifest.get("schema") != "evidence-lane.installed-tunnel-surface.v1"
+        or tunnel_manifest.get("status") != "PASS"
+        or tunnel_manifest.get("tunnel_compatibility_schema")
+        != "evidence-lane.tunnel-capability-compatibility.v1"
+        or re.fullmatch(r"[A-F0-9]{64}", compatibility_sha256) is None
+    ):
+        raise InstallationError("The tunnel compatibility identity is invalid.")
+    plugin_digest = hashlib.sha256(plugin_version.encode("utf-8")).hexdigest()[:12]
+    compatibility_digest = compatibility_sha256[:12].casefold()
+    token = f"{release_token}-versioned-local-testing-abi-{compatibility_digest}"
+    prefix = "evidence_lane_" + token.replace("-", "_")
+    return {
+        "release_token": release_token,
+        "plugin_version_digest": plugin_digest,
+        "tunnel_compatibility_sha256": compatibility_sha256,
+        "tunnel_compatibility_digest": compatibility_digest,
+        "tunnel_version_token": token,
+        "runtime_root": str((data_root / f"tunnel-runtime-{token}").resolve()),
+        "task_name": f"EvidenceLane-Tunnel-{token}",
+        "profile_name": f"{prefix}_transport",
+    }
+
+
+def _resolve_local_tunnel_bootstrap_material(
+    *, data_root: Path, precreated_tunnel_id: str | None
+) -> dict[str, Any]:
+    explicit = str(precreated_tunnel_id or "").strip()
+    if explicit and re.fullmatch(r"tunnel_[A-Za-z0-9]+", explicit) is None:
+        raise InstallationError("The precreated tunnel ID is malformed.")
+    candidates: list[dict[str, Any]] = []
+    tunnel_ids: set[str] = set()
+    for marker_path in sorted(
+        data_root.glob("tunnel-runtime-*/evidence-lane-tunnel-installation.json")
+    ):
+        try:
+            marker = json.loads(marker_path.read_text(encoding="utf-8-sig"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        tunnel_id = str(marker.get("tunnel_id") or "")
+        license_path = Path(str(marker.get("tunnel_client_license") or ""))
+        license_sha256 = str(marker.get("tunnel_client_license_sha256") or "").upper()
+        client_path = Path(str(marker.get("stable_client") or ""))
+        client_sha256 = str(marker.get("stable_client_sha256") or "").upper()
+        if (
+            re.fullmatch(r"tunnel_[A-Za-z0-9]+", tunnel_id) is None
+            or re.fullmatch(r"[A-F0-9]{64}", license_sha256) is None
+            or not license_path.is_file()
+            or _sha256(license_path) != license_sha256
+            or re.fullmatch(r"[A-F0-9]{64}", client_sha256) is None
+            or not client_path.is_file()
+            or _sha256(client_path) != client_sha256
+        ):
+            continue
+        tunnel_ids.add(tunnel_id)
+        candidates.append(
+            {
+                "marker_path": str(marker_path.resolve()),
+                "tunnel_id": tunnel_id,
+                "license_path": str(license_path.resolve()),
+                "license_sha256": license_sha256,
+                "client_path": str(client_path.resolve()),
+                "client_sha256": client_sha256,
+            }
+        )
+    if explicit:
+        tunnel_id = explicit
+        tunnel_id_source = "EXPLICIT_PRECREATED_TUNNEL_ID"
+    elif len(tunnel_ids) == 1:
+        tunnel_id = next(iter(tunnel_ids))
+        tunnel_id_source = "REUSED_PRIOR_PRECREATED_TUNNEL_ID"
+    else:
+        raise InstallationError(
+            "Local tunnel activation requires one reusable precreated tunnel ID or "
+            "an explicitly supplied precreated tunnel ID; remote CRUD is not authorized."
+        )
+    if not candidates:
+        raise InstallationError(
+            "The pinned tunnel client and license require one verified retained local source."
+        )
+    material = candidates[-1]
+    return {
+        **material,
+        "tunnel_id": tunnel_id,
+        "tunnel_id_source": tunnel_id_source,
+        "tunnel_id_sha256": hashlib.sha256(tunnel_id.encode("utf-8"))
+        .hexdigest()
+        .upper(),
+        "remote_identity_mode": "REUSED_PRECREATED_REMOTE_TUNNEL",
+        "remote_version_history_retained": False,
+        "prior_remote_version_disabled": False,
+        "prior_local_runtime_retained_disabled": True,
+        "remote_crud_invoked": False,
+    }
+
+
+def _load_json_process_output(completed: subprocess.CompletedProcess[bytes]) -> dict[str, Any]:
+    try:
+        lines = completed.stdout.decode("utf-8").splitlines()
+        return json.loads("\n".join(line for line in lines if line.strip()))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise InstallationError(
+            "The version-bound tunnel command returned no exact JSON receipt."
+        ) from exc
+
+
+def _windows_powershell_environment() -> dict[str, str]:
+    """Return a Windows PowerShell-only module path for tunnel subprocesses.
+
+    Codex Desktop prepends its bundled PowerShell 7 module directory. Windows
+    PowerShell 5.1 can then select the incompatible 7.x Security module before
+    its own 3.x module, which breaks ``Get-Acl`` before an interactive prompt or
+    scheduled-task activation. Tunnel helpers need the Windows PowerShell module
+    roots while retaining every unrelated host environment variable.
+    """
+
+    environment = os.environ.copy()
+    candidates = [
+        part
+        for part in environment.get("PSModulePath", "").split(os.pathsep)
+        if part and "windowspowershell" in part.casefold().replace("/", "\\")
+    ]
+    system_root = Path(environment.get("SystemRoot") or r"C:\Windows")
+    candidates.append(
+        str(system_root / "System32" / "WindowsPowerShell" / "v1.0" / "Modules")
+    )
+    program_files = environment.get("ProgramFiles")
+    if program_files:
+        candidates.append(str(Path(program_files) / "WindowsPowerShell" / "Modules"))
+    unique: list[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        normalized = str(Path(candidate)).casefold()
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        unique.append(str(Path(candidate)))
+    environment["PSModulePath"] = os.pathsep.join(unique)
+    return environment
+
+
+def _run_visible_powershell(
+    arguments: list[str], *, timeout: int
+) -> subprocess.CompletedProcess[bytes]:
+    """Launch one interactive Windows PowerShell in its own visible console.
+
+    The installer itself runs under a host-owned pipe. ``CREATE_NEW_CONSOLE``
+    alone preserves that closed standard-input handle, so ``Read-Host`` exits
+    before the user can type. A hidden, non-interactive PowerShell parent uses
+    ``Start-Process`` to allocate the child console and waits for its exact exit
+    code. Only paths and fixed switches enter the encoded launcher; credentials
+    remain confined to the child console and DPAPI envelope.
+    """
+
+    if not arguments:
+        raise InstallationError("The visible PowerShell command is empty.")
+    executable = Path(arguments[0]).resolve()
+    if not executable.is_file():
+        raise InstallationError("The visible PowerShell executable is missing.")
+
+    def literal(value: str) -> str:
+        return "'" + value.replace("'", "''") + "'"
+
+    argument_line = subprocess.list2cmdline(arguments[1:])
+    launcher = (
+        f"$process = Start-Process -FilePath {literal(str(executable))} "
+        f"-ArgumentList {literal(argument_line)} -Wait -PassThru; "
+        "exit $process.ExitCode"
+    )
+    encoded = base64.b64encode(launcher.encode("utf-16-le")).decode("ascii")
+    return subprocess.run(
+        [
+            str(executable),
+            "-NoLogo",
+            "-NoProfile",
+            "-NonInteractive",
+            "-EncodedCommand",
+            encoded,
+        ],
+        check=False,
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        creationflags=_windows_hidden_creationflags(),
+        env=_windows_powershell_environment(),
+        timeout=timeout,
+    )
+
+
+def _ensure_interactive_local_tunnel_runtime_key(
+    *,
+    target_cache: Path,
+    target_version: str,
+    data_root: Path,
+    pending_receipt_path: Path,
+    pending_receipt_sha256: str,
+    archive_sha256: str,
+    force_runtime_key_entry: bool = False,
+) -> dict[str, Any]:
+    identity = _versioned_local_tunnel_identity(
+        plugin_version=target_version, plugin_root=target_cache, data_root=data_root
+    )
+    runtime_root = Path(identity["runtime_root"])
+    envelope = runtime_root / "secrets" / "control-plane-runtime-key.dpapi"
+    authority_root = data_root / "installations" / "codex-v300"
+    receipt_path = (
+        authority_root
+        / "tunnel"
+        / f"LOCAL_TUNNEL_KEY_ENTRY_{archive_sha256[:16]}.json"
+    )
+    if receipt_path.is_file():
+        existing, exact_path, exact_sha256 = _load_self_sealed_json(
+            path=receipt_path,
+            expected_file_sha256=_sha256(receipt_path),
+            authority_root=authority_root,
+            label="Local tunnel interactive Runtime-key entry receipt",
+        )
+        retained_state = str(existing.get("state") or "")
+        prior_source = Path(str(existing.get("runtime_key_envelope_source") or ""))
+        target_envelope_matches = (
+            envelope.is_file()
+            and existing.get("encrypted_envelope_file_sha256") == _sha256(envelope)
+        )
+        pending_prior_source_matches = (
+            retained_state
+            == "PRIOR_PERSISTENT_RUNTIME_KEY_REUSE_PENDING_ACTIVATION"
+            and prior_source.is_file()
+            and existing.get("encrypted_envelope_file_sha256")
+            == _sha256(prior_source)
+        )
+        if (
+            existing.get("schema")
+            != "evidence-lane.plugin-creator-local-tunnel-key-entry.v1"
+            or existing.get("status") != "PASS"
+            or existing.get("plugin_version") != target_version
+            or existing.get("tunnel_compatibility_sha256")
+            != identity["tunnel_compatibility_sha256"]
+            or existing.get("pending_receipt_sha256") != pending_receipt_sha256
+            or not (target_envelope_matches or pending_prior_source_matches)
+            or existing.get("runtime_key_plaintext_written") is not False
+            or existing.get("runtime_key_argument_used") is not False
+            or existing.get("runtime_key_environment_output") is not False
+        ):
+            raise InstallationError(
+                "The retained interactive Runtime-key entry receipt no longer matches."
+            )
+        return {
+            **existing,
+            "receipt_path": str(exact_path),
+            "receipt_file_sha256": exact_sha256,
+            "reused_for_same_materialized_version": True,
+        }
+    if envelope.is_file() and not force_runtime_key_entry:
+        body = {
+            "schema": "evidence-lane.plugin-creator-local-tunnel-key-entry.v1",
+            "status": "PASS",
+            "state": "COMPATIBLE_TUNNEL_RUNTIME_KEY_REUSED_ACTIVATION_PENDING",
+            "plugin_version": target_version,
+            "tunnel_version_token": identity["tunnel_version_token"],
+            "tunnel_compatibility_sha256": identity[
+                "tunnel_compatibility_sha256"
+            ],
+            "runtime_root": str(runtime_root),
+            "pending_receipt_path": str(pending_receipt_path.resolve()),
+            "pending_receipt_sha256": pending_receipt_sha256,
+            "entry_terminal_visible": False,
+            "persistent_runtime_hidden": True,
+            "runtime_key_plaintext_written": False,
+            "runtime_key_argument_used": False,
+            "runtime_key_environment_output": False,
+            "runtime_key_reused_from_compatible_tunnel": True,
+            "first_registration_or_invalid_credential_prompt": False,
+            "encrypted_envelope_file_sha256": _sha256(envelope),
+            "remote_crud_invoked": False,
+            "restart_authority_created": False,
+        }
+        sealed = _write_self_sealed_json(receipt_path, body)
+        return {
+            **sealed,
+            "receipt_path": str(receipt_path.resolve()),
+            "receipt_file_sha256": _sha256(receipt_path),
+            "reused_for_same_materialized_version": False,
+        }
+    if not force_runtime_key_entry:
+        prior_candidates: list[tuple[int, Path, Path]] = []
+        for prior_envelope in data_root.glob(
+            "tunnel-runtime-*/secrets/control-plane-runtime-key.dpapi"
+        ):
+            if prior_envelope.resolve() == envelope.resolve() or not prior_envelope.is_file():
+                continue
+            prior_root = prior_envelope.parent.parent
+            marker_path = prior_root / "evidence-lane-tunnel-installation.json"
+            try:
+                marker = json.loads(marker_path.read_text(encoding="utf-8-sig"))
+            except (OSError, UnicodeError, json.JSONDecodeError):
+                continue
+            if (
+                marker.get("schema")
+                != "evidence-lane.versioned-secure-mcp-tunnel-installation.v2"
+                or marker.get("host_lifetime") != "PERSISTENT"
+                or marker.get("runtime_key_plaintext_written") is not False
+                or marker.get("reusable_without_reinstall") is not True
+                or marker.get("tunnel_key_retention")
+                != "CURRENT_WINDOWS_USER_DPAPI_PROFILE"
+                or marker.get("host_wide_project_neutral") is not True
+                or re.fullmatch(r"[A-F0-9]{64}", str(marker.get("runtime_key") or ""))
+                is None
+            ):
+                continue
+            prior_candidates.append(
+                (marker_path.stat().st_mtime_ns, prior_envelope, marker_path)
+            )
+        if prior_candidates:
+            selected_prior = max(prior_candidates, key=lambda row: row[0])
+            prior_envelope = selected_prior[1].resolve()
+            prior_marker_path = selected_prior[2].resolve()
+            body = {
+                "schema": "evidence-lane.plugin-creator-local-tunnel-key-entry.v1",
+                "status": "PASS",
+                "state": "PRIOR_PERSISTENT_RUNTIME_KEY_REUSE_PENDING_ACTIVATION",
+                "plugin_version": target_version,
+                "tunnel_version_token": identity["tunnel_version_token"],
+                "tunnel_compatibility_sha256": identity[
+                    "tunnel_compatibility_sha256"
+                ],
+                "runtime_root": str(runtime_root),
+                "pending_receipt_path": str(pending_receipt_path.resolve()),
+                "pending_receipt_sha256": pending_receipt_sha256,
+                "entry_terminal_visible": False,
+                "persistent_runtime_hidden": True,
+                "runtime_key_plaintext_written": False,
+                "runtime_key_argument_used": False,
+                "runtime_key_environment_output": False,
+                "runtime_key_reused_from_compatible_tunnel": False,
+                "runtime_key_reused_from_prior_persistent_host": True,
+                "prior_marker_file_sha256": _sha256(prior_marker_path),
+                "runtime_key_envelope_source": str(prior_envelope),
+                "first_registration_or_invalid_credential_prompt": False,
+                "encrypted_envelope_file_sha256": _sha256(prior_envelope),
+                "remote_crud_invoked": False,
+                "restart_authority_created": False,
+            }
+            sealed = _write_self_sealed_json(receipt_path, body)
+            return {
+                **sealed,
+                "receipt_path": str(receipt_path.resolve()),
+                "receipt_file_sha256": _sha256(receipt_path),
+                "reused_for_same_materialized_version": False,
+            }
+    system_root = Path(os.environ.get("SystemRoot") or r"C:\Windows")
+    powershell = system_root / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe"
+    installer = target_cache / "scripts" / "windows_tunnel" / "Install-EvidenceLaneTunnel.ps1"
+    create_console = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
+    if not powershell.is_file() or not installer.is_file() or create_console == 0:
+        raise InstallationError(
+            "Visible PowerShell Runtime-key entry is unavailable on this host."
+        )
+    capture_arguments = [
+            str(powershell),
+            "-NoLogo",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(installer),
+            "-PluginRoot",
+            str(target_cache.resolve()),
+            "-RuntimeControlRoot",
+            str(data_root.resolve()),
+            "-RuntimeRoot",
+            str(runtime_root.resolve()),
+            "-SlotRole",
+            "versioned-local-testing",
+            "-HostLifetime",
+            "Persistent",
+            "-InteractionProfile",
+            "CODEX_APP_INTERACTIVE",
+            "-HostToolTransport",
+            "HOST_TOOL_GAP",
+            "-CaptureRuntimeKeyOnly",
+        ]
+    if force_runtime_key_entry:
+        capture_arguments.append("-RotateRuntimeKey")
+    completed = _run_visible_powershell(capture_arguments, timeout=300)
+    if completed.returncode != 0 or not envelope.is_file():
+        raise InstallationError(
+            "Visible Runtime-key entry did not complete; no restart authority was created."
+        )
+    body = {
+        "schema": "evidence-lane.plugin-creator-local-tunnel-key-entry.v1",
+        "status": "PASS",
+        "state": "INTERACTIVE_RUNTIME_KEY_ENTRY_COMPLETE_ACTIVATION_PENDING",
+        "plugin_version": target_version,
+        "tunnel_version_token": identity["tunnel_version_token"],
+        "tunnel_compatibility_sha256": identity["tunnel_compatibility_sha256"],
+        "runtime_root": str(runtime_root),
+        "pending_receipt_path": str(pending_receipt_path.resolve()),
+        "pending_receipt_sha256": pending_receipt_sha256,
+        "entry_terminal_visible": True,
+        "persistent_runtime_hidden": True,
+        "runtime_key_plaintext_written": False,
+        "runtime_key_argument_used": False,
+        "runtime_key_environment_output": False,
+        "runtime_key_reused_from_compatible_tunnel": False,
+        "runtime_key_reused_from_prior_persistent_host": False,
+        "first_registration_or_invalid_credential_prompt": True,
+        "encrypted_envelope_file_sha256": _sha256(envelope),
+        "remote_crud_invoked": False,
+        "restart_authority_created": False,
+    }
+    sealed = _write_self_sealed_json(receipt_path, body)
+    return {
+        **sealed,
+        "receipt_path": str(receipt_path.resolve()),
+        "receipt_file_sha256": _sha256(receipt_path),
+        "reused_for_same_materialized_version": False,
+    }
+
+
+def _activate_version_bound_local_tunnel(
+    *,
+    target_cache: Path,
+    target_version: str,
+    selector: str,
+    data_root: Path,
+    pending_receipt_path: Path,
+    pending_receipt_sha256: str,
+    archive_sha256: str,
+    precreated_tunnel_id: str | None,
+    force_runtime_key_entry: bool = False,
+) -> dict[str, Any]:
+    identity = _versioned_local_tunnel_identity(
+        plugin_version=target_version, plugin_root=target_cache, data_root=data_root
+    )
+    key_entry = _ensure_interactive_local_tunnel_runtime_key(
+        target_cache=target_cache,
+        target_version=target_version,
+        data_root=data_root,
+        pending_receipt_path=pending_receipt_path,
+        pending_receipt_sha256=pending_receipt_sha256,
+        archive_sha256=archive_sha256,
+        force_runtime_key_entry=force_runtime_key_entry,
+    )
+    material = _resolve_local_tunnel_bootstrap_material(
+        data_root=data_root, precreated_tunnel_id=precreated_tunnel_id
+    )
+    system_root = Path(os.environ.get("SystemRoot") or r"C:\Windows")
+    powershell = system_root / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe"
+    installer = target_cache / "scripts" / "windows_tunnel" / "Install-EvidenceLaneTunnel.ps1"
+    if not powershell.is_file() or not installer.is_file():
+        raise InstallationError(
+            "The exact installed Windows tunnel launcher is unavailable."
+        )
+    arguments = [
+        str(powershell),
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-WindowStyle",
+        "Hidden",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(installer),
+        "-PluginRoot",
+        str(target_cache.resolve()),
+        "-RuntimeControlRoot",
+        str(data_root.resolve()),
+        "-RuntimeRoot",
+        str(Path(identity["runtime_root"]).resolve()),
+        "-SlotRole",
+        "versioned-local-testing",
+        "-TunnelClientSource",
+        str(material["client_path"]),
+        "-TunnelClientLicenseSource",
+        str(material["license_path"]),
+        "-ExpectedTunnelClientLicenseSha256",
+        str(material["license_sha256"]),
+        "-TunnelId",
+        str(material["tunnel_id"]),
+        "-HostLifetime",
+        "Persistent",
+        "-InteractionProfile",
+        "CODEX_APP_INTERACTIVE",
+        "-HostToolTransport",
+        "HOST_TOOL_GAP",
+    ]
+    prior_envelope_source = str(key_entry.get("runtime_key_envelope_source") or "")
+    if prior_envelope_source:
+        arguments.extend(["-RuntimeKeyEnvelopeSource", prior_envelope_source])
+    else:
+        arguments.append("-RequirePreparedRuntimeKey")
+    arguments.append("-Activate")
+    completed = subprocess.run(
+        arguments,
+        check=False,
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        timeout=240,
+        creationflags=_windows_hidden_creationflags(),
+        env=_windows_powershell_environment(),
+    )
+    if completed.returncode != 0:
+        try:
+            installer_failure = _load_json_process_output(completed)
+        except InstallationError:
+            installer_failure = {}
+        rollback_status = str(
+            installer_failure.get("prior_local_tunnel_rollback_status") or "UNPROVEN"
+        )
+        failure = {
+            "schema": LOCAL_TUNNEL_FAILURE_SCHEMA,
+            "status": "FAIL",
+            "state": "LOCAL_TUNNEL_ACTIVATION_FAILED_NO_RESTART_AUTHORITY",
+            "plugin_version": target_version,
+            "selector": selector,
+            "pending_receipt_path": str(pending_receipt_path.resolve()),
+            "pending_receipt_sha256": pending_receipt_sha256,
+            "installer_sha256": _sha256(installer),
+            "stdout_sha256": hashlib.sha256(completed.stdout).hexdigest().upper(),
+            "stderr_sha256": hashlib.sha256(completed.stderr).hexdigest().upper(),
+            "returncode": completed.returncode,
+            "failed_new_local_tunnel_disabled": (
+                installer_failure.get("failed_new_local_tunnel_disabled") is True
+            ),
+            "prior_local_tunnel_rollback_status": rollback_status,
+            "prior_local_tunnel_restore_count": int(
+                installer_failure.get("prior_local_tunnel_restore_count") or 0
+            ),
+            "prior_local_tunnel_restore_proven": rollback_status
+            in {"PASS", "NOT_APPLICABLE"},
+            "restart_authority_created": False,
+            "remote_crud_invoked": False,
+        }
+        failure_path = (
+            data_root
+            / "installations"
+            / "codex-v300"
+            / "tunnel"
+            / f"LOCAL_TUNNEL_FAILURE_{archive_sha256[:16]}.json"
+        )
+        _write_self_sealed_json(failure_path, failure)
+        raise InstallationError(
+            "The exact version-bound local tunnel failed; no restart authority was created."
+        )
+    installed = _load_json_process_output(completed)
+    runtime_root = Path(identity["runtime_root"])
+    activated_envelope = runtime_root / "secrets" / "control-plane-runtime-key.dpapi"
+    if (
+        not activated_envelope.is_file()
+        or _sha256(activated_envelope)
+        != key_entry["encrypted_envelope_file_sha256"]
+    ):
+        raise InstallationError(
+            "The activated tunnel did not preserve the verified DPAPI Runtime-key envelope."
+        )
+    marker_path = runtime_root / "evidence-lane-tunnel-installation.json"
+    manager = runtime_root / "Manage-EvidenceLaneTunnel.ps1"
+    if not marker_path.is_file() or not manager.is_file():
+        raise InstallationError("The activated tunnel marker or manager is missing.")
+    marker = json.loads(marker_path.read_text(encoding="utf-8-sig"))
+    status_process = subprocess.run(
+        [
+            str(powershell),
+            "-NoLogo",
+            "-NoProfile",
+            "-NonInteractive",
+            "-WindowStyle",
+            "Hidden",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(manager),
+            "-Action",
+            "Status",
+            "-RuntimeRoot",
+            str(runtime_root),
+            "-ProfileName",
+            identity["profile_name"],
+            "-ReleaseToken",
+            identity["release_token"],
+            "-TaskName",
+            identity["task_name"],
+        ],
+        check=False,
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        timeout=60,
+        creationflags=_windows_hidden_creationflags(),
+        env=_windows_powershell_environment(),
+    )
+    status = _load_json_process_output(status_process)
+    if (
+        status_process.returncode != 0
+        or installed.get("status") != "PASS"
+        or installed.get("plugin_version") != target_version
+        or installed.get("installed_selector") != selector
+        or Path(str(installed.get("installed_cache_root") or "")).resolve()
+        != target_cache.resolve()
+        or installed.get("tunnel_version_token") != identity["tunnel_version_token"]
+        or Path(str(installed.get("runtime_root") or "")).resolve() != runtime_root
+        or installed.get("task_name") != identity["task_name"]
+        or installed.get("profile") != identity["profile_name"]
+        or marker.get("plugin_version") != target_version
+        or marker.get("installed_selector") != selector
+        or Path(str(marker.get("installed_cache_root") or "")).resolve()
+        != target_cache.resolve()
+        or marker.get("installed_receipt_file_sha256") != pending_receipt_sha256
+        or status.get("status") != "PASS"
+        or status.get("plugin_version") != target_version
+        or status.get("tunnel_version_token") != identity["tunnel_version_token"]
+        or status.get("task_name") != identity["task_name"]
+        or status.get("task_state") != "Running"
+        or status.get("process_running") is not True
+        or status.get("control_plane_poll_ready") is not True
+    ):
+        raise InstallationError(
+            "The local tunnel activation/readback did not match the installed package."
+        )
+    body = {
+        "schema": LOCAL_TUNNEL_ACTIVATION_SCHEMA,
+        "status": "PASS",
+        "state": "VERSION_BOUND_LOCAL_TUNNEL_READY_BEFORE_APP_RESTART",
+        "plugin_version": target_version,
+        "selector": selector,
+        "installed_cache_root": str(target_cache.resolve()),
+        "pending_receipt_path": str(pending_receipt_path.resolve()),
+        "pending_receipt_sha256": pending_receipt_sha256,
+        "interactive_runtime_key_entry_receipt_path": key_entry["receipt_path"],
+        "interactive_runtime_key_entry_receipt_file_sha256": key_entry[
+            "receipt_file_sha256"
+        ],
+        "interactive_runtime_key_entry_required": bool(
+            key_entry["entry_terminal_visible"]
+        ),
+        "runtime_key_reused_from_compatible_tunnel": bool(
+            key_entry["runtime_key_reused_from_compatible_tunnel"]
+        ),
+        "runtime_key_reused_from_prior_persistent_host": bool(
+            key_entry.get("runtime_key_reused_from_prior_persistent_host")
+        ),
+        "tunnel_version_token": identity["tunnel_version_token"],
+        "plugin_version_digest": identity["plugin_version_digest"],
+        "tunnel_compatibility_sha256": identity["tunnel_compatibility_sha256"],
+        "tunnel_compatibility_digest": identity["tunnel_compatibility_digest"],
+        "runtime_root": str(runtime_root),
+        "task_name": identity["task_name"],
+        "profile_name": identity["profile_name"],
+        "marker_path": str(marker_path.resolve()),
+        "marker_file_sha256": _sha256(marker_path),
+        "manager_path": str(manager.resolve()),
+        "manager_file_sha256": _sha256(manager),
+        "installer_path": str(installer.resolve()),
+        "installer_file_sha256": _sha256(installer),
+        "task_state": status["task_state"],
+        "process_running": True,
+        "control_plane_poll_ready": True,
+        "exact_active_local_task_count": 1,
+        "exact_active_local_process_count": 1,
+        "prior_local_bindings": list(installed.get("prior_local_bindings") or []),
+        "remote_tunnel_id_sha256": material["tunnel_id_sha256"],
+        "remote_tunnel_id_source": material["tunnel_id_source"],
+        "remote_identity_mode": material["remote_identity_mode"],
+        "remote_version_history_retained": False,
+        "prior_remote_version_disabled": False,
+        "prior_local_runtime_retained_disabled": True,
+        "remote_crud_invoked": False,
+        "candidate_created_or_accepted": False,
+        "pointer_moved": False,
+        "hil_inferred": False,
+        "restart_invoked": False,
+    }
+    receipt_path = (
+        data_root
+        / "installations"
+        / "codex-v300"
+        / "tunnel"
+        / f"LOCAL_TUNNEL_ACTIVATION_{archive_sha256[:16]}.json"
+    )
+    sealed = _write_self_sealed_json(receipt_path, body)
+    return {
+        **sealed,
+        "receipt_path": str(receipt_path.resolve()),
+        "receipt_file_sha256": _sha256(receipt_path),
+    }
+
+
+def _rollback_version_bound_local_tunnel(
+    *, tunnel: dict[str, Any], data_root: Path
+) -> dict[str, Any]:
+    system_root = Path(os.environ.get("SystemRoot") or r"C:\Windows")
+    powershell = system_root / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe"
+    runtime_root = Path(str(tunnel.get("runtime_root") or "")).resolve()
+    expected_parent = data_root.resolve()
+    if not _inside(runtime_root, expected_parent):
+        raise InstallationError("Tunnel rollback escaped the hidden runtime root.")
+    manager = runtime_root / "Manage-EvidenceLaneTunnel.ps1"
+    stop = subprocess.run(
+        [
+            str(powershell), "-NoLogo", "-NoProfile", "-NonInteractive",
+            "-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass",
+            "-File", str(manager), "-Action", "Stop", "-RuntimeRoot", str(runtime_root),
+        ],
+        check=False,
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        timeout=60,
+        creationflags=_windows_hidden_creationflags(),
+        env=_windows_powershell_environment(),
+    )
+    try:
+        stop_result = _load_json_process_output(stop) if stop.returncode == 0 else {}
+    except InstallationError:
+        stop_result = {}
+    failures = (
+        []
+        if stop.returncode == 0 and stop_result.get("status") == "STOPPED_SAVED"
+        else ["FAILED_NEW_TUNNEL_STOP"]
+    )
+    restored = 0
+    for prior in list(tunnel.get("prior_local_bindings") or []):
+        prior_root = Path(str(prior.get("runtime_root") or "")).resolve()
+        if not _inside(prior_root, expected_parent):
+            failures.append("PRIOR_RUNTIME_ESCAPED_HIDDEN_ROOT")
+            continue
+        prior_manager = prior_root / "Manage-EvidenceLaneTunnel.ps1"
+        start = subprocess.run(
+            [
+                str(powershell), "-NoLogo", "-NoProfile", "-NonInteractive",
+                "-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass",
+                "-File", str(prior_manager), "-Action", "Start",
+                "-RuntimeRoot", str(prior_root),
+                "-ProfileName", str(prior.get("profile_name") or ""),
+                "-ReleaseToken", str(prior.get("release_token") or ""),
+                "-TaskName", str(prior.get("task_name") or ""),
+            ],
+            check=False,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            timeout=120,
+            creationflags=_windows_hidden_creationflags(),
+            env=_windows_powershell_environment(),
+        )
+        try:
+            start_result = (
+                _load_json_process_output(start) if start.returncode == 0 else {}
+            )
+        except InstallationError:
+            start_result = {}
+        if (
+            start.returncode == 0
+            and start_result.get("status") == "PASS"
+            and start_result.get("control_plane_poll_ready") is True
+            and start_result.get("task_name") == prior.get("task_name")
+        ):
+            restored += 1
+        else:
+            failures.append("PRIOR_TUNNEL_RESTORE_FAILED")
+    return {
+        "status": "PASS" if not failures else "FAIL",
+        "failed_new_tunnel_disabled": stop.returncode == 0,
+        "prior_local_tunnel_restored_count": restored,
+        "failure_codes": failures,
+        "remote_crud_invoked": False,
+    }
+
+
 def _seal_plugin_creator_local_cache_restart(
     *,
     stage_receipt_path: Path,
@@ -4964,6 +5784,8 @@ def _seal_plugin_creator_local_cache_restart(
     executable: Path,
     codex_home: Path,
     data_root: Path,
+    precreated_tunnel_id: str | None = None,
+    force_local_tunnel_key_entry: bool = False,
 ) -> dict[str, Any]:
     """Materialize one fresh local cache and seal exact-task restart authority."""
 
@@ -5047,6 +5869,7 @@ def _seal_plugin_creator_local_cache_restart(
     ]
     local_before = [row for row in before_rows if row.get("pluginId") == selector]
     enabled_before = [row for row in before_rows if row.get("enabled") is True]
+    current_dispatch: dict[str, Any] | None
     if recovering_materialized_cache:
         if (
             len(local_before) != 1
@@ -5136,7 +5959,7 @@ def _seal_plugin_creator_local_cache_restart(
     # could not bind the newly active plugin root and failed every event with
     # SEALED_RUNTIME_INTERPRETER_NOT_FOUND.  This is package preparation, not
     # host activation: hooks remain disabled and exact-task reattachment is
-    # still required after the dumb restart helper runs.
+    # still required after the user manually restarts the app.
     runtime_prewarm = _prewarm_installed_runtime(
         target_cache,
         data_root=exact_data_root,
@@ -5185,6 +6008,122 @@ def _seal_plugin_creator_local_cache_restart(
             dict(source_identity.get("surface_inventory") or {}).get("hooks") or {}
         ),
     )
+    tunnel_identity = _versioned_local_tunnel_identity(
+        plugin_version=target_version,
+        plugin_root=target_cache,
+        data_root=exact_data_root,
+    )
+    compatible_envelope_present = (
+        Path(tunnel_identity["runtime_root"])
+        / "secrets"
+        / "control-plane-runtime-key.dpapi"
+    ).is_file()
+    interactive_key_required = (
+        force_local_tunnel_key_entry or not compatible_envelope_present
+    )
+
+    pending_path = authority_root / (
+        f"INSTALL_{str(stage.get('archive_sha256') or '')[:16]}_"
+        "LOCAL_INSTALLED_STATIC_ACCEPTANCE_TUNNEL_PENDING.json"
+    )
+    pending_body = deepcopy(stage)
+    pending_body.pop("receipt_sha256", None)
+    pending_body["activation_authority"] = {
+        "status": "PASS",
+        "boundary": "LOCAL_INSTALLED_STATIC_ACCEPTANCE_TUNNEL_PENDING",
+        "selector": selector,
+        "route_law": PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW,
+        "current_route_dispatch": current_dispatch,
+        "staging_receipt": str(exact_stage),
+        "staging_receipt_sha256": exact_stage_sha256,
+        "accepted_two_slot_registry_mutated": False,
+        "state_travel_invoked": False,
+    }
+    pending_body["activation"] = {
+        "state": LOCAL_INSTALLED_STATIC_TUNNEL_PENDING_STATE,
+        "plugin_add_invoked": True,
+        "plugin_selector": selector,
+        "installed_path": str(target_cache.resolve()),
+        "plugin_add": {
+            "status": "CACHE_MATERIALIZED_TUNNEL_PENDING_NO_RESTART_AUTHORITY",
+            "pluginId": selector,
+            "version": target_version,
+            "installedPath": str(target_cache.resolve()),
+            "old_active_version": old_active_version,
+            "registry_version_before_restart": allowed_after_version,
+            "activation_completed": False,
+        },
+        "plugin_creator_local_update": materialization,
+        "hook_state": hook_state,
+        "runtime_prewarm": runtime_prewarm,
+        "hook_event_isolation": hook_event_isolation,
+        "tunnel": {
+            "status": (
+                "PENDING_INTERACTIVE_RUNTIME_KEY_ENTRY"
+                if interactive_key_required
+                else "PENDING_COMPATIBLE_TUNNEL_REBIND"
+            ),
+            "tunnel_compatibility_sha256": tunnel_identity[
+                "tunnel_compatibility_sha256"
+            ],
+            "compatible_runtime_present": compatible_envelope_present,
+            "interactive_runtime_key_entry_required": interactive_key_required,
+            "persistent_runtime_hidden": True,
+            "remote_crud_authorized": False,
+        },
+        "runtime_ready_before_task_reopen": False,
+    }
+    pending_body["restart_required"] = False
+    pending_body["runtime_ready_before_task_reopen"] = False
+    pending_body["hooks_enabled_by_update"] = False
+    pending_body["generated_cache_written_directly"] = False
+    pending_body["previous_release_cache_deleted"] = False
+    pending_body["candidate_created_or_accepted"] = False
+    pending_body["pointer_moved"] = False
+    pending_body["hil_inferred"] = False
+    pending_body["task_reopened"] = False
+    pending_body["state_travel_invoked"] = False
+    pending_body["accepted_two_slot_registry_mutated"] = False
+    if pending_path.is_file():
+        pending, exact_pending, pending_file_sha256 = _load_self_sealed_json(
+            path=pending_path,
+            expected_file_sha256=_sha256(pending_path),
+            authority_root=authority_root,
+            label="Plugin Creator installed static tunnel-pending receipt",
+        )
+        if (
+            pending.get("status") != "PASS"
+            or dict(pending.get("activation") or {}).get("state")
+            != LOCAL_INSTALLED_STATIC_TUNNEL_PENDING_STATE
+            or dict(pending.get("plugin") or {}) != plugin
+            or Path(
+                str(dict(pending.get("activation") or {}).get("installed_path") or "")
+            ).resolve()
+            != target_cache.resolve()
+            or pending.get("restart_required") is not False
+            or pending.get("candidate_created_or_accepted") is not False
+            or pending.get("pointer_moved") is not False
+            or pending.get("hil_inferred") is not False
+        ):
+            raise InstallationError(
+                "The retained tunnel-pending static acceptance receipt drifted."
+            )
+    else:
+        pending = _write_self_sealed_json(pending_path, pending_body)
+        exact_pending = pending_path.resolve()
+        pending_file_sha256 = _sha256(pending_path)
+
+    tunnel = _activate_version_bound_local_tunnel(
+        target_cache=target_cache,
+        target_version=target_version,
+        selector=selector,
+        data_root=exact_data_root,
+        pending_receipt_path=exact_pending,
+        pending_receipt_sha256=pending_file_sha256,
+        archive_sha256=str(stage.get("archive_sha256") or ""),
+        precreated_tunnel_id=precreated_tunnel_id,
+        force_runtime_key_entry=force_local_tunnel_key_entry,
+    )
 
     receipt = deepcopy(stage)
     receipt.pop("receipt_sha256", None)
@@ -5217,6 +6156,7 @@ def _seal_plugin_creator_local_cache_restart(
         "hook_state": hook_state,
         "runtime_prewarm": runtime_prewarm,
         "hook_event_isolation": hook_event_isolation,
+        "tunnel": tunnel,
         "runtime_ready_before_task_reopen": False,
     }
     receipt["restart_required"] = True
@@ -5230,9 +6170,59 @@ def _seal_plugin_creator_local_cache_restart(
     receipt["task_reopened"] = False
     receipt["state_travel_invoked"] = False
     receipt["accepted_two_slot_registry_mutated"] = False
+    receipt["credential_requested_or_stored"] = bool(
+        tunnel["interactive_runtime_key_entry_required"]
+    )
+    receipt["credential_handling"] = {
+        "interactive_runtime_key_entry_required": bool(
+            tunnel["interactive_runtime_key_entry_required"]
+        ),
+        "entry_owner": (
+            "INSTALLED_TUNNEL_HELPER_VISIBLE_SECURESTRING_PROMPT"
+            if tunnel["interactive_runtime_key_entry_required"]
+            else "COMPATIBLE_CAPABILITY_BOUND_DPAPI_ENVELOPE"
+        ),
+        "plaintext_received_by_installer_process": False,
+        "plaintext_written_to_arguments": False,
+        "plaintext_written_to_environment_output": False,
+        "plaintext_written_to_logs_or_receipts": False,
+        "capability_bound_dpapi_envelope_persisted": True,
+        "compatible_runtime_key_envelope_reused": bool(
+            tunnel["runtime_key_reused_from_compatible_tunnel"]
+        ),
+    }
     receipt_path = recovery_receipt_path
-    sealed = _write_self_sealed_json(receipt_path, receipt)
-    _write_atomic(authority_root / "CURRENT_INSTALLATION.json", _json_bytes(sealed))
+    try:
+        sealed = _write_self_sealed_json(receipt_path, receipt)
+        _write_atomic(authority_root / "CURRENT_INSTALLATION.json", _json_bytes(sealed))
+    except OSError as exc:
+        receipt_path.unlink(missing_ok=True)
+        rollback = _rollback_version_bound_local_tunnel(
+            tunnel=tunnel, data_root=exact_data_root
+        )
+        failure_path = (
+            authority_root
+            / "tunnel"
+            / f"LOCAL_TUNNEL_FINAL_PROMOTION_FAILURE_{str(stage.get('archive_sha256') or '')[:16]}.json"
+        )
+        failure = {
+            "schema": LOCAL_TUNNEL_FAILURE_SCHEMA,
+            "status": "FAIL",
+            "state": "FINAL_RESTART_RECEIPT_PROMOTION_FAILED_NO_RESTART_AUTHORITY",
+            "plugin_version": target_version,
+            "pending_receipt_path": str(exact_pending),
+            "pending_receipt_sha256": pending_file_sha256,
+            "tunnel_activation_receipt_path": tunnel["receipt_path"],
+            "tunnel_activation_receipt_file_sha256": tunnel["receipt_file_sha256"],
+            "rollback": rollback,
+            "restart_authority_created": False,
+            "remote_crud_invoked": False,
+        }
+        _write_self_sealed_json(failure_path, failure)
+        raise InstallationError(
+            "The final local restart receipt could not be promoted; tunnel rollback "
+            "completed and no restart authority remains."
+        ) from exc
     return {
         **sealed,
         "receipt_path": str(receipt_path.resolve()),
@@ -5835,6 +6825,21 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--seal-plugin-creator-local-cache-restart-sha256")
     parser.add_argument("--confirm-plugin-creator-local-cache-restart")
     parser.add_argument(
+        "--precreated-tunnel-id",
+        help=(
+            "Optional already-provisioned tunnel ID for the local version. This "
+            "does not authorize remote tunnel CRUD and is never written in receipts."
+        ),
+    )
+    parser.add_argument(
+        "--force-local-tunnel-key-entry",
+        action="store_true",
+        help=(
+            "Force one visible Runtime-key recapture for this local materialization. "
+            "Normally a compatible capability-bound encrypted envelope is reused."
+        ),
+    )
+    parser.add_argument(
         "--hook-cwd",
         type=Path,
         default=Path.cwd(),
@@ -5886,6 +6891,8 @@ def main() -> int:
             executable=args.codex_executable,
             codex_home=args.codex_home,
             data_root=args.data_root,
+            precreated_tunnel_id=args.precreated_tunnel_id,
+            force_local_tunnel_key_entry=args.force_local_tunnel_key_entry,
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
@@ -5894,6 +6901,14 @@ def main() -> int:
     ):
         raise InstallationError(
             "Staging or activation requires --archive and exactly one package receipt."
+        )
+    if args.precreated_tunnel_id is not None:
+        raise InstallationError(
+            "--precreated-tunnel-id is allowed only for Plugin Creator local cache materialization."
+        )
+    if args.force_local_tunnel_key_entry:
+        raise InstallationError(
+            "--force-local-tunnel-key-entry is allowed only for Plugin Creator local cache materialization."
         )
     if args.activate and args.codex_executable is None:
         raise InstallationError("Activation requires --codex-executable.")

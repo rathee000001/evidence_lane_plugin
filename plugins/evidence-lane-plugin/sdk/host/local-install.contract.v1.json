@@ -4,10 +4,10 @@
   "contract": "local-install",
   "law": "PLUGIN_CREATOR_CACHEBUSTER_HIDDEN_RUNTIME_ONLY",
   "owner": "scripts/codex_release/install_codex_stable.py",
-  "owner_sha256": "C08E7BC9EDAC221AA724A6854DFD967DCB60E49D378C4DD32E3E5075D7467311",
+  "owner_sha256": "E90FA894EA85075CB7C628805F4538ACFA051EB64471D6C81FD9780F31398302",
   "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
   "project_root_hardcoded": false,
   "workspace_hardcoded": false,
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "BD0C88565C7842BD5BD104D917E8034BBA41520B9091E17E6000CF684EECBF3F"
+  "receipt_sha256": "8BF836E805758753DF25FF18A71423A8A4697FA4F624FE8F2DCF6BB8B170D9C8"
 }

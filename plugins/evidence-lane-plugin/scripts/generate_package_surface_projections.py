@@ -1048,7 +1048,40 @@ def _generate_tunnel_and_toolchain_surfaces() -> tuple[dict[str, Any], dict[str,
         for path in sorted(tunnel_source_root.iterdir())
         if path.is_file()
     ]
-    helper_paths = ("scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",)
+    tunnel_compatibility_relatives = {
+        ".mcp.json",
+        "schemas/public-action-schemas.v001.json",
+        "skills/skill-surface-registry.v1.json",
+        "hooks/hooks.json",
+        "hooks/logical-actions.json",
+        "toolchains/tool-requirement-matrix.v1.json",
+        "toolchains/tool-execution-routing.v1.json",
+        "toolchains/tunnel-runtime-toolchain.v1.json",
+        "toolchains/native-tools.v1.json",
+        "requirements.lock.txt",
+        "requirements.toolchain.lock.txt",
+        "requirements.torch-cpu.lock.txt",
+        "requirements.torch-nvidia.lock.txt",
+        "requirements.onnx-directml.lock.txt",
+        "scripts/run_mcp.py",
+        "src/evidence_lane_plugin/mcp_server.py",
+        "src/evidence_lane_plugin/mcp_stdio_compat.py",
+        "src/evidence_lane_plugin/ecosystem_toolchain.py",
+        "src/evidence_lane_plugin/tunnel_identity_routing.py",
+        "src/evidence_lane_plugin/runtime_toolchain.py",
+        "src/evidence_lane_plugin/lane_engine.py",
+        *(str(row["path"]) for row in tunnel_sources),
+    }
+    tunnel_compatibility_inputs = [
+        _package_member_record(
+            PLUGIN_ROOT / relative,
+            relative=relative,
+        )
+        for relative in sorted(tunnel_compatibility_relatives)
+    ]
+    tunnel_compatibility_sha256 = hashlib.sha256(
+        _json_bytes(tunnel_compatibility_inputs)
+    ).hexdigest().upper()
     tunnel_body = {
         "schema": "evidence-lane.installed-tunnel-surface.v1",
         "status": "PASS",
@@ -1056,8 +1089,24 @@ def _generate_tunnel_and_toolchain_surfaces() -> tuple[dict[str, Any], dict[str,
         "runtime_root_hidden": True,
         "project_root_hardcoded": False,
         "workspace_hardcoded": False,
+        "host_wide_project_neutral": True,
+        "per_project_or_task_tunnel_allowed": False,
+        "multi_project_and_task_routing": (
+            "EXPLICIT_PLUGIN_PROJECT_ID_AND_TASK_BINDINGS"
+        ),
         "routes_by_project_id": True,
         "one_active_tunnel": True,
+        "tunnel_compatibility_schema": (
+            "evidence-lane.tunnel-capability-compatibility.v1"
+        ),
+        "tunnel_compatibility_sha256": tunnel_compatibility_sha256,
+        "tunnel_compatibility_inputs": tunnel_compatibility_inputs,
+        "tunnel_rebuild_trigger": "CAPABILITY_FINGERPRINT_CHANGED_ONLY",
+        "exact_plugin_rebind_required_every_install": True,
+        "compatible_runtime_key_and_prewarm_reused": True,
+        "runtime_key_prompt_policy": (
+            "FIRST_REGISTRATION_OR_MISSING_INVALID_CREDENTIAL_ONLY"
+        ),
         "tunnel_sources": tunnel_sources,
         "runtime_toolchain": tunnel_toolchain_path.relative_to(PLUGIN_ROOT).as_posix(),
         "runtime_toolchain_sha256": _sha256(tunnel_toolchain_path),
@@ -1075,11 +1124,9 @@ def _generate_tunnel_and_toolchain_surfaces() -> tuple[dict[str, Any], dict[str,
             "scripts/codex_release/install_native_toolchain.py"
         ),
         "native_toolchain_local_update_only": True,
-        "maintainer_helper_included_until_final_project_hil": True,
-        "maintainer_helpers": {
-            path: _sha256(PLUGIN_ROOT / path) for path in helper_paths
-        },
-        "restart_preparation_only": True,
+        "restart_helper_present": False,
+        "install_receipt_is_restart_boundary": True,
+        "user_manual_restart_required": True,
         "programmatic_app_stop_allowed": False,
         "turn_drain_utility_present": False,
     }
@@ -2059,7 +2106,6 @@ def _generate_sdk(
             "src/evidence_lane_plugin/task_attachment_rehydration.py",
             "scripts/runtime_contract.py",
             "scripts/codex_release/install_codex_stable.py",
-            "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
             "scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1",
         )
     }
@@ -2073,10 +2119,11 @@ def _generate_sdk(
             ),
             "project_root_user_selected": True,
             "workspace_task_selected": True,
-            "restart_preparation_only": True,
+            "restart_helper_present": False,
+            "manual_user_restart_after_terminal_response": True,
+            "install_receipt_is_restart_boundary": True,
             "programmatic_app_stop_allowed": False,
             "turn_drain_utility_present": False,
-            "restart_preparation_installs_plugin": False,
             "tunnel_resolves_project_by_project_id": True,
             "canonical_sources": host_sources,
         },
@@ -2090,9 +2137,9 @@ def _generate_sdk(
             "owner": "src/evidence_lane_plugin/runtime_toolchain.py",
             "law": "ALL_REQUIRED_RUNTIME_DEPENDENCIES_BEFORE_TUNNEL_OR_REOPEN",
         },
-        "terminal-safe-restart-preparation": {
-            "owner": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
-            "law": "PREPARE_ONLY_THEN_USER_RESTARTS_AFTER_TERMINAL_RESPONSE",
+        "user-manual-restart-boundary": {
+            "owner": "scripts/codex_release/install_codex_stable.py",
+            "law": "SEALED_INSTALL_RECEIPT_THEN_USER_RESTARTS_AFTER_TERMINAL_RESPONSE",
         },
         "task-attachment": {
             "owner": "src/evidence_lane_plugin/task_attachment_rehydration.py",
@@ -2528,10 +2575,18 @@ def _generate_mcp(
 def _generate_lane_surfaces() -> dict[str, Any]:
     """Materialize 18 inspectable bindings without duplicating lane logic."""
 
+    from evidence_lane_plugin.ai_toolchain import resolve_lane_toolchain
+    from evidence_lane_plugin.artifact_contract import bind_tools_to_artifacts
+    from evidence_lane_plugin.hardware_acceleration import HardwareAccelerationProbe
     from evidence_lane_plugin.lane_engine import (
+        _bind_runtime_toolchain_resolution,
         _create_lane_schema,
+        _empty_table_classification,
+        _lane_tool_execution_evidence,
         _lane_topology,
-        _registry_linked_lane_workflow,
+        _rebuild_retrieval,
+        _tool_identity,
+        _write_lane_tool_orchestration_ledger,
     )
     from evidence_lane_plugin.lanes import (
         CANONICAL_LANE_IDS,
@@ -2540,6 +2595,10 @@ def _generate_lane_surfaces() -> dict[str, Any]:
         LANE_SCHEMA_REGISTRY_SHA256,
         lane_artifact_contract,
         lane_schema_asset,
+    )
+    from evidence_lane_plugin.runtime_toolchain import inspect_runtime_toolchain
+    from evidence_lane_plugin.sqlite_execution import (
+        verify_and_optimize_sqlite_authority,
     )
 
     lanes_root = PLUGIN_ROOT / "authorities" / "project_sectors"
@@ -2560,6 +2619,36 @@ def _generate_lane_surfaces() -> dict[str, Any]:
             "src/evidence_lane_plugin/source_intake.py",
         )
     }
+    runtime_inventory = inspect_runtime_toolchain(prewarm_native=False)
+    if runtime_inventory.get("status") != "PASS":
+        raise ValueError("INSTALLED_LANE_RUNTIME_TOOLCHAIN_UNAVAILABLE")
+    runnable_states = {
+        "ACTIVE",
+        "REPOSITORY_ONLY_AVAILABLE",
+        "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "DECLARED_COMPONENT",
+    }
+    available_tools = {
+        str(row["tool"])
+        for row in runtime_inventory.get("results") or []
+        if row.get("status") == "PASS"
+        and str(row.get("state") or "") in runnable_states
+    }
+    deterministic_cpu_probe = HardwareAccelerationProbe(
+        os_name=os.name,
+        telemetry_sources=["INSTALLED_TEMPLATE_CPU_BASELINE"],
+    )
+    lane_resolutions = {
+        lane_id: resolve_lane_toolchain(
+            lane_id=lane_id,
+            host_profile="CODEX_DESKTOP",
+            available_tools=available_tools,
+            accelerator_profile="cpu",
+            accelerator_probe=deterministic_cpu_probe,
+        )
+        for lane_id in CANONICAL_LANE_IDS
+    }
+    recorded_at = "1970-01-01T00:00:00Z"
     for lane_id in CANONICAL_LANE_IDS:
         lane = LANE_REGISTRY[lane_id]
         lane_root = lanes_root / lane_id
@@ -2625,9 +2714,127 @@ def _generate_lane_surfaces() -> dict[str, Any]:
             "removed_purge": [],
             "blocked_unsupported": [],
         }
-        mmd, dot = _lane_topology(lane, sqlite_path, empty_classification)
+        tools = _bind_runtime_toolchain_resolution(
+            _tool_identity(lane, source_paths=()),
+            runtime_inventory=runtime_inventory,
+            lane_resolution=lane_resolutions[lane_id],
+        )
+        ledger_connection = sqlite3.connect(sqlite_path)
+        ledger_connection.row_factory = sqlite3.Row
+        _write_lane_tool_orchestration_ledger(
+            ledger_connection,
+            tools=tools,
+            execution=None,
+            recorded_at=recorded_at,
+        )
+        _rebuild_retrieval(ledger_connection, lane)
+        ledger_connection.commit()
+        ledger_connection.execute("VACUUM")
+        ledger_connection.close()
+        sqlite_execution = verify_and_optimize_sqlite_authority(
+            sqlite_path
+        ).model_dump(mode="json")
+        mmd, dot, graph_pipeline_receipt = _lane_topology(
+            lane, sqlite_path, empty_classification
+        )
         _write(lane_root / lane.mmd_filename, mmd)
         _write(lane_root / lane.dot_filename, dot)
+        tool_execution = _lane_tool_execution_evidence(
+            lane=lane,
+            tools=tools,
+            database=sqlite_path,
+            mmd_path=lane_root / lane.mmd_filename,
+            dot_path=lane_root / lane.dot_filename,
+            history_report=None,
+            git_arm={},
+            graph_receipt=graph_pipeline_receipt,
+            sqlite_execution=sqlite_execution,
+            recorded_at=recorded_at,
+        )
+        prior_mmd, prior_dot = mmd, dot
+        current_execution = tool_execution
+        stable_mmd = stable_dot = ""
+        stable_graph_receipt: dict[str, Any] | None = None
+        stable_execution: dict[str, Any] | None = None
+        for _ in range(8):
+            ledger_connection = sqlite3.connect(sqlite_path)
+            ledger_connection.row_factory = sqlite3.Row
+            _write_lane_tool_orchestration_ledger(
+                ledger_connection,
+                tools=tools,
+                execution=current_execution,
+                recorded_at=recorded_at,
+            )
+            _rebuild_retrieval(ledger_connection, lane)
+            ledger_connection.commit()
+            ledger_connection.execute("VACUUM")
+            ledger_connection.close()
+            sqlite_execution = verify_and_optimize_sqlite_authority(
+                sqlite_path
+            ).model_dump(mode="json")
+            current_mmd, current_dot, current_graph_receipt = _lane_topology(
+                lane,
+                sqlite_path,
+                empty_classification,
+            )
+            next_execution = _lane_tool_execution_evidence(
+                lane=lane,
+                tools=tools,
+                database=sqlite_path,
+                mmd_path=lane_root / lane.mmd_filename,
+                dot_path=lane_root / lane.dot_filename,
+                history_report=None,
+                git_arm={},
+                graph_receipt=current_graph_receipt,
+                sqlite_execution=sqlite_execution,
+                recorded_at=recorded_at,
+            )
+            if (
+                current_mmd == prior_mmd
+                and current_dot == prior_dot
+                and next_execution["receipt_sha256"]
+                == current_execution["receipt_sha256"]
+            ):
+                stable_mmd = current_mmd
+                stable_dot = current_dot
+                stable_graph_receipt = current_graph_receipt
+                stable_execution = next_execution
+                break
+            prior_mmd, prior_dot = current_mmd, current_dot
+            current_execution = next_execution
+        if stable_graph_receipt is None or stable_execution is None:
+            raise ValueError(f"INSTALLED_LANE_TOOL_FIXED_POINT_DRIFT:{lane_id}")
+        _write(lane_root / lane.mmd_filename, stable_mmd)
+        _write(lane_root / lane.dot_filename, stable_dot)
+        graph_pipeline_receipt = stable_graph_receipt
+        tools.update(
+            {
+                "schema": "evidence-lane.installed-lane-tooling.v1",
+                "status": "PASS",
+                "lane_id": lane_id,
+                "builder": "builder.py:build_lane_sources",
+                "reader": "reader.py:LaneReader",
+                "query_traversal": (
+                    "pointer + manifest + MMD + DOT + tools + SQLite"
+                ),
+                "retrieval_modes": ["hybrid", "fts5", "bm25", "tfidf"],
+                "json_build_refresh_tooling": [
+                    "lane_pointer.json",
+                    "refresh_receipt.json",
+                    "lane_manifest.json",
+                ],
+                "canonical_shared_modules": source_hashes,
+                "graph_pipeline_receipt": graph_pipeline_receipt,
+                "sqlite_execution_receipt": sqlite_execution,
+                "tool_execution_evidence": stable_execution,
+                "empty_table_classification": _empty_table_classification(
+                    database=sqlite_path,
+                    lane=lane,
+                    history_enabled=False,
+                    recorded_at=recorded_at,
+                ),
+            }
+        )
         _write(
             lane_root / "builder.py",
             '"""Lane-specific binding to the canonical shared lane bundle builder."""\n\n'
@@ -2666,6 +2873,7 @@ def _generate_lane_surfaces() -> dict[str, Any]:
                 "shared_engine_source_hashes": source_hashes,
                 "authority_is_separate_per_project_lane": True,
                 "shared_engine_does_not_merge_lane_sqlite": True,
+                "graph_pipeline_receipt": graph_pipeline_receipt,
             },
         )
         workflow_files = {
@@ -2682,25 +2890,10 @@ def _generate_lane_surfaces() -> dict[str, Any]:
             if all(path.is_file() for path in workflow_files.values())
             else None
         )
+        tools["dedicated_workflow"] = dedicated_workflow
         _write_json(
             lane_root / "tools.json",
-            {
-                "schema": "evidence-lane.installed-lane-tooling.v1",
-                "status": "PASS",
-                "lane_id": lane_id,
-                "builder": "builder.py:build_lane_sources",
-                "reader": "reader.py:LaneReader",
-                "query_traversal": "pointer + manifest + MMD + DOT + tools + SQLite",
-                "retrieval_modes": ["hybrid", "fts5", "bm25", "tfidf"],
-                "json_build_refresh_tooling": [
-                    "lane_pointer.json",
-                    "refresh_receipt.json",
-                    "lane_manifest.json",
-                ],
-                "canonical_shared_modules": source_hashes,
-                "registry_linked_workflow": _registry_linked_lane_workflow(lane_id),
-                "dedicated_workflow": dedicated_workflow,
-            },
+            bind_tools_to_artifacts(lane_root, lane, tools),
         )
         _write_json(
             lane_root / "lane-pointer.schema.json",
@@ -3101,6 +3294,9 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
         _schema_snapshot,
     )
     from evidence_lane_plugin.graph_pipeline import SemanticGraph
+    from evidence_lane_plugin.sqlite_execution import (
+        verify_and_optimize_sqlite_authority,
+    )
     from evidence_lane_plugin.sqlite_indexing import rebuild_sqlite_authority_index
 
     authorities_root = PLUGIN_ROOT / "authorities"
@@ -3231,6 +3427,9 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
             recorded_at="2000-01-01T00:00:00Z",
             reset_receipts=True,
         )
+        sqlite_execution_receipt = verify_and_optimize_sqlite_authority(
+            database
+        ).model_dump(mode="json")
         snapshot = _schema_snapshot(database)
         mmd_text, dot_text, graph_pipeline_receipt = _schema_graph(
             authority_id, snapshot
@@ -3290,6 +3489,11 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
                 recorded_at="2000-01-01T00:00:00Z",
                 reset_receipts=True,
             )
+            consequence_sqlite_execution_receipt = (
+                verify_and_optimize_sqlite_authority(consequence_database).model_dump(
+                    mode="json"
+                )
+            )
             consequence_snapshot = _schema_snapshot(consequence_database)
             (
                 consequence_mmd_text,
@@ -3340,6 +3544,9 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
                     ],
                     "llama_index_refresh_receipt": (consequence_llama_index_receipt),
                     "graph_pipeline_receipt": (consequence_graph_pipeline_receipt),
+                    "sqlite_execution_receipt": (
+                        consequence_sqlite_execution_receipt
+                    ),
                 },
             )
             _write_json(
@@ -3503,6 +3710,7 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
                 },
                 "llama_index_refresh_receipt": (consequence_llama_index_receipt),
                 "graph_pipeline_receipt": consequence_graph_pipeline_receipt,
+                "sqlite_execution_receipt": consequence_sqlite_execution_receipt,
                 "live_project_bytes_in_template": False,
                 "authority_merged_with_parent_or_peer": False,
             }
@@ -3591,6 +3799,7 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
                 "linked_subauthorities": linked_subauthorities,
                 "llama_index_refresh_receipt": llama_index_receipt,
                 "graph_pipeline_receipt": graph_pipeline_receipt,
+                "sqlite_execution_receipt": sqlite_execution_receipt,
                 "dedicated_workflow": dedicated_authority_workflow,
             },
         )
@@ -3896,6 +4105,7 @@ def _generate_authority_surfaces(public: dict[str, Any]) -> dict[str, Any]:
             "linked_subauthorities": linked_subauthorities,
             "llama_index_refresh_receipt": llama_index_receipt,
             "graph_pipeline_receipt": graph_pipeline_receipt,
+            "sqlite_execution_receipt": sqlite_execution_receipt,
             "live_project_bytes_in_template": False,
             "authority_merged_with_sector_or_peer": False,
         }
@@ -4873,6 +5083,10 @@ def main() -> int:
         rebuild_flash_manifest,
         rebuild_packaged_authority_manifests,
     )
+    from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
+    from evidence_lane_plugin.sqlite_execution import (
+        verify_and_optimize_sqlite_authority,
+    )
 
     action_plane = rebuild_codex_action_planes(PLUGIN_ROOT)
     toolchain_sync = action_plane
@@ -4891,24 +5105,76 @@ def main() -> int:
             "predecessor_database_copied": False,
         },
         "graph_tool_execution_evidence": {
-            "LangGraph_Mermaid_engine": {"state": "EXECUTED"},
-            "Python_Graphviz_DOT_engine": {"state": "EXECUTED"},
-            "rustworkx": {"state": "EXECUTED"},
+            "LangGraph_Mermaid_engine": {
+                "state": "EXECUTED",
+                "env_receipt_sha256": env_graph["graph_pipeline_receipt"][
+                    "receipt_sha256"
+                ],
+                "uop_receipt_sha256": uop_graph["graph_pipeline_receipt"][
+                    "receipt_sha256"
+                ],
+            },
+            "Python_Graphviz_DOT_engine": {
+                "state": "EXECUTED",
+                "env_dot_exporter": env_graph["graph_pipeline_receipt"][
+                    "dot_exporter"
+                ],
+                "uop_dot_exporter": uop_graph["graph_pipeline_receipt"][
+                    "dot_exporter"
+                ],
+            },
+            "Graphviz_dot": {
+                "state": "EXECUTED",
+                "env_native_validation_sha256": env_graph[
+                    "graph_pipeline_receipt"
+                ]["native_graphviz_validation"]["receipt_sha256"],
+                "uop_native_validation_sha256": uop_graph[
+                    "graph_pipeline_receipt"
+                ]["native_graphviz_validation"]["receipt_sha256"],
+            },
+            "rustworkx": {
+                "state": "EXECUTED",
+                "env_analysis_sha256": env_graph["graph_pipeline_receipt"][
+                    "graph_analysis_sha256"
+                ],
+                "uop_analysis_sha256": uop_graph["graph_pipeline_receipt"][
+                    "graph_analysis_sha256"
+                ],
+            },
         },
     }
     sqlite_header_canonicalization = []
-    for authority_database in (
-        PLUGIN_ROOT / "env" / "env_sqlite.sqlite",
-        PLUGIN_ROOT / "uop" / "uop_sqlite.sqlite",
+    sqlite_execution_receipts = {}
+    for authority_id, authority_database in (
+        ("env", PLUGIN_ROOT / "env" / "env_sqlite.sqlite"),
+        ("uop", PLUGIN_ROOT / "uop" / "uop_sqlite.sqlite"),
     ):
+        execution = verify_and_optimize_sqlite_authority(authority_database).model_dump(
+            mode="json"
+        )
         connection = sqlite3.connect(authority_database)
         try:
             connection.execute("VACUUM")
         finally:
             connection.close()
-        sqlite_header_canonicalization.append(
-            _canonicalize_sqlite_header(authority_database)
-        )
+        canonicalization = _canonicalize_sqlite_header(authority_database)
+        sqlite_header_canonicalization.append(canonicalization)
+        execution_body = {
+            "schema": "evidence-lane.env-uop-sqlite-execution.v1",
+            "status": "PASS",
+            "authority_id": authority_id,
+            "engine": execution["engine"],
+            "engine_version": execution["engine_version"],
+            "sqlite_version": execution["sqlite_version"],
+            "apsw_full_api_available": execution["apsw_full_api_available"],
+            "integrity_check": execution["integrity_check"],
+            "final_database_sha256": canonicalization["sha256"],
+            "header_canonicalization": canonicalization,
+        }
+        sqlite_execution_receipts[authority_id] = {
+            **execution_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(execution_body)),
+        }
     coverage = dict(env_uop_architecture["row_to_graph_coverage"])
     coverage["final_graphs"] = {
         "env": {
@@ -4931,6 +5197,7 @@ def main() -> int:
     coverage["graph_tool_execution_evidence"] = env_uop_architecture[
         "graph_tool_execution_evidence"
     ]
+    coverage["sqlite_execution_receipts"] = sqlite_execution_receipts
     _write_json(
         PLUGIN_ROOT / "toolchains" / "env-uop-row-to-graph-coverage.v1.json",
         {key: value for key, value in coverage.items() if key != "receipt_sha256"},

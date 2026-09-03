@@ -7,7 +7,7 @@
   "event": "SubagentStart",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_validate.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_validate.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_validate.py",
     "timeout": 10,
     "statusMessage": "Validating and bounding Evidence Lane hook signal"
@@ -32,5 +32,5 @@
   "adapter_sha256": "3EA6FE46F77CBE1CE537C01E71F4332A6D12CD04E716B84E88FB03A2D73C289C",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "20F5CC1ED38BBCBE2C1FC72032597B3209CCD119E68312C76A16FB7F5499B695"
+  "receipt_sha256": "2D31E751B1F8CB6D5DC607C09CF295B820301EB816903B78597F49EC478E5F45"
 }

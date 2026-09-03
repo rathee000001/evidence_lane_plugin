@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.host_plan_reconciliation",
+  "source_path": "src/evidence_lane_plugin/host_plan_reconciliation.py",
+  "source_sha256": "A5CB82EA5DC20624681E19E1204C55B849A43AE58350DE34F929EBF3EE7391BA",
+  "source_bytes": 87438,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "7662916C53E6C37064CDDC7C2A7AD07F392F88FADB8BD389D9B00B090B9B252B"
+}

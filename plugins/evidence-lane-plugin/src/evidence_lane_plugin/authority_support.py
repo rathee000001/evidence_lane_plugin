@@ -420,6 +420,114 @@ def validate_authority_support(
     return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}
 
 
+def materialize_missing_authority_tools_contract(
+    project_root: str | Path,
+    authority_id: str,
+) -> dict[str, Any]:
+    """Repair one missing tools contract without refreshing authority content."""
+
+    root = Path(project_root).resolve()
+    profile = AUTHORITY_SUPPORT_PROFILES[authority_id]
+    database = root / profile.database
+    mmd_path = root / profile.mmd
+    dot_path = root / profile.dot
+    tools_path = root / profile.tools
+    manifest_path = root / profile.manifest
+    require(
+        all(path.is_file() for path in (database, mmd_path, dot_path, manifest_path))
+        and not tools_path.exists(),
+        "AUTHORITY_MISSING_TOOLS_REPAIR_BOUNDARY_INVALID",
+        "The metadata-only repair requires one missing tools file and intact authority content.",
+        status="MISMATCH",
+        authority_id=authority_id,
+    )
+    content_before = {
+        "database": sha256_file(database),
+        "mmd": sha256_file(mmd_path),
+        "dot": sha256_file(dot_path),
+    }
+    snapshot = _schema_snapshot(database)
+    tooling = {
+        "schema": "evidence-lane.authority-build-refresh-tools.v1",
+        "authority_id": authority_id,
+        "role": "BUILD_REFRESH_SCHEMA_AND_DEPENDENCY_TOOLING",
+        "query_selector": False,
+        "bootstrap_schema_is_fixed_project_ceiling": False,
+        "schema_evolution": "PROJECT_SCOPED_ADDITIVE_WITH_OWNING_USER_GATE",
+        "dependencies": [
+            "python:sqlite3",
+            "sqlite:fts5",
+            f"llama-index-core=={LLAMA_INDEX_CORE_VERSION}",
+            "langgraph",
+            "graphviz",
+        ],
+        "database": profile.database,
+        "schema_snapshot": snapshot,
+        "materialization_mode": (
+            "MISSING_TOOLS_METADATA_ONLY_NO_AUTHORITY_CONTENT_REFRESH"
+        ),
+        "next_full_support_refresh_owner": (
+            "AUTHORITY_OWNING_WRITE_OR_HIL_ONLY_PROJECT_OVERLAY_REFRESH"
+        ),
+    }
+    tooling["tools_sha256"] = sha256_bytes(canonical_json_bytes(tooling))
+    atomic_write_json(tools_path, tooling)
+    content_after = {
+        "database": sha256_file(database),
+        "mmd": sha256_file(mmd_path),
+        "dot": sha256_file(dot_path),
+    }
+    require(
+        content_after == content_before,
+        "AUTHORITY_MISSING_TOOLS_REPAIR_CONTENT_CHANGED",
+        "Metadata-only tools repair changed authority SQLite or graph content.",
+        status="FAIL",
+        authority_id=authority_id,
+    )
+    receipt_body = {
+        "schema": "evidence-lane.authority-missing-tools-repair.v1",
+        "status": "PASS",
+        "authority_id": authority_id,
+        "tools_path": profile.tools,
+        "tools_sha256": sha256_file(tools_path),
+        "content_sha256s": content_after,
+        "authority_content_refreshed": False,
+        "accepted_archive_queried": False,
+        "candidate_created": False,
+        "hil_inferred": False,
+        "pointer_moved": False,
+    }
+    receipt = {
+        **receipt_body,
+        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
+    }
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    members = manifest.get("members")
+    tools_member = {
+        "path": tools_path.name,
+        "bytes": tools_path.stat().st_size,
+        "sha256": sha256_file(tools_path),
+    }
+    if isinstance(members, list):
+        by_path = {
+            str(row.get("path")): dict(row)
+            for row in members
+            if isinstance(row, dict)
+        }
+        by_path[tools_path.name] = tools_member
+        manifest["members"] = [by_path[name] for name in sorted(by_path)]
+    elif isinstance(members, dict):
+        manifest["members"] = {**members, tools_path.name: tools_member["sha256"]}
+    manifest["missing_tools_contract_materialization"] = receipt
+    if "manifest_sha256" in manifest:
+        manifest_body = {
+            key: value for key, value in manifest.items() if key != "manifest_sha256"
+        }
+        manifest["manifest_sha256"] = sha256_bytes(canonical_json_bytes(manifest_body))
+    atomic_write_json(manifest_path, manifest)
+    return receipt
+
+
 def refresh_delta_exit_authority_supports(project_root: str | Path) -> dict[str, Any]:
     """Refresh changed ordinary-Delta authorities; Project Overlay stays HIL-only."""
 

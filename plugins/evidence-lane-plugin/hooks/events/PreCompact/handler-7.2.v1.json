@@ -7,7 +7,7 @@
   "event": "PreCompact",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_seal.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_seal.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_seal.py",
     "timeout": 10,
     "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
@@ -32,5 +32,5 @@
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "B24495D7DF89D2364E6B4796F51F8F0FC33C0896986035C3546696C44CED5ED2"
+  "receipt_sha256": "18C1A05B9EE7B3115C89AB2587CD4E5E4F421186E05FDA75A0FF1C9039F5A836"
 }

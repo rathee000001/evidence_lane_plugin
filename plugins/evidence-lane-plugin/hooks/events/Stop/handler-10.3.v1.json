@@ -7,7 +7,7 @@
   "event": "Stop",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_transport.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event Stop --handler subhook_transport.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" Stop subhook_transport.py",
     "timeout": 10,
     "statusMessage": "Committing Evidence Lane governed turn"
@@ -32,5 +32,5 @@
   "adapter_sha256": "4ED8A253818A22B83631FA13DF95CCA176B4C14CE4BD8E3F46CE0CE258CC375B",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "FEAA75054F53380FCFA8B53175E85F84D0BB63DFAEC4C5793A019C39CEF53243"
+  "receipt_sha256": "57DC4753F51DB38E1210C0693BC920ADCEC96C4EE4AC8104E25F7DC73619A047"
 }

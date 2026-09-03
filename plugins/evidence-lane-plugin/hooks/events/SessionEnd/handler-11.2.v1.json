@@ -7,7 +7,7 @@
   "event": "SessionEnd",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_seal.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_seal.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_seal.py",
     "timeout": 3,
     "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
@@ -32,5 +32,5 @@
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "ECEF7867B2652BE2E15366CF978D08374C7A5F76FB6745B1D522FEA5263C4A01"
+  "receipt_sha256": "122FB3A021AF3E1DAE882BBC1E81E1A689BF4B4BC71A88EACB0B5CA8180F175C"
 }

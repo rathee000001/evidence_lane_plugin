@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-host-contract-binding.v1",
+  "status": "PASS",
+  "contract": "user-manual-restart-boundary",
+  "law": "SEALED_INSTALL_RECEIPT_THEN_USER_RESTARTS_AFTER_TERMINAL_RESPONSE",
+  "owner": "scripts/codex_release/install_codex_stable.py",
+  "owner_sha256": "E90FA894EA85075CB7C628805F4538ACFA051EB64471D6C81FD9780F31398302",
+  "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
+  "project_root_hardcoded": false,
+  "workspace_hardcoded": false,
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "D071F506935C109516EC277137A6DAA790CD612D174A51828EFD8DD6132E55FE"
+}

@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.runtime_continuity",
   "source_path": "src/evidence_lane_plugin/runtime_continuity.py",
-  "source_sha256": "8C7793D52555EE2BB0023D4F6533F05177EDE6620554CC6CC8D2C40FF9D1810B",
-  "source_bytes": 22087,
+  "source_sha256": "7BFA49CA74AB054369A7EC005314B7152924A29ECD46F90787714E9C2D33A88B",
+  "source_bytes": 23174,
   "role": "HOST_RUNTIME_AND_CONTINUITY",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "CA9C1154B103B9F233E2901EF9AB3C6278FBC47F10EB85FF7CDEDDAD4C79B17D"
+  "receipt_sha256": "94AC0DA2BCD3C3566A7FCDA998A23730B379B5B0934A2572FF3FC3E985B041AA"
 }

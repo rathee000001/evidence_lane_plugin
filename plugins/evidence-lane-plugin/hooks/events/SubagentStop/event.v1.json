@@ -8,28 +8,28 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_validate.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_validate.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_validate.py",
           "timeout": 10,
           "statusMessage": "Validating and bounding Evidence Lane hook signal"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_seal.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_seal.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_seal.py",
           "timeout": 10,
           "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_transport.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_transport.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_transport.py",
           "timeout": 10,
           "statusMessage": "Observing a bound Evidence Lane subagent stop"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_emit.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_emit.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_emit.py",
           "timeout": 10,
           "statusMessage": "Verifying and emitting Evidence Lane hook result"
@@ -42,22 +42,22 @@
     {
       "display_id": "9.1",
       "path": "hooks/events/SubagentStop/handler-9.1.v1.json",
-      "sha256": "B5FCF54AD0C80D0A2C9DF3178C22A263B3ACE85BC432FCD45B14E3731365D955"
+      "sha256": "296B90ABADCDBA04FE991E62C8175555028A633C20D695F06EE0DC0DC8FD6CB4"
     },
     {
       "display_id": "9.2",
       "path": "hooks/events/SubagentStop/handler-9.2.v1.json",
-      "sha256": "1F6CEAFE3548ABD2A497D1CD0C76233FFC0C4FE4B0EED03F00DACD5A9B8D9F17"
+      "sha256": "DFD4EEE09BE87C3380C6882185FF835C76978E686B22F46B15F2372540A67255"
     },
     {
       "display_id": "9.3",
       "path": "hooks/events/SubagentStop/handler-9.3.v1.json",
-      "sha256": "4D50D49A16C0C70869120A57CB85D504EC99EE1F7DBA50089BF3FFBF54461166"
+      "sha256": "7CE3F9246494CE339CEB214C1D429DF5B16BB72D93BB4E82877D21AED9D56B00"
     },
     {
       "display_id": "9.4",
       "path": "hooks/events/SubagentStop/handler-9.4.v1.json",
-      "sha256": "405952F04FA15CC4AB6473CDA546202DC868A5182C46B7CED38598080A831423"
+      "sha256": "AAD54CD2CE0793C51F9CFC693E7A90F77DBAA1D7FC45FBF2D081E2E337663813"
     }
   ],
   "adapter": "hooks/subagent_stop.py",
@@ -75,5 +75,5 @@
   "workflow_contract_sha256": "8E882CABEA45F7ED2229B4A1A0523F7FD669363A039C8C290D8F7A09986CD7AA",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "12F4BF1A12A9067C8581689E1E1276799C9D16D7B4627E7EE6375BD55EA04323"
+  "receipt_sha256": "7658A0899A550CEA5BC4739CCA38FC32B4BA4757D51876F2F2034A6A08CC1322"
 }

@@ -4,8 +4,8 @@
   "lane_id": "images_ocr",
   "sqlite_filename": "images_ocr_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 33,
-  "schema_contract_table_count": 25,
+  "sqlite_table_count": 35,
+  "schema_contract_table_count": 27,
   "members": [
     {
       "path": "authorities/project_sectors/images_ocr/builder-contract.schema.json",
@@ -24,23 +24,23 @@
     },
     {
       "path": "authorities/project_sectors/images_ocr/images_ocr.dot",
-      "bytes": 16990,
-      "sha256": "E708E98AD98841384E9A68ABA373468FF1CDBE206D531D616DECBE86C7752DC2"
+      "bytes": 17608,
+      "sha256": "DFC952446F601B9219773F4964BEBD72DEB49BE7A28A6343A56F837734742618"
     },
     {
       "path": "authorities/project_sectors/images_ocr/images_ocr.mmd",
-      "bytes": 13583,
-      "sha256": "FE421BE24B86D89434597B365C502C041D6D2988720CBE13732D9E746136A765"
+      "bytes": 14082,
+      "sha256": "5BBAE539656F7C031F473FF39E0E9909BA20C429F641A2DD4BE92990F9F6B6CB"
     },
     {
       "path": "authorities/project_sectors/images_ocr/images_ocr_sector_v001.sqlite",
-      "bytes": 237568,
-      "sha256": "B320A0002CC5F158077A8A6CB41B51DE50DCA2C81967D3039EF2838972090BBB"
+      "bytes": 532480,
+      "sha256": "A0825056FFFF8C52039B09693FB946121785BF0B2A7FED8964FACF37DDACDC89"
     },
     {
       "path": "authorities/project_sectors/images_ocr/lane-contract.v1.json",
-      "bytes": 8373,
-      "sha256": "86BA34CFB9BA037E0EA18EA8A7963F69FF35136D839496DE7B7C63E660350592"
+      "bytes": 53485,
+      "sha256": "54311CBBB3323DF7EF2266EF3977BFB4ED8377E67785E5C5D49BD3D1A976949D"
     },
     {
       "path": "authorities/project_sectors/images_ocr/lane-pointer.schema.json",
@@ -79,8 +79,8 @@
     },
     {
       "path": "authorities/project_sectors/images_ocr/schema.sql",
-      "bytes": 9043,
-      "sha256": "B25D48F6CCB1CBDA62A34DBCE0A589C32A3763C84478613850AD547F25F598B0"
+      "bytes": 10345,
+      "sha256": "DF0A23DEAAC1C588E95CE6E132E37F8F1FBEBA4F64022A7658B29634374C0F55"
     },
     {
       "path": "authorities/project_sectors/images_ocr/sqlite-artifact.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/images_ocr/tools.json",
-      "bytes": 14860,
-      "sha256": "BD3D291DCE94D8C3324AD563E18F3935662FB90366558C9138152CF9FF9AB0D4"
+      "bytes": 153551,
+      "sha256": "18E382E089990AB18DEAAEB69D9C05143BE4C554BE6BB89DDFC9A864372FF5E2"
     },
     {
       "path": "authorities/project_sectors/images_ocr/tools.schema.json",
@@ -113,10 +113,10 @@
       "sha256": "BEF9B8CD2FE0CB16AC183417DF639EACFD537102260674D7D3D443FD30476CF3"
     }
   ],
-  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
+  "schema_registry_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "63B8ADC129C905B3B4822FE4606F6BF0960BBFDA4D8CCEF62AD8A627BA2E956F"
+  "receipt_sha256": "94894C6EA71AEE212E0BBA3A8450F512648D0BA8AB044D875D5D4A88C1745E52"
 }

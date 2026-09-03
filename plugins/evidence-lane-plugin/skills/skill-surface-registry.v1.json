@@ -20,12 +20,12 @@
         {
           "path": "skills/evi/references/public-tool-conformance-release-gate.v1.json",
           "bytes": 3110,
-          "sha256": "7949754A52C3DA99726BCB36CA8697E168F8306655C7C612AA18794DA7F3252F"
+          "sha256": "F9907BBB8736BA5C2F744FB950081F8536CDA9BB52AE09673FB600CDADBEC912"
         },
         {
           "path": "skills/evi/SKILL.md",
-          "bytes": 18609,
-          "sha256": "5AEC8A11200B1800BB2FC46C262E20064A306DCE0C01CBF266519FE3502C43D7"
+          "bytes": 18674,
+          "sha256": "1092F1E29C89B5AA35023B9E444794AFF98162CCFAF0FD02A0FF7E5614AEB127"
         }
       ],
       "member_count": 4,
@@ -1372,13 +1372,13 @@
         },
         {
           "path": "skills/evidence-lane-code-lifecycle/references/shared-boundaries.md",
-          "bytes": 4790,
-          "sha256": "D66916F9D202076734318F44F8B025455C6C2E63C13F95A5A04C7E6CE5E9FB1E"
+          "bytes": 4822,
+          "sha256": "6D0AB6EC61365D5B0D990DC914392471703C56F5571B09D478B1051A88400D34"
         },
         {
           "path": "skills/evidence-lane-code-lifecycle/SKILL.md",
-          "bytes": 41631,
-          "sha256": "A4AA856D1FE094F7DF17FF65492F77CB0F5095F0CB40E8C9E186068B1DE102FA"
+          "bytes": 41622,
+          "sha256": "D80EA975B68C802193804FFD4685670D2143B42E043D410134C29D80FFFAEE41"
         }
       ],
       "member_count": 3,
@@ -1531,5 +1531,5 @@
   "mcp_server": "evidence-lane",
   "all_skill_members_hash_bound": true,
   "competing_workflow_implementations_allowed": false,
-  "receipt_sha256": "2227B20E6A8CB558A30E8415AE50D03F21984B3516092CA6044CFEE33BFF570E"
+  "receipt_sha256": "AA47B46B0546558523C65E0099B1AD54530EAF06AE429E23DB8460EA16F88BB5"
 }

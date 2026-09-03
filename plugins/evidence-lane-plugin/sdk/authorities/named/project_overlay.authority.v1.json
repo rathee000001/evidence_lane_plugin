@@ -3,10 +3,10 @@
   "status": "PASS",
   "authority_id": "project_overlay",
   "authority_root": "authorities/project_overlay",
-  "authority_manifest_sha256": "D9E592AD34710ECB3E268BA5CD1E538360552AEB4F65B470B4DA9C30A52DB4A6",
+  "authority_manifest_sha256": "F5C7CAF55DD919B1AB2BDB067551DECCB6CBF677E3BFC5F950D6FF6A774DB326",
   "schema_surface": "schemas/authorities/project_overlay/schema-surface.v1.json",
   "persistent_sqlite_authority": true,
   "linked_public_action_count": 10,
   "merged_with_project_sector_or_peer": false,
-  "receipt_sha256": "774AFF6C04F0FC91693A59606609CFD0960823933124A869028475744D01BBAD"
+  "receipt_sha256": "7792E0A0F42AE99145C4B3AAA7764FDFCBB4B85B7ACEA0F119FF54F2AAC0E065"
 }

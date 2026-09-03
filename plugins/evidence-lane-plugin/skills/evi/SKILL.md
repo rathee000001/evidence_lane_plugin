@@ -16,8 +16,9 @@ shrink without weakening exact set parity.
 `PLUGIN_CREATOR_LOCAL_UPDATE_ONLY_LAW`: an existing local development-slot
 update must use plugin-creator validation/cachebusting, the configured local
 marketplace source, one sealed staging receipt, the dedicated cache
-materializer, terminal-safe restart preparation, a normally completed response,
+materializer and sealed install receipt, a normally completed response,
 user-controlled exact-channel restart, and post-restart native reattachment.
+No restart helper or separate preparation receipt is part of this route.
 No turn-drain utility, scheduled child, programmatic app stop, or machine-wide
 protocol handler is allowed. Direct-add, two-selector, and whole-marketplace rotation
 compatibility executors are absent and must never be reconstructed.

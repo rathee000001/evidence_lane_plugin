@@ -95,6 +95,7 @@ from .mcp_stdio_compat import (
     install_tool_namespace_compat,
     run_discovery_compatible_stdio,
 )
+from .plugin_build_identity import resolve_plugin_build_identity
 from .project_memory import query_memory_graph, record_memory_link
 from .public_surface_registry import (
     CODEX_READ_TOOL_NAMES,
@@ -2103,10 +2104,13 @@ def create_mcp_server(
         auth=auth,
         token_verifier=verifier,
     )
-    # FastMCP 1.28.1 exposes website/icons but not its low-level server version.
-    # Set the same pinned engine identity that clients read from pyproject.toml
-    # instead of allowing the SDK's default 1.0.0 to leak into Codex metadata.
-    mcp._mcp_server.version = ENGINE_VERSION
+    # MCP ``serverInfo.version`` identifies the exact loaded Codex package.
+    # Keep the stable engine release separate in runtime/doctor receipts.
+    mcp._mcp_server.version = str(
+        resolve_plugin_build_identity(
+            expected_base_release=ENGINE_VERSION,
+        )["exact_version"]
+    )
 
     def route_aware_doctor() -> dict[str, Any]:
         doctor = application.doctor()

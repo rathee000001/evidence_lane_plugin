@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "github_code",
   "authority_root": "authorities/project_sectors/github_code",
-  "authority_manifest_sha256": "C0BDF5D40BA42F35E04304B840A919E8C72B82F275F146D6908195B6EE68E44D",
+  "authority_manifest_sha256": "363AB20E83D89D85C845C184F76F2D819FA27E521D235472E45F99B8CC40F64D",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -43,8 +43,8 @@
     },
     {
       "path": "authorities/project_sectors/github_code/schema.sql",
-      "bytes": 12128,
-      "sha256": "133DFA592166DB6A4A5A68D7A7D63950974204CB262A8319BD58269D49A29F3E"
+      "bytes": 13430,
+      "sha256": "F60BD7F00D37D60F7746FA1BE2058BF9C494C3BFD7F528E2672EF428AA16C538"
     },
     {
       "path": "authorities/project_sectors/github_code/sqlite-artifact.schema.json",
@@ -58,7 +58,7 @@
     }
   ],
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
-  "canonical_lane_contract_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
+  "canonical_lane_contract_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "7BA20234CDFEEE240D224923B743D77A5E5766BC14FD7C7461B92ABB41C45BAA"
+  "receipt_sha256": "52C57D6193F01FFA6BEA482DC86CCC0E1F7FC7AD2C0138884BF4723C09A3EA89"
 }

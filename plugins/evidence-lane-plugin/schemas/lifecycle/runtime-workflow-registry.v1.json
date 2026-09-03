@@ -415,7 +415,7 @@
     "internal_support_bindings": {
       "schema": "evidence-lane.internal-sdk-support-bindings.v1",
       "status": "PASS",
-      "component_count": 6,
+      "component_count": 8,
       "components": [
         {
           "component": "env_uop_graph",
@@ -467,6 +467,17 @@
           "public_action": false
         },
         {
+          "component": "legacy_learning_normalization",
+          "owner_module": "agent_learning",
+          "functions": [
+            "migrate_legacy_learning_files"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.legacy_learning_normalization"
+          ],
+          "public_action": false
+        },
+        {
           "component": "live_root_normalization",
           "owner_module": "storage_connectors",
           "functions": [
@@ -475,6 +486,17 @@
           ],
           "function_modules": [
             "evidence_lane_plugin.live_root_normalization"
+          ],
+          "public_action": false
+        },
+        {
+          "component": "project_runtime_quarantine",
+          "owner_module": "storage_connectors",
+          "functions": [
+            "quarantine_project_runtime_history"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.project_runtime_quarantine"
           ],
           "public_action": false
         },
@@ -494,9 +516,9 @@
       ],
       "all_components_have_one_sdk_owner": true,
       "support_components_inflate_public_action_count": false,
-      "receipt_sha256": "991F7C7B40A28148EE9D0177AC695E620422C11C82485B1152CF7B4E2D857D11"
+      "receipt_sha256": "F045EB3E14A5E972024789F51A359F5D24E53F40F599C52A17D278A94241C226"
     },
-    "receipt_sha256": "D78955B5BB11E1442996090A9A38A961ED044DCA37D4F46791601153E27BB949"
+    "receipt_sha256": "C9EEE7B346F762DC3D17F7E786BC9AF9FD6C49772549B0F94EA928305CA04C34"
   },
   "public_action_and_env_uop_planes_separate": true,
   "missing_public_actions": [],
@@ -505,5 +527,5 @@
   "host_skill_auto_selection_is_prompt_trigger": true,
   "sdk_claims_pre_reasoning_prompt_interception": false,
   "counts_are_derived_not_fixed": true,
-  "receipt_sha256": "0D335C8C815D85573C0D7201418603C442FC086F98D3BEC63B17A224320142D9"
+  "receipt_sha256": "4764DA322426B12601BCA66468B9D7C276A2716A35AC9B7D22998D8840FAD326"
 }

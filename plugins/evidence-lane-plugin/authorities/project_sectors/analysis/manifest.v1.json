@@ -4,23 +4,23 @@
   "lane_id": "analysis",
   "sqlite_filename": "analysis_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 36,
-  "schema_contract_table_count": 28,
+  "sqlite_table_count": 38,
+  "schema_contract_table_count": 30,
   "members": [
     {
       "path": "authorities/project_sectors/analysis/analysis.dot",
-      "bytes": 18987,
-      "sha256": "D1CA1A4909496CFCC3A55DC3D2A8072A737DB4EA0B3A904A5196BE12F1D315EA"
+      "bytes": 19605,
+      "sha256": "B982CD13A7A44A0F75C0EEE83DB42066031466CA68E7622FD0C08FE1B3030852"
     },
     {
       "path": "authorities/project_sectors/analysis/analysis.mmd",
-      "bytes": 15127,
-      "sha256": "CEEDE785F6BE11D83B36CE72508B7B5D573A3F1733E868D4092C6D379B2E5E96"
+      "bytes": 15626,
+      "sha256": "46167454C69E727988FB464DC4FD3A90DDB729F63AE2257A322A150FA4810948"
     },
     {
       "path": "authorities/project_sectors/analysis/analysis_sector_v001.sqlite",
-      "bytes": 249856,
-      "sha256": "2302901FBA65CD581AC65D58B28FD1B29DD72D3312BFDCAC0D136965E28011E2"
+      "bytes": 520192,
+      "sha256": "CD0C07A07F90CD4C01D89D05B3A543BBF0CE8E289108478CEE44961CBB2DA026"
     },
     {
       "path": "authorities/project_sectors/analysis/builder-contract.schema.json",
@@ -39,8 +39,8 @@
     },
     {
       "path": "authorities/project_sectors/analysis/lane-contract.v1.json",
-      "bytes": 8562,
-      "sha256": "39827A49B430E6D27AB04FECA9686640C6A413BA124A5CA11C50C334EA2DBF93"
+      "bytes": 60134,
+      "sha256": "3B9A68391214A03B15402563F2E1E57828ED966C0672BC3014F6333167E34A1B"
     },
     {
       "path": "authorities/project_sectors/analysis/lane-pointer.schema.json",
@@ -79,8 +79,8 @@
     },
     {
       "path": "authorities/project_sectors/analysis/schema.sql",
-      "bytes": 9946,
-      "sha256": "EA77328CB0941DEAF9D08AEDE2F5D6931899B6BF8EC28201AE9122A11B7F148E"
+      "bytes": 11248,
+      "sha256": "591F83D6A5B0CFF36660DA45BE6B782587DA030054F3286269927D691905BD38"
     },
     {
       "path": "authorities/project_sectors/analysis/sqlite-artifact.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/analysis/tools.json",
-      "bytes": 16314,
-      "sha256": "F0AD5D2F9E9BB1027FA5E03126E51968A0AE430F019A1F8BA6C37CCAFCBABC05"
+      "bytes": 160026,
+      "sha256": "5A13B41ED880B82427BF2932E0800C983B9CB186F4B3354C5A62A5EF139DE6C8"
     },
     {
       "path": "authorities/project_sectors/analysis/tools.schema.json",
@@ -113,10 +113,10 @@
       "sha256": "1065A83FF253BCBCE80270F664D01BA5CFDB38D921AB63FF60CD6C99616B25D5"
     }
   ],
-  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
+  "schema_registry_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "6AB666B587FCB912410D9ACC2EA71CAE6C1BC726EAA748FE64FFA35FF8205552"
+  "receipt_sha256": "8D81DB103C333CBA1AD7F9E8A2447C13D97B3CCC69517A5BCBFD72789B970970"
 }

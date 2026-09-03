@@ -4,20 +4,20 @@
   "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
   "project_root_user_selected": true,
   "workspace_task_selected": true,
-  "restart_preparation_only": true,
+  "restart_helper_present": false,
+  "manual_user_restart_after_terminal_response": true,
+  "install_receipt_is_restart_boundary": true,
   "programmatic_app_stop_allowed": false,
   "turn_drain_utility_present": false,
-  "restart_preparation_installs_plugin": false,
   "tunnel_resolves_project_by_project_id": true,
   "canonical_sources": {
-    "src/evidence_lane_plugin/codex_turn_control.py": "16506A43CFA5EEBFAD92D090245B0E4C4B96A36F7DFFDFCA8623F5828936A64E",
+    "src/evidence_lane_plugin/codex_turn_control.py": "9654EBB6FDA2D6C0C771440EE979E4724F00009D2E6AF22C00DF4EA5BFFDC5E7",
     "src/evidence_lane_plugin/goal_usage.py": "6BB20DFD04B03C1664F5DAB097D601033FFFA44DD8862401DA7EF0996CA35C8F",
-    "src/evidence_lane_plugin/host_plan_rehydration.py": "997B9BCBB644C34B647F873AEDE2FCFA7195D52DFCE834AA1B772A3ED48D7277",
+    "src/evidence_lane_plugin/host_plan_rehydration.py": "A5120AF803A386B4DE9312CCB9A81BC5CF24A09B35FC56C7F451AA1A2C92DE88",
     "src/evidence_lane_plugin/task_attachment_rehydration.py": "C248D7A3DE853FF820216232D98D1C6A2C57DCB53A080BC7813DC86DF0341FE5",
     "scripts/runtime_contract.py": "34B95BC7E9973DA561D779749F321C49D6F90BC33FD9E54A3866985957506003",
-    "scripts/codex_release/install_codex_stable.py": "C08E7BC9EDAC221AA724A6854DFD967DCB60E49D378C4DD32E3E5075D7467311",
-    "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1": "B8E09181960264E406A63E261BC81428451B8D44F33918F6123505450EC46F17",
-    "scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1": "1EC38F084C7ECE386EF89C58256F6DAB6A738D4A2513C9A0875314190CF971CA"
+    "scripts/codex_release/install_codex_stable.py": "E90FA894EA85075CB7C628805F4538ACFA051EB64471D6C81FD9780F31398302",
+    "scripts/windows_tunnel/Install-EvidenceLaneTunnel.ps1": "571F46755E768E5F634C9E4253B082261E0BE60ADB8FEFA2480C65F0774B10F3"
   },
-  "receipt_sha256": "9E6E544F012138D8211527E03FA904FB1F5B1F347FA0299A2CBA1E488F89DEC5"
+  "receipt_sha256": "C23FEC6366A93C307C185D72CAAA6C73F38B27EEF9D0E27F93459AF0119B7AF8"
 }

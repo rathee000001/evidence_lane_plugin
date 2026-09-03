@@ -7,7 +7,7 @@
   "event": "SubagentStop",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_validate.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStop --handler subhook_validate.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStop subhook_validate.py",
     "timeout": 10,
     "statusMessage": "Validating and bounding Evidence Lane hook signal"
@@ -32,5 +32,5 @@
   "adapter_sha256": "66384595963FB09B79472A1E29EE92953D1B7182B5A5C20084410265D8A3FBED",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "4CDDC03B0FC95DDB5F48D1B66915CB088BB1047BE12D861AF8C1FC7DEDB18512"
+  "receipt_sha256": "33BB7A3EFCA163129EE0AB25B3EFCB358C7CAD26FA034318309B5CD680F114A9"
 }

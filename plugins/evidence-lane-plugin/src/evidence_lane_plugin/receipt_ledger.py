@@ -120,6 +120,72 @@ def _decode_json(data: bytes) -> tuple[str | None, dict[str, Any] | None]:
     )
 
 
+def _record_content_reuse_links(
+    connection: sqlite3.Connection,
+    *,
+    receipt_sha256: str,
+    existing_logical_path: str,
+    existing_project_id: str | None,
+    requested_logical_path: str,
+    requested_project_id: str | None,
+    recorded_at: str,
+) -> dict[str, bool]:
+    alias_recorded = existing_logical_path != requested_logical_path
+    project_identity_corrected = bool(
+        requested_project_id and existing_project_id != requested_project_id
+    )
+    links: list[tuple[str, dict[str, Any]]] = []
+    if alias_recorded:
+        alias_metadata = {
+            "schema": "evidence-lane.receipt-logical-alias.v1",
+            "logical_path": requested_logical_path,
+            "canonical_logical_path": existing_logical_path,
+            "project_id": requested_project_id,
+            "recorded_at": recorded_at,
+        }
+        links.append(
+            (
+                "LOGICAL_ALIAS:"
+                + sha256_bytes(requested_logical_path.encode("utf-8"))[:16],
+                alias_metadata,
+            )
+        )
+    if project_identity_corrected:
+        correction_metadata = {
+            "schema": "evidence-lane.receipt-project-identity-correction.v1",
+            "logical_path": requested_logical_path,
+            "prior_project_id": existing_project_id,
+            "corrected_project_id": requested_project_id,
+            "history_rewritten": False,
+            "recorded_at": recorded_at,
+        }
+        links.append(
+            (
+                "PROJECT_ID_CORRECTION:"
+                + sha256_bytes(str(requested_project_id).encode("utf-8"))[:16],
+                correction_metadata,
+            )
+        )
+    for relation, metadata in links:
+        connection.execute(
+            """
+            INSERT OR IGNORE INTO receipt_link(
+                source_receipt_sha256,relation,target_receipt_sha256,metadata_json
+            ) VALUES(?,?,?,?)
+            """,
+            (
+                receipt_sha256,
+                relation,
+                receipt_sha256,
+                canonical_json_bytes(metadata).decode("utf-8"),
+            ),
+        )
+    return {
+        "logical_alias_recorded": alias_recorded,
+        "project_identity_correction_recorded": project_identity_corrected,
+    }
+
+
 def append_receipt_bytes(
     connection: sqlite3.Connection,
     *,
@@ -138,13 +204,23 @@ def append_receipt_bytes(
     if not exact_path or ".." in Path(exact_path).parts:
         raise ValueError("Receipt logical path is invalid.")
     receipt_sha256 = sha256_bytes(data)
+    exact_time = recorded_at or utc_now()
     existing = connection.execute(
-        "SELECT receipt_sha256,byte_count FROM receipt_record WHERE logical_path=?",
+        "SELECT receipt_sha256,byte_count,project_id FROM receipt_record WHERE logical_path=?",
         (exact_path,),
     ).fetchone()
     if existing is not None:
         if str(existing[0]) != receipt_sha256 or int(existing[1]) != len(data):
             raise ValueError("RECEIPT_LOGICAL_PATH_IMMUTABLE_CONFLICT")
+        link_state = _record_content_reuse_links(
+            connection,
+            receipt_sha256=receipt_sha256,
+            existing_logical_path=exact_path,
+            existing_project_id=(str(existing[2]) if existing[2] is not None else None),
+            requested_logical_path=exact_path,
+            requested_project_id=project_id,
+            recorded_at=exact_time,
+        )
         return {
             "schema": RECEIPT_LEDGER_SCHEMA,
             "status": "PASS",
@@ -152,6 +228,50 @@ def append_receipt_bytes(
             "logical_path": exact_path,
             "receipt_sha256": receipt_sha256,
             "byte_count": len(data),
+            **link_state,
+        }
+    existing_content = connection.execute(
+        """
+        SELECT r.logical_path,r.project_id,r.byte_count,
+               c.compression,c.compressed_bytes
+        FROM receipt_record AS r
+        JOIN receipt_content_cas AS c
+          ON c.receipt_sha256=r.receipt_sha256
+        WHERE r.receipt_sha256=?
+        """,
+        (receipt_sha256,),
+    ).fetchone()
+    if existing_content is not None:
+        exact_bytes = decompress_exact_bytes(
+            compression=str(existing_content[3]),
+            payload=bytes(existing_content[4]),
+            expected_size=int(existing_content[2]),
+            expected_sha256=receipt_sha256,
+        )
+        if exact_bytes != data:
+            raise ValueError("RECEIPT_CONTENT_CAS_IMMUTABLE_CONFLICT")
+        link_state = _record_content_reuse_links(
+            connection,
+            receipt_sha256=receipt_sha256,
+            existing_logical_path=str(existing_content[0]),
+            existing_project_id=(
+                str(existing_content[1])
+                if existing_content[1] is not None
+                else None
+            ),
+            requested_logical_path=exact_path,
+            requested_project_id=project_id,
+            recorded_at=exact_time,
+        )
+        return {
+            "schema": RECEIPT_LEDGER_SCHEMA,
+            "status": "PASS",
+            "state": "CONTENT_REUSED",
+            "logical_path": exact_path,
+            "canonical_logical_path": str(existing_content[0]),
+            "receipt_sha256": receipt_sha256,
+            "byte_count": len(data),
+            **link_state,
         }
     payload_json, payload = _decode_json(data)
     schema_id = str(payload.get("schema") or "") if payload is not None else None
@@ -162,7 +282,6 @@ def append_receipt_bytes(
         "SELECT COALESCE(MAX(sequence),0)+1 FROM receipt_record"
     ).fetchone()
     sequence = int(sequence_row[0])
-    exact_time = recorded_at or utc_now()
     compression, compressed_bytes = compress_exact_bytes(data)
     connection.execute(
         """
@@ -275,6 +394,7 @@ def read_receipt(
     )
     try:
         if logical_path:
+            exact_logical_path = str(logical_path).replace("\\", "/").lstrip("/")
             row = connection.execute(
                 """
                 SELECT r.receipt_sha256,r.byte_count,c.compression,c.compressed_bytes
@@ -283,8 +403,38 @@ def read_receipt(
                   ON c.receipt_sha256=r.receipt_sha256
                 WHERE r.logical_path=?
                 """,
-                (str(logical_path).replace("\\", "/").lstrip("/"),),
+                (exact_logical_path,),
             ).fetchone()
+            if row is None:
+                alias_rows = connection.execute(
+                    """
+                    SELECT source_receipt_sha256,metadata_json
+                    FROM receipt_link
+                    WHERE relation LIKE 'LOGICAL_ALIAS:%'
+                    ORDER BY link_id
+                    """
+                ).fetchall()
+                alias_sha256 = next(
+                    (
+                        str(alias_row[0])
+                        for alias_row in alias_rows
+                        if json.loads(str(alias_row[1])).get("logical_path")
+                        == exact_logical_path
+                    ),
+                    None,
+                )
+                if alias_sha256 is not None:
+                    row = connection.execute(
+                        """
+                        SELECT r.receipt_sha256,r.byte_count,
+                               c.compression,c.compressed_bytes
+                        FROM receipt_record AS r
+                        JOIN receipt_content_cas AS c
+                          ON c.receipt_sha256=r.receipt_sha256
+                        WHERE r.receipt_sha256=?
+                        """,
+                        (alias_sha256,),
+                    ).fetchone()
         else:
             row = connection.execute(
                 """

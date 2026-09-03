@@ -7,7 +7,7 @@
   "event": "PermissionRequest",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_transport.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_transport.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_transport.py",
     "timeout": 10,
     "statusMessage": "Observing a bound Evidence Lane permission request"
@@ -32,5 +32,5 @@
   "adapter_sha256": "05283C844BCE39B541912BCC66500B76FC7BD93C8092E064D377F104B8D971A8",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "ED3936C88E3EE4A7A9B439B6868A4DE76E4D1F83D1346C9877FA2378BD5BAE71"
+  "receipt_sha256": "1DC0F5226B156BDB6DA8DD1D23D379344E7DF8D96A1CAB37469B19708099F8C3"
 }

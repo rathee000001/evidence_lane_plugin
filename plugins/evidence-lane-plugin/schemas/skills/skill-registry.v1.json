@@ -7,7 +7,7 @@
       "name": "evi",
       "description": "Evidence Lane registry-driven root router with user-timed State Travel and current registry-derived human entrypoints over every first-class workflow.",
       "skill_path": "skills/evi/SKILL.md",
-      "skill_sha256": "5AEC8A11200B1800BB2FC46C262E20064A306DCE0C01CBF266519FE3502C43D7"
+      "skill_sha256": "1092F1E29C89B5AA35023B9E444794AFF98162CCFAF0FD02A0FF7E5614AEB127"
     },
     {
       "name": "evi-additional-plugin",
@@ -157,8 +157,8 @@
       "name": "evidence-lane-code-lifecycle",
       "description": "Govern one universal Evidence Lane project across user-timed fresh-host State Travel, atomic Boot and locked ENV/UOP Flash, registry-derived public skill entrypoints and sector lanes, bounded linear work, unaccepted candidates, exact-APPROVE Fuse, Plan-stamped logical Rollback, and explicit Exit Boot.",
       "skill_path": "skills/evidence-lane-code-lifecycle/SKILL.md",
-      "skill_sha256": "A4AA856D1FE094F7DF17FF65492F77CB0F5095F0CB40E8C9E186068B1DE102FA"
+      "skill_sha256": "D80EA975B68C802193804FFD4685670D2143B42E043D410134C29D80FFFAEE41"
     }
   ],
-  "receipt_sha256": "321E81E8E139D291D41CB5F2F297B9BD6618599644F4BBB4191E32C27E9500FD"
+  "receipt_sha256": "5C9F1CD562452D4F00ECCE614E4B34F2B764CBB8D399E9912782162BADDD743D"
 }

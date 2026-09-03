@@ -85,7 +85,7 @@
     "internal_support_bindings": {
       "schema": "evidence-lane.internal-sdk-support-bindings.v1",
       "status": "PASS",
-      "component_count": 6,
+      "component_count": 8,
       "components": [
         {
           "component": "env_uop_graph",
@@ -137,6 +137,17 @@
           "public_action": false
         },
         {
+          "component": "legacy_learning_normalization",
+          "owner_module": "agent_learning",
+          "functions": [
+            "migrate_legacy_learning_files"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.legacy_learning_normalization"
+          ],
+          "public_action": false
+        },
+        {
           "component": "live_root_normalization",
           "owner_module": "storage_connectors",
           "functions": [
@@ -145,6 +156,17 @@
           ],
           "function_modules": [
             "evidence_lane_plugin.live_root_normalization"
+          ],
+          "public_action": false
+        },
+        {
+          "component": "project_runtime_quarantine",
+          "owner_module": "storage_connectors",
+          "functions": [
+            "quarantine_project_runtime_history"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.project_runtime_quarantine"
           ],
           "public_action": false
         },
@@ -164,9 +186,9 @@
       ],
       "all_components_have_one_sdk_owner": true,
       "support_components_inflate_public_action_count": false,
-      "receipt_sha256": "991F7C7B40A28148EE9D0177AC695E620422C11C82485B1152CF7B4E2D857D11"
+      "receipt_sha256": "F045EB3E14A5E972024789F51A359F5D24E53F40F599C52A17D278A94241C226"
     },
-    "receipt_sha256": "D78955B5BB11E1442996090A9A38A961ED044DCA37D4F46791601153E27BB949"
+    "receipt_sha256": "C9EEE7B346F762DC3D17F7E786BC9AF9FD6C49772549B0F94EA928305CA04C34"
   },
   "runtime_workflow_sdk_registry": {
     "schema": "evidence-lane.runtime-workflow-sdk-registry.v1",
@@ -585,7 +607,7 @@
       "internal_support_bindings": {
         "schema": "evidence-lane.internal-sdk-support-bindings.v1",
         "status": "PASS",
-        "component_count": 6,
+        "component_count": 8,
         "components": [
           {
             "component": "env_uop_graph",
@@ -637,6 +659,17 @@
             "public_action": false
           },
           {
+            "component": "legacy_learning_normalization",
+            "owner_module": "agent_learning",
+            "functions": [
+              "migrate_legacy_learning_files"
+            ],
+            "function_modules": [
+              "evidence_lane_plugin.legacy_learning_normalization"
+            ],
+            "public_action": false
+          },
+          {
             "component": "live_root_normalization",
             "owner_module": "storage_connectors",
             "functions": [
@@ -645,6 +678,17 @@
             ],
             "function_modules": [
               "evidence_lane_plugin.live_root_normalization"
+            ],
+            "public_action": false
+          },
+          {
+            "component": "project_runtime_quarantine",
+            "owner_module": "storage_connectors",
+            "functions": [
+              "quarantine_project_runtime_history"
+            ],
+            "function_modules": [
+              "evidence_lane_plugin.project_runtime_quarantine"
             ],
             "public_action": false
           },
@@ -664,9 +708,9 @@
         ],
         "all_components_have_one_sdk_owner": true,
         "support_components_inflate_public_action_count": false,
-        "receipt_sha256": "991F7C7B40A28148EE9D0177AC695E620422C11C82485B1152CF7B4E2D857D11"
+        "receipt_sha256": "F045EB3E14A5E972024789F51A359F5D24E53F40F599C52A17D278A94241C226"
       },
-      "receipt_sha256": "D78955B5BB11E1442996090A9A38A961ED044DCA37D4F46791601153E27BB949"
+      "receipt_sha256": "C9EEE7B346F762DC3D17F7E786BC9AF9FD6C49772549B0F94EA928305CA04C34"
     },
     "public_action_and_env_uop_planes_separate": true,
     "missing_public_actions": [],
@@ -675,7 +719,7 @@
     "host_skill_auto_selection_is_prompt_trigger": true,
     "sdk_claims_pre_reasoning_prompt_interception": false,
     "counts_are_derived_not_fixed": true,
-    "receipt_sha256": "46C64256C3223F60AE345644607692A7944EB8D778C4A1BFEBDB8046A7BC7ADD"
+    "receipt_sha256": "3DD469AE93F2791157AA35DFA5631D2A3AD6C7A561F15DB50559281184C67C66"
   },
   "public_action_and_env_uop_ai_action_planes_separate": true,
   "env_uop_operations_added_to_public_action_count": 0,
@@ -1915,7 +1959,7 @@
       {
         "capability": "local_install",
         "status": "CURRENT_ROUTE",
-        "current_route": "PLUGIN_CREATOR_STAGE_MATERIALIZE_PREPARE_TERMINAL_USER_RESTART_REATTACH",
+        "current_route": "PLUGIN_CREATOR_STAGE_MATERIALIZE_TERMINAL_USER_RESTART_REATTACH",
         "owner": "plugin-creator",
         "schema": "evidence-lane.codex-stable-installation.v2",
         "public_tools": [],
@@ -1952,9 +1996,9 @@
       {
         "capability": "restart_reattachment",
         "status": "CURRENT_ROUTE",
-        "current_route": "TERMINAL_SAFE_PREPARATION_THEN_USER_EXACT_CHANNEL_RESTART",
-        "owner": "Prepare-EvidenceLaneCodexRestart.ps1",
-        "schema": "evidence-lane.codex-terminal-safe-restart-preparation.v1",
+        "current_route": "USER_MANUAL_RESTART_THEN_NATIVE_EXACT_TASK_READBACK",
+        "owner": "task_attachment_rehydration.py",
+        "schema": "evidence-lane.task-attachment-rehydration.v1",
         "public_tools": [],
         "plan_families": [
           "RESTART",
@@ -1982,7 +2026,7 @@
           "NO_HIDDEN_OVERLAY"
         ],
         "sdk_governance": {
-          "implementation_class": "SDK_GOVERNED_PREPARATION_ONLY_HOST_ADAPTER",
+          "implementation_class": "SDK_GOVERNED_POST_RESTART_READBACK_ADAPTER",
           "behavior_owner": "INTERNAL_SDK",
           "outer_business_logic_allowed": false,
           "outer_adapter_may_reason_about_lifecycle": false
@@ -3258,7 +3302,7 @@
     "all_public_tools_have_one_route": true,
     "obsolete_execution_allowed": false,
     "fallback_to_historical_route_allowed": false,
-    "registry_sha256": "CE4227131F8874568011B38B6A11EE578CECB709CA804E4E1BAF3A07060B1372"
+    "registry_sha256": "84A7854C142BFC246A7FF5230464415016DA15980F267786FF70B3159754B192"
   },
   "schema_authority": {
     "canonical_path": "schemas/public-action-schemas.v001.json",
@@ -11716,5 +11760,5 @@
       "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D"
     }
   ],
-  "catalog_sha256": "158D028C792B941649B04A6693F56BD1143EF9AA59266C8D541970204A779D0F"
+  "catalog_sha256": "18BE3FEECBCE8028F97D850EE1B367D7354E588CEA178718A296B82CD2B19A2B"
 }

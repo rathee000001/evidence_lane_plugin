@@ -136,9 +136,8 @@ EXPECTED_STABLE_ACTIVATION_GATE = {
         "scripts/codex_release/seal_external_release_receipts.py"
     ),
     "stable_install_command": "scripts/codex_release/install_codex_stable.py",
-    "stable_update_helper": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
-    "install_completed_before_restart_helper": True,
-    "restart_helper_installs_plugin": False,
+    "restart_helper_present": False,
+    "install_receipt_is_restart_boundary": True,
     "stable_update_reopens_same_bound_host_app": False,
     "stable_update_requires_user_restart_after_terminal_response": True,
     "stable_update_rebinds_exact_task_via_native_binding": True,
@@ -309,7 +308,6 @@ REQUIRED_MEMBERS = frozenset(
         "requirements.lock.txt",
         "requirements.toolchain.lock.txt",
         "scripts/codex-release-channel.json",
-        "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
         "scripts/codex_release/accept_codex_stable.py",
         "scripts/codex_release/build_codex_exact_commit_package.py",
         "scripts/codex_release/install_codex_stable.py",
@@ -1183,6 +1181,7 @@ def _package_surface_coherence(plugin_root: Path) -> dict[str, Any]:
                 "lane_id": lane_id,
                 "schema_id": schema_asset["schema_id"],
                 "template_role": "INSTALLED_EMPTY_SCHEMA_TEMPLATE",
+                "tfidf_execution": "BOUNDED_QUERY_TIME_OVER_FTS_CANDIDATES",
             }
             or source_count != 0
             or contract.get("lane")

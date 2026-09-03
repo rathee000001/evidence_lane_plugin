@@ -27,7 +27,11 @@ MAX_HISTORY_TREE_ENTRIES = 2_000_000
 MAX_HISTORY_UNIQUE_BLOBS = 100_000
 MAX_HISTORY_SINGLE_BLOB_BYTES = 64 * 1024 * 1024
 MAX_HISTORY_TOTAL_BLOB_BYTES = 512 * 1024 * 1024
-MAX_HISTORY_OPERATION_SECONDS = 900
+# Full-history intake enumerates every reachable commit/tree, streams every
+# previously unseen blob through source policy, then builds content-addressed
+# chunks and FTS.  Keep a hard bound, but allow the measured large-repository
+# route to finish without weakening any byte/count ceiling.
+MAX_HISTORY_OPERATION_SECONDS = 1_800
 MAX_GIT_COMMAND_STDOUT_BYTES = 256 * 1024 * 1024
 MAX_GIT_COMMAND_STDERR_BYTES = 2 * 1024 * 1024
 
@@ -348,9 +352,9 @@ def _read_blobs(
     blob_shas: list[str],
     *,
     deadline: float,
-) -> dict[str, bytes]:
+) -> tuple[dict[str, bytes], set[str]]:
     if not blob_shas:
-        return {}
+        return {}, set()
     process = subprocess.Popen(  # nosec B603
         [resolve_git_executable(root), "cat-file", "--batch"],
         cwd=root,
@@ -368,7 +372,9 @@ def _read_blobs(
     stdin = cast(BinaryIO, process.stdin)
     stdout = cast(BinaryIO, process.stdout)
     values: dict[str, bytes] = {}
-    total_bytes = 0
+    excluded_blob_shas: set[str] = set()
+    retained_total_bytes = 0
+    completed = False
     try:
         for expected_sha in blob_shas:
             require(
@@ -400,15 +406,6 @@ def _read_blobs(
                 declared_bytes=size,
                 max_bytes=MAX_HISTORY_SINGLE_BLOB_BYTES,
             )
-            total_bytes += size
-            require(
-                total_bytes <= MAX_HISTORY_TOTAL_BLOB_BYTES,
-                "GIT_HISTORY_TOTAL_BLOB_BUDGET_EXCEEDED",
-                "Git history exceeded its aggregate new-blob byte budget.",
-                status="BLOCKED",
-                total_bytes=total_bytes,
-                max_bytes=MAX_HISTORY_TOTAL_BLOB_BYTES,
-            )
             data = stdout.read(size)
             separator = stdout.read(1)
             require(
@@ -420,10 +417,35 @@ def _read_blobs(
                 expected_bytes=size,
                 actual_bytes=len(data),
             )
+            if (
+                content_exclusion_reason(data, exclude_opaque_binary=True)
+                is not None
+            ):
+                excluded_blob_shas.add(expected_sha)
+                continue
+            retained_total_bytes += size
+            require(
+                retained_total_bytes <= MAX_HISTORY_TOTAL_BLOB_BYTES,
+                "GIT_HISTORY_TOTAL_BLOB_BUDGET_EXCEEDED",
+                "Git history exceeded its aggregate retained safe-blob byte budget.",
+                status="BLOCKED",
+                total_bytes=retained_total_bytes,
+                max_bytes=MAX_HISTORY_TOTAL_BLOB_BYTES,
+                excluded_blob_count=len(excluded_blob_shas),
+            )
             values[expected_sha] = data
+        completed = True
     finally:
-        stdin.close()
         try:
+            stdin.close()
+        except OSError:
+            pass
+        if not completed and process.poll() is None:
+            process.terminate()
+        try:
+            process.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            process.kill()
             process.wait(timeout=30)
         finally:
             if process.stdout is not None:
@@ -437,7 +459,7 @@ def _read_blobs(
         status="FAIL",
         returncode=process.returncode,
     )
-    return values
+    return values, excluded_blob_shas
 
 
 def index_git_history(
@@ -510,12 +532,11 @@ def index_git_history(
         blob_count=len(first_commit_for_blob),
         max_blobs=MAX_HISTORY_UNIQUE_BLOBS,
     )
-    blob_bytes = _read_blobs(root, missing_blobs, deadline=deadline)
-    excluded_blob_shas = {
-        blob_sha
-        for blob_sha, data in blob_bytes.items()
-        if content_exclusion_reason(data, exclude_opaque_binary=True) is not None
-    }
+    blob_bytes, excluded_blob_shas = _read_blobs(
+        root,
+        missing_blobs,
+        deadline=deadline,
+    )
     safe_missing_blobs = [
         blob_sha for blob_sha in missing_blobs if blob_sha not in excluded_blob_shas
     ]
@@ -738,6 +759,7 @@ def index_git_history(
         "new_blobs": len(missing_blobs),
         "safe_new_blobs": len(safe_missing_blobs),
         "excluded_secret_blobs": len(excluded_blob_shas),
+        "excluded_unsafe_or_opaque_blobs": len(excluded_blob_shas),
         "reused_blobs": len(set(first_commit_for_blob) & existing_blobs),
         "chunk_cas_created": chunks_created,
         "chunk_cas_reused": chunks_reused,

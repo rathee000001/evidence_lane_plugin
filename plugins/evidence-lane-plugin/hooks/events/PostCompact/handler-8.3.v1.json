@@ -7,7 +7,7 @@
   "event": "PostCompact",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_transport.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_transport.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_transport.py",
     "timeout": 10,
     "statusMessage": "Rehydrating Evidence Lane after compaction"
@@ -33,5 +33,5 @@
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "62DD7FF9095434BCED19001E641DE54632C31C3B7EF2D7E61B08F08D5FAE58AF"
+  "receipt_sha256": "183B1C43A951595C20E5D45F2AB6BA36B0797A9754DAC5FDAEC2D96DB13D025F"
 }

@@ -177,12 +177,13 @@ project PV workflow.
 Only the human command `MARK GOAL COMPLETE` may complete a governed Goal, with
 `COMPLETE_THIS_TASK_AND_STATE_TRAVEL` or `COMPLETE_FULLY`. HIL, candidate,
 tests, Plan/task state, automation, pause, and stall have no Goal-completion
-authority. The package ships only maintainer-scoped install, drain, and dumb
-same-task restart helpers. A user receives one plugin version and, only when a
+authority. The package ships the maintainer-scoped installer and hidden tunnel
+manager, but no restart helper; the sealed install receipt is followed by the
+user's manual app restart. A user receives one plugin version and, only when a
 measured host-tool gap requires it, one matching tunnel. There is no separate
 governed-user Goal-recovery helper/service and no retained executable fallback
 helper route. Immutable historical receipts remain outside the installed
-runtime. No helper may restart, reload, or navigate Codex during State Travel.
+runtime. No executable may restart, reload, or navigate Codex during State Travel.
 
 ## Codex host and storage matrix
 

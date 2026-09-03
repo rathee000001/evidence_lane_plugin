@@ -18,6 +18,7 @@ from typing import Any, Protocol, cast
 from .errors import require
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .project_authority import resolved_chat_lineage_root
+from .project_root_binding import validate_project_root_binding
 from .redaction import contains_secret
 
 HOST_ENTRY_ENVELOPE_SCHEMA = "evidence-lane.host-entry-envelope.v2"
@@ -153,15 +154,11 @@ def _connect(project_root: Path) -> sqlite3.Connection:
 
 
 def _project_root(project_root: str | Path, *, project_id: str) -> Path:
-    root = Path(project_root).resolve()
-    require(
-        root.name == project_id,
-        "HOST_ENTRY_PROJECT_ROOT_MISMATCH",
-        "The host-entry project root does not match the exact project identity.",
-        status="BLOCKED",
+    return validate_project_root_binding(
+        project_root,
         project_id=project_id,
+        error_code="HOST_ENTRY_PROJECT_ROOT_MISMATCH",
     )
-    return root
 
 
 def derive_host_entry_authority_heads(

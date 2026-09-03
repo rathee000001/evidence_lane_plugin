@@ -4,8 +4,8 @@
   "lane_id": "research",
   "sqlite_filename": "research_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 37,
-  "schema_contract_table_count": 29,
+  "sqlite_table_count": 39,
+  "schema_contract_table_count": 31,
   "members": [
     {
       "path": "authorities/project_sectors/research/builder-contract.schema.json",
@@ -24,8 +24,8 @@
     },
     {
       "path": "authorities/project_sectors/research/lane-contract.v1.json",
-      "bytes": 8638,
-      "sha256": "4834E262929D51B25D7D3EF3E9BE1814EFC28D1B4C5117A08F9C82420AE10F4B"
+      "bytes": 62252,
+      "sha256": "352EC7A8DF4B24943183D819C112742D54A09BCF35B4A10CE92E53894C774AAA"
     },
     {
       "path": "authorities/project_sectors/research/lane-pointer.schema.json",
@@ -64,23 +64,23 @@
     },
     {
       "path": "authorities/project_sectors/research/research.dot",
-      "bytes": 19622,
-      "sha256": "DEC95C9F02C8D58E10CBBC42BC290F08716B8C13A8998EF35BD35294E465661C"
+      "bytes": 20243,
+      "sha256": "64C3607473334946CE91EC7C4D7BA479027A5E03D8B857CFC01D29704BB4BFA0"
     },
     {
       "path": "authorities/project_sectors/research/research.mmd",
-      "bytes": 15597,
-      "sha256": "4A88609B8BF4C9777C26414F6296D610EA9F29A9EC7472FB3D2DAA24FD63A0A7"
+      "bytes": 16099,
+      "sha256": "BD8541423BA9FCAAD6DC5F147FD4DA5D28D77239E15CACAFAC709F0A0F8A2F18"
     },
     {
       "path": "authorities/project_sectors/research/research_sector_v001.sqlite",
-      "bytes": 253952,
-      "sha256": "0575EEBD24681872BB666305A821C4A56DDDFDC350B41EC4E7DC61EAB4D60BD2"
+      "bytes": 548864,
+      "sha256": "8CFCC1366DFDD73D8CF531640A4BD01C4FB3C563703BD7B49BA970573AB87837"
     },
     {
       "path": "authorities/project_sectors/research/schema.sql",
-      "bytes": 10214,
-      "sha256": "F631CA146367C2ED27DA257899511230874B60F29FF55DCC6515A419410BA689"
+      "bytes": 11516,
+      "sha256": "2B637094E474B19C6B79F4117A592E6524D3689C8856B5BA5E1CF4DFB9118EA1"
     },
     {
       "path": "authorities/project_sectors/research/sqlite-artifact.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/research/tools.json",
-      "bytes": 14992,
-      "sha256": "391F4C825AD1A0A759FF92C1780D1E55316A434BA5A290F1F97308C685B9504A"
+      "bytes": 167901,
+      "sha256": "B2D981DB4B10851D3D3D0B183509C4A659BCA3F6733B5FE16274A791F45672CB"
     },
     {
       "path": "authorities/project_sectors/research/tools.schema.json",
@@ -113,10 +113,10 @@
       "sha256": "B9D5D9758D091A0D74A6165EB01BC86BA9A791A0CA4AB357E05D5E55AEBF672C"
     }
   ],
-  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
+  "schema_registry_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "9BC1433C640EDEF368AFBBEA4895F5A78E83F94B1CD5460AB97D197A617AADD3"
+  "receipt_sha256": "32257D1A9BC455B823B0363EF1E6642E8AE2D04A142A6BE42D3C1874BDC127D9"
 }

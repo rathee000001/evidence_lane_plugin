@@ -23,11 +23,16 @@ CORE_SQLITE_AUTHORITY_TOOLS = {
     "LlamaIndex_SQLite_indexer",
     "LangGraph_Mermaid_engine",
     "Python_Graphviz_DOT_engine",
+    "Graphviz_dot",
+    "rustworkx",
     "hashlib_pathlib",
 }
 CORE_NON_SQLITE_AUTHORITY_TOOLS = {
     "hashlib_pathlib",
-    "Python_structural_parser",
+    "LangGraph_Mermaid_engine",
+    "Python_Graphviz_DOT_engine",
+    "Graphviz_dot",
+    "rustworkx",
 }
 
 
@@ -192,14 +197,40 @@ def main() -> int:
         core_tools = core_tools & tool_names
         graph = tools.get("graph_pipeline_receipt")
         index = tools.get("llama_index_refresh_receipt")
+        sqlite_execution = tools.get("sqlite_execution_receipt")
+        graph_native = (
+            dict(graph.get("native_graphviz_validation") or {})
+            if isinstance(graph, dict)
+            else {}
+        )
+        graph_analysis = (
+            dict(graph.get("graph_analysis") or {})
+            if isinstance(graph, dict)
+            else {}
+        )
         if sqlite_authority and not (
             isinstance(graph, dict)
             and graph.get("status") == "PASS"
             and isinstance(index, dict)
             and index.get("status") == "PASS"
+            and isinstance(sqlite_execution, dict)
+            and sqlite_execution.get("status") == "PASS"
+            and sqlite_execution.get("engine") == "APSW"
+            and sqlite_execution.get("apsw_full_api_available") is True
+            and graph_native.get("status") == "PASS"
+            and graph_analysis.get("status") == "PASS"
         ):
             raise RuntimeError(
                 f"AUTHORITY_CORE_EXECUTION_EVIDENCE_MISSING:{authority_id}"
+            )
+        if not sqlite_authority and not (
+            isinstance(graph, dict)
+            and graph.get("status") == "PASS"
+            and graph_native.get("status") == "PASS"
+            and graph_analysis.get("status") == "PASS"
+        ):
+            raise RuntimeError(
+                f"AUTHORITY_GRAPH_EXECUTION_EVIDENCE_MISSING:{authority_id}"
             )
         authority_rows[authority_id] = {
             "authority_id": authority_id,
@@ -216,6 +247,15 @@ def main() -> int:
             else None,
             "index_receipt_sha256": index.get("receipt_sha256")
             if isinstance(index, dict)
+            else None,
+            "sqlite_execution_receipt_sha256": sqlite_execution.get(
+                "receipt_sha256"
+            )
+            if isinstance(sqlite_execution, dict)
+            else None,
+            "native_graphviz_receipt_sha256": graph_native.get("receipt_sha256"),
+            "graph_analysis_sha256": graph.get("graph_analysis_sha256")
+            if isinstance(graph, dict)
             else None,
         }
         authority_tools_by_id[authority_id] = bound_tools

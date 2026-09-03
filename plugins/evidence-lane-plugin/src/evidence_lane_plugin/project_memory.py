@@ -30,6 +30,7 @@ from .hashing import (
 from .lanes import CANONICAL_LANE_IDS
 from .package_root import resolve_plugin_root
 from .project_authority import resolved_plan_runtime_path
+from .project_root_binding import validate_project_root_binding
 from .redaction import contains_secret
 
 MEMORY_AUTHORITY_SCHEMA = "evidence-lane.project-memory-authority.v1"
@@ -149,15 +150,11 @@ def _timestamp(value: Any, *, field: str) -> str:
 
 
 def _project_root(project_root: str | Path, *, project_id: str) -> Path:
-    root = Path(project_root).resolve()
-    require(
-        root.name == project_id,
-        "MEMORY_PROJECT_ROOT_MISMATCH",
-        "The Project Memory root does not match the exact project identity.",
-        status="MISMATCH",
+    return validate_project_root_binding(
+        project_root,
         project_id=project_id,
+        error_code="MEMORY_PROJECT_ROOT_MISMATCH",
     )
-    return root
 
 
 def _memory_root(root: Path) -> Path:

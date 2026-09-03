@@ -181,7 +181,7 @@ def test_installed_mcp_stdio_catalog_is_ready_after_explicit_bootstrap(
     listed = list(tools["result"]["tools"])
     assert initialize["result"]["serverInfo"] == {
         "name": "Evidence Lane",
-        "version": "3.0.0",
+        "version": _json(".codex-plugin/plugin.json")["version"],
         "icons": [
             {
                 "src": "https://evidencelane.org/evidence-lane-icon.png",
@@ -260,7 +260,9 @@ def test_installed_sdk_contains_internal_env_uop_and_outer_routing_planes() -> N
         "env_uop_tool_routing",
         "evaluation_toolchain",
         "github_toolchain",
+        "legacy_learning_normalization",
         "live_root_normalization",
+        "project_runtime_quarantine",
         "runtime_api",
     }
 
@@ -417,12 +419,12 @@ def test_installed_hidden_runtime_contract_has_no_project_path_default() -> None
     runtime = (PLUGIN / "scripts" / "runtime_contract.py").read_text(encoding="utf-8")
     restart = (
         PLUGIN / "scripts" / "codex_release" / "Prepare-EvidenceLaneCodexRestart.ps1"
-    ).read_text(encoding="utf-8")
+    )
     assert ".codex" in runtime and "plugins" in runtime and "runtime" in runtime
     assert "EVIDENCE_LANE_RUNTIME_CONTROL_ROOT" in runtime
     assert "EVIDENCE_LANE_DATA_ROOT" not in runtime
     assert "EvidenceLanePV" not in runtime
-    assert "EvidenceLanePV" not in restart
+    assert not restart.exists()
 
 
 def test_installed_toolchain_links_every_requirement_and_license_to_tunnel() -> None:

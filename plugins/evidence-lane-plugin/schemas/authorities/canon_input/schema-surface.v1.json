@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "canon_input",
   "authority_root": "authorities/canon_input",
-  "authority_manifest_sha256": "6424F74F749C5A131C930925B4BC002EEF38C0445C01242E22D8347BFC294A61",
+  "authority_manifest_sha256": "F6FB14E7362B3F0680DC4C3FE93FD7E3AEACC12CE4023CF6157DCAE8176710A6",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -45,7 +45,7 @@
     {
       "path": "authorities/canon_input/runtime-binding.schema.json",
       "bytes": 592,
-      "sha256": "92B86A9E73DF4B334530E6A539035FCE7A018F1E877313803E1B30F94E8E578C"
+      "sha256": "57EF6AF1110ADF8F47AD078C788627CADE1E3EFFCC5510DE909E19C188C203FE"
     },
     {
       "path": "authorities/canon_input/schema.sql",
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "6A5B0520C4EAA8BFA31ED99BC512707FD5231F9C225514828464112F9D41C5E6"
+  "receipt_sha256": "7005223A1B7594FEC3076AD3C4A62A35D752D023FA0E3A3A8F7098189779EDD9"
 }

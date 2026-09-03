@@ -8,28 +8,28 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_validate.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_validate.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_validate.py",
           "timeout": 3,
           "statusMessage": "Validating and bounding Evidence Lane hook signal"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_seal.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_seal.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_seal.py",
           "timeout": 3,
           "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_transport.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_transport.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_transport.py",
           "timeout": 3,
           "statusMessage": "Flushing Evidence Lane lifecycle boundary"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_emit.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_emit.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_emit.py",
           "timeout": 3,
           "statusMessage": "Verifying and emitting Evidence Lane hook result"
@@ -42,22 +42,22 @@
     {
       "display_id": "11.1",
       "path": "hooks/events/SessionEnd/handler-11.1.v1.json",
-      "sha256": "3F6E07A9BA6BDA07A7123492F6F5C453DD693951110CE0BD845FF8DF4F96F9C7"
+      "sha256": "B01133321D43C65C704A657937367DDF4F3AD5FE672516B27612863B84B7E640"
     },
     {
       "display_id": "11.2",
       "path": "hooks/events/SessionEnd/handler-11.2.v1.json",
-      "sha256": "547AC3BB0C293C8CF67BA3C4FC963A40F8B045331E6B6488FE4DD6B114BDE0DA"
+      "sha256": "00D48A64810C911F0F22B51155A3538301D6CBB14FDA9BC1E121B8CD483B8D9E"
     },
     {
       "display_id": "11.3",
       "path": "hooks/events/SessionEnd/handler-11.3.v1.json",
-      "sha256": "D8ED346606AB8ECB26E65CE011B3D4B5022695355A36C9ABCD79A27979289C9E"
+      "sha256": "3A4DD3394516C57076B9490D3151321C036FE7E5A62E84F0FEA358C491263A79"
     },
     {
       "display_id": "11.4",
       "path": "hooks/events/SessionEnd/handler-11.4.v1.json",
-      "sha256": "F2DC0517BC42598A0C26527AB40AD4FCAC9521420A8432891DF408FE3708AB5A"
+      "sha256": "07CCB2FE3B851AB7165992F6CD70893777C256083810F3BCB5C1B30C4BA5C4AC"
     }
   ],
   "adapter": "hooks/lifecycle_boundary.py",
@@ -75,5 +75,5 @@
   "workflow_contract_sha256": "06D747FA7B497048205FE80F1EDF4399BFABF9512B30F57EB995EAF3C6B56011",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "98C80187AD54A86552726BB98CD76E9DB8C735D3B1DDD628D1BBEC4E962FE2BD"
+  "receipt_sha256": "E9CF31531CF68C1CFA52A4394FD125E3F605F6168146FA386C598A80818FD761"
 }

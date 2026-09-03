@@ -279,6 +279,38 @@ CREATE TABLE tfidf_vector(
             PRIMARY KEY(chunk_id, term)
         ) STRICT;
 
+CREATE TABLE tool_execution_receipt(
+            tool TEXT PRIMARY KEY REFERENCES tool_route_contract(tool)
+                ON DELETE CASCADE,
+            phases_json TEXT NOT NULL,
+            eligibility_state TEXT NOT NULL,
+            selection_state TEXT NOT NULL,
+            condition_state TEXT NOT NULL,
+            execution_state TEXT NOT NULL,
+            evidence TEXT NOT NULL,
+            network_call_performed INTEGER NOT NULL
+                CHECK(network_call_performed IN (0, 1)),
+            credential_value_read INTEGER NOT NULL
+                CHECK(credential_value_read IN (0, 1)),
+            recorded_at TEXT NOT NULL,
+            row_receipt_sha256 TEXT NOT NULL
+        ) STRICT;
+
+CREATE TABLE tool_route_contract(
+            tool TEXT PRIMARY KEY,
+            role_class TEXT NOT NULL,
+            requirement TEXT NOT NULL,
+            action_classes_json TEXT NOT NULL,
+            primary_json TEXT NOT NULL,
+            fallback_json TEXT NOT NULL,
+            implementation_owner TEXT NOT NULL,
+            runs_only_when_selected INTEGER NOT NULL
+                CHECK(runs_only_when_selected IN (0, 1)),
+            runtime_state TEXT NOT NULL,
+            runtime_evidence_sha256 TEXT NOT NULL,
+            route_receipt_sha256 TEXT NOT NULL
+        ) STRICT;
+
 CREATE INDEX authority_index_node_source_idx
         ON authority_index_node(source_id, ordinal);
 

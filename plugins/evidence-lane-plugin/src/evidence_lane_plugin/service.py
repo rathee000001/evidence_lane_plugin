@@ -1328,17 +1328,42 @@ class EvidenceLaneService:
             "The common public entry boundary requires one exact action name.",
             status="BLOCKED",
         )
-        flash = self.flash_authority.status()
+        safe_detach_projection_drift: str | None = None
+        try:
+            flash = self.flash_authority.status()
+        except EvidenceLaneError as error:
+            if exact_tool != "session_close" or error.code not in {
+                "SESSION_FLASH_PROJECTION_BUILD_CHANGED",
+                "SESSION_FLASH_SOURCE_AUTHORITY_CHANGED",
+                "SESSION_FLASH_BUILD_IDENTITY_CHANGED",
+                "SESSION_FLASH_AUTHORITY_CHANGED",
+            }:
+                raise
+            flash = {}
+            safe_detach_projection_drift = error.code
         env_uop: dict[str, str] | None = None
-        if exact_project or lifecycle:
-            env_uop = derive_host_entry_env_uop(flash)
-        else:
-            try:
-                env_uop = derive_host_entry_env_uop(flash)
-            except EvidenceLaneError:
-                # Global diagnostic/catalog reads must truthfully report an
-                # inactive Flash instead of becoming impossible to invoke.
+        try:
+            if safe_detach_projection_drift is not None:
                 env_uop = None
+            elif exact_project or lifecycle:
+                env_uop = derive_host_entry_env_uop(flash)
+            else:
+                try:
+                    env_uop = derive_host_entry_env_uop(flash)
+                except EvidenceLaneError:
+                    # Global diagnostic/catalog reads must truthfully report an
+                    # inactive Flash instead of becoming impossible to invoke.
+                    env_uop = None
+        except EvidenceLaneError as error:
+            if exact_tool != "session_close" or error.code not in {
+                "SESSION_FLASH_PROJECTION_BUILD_CHANGED",
+                "SESSION_FLASH_SOURCE_AUTHORITY_CHANGED",
+                "SESSION_FLASH_BUILD_IDENTITY_CHANGED",
+                "SESSION_FLASH_AUTHORITY_CHANGED",
+            }:
+                raise
+            safe_detach_projection_drift = error.code
+            env_uop = None
         runtime_attestation = dict(self.sessions._runtime_instance_attestation)
         require(
             runtime_attestation.get("status") == "PASS"
@@ -1408,6 +1433,7 @@ class EvidenceLaneService:
                     and bool(active_task_id)
                     and active_rows[0].get("task_id") == active_task_id
                 )
+                safe_session_detach_entry = exact_tool == "session_close"
                 arguments = dict(invocation_arguments or {})
                 preapproval_correction_entry = False
                 if (
@@ -1457,9 +1483,11 @@ class EvidenceLaneService:
                         == sha256_bytes(canonical_json_bytes(backlog))
                     )
                 require(
-                    exact_active_task_bound or preapproval_correction_entry,
+                    exact_active_task_bound
+                    or preapproval_correction_entry
+                    or safe_session_detach_entry,
                     "PUBLIC_ENTRY_ACTIVE_TASK_BINDING_MISMATCH",
-                    "The common entry boundary requires the exact sole active Plan task.",
+                    "The common entry boundary requires the exact sole active Plan task, except for an exact safe session detach.",
                     status="MISMATCH",
                     active_task_id=active_task_id or None,
                     active_row_task_ids=[row.get("task_id") for row in active_rows],
@@ -1486,9 +1514,13 @@ class EvidenceLaneService:
                 binding.update(
                     {
                         "binding_mode": (
-                            "EXACT_PREAPPROVAL_DONE_CORRECTION_ENTRY"
-                            if preapproval_correction_entry
-                            else "EXACT_ACTIVE_TASK_ENTRY"
+                            "EXACT_SAFE_SESSION_DETACH_ENTRY"
+                            if safe_session_detach_entry
+                            else (
+                                "EXACT_PREAPPROVAL_DONE_CORRECTION_ENTRY"
+                                if preapproval_correction_entry
+                                else "EXACT_ACTIVE_TASK_ENTRY"
+                            )
                         ),
                         "governed_session_id": exact_session,
                         "active_task_id": active_task_id,
@@ -1527,6 +1559,7 @@ class EvidenceLaneService:
             "flash_receipt_sha256": (
                 env_uop["flash_receipt_sha256"] if env_uop is not None else None
             ),
+            "safe_detach_projection_drift": safe_detach_projection_drift,
             "runtime_instance_attestation_receipt_sha256": runtime_attestation[
                 "receipt_sha256"
             ],
@@ -2480,7 +2513,7 @@ class EvidenceLaneService:
                     "authority_merge_allowed": False,
                 },
                 "live_root_freshness": working_freshness,
-                "fallback_authority": "LIVE_ROOT_ALL_18_SECTORS",
+                "fallback_authority": "LIVE_ROOT_CURRENT_FIRED_SECTORS",
                 "accepted_archive_opened": False,
                 "accepted_archive_queried": False,
                 "accepted_pointer_used_as_baseline_only": True,
@@ -2663,7 +2696,7 @@ class EvidenceLaneService:
         *,
         task_id: str,
     ) -> dict[str, Any]:
-        """Refresh all canonical working lanes while preserving the Git baseline."""
+        """Refresh current fired working lanes while preserving the Git baseline."""
 
         exact_task_id = str(task_id or "").strip()
         session = self.sessions.load(project_id, session_id)
@@ -4256,10 +4289,12 @@ class EvidenceLaneService:
             )
             route = self.store.inspect_project_route(project_id)
             if route["resolved_project_root"] == resolved_authority_root:
+                skeleton = self.store.ensure_project_authority_skeleton(project_id)
                 return {
                     "status": "PASS",
                     "state": "REGISTERED_EXTERNAL_AUTHORITY_IDEMPOTENT_REUSE",
                     **self.store.project_authority_status(project_id),
+                    "project_authority_skeleton": skeleton,
                 }
             require(
                 project_authority_migration_confirmation is not None

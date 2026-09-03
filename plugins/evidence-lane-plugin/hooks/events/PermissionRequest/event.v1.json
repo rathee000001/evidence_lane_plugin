@@ -8,28 +8,28 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_validate.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_validate.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_validate.py",
           "timeout": 10,
           "statusMessage": "Validating and bounding Evidence Lane hook signal"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_seal.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_seal.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_seal.py",
           "timeout": 10,
           "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_transport.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_transport.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_transport.py",
           "timeout": 10,
           "statusMessage": "Observing a bound Evidence Lane permission request"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_emit.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PermissionRequest --handler subhook_emit.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PermissionRequest subhook_emit.py",
           "timeout": 10,
           "statusMessage": "Verifying and emitting Evidence Lane hook result"
@@ -42,22 +42,22 @@
     {
       "display_id": "5.1",
       "path": "hooks/events/PermissionRequest/handler-5.1.v1.json",
-      "sha256": "A8BBC720BE5E9074456428C6558225D10648F1D9058F4806CCC77B8FCB0AA427"
+      "sha256": "8888C70C0FDCB19BE5E992E81A76339642E8889360CA0B9C4DBC80A83E0CB35E"
     },
     {
       "display_id": "5.2",
       "path": "hooks/events/PermissionRequest/handler-5.2.v1.json",
-      "sha256": "30B385D23E12186A6B6B7BA8A3DC6349BFC2997CAB34B6BCF589D4C0B4806D4B"
+      "sha256": "A0CB8C53E01771E1527F55D7AE820DCB58BB1AD24C93EEA3D2D2A6B80803AF44"
     },
     {
       "display_id": "5.3",
       "path": "hooks/events/PermissionRequest/handler-5.3.v1.json",
-      "sha256": "72C080D9FAA169062B80C8E4B9D20ADD2DBC63991CC42FF76BECBBA121CEBF94"
+      "sha256": "AE3F5FD8A148693ADF7E18BDC39CFFB1C1C3C0A5E67278EB86959C955E43A57A"
     },
     {
       "display_id": "5.4",
       "path": "hooks/events/PermissionRequest/handler-5.4.v1.json",
-      "sha256": "922CF5532825DBDF1A9044BBC6C1BA0B01ABD100881E6C1C57DD4AA4EAFA0B84"
+      "sha256": "E55018AFF3C0BA7F1466368DA4538B0709DFDD0B61D14CB0CF81AF664FCBABB8"
     }
   ],
   "adapter": "hooks/permission_request.py",
@@ -75,5 +75,5 @@
   "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "4C6AE64260C3BDD9BD9451BF3D56BBEAF90DB857661B6D6F74A9774508A628F3"
+  "receipt_sha256": "44C9D9A3C3946C6F645A6E5A925E19EEAD59383E3A828B95774252C86477E9DC"
 }

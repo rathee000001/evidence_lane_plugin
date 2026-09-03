@@ -7,7 +7,7 @@
   "event": "PreCompact",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_transport.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_transport.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_transport.py",
     "timeout": 10,
     "statusMessage": "Sealing Evidence Lane compaction boundary"
@@ -32,5 +32,5 @@
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "3EFCDCFC22C776074D7767C127AFB93CE113D9BEB69BE23131FB376569F846B9"
+  "receipt_sha256": "44B28429885994BE80DFF9C42FA53522DEB62E13FD24B946A04E7ADCF1DDEE08"
 }

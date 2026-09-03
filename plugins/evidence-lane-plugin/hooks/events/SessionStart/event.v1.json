@@ -9,28 +9,28 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_validate.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_validate.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionStart subhook_validate.py",
           "timeout": 10,
           "statusMessage": "Validating and bounding Evidence Lane hook signal"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_seal.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_seal.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionStart subhook_seal.py",
           "timeout": 10,
           "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_transport.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_transport.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionStart subhook_transport.py",
           "timeout": 10,
           "statusMessage": "Warm-attaching Evidence Lane locally"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_emit.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionStart --handler subhook_emit.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionStart subhook_emit.py",
           "timeout": 10,
           "statusMessage": "Verifying and emitting Evidence Lane hook result"
@@ -43,26 +43,26 @@
     {
       "display_id": "1.1",
       "path": "hooks/events/SessionStart/handler-1.1.v1.json",
-      "sha256": "4A64CF972771DD36573CB4615C9BD49EE09698F5A61855E3DE6177E36002314C"
+      "sha256": "922016C7B504B53CE926CE374DEB68842016D7C600F0E90483F7C3EF067FD722"
     },
     {
       "display_id": "1.2",
       "path": "hooks/events/SessionStart/handler-1.2.v1.json",
-      "sha256": "FFC25ACDB100C6F8E41EE9D70B1483192E135BB72DCDA85A8CA16F326F9D0D0E"
+      "sha256": "53A1EC1D5FD14833F40FA284092A830F8D67BA26A0D1C6337B059804CC62C1E7"
     },
     {
       "display_id": "1.3",
       "path": "hooks/events/SessionStart/handler-1.3.v1.json",
-      "sha256": "CCB5091C0AB7A329222042CAF07E10F4DD470889603579E61243E7DEFC9FEA01"
+      "sha256": "42FB7D42EDE9FE3C20930F7C8C86A8B67A69B9AC8A470798FDF368E20303164C"
     },
     {
       "display_id": "1.4",
       "path": "hooks/events/SessionStart/handler-1.4.v1.json",
-      "sha256": "F873C1B7A4AA60C1F2493F3E1D9796D561F656DC58579E47242A040C24D26ADE"
+      "sha256": "27266B8589B25E5C0A7311B209ED18638D95F5D059FE471A91D2387A6B939D40"
     }
   ],
   "adapter": "hooks/session_start.py",
-  "adapter_sha256": "0A06790B822F1743FC0141EE74628676FFA8C1E8D4752BF488DFD6BF879C169A",
+  "adapter_sha256": "064A91D5A296E5CFB7D0FABEC6E45C97527E10DD8D4DFF57BFC4E45749C2FE98",
   "workflow_contract": {
     "host_timing": "SESSION_ENTRY_BEFORE_VISIBLE_INPUT",
     "action_scope": "WORKFLOW_LIFECYCLE",
@@ -78,5 +78,5 @@
   "workflow_contract_sha256": "AAD3E9BEFA841E047EE639E0014A7F0464BE91B81754F2002263E9E505BE8A2E",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "E0166488545DB4206EDDD6A6965C1BB79D0FAF1EC2BF3AB273A2D017B9EB1925"
+  "receipt_sha256": "C2D6D179E797DCC7A7911FD6939ED0AEBF5B75C664948D3DA534216044E3523B"
 }

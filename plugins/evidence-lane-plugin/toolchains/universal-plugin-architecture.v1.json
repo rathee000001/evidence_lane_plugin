@@ -1322,7 +1322,7 @@
     "sector_lanes": 18,
     "named_root_authorities": 11,
     "schema_files": 170,
-    "source_modules": 144,
+    "source_modules": 149,
     "tool_requirements": 119,
     "ecosystem_adapters": 25
   },
@@ -39179,7 +39179,7 @@
       {
         "authority_id": "agent_learning",
         "path": "authorities/agent_learning",
-        "table_count": 28,
+        "table_count": 29,
         "linked_public_action_count": 9,
         "persistent_sqlite_authority": true,
         "eligible_tools": [
@@ -39788,7 +39788,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -39805,7 +39805,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -39821,7 +39821,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -40054,7 +40054,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -40071,7 +40071,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -40087,7 +40087,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -40163,7 +40163,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -40180,7 +40180,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -40196,7 +40196,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -40272,7 +40272,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -40289,7 +40289,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -40305,7 +40305,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -40406,7 +40406,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -40423,7 +40423,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -40439,7 +40439,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -40515,7 +40515,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -40532,7 +40532,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -40548,7 +40548,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -40624,7 +40624,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -40641,7 +40641,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -40657,7 +40657,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -40733,7 +40733,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -40750,7 +40750,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -40766,7 +40766,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -40842,7 +40842,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -40859,7 +40859,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -40875,7 +40875,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -40951,7 +40951,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -40968,7 +40968,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -40984,7 +40984,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -41096,7 +41096,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -41113,7 +41113,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -41129,7 +41129,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -41230,7 +41230,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -41247,7 +41247,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -41263,7 +41263,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -41364,7 +41364,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -41381,7 +41381,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -41397,7 +41397,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -41473,7 +41473,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -41490,7 +41490,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -41506,7 +41506,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -41582,7 +41582,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -41599,7 +41599,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -41615,7 +41615,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -41691,7 +41691,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -41708,7 +41708,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -41724,7 +41724,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -41800,7 +41800,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -41817,7 +41817,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -41833,7 +41833,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -41909,7 +41909,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -41926,7 +41926,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -41942,7 +41942,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -42018,7 +42018,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -42035,7 +42035,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -42051,7 +42051,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -42127,7 +42127,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -42144,7 +42144,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -42160,7 +42160,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -42236,7 +42236,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -42253,7 +42253,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -42269,7 +42269,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -42416,7 +42416,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -42433,7 +42433,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -42449,7 +42449,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -42572,7 +42572,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -42589,7 +42589,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -42605,7 +42605,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -42728,7 +42728,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -42745,7 +42745,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -42761,7 +42761,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -42879,7 +42879,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -42896,7 +42896,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -42912,7 +42912,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -43054,7 +43054,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -43071,7 +43071,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -43087,7 +43087,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -43188,7 +43188,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -43205,7 +43205,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -43221,7 +43221,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -43298,7 +43298,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -43315,7 +43315,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -43331,7 +43331,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -43440,7 +43440,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -43457,7 +43457,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -43473,7 +43473,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -43549,7 +43549,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -43566,7 +43566,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -43582,7 +43582,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -43658,7 +43658,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -43675,7 +43675,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -43691,7 +43691,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -43767,7 +43767,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -43784,7 +43784,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -43800,7 +43800,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -43911,7 +43911,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -43928,7 +43928,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -43944,7 +43944,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -44020,7 +44020,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -44037,7 +44037,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -44053,7 +44053,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -44159,7 +44159,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -44176,7 +44176,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -44192,7 +44192,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -44298,7 +44298,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -44315,7 +44315,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -44331,7 +44331,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -44437,7 +44437,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -44454,7 +44454,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -44470,7 +44470,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -44546,7 +44546,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -44563,7 +44563,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -44579,7 +44579,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -44680,7 +44680,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -44697,7 +44697,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -44713,7 +44713,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -44789,7 +44789,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -44806,7 +44806,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -44822,7 +44822,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -44923,7 +44923,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -44940,7 +44940,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -44956,7 +44956,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -45032,7 +45032,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -45049,7 +45049,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -45065,7 +45065,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -45141,7 +45141,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -45158,7 +45158,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -45174,7 +45174,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -45275,7 +45275,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -45292,7 +45292,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -45308,7 +45308,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -45389,7 +45389,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -45406,7 +45406,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -45422,7 +45422,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -45523,7 +45523,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -45540,7 +45540,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -45556,7 +45556,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -45632,7 +45632,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -45649,7 +45649,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -45665,7 +45665,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -45884,7 +45884,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -45901,7 +45901,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -45917,7 +45917,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -46115,7 +46115,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -46132,7 +46132,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -46148,7 +46148,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -46249,7 +46249,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -46266,7 +46266,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -46282,7 +46282,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -46383,7 +46383,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -46400,7 +46400,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -46416,7 +46416,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -46616,7 +46616,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -46633,7 +46633,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -46649,7 +46649,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -46761,7 +46761,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -46778,7 +46778,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -46794,7 +46794,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -46992,7 +46992,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -47009,7 +47009,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -47025,7 +47025,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -47113,7 +47113,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -47130,7 +47130,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -47146,7 +47146,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -47237,7 +47237,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -47254,7 +47254,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -47270,7 +47270,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -47351,7 +47351,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -47368,7 +47368,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -47384,7 +47384,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -47525,7 +47525,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -47542,7 +47542,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -47558,7 +47558,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -47636,7 +47636,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -47653,7 +47653,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -47669,7 +47669,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -47745,7 +47745,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -47762,7 +47762,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -47778,7 +47778,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -47919,7 +47919,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -47936,7 +47936,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -47952,7 +47952,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -48053,7 +48053,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -48070,7 +48070,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -48086,7 +48086,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -48227,7 +48227,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -48244,7 +48244,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -48260,7 +48260,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -48356,7 +48356,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -48373,7 +48373,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -48389,7 +48389,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -48499,7 +48499,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -48516,7 +48516,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -48532,7 +48532,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -48642,7 +48642,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -48659,7 +48659,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -48675,7 +48675,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -48792,7 +48792,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -48809,7 +48809,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -48825,7 +48825,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -48970,7 +48970,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -48987,7 +48987,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -49003,7 +49003,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -49137,7 +49137,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -49154,7 +49154,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -49170,7 +49170,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -49304,7 +49304,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -49321,7 +49321,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -49337,7 +49337,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -49463,7 +49463,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -49480,7 +49480,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -49496,7 +49496,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -49606,7 +49606,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -49623,7 +49623,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -49639,7 +49639,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -49744,7 +49744,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -49761,7 +49761,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -49777,7 +49777,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -49911,7 +49911,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -49928,7 +49928,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -49944,7 +49944,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -50059,7 +50059,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -50076,7 +50076,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -50092,7 +50092,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -50168,7 +50168,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -50185,7 +50185,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -50201,7 +50201,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -50277,7 +50277,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -50294,7 +50294,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -50310,7 +50310,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -50386,7 +50386,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -50403,7 +50403,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -50419,7 +50419,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -50507,7 +50507,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -50524,7 +50524,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -50540,7 +50540,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -50628,7 +50628,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -50645,7 +50645,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -50661,7 +50661,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -50749,7 +50749,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -50766,7 +50766,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -50782,7 +50782,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -50858,7 +50858,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -50875,7 +50875,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -50891,7 +50891,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -51098,7 +51098,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -51115,7 +51115,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -51131,7 +51131,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -51329,7 +51329,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -51346,7 +51346,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -51362,7 +51362,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -51463,7 +51463,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -51480,7 +51480,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -51496,7 +51496,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -51597,7 +51597,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -51614,7 +51614,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -51630,7 +51630,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -51706,7 +51706,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -51723,7 +51723,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -51739,7 +51739,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -51815,7 +51815,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -51832,7 +51832,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -51848,7 +51848,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -51931,7 +51931,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -51948,7 +51948,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -51964,7 +51964,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -52040,7 +52040,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -52057,7 +52057,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -52073,7 +52073,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -52149,7 +52149,7 @@
           {
             "event_number": 4,
             "event": "PreToolUse",
-            "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+            "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
             "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
             "workflow_contract": {
               "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -52166,7 +52166,7 @@
           {
             "event_number": 5,
             "event": "PermissionRequest",
-            "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+            "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
             "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
             "workflow_contract": {
               "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -52182,7 +52182,7 @@
           {
             "event_number": 6,
             "event": "PostToolUse",
-            "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+            "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
             "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
             "workflow_contract": {
               "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -52223,12 +52223,12 @@
           {
             "path": "skills/evi/references/public-tool-conformance-release-gate.v1.json",
             "bytes": 3110,
-            "sha256": "7949754A52C3DA99726BCB36CA8697E168F8306655C7C612AA18794DA7F3252F"
+            "sha256": "F9907BBB8736BA5C2F744FB950081F8536CDA9BB52AE09673FB600CDADBEC912"
           },
           {
             "path": "skills/evi/SKILL.md",
-            "bytes": 18609,
-            "sha256": "5AEC8A11200B1800BB2FC46C262E20064A306DCE0C01CBF266519FE3502C43D7"
+            "bytes": 18674,
+            "sha256": "1092F1E29C89B5AA35023B9E444794AFF98162CCFAF0FD02A0FF7E5614AEB127"
           }
         ],
         "workflow": {
@@ -53800,13 +53800,13 @@
           },
           {
             "path": "skills/evidence-lane-code-lifecycle/references/shared-boundaries.md",
-            "bytes": 4790,
-            "sha256": "D66916F9D202076734318F44F8B025455C6C2E63C13F95A5A04C7E6CE5E9FB1E"
+            "bytes": 4822,
+            "sha256": "6D0AB6EC61365D5B0D990DC914392471703C56F5571B09D478B1051A88400D34"
           },
           {
             "path": "skills/evidence-lane-code-lifecycle/SKILL.md",
-            "bytes": 41631,
-            "sha256": "A4AA856D1FE094F7DF17FF65492F77CB0F5095F0CB40E8C9E186068B1DE102FA"
+            "bytes": 41622,
+            "sha256": "D80EA975B68C802193804FFD4685670D2143B42E043D410134C29D80FFFAEE41"
           }
         ],
         "workflow": {
@@ -53984,7 +53984,7 @@
         "event_number": 1,
         "event": "SessionStart",
         "path": "hooks/events/SessionStart",
-        "event_sha256": "EF784DBDB229023E28A7F983057FE06466042EAB7315E670E2AF8012AA43FF47",
+        "event_sha256": "245A0A704640D4516B4D94BD31A224BD195F15B391A06BD50B6EAAB8EF234F9E",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "SESSION_ENTRY_BEFORE_VISIBLE_INPUT",
@@ -54009,7 +54009,7 @@
         "event_number": 2,
         "event": "SubagentStart",
         "path": "hooks/events/SubagentStart",
-        "event_sha256": "FCFF4C6AD6947325B698D8D69D493A48C578C7BCA551F28DB4C13F30E33045C2",
+        "event_sha256": "1AB1E5A41BAA40EE577A0C1B6C137697CFF58C43719DC9A004C5BF323F2E97C5",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "OPTIONAL_SUBAGENT_ENTRY_OBSERVATION",
@@ -54032,7 +54032,7 @@
         "event_number": 3,
         "event": "UserPromptSubmit",
         "path": "hooks/events/UserPromptSubmit",
-        "event_sha256": "371479827D1C2D400ED1921E3DBCD1994C06677AF4AAFE01606B001735803125",
+        "event_sha256": "773E03D8738555F2A6816B9B5E97B76AEA6431F8F16A1D673D3047AE568A8EE2",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "BEFORE_MODEL_REASONING_AND_TOOL_SELECTION",
@@ -54057,7 +54057,7 @@
         "event_number": 4,
         "event": "PreToolUse",
         "path": "hooks/events/PreToolUse",
-        "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+        "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -54081,7 +54081,7 @@
         "event_number": 5,
         "event": "PermissionRequest",
         "path": "hooks/events/PermissionRequest",
-        "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+        "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -54104,7 +54104,7 @@
         "event_number": 6,
         "event": "PostToolUse",
         "path": "hooks/events/PostToolUse",
-        "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+        "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -54128,7 +54128,7 @@
         "event_number": 7,
         "event": "PreCompact",
         "path": "hooks/events/PreCompact",
-        "event_sha256": "596BCFD2A2655918E464C4F92FE62B4F4B7D7083FDC0842868CB97C0E21C69C4",
+        "event_sha256": "4E266883BBF2B011103F71D064FF05C9FE59FC7076B70B3E717C9A14AF6F960C",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "BEFORE_CONTEXT_COMPACTION",
@@ -54151,7 +54151,7 @@
         "event_number": 8,
         "event": "PostCompact",
         "path": "hooks/events/PostCompact",
-        "event_sha256": "904D177C1ABEE58FF3A0533F3B1783B7F7C6FEC99461A2AF3B7CC855EA4F46A4",
+        "event_sha256": "E29BE56651001FFAF90A13F24761739904B29E71B47BBA1676C52139AFA2B99C",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "AFTER_CONTEXT_COMPACTION_BEFORE_NEXT_ACTION",
@@ -54175,7 +54175,7 @@
         "event_number": 9,
         "event": "SubagentStop",
         "path": "hooks/events/SubagentStop",
-        "event_sha256": "78F557ED36CDD9074489579B438F944CE6F7AE33F995CFEB66D40C74166EC1C9",
+        "event_sha256": "5830CB0CEC13ABDC8B52CBF412931D3F8C663ED8AE66FCFA81BDD8567F054D29",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "OPTIONAL_SUBAGENT_EXIT_OBSERVATION",
@@ -54198,7 +54198,7 @@
         "event_number": 10,
         "event": "Stop",
         "path": "hooks/events/Stop",
-        "event_sha256": "DE6C84DEBAB6802122D4983F6F2B70529A5BEA5FA1F85DEE9704765A4008F99D",
+        "event_sha256": "397933705830A16418373B2DDD7F1652D768D8BF7020FCAA3A0AAEE5A4219A9C",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "AFTER_VISIBLE_RESPONSE_BEFORE_NEXT_TURN",
@@ -54221,7 +54221,7 @@
         "event_number": 11,
         "event": "SessionEnd",
         "path": "hooks/events/SessionEnd",
-        "event_sha256": "98D66BF6B53ECDBAD2A274476D62EA665D23A0013F379B1BD3C34DBBC65D1721",
+        "event_sha256": "19342FD3DC206106A6BD044706DA177B2E6EC28728B2588C84990D429B1B0E6B",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "BEST_EFFORT_AFTER_SESSION_END",
@@ -54246,7 +54246,7 @@
         "event_number": 1,
         "event": "SessionStart",
         "path": "hooks/events/SessionStart",
-        "event_sha256": "EF784DBDB229023E28A7F983057FE06466042EAB7315E670E2AF8012AA43FF47",
+        "event_sha256": "245A0A704640D4516B4D94BD31A224BD195F15B391A06BD50B6EAAB8EF234F9E",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "SESSION_ENTRY_BEFORE_VISIBLE_INPUT",
@@ -54271,7 +54271,7 @@
         "event_number": 2,
         "event": "SubagentStart",
         "path": "hooks/events/SubagentStart",
-        "event_sha256": "FCFF4C6AD6947325B698D8D69D493A48C578C7BCA551F28DB4C13F30E33045C2",
+        "event_sha256": "1AB1E5A41BAA40EE577A0C1B6C137697CFF58C43719DC9A004C5BF323F2E97C5",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "OPTIONAL_SUBAGENT_ENTRY_OBSERVATION",
@@ -54294,7 +54294,7 @@
         "event_number": 3,
         "event": "UserPromptSubmit",
         "path": "hooks/events/UserPromptSubmit",
-        "event_sha256": "371479827D1C2D400ED1921E3DBCD1994C06677AF4AAFE01606B001735803125",
+        "event_sha256": "773E03D8738555F2A6816B9B5E97B76AEA6431F8F16A1D673D3047AE568A8EE2",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "BEFORE_MODEL_REASONING_AND_TOOL_SELECTION",
@@ -54319,7 +54319,7 @@
         "event_number": 4,
         "event": "PreToolUse",
         "path": "hooks/events/PreToolUse",
-        "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+        "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -54343,7 +54343,7 @@
         "event_number": 5,
         "event": "PermissionRequest",
         "path": "hooks/events/PermissionRequest",
-        "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+        "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -54366,7 +54366,7 @@
         "event_number": 6,
         "event": "PostToolUse",
         "path": "hooks/events/PostToolUse",
-        "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+        "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -54390,7 +54390,7 @@
         "event_number": 7,
         "event": "PreCompact",
         "path": "hooks/events/PreCompact",
-        "event_sha256": "596BCFD2A2655918E464C4F92FE62B4F4B7D7083FDC0842868CB97C0E21C69C4",
+        "event_sha256": "4E266883BBF2B011103F71D064FF05C9FE59FC7076B70B3E717C9A14AF6F960C",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "BEFORE_CONTEXT_COMPACTION",
@@ -54413,7 +54413,7 @@
         "event_number": 8,
         "event": "PostCompact",
         "path": "hooks/events/PostCompact",
-        "event_sha256": "904D177C1ABEE58FF3A0533F3B1783B7F7C6FEC99461A2AF3B7CC855EA4F46A4",
+        "event_sha256": "E29BE56651001FFAF90A13F24761739904B29E71B47BBA1676C52139AFA2B99C",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "AFTER_CONTEXT_COMPACTION_BEFORE_NEXT_ACTION",
@@ -54437,7 +54437,7 @@
         "event_number": 9,
         "event": "SubagentStop",
         "path": "hooks/events/SubagentStop",
-        "event_sha256": "78F557ED36CDD9074489579B438F944CE6F7AE33F995CFEB66D40C74166EC1C9",
+        "event_sha256": "5830CB0CEC13ABDC8B52CBF412931D3F8C663ED8AE66FCFA81BDD8567F054D29",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "OPTIONAL_SUBAGENT_EXIT_OBSERVATION",
@@ -54460,7 +54460,7 @@
         "event_number": 10,
         "event": "Stop",
         "path": "hooks/events/Stop",
-        "event_sha256": "DE6C84DEBAB6802122D4983F6F2B70529A5BEA5FA1F85DEE9704765A4008F99D",
+        "event_sha256": "397933705830A16418373B2DDD7F1652D768D8BF7020FCAA3A0AAEE5A4219A9C",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "AFTER_VISIBLE_RESPONSE_BEFORE_NEXT_TURN",
@@ -54483,7 +54483,7 @@
         "event_number": 11,
         "event": "SessionEnd",
         "path": "hooks/events/SessionEnd",
-        "event_sha256": "98D66BF6B53ECDBAD2A274476D62EA665D23A0013F379B1BD3C34DBBC65D1721",
+        "event_sha256": "19342FD3DC206106A6BD044706DA177B2E6EC28728B2588C84990D429B1B0E6B",
         "handler_count": 4,
         "workflow_contract": {
           "host_timing": "BEST_EFFORT_AFTER_SESSION_END",
@@ -54507,7 +54507,7 @@
       {
         "event_number": 4,
         "event": "PreToolUse",
-        "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+        "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
         "workflow_contract_sha256": "4EA58D230A14FB2B54897C67059220F84B6C449BA2B8DF348946221816145D1A",
         "workflow_contract": {
           "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -54524,7 +54524,7 @@
       {
         "event_number": 5,
         "event": "PermissionRequest",
-        "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+        "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
         "workflow_contract_sha256": "6B7D92A45D7B6603E6F5B44A1AF763FF05D28E78894BE661E8E61276FD7F40B7",
         "workflow_contract": {
           "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -54540,7 +54540,7 @@
       {
         "event_number": 6,
         "event": "PostToolUse",
-        "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+        "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
         "workflow_contract_sha256": "132374EEB6C70CAAB872CA6C6A3AC7665204776C77657486161C3419640A572D",
         "workflow_contract": {
           "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -54665,7 +54665,7 @@
   "source_registries": {
     "catalog": {
       "path": "schemas/public-action-schemas.v001.json",
-      "sha256": "78BCC5C9797ECBCE3B5DAA5FCFC7B5E83E35315A912EDB5C34E7354CE4D68CED",
+      "sha256": "6408DF34A1E61226E09D5BEC1620DEB845893EA969AE4D42660B86055ECB744F",
       "direct_hash_embedded": true
     },
     "mcp": {
@@ -54682,12 +54682,12 @@
     },
     "skills": {
       "path": "skills/skill-surface-registry.v1.json",
-      "sha256": "25E9B40FF82732C2E9900D9E68A4D1A939CF5B13BF16A597AE8E927AF5AB6E09",
+      "sha256": "532DFAF8DC4EF2ADC31C0EC8D44B81F264644291EC431CBAA57A84B1996715C4",
       "direct_hash_embedded": true
     },
     "hooks": {
       "path": "hooks/hook-event-registry.v1.json",
-      "sha256": "67DDC5EBD44F858D53C207F773C2893CC0C79D5AD64A87CE2F2A41B2B29E7549",
+      "sha256": "32804ACD34132AC69219595CD8501572801AC30D46D1126163D19B8EE130A340",
       "direct_hash_embedded": true
     },
     "authorities": {
@@ -54710,7 +54710,7 @@
     },
     "modules": {
       "path": "src/evidence_lane_plugin/module-registry.v1.json",
-      "sha256": "D916AEBD31DEA3486992D8A416C09081D6A5D1BBFB10A626D79ADA5E7E4DD8D0",
+      "sha256": "3873042A69C8566BDA680B3917B4CB8207E99359C54E4552C672F96A218C5941",
       "direct_hash_embedded": true
     },
     "tools": {
@@ -54730,7 +54730,7 @@
     },
     "current_routes": {
       "path": "schemas/routing/current-route-registry.v1.json",
-      "sha256": "47B1256B2042A1A744D0E09D46CF7F4FE53882F2932A5CD00B6037A42241CB8B",
+      "sha256": "A2DC4BC3E652699287E8D0B25BEFE1196C77D519FB61098ACEBE965A20493A2D",
       "direct_hash_embedded": true
     }
   },
@@ -54739,5 +54739,5 @@
   "human_entrypoint_count_defines_backend_workflow_limit": false,
   "human_entrypoints_derive_from_registered_skill_routes": true,
   "historical_fallback_allowed": false,
-  "receipt_sha256": "A9733E25A8DE916ED0F0C9889823F8C57A0B1FEA77BACADE3DC415286515DCA9"
+  "receipt_sha256": "6320A24B4EF19793992EC373A265BB560F74BA62B9E9B785CD4E8476B5CE4250"
 }

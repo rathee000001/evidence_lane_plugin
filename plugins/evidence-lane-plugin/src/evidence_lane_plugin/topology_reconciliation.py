@@ -298,6 +298,12 @@ def reconcile_graph_against_database(
         facts = _count(connection, "structured_fact")
         claims: list[dict[str, Any]] = []
         for node in graph.nodes:
+            if node.node_id.startswith("FACT_SAMPLE_"):
+                # Sample labels are source evidence, not generator-owned count
+                # assertions.  A sampled DOT/Mermaid/JSON fragment may itself
+                # contain ``rows=`` or a table-like head and must never be
+                # reinterpreted as a topology claim.
+                continue
             label = node.normalized_label
             head = node.head
             root_sources = _SOURCES_CLAIM.search(label)
@@ -333,7 +339,17 @@ def reconcile_graph_against_database(
             rows = _ROWS_CLAIM.search(label)
             if rows is not None:
                 claimed = int(rows.group(1))
-                if head in projection:
+                if node.node_id.startswith("FACT_KIND_") and head in kind_counts:
+                    claims.append(
+                        _claim(
+                            subject=f"structured_fact[{head}]",
+                            node_id=node.node_id,
+                            claimed=claimed,
+                            actual=kind_counts.get(head, 0),
+                            basis="structured_fact kind row count",
+                        )
+                    )
+                elif head in projection:
                     physical_table = projection[head]
                     claims.append(
                         _claim(
@@ -569,7 +585,7 @@ def physical_schema_contract_report(
         if node.head != table:
             head_mismatches.append(f"{node_id}:{node.head!r}!={table!r}")
         required_label_claims = (
-            f'rows={row["rows"]}',
+            f"rows={row['rows'] if row['rows'] is not None else 'derived'}",
             f'columns={len(row["columns"])}',
             f'role={row["role"]}',
         )

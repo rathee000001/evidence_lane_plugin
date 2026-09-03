@@ -439,9 +439,39 @@ def resolve_lane_toolchain(
             if _tool_applies_to_lane(matrix[tool], exact_lane)
         )
     )
-    available = set(ordered) if available_tools is None else set(available_tools)
+    runtime_inventory: dict[str, Any] | None = None
+    runtime_rows: dict[str, dict[str, Any]] = {}
+    if available_tools is None:
+        from .runtime_toolchain import inspect_runtime_toolchain
+
+        runtime_inventory = inspect_runtime_toolchain(prewarm_native=False)
+        runtime_rows = {
+            str(row["tool"]): dict(row)
+            for row in runtime_inventory.get("results") or []
+        }
+        available_states = {
+            "ACTIVE",
+            "REPOSITORY_ONLY_AVAILABLE",
+            "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+            "DECLARED_COMPONENT",
+        }
+        available = {
+            tool
+            for tool in ordered
+            if runtime_rows.get(tool, {}).get("status") == "PASS"
+            and str(runtime_rows.get(tool, {}).get("state") or "")
+            in available_states
+        }
+    else:
+        available = set(available_tools)
     runnable = [tool for tool in ordered if tool in available]
     unavailable = [tool for tool in ordered if tool not in available]
+    required_runtime_unavailable = [
+        tool
+        for tool in ordered
+        if runtime_rows.get(tool, {}).get("startup_required") is True
+        and runtime_rows.get(tool, {}).get("status") != "PASS"
+    ]
     hardware_acceleration = resolve_hardware_acceleration(
         action_classes=list(action_classes),
         requested_profile=accelerator_profile,
@@ -452,7 +482,13 @@ def resolve_lane_toolchain(
     )
     core = {
         "schema": "evidence-lane.ai-toolchain-lane-resolution.v1",
-        "status": "PASS" if runnable else "BLOCKED_NO_RUNNABLE_TOOL",
+        "status": (
+            "BLOCKED_REQUIRED_RUNTIME_TOOL_UNAVAILABLE"
+            if required_runtime_unavailable
+            else "PASS"
+            if runnable
+            else "BLOCKED_NO_RUNNABLE_TOOL"
+        ),
         "plane": "CODEX",
         "host_profile": exact_host,
         "lane_id": exact_lane,
@@ -460,6 +496,21 @@ def resolve_lane_toolchain(
         "ordered_tools": ordered,
         "runnable_tools": runnable,
         "unavailable_tools": unavailable,
+        "required_runtime_unavailable_tools": required_runtime_unavailable,
+        "availability_source": (
+            "MEASURED_RUNTIME_TOOLCHAIN"
+            if runtime_inventory is not None
+            else "CALLER_SUPPLIED_EXACT_TOOL_SET"
+        ),
+        "runtime_toolchain_receipt_sha256": (
+            runtime_inventory.get("receipt_sha256")
+            if runtime_inventory is not None
+            else None
+        ),
+        "runtime_tool_states": {
+            tool: str(runtime_rows.get(tool, {}).get("state") or "UNMEASURED")
+            for tool in ordered
+        },
         "hardware_acceleration": hardware_acceleration,
         "conditional_execution": True,
         "run_every_tool": False,

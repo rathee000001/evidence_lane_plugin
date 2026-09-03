@@ -156,6 +156,10 @@ def _activate_installed_runtime_authority(plugin_root: Path) -> dict[str, object
 
     source = plugin_root / "src"
     sys.path.insert(0, str(source))
+    from evidence_lane_plugin.constants import ENGINE_VERSION
+    from evidence_lane_plugin.plugin_build_identity import (
+        resolve_plugin_build_identity,
+    )
     from evidence_lane_plugin.service import EvidenceLaneService
 
     service = EvidenceLaneService()
@@ -163,13 +167,19 @@ def _activate_installed_runtime_authority(plugin_root: Path) -> dict[str, object
     flash = service.flash_authority.ensure_flashed()
     receipt = dict(flash.get("receipt") or {})
     migration = dict(flash.get("build_migration") or {})
-    plugin_manifest = json.loads(
-        (plugin_root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+    build = resolve_plugin_build_identity(
+        plugin_root,
+        expected_base_release=ENGINE_VERSION,
     )
-    expected_plugin_version = str(plugin_manifest.get("version") or "")
+    expected_plugin_version = str(build["exact_version"])
     if (
         flash.get("status") != "PASS"
         or not expected_plugin_version
+        or installation.get("version") != expected_plugin_version
+        or installation.get("plugin_manifest_sha256")
+        != build["plugin_manifest_sha256"]
+        or installation.get("package_identity_sha256")
+        != build["package_identity_sha256"]
         or receipt.get("plugin_version") != expected_plugin_version
     ):
         raise SystemExit(

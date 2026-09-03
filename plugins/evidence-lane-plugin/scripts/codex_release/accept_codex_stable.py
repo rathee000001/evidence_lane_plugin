@@ -65,25 +65,30 @@ EXPECTED_PLUGIN_CREATOR_LOCAL_UPDATE_ROUTE = {
     "loaded_old_cache_boundary": (
         "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED"
     ),
-    "restart_authority_mode": (
-        "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_EXACT_TASK_RESTART"
-    ),
+    "restart_authority_mode": "INSTALL_RECEIPT_THEN_USER_MANUAL_RESTART",
     "windows_marketplace_root_rotation_allowed": False,
     "exact_same_task_hidden_restart_required": False,
     "terminal_response_required_before_user_restart": True,
     "manual_exact_channel_restart_required": True,
-    "helper_scope": "PREPARE_ONLY_NO_PROCESS_CONTROL",
-    "separate_exact_task_turn_drain_required_before_helper": False,
-    "helper_installs_plugin": False,
+    "restart_helper_present": False,
     "child_lease_acknowledgement_before_app_stop_required": False,
     "child_launch_shape": "ABSENT",
     "redirected_parent_pipe_handles_allowed": False,
     "terminal_success_or_failure_receipt_required": False,
-    "preparation_receipt_required": True,
+    "preparation_receipt_required": False,
     "post_restart_native_readback_required": True,
     "windows_ui_control_allowed": False,
     "cross_task_rehydration_allowed": False,
-    "tunnel_start_allowed": False,
+    "local_install_tunnel_activation_required": True,
+    "local_install_tunnel_activation_before_user_restart": True,
+    "visible_runtime_key_entry_policy": (
+        "FIRST_REGISTRATION_OR_MISSING_INVALID_CREDENTIAL_ONLY"
+    ),
+    "compatible_runtime_key_envelope_reuse_allowed": True,
+    "tunnel_rebuild_trigger": "CAPABILITY_FINGERPRINT_CHANGED_ONLY",
+    "exact_plugin_rebind_required_every_local_install": True,
+    "persistent_tunnel_runtime_hidden": True,
+    "remote_tunnel_crud_authorized": False,
 }
 
 
@@ -149,9 +154,8 @@ EXPECTED_STABLE_ACTIVATION_GATE = {
         "scripts/codex_release/seal_external_release_receipts.py"
     ),
     "stable_install_command": "scripts/codex_release/install_codex_stable.py",
-    "stable_update_helper": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
-    "install_completed_before_restart_helper": True,
-    "restart_helper_installs_plugin": False,
+    "restart_helper_present": False,
+    "install_receipt_is_restart_boundary": True,
     "stable_update_reopens_same_bound_host_app": False,
     "stable_update_requires_user_restart_after_terminal_response": True,
     "stable_update_rebinds_exact_task_via_native_binding": True,
@@ -844,11 +848,9 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
     local_testing = dict(release.get("local_testing") or {})
     live_slots = dict(release.get("live_slot_policy") or {})
     helper_distribution = dict(release.get("helper_distribution_policy") or {})
-    maintainer_helper = dict(
-        helper_distribution.get("maintainer_release_helper") or {}
-    )
+    manual_restart = dict(helper_distribution.get("manual_restart_boundary") or {})
     plugin_creator_local_update = dict(
-        maintainer_helper.get("plugin_creator_local_update_route") or {}
+        manual_restart.get("plugin_creator_local_update_route") or {}
     )
     behavior_ownership = dict(release.get("behavior_ownership") or {})
     stable_activation_gate = dict(release.get("stable_activation_gate") or {})
@@ -873,10 +875,6 @@ def _validate_plugin(plugin_root: Path) -> dict[str, Any]:
         / "scripts"
         / "codex_release"
         / "seal_external_release_receipts.py",
-        plugin_root
-        / "scripts"
-        / "codex_release"
-        / "Prepare-EvidenceLaneCodexRestart.ps1",
         plugin_root / "scripts" / "codex_release" / "accept_codex_stable.py",
     )
     forbidden = (

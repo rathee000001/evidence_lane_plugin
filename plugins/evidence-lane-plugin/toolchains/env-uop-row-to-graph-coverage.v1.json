@@ -44,14 +44,65 @@
   },
   "graph_tool_execution_evidence": {
     "LangGraph_Mermaid_engine": {
-      "state": "EXECUTED"
+      "state": "EXECUTED",
+      "env_receipt_sha256": "450840F5A8D65988DBD3F7B4B956809D9E3E67AA2C3E5514026A915D6D213C59",
+      "uop_receipt_sha256": "4ED331322E2F1EBF10CCFEA6690334405274D9F0E27C94C29DCC6B91EFAB9A64"
     },
     "Python_Graphviz_DOT_engine": {
-      "state": "EXECUTED"
+      "state": "EXECUTED",
+      "env_dot_exporter": "PYTHON_GRAPHVIZ",
+      "uop_dot_exporter": "PYTHON_GRAPHVIZ"
+    },
+    "Graphviz_dot": {
+      "state": "EXECUTED",
+      "env_native_validation_sha256": "27F2E0CFA4BA2240387502D6BC565051AE1CFFFBB97DCB87B21003DC438428B1",
+      "uop_native_validation_sha256": "E6FD85A5732347A4EB94D05DA4B1F8E71E34112BC527554A16AD4EA5243B8F52"
     },
     "rustworkx": {
-      "state": "EXECUTED"
+      "state": "EXECUTED",
+      "env_analysis_sha256": "3E78438E38F69B14950B80A3FD9345B7D0AE3BE8B0C2280A9EBAE42A09317C51",
+      "uop_analysis_sha256": "B94EEAAE6C06045C5805ECAE09044945FB30BA2B71DB53BA6AC0DB846E361BA5"
     }
   },
-  "receipt_sha256": "89B3D194C873EEBB883F70279719AE80EF5D9EA738655A75A671651443DC94F7"
+  "sqlite_execution_receipts": {
+    "env": {
+      "schema": "evidence-lane.env-uop-sqlite-execution.v1",
+      "status": "PASS",
+      "authority_id": "env",
+      "engine": "APSW",
+      "engine_version": "3.53.4.0",
+      "sqlite_version": "3.53.4",
+      "apsw_full_api_available": true,
+      "integrity_check": "ok",
+      "final_database_sha256": "9E055B4B3029F17EA7448C9A38483466FD436139ACD2AE16FF732BCCFEAF15C4",
+      "header_canonicalization": {
+        "path": "env/env_sqlite.sqlite",
+        "schema_cookie": 1132120161,
+        "file_change_counter": 1,
+        "version_valid_for": 1,
+        "sha256": "9E055B4B3029F17EA7448C9A38483466FD436139ACD2AE16FF732BCCFEAF15C4"
+      },
+      "receipt_sha256": "16BE50B6200021B0D48BC10CE315AD387E10FED15494DED7ADDE9C885027DA31"
+    },
+    "uop": {
+      "schema": "evidence-lane.env-uop-sqlite-execution.v1",
+      "status": "PASS",
+      "authority_id": "uop",
+      "engine": "APSW",
+      "engine_version": "3.53.4.0",
+      "sqlite_version": "3.53.4",
+      "apsw_full_api_available": true,
+      "integrity_check": "ok",
+      "final_database_sha256": "A1E31FE96A4537C5AAB4ADE82D9D138CF360D4DD0B863A4D21E51ACD83B4D3CD",
+      "header_canonicalization": {
+        "path": "uop/uop_sqlite.sqlite",
+        "schema_cookie": 704161065,
+        "file_change_counter": 1,
+        "version_valid_for": 1,
+        "sha256": "A1E31FE96A4537C5AAB4ADE82D9D138CF360D4DD0B863A4D21E51ACD83B4D3CD"
+      },
+      "receipt_sha256": "8ABAC937CE85E7980BAB268AEB4F94213340AE78BAF82A3FC7C725A9B6E91914"
+    }
+  },
+  "receipt_sha256": "A6C98CCD4FACEAA3D3AADF7853B3A65DD24EBEEE992F73794EE24E0EA6322365"
 }

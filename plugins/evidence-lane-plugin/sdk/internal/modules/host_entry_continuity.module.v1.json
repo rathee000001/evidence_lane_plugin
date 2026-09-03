@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.host_entry_continuity",
   "source_path": "src/evidence_lane_plugin/host_entry_continuity.py",
-  "source_sha256": "B220415AA4AC164CA6684320B7FFE9AC849DAF0D9B445CDB2630E5F21051A496",
-  "source_bytes": 40659,
+  "source_sha256": "8065C846583BF603319D873D4519269F43E1677F5A02DE87FF498A7A288B91CC",
+  "source_bytes": 40588,
   "role": "HOST_RUNTIME_AND_CONTINUITY",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "B7F476ABF370A0E371A0514F194F47731058E20CA0BB7B8CE27C40AEA8A1CC6C"
+  "receipt_sha256": "CE8589C6A3EBD7005627C1767455773E1FDBDB7B948537F138604CD47258A8B1"
 }

@@ -28,11 +28,241 @@ param(
     [ValidateSet("UNSPECIFIED", "PRO", "PLUS", "BUSINESS", "EDU", "ENTERPRISE")]
     [string]$AccountTier = "UNSPECIFIED",
     [switch]$RotateRuntimeKey,
+    [switch]$CaptureRuntimeKeyOnly,
+    [switch]$RequirePreparedRuntimeKey,
     [switch]$Activate
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+function Get-StringSha256 {
+    param([Parameter(Mandatory = $true)][string]$Value)
+    $bytes = [Text.Encoding]::UTF8.GetBytes($Value)
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace("-", "")
+    }
+    finally {
+        $sha.Dispose()
+    }
+}
+
+function Get-PathSha256 {
+    param([Parameter(Mandatory = $true)][string]$Path)
+    $stream = [IO.File]::OpenRead([IO.Path]::GetFullPath($Path))
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        return ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace("-", "")
+    }
+    finally {
+        $sha.Dispose()
+        $stream.Dispose()
+    }
+}
+
+function Get-VersionedTunnelIdentity {
+    param(
+        [Parameter(Mandatory = $true)][string]$Release,
+        [Parameter(Mandatory = $true)][string]$SlotRole,
+        [Parameter(Mandatory = $true)][string]$PluginVersion,
+        [Parameter(Mandatory = $true)][string]$TunnelCompatibilitySha256
+    )
+
+    if (
+        $Release -notmatch '^\d+\.\d+\.\d+$' -or
+        $PluginVersion -notmatch '^\d+\.\d+\.\d+\+codex\.[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?$' -or
+        $PluginVersion.Split('+')[0] -ne $Release -or
+        $TunnelCompatibilitySha256 -notmatch '^[A-F0-9]{64}$'
+    ) {
+        throw "The exact plugin version does not match the selected release slot."
+    }
+    $releaseToken = "v" + ($Release -replace '\.', '')
+    $humanPluginToken = ($PluginVersion.ToLowerInvariant() -replace '[^a-z0-9]+', '-').Trim('-')
+    $slotNameToken = ($SlotRole.ToLowerInvariant() -replace '[^a-z0-9]+', '-').Trim('-')
+    $pluginVersionSha256 = Get-StringSha256 -Value $PluginVersion
+    $pluginVersionDigest = $pluginVersionSha256.Substring(0, 12).ToLowerInvariant()
+    $tunnelCompatibilityDigest = $TunnelCompatibilitySha256.Substring(0, 12).ToLowerInvariant()
+    $tunnelVersionToken = "${releaseToken}-${slotNameToken}-abi-${tunnelCompatibilityDigest}"
+    $filePrefix = "evidence_lane_" + $tunnelVersionToken.Replace("-", "_")
+    return [pscustomobject]@{
+        release_token = $releaseToken
+        plugin_version_token = $humanPluginToken
+        plugin_version_sha256 = $pluginVersionSha256
+        plugin_version_digest = $pluginVersionDigest
+        tunnel_compatibility_sha256 = $TunnelCompatibilitySha256
+        tunnel_compatibility_digest = $tunnelCompatibilityDigest
+        tunnel_version_token = $tunnelVersionToken
+        file_prefix = $filePrefix
+        profile_name = "${filePrefix}_transport"
+        task_name = "EvidenceLane-Tunnel-$tunnelVersionToken"
+        runtime_directory_name = "tunnel-runtime-$tunnelVersionToken"
+    }
+}
+
+function Get-SealedInstalledPluginBinding {
+    param(
+        [Parameter(Mandatory = $true)][string]$ExactPluginRoot,
+        [Parameter(Mandatory = $true)][string]$PluginVersion,
+        [Parameter(Mandatory = $true)][string]$MarketplaceName,
+        [Parameter(Mandatory = $true)][string]$ExpectedSelector,
+        [Parameter(Mandatory = $true)][string]$ExactRuntimeControlRoot
+    )
+
+    $codexHome = Split-Path -Parent (
+        Split-Path -Parent (Split-Path -Parent $ExactRuntimeControlRoot)
+    )
+    $expectedInstalledRoot = [IO.Path]::GetFullPath(
+        (Join-Path $codexHome "plugins\cache\$MarketplaceName\evidence-lane-plugin\$PluginVersion")
+    )
+    $resolvedPluginRoot = [IO.Path]::GetFullPath($ExactPluginRoot)
+    if (-not $resolvedPluginRoot.Equals(
+        $expectedInstalledRoot,
+        [StringComparison]::OrdinalIgnoreCase
+    )) {
+        throw "Tunnel activation requires the exact sealed installed selector cache root."
+    }
+
+    $manifestPath = Join-Path $resolvedPluginRoot ".codex-plugin\plugin.json"
+    $surfacePath = Join-Path $resolvedPluginRoot "manifests\executable-surface-registry.v1.json"
+    $coherencePath = Join-Path $resolvedPluginRoot "manifests\package\package-surface-coherence.json"
+    $sourceManifestPath = Join-Path $resolvedPluginRoot "manifests\package\source-manifest.json"
+    $tunnelManifestPath = Join-Path $resolvedPluginRoot "tunnel\tunnel-manifest.v1.json"
+    foreach ($requiredPath in @($manifestPath, $surfacePath, $coherencePath, $sourceManifestPath, $tunnelManifestPath)) {
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+            throw "The sealed installed plugin binding is missing a required package proof."
+        }
+    }
+
+    $manifestSha256 = Get-PathSha256 -Path $manifestPath
+    $surfaceSha256 = Get-PathSha256 -Path $surfacePath
+    $coherenceSha256 = Get-PathSha256 -Path $coherencePath
+    $sourceManifestSha256 = Get-PathSha256 -Path $sourceManifestPath
+    $tunnelManifestSha256 = Get-PathSha256 -Path $tunnelManifestPath
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    $surface = Get-Content -LiteralPath $surfacePath -Raw | ConvertFrom-Json
+    $coherence = Get-Content -LiteralPath $coherencePath -Raw | ConvertFrom-Json
+    $sourceManifest = Get-Content -LiteralPath $sourceManifestPath -Raw | ConvertFrom-Json
+    $tunnelManifest = Get-Content -LiteralPath $tunnelManifestPath -Raw | ConvertFrom-Json
+    $manifestMember = @($sourceManifest.members | Where-Object {
+        [string]$_.path -eq ".codex-plugin/plugin.json"
+    })
+    $surfaceMember = @($sourceManifest.members | Where-Object {
+        [string]$_.path -eq "manifests/executable-surface-registry.v1.json"
+    })
+    $runnerMember = @($sourceManifest.members | Where-Object {
+        [string]$_.path -eq "scripts/run_mcp.py"
+    })
+    $tunnelManifestMember = @($sourceManifest.members | Where-Object {
+        [string]$_.path -eq "tunnel/tunnel-manifest.v1.json"
+    })
+    $runnerPath = Join-Path $resolvedPluginRoot "scripts\run_mcp.py"
+    if (
+        [string]$manifest.version -ne $PluginVersion -or
+        [string]$surface.schema -ne "evidence-lane.executable-package-surface-registry.v1" -or
+        [string]$surface.status -ne "PASS" -or
+        [string]$surface.plugin_version -ne $PluginVersion -or
+        [string]$coherence.schema -ne "evidence-lane.package-surface-coherence.v1" -or
+        [string]$coherence.status -ne "PASS" -or
+        [string]$coherence.plugin_version -ne $PluginVersion -or
+        [string]$coherence.executable_surface_registry_sha256 -ne $surfaceSha256 -or
+        [string]$tunnelManifest.schema -ne "evidence-lane.installed-tunnel-surface.v1" -or
+        [string]$tunnelManifest.status -ne "PASS" -or
+        [string]$tunnelManifest.tunnel_compatibility_schema -ne "evidence-lane.tunnel-capability-compatibility.v1" -or
+        [string]$tunnelManifest.tunnel_compatibility_sha256 -notmatch '^[A-F0-9]{64}$' -or
+        $manifestMember.Count -ne 1 -or
+        [string]$manifestMember[0].sha256 -ne $manifestSha256 -or
+        $surfaceMember.Count -ne 1 -or
+        [string]$surfaceMember[0].sha256 -ne $surfaceSha256 -or
+        $runnerMember.Count -ne 1 -or
+        -not (Test-Path -LiteralPath $runnerPath -PathType Leaf) -or
+        [string]$runnerMember[0].sha256 -ne (Get-PathSha256 -Path $runnerPath) -or
+        $tunnelManifestMember.Count -ne 1 -or
+        [string]$tunnelManifestMember[0].sha256 -ne $tunnelManifestSha256
+    ) {
+        throw "The installed package manifest and executable surface do not reconcile."
+    }
+
+    $receiptRoot = Join-Path $ExactRuntimeControlRoot "installations\codex-v300"
+    $matchingReceipts = @()
+    foreach ($receiptPath in @(Get-ChildItem -LiteralPath $receiptRoot -File -Filter "INSTALL_*.json" -ErrorAction SilentlyContinue)) {
+        try {
+            $candidate = Get-Content -LiteralPath $receiptPath.FullName -Raw | ConvertFrom-Json
+            if (
+                [string]$candidate.schema -eq "evidence-lane.codex-stable-installation.v2" -and
+                [string]$candidate.status -eq "PASS" -and
+                [string]$candidate.plugin.plugin_id -eq "evidence-lane-plugin" -and
+                [string]$candidate.plugin.version -eq $PluginVersion -and
+                [string]$candidate.activation.plugin_selector -eq $ExpectedSelector -and
+                [IO.Path]::GetFullPath([string]$candidate.activation.installed_path) -eq $resolvedPluginRoot -and
+                [string]$candidate.marketplace.name -eq $MarketplaceName
+            ) {
+                $matchingReceipts += [pscustomobject]@{
+                    path = $receiptPath.FullName
+                    body = $candidate
+                }
+            }
+        }
+        catch {
+            continue
+        }
+    }
+    if ($matchingReceipts.Count -ne 1) {
+        throw "Tunnel activation requires one exact sealed installed-selector receipt."
+    }
+    $installedReceiptPath = [string]$matchingReceipts[0].path
+    $installedReceipt = $matchingReceipts[0].body
+    $sourceProof = @($installedReceipt.plugin.package_proofs.records | Where-Object {
+        [string]$_.path -eq "manifests/package/source-manifest.json"
+    })
+    $coherenceProof = @($installedReceipt.plugin.package_proofs.records | Where-Object {
+        [string]$_.path -eq "manifests/package/package-surface-coherence.json"
+    })
+    if (
+        [string]$installedReceipt.activation.state -notin @(
+            "LOCAL_INSTALLED_STATIC_ACCEPTANCE_TUNNEL_PENDING",
+            "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED",
+            "INSTALLED_RESTART_REQUIRED"
+        ) -or
+        [string]$installedReceipt.plugin.manifest_sha256 -ne $manifestSha256 -or
+        [string]$installedReceipt.plugin.package_proofs.status -ne "PASS" -or
+        $sourceProof.Count -ne 1 -or
+        [string]$sourceProof[0].sha256 -ne $sourceManifestSha256 -or
+        $coherenceProof.Count -ne 1 -or
+        [string]$coherenceProof[0].sha256 -ne $coherenceSha256 -or
+        [string]$installedReceipt.archive_sha256 -notmatch '^[A-F0-9]{64}$' -or
+        [string]$installedReceipt.package_receipt_sha256 -notmatch '^[A-F0-9]{64}$' -or
+        [string]$installedReceipt.receipt_sha256 -notmatch '^[A-F0-9]{64}$'
+    ) {
+        throw "The sealed installed-selector receipt does not reconcile with the cache bytes."
+    }
+    return [pscustomobject]@{
+        schema = "evidence-lane.tunnel-installed-cache-binding.v1"
+        status = "PASS"
+        selector = $ExpectedSelector
+        marketplace_name = $MarketplaceName
+        installed_cache_root = $resolvedPluginRoot
+        installed_receipt_path = $installedReceiptPath
+        installed_receipt_file_sha256 = Get-PathSha256 -Path $installedReceiptPath
+        installed_receipt_sha256 = [string]$installedReceipt.receipt_sha256
+        installed_package_archive_sha256 = [string]$installedReceipt.archive_sha256
+        installed_package_receipt_sha256 = [string]$installedReceipt.package_receipt_sha256
+        plugin_manifest_path = $manifestPath
+        plugin_manifest_sha256 = $manifestSha256
+        executable_surface_registry_path = $surfacePath
+        executable_surface_registry_sha256 = $surfaceSha256
+        package_surface_coherence_path = $coherencePath
+        package_surface_coherence_sha256 = $coherenceSha256
+        package_surface_coherence_receipt_sha256 = [string]$coherence.receipt_sha256
+        package_source_manifest_path = $sourceManifestPath
+        package_source_manifest_sha256 = $sourceManifestSha256
+        tunnel_manifest_path = $tunnelManifestPath
+        tunnel_manifest_sha256 = $tunnelManifestSha256
+        tunnel_compatibility_sha256 = [string]$tunnelManifest.tunnel_compatibility_sha256
+        runner_path = $runnerPath
+        runner_sha256 = Get-PathSha256 -Path $runnerPath
+    }
+}
 
 $releaseChannelPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\codex-release-channel.json"))
 if (-not (Test-Path -LiteralPath $releaseChannelPath -PathType Leaf)) {
@@ -57,17 +287,54 @@ if (
     throw "The requested tunnel slot does not match the exact release-channel contract."
 }
 $release = $slotRelease
-$releaseToken = "v" + ($release -replace '\.', '')
-$filePrefix = "evidence_lane_${releaseToken}"
+$identityPluginRoot = if (-not [string]::IsNullOrWhiteSpace($PluginRoot)) {
+    (Resolve-Path -LiteralPath $PluginRoot).Path
+} else {
+    (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..")).Path
+}
+$pluginManifestPath = Join-Path $identityPluginRoot ".codex-plugin\plugin.json"
+if (-not (Test-Path -LiteralPath $pluginManifestPath -PathType Leaf)) {
+    throw "The exact plugin manifest is missing for tunnel identity binding."
+}
+$pluginManifest = Get-Content -LiteralPath $pluginManifestPath -Raw | ConvertFrom-Json
+$pluginVersion = [string]$pluginManifest.version
+$tunnelManifestPath = Join-Path $identityPluginRoot "tunnel\tunnel-manifest.v1.json"
+if (-not (Test-Path -LiteralPath $tunnelManifestPath -PathType Leaf)) {
+    throw "The installed tunnel compatibility manifest is missing."
+}
+$tunnelManifest = Get-Content -LiteralPath $tunnelManifestPath -Raw | ConvertFrom-Json
+$tunnelCompatibilitySha256 = [string]$tunnelManifest.tunnel_compatibility_sha256
+if (
+    [string]::IsNullOrWhiteSpace($pluginVersion) -or
+    $pluginVersion.Split('+')[0] -ne $release -or
+    [string]$tunnelManifest.schema -ne "evidence-lane.installed-tunnel-surface.v1" -or
+    [string]$tunnelManifest.status -ne "PASS" -or
+    [string]$tunnelManifest.tunnel_compatibility_schema -ne "evidence-lane.tunnel-capability-compatibility.v1" -or
+    $tunnelCompatibilitySha256 -notmatch '^[A-F0-9]{64}$'
+) {
+    throw "The tunnel plugin version does not match the selected release slot."
+}
+$versionIdentity = Get-VersionedTunnelIdentity `
+    -Release $release `
+    -SlotRole $SlotRole `
+    -PluginVersion $pluginVersion `
+    -TunnelCompatibilitySha256 $tunnelCompatibilitySha256
+$releaseToken = [string]$versionIdentity.release_token
+$pluginVersionToken = [string]$versionIdentity.plugin_version_token
+$pluginVersionSha256 = [string]$versionIdentity.plugin_version_sha256
+$pluginVersionDigest = [string]$versionIdentity.plugin_version_digest
+$tunnelCompatibilityDigest = [string]$versionIdentity.tunnel_compatibility_digest
+$tunnelVersionToken = [string]$versionIdentity.tunnel_version_token
+$filePrefix = [string]$versionIdentity.file_prefix
 $slotToken = $SlotRole.Replace("-", "_")
 if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
-    $RuntimeRoot = Join-Path $RuntimeControlRoot "tunnel-runtime-$releaseToken-stable-build"
+    $RuntimeRoot = Join-Path $RuntimeControlRoot ([string]$versionIdentity.runtime_directory_name)
 }
 if ([string]::IsNullOrWhiteSpace($ProfileName)) {
-    $ProfileName = "${filePrefix}_stable_build_transport"
+    $ProfileName = [string]$versionIdentity.profile_name
 }
 if ([string]::IsNullOrWhiteSpace($TaskName)) {
-    $TaskName = "EvidenceLane-Tunnel-$releaseToken-stable-build"
+    $TaskName = [string]$versionIdentity.task_name
 }
 
 $expectedClientSha256 = "D893D8127EEE35070D265C1BE29BFE008F8D9FCB476E7FEBF56C8FDC6C0615C8"
@@ -79,9 +346,10 @@ $manageTarget = Join-Path $RuntimeRoot "Manage-EvidenceLaneTunnel.ps1"
 $hostTarget = Join-Path $RuntimeRoot "EvidenceLaneTunnelHost.exe"
 $childTarget = Join-Path $RuntimeRoot "_INTERNAL_EVIDENCE_LANE_MCP_LAYER_DO_NOT_RUN.ps1"
 $markerFile = Join-Path $RuntimeRoot "evidence-lane-tunnel-installation.json"
-$sourceBoot = Join-Path $PSScriptRoot "EvidenceLaneTunnel.Boot.ps1"
-$sourceManage = Join-Path $PSScriptRoot "Manage-EvidenceLaneTunnel.ps1"
-$sourceHost = Join-Path $PSScriptRoot "EvidenceLaneTunnelHost.exe"
+$installedTunnelScriptRoot = Join-Path $identityPluginRoot "scripts\windows_tunnel"
+$sourceBoot = Join-Path $installedTunnelScriptRoot "EvidenceLaneTunnel.Boot.ps1"
+$sourceManage = Join-Path $installedTunnelScriptRoot "Manage-EvidenceLaneTunnel.ps1"
+$sourceHost = Join-Path $installedTunnelScriptRoot "EvidenceLaneTunnelHost.exe"
 $profileDir = Join-Path $env:APPDATA "tunnel-client"
 $profileFile = Join-Path $profileDir ($ProfileName + ".yaml")
 $runtimeKeyEnvelopeReused = $false
@@ -131,18 +399,6 @@ else {
     "Persistent"
 }
 
-function Get-StringSha256 {
-    param([Parameter(Mandatory = $true)][string]$Value)
-    $bytes = [Text.Encoding]::UTF8.GetBytes($Value)
-    $sha = [Security.Cryptography.SHA256]::Create()
-    try {
-        return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace("-", "")
-    }
-    finally {
-        $sha.Dispose()
-    }
-}
-
 $exactVmInstanceId = $VmInstanceId.Trim()
 $vmInstanceIdSha256 = "NOT_APPLICABLE"
 if ($exactHostLifetime -eq "Ephemeral") {
@@ -184,7 +440,7 @@ function Resolve-TunnelClientSource {
             } |
             Where-Object {
                 (Test-Path -LiteralPath $_ -PathType Leaf) -and
-                (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash -eq $expectedClientSha256
+                (Get-PathSha256 -Path $_) -eq $expectedClientSha256
             }
     )
     if ($priorClients.Count -gt 0) {
@@ -202,7 +458,7 @@ function Resolve-TunnelClientSource {
         New-Item -ItemType Directory -Path $dependencyRoot -Force | Out-Null
         $downloadTarget = Join-Path $dependencyRoot "tunnel-client-v0.0.10.exe"
         Invoke-WebRequest -Uri $downloadUri -OutFile $downloadTarget -UseBasicParsing
-        if ((Get-FileHash -LiteralPath $downloadTarget -Algorithm SHA256).Hash -ne $expectedClientSha256) {
+        if ((Get-PathSha256 -Path $downloadTarget) -ne $expectedClientSha256) {
             Remove-Item -LiteralPath $downloadTarget -Force -ErrorAction SilentlyContinue
             throw "The downloaded tunnel-client does not match the pinned v0.0.10 SHA-256."
         }
@@ -236,7 +492,7 @@ function Resolve-TunnelClientLicenseSource {
     if ($expected -notmatch '^[A-F0-9]{64}$') {
         throw "The tunnel-client license requires an exact expected SHA-256."
     }
-    $actual = (Get-FileHash -LiteralPath $resolved -Algorithm SHA256).Hash
+    $actual = Get-PathSha256 -Path $resolved
     if ($actual -ne $expected) {
         throw "The tunnel-client license text does not match its expected SHA-256."
     }
@@ -444,7 +700,7 @@ exit `$LASTEXITCODE
     Set-Content -LiteralPath $childTarget -Value $launcher -Encoding UTF8
 }
 
-function Remove-StoppedPriorTunnelRuntimes {
+function Stop-AndRetainPriorTunnelRuntimes {
     param(
         [Parameter(Mandatory = $true)][string]$ExactRuntimeControlRoot,
         [Parameter(Mandatory = $true)][string]$ExactRuntimeRoot
@@ -469,10 +725,10 @@ function Remove-StoppedPriorTunnelRuntimes {
         try {
             $otherMarker = Get-Content -LiteralPath $otherMarkerPath -Raw | ConvertFrom-Json
             $managerCommand = Get-Command -Name $otherManager -CommandType ExternalScript -ErrorAction Stop
-            $statusArguments = @(
+            $stopArguments = @(
                 "-NoLogo", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden",
                 "-ExecutionPolicy", "Bypass", "-File", $otherManager,
-                "-Action", "Status", "-RuntimeRoot", $otherRoot.FullName
+                "-Action", "Stop", "-RuntimeRoot", $otherRoot.FullName
             )
             foreach ($optionalParameter in @("ProfileName", "TaskName", "ReleaseToken")) {
                 if (-not $managerCommand.Parameters.ContainsKey($optionalParameter)) {
@@ -485,23 +741,23 @@ function Remove-StoppedPriorTunnelRuntimes {
                 }
                 $markerValue = [string]$otherMarker.$markerProperty
                 if (-not [string]::IsNullOrWhiteSpace($markerValue)) {
-                    $statusArguments += @("-$optionalParameter", $markerValue)
+                    $stopArguments += @("-$optionalParameter", $markerValue)
                 }
             }
-            $statusText = & $powershell @statusArguments 2>$null
-            $status = ($statusText | Out-String).Trim() | ConvertFrom-Json
+            $stopText = & $powershell @stopArguments 2>$null
+            $status = ($stopText | Out-String).Trim() | ConvertFrom-Json
             if (
-                $status.control_plane_poll_ready -eq $true -or
-                $status.process_running -eq $true
+                [string]$status.status -ne "STOPPED_SAVED" -or
+                [bool]$status.reusable_without_reinstall -ne $true
             ) {
-                throw "Another Evidence Lane tunnel is active; it must stop before replacement."
+                throw "Another Evidence Lane tunnel could not be stopped and retained before replacement."
             }
         }
         catch {
-            if ($_.Exception.Message -like "Another Evidence Lane tunnel is active;*") {
+            if ($_.Exception.Message -like "Another Evidence Lane tunnel could not be stopped and retained;*") {
                 throw
             }
-            throw "A sibling Evidence Lane tunnel could not be proven stopped; activation is blocked."
+            throw "A sibling Evidence Lane tunnel could not be proven stopped, disabled, and retained; activation is blocked."
         }
         $resolvedOtherRoot = [IO.Path]::GetFullPath($otherRoot.FullName)
         if (-not $resolvedOtherRoot.StartsWith(
@@ -510,11 +766,14 @@ function Remove-StoppedPriorTunnelRuntimes {
         )) {
             throw "A prior tunnel runtime escaped the hidden runtime-control root."
         }
-        Remove-Item -LiteralPath $resolvedOtherRoot -Recurse -Force
+        $retainedMarker = Get-Content -LiteralPath $otherMarkerPath -Raw | ConvertFrom-Json
+        if ([string]$retainedMarker.runtime_root -ne $resolvedOtherRoot) {
+            throw "A retained prior tunnel marker no longer matches its versioned runtime root."
+        }
     }
 }
 
-function Remove-StoppedPriorTunnelTasks {
+function Stop-DisableAndRetainPriorTunnelTasks {
     param([Parameter(Mandatory = $true)][string]$ExactTaskName)
 
     foreach ($priorTask in @(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object {
@@ -526,11 +785,133 @@ function Remove-StoppedPriorTunnelTasks {
                 -TaskName ([string]$priorTask.TaskName) `
                 -ErrorAction Stop
         }
-        Unregister-ScheduledTask -TaskName ([string]$priorTask.TaskName) -Confirm:$false -ErrorAction Stop
+        Disable-ScheduledTask -TaskName ([string]$priorTask.TaskName) -ErrorAction Stop | Out-Null
+        $retainedTask = Get-ScheduledTask -TaskName ([string]$priorTask.TaskName) -ErrorAction Stop
+        if ([string]$retainedTask.State -ne "Disabled") {
+            throw "A prior versioned Evidence Lane tunnel task was not retained in Disabled state."
+        }
     }
 }
 
-$exactPluginRoot = Resolve-PluginRoot
+function Get-ActivePriorTunnelBindings {
+    param(
+        [Parameter(Mandatory = $true)][string]$ExactRuntimeControlRoot,
+        [Parameter(Mandatory = $true)][string]$ExactTaskName
+    )
+
+    $activeTasks = @(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object {
+        [string]$_.TaskName -like "EvidenceLane-Tunnel-*" -and
+        [string]$_.TaskName -ne $ExactTaskName -and
+        [string]$_.State -eq "Running"
+    })
+    if ($activeTasks.Count -gt 1) {
+        throw "Tunnel rotation found more than one active prior tunnel task."
+    }
+    $bindings = @()
+    foreach ($activeTask in $activeTasks) {
+        $matchingMarkers = @(
+            Get-ChildItem -LiteralPath $ExactRuntimeControlRoot `
+                -Directory -Filter "tunnel-runtime-*" -ErrorAction SilentlyContinue |
+                ForEach-Object {
+                    $markerPath = Join-Path $_.FullName "evidence-lane-tunnel-installation.json"
+                    if (Test-Path -LiteralPath $markerPath -PathType Leaf) {
+                        try {
+                            $markerBody = Get-Content -LiteralPath $markerPath -Raw | ConvertFrom-Json
+                            if ([string]$markerBody.task_name -eq [string]$activeTask.TaskName) {
+                                [pscustomobject]@{
+                                    runtime_root = $_.FullName
+                                    marker = $markerBody
+                                    manager = Join-Path $_.FullName "Manage-EvidenceLaneTunnel.ps1"
+                                }
+                            }
+                        }
+                        catch {
+                            continue
+                        }
+                    }
+                }
+        )
+        if (
+            $matchingMarkers.Count -ne 1 -or
+            -not (Test-Path -LiteralPath $matchingMarkers[0].manager -PathType Leaf)
+        ) {
+            throw "The active prior tunnel task does not have one retained manager binding."
+        }
+        $bindings += $matchingMarkers[0]
+    }
+    return $bindings
+}
+
+function Invoke-RetainedTunnelManager {
+    param(
+        [Parameter(Mandatory = $true)]$Binding,
+        [Parameter(Mandatory = $true)][ValidateSet("Start", "Stop")][string]$Action
+    )
+
+    $managerCommand = Get-Command -Name ([string]$Binding.manager) `
+        -CommandType ExternalScript -ErrorAction Stop
+    $arguments = @(
+        "-NoLogo", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden",
+        "-ExecutionPolicy", "Bypass", "-File", [string]$Binding.manager,
+        "-Action", $Action,
+        "-RuntimeRoot", [string]$Binding.runtime_root
+    )
+    foreach ($optionalParameter in @("ProfileName", "TaskName", "ReleaseToken")) {
+        if (-not $managerCommand.Parameters.ContainsKey($optionalParameter)) {
+            continue
+        }
+        $markerProperty = switch ($optionalParameter) {
+            "ProfileName" { "profile_name" }
+            "TaskName" { "task_name" }
+            default { "release_token" }
+        }
+        $markerValue = [string]$Binding.marker.$markerProperty
+        if (-not [string]::IsNullOrWhiteSpace($markerValue)) {
+            $arguments += @("-$optionalParameter", $markerValue)
+        }
+    }
+    $resultText = & $powershell @arguments 2>$null
+    $exitCode = $LASTEXITCODE
+    $result = ($resultText | Out-String).Trim() | ConvertFrom-Json
+    if ($exitCode -ne 0) {
+        throw "A retained tunnel manager failed the requested $Action operation."
+    }
+    return $result
+}
+
+function Assert-SingleActiveTunnel {
+    param(
+        [Parameter(Mandatory = $true)][string]$ExactRuntimeControlRoot,
+        [Parameter(Mandatory = $true)][string]$ExactTaskName,
+        [Parameter(Mandatory = $true)][string]$ExactRuntimeRoot
+    )
+
+    $activeTasks = @(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object {
+        [string]$_.TaskName -like "EvidenceLane-Tunnel-*" -and
+        [string]$_.State -eq "Running"
+    })
+    $activeProcesses = @(Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object {
+        [string]$_.Name -eq "tunnel-client-v0.0.10.exe" -and
+        -not [string]::IsNullOrWhiteSpace([string]$_.ExecutablePath) -and
+        [IO.Path]::GetFullPath([string]$_.ExecutablePath).StartsWith(
+            ([IO.Path]::GetFullPath($ExactRuntimeControlRoot) + [IO.Path]::DirectorySeparatorChar),
+            [StringComparison]::OrdinalIgnoreCase
+        )
+    })
+    if (
+        $activeTasks.Count -ne 1 -or
+        [string]$activeTasks[0].TaskName -ne $ExactTaskName -or
+        $activeProcesses.Count -ne 1 -or
+        -not [IO.Path]::GetFullPath([string]$activeProcesses[0].ExecutablePath).StartsWith(
+            ([IO.Path]::GetFullPath($ExactRuntimeRoot) + [IO.Path]::DirectorySeparatorChar),
+            [StringComparison]::OrdinalIgnoreCase
+        )
+    ) {
+        throw "Tunnel activation did not prove exactly one versioned task and process active."
+    }
+}
+
+$exactPluginRoot = $identityPluginRoot
 $exactRuntimeControlRoot = [IO.Path]::GetFullPath($RuntimeControlRoot)
 $expectedRuntimeControlRoot = [IO.Path]::GetFullPath(
     (Join-Path $env:USERPROFILE ".codex\plugins\runtime\evidence-lane-plugin")
@@ -543,9 +924,79 @@ $approvedRuntimeParent = $exactRuntimeControlRoot + [IO.Path]::DirectorySeparato
 if (-not $exactRuntimeRoot.StartsWith($approvedRuntimeParent, [StringComparison]::OrdinalIgnoreCase)) {
     throw "The versioned tunnel runtime must remain inside the Evidence Lane runtime control root."
 }
+$marketplaceName = [string]$slotContract.codex_marketplace_slot
+$installedSelector = "evidence-lane-plugin@$marketplaceName"
+$installedBinding = $null
+$compatibleTunnelRuntimeRebound = $false
+if ($Activate -or $CaptureRuntimeKeyOnly) {
+    $installedBinding = Get-SealedInstalledPluginBinding `
+        -ExactPluginRoot $exactPluginRoot `
+        -PluginVersion $pluginVersion `
+        -MarketplaceName $marketplaceName `
+        -ExpectedSelector $installedSelector `
+        -ExactRuntimeControlRoot $exactRuntimeControlRoot
+    $expectedInstalledInstallerRoot = [IO.Path]::GetFullPath(
+        (Join-Path $exactPluginRoot "scripts\windows_tunnel")
+    )
+    if (-not [IO.Path]::GetFullPath($PSScriptRoot).Equals(
+        $expectedInstalledInstallerRoot,
+        [StringComparison]::OrdinalIgnoreCase
+    )) {
+        throw "Tunnel activation must execute the installer from the sealed installed plugin cache."
+    }
+}
+$existingCompatibleMarkerPath = Join-Path $exactRuntimeRoot "evidence-lane-tunnel-installation.json"
+if ($Activate -and (Test-Path -LiteralPath $existingCompatibleMarkerPath -PathType Leaf)) {
+    $existingCompatibleMarker = Get-Content -LiteralPath $existingCompatibleMarkerPath -Raw | ConvertFrom-Json
+    $existingCompatibleManager = Join-Path $exactRuntimeRoot "Manage-EvidenceLaneTunnel.ps1"
+    if (
+        [string]$existingCompatibleMarker.tunnel_compatibility_sha256 -ne $tunnelCompatibilitySha256 -or
+        -not (Test-Path -LiteralPath $existingCompatibleManager -PathType Leaf)
+    ) {
+        throw "The existing capability-bound tunnel runtime cannot be safely rebound."
+    }
+    $stopText = & $existingCompatibleManager `
+        -Action Stop `
+        -RuntimeRoot $exactRuntimeRoot `
+        -ProfileName ([string]$existingCompatibleMarker.profile_name) `
+        -ProfileDir $profileDir `
+        -ReleaseToken ([string]$existingCompatibleMarker.release_token) `
+        -TaskName ([string]$existingCompatibleMarker.task_name) 2>$null
+    $stopResult = ($stopText | Out-String).Trim() | ConvertFrom-Json
+    if ([string]$stopResult.status -ne "STOPPED_SAVED") {
+        throw "The compatible tunnel could not be stopped before exact plugin rebinding."
+    }
+    $compatibleTunnelRuntimeRebound = $true
+}
 $runner = Join-Path $exactPluginRoot "scripts\run_mcp.py"
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
     throw "The exact Evidence Lane MCP launcher is missing: $runner"
+}
+if ($CaptureRuntimeKeyOnly) {
+    if ($Activate -or $RequirePreparedRuntimeKey) {
+        throw "Interactive Runtime-key capture is a separate pre-activation phase."
+    }
+    New-Item -ItemType Directory -Path $secretRoot -Force | Out-Null
+    Protect-SecretDirectory
+    $interactiveKeyEntry = $RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Leaf)
+    if ($interactiveKeyEntry) {
+        Save-RuntimeKeyEnvelope
+    }
+    [ordered]@{
+        status = "PASS"
+        state = if ($interactiveKeyEntry) { "LOCAL_RUNTIME_KEY_CAPTURED_FOR_TUNNEL_CAPABILITY" } else { "COMPATIBLE_TUNNEL_RUNTIME_KEY_REUSED" }
+        plugin_version = $pluginVersion
+        tunnel_version_token = $tunnelVersionToken
+        tunnel_compatibility_sha256 = $tunnelCompatibilitySha256
+        runtime_root = $exactRuntimeRoot
+        interactive_terminal_required = $interactiveKeyEntry
+        runtime_key_reused_from_compatible_tunnel = -not $interactiveKeyEntry
+        runtime_key_plaintext_written = $false
+        runtime_key_argument_used = $false
+        runtime_key_environment_output = $false
+        persistent_runtime_started = $false
+    } | ConvertTo-Json -Depth 4
+    exit 0
 }
 $catalogContract = $releaseChannel.stable
 $exactVisibleToolCount = [int]$catalogContract.native_tool_count
@@ -629,7 +1080,7 @@ if (
 }
 $resolvedSource = Resolve-TunnelClientSource
 $resolvedLicense = Resolve-TunnelClientLicenseSource
-$sourceHash = (Get-FileHash -LiteralPath $resolvedSource -Algorithm SHA256).Hash
+$sourceHash = Get-PathSha256 -Path $resolvedSource
 if ($sourceHash -ne $expectedClientSha256) {
     throw "The supplied tunnel-client binary does not match the pinned v0.0.10 SHA-256."
 }
@@ -639,19 +1090,47 @@ New-Item -ItemType Directory -Path (Split-Path -Parent $stableClient) -Force | O
 New-Item -ItemType Directory -Path $secretRoot -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $RuntimeRoot "licenses\tunnel-client-v0.0.10") -Force | Out-Null
 New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
-Copy-Item -LiteralPath $resolvedSource -Destination $stableClient -Force
+$resolvedSourcePath = [IO.Path]::GetFullPath([string]$resolvedSource)
+$stableClientPath = [IO.Path]::GetFullPath($stableClient)
+$tunnelClientMaterialization = "COPIED_FROM_VERIFIED_SOURCE"
+if ($resolvedSourcePath.Equals($stableClientPath, [StringComparison]::OrdinalIgnoreCase)) {
+    if ((Get-PathSha256 -Path $stableClientPath) -ne $expectedClientSha256) {
+        throw "The in-place compatible tunnel client no longer matches its pinned SHA-256."
+    }
+    $tunnelClientMaterialization = "REUSED_VERIFIED_IN_PLACE"
+}
+else {
+    Copy-Item -LiteralPath $resolvedSourcePath -Destination $stableClientPath -Force
+}
 Copy-Item -LiteralPath $sourceBoot -Destination $bootTarget -Force
 Copy-Item -LiteralPath $sourceManage -Destination $manageTarget -Force
 Copy-Item -LiteralPath $sourceHost -Destination $hostTarget -Force
-Copy-Item -LiteralPath ([string]$resolvedLicense.path) `
-    -Destination (Join-Path $RuntimeRoot "licenses\tunnel-client-v0.0.10\LICENSE") -Force
+$resolvedLicensePath = [IO.Path]::GetFullPath([string]$resolvedLicense.path)
+$stableLicensePath = [IO.Path]::GetFullPath(
+    (Join-Path $RuntimeRoot "licenses\tunnel-client-v0.0.10\LICENSE")
+)
+$tunnelClientLicenseMaterialization = "COPIED_FROM_VERIFIED_SOURCE"
+if ($resolvedLicensePath.Equals($stableLicensePath, [StringComparison]::OrdinalIgnoreCase)) {
+    if ((Get-PathSha256 -Path $stableLicensePath) -ne [string]$resolvedLicense.sha256) {
+        throw "The in-place compatible tunnel-client license no longer matches its pinned SHA-256."
+    }
+    $tunnelClientLicenseMaterialization = "REUSED_VERIFIED_IN_PLACE"
+}
+else {
+    Copy-Item -LiteralPath $resolvedLicensePath -Destination $stableLicensePath -Force
+}
 $runtimePrewarm.prewarm | ConvertTo-Json -Depth 100 | Set-Content `
     -LiteralPath (Join-Path $RuntimeRoot "runtime-toolchain-prewarm.json") -Encoding UTF8
 $runtimeLicenseManifest | ConvertTo-Json -Depth 100 | Set-Content `
     -LiteralPath (Join-Path $RuntimeRoot "runtime-license-manifest.json") -Encoding UTF8
 Protect-SecretDirectory
 
-if ($RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Leaf)) {
+if ($RequirePreparedRuntimeKey) {
+    if (-not (Test-Path -LiteralPath $secretFile -PathType Leaf)) {
+        throw "The first-registration Runtime-key phase has not produced a reusable encrypted envelope."
+    }
+}
+elseif ($RotateRuntimeKey -or -not (Test-Path -LiteralPath $secretFile -PathType Leaf)) {
     $effectiveEnvelopeSource = Resolve-PriorRuntimeKeyEnvelope
     if (-not [string]::IsNullOrWhiteSpace($effectiveEnvelopeSource) -and -not $RotateRuntimeKey) {
         $exactEnvelopeSource = [IO.Path]::GetFullPath($effectiveEnvelopeSource)
@@ -701,6 +1180,44 @@ $marker = [ordered]@{
     schema = "evidence-lane.versioned-secure-mcp-tunnel-installation.v2"
     release = $release
     release_token = $releaseToken
+    plugin_version = $pluginVersion
+    plugin_version_token = $pluginVersionToken
+    plugin_version_sha256 = $pluginVersionSha256
+    plugin_version_digest = $pluginVersionDigest
+    tunnel_compatibility_schema = "evidence-lane.tunnel-capability-compatibility.v1"
+    tunnel_compatibility_sha256 = $tunnelCompatibilitySha256
+    tunnel_compatibility_digest = $tunnelCompatibilityDigest
+    tunnel_version_token = $tunnelVersionToken
+    file_prefix = $filePrefix
+    plugin_manifest_sha256 = Get-PathSha256 -Path $pluginManifestPath
+    installed_cache_binding_schema = if ($null -ne $installedBinding) { [string]$installedBinding.schema } else { "NOT_ACTIVATED" }
+    installed_selector = if ($null -ne $installedBinding) { [string]$installedBinding.selector } else { $installedSelector }
+    installed_marketplace_name = $marketplaceName
+    installed_cache_root = if ($null -ne $installedBinding) { [string]$installedBinding.installed_cache_root } else { "NOT_ACTIVATED" }
+    installed_receipt_path = if ($null -ne $installedBinding) { [string]$installedBinding.installed_receipt_path } else { "NOT_ACTIVATED" }
+    installed_receipt_file_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.installed_receipt_file_sha256 } else { "NOT_ACTIVATED" }
+    installed_receipt_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.installed_receipt_sha256 } else { "NOT_ACTIVATED" }
+    installed_package_archive_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.installed_package_archive_sha256 } else { "NOT_ACTIVATED" }
+    installed_package_receipt_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.installed_package_receipt_sha256 } else { "NOT_ACTIVATED" }
+    executable_surface_registry_path = if ($null -ne $installedBinding) { [string]$installedBinding.executable_surface_registry_path } else { "NOT_ACTIVATED" }
+    executable_surface_registry_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.executable_surface_registry_sha256 } else { "NOT_ACTIVATED" }
+    package_surface_coherence_path = if ($null -ne $installedBinding) { [string]$installedBinding.package_surface_coherence_path } else { "NOT_ACTIVATED" }
+    package_surface_coherence_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.package_surface_coherence_sha256 } else { "NOT_ACTIVATED" }
+    package_surface_coherence_receipt_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.package_surface_coherence_receipt_sha256 } else { "NOT_ACTIVATED" }
+    package_source_manifest_path = if ($null -ne $installedBinding) { [string]$installedBinding.package_source_manifest_path } else { "NOT_ACTIVATED" }
+    package_source_manifest_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.package_source_manifest_sha256 } else { "NOT_ACTIVATED" }
+    tunnel_manifest_path = if ($null -ne $installedBinding) { [string]$installedBinding.tunnel_manifest_path } else { $tunnelManifestPath }
+    tunnel_manifest_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.tunnel_manifest_sha256 } else { Get-PathSha256 -Path $tunnelManifestPath }
+    installed_runner_path = if ($null -ne $installedBinding) { [string]$installedBinding.runner_path } else { $runner }
+    installed_runner_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.runner_sha256 } else { Get-PathSha256 -Path $runner }
+    installed_tunnel_installer_path = Join-Path $installedTunnelScriptRoot "Install-EvidenceLaneTunnel.ps1"
+    installed_tunnel_installer_sha256 = Get-PathSha256 -Path (Join-Path $installedTunnelScriptRoot "Install-EvidenceLaneTunnel.ps1")
+    installed_tunnel_boot_sha256 = Get-PathSha256 -Path $sourceBoot
+    installed_tunnel_manager_sha256 = Get-PathSha256 -Path $sourceManage
+    installed_tunnel_host_sha256 = Get-PathSha256 -Path $sourceHost
+    runtime_tunnel_boot_sha256 = Get-PathSha256 -Path $bootTarget
+    runtime_tunnel_manager_sha256 = Get-PathSha256 -Path $manageTarget
+    runtime_tunnel_host_sha256 = Get-PathSha256 -Path $hostTarget
     release_identity_source = "CODEX_RELEASE_CHANNEL_CONTRACT"
     runtime_identity_matches_release = $true
     runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
@@ -713,7 +1230,7 @@ $marker = [ordered]@{
     profile_file = $profileFile
     task_name = $TaskName
     scheduled_task_launcher = $hostTarget
-    scheduled_task_launcher_sha256 = (Get-FileHash -LiteralPath $hostTarget -Algorithm SHA256).Hash
+    scheduled_task_launcher_sha256 = Get-PathSha256 -Path $hostTarget
     scheduled_task_launcher_subsystem = "WINDOWS_GUI_NO_VISIBLE_CONSOLE"
     scheduled_task_launcher_create_no_window = $true
     scheduled_task_transport_used = $true
@@ -745,21 +1262,21 @@ $marker = [ordered]@{
     exact_hook_handler_count = $exactHookHandlerCount
     exact_provider_count = $exactProviderCount
     runtime_python = $python
-    runtime_python_sha256 = (Get-FileHash -LiteralPath $python -Algorithm SHA256).Hash
+    runtime_python_sha256 = Get-PathSha256 -Path $python
     runtime_key = $runtimeKey
     tool_requirement_matrix = $toolMatrixPath
-    tool_requirement_matrix_sha256 = (Get-FileHash -LiteralPath $toolMatrixPath -Algorithm SHA256).Hash
+    tool_requirement_matrix_sha256 = Get-PathSha256 -Path $toolMatrixPath
     tunnel_runtime_toolchain = $tunnelToolchainPath
-    tunnel_runtime_toolchain_sha256 = (Get-FileHash -LiteralPath $tunnelToolchainPath -Algorithm SHA256).Hash
+    tunnel_runtime_toolchain_sha256 = Get-PathSha256 -Path $tunnelToolchainPath
     runtime_toolchain_prewarm_receipt = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "runtime-toolchain-prewarm.json"
-    runtime_toolchain_prewarm_receipt_sha256 = (Get-FileHash -LiteralPath (Join-Path $RuntimeRoot "runtime-toolchain-prewarm.json") -Algorithm SHA256).Hash
+    runtime_toolchain_prewarm_receipt_sha256 = Get-PathSha256 -Path (Join-Path $RuntimeRoot "runtime-toolchain-prewarm.json")
     runtime_toolchain_requirement_count = [int]$runtimePrewarm.toolchain.requirement_count
     runtime_toolchain_failure_count = [int]$runtimePrewarm.toolchain.failure_count
     runtime_license_manifest = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "runtime-license-manifest.json"
-    runtime_license_manifest_sha256 = (Get-FileHash -LiteralPath (Join-Path $RuntimeRoot "runtime-license-manifest.json") -Algorithm SHA256).Hash
+    runtime_license_manifest_sha256 = Get-PathSha256 -Path (Join-Path $RuntimeRoot "runtime-license-manifest.json")
     runtime_license_distribution_count = [int]$runtimeLicenseManifest.distribution_count
     tool_license_inventory = $toolLicenseInventoryPath
-    tool_license_inventory_sha256 = (Get-FileHash -LiteralPath $toolLicenseInventoryPath -Algorithm SHA256).Hash
+    tool_license_inventory_sha256 = Get-PathSha256 -Path $toolLicenseInventoryPath
     tool_license_entry_count = [int]$runtimeLicenseManifest.tool_license_entry_count
     all_94_tool_licenses_classified = [bool]$runtimeLicenseManifest.all_tool_requirements_license_classified
     mcp_inventory_separate_from_toolchain = [bool]$runtimeLicenseManifest.mcp_inventory_separate
@@ -769,8 +1286,12 @@ $marker = [ordered]@{
     tunnel_client_license_sha256 = [string]$resolvedLicense.sha256
     stable_client = $stableClient
     stable_client_sha256 = $expectedClientSha256
+    tunnel_client_materialization = $tunnelClientMaterialization
+    tunnel_client_license_materialization = $tunnelClientLicenseMaterialization
     pid_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "${filePrefix}_tunnel.pid"
     health_url_file = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "${filePrefix}_health.url"
+    daemon_log = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "${filePrefix}_tunnel.log"
+    operator_log = Join-Path ([IO.Path]::GetFullPath($RuntimeRoot)) "${filePrefix}_operator.log"
     live_slot_authority = "SEALED_POST_PV11_TWO_SLOT_REGISTRY"
     saved_version = $true
     reusable_without_reinstall = $true
@@ -794,10 +1315,16 @@ $marker = [ordered]@{
     windows_console_policy = "WINDOWS_GUI_HOST_CREATE_NO_WINDOW"
     scheduled_task_window_style = "HIDDEN"
     distribution_audience = "USER_OR_MAINTAINER_ACTIVE_3_0_RUNTIME"
-    prior_versioned_runtimes_retained = $false
-    prior_versioned_tasks_retained = $false
-    prior_versioned_runtime_deletion_required = $true
+    prior_versioned_runtimes_retained = $true
+    prior_versioned_tasks_retained = $true
+    prior_versioned_tasks_disabled = $true
+    prior_versioned_runtime_deletion_required = $false
     one_active_version_required = $true
+    exact_plugin_rebind_required_every_install = $true
+    tunnel_rebuild_trigger = "CAPABILITY_FINGERPRINT_CHANGED_ONLY"
+    compatible_runtime_key_and_prewarm_reused = $true
+    compatible_tunnel_runtime_rebound = $compatibleTunnelRuntimeRebound
+    runtime_key_prompt_policy = "FIRST_REGISTRATION_OR_MISSING_INVALID_ONLY"
 }
 $marker | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $markerFile -Encoding UTF8
 
@@ -825,20 +1352,116 @@ Register-ScheduledTask `
     -Force | Out-Null
 
 Disable-ScheduledTask -TaskName $TaskName | Out-Null
+$priorActiveBindings = @()
 if ($Activate) {
-    Remove-StoppedPriorTunnelRuntimes `
+    $priorActiveBindings = @(Get-ActivePriorTunnelBindings `
         -ExactRuntimeControlRoot $exactRuntimeControlRoot `
-        -ExactRuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot))
-    Remove-StoppedPriorTunnelTasks -ExactTaskName $TaskName
-    & $manageTarget `
-        -Action Start `
-        -RuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot)) `
-        -ProfileName $ProfileName `
-        -ProfileDir $profileDir `
-        -ReleaseToken $releaseToken `
-        -TaskName $TaskName *> $null
-    if ($LASTEXITCODE -ne 0) {
-        throw "The version-matched Evidence Lane tunnel did not reach readiness."
+        -ExactTaskName $TaskName)
+    try {
+        Stop-AndRetainPriorTunnelRuntimes `
+            -ExactRuntimeControlRoot $exactRuntimeControlRoot `
+            -ExactRuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot))
+        Stop-DisableAndRetainPriorTunnelTasks -ExactTaskName $TaskName
+        $startText = & $manageTarget `
+            -Action Start `
+            -RuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot)) `
+            -ProfileName $ProfileName `
+            -ProfileDir $profileDir `
+            -ReleaseToken $releaseToken `
+            -TaskName $TaskName 2>$null
+        $startExitCode = $LASTEXITCODE
+        $startStatus = ($startText | Out-String).Trim() | ConvertFrom-Json
+        if (
+            $startExitCode -ne 0 -or
+            [string]$startStatus.status -ne "PASS" -or
+            [string]$startStatus.plugin_version -ne $pluginVersion -or
+            [string]$startStatus.tunnel_version_token -ne $tunnelVersionToken -or
+            [bool]$startStatus.control_plane_poll_ready -ne $true
+        ) {
+            throw "The version-matched Evidence Lane tunnel did not reach readiness."
+        }
+        Assert-SingleActiveTunnel `
+            -ExactRuntimeControlRoot $exactRuntimeControlRoot `
+            -ExactTaskName $TaskName `
+            -ExactRuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot))
+    }
+    catch {
+        $activationFailure = $_.Exception.Message
+        try {
+            & $manageTarget `
+                -Action Stop `
+                -RuntimeRoot ([IO.Path]::GetFullPath($RuntimeRoot)) `
+                -ProfileName $ProfileName `
+                -ProfileDir $profileDir `
+                -ReleaseToken $releaseToken `
+                -TaskName $TaskName *> $null
+        }
+        catch {
+            $activationFailure += "; failed new-version detach: $($_.Exception.Message)"
+        }
+        Disable-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue | Out-Null
+        $rollbackFailures = @()
+        foreach ($priorBinding in $priorActiveBindings) {
+            try {
+                $restored = Invoke-RetainedTunnelManager `
+                    -Binding $priorBinding `
+                    -Action Start
+                if (
+                    [string]$restored.status -ne "PASS" -or
+                    [bool]$restored.control_plane_poll_ready -ne $true
+                ) {
+                    throw "The retained prior tunnel did not return to readiness."
+                }
+                Assert-SingleActiveTunnel `
+                    -ExactRuntimeControlRoot $exactRuntimeControlRoot `
+                    -ExactTaskName ([string]$priorBinding.marker.task_name) `
+                    -ExactRuntimeRoot ([string]$priorBinding.runtime_root)
+            }
+            catch {
+                $rollbackFailures += $_.Exception.Message
+            }
+        }
+        if ($rollbackFailures.Count -gt 0) {
+            [ordered]@{
+                status = "FAIL"
+                state = "NEW_LOCAL_TUNNEL_FAILED_ROLLBACK_FAILED"
+                plugin_version = $pluginVersion
+                tunnel_version_token = $tunnelVersionToken
+                failed_new_local_tunnel_disabled = $true
+                prior_local_tunnel_rollback_status = "FAIL"
+                prior_local_tunnel_restore_count = 0
+                failure_sha256 = Get-StringSha256 -Value ($activationFailure + ($rollbackFailures -join ";"))
+                remote_crud_invoked = $false
+            } | ConvertTo-Json -Depth 5
+            exit 1
+        }
+        if ($priorActiveBindings.Count -eq 0) {
+            [ordered]@{
+                status = "FAIL"
+                state = "NEW_LOCAL_TUNNEL_FAILED_NO_PRIOR_ACTIVE"
+                plugin_version = $pluginVersion
+                tunnel_version_token = $tunnelVersionToken
+                failed_new_local_tunnel_disabled = $true
+                prior_local_tunnel_rollback_status = "NOT_APPLICABLE"
+                prior_local_tunnel_restore_count = 0
+                failure_sha256 = Get-StringSha256 -Value $activationFailure
+                remote_crud_invoked = $false
+            } | ConvertTo-Json -Depth 5
+            exit 1
+        }
+        [ordered]@{
+            status = "FAIL"
+            state = "NEW_LOCAL_TUNNEL_FAILED_PRIOR_RESTORED"
+            plugin_version = $pluginVersion
+            tunnel_version_token = $tunnelVersionToken
+            failed_new_local_tunnel_disabled = $true
+            prior_local_tunnel_rollback_status = "PASS"
+            prior_local_tunnel_restore_count = $priorActiveBindings.Count
+            prior_local_task_names = @($priorActiveBindings | ForEach-Object { [string]$_.marker.task_name })
+            failure_sha256 = Get-StringSha256 -Value $activationFailure
+            remote_crud_invoked = $false
+        } | ConvertTo-Json -Depth 5
+        exit 1
     }
 }
 
@@ -846,16 +1469,32 @@ if ($Activate) {
     status = "PASS"
     release = $release
     release_token = $releaseToken
+    plugin_version = $pluginVersion
+    plugin_version_token = $pluginVersionToken
+    plugin_version_sha256 = $pluginVersionSha256
+    plugin_version_digest = $pluginVersionDigest
+    tunnel_compatibility_sha256 = $tunnelCompatibilitySha256
+    tunnel_compatibility_digest = $tunnelCompatibilityDigest
+    compatible_tunnel_runtime_rebound = $compatibleTunnelRuntimeRebound
+    tunnel_version_token = $tunnelVersionToken
     release_identity_source = "CODEX_RELEASE_CHANNEL_CONTRACT"
     runtime_identity_matches_release = $true
     slot_role = $SlotRole
+    installed_selector = $installedSelector
+    installed_cache_root = if ($null -ne $installedBinding) { [string]$installedBinding.installed_cache_root } else { "NOT_ACTIVATED" }
+    runtime_root = [IO.Path]::GetFullPath($RuntimeRoot)
+    installed_receipt_file_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.installed_receipt_file_sha256 } else { "NOT_ACTIVATED" }
+    installed_package_archive_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.installed_package_archive_sha256 } else { "NOT_ACTIVATED" }
+    executable_surface_registry_sha256 = if ($null -ne $installedBinding) { [string]$installedBinding.executable_surface_registry_sha256 } else { "NOT_ACTIVATED" }
     byte_frozen = $SlotRole -eq "main-git-release"
     task_name = $TaskName
     trigger = "AT_LOGON"
     scheduled_task_transport_used = $true
     current_user_dpapi = $true
     stable_client = $stableClient
-    stable_client_sha256 = (Get-FileHash -LiteralPath $stableClient -Algorithm SHA256).Hash
+    stable_client_sha256 = Get-PathSha256 -Path $stableClient
+    tunnel_client_materialization = $tunnelClientMaterialization
+    tunnel_client_license_materialization = $tunnelClientLicenseMaterialization
     profile = $ProfileName
     exposure_profile = "CODEX_INTERACTIVE_SUPPORT"
     transport_role = "HOST_NEUTRAL_VERSIONED_SECURE_MCP_TUNNEL"
@@ -891,10 +1530,20 @@ if ($Activate) {
     windows_console_policy = "PERSISTENT_OR_HIDDEN_NO_TRANSIENT_CONSOLE"
     scheduled_task_window_style = "HIDDEN"
     distribution_audience = "USER_OR_MAINTAINER_ACTIVE_3_0_RUNTIME"
-    prior_versioned_runtimes_retained = $false
-    prior_versioned_tasks_retained = $false
-    prior_versioned_runtime_deletion_required = $true
+    prior_versioned_runtimes_retained = $true
+    prior_versioned_tasks_retained = $true
+    prior_versioned_tasks_disabled = $true
+    prior_versioned_runtime_deletion_required = $false
     one_active_version_required = $true
+    prior_local_bindings = @($priorActiveBindings | ForEach-Object {
+        [ordered]@{
+            runtime_root = [string]$_.runtime_root
+            task_name = [string]$_.marker.task_name
+            profile_name = [string]$_.marker.profile_name
+            release_token = [string]$_.marker.release_token
+            plugin_version = [string]$_.marker.plugin_version
+        }
+    })
     runtime_key_envelope_reused = $runtimeKeyEnvelopeReused
     tunnel_id_reused = $tunnelIdReused
     dependency_acquisition = $dependencyAcquisition

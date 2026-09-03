@@ -7,7 +7,7 @@
   "event": "PostCompact",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_emit.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_emit.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_emit.py",
     "timeout": 10,
     "statusMessage": "Verifying and emitting Evidence Lane hook result"
@@ -33,5 +33,5 @@
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "A49233B3FC32546E6588C7C2CC4E334F331FB8C4C91C9DC63E53722F0F25ED06"
+  "receipt_sha256": "7CCA097C09926992C36C3C40F384BC285CC2547ED229A8B6360C9470B24674CB"
 }

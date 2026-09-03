@@ -16,6 +16,7 @@ from .constants import LINEAGE_SCHEMA, POINTER_SCHEMA
 from .errors import require
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .project_authority import resolved_chat_lineage_root
+from .project_root_binding import validate_project_root_binding
 from .redaction import contains_secret
 
 OBSERVED_EXPERIENCE_SCHEMA = "evidence-lane.canon-observed-experience-packet.v1"
@@ -75,13 +76,10 @@ def _pointer_snapshot(
     expected_accepted_pv: str,
     expected_pointer_generation: int,
 ) -> dict[str, Any]:
-    root = Path(project_root).resolve()
-    require(
-        root.name == project_id,
-        "CANON_RUNTIME_CROSS_PROJECT_ROUTE_DENIED",
-        "The supplied project root does not match the exact project identity.",
-        status="BLOCKED",
+    root = validate_project_root_binding(
+        project_root,
         project_id=project_id,
+        error_code="CANON_RUNTIME_CROSS_PROJECT_ROUTE_DENIED",
     )
     project = _load_json(root / "project.json")
     pointer = _load_json(root / "active_pointer.json")

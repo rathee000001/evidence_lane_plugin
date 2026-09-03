@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.receipt_ledger",
   "source_path": "src/evidence_lane_plugin/receipt_ledger.py",
-  "source_sha256": "5A3A6AEFCA1ABB95FEA3C5FBD6A05A75434E63EC867D147D50F45C7A7A8B7F4C",
-  "source_bytes": 15431,
+  "source_sha256": "275B21B21AC05C889B24087F1039EB1E455D36BAE7E91B73F4843D9B110EF0D9",
+  "source_bytes": 21027,
   "role": "PROJECT_AUTHORITIES",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "B9A363ACB1AE90548FA582781857269D948F229CB6B8A513F05C50BC026EAFD9"
+  "receipt_sha256": "F673C66E8B2ED9B782E596745491461C8963098DF9C97FCDF1DC7EF5FF938C93"
 }

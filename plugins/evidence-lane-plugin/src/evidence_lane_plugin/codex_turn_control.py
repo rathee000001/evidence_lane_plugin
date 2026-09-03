@@ -61,6 +61,10 @@ from .host_plan_rehydration import prepare_host_plan_rehydration
 from .install_deferral import adaptive_install_deferral_facts
 from .lineage import ChatLineage
 from .package_root import resolve_plugin_root
+from .plugin_build_identity import (
+    PluginBuildIdentityError,
+    parse_exact_plugin_version,
+)
 from .project_authority import resolved_chat_lineage_root, resolved_plan_backlog_path
 from .project_memory import (
     rehydrate_memory_checkpoint,
@@ -599,13 +603,20 @@ def _package_update_status(root: Path) -> dict[str, Any]:
         activation_state = "INSTALL_RECEIPT_UNAVAILABLE"
 
     manifest_version = str(current["plugin_version"])
+    try:
+        parse_exact_plugin_version(
+            manifest_version,
+            expected_base_release=ENGINE_VERSION,
+        )
+        exact_manifest_version = True
+    except PluginBuildIdentityError:
+        exact_manifest_version = False
     version_state = (
         "EXACT"
-        if installed_version == manifest_version
-        and manifest_version.split("+", 1)[0] == ENGINE_VERSION
+        if exact_manifest_version and installed_version == manifest_version
         else "SOURCE_RUNTIME_EXACT_INSTALL_RECEIPT_UNAVAILABLE"
         if installed_version is None
-        and manifest_version.split("+", 1)[0] == ENGINE_VERSION
+        and exact_manifest_version
         else "MISMATCH"
     )
     core = {
@@ -676,9 +687,10 @@ def _read_codex_task_binding(
 
     A Codex task can intentionally use a task-shell workspace that is outside the
     governed repository.  In that case repository CWD is not a valid discovery
-    signal.  The stable restart helper therefore prepares one receipt that binds
-    the exact Codex thread UUID to the already-governed project/session before a
-    restart.  This reader accepts only the current installed package and never
+    signal. Historical installations could prepare one compatibility receipt
+    that bound the exact Codex thread UUID to an already-governed project/session.
+    Current installations use the sealed install receipt plus native post-restart
+    readback and do not create this compatibility artifact. This reader never
     searches by task title, CWD, or another active project.
     """
 

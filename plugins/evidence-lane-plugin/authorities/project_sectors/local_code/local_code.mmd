@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=8227D223CC0A4237BDFF30BBABA457F4B6698AF1CCED5D8A88F1C2E5DD10F2D8
+%% LANGGRAPH_EXPORT_SHA256=936A8EB8A229E8C26B38FA128A68D547AE9B87D7499C1DE64C4CCA0DFEB7EDFD
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -29,9 +29,9 @@ flowchart TB
   end
   subgraph SQLITE_PHYSICAL_SCHEMA["3. Additive SQLite physical schema contract"]
     direction TB
-    PHYSICAL_SCHEMA_SECTOR["SQLite physical schema<br/>contract=34 &#124; tables=46 &#124; auxiliaries=12 &#124; relations=22<br/>projection_sha256=F9D7D936BE38F10A120E4C522346F2B90F656BE3DC79964449E4929F73F43F1D"]:::root
-    PHYSICAL_GROUP_CORE["shared lane core<br/>tables=18 &#124; ordered from SQLite"]:::semantic
-    PHYSICAL_TABLE_000["lane_meta<br/>rows=3 &#124; columns=2 &#124; role=core_contract"]:::semantic
+    PHYSICAL_SCHEMA_SECTOR["SQLite physical schema<br/>contract=36 &#124; tables=48 &#124; auxiliaries=12 &#124; relations=23<br/>projection_sha256=E9B1E994098DDC2FEE9B274A737FD9E076BAEED40DFAFB98562B88743F8F4784"]:::root
+    PHYSICAL_GROUP_CORE["shared lane core<br/>tables=20 &#124; ordered from SQLite"]:::semantic
+    PHYSICAL_TABLE_000["lane_meta<br/>rows=4 &#124; columns=2 &#124; role=core_contract"]:::semantic
     PHYSICAL_TABLE_001["lane_pointer<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
     PHYSICAL_TABLE_002["source_content_cas<br/>rows=0 &#124; columns=5 &#124; role=core_contract"]:::semantic
     PHYSICAL_TABLE_003["source_registry<br/>rows=0 &#124; columns=9 &#124; role=core_contract"]:::semantic
@@ -40,51 +40,53 @@ flowchart TB
     PHYSICAL_TABLE_006["chunk_history<br/>rows=0 &#124; columns=9 &#124; role=core_contract"]:::semantic
     PHYSICAL_TABLE_007["structured_fact<br/>rows=0 &#124; columns=5 &#124; role=core_contract"]:::semantic
     PHYSICAL_TABLE_008["parser_capability<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_009["tfidf_term<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_010["tfidf_vector<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_011["refresh_receipt<br/>rows=0 &#124; columns=11 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_012["mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_013["authority_index_content_cas<br/>rows=0 &#124; columns=5 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_014["authority_index_source<br/>rows=0 &#124; columns=7 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_015["authority_index_node<br/>rows=0 &#124; columns=7 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_016["authority_index_fts<br/>rows=0 &#124; columns=7 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_017["authority_index_refresh_receipt<br/>rows=0 &#124; columns=12 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_009["tool_route_contract<br/>rows=41 &#124; columns=11 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_010["tool_execution_receipt<br/>rows=41 &#124; columns=11 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_011["tfidf_term<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_012["tfidf_vector<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_013["refresh_receipt<br/>rows=0 &#124; columns=11 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_014["mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_015["authority_index_content_cas<br/>rows=172 &#124; columns=5 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_016["authority_index_source<br/>rows=86 &#124; columns=7 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_017["authority_index_node<br/>rows=86 &#124; columns=7 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_018["authority_index_fts<br/>rows=86 &#124; columns=7 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_019["authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract"]:::semantic
     PHYSICAL_GROUP_LANE["lane semantic contract<br/>tables=8 &#124; ordered from SQLite"]:::semantic
-    PHYSICAL_TABLE_018["code_symbol<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_019["code_import<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_020["code_call<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_021["code_parser_receipt<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_022["code_parser_diagnostic<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_023["code_route<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_024["code_dependency<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_033["code_chunk_fts<br/>rows=0 &#124; columns=6 &#124; role=lane_fts_contract"]:::semantic
+    PHYSICAL_TABLE_020["code_symbol<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_021["code_import<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_022["code_call<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_023["code_parser_receipt<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_024["code_parser_diagnostic<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_025["code_route<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_026["code_dependency<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_035["code_chunk_fts<br/>rows=0 &#124; columns=6 &#124; role=lane_fts_contract"]:::semantic
     PHYSICAL_GROUP_GIT["Git history and impact<br/>tables=12 &#124; ordered from SQLite"]:::git
-    PHYSICAL_TABLE_025["git_commit_registry<br/>rows=0 &#124; columns=10 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_026["git_commit_parent<br/>rows=0 &#124; columns=3 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_027["git_file_change<br/>rows=0 &#124; columns=5 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_028["git_ref_registry<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_029["git_blob_cas<br/>rows=0 &#124; columns=8 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_030["git_content_chunk_cas<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_031["git_chunk_occurrence<br/>rows=0 &#124; columns=7 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_032["git_history_fts<br/>rows=0 &#124; columns=6 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_042["git_history_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_043["git_history_fts_data<br/>rows=2 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_044["git_history_fts_docsize<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_045["git_history_fts_idx<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_027["git_commit_registry<br/>rows=0 &#124; columns=10 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_028["git_commit_parent<br/>rows=0 &#124; columns=3 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_029["git_file_change<br/>rows=0 &#124; columns=5 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_030["git_ref_registry<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_031["git_blob_cas<br/>rows=0 &#124; columns=8 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_032["git_content_chunk_cas<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_033["git_chunk_occurrence<br/>rows=0 &#124; columns=7 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_034["git_history_fts<br/>rows=0 &#124; columns=6 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_044["git_history_fts_config<br/>rows=derived &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_045["git_history_fts_data<br/>rows=derived &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_046["git_history_fts_docsize<br/>rows=derived &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_047["git_history_fts_idx<br/>rows=derived &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
     PHYSICAL_GROUP_AUXILIARY["SQLite engine auxiliaries<br/>tables=8 &#124; ordered from SQLite"]:::retrieval
-    PHYSICAL_TABLE_034["authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_035["authority_index_fts_data<br/>rows=2 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_036["authority_index_fts_docsize<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_037["authority_index_fts_idx<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_038["code_chunk_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_039["code_chunk_fts_data<br/>rows=2 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_040["code_chunk_fts_docsize<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_041["code_chunk_fts_idx<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_036["authority_index_fts_config<br/>rows=derived &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_037["authority_index_fts_data<br/>rows=derived &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_038["authority_index_fts_docsize<br/>rows=derived &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_039["authority_index_fts_idx<br/>rows=derived &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_040["code_chunk_fts_config<br/>rows=derived &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_041["code_chunk_fts_data<br/>rows=derived &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_042["code_chunk_fts_docsize<br/>rows=derived &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_043["code_chunk_fts_idx<br/>rows=derived &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
   end
   subgraph CODE_LOGICAL_TOPOLOGY["4. Authorized seven-entity logical code contract and relations"]
     direction TB
     CODE_SECTOR["Code Sector<br/>7 logical entities &#124; SQLite-derived relationships &#124; physical schema retained"]:::root
-    CODE_REPO["code_repo<br/>rows=3 &#124; Repo -&gt; lane_meta"]:::semantic
+    CODE_REPO["code_repo<br/>rows=4 &#124; Repo -&gt; lane_meta"]:::semantic
     GIT_COMMIT["git_commit<br/>rows=0 &#124; Commit -&gt; git_commit_registry"]:::git
     CODE_FILE["code_file<br/>rows=0 &#124; File -&gt; source_registry"]:::semantic
     CODE_SYMBOL["code_symbol<br/>rows=0 &#124; Symbol -&gt; code_symbol"]:::semantic
@@ -150,59 +152,62 @@ flowchart TB
   PHYSICAL_TABLE_014 -->|"next physical table"| PHYSICAL_TABLE_015
   PHYSICAL_TABLE_015 -->|"next physical table"| PHYSICAL_TABLE_016
   PHYSICAL_TABLE_016 -->|"next physical table"| PHYSICAL_TABLE_017
-  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_LANE
-  PHYSICAL_GROUP_LANE -->|"next physical table"| PHYSICAL_TABLE_018
+  PHYSICAL_TABLE_017 -->|"next physical table"| PHYSICAL_TABLE_018
   PHYSICAL_TABLE_018 -->|"next physical table"| PHYSICAL_TABLE_019
-  PHYSICAL_TABLE_019 -->|"next physical table"| PHYSICAL_TABLE_020
+  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_LANE
+  PHYSICAL_GROUP_LANE -->|"next physical table"| PHYSICAL_TABLE_020
   PHYSICAL_TABLE_020 -->|"next physical table"| PHYSICAL_TABLE_021
   PHYSICAL_TABLE_021 -->|"next physical table"| PHYSICAL_TABLE_022
   PHYSICAL_TABLE_022 -->|"next physical table"| PHYSICAL_TABLE_023
   PHYSICAL_TABLE_023 -->|"next physical table"| PHYSICAL_TABLE_024
-  PHYSICAL_TABLE_024 -->|"next physical table"| PHYSICAL_TABLE_033
-  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_GIT
-  PHYSICAL_GROUP_GIT -->|"next physical table"| PHYSICAL_TABLE_025
+  PHYSICAL_TABLE_024 -->|"next physical table"| PHYSICAL_TABLE_025
   PHYSICAL_TABLE_025 -->|"next physical table"| PHYSICAL_TABLE_026
-  PHYSICAL_TABLE_026 -->|"next physical table"| PHYSICAL_TABLE_027
+  PHYSICAL_TABLE_026 -->|"next physical table"| PHYSICAL_TABLE_035
+  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_GIT
+  PHYSICAL_GROUP_GIT -->|"next physical table"| PHYSICAL_TABLE_027
   PHYSICAL_TABLE_027 -->|"next physical table"| PHYSICAL_TABLE_028
   PHYSICAL_TABLE_028 -->|"next physical table"| PHYSICAL_TABLE_029
   PHYSICAL_TABLE_029 -->|"next physical table"| PHYSICAL_TABLE_030
   PHYSICAL_TABLE_030 -->|"next physical table"| PHYSICAL_TABLE_031
   PHYSICAL_TABLE_031 -->|"next physical table"| PHYSICAL_TABLE_032
-  PHYSICAL_TABLE_032 -->|"next physical table"| PHYSICAL_TABLE_042
-  PHYSICAL_TABLE_042 -->|"next physical table"| PHYSICAL_TABLE_043
-  PHYSICAL_TABLE_043 -->|"next physical table"| PHYSICAL_TABLE_044
+  PHYSICAL_TABLE_032 -->|"next physical table"| PHYSICAL_TABLE_033
+  PHYSICAL_TABLE_033 -->|"next physical table"| PHYSICAL_TABLE_034
+  PHYSICAL_TABLE_034 -->|"next physical table"| PHYSICAL_TABLE_044
   PHYSICAL_TABLE_044 -->|"next physical table"| PHYSICAL_TABLE_045
+  PHYSICAL_TABLE_045 -->|"next physical table"| PHYSICAL_TABLE_046
+  PHYSICAL_TABLE_046 -->|"next physical table"| PHYSICAL_TABLE_047
   PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_AUXILIARY
-  PHYSICAL_GROUP_AUXILIARY -->|"next physical table"| PHYSICAL_TABLE_034
-  PHYSICAL_TABLE_034 -->|"next physical table"| PHYSICAL_TABLE_035
-  PHYSICAL_TABLE_035 -->|"next physical table"| PHYSICAL_TABLE_036
+  PHYSICAL_GROUP_AUXILIARY -->|"next physical table"| PHYSICAL_TABLE_036
   PHYSICAL_TABLE_036 -->|"next physical table"| PHYSICAL_TABLE_037
   PHYSICAL_TABLE_037 -->|"next physical table"| PHYSICAL_TABLE_038
   PHYSICAL_TABLE_038 -->|"next physical table"| PHYSICAL_TABLE_039
   PHYSICAL_TABLE_039 -->|"next physical table"| PHYSICAL_TABLE_040
   PHYSICAL_TABLE_040 -->|"next physical table"| PHYSICAL_TABLE_041
+  PHYSICAL_TABLE_041 -->|"next physical table"| PHYSICAL_TABLE_042
+  PHYSICAL_TABLE_042 -->|"next physical table"| PHYSICAL_TABLE_043
   PHYSICAL_TABLE_002 -->|"sha256 -&gt; source_content_cas.sha256"| PHYSICAL_TABLE_003
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_004
   PHYSICAL_TABLE_005 -->|"chunk_sha256 -&gt; chunk_content_cas.sha256"| PHYSICAL_TABLE_006
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_007
-  PHYSICAL_TABLE_009 -->|"term -&gt; tfidf_term.term"| PHYSICAL_TABLE_010
-  PHYSICAL_TABLE_004 -->|"chunk_id -&gt; chunk_index.chunk_id"| PHYSICAL_TABLE_010
-  PHYSICAL_TABLE_013 -->|"metadata_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_014
-  PHYSICAL_TABLE_013 -->|"metadata_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_015
-  PHYSICAL_TABLE_013 -->|"text_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_015
-  PHYSICAL_TABLE_014 -->|"source_id -&gt; authority_index_source.source_id"| PHYSICAL_TABLE_015
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_018
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_019
+  PHYSICAL_TABLE_009 -->|"tool -&gt; tool_route_contract.tool"| PHYSICAL_TABLE_010
+  PHYSICAL_TABLE_011 -->|"term -&gt; tfidf_term.term"| PHYSICAL_TABLE_012
+  PHYSICAL_TABLE_004 -->|"chunk_id -&gt; chunk_index.chunk_id"| PHYSICAL_TABLE_012
+  PHYSICAL_TABLE_015 -->|"metadata_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_016
+  PHYSICAL_TABLE_015 -->|"metadata_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_017
+  PHYSICAL_TABLE_015 -->|"text_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_017
+  PHYSICAL_TABLE_016 -->|"source_id -&gt; authority_index_source.source_id"| PHYSICAL_TABLE_017
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_020
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_021
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_022
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_023
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_024
-  PHYSICAL_TABLE_025 -->|"commit_sha -&gt; git_commit_registry.commit_sha"| PHYSICAL_TABLE_026
-  PHYSICAL_TABLE_025 -->|"commit_sha -&gt; git_commit_registry.commit_sha"| PHYSICAL_TABLE_027
-  PHYSICAL_TABLE_030 -->|"chunk_sha256 -&gt; git_content_chunk_cas.chunk_sha256"| PHYSICAL_TABLE_031
-  PHYSICAL_TABLE_029 -->|"blob_sha -&gt; git_blob_cas.blob_sha"| PHYSICAL_TABLE_031
-  PHYSICAL_TABLE_025 -->|"commit_sha -&gt; git_commit_registry.commit_sha"| PHYSICAL_TABLE_031
+  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_025
+  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_026
+  PHYSICAL_TABLE_027 -->|"commit_sha -&gt; git_commit_registry.commit_sha"| PHYSICAL_TABLE_028
+  PHYSICAL_TABLE_027 -->|"commit_sha -&gt; git_commit_registry.commit_sha"| PHYSICAL_TABLE_029
+  PHYSICAL_TABLE_032 -->|"chunk_sha256 -&gt; git_content_chunk_cas.chunk_sha256"| PHYSICAL_TABLE_033
+  PHYSICAL_TABLE_031 -->|"blob_sha -&gt; git_blob_cas.blob_sha"| PHYSICAL_TABLE_033
+  PHYSICAL_TABLE_027 -->|"commit_sha -&gt; git_commit_registry.commit_sha"| PHYSICAL_TABLE_033
   PHYSICAL_SCHEMA_SECTOR -->|"projects code contract"| CODE_SECTOR
   CODE_SECTOR --> CODE_REPO
   CODE_SECTOR --> GIT_COMMIT
@@ -237,7 +242,7 @@ flowchart TB
   SQLITE_OUT --> RECEIPT_OUT
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   PHYSICAL_TABLE_004 ~~~ PHYSICAL_TABLE_007
-  PHYSICAL_TABLE_007 ~~~ PHYSICAL_TABLE_018
+  PHYSICAL_TABLE_007 ~~~ PHYSICAL_TABLE_020
   CODE_REPO ~~~ GIT_COMMIT
   CODE_SYMBOL ~~~ APP_ROUTE
   APP_ROUTE ~~~ DEPENDENCY_ITEM

@@ -7,7 +7,7 @@
   "event": "SessionEnd",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_transport.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_transport.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_transport.py",
     "timeout": 3,
     "statusMessage": "Flushing Evidence Lane lifecycle boundary"
@@ -32,5 +32,5 @@
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "83E1FDF3B0D697E524F14D10677F771CFEE978F0C14191FFE1F9CCF20A95FAA6"
+  "receipt_sha256": "1CC6EEA17119375FBA84F6713F7AA0472065C5FEFBE2ECC332B10C2B6FC78F03"
 }

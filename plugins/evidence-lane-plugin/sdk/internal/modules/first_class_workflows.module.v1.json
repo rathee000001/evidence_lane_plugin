@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.first_class_workflows",
   "source_path": "src/evidence_lane_plugin/first_class_workflows.py",
-  "source_sha256": "F8235E974107BD14F8320219795AA7F952DAB1B84FE2B48223468BC94A22D301",
-  "source_bytes": 13895,
+  "source_sha256": "350F6A618D76BF1188C3EDC2C782E4AEEA9B0A0CC24F05CCE639BD1E8A757A92",
+  "source_bytes": 14035,
   "role": "FIRST_CLASS_WORKFLOWS",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "EB38C4E252E45DA4B4AD73E22AB2E85304659E1ADE696E6F144B07EC54C32C04"
+  "receipt_sha256": "63AD8698BEA2F547A5FDE02030E974E238C4DA594B0617A862C5E9ED90696771"
 }

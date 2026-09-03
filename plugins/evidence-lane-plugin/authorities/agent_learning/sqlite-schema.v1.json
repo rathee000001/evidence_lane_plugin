@@ -1,6 +1,6 @@
 {
   "schema": "evidence-lane.sqlite-authority-schema-snapshot.v1",
-  "database_sha256": "EEBDA87D83B03D9C3D9472217CFA7A4FFC745EF0012F5DF41A6643A55E937921",
+  "database_sha256": "5C13BCC310C62A40A07356CA9EC0FEAEA066FDF7ADADC1E566119D7B6DE15315",
   "objects": [
     {
       "type": "index",
@@ -25,6 +25,12 @@
       "name": "idx_learning_decision_once",
       "tbl_name": "learning_event",
       "sql": "CREATE UNIQUE INDEX idx_learning_decision_once\nON learning_event(decision_key_sha256)\nWHERE decision_key_sha256 IS NOT NULL"
+    },
+    {
+      "type": "index",
+      "name": "idx_learning_receipt_project_schema",
+      "tbl_name": "learning_receipt",
+      "sql": "CREATE INDEX idx_learning_receipt_project_schema\nON learning_receipt(project_id,schema_id,receipt_sha256)"
     },
     {
       "type": "index",
@@ -157,6 +163,12 @@
       "name": "learning_pointer_history",
       "tbl_name": "learning_pointer_history",
       "sql": "CREATE TABLE learning_pointer_history(\n    project_id TEXT NOT NULL,\n    generation INTEGER NOT NULL CHECK(generation > 0),\n    candidate_id TEXT NOT NULL\n        REFERENCES learning_candidate(candidate_id),\n    candidate_sha256 TEXT NOT NULL,\n    prior_generation INTEGER NOT NULL CHECK(prior_generation >= 0),\n    reason TEXT NOT NULL,\n    pointer_sha256 TEXT NOT NULL UNIQUE,\n    pointer_json TEXT NOT NULL,\n    PRIMARY KEY(project_id,generation)\n) STRICT"
+    },
+    {
+      "type": "table",
+      "name": "learning_receipt",
+      "tbl_name": "learning_receipt",
+      "sql": "CREATE TABLE learning_receipt(\n    receipt_sha256 TEXT PRIMARY KEY,\n    schema_id TEXT NOT NULL,\n    receipt_kind TEXT NOT NULL,\n    project_id TEXT NOT NULL,\n    candidate_id TEXT REFERENCES learning_candidate(candidate_id),\n    occurred_at TEXT,\n    receipt_json TEXT NOT NULL\n) STRICT"
     },
     {
       "type": "table",
@@ -1053,6 +1065,68 @@
       ]
     },
     {
+      "name": "learning_receipt",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "schema_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 2,
+          "name": "receipt_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "candidate_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "occurred_at",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "candidate_id",
+          "table": "learning_candidate",
+          "to": "candidate_id"
+        }
+      ]
+    },
+    {
       "name": "learning_schema_metadata",
       "virtual_fts5": false,
       "columns": [
@@ -1456,12 +1530,12 @@
       "foreign_keys": []
     }
   ],
-  "table_count": 28,
+  "table_count": 29,
   "fts5_tables": [
     "authority_index_fts",
     "learning_candidate_fts",
     "memory_locator_fts"
   ],
-  "schema_sha256": "3812EA8CFE7621A58EFF5210E5EF12B717905D06DAFF7214925FCE37DA0616BB",
-  "receipt_sha256": "74F953C5B9B45F982DC4343B19D67C85AD95D37D2A15D229C80880461223CDF3"
+  "schema_sha256": "81AB9FDADF2601DCDAD1065A5A431C6030DC8E897567709BE0DF31D19922632F",
+  "receipt_sha256": "D475DE0319041A8B07DCF6CF194FFC49EBA60A8C71B0992482E9FB22B9367EF3"
 }

@@ -5,27 +5,27 @@
   "event": "PermissionRequest",
   "handler_count": 4,
   "event_binding": "hooks/events/PermissionRequest/event.v1.json",
-  "event_binding_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+  "event_binding_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
   "handlers": [
     {
       "display_id": "5.1",
       "path": "hooks/events/PermissionRequest/handler-5.1.v1.json",
-      "sha256": "A8BBC720BE5E9074456428C6558225D10648F1D9058F4806CCC77B8FCB0AA427"
+      "sha256": "8888C70C0FDCB19BE5E992E81A76339642E8889360CA0B9C4DBC80A83E0CB35E"
     },
     {
       "display_id": "5.2",
       "path": "hooks/events/PermissionRequest/handler-5.2.v1.json",
-      "sha256": "30B385D23E12186A6B6B7BA8A3DC6349BFC2997CAB34B6BCF589D4C0B4806D4B"
+      "sha256": "A0CB8C53E01771E1527F55D7AE820DCB58BB1AD24C93EEA3D2D2A6B80803AF44"
     },
     {
       "display_id": "5.3",
       "path": "hooks/events/PermissionRequest/handler-5.3.v1.json",
-      "sha256": "72C080D9FAA169062B80C8E4B9D20ADD2DBC63991CC42FF76BECBBA121CEBF94"
+      "sha256": "AE3F5FD8A148693ADF7E18BDC39CFFB1C1C3C0A5E67278EB86959C955E43A57A"
     },
     {
       "display_id": "5.4",
       "path": "hooks/events/PermissionRequest/handler-5.4.v1.json",
-      "sha256": "922CF5532825DBDF1A9044BBC6C1BA0B01ABD100881E6C1C57DD4AA4EAFA0B84"
+      "sha256": "E55018AFF3C0BA7F1466368DA4538B0709DFDD0B61D14CB0CF81AF664FCBABB8"
     }
   ],
   "workflow_contract": {
@@ -42,5 +42,5 @@
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "3D7CBDF7E63036A3B13E848C02F3C5733C2217815EC9C3854882C9ACFE7FFD58"
+  "receipt_sha256": "ABBB28779BD0ED12C5F49D8AE26BDC47A88ABB2604ED7E781372C0FB291FAB9B"
 }

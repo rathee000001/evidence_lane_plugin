@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=5DE000780AEE7E068AC6A39169A3E91099100BB50340D7E8549D2894858B0267
+%% LANGGRAPH_EXPORT_SHA256=D26445439F8675A262111C029A732A93D904108041B558CB178E94C3FA6EC188
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -29,9 +29,9 @@ flowchart TB
   end
   subgraph SQLITE_PHYSICAL_SCHEMA["3. Additive SQLite physical schema contract"]
     direction TB
-    PHYSICAL_SCHEMA_SECTOR["SQLite physical schema<br/>contract=24 &#124; tables=32 &#124; auxiliaries=8 &#124; relations=15<br/>projection_sha256=CCB79F33B6834962DDA815411B9F62399A21A5C28E7CBEB8074E00874A9CFAAD"]:::root
-    PHYSICAL_GROUP_CORE["shared lane core<br/>tables=18 &#124; ordered from SQLite"]:::semantic
-    PHYSICAL_TABLE_000["lane_meta<br/>rows=3 &#124; columns=2 &#124; role=core_contract"]:::semantic
+    PHYSICAL_SCHEMA_SECTOR["SQLite physical schema<br/>contract=26 &#124; tables=34 &#124; auxiliaries=8 &#124; relations=16<br/>projection_sha256=1EC03C0A2EFC59CE433217EBF5E39C53D1D9839BF496A244C6E0E52029E166A7"]:::root
+    PHYSICAL_GROUP_CORE["shared lane core<br/>tables=20 &#124; ordered from SQLite"]:::semantic
+    PHYSICAL_TABLE_000["lane_meta<br/>rows=4 &#124; columns=2 &#124; role=core_contract"]:::semantic
     PHYSICAL_TABLE_001["lane_pointer<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
     PHYSICAL_TABLE_002["source_content_cas<br/>rows=0 &#124; columns=5 &#124; role=core_contract"]:::semantic
     PHYSICAL_TABLE_003["source_registry<br/>rows=0 &#124; columns=9 &#124; role=core_contract"]:::semantic
@@ -40,31 +40,33 @@ flowchart TB
     PHYSICAL_TABLE_006["chunk_history<br/>rows=0 &#124; columns=9 &#124; role=core_contract"]:::semantic
     PHYSICAL_TABLE_007["structured_fact<br/>rows=0 &#124; columns=5 &#124; role=core_contract"]:::semantic
     PHYSICAL_TABLE_008["parser_capability<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_009["tfidf_term<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_010["tfidf_vector<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_011["refresh_receipt<br/>rows=0 &#124; columns=11 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_012["mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_013["authority_index_content_cas<br/>rows=0 &#124; columns=5 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_014["authority_index_source<br/>rows=0 &#124; columns=7 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_015["authority_index_node<br/>rows=0 &#124; columns=7 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_016["authority_index_fts<br/>rows=0 &#124; columns=7 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_017["authority_index_refresh_receipt<br/>rows=0 &#124; columns=12 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_009["tool_route_contract<br/>rows=43 &#124; columns=11 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_010["tool_execution_receipt<br/>rows=43 &#124; columns=11 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_011["tfidf_term<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_012["tfidf_vector<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_013["refresh_receipt<br/>rows=0 &#124; columns=11 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_014["mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_015["authority_index_content_cas<br/>rows=180 &#124; columns=5 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_016["authority_index_source<br/>rows=90 &#124; columns=7 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_017["authority_index_node<br/>rows=90 &#124; columns=7 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_018["authority_index_fts<br/>rows=90 &#124; columns=7 &#124; role=core_contract"]:::semantic
+    PHYSICAL_TABLE_019["authority_index_refresh_receipt<br/>rows=1 &#124; columns=12 &#124; role=core_contract"]:::semantic
     PHYSICAL_GROUP_LANE["lane semantic contract<br/>tables=6 &#124; ordered from SQLite"]:::semantic
-    PHYSICAL_TABLE_018["custom_source<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_019["custom_item<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_020["custom_evidence<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_021["custom_decision<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_022["custom_next_action<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_023["custom_fts<br/>rows=0 &#124; columns=6 &#124; role=lane_fts_contract"]:::semantic
+    PHYSICAL_TABLE_020["custom_source<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_021["custom_item<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_022["custom_evidence<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_023["custom_decision<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_024["custom_next_action<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
+    PHYSICAL_TABLE_025["custom_fts<br/>rows=0 &#124; columns=6 &#124; role=lane_fts_contract"]:::semantic
     PHYSICAL_GROUP_AUXILIARY["SQLite engine auxiliaries<br/>tables=8 &#124; ordered from SQLite"]:::retrieval
-    PHYSICAL_TABLE_024["authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_025["authority_index_fts_data<br/>rows=2 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_026["authority_index_fts_docsize<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_027["authority_index_fts_idx<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_028["custom_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_029["custom_fts_data<br/>rows=2 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_030["custom_fts_docsize<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_031["custom_fts_idx<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_026["authority_index_fts_config<br/>rows=derived &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_027["authority_index_fts_data<br/>rows=derived &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_028["authority_index_fts_docsize<br/>rows=derived &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_029["authority_index_fts_idx<br/>rows=derived &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_030["custom_fts_config<br/>rows=derived &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_031["custom_fts_data<br/>rows=derived &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_032["custom_fts_docsize<br/>rows=derived &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
+    PHYSICAL_TABLE_033["custom_fts_idx<br/>rows=derived &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
   end
   subgraph SCHEMA_DERIVED_TOPOLOGY["4. Lane-owned SQLite entities, relations, and samples"]
     direction TB
@@ -122,37 +124,40 @@ flowchart TB
   PHYSICAL_TABLE_014 -->|"next physical table"| PHYSICAL_TABLE_015
   PHYSICAL_TABLE_015 -->|"next physical table"| PHYSICAL_TABLE_016
   PHYSICAL_TABLE_016 -->|"next physical table"| PHYSICAL_TABLE_017
-  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_LANE
-  PHYSICAL_GROUP_LANE -->|"next physical table"| PHYSICAL_TABLE_018
+  PHYSICAL_TABLE_017 -->|"next physical table"| PHYSICAL_TABLE_018
   PHYSICAL_TABLE_018 -->|"next physical table"| PHYSICAL_TABLE_019
-  PHYSICAL_TABLE_019 -->|"next physical table"| PHYSICAL_TABLE_020
+  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_LANE
+  PHYSICAL_GROUP_LANE -->|"next physical table"| PHYSICAL_TABLE_020
   PHYSICAL_TABLE_020 -->|"next physical table"| PHYSICAL_TABLE_021
   PHYSICAL_TABLE_021 -->|"next physical table"| PHYSICAL_TABLE_022
   PHYSICAL_TABLE_022 -->|"next physical table"| PHYSICAL_TABLE_023
-  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_AUXILIARY
-  PHYSICAL_GROUP_AUXILIARY -->|"next physical table"| PHYSICAL_TABLE_024
+  PHYSICAL_TABLE_023 -->|"next physical table"| PHYSICAL_TABLE_024
   PHYSICAL_TABLE_024 -->|"next physical table"| PHYSICAL_TABLE_025
-  PHYSICAL_TABLE_025 -->|"next physical table"| PHYSICAL_TABLE_026
+  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_AUXILIARY
+  PHYSICAL_GROUP_AUXILIARY -->|"next physical table"| PHYSICAL_TABLE_026
   PHYSICAL_TABLE_026 -->|"next physical table"| PHYSICAL_TABLE_027
   PHYSICAL_TABLE_027 -->|"next physical table"| PHYSICAL_TABLE_028
   PHYSICAL_TABLE_028 -->|"next physical table"| PHYSICAL_TABLE_029
   PHYSICAL_TABLE_029 -->|"next physical table"| PHYSICAL_TABLE_030
   PHYSICAL_TABLE_030 -->|"next physical table"| PHYSICAL_TABLE_031
+  PHYSICAL_TABLE_031 -->|"next physical table"| PHYSICAL_TABLE_032
+  PHYSICAL_TABLE_032 -->|"next physical table"| PHYSICAL_TABLE_033
   PHYSICAL_TABLE_002 -->|"sha256 -&gt; source_content_cas.sha256"| PHYSICAL_TABLE_003
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_004
   PHYSICAL_TABLE_005 -->|"chunk_sha256 -&gt; chunk_content_cas.sha256"| PHYSICAL_TABLE_006
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_007
-  PHYSICAL_TABLE_009 -->|"term -&gt; tfidf_term.term"| PHYSICAL_TABLE_010
-  PHYSICAL_TABLE_004 -->|"chunk_id -&gt; chunk_index.chunk_id"| PHYSICAL_TABLE_010
-  PHYSICAL_TABLE_013 -->|"metadata_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_014
-  PHYSICAL_TABLE_013 -->|"metadata_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_015
-  PHYSICAL_TABLE_013 -->|"text_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_015
-  PHYSICAL_TABLE_014 -->|"source_id -&gt; authority_index_source.source_id"| PHYSICAL_TABLE_015
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_018
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_019
+  PHYSICAL_TABLE_009 -->|"tool -&gt; tool_route_contract.tool"| PHYSICAL_TABLE_010
+  PHYSICAL_TABLE_011 -->|"term -&gt; tfidf_term.term"| PHYSICAL_TABLE_012
+  PHYSICAL_TABLE_004 -->|"chunk_id -&gt; chunk_index.chunk_id"| PHYSICAL_TABLE_012
+  PHYSICAL_TABLE_015 -->|"metadata_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_016
+  PHYSICAL_TABLE_015 -->|"metadata_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_017
+  PHYSICAL_TABLE_015 -->|"text_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_017
+  PHYSICAL_TABLE_016 -->|"source_id -&gt; authority_index_source.source_id"| PHYSICAL_TABLE_017
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_020
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_021
   PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_022
+  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_023
+  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_024
   PHYSICAL_SCHEMA_SECTOR -->|"projects lane entities"| SCHEMA_SECTOR
   SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_0
   SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_1
@@ -182,5 +187,5 @@ flowchart TB
   SCHEMA_ENTITY_1 ~~~ SCHEMA_ENTITY_2
   SCHEMA_ENTITY_3 ~~~ SCHEMA_ENTITY_4
   PHYSICAL_TABLE_004 ~~~ PHYSICAL_TABLE_007
-  PHYSICAL_TABLE_007 ~~~ PHYSICAL_TABLE_018
+  PHYSICAL_TABLE_007 ~~~ PHYSICAL_TABLE_020
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

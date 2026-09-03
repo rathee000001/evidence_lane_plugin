@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.codex_turn_control",
   "source_path": "src/evidence_lane_plugin/codex_turn_control.py",
-  "source_sha256": "16506A43CFA5EEBFAD92D090245B0E4C4B96A36F7DFFDFCA8623F5828936A64E",
-  "source_bytes": 368035,
+  "source_sha256": "9654EBB6FDA2D6C0C771440EE979E4724F00009D2E6AF22C00DF4EA5BFFDC5E7",
+  "source_bytes": 368398,
   "role": "HOST_RUNTIME_AND_CONTINUITY",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "E91E451C8C354DBA8A2320AB148AE98E3AFD36F0E525E0EF20828A6F2DE542DE"
+  "receipt_sha256": "403FCDBC7E318636FC066D0E1B4BC16D88AFB5292FFF27B1FD710097EAEDD81B"
 }

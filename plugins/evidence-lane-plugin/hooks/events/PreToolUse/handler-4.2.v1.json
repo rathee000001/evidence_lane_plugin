@@ -7,7 +7,7 @@
   "event": "PreToolUse",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_seal.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_seal.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_seal.py",
     "timeout": 10,
     "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
@@ -33,5 +33,5 @@
   "adapter_sha256": "1D5EE052FD282B7DB09B56EA534762E4ABF49E5DC52A2F7D97B8B82EE97E746C",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "E5A153B336F2BE10F5669A0E2083E01686BF27D10D6427FA794A1AF3D7E5508A"
+  "receipt_sha256": "15DD1665486715541EBA7C930DA6E9EA6A0A2F20ECBBC949E619A6BE112D636A"
 }

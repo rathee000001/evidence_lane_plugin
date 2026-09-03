@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.public_surface_registry",
   "source_path": "src/evidence_lane_plugin/public_surface_registry.py",
-  "source_sha256": "353475AC47443D1B85F827B41B21290BC29D0E1408C44F28A07B3D1DCE84422A",
-  "source_bytes": 24183,
+  "source_sha256": "3A6D87D0533947CE74684FD78E77EDE65FB9C8E6EEB9D8769E80D77A15599B44",
+  "source_bytes": 24389,
   "role": "SDK_AND_ROUTING",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "9573282C5DFC9004231F2E5ADEAB7E958449E218F493CF5D0416FC0F7EAEBC18"
+  "receipt_sha256": "D05710DC2E941E8E29DB05214457F64F7A8A75EEC02B0DBC8D7A97645210B0C7"
 }

@@ -5,27 +5,27 @@
   "event": "PreToolUse",
   "handler_count": 4,
   "event_binding": "hooks/events/PreToolUse/event.v1.json",
-  "event_binding_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+  "event_binding_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
   "handlers": [
     {
       "display_id": "4.1",
       "path": "hooks/events/PreToolUse/handler-4.1.v1.json",
-      "sha256": "FC5D4F2298DF1F1749A28EAAF44D7C4DD09A7E78176DCA03598AB9132F06E219"
+      "sha256": "57DC40CAE434814AC3E2A291CF0CD96CD79775D85CCCE3706CD8CEE5382C4111"
     },
     {
       "display_id": "4.2",
       "path": "hooks/events/PreToolUse/handler-4.2.v1.json",
-      "sha256": "3F108867738D93562B22A8B5254B82CCBE84C0C0CB6CCD04C3D5760D8A568EBD"
+      "sha256": "7FFB62CCB448A227FD8E9663D3DEA51F17C0A3B439D45980820F75A0E8AD6558"
     },
     {
       "display_id": "4.3",
       "path": "hooks/events/PreToolUse/handler-4.3.v1.json",
-      "sha256": "E6AE27F8B0A8530AE761A03567E76B3937A957448030F39709DCE12CA3FC041C"
+      "sha256": "1D1D4CB305816DCB612ED530AE9AEA49219DDEF97A5B86A6668ED11EB3D11660"
     },
     {
       "display_id": "4.4",
       "path": "hooks/events/PreToolUse/handler-4.4.v1.json",
-      "sha256": "ABAEE124F321E2446BCEF7F6DC90D68D27FE30E5D0AF02E821DF99494F186F87"
+      "sha256": "C460B03474CE51FA217BFF5E339F5BD79122EABD4AFB0E3AB5B1882C146F6E48"
     }
   ],
   "workflow_contract": {
@@ -43,5 +43,5 @@
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "9A24067A8FD6A0DDBFF3BD9B6140DB888015645A62B27828EEC28635C2868084"
+  "receipt_sha256": "546933AF64EDE3F8F16137AACC8A8E366E7E15C5DC114D2978716385CE68EC1A"
 }

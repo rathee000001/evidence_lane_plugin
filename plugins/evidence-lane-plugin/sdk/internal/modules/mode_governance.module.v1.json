@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.mode_governance",
   "source_path": "src/evidence_lane_plugin/mode_governance.py",
-  "source_sha256": "9898F391E071A178D1896EC670C74C08651D01C70620C9F4FDCB42AA67D3D68C",
+  "source_sha256": "C02894BC39CFFB83A062823DAB7CBD48EAF52821E49D69E979BA183AC7305AC9",
   "source_bytes": 81531,
   "role": "ENV_UOP_AI_ACTION_PLANE",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "611C48799573CA29051E3CEAE0B3D30A2650B78A573BB9E75EFFB40D48DF0FCD"
+  "receipt_sha256": "78CED8E2A49DB39F91D9DDFFEBBEDBDA1F8E273F23049D472E43D428B69B6263"
 }

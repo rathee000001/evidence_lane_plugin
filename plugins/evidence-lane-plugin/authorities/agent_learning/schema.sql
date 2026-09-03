@@ -115,6 +115,16 @@ CREATE TABLE learning_pointer_history(
     PRIMARY KEY(project_id,generation)
 ) STRICT;
 
+CREATE TABLE learning_receipt(
+    receipt_sha256 TEXT PRIMARY KEY,
+    schema_id TEXT NOT NULL,
+    receipt_kind TEXT NOT NULL,
+    project_id TEXT NOT NULL,
+    candidate_id TEXT REFERENCES learning_candidate(candidate_id),
+    occurred_at TEXT,
+    receipt_json TEXT NOT NULL
+) STRICT;
+
 CREATE TABLE learning_schema_metadata(
     singleton INTEGER PRIMARY KEY CHECK(singleton=1),
     schema_id TEXT NOT NULL,
@@ -171,6 +181,9 @@ ON learning_candidate(project_id,dedup_key_sha256);
 CREATE UNIQUE INDEX idx_learning_decision_once
 ON learning_event(decision_key_sha256)
 WHERE decision_key_sha256 IS NOT NULL;
+
+CREATE INDEX idx_learning_receipt_project_schema
+ON learning_receipt(project_id,schema_id,receipt_sha256);
 
 CREATE INDEX idx_memory_edge_project_source
 ON memory_edge(project_id,source_locator_id,edge_type);

@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.canon_runtime_continuity",
   "source_path": "src/evidence_lane_plugin/canon_runtime_continuity.py",
-  "source_sha256": "29E5972158EADAFE08E2CD16BEE93775A7ADCCE4B3FB7E76AB4DE33523116670",
-  "source_bytes": 26906,
+  "source_sha256": "C806F915F23C4DE36C194688E85879C50C449E5A503F471BF75BFBD3061C8827",
+  "source_bytes": 26853,
   "role": "PROJECT_AUTHORITIES",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "134D7FED77B1FDA6C736A9CF5A764F557D6D3A5FD9E10EB771D3AAE2EB946493"
+  "receipt_sha256": "B395CE744E72B5DC32ABA932471F4A59EEC7434EF6FED9BF96B1DE3A43DC89EF"
 }

@@ -40,8 +40,8 @@ release boundary.
 The installed package contains no two-selector/last-known-good or standalone
 direct-add compatibility executor. The only local route is Plugin Creator
 validate/package, one cachebuster, configured local-source staging, the sealed
-local-cache materializer, terminal-safe restart preparation, persisted response
-completion, user-controlled exact-channel close/reopen, and post-restart native
+local-cache materializer and install receipt, persisted response completion,
+user-controlled exact-channel close/reopen, and post-restart native
 task readback. No turn-drain utility, scheduled restart child, process-stop
 helper, or machine-wide protocol handler is part of the route. Never execute an
 obsolete route first as discovery, preflight, or fallback.
@@ -50,11 +50,10 @@ When `codex plugin add` materializes the fresh cache but the loaded desktop
 keeps the prior cache active, seal
 `PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED` from the exact
 staging receipt, current selector, old active version, and new cache bytes.
-Only `Prepare-EvidenceLaneCodexRestart.ps1` may consume that state. It validates
-the exact install, task, stable-or-Beta channel, and root process, then writes a
-sealed preparation and task-binding receipt. It never lists or interrupts
-turns, stops a process, schedules a child, activates an app or protocol, starts
-the tunnel, rehydrates another task, replays State Travel, or mutates
+That sealed install receipt is the restart boundary; no restart helper or
+separate preparation receipt exists. No route lists or interrupts turns, stops
+a process, schedules a child, activates an app or protocol, starts the tunnel
+after install, rehydrates another task, replays State Travel, or mutates
 Goal/Plan/PV/HIL authority. The active assistant response must finish normally.
 Only after the native turn is terminal may the user close and reopen the exact
 selected app channel. Reattachment is proven afterward by native task, package,
@@ -193,8 +192,9 @@ calling another lifecycle write, the skill must:
 3. call one bounded installed-native `pv_query` against the live root and the
    prompt-relevant live current-authority `search`;
 4. verify `canonical_authority=PLAN_LANE`, contiguous executable rows, exactly
-   one active row, `persistent_until=NEXT_GOVERNED_HIL_PRESENTED`, and one
-   physically final `PHYSICALLY_FINAL_HIL` row in the final position; and
+   one active row, and `persistent_until=NEXT_GOVERNED_HIL_PRESENTED`; when a
+   `PHYSICALLY_FINAL_HIL` row is declared it must be unique and final, while an
+   open continuation Plan may omit it and end in an ordinary planning row; and
 5. derive the aligned current window from the canonical row origin and ACTIVE
    row; call host `update_plan` only when the receipt says ACTIVATE,
    REACTIVATE, SYNC_AFTER_PLAN_STEER, UPDATE_STATUSES, or ADVANCE_WINDOW.

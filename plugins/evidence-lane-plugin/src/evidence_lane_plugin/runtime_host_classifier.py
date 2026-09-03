@@ -10,6 +10,11 @@ from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes
 from .model_compatibility import classify_model_compatibility
 from .models import HostKind, normalize_host_kind
+from .plugin_build_identity import (
+    PluginBuildIdentityError,
+    parse_exact_plugin_version,
+    resolve_plugin_build_identity,
+)
 from .state_travel_contract import execution_profile_from_context
 
 RUNTIME_HOST_CLASSIFIER_SCHEMA = "evidence-lane.runtime-host-classifier.v1"
@@ -433,7 +438,7 @@ def build_runtime_namespace(
     workspace_id: str,
     host_session_id: str | None,
     classifier: dict[str, Any],
-    plugin_version: str = ENGINE_VERSION,
+    plugin_version: str | None = None,
 ) -> dict[str, Any]:
     """Bind project/session/version identity without retaining raw host IDs."""
 
@@ -447,6 +452,25 @@ def build_runtime_namespace(
         status="BLOCKED",
     )
     exact_host_session_id = str(host_session_id or "").strip()
+    exact_plugin_version = str(
+        plugin_version
+        or resolve_plugin_build_identity(
+            expected_base_release=ENGINE_VERSION,
+        )["exact_version"]
+    )
+    try:
+        parse_exact_plugin_version(
+            exact_plugin_version,
+            expected_base_release=ENGINE_VERSION,
+        )
+    except PluginBuildIdentityError:
+        require(
+            False,
+            "RUNTIME_NAMESPACE_PLUGIN_VERSION_INVALID",
+            "Runtime namespace binding requires one exact Codex plugin build.",
+            status="MISMATCH",
+            plugin_version=exact_plugin_version or None,
+        )
     core = {
         "schema": RUNTIME_NAMESPACE_SCHEMA,
         "project_id": project_id,
@@ -460,7 +484,7 @@ def build_runtime_namespace(
         ),
         "raw_host_session_id_stored": False,
         "plugin_id": "evidence-lane-plugin",
-        "plugin_version": plugin_version,
+        "plugin_version": exact_plugin_version,
         "container_channel": classifier["container_channel"],
         "active_surface": classifier["active_surface"],
         "workspace_class": classifier["workspace_class"],
@@ -472,9 +496,25 @@ def build_runtime_namespace(
     return core
 
 
-def validate_runtime_namespace(value: dict[str, Any]) -> dict[str, Any]:
+def _validate_runtime_namespace(
+    value: dict[str, Any],
+    *,
+    allow_historical_base_release: bool,
+) -> dict[str, Any]:
     claimed = str(value.get("namespace_sha256") or "")
     body = {key: item for key, item in value.items() if key != "namespace_sha256"}
+    plugin_version = str(value.get("plugin_version") or "").strip()
+    try:
+        parse_exact_plugin_version(
+            plugin_version,
+            expected_base_release=ENGINE_VERSION,
+        )
+        exact_plugin_version_valid = True
+    except PluginBuildIdentityError:
+        exact_plugin_version_valid = False
+    historical_base_release_valid = bool(
+        allow_historical_base_release and plugin_version == ENGINE_VERSION
+    )
     require(
         value.get("schema") == RUNTIME_NAMESPACE_SCHEMA
         and bool(claimed)
@@ -484,9 +524,35 @@ def validate_runtime_namespace(value: dict[str, Any]) -> dict[str, Any]:
         and value.get("cross_session_fallback_allowed") is False
         and value.get("cross_version_cache_collision_allowed") is False
         and value.get("raw_host_session_id_stored") is False
-        and value.get("raw_workspace_id_stored") is False,
+        and value.get("raw_workspace_id_stored") is False
+        and (exact_plugin_version_valid or historical_base_release_valid),
         "RUNTIME_NAMESPACE_RECEIPT_INVALID",
         "The runtime project/session/version namespace receipt is invalid.",
         status="MISMATCH",
     )
     return value
+
+
+def validate_runtime_namespace(value: dict[str, Any]) -> dict[str, Any]:
+    """Validate a current namespace with one exact cachebuster identity."""
+
+    return _validate_runtime_namespace(
+        value,
+        allow_historical_base_release=False,
+    )
+
+
+def validate_historical_runtime_namespace(
+    value: dict[str, Any],
+) -> dict[str, Any]:
+    """Validate immutable prior evidence from the base-only namespace ABI.
+
+    This compatibility route is intentionally separate from current-runtime
+    validation.  Callers may use it only while migrating a prior Boot/Resume
+    receipt; every newly emitted namespace still requires the full version.
+    """
+
+    return _validate_runtime_namespace(
+        value,
+        allow_historical_base_release=True,
+    )

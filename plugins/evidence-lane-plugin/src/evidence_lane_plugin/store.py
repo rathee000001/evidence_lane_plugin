@@ -46,6 +46,7 @@ from .project_authority import (
     copy_active_project_authority,
     is_working_sector_operational_member,
     materialize_project_authority_layout,
+    materialize_project_authority_skeleton,
     refresh_working_sector_operational_checksums,
     remove_verified_active_source,
     resolved_chat_lineage_root,
@@ -1159,6 +1160,44 @@ class ProjectStore:
             normalization="NFKC_CASEFOLD_COMPARISON_EXACT_ID_AUTHORITY",
         )
 
+    @staticmethod
+    def _filesystem_route_key(path: str | Path) -> str:
+        """Return the host-canonical identity for one absolute project route."""
+
+        return os.path.normcase(str(Path(path).expanduser().resolve()))
+
+    def _assert_project_authority_root_available(
+        self,
+        project_id: str,
+        target: Path,
+        *,
+        registry: dict[str, Any] | None = None,
+    ) -> None:
+        """Keep an arbitrary user-selected root exclusive to one project ID."""
+
+        exact_registry = (
+            registry if registry is not None else self._load_root_registry()
+        )
+        target_key = self._filesystem_route_key(target)
+        collisions = []
+        for existing_id, row in exact_registry["projects"].items():
+            if existing_id == project_id or not isinstance(row, dict):
+                continue
+            registered_root = str(row.get("project_authority_root") or "").strip()
+            if not registered_root:
+                continue
+            if self._filesystem_route_key(registered_root) == target_key:
+                collisions.append(existing_id)
+        require(
+            not collisions,
+            "PROJECT_AUTHORITY_ROOT_BINDING_DUPLICATE",
+            "The external Project/PV authority root is already bound to another governed project ID.",
+            status="BLOCKED",
+            project_id=project_id,
+            target=str(target),
+            existing_project_ids=sorted(collisions),
+        )
+
     def inspect_root(self) -> dict[str, Any]:
         registry = self._load_root_registry()
         return {
@@ -1346,6 +1385,7 @@ class ProjectStore:
         self.validate_project_id(config.project_id)
         config.capture_route = normalize_capture_route(config.capture_route)
         capture_binding: dict[str, Any]
+        authority_skeleton: dict[str, Any] | None = None
         with self._registry_lock():
             registry = self._load_root_registry()
             canonical_key = self.canonical_project_key(config.project_id)
@@ -1383,11 +1423,30 @@ class ProjectStore:
                 config.project_id,
                 configured_root=config.project_authority_root,
             )
+            if config.project_authority_root is not None:
+                self._assert_project_authority_root_available(
+                    config.project_id,
+                    root,
+                    registry=registry,
+                )
             root.mkdir(parents=True, exist_ok=True)
             with _ProjectLock(root / ".store.lock"):
-                folders = ["accepted", "receipts", "sessions", "lineage"]
-                if config.project_authority_root is None:
-                    folders.append("candidates")
+                if config.project_authority_root is not None:
+                    authority_skeleton = materialize_project_authority_skeleton(
+                        root,
+                        control_root=self.root,
+                        project_id=config.project_id,
+                        repository_path=config.repository_path,
+                    )
+                    folders = ["accepted", "receipts", "sessions"]
+                else:
+                    folders = [
+                        "accepted",
+                        "receipts",
+                        "sessions",
+                        "lineage",
+                        "candidates",
+                    ]
                 for folder in folders:
                     (root / folder).mkdir(parents=True, exist_ok=True)
                 project_path = root / "project.json"
@@ -1454,6 +1513,7 @@ class ProjectStore:
         return {
             **self.project_status(config.project_id),
             "capture_route_binding": capture_binding,
+            "project_authority_skeleton": authority_skeleton,
         }
 
     def replace_branch_authority(
@@ -1624,6 +1684,26 @@ class ProjectStore:
             "hil_inferred": False,
         }
 
+    def ensure_project_authority_skeleton(self, project_id: str) -> dict[str, Any]:
+        """Idempotently materialize the mandatory tree for one external project."""
+
+        config = self.config(project_id)
+        root = self.project_root(project_id)
+        require(
+            self.uses_external_project_authority(project_id),
+            "PROJECT_AUTHORITY_SKELETON_EXTERNAL_ROOT_REQUIRED",
+            "The current root skeleton is owned only by external Project/PV authority.",
+            status="BLOCKED",
+            project_id=project_id,
+        )
+        with self._lock(project_id):
+            return materialize_project_authority_skeleton(
+                root,
+                control_root=self.root,
+                project_id=project_id,
+                repository_path=config.repository_path,
+            )
+
     def project_pv_storage_status(self, project_id: str) -> dict[str, Any]:
         """Return the exact live-overlay/accepted layout without lifecycle writes."""
 
@@ -1662,6 +1742,7 @@ class ProjectStore:
             control_root=self.root,
             project_id=project_id,
         )
+        self._assert_project_authority_root_available(project_id, target)
         current = self.project_root(project_id)
         if current == target:
             status = self.project_authority_status(project_id)
@@ -1913,6 +1994,49 @@ class ProjectStore:
             self._plan_runtime_path(project_id),
             backlog,
         )
+
+    def reconcile_dynamic_host_plan(
+        self,
+        project_id: str,
+        *,
+        snapshot: dict[str, Any],
+        actor: str,
+        expected_backlog_sha256: str,
+        expected_runtime_sha256: str,
+        protected_paths: list[str],
+        expected_protected_file_sha256s: dict[str, str] | None = None,
+        drop_contracts: list[dict[str, str]] | None = None,
+        dry_run: bool = True,
+        recorded_at: str | None = None,
+        _fault_after_phase: str | None = None,
+    ) -> dict[str, Any]:
+        """Own one dynamic host projection under the canonical Plan lock.
+
+        The canonical Plan remains the only ordered-work authority.  The host
+        list is projection-only, native Changes remains ordinary Codex Changes,
+        and the concise Goal never duplicates Plan rows.
+        """
+
+        from .host_plan_reconciliation import reconcile_dynamic_host_plan_files
+
+        self.config(project_id)
+        with self._lock(project_id):
+            return reconcile_dynamic_host_plan_files(
+                self.project_root(project_id),
+                snapshot=snapshot,
+                project_id=project_id,
+                actor=actor,
+                expected_backlog_sha256=expected_backlog_sha256,
+                expected_runtime_sha256=expected_runtime_sha256,
+                protected_paths=protected_paths,
+                expected_protected_file_sha256s=(
+                    expected_protected_file_sha256s
+                ),
+                drop_contracts=drop_contracts,
+                dry_run=dry_run,
+                recorded_at=recorded_at,
+                _fault_after_phase=_fault_after_phase,
+            )
 
     def plan_runtime_query(
         self,
@@ -5038,7 +5162,13 @@ class ProjectStore:
         replacement_contract: dict[str, Any],
         completion_receipt: dict[str, Any],
     ) -> dict[str, Any]:
-        """Atomically advance one independently verified, candidate-free row."""
+        """Advance one verified row and keep the governed-session cursor joined.
+
+        The Plan file and session file are separate authorities, so a process can
+        stop after the Plan write but before the session mirror is updated.  The
+        sealed receipt makes that partial state replayable: a retry repairs only
+        the exact session cursor and never creates another Delta event or sub-PV.
+        """
 
         receipt_sha256 = str(completion_receipt.get("receipt_sha256") or "").strip()
         receipt_body = {
@@ -5052,6 +5182,21 @@ class ProjectStore:
             if isinstance(proof, dict)
             else {}
         )
+        preserved_candidate = completion_receipt.get(
+            "existing_candidate_preserved"
+        )
+        pending_hil = completion_receipt.get("pending_hil")
+        preserved_candidate_shape = (
+            isinstance(preserved_candidate, dict)
+            and preserved_candidate.get("preserved") is True
+            and preserved_candidate.get("session_id") == session_id
+            and bool(str(preserved_candidate.get("candidate_id") or "").strip())
+            and re.fullmatch(
+                r"[A-F0-9]{64}",
+                str(preserved_candidate.get("session_file_sha256") or ""),
+            )
+            is not None
+        )
         require(
             completion_receipt.get("schema")
             == "evidence-lane.verified-task-checkpoint-advance.v1"
@@ -5064,7 +5209,10 @@ class ProjectStore:
             == sha256_bytes(canonical_json_bytes(proof_body))
             and bool(str(completion_receipt.get("verification_kind") or "").strip())
             and completion_receipt.get("candidate_created") is False
-            and completion_receipt.get("pending_hil") is False
+            and (
+                pending_hil is False
+                or (pending_hil is True and preserved_candidate_shape)
+            )
             and completion_receipt.get("pointer_moved") is False
             and completion_receipt.get("hil_inferred") is False,
             "TASK_CHECKPOINT_ADVANCE_RECEIPT_INVALID",
@@ -5088,6 +5236,27 @@ class ProjectStore:
         with self._lock(project_id):
             backlog = self._load_backlog(project_id)
             ensure_event_ledger(backlog)
+            session_path = (
+                self.project_root(project_id) / "sessions" / f"{session_id}.json"
+            )
+            require(
+                session_path.is_file(),
+                "TASK_CHECKPOINT_SESSION_NOT_FOUND",
+                "The verified checkpoint cannot advance without its governed session.",
+                status="MISMATCH",
+                session_id=session_id,
+            )
+            session_file_sha256_before = sha256_file(session_path)
+            session_payload = json.loads(session_path.read_text(encoding="utf-8"))
+            session_metadata = session_payload.setdefault("metadata", {})
+            require(
+                session_payload.get("session_id") == session_id
+                and isinstance(session_metadata, dict),
+                "TASK_CHECKPOINT_SESSION_IDENTITY_MISMATCH",
+                "The checkpoint session file does not contain the exact governed session identity.",
+                status="MISMATCH",
+                session_id=session_id,
+            )
             tasks_by_id = {
                 str(task["task_id"]): task for task in backlog.get("tasks", [])
             }
@@ -5098,6 +5267,11 @@ class ProjectStore:
                 "TASK_CHECKPOINT_ADVANCE_PLAN_TASK_MISMATCH",
                 "The verified row or requested successor is absent from Plan Lane.",
                 status="MISMATCH",
+                completed_backlog_task_id=completed_backlog_task_id,
+                completed_present=completed is not None,
+                replacement_backlog_task_id=replacement_backlog_task_id,
+                replacement_present=replacement is not None,
+                task_count=len(tasks_by_id),
             )
             completed = cast(dict[str, Any], completed)
             replacement = cast(dict[str, Any], replacement)
@@ -5188,6 +5362,93 @@ class ProjectStore:
             if after:
                 replacement_runtime_task_id = persisted_replacement_runtime_task_id
 
+            existing_session_bindings = session_metadata.setdefault(
+                "task_checkpoint_session_bindings", []
+            )
+            require(
+                isinstance(existing_session_bindings, list),
+                "TASK_CHECKPOINT_SESSION_BINDING_HISTORY_INVALID",
+                "The governed session checkpoint-binding history is not a list.",
+                status="MISMATCH",
+            )
+            existing_session_binding = next(
+                (
+                    row
+                    for row in existing_session_bindings
+                    if isinstance(row, dict)
+                    and row.get("checkpoint_receipt_sha256") == receipt_sha256
+                ),
+                None,
+            )
+            session_active_task_id = str(
+                session_metadata.get("active_backlog_task_id") or ""
+            ).strip()
+            session_at_successor = (
+                session_active_task_id == replacement_backlog_task_id
+                and session_metadata.get("active_backlog_task_status") == "ACTIVE"
+            )
+            if pending_hil is True:
+                exact_preserved_candidate = cast(
+                    dict[str, Any], preserved_candidate
+                )
+                require(
+                    session_payload.get("candidate_id")
+                    == exact_preserved_candidate["candidate_id"]
+                    and str(session_payload.get("state") or "").endswith(
+                        "_CANDIDATE"
+                    ),
+                    "TASK_CHECKPOINT_PRESERVED_CANDIDATE_IDENTITY_MISMATCH",
+                    "The existing pending candidate identity is not the sealed preserved boundary.",
+                    status="MISMATCH",
+                )
+                if existing_session_binding is None:
+                    require(
+                        session_file_sha256_before
+                        == exact_preserved_candidate["session_file_sha256"],
+                        "TASK_CHECKPOINT_PRESERVED_CANDIDATE_SESSION_DRIFT",
+                        "The pending-candidate session is neither the sealed pre-write state nor an idempotent bound state.",
+                        status="MISMATCH",
+                    )
+            if before:
+                require(
+                    session_active_task_id == completed_backlog_task_id
+                    and session_metadata.get("active_backlog_task_status") == "ACTIVE",
+                    "TASK_CHECKPOINT_SESSION_PLAN_BEFORE_MISMATCH",
+                    "The governed session must mirror the exact active Plan row before advancement.",
+                    status="MISMATCH",
+                    session_active_task_id=session_active_task_id or None,
+                    completed_backlog_task_id=completed_backlog_task_id,
+                )
+            elif existing_session_binding is None and pending_hil is not True:
+                require(
+                    session_active_task_id
+                    in {completed_backlog_task_id, replacement_backlog_task_id},
+                    "TASK_CHECKPOINT_SESSION_PLAN_RECOVERY_MISMATCH",
+                    "A candidate-free replay can repair only the exact predecessor or successor session cursor.",
+                    status="MISMATCH",
+                    session_active_task_id=session_active_task_id or None,
+                )
+
+            host_projection_repaired = False
+            for projected_task, expected_host_status in (
+                (completed, "completed"),
+                (replacement, "in_progress"),
+            ):
+                host_projection = projected_task.get("host_step_projection")
+                if not isinstance(host_projection, dict):
+                    continue
+                require(
+                    host_projection.get("schema")
+                    == "evidence-lane.host-step-row.v2",
+                    "TASK_CHECKPOINT_HOST_PROJECTION_SCHEMA_MISMATCH",
+                    "A projected Plan task has an unsupported host-row schema.",
+                    status="MISMATCH",
+                    task_id=projected_task.get("task_id"),
+                )
+                if host_projection.get("host_status") != expected_host_status:
+                    host_projection["host_status"] = expected_host_status
+                    host_projection_repaired = True
+
             proof_sha256 = str(cast(dict[str, Any], proof)["receipt_sha256"])
             completion_event_id = f"{completed_backlog_task_id}__{proof_sha256[:24].lower()}__checkpoint_done"
             activation_event_id = (
@@ -5216,7 +5477,14 @@ class ProjectStore:
                         "completion_receipt_sha256": receipt_sha256,
                         "verification_proof_sha256": proof_sha256,
                         "candidate_created": False,
-                        "pending_hil": False,
+                        "pending_hil": bool(pending_hil),
+                        "existing_candidate_id": (
+                            cast(dict[str, Any], preserved_candidate).get(
+                                "candidate_id"
+                            )
+                            if pending_hil is True
+                            else None
+                        ),
                         "pointer_moved": False,
                         "hil_inferred": False,
                     },
@@ -5335,6 +5603,148 @@ class ProjectStore:
                     "The idempotent checkpoint state is missing its accepted Delta-row sub-PV.",
                     status="MISMATCH",
                 )
+                if host_projection_repaired:
+                    self._persist_backlog(project_id, backlog)
+
+            session_binding_repaired = not session_at_successor
+            if existing_session_binding is not None:
+                existing_binding_body = {
+                    key: value
+                    for key, value in existing_session_binding.items()
+                    if key != "receipt_sha256"
+                }
+                require(
+                    existing_session_binding.get("schema")
+                    == "evidence-lane.task-checkpoint-session-binding.v1"
+                    and existing_session_binding.get("status") == "PASS"
+                    and existing_session_binding.get("project_id") == project_id
+                    and existing_session_binding.get("session_id") == session_id
+                    and existing_session_binding.get("completed_backlog_task_id")
+                    == completed_backlog_task_id
+                    and existing_session_binding.get("replacement_backlog_task_id")
+                    == replacement_backlog_task_id
+                    and existing_session_binding.get("replacement_runtime_task_id")
+                    == replacement_runtime_task_id
+                    and existing_session_binding.get("candidate_id")
+                    == (
+                        cast(dict[str, Any], preserved_candidate).get("candidate_id")
+                        if pending_hil is True
+                        else None
+                    )
+                    and existing_session_binding.get("receipt_sha256")
+                    == sha256_bytes(canonical_json_bytes(existing_binding_body)),
+                    "TASK_CHECKPOINT_SESSION_BINDING_REPLAY_MISMATCH",
+                    "The existing session-cursor receipt does not match this exact checkpoint.",
+                    status="MISMATCH",
+                )
+                session_binding = cast(dict[str, Any], existing_session_binding)
+            else:
+                bound_at = utc_now()
+                binding_body = {
+                    "schema": "evidence-lane.task-checkpoint-session-binding.v1",
+                    "status": "PASS",
+                    "project_id": project_id,
+                    "session_id": session_id,
+                    "checkpoint_receipt_sha256": receipt_sha256,
+                    "completed_backlog_task_id": completed_backlog_task_id,
+                    "replacement_backlog_task_id": replacement_backlog_task_id,
+                    "replacement_runtime_task_id": replacement_runtime_task_id,
+                    "prior_session_file_sha256": session_file_sha256_before,
+                    "prior_session_active_backlog_task_id": (
+                        session_active_task_id or None
+                    ),
+                    "candidate_id": (
+                        cast(dict[str, Any], preserved_candidate).get("candidate_id")
+                        if pending_hil is True
+                        else None
+                    ),
+                    "candidate_preserved": pending_hil is True,
+                    "pointer_moved": False,
+                    "hil_inferred": False,
+                    "bound_at": bound_at,
+                }
+                session_binding = {
+                    **binding_body,
+                    "receipt_sha256": sha256_bytes(
+                        canonical_json_bytes(binding_body)
+                    ),
+                }
+                existing_session_bindings.append(session_binding)
+
+            session_metadata["active_backlog_task_id"] = replacement_backlog_task_id
+            session_metadata["active_backlog_task_status"] = "ACTIVE"
+            session_metadata["last_task_checkpoint_session_binding"] = session_binding
+            executable_tasks = [
+                task
+                for task in sorted(
+                    backlog["tasks"], key=lambda item: int(item["sequence"])
+                )
+                if task.get("status") in {"DONE", "ACCEPTED", "ACTIVE", "QUEUED"}
+            ]
+            successor_index = next(
+                index
+                for index, task in enumerate(executable_tasks)
+                if task.get("task_id") == replacement_backlog_task_id
+            )
+            window_start = (
+                successor_index // _HOST_PLAN_WINDOW_SIZE
+            ) * _HOST_PLAN_WINDOW_SIZE
+            aligned_window_task_ids = [
+                str(task["task_id"])
+                for task in executable_tasks[
+                    window_start : window_start + _HOST_PLAN_WINDOW_SIZE
+                ]
+            ]
+            prior_host_window = cast(
+                dict[str, Any], session_metadata.get("host_plan_window") or {}
+            )
+            host_plan_window_repaired = (
+                prior_host_window.get("window_task_ids")
+                != aligned_window_task_ids
+            )
+            session_metadata["host_plan_window"] = {
+                **prior_host_window,
+                "schema": "evidence-lane.host-plan-window-state.v1",
+                "window_task_ids": aligned_window_task_ids,
+                "binding_source": "VERIFIED_TASK_CHECKPOINT_TRANSITION",
+                "checkpoint_receipt_sha256": receipt_sha256,
+            }
+            session_advances = session_metadata.setdefault(
+                "task_checkpoint_advances", []
+            )
+            require(
+                isinstance(session_advances, list),
+                "TASK_CHECKPOINT_SESSION_ADVANCE_HISTORY_INVALID",
+                "The governed session checkpoint-advance history is not a list.",
+                status="MISMATCH",
+            )
+            if not any(
+                isinstance(row, dict)
+                and row.get("receipt_sha256") == receipt_sha256
+                for row in session_advances
+            ):
+                session_advances.append(completion_receipt)
+            session_metadata["last_task_checkpoint_advance"] = completion_receipt
+            session_payload["metadata"] = session_metadata
+            if existing_session_binding is None or session_binding_repaired:
+                atomic_write_json(session_path, session_payload)
+            repaired_session = json.loads(session_path.read_text(encoding="utf-8"))
+            require(
+                repaired_session.get("candidate_id")
+                == session_payload.get("candidate_id")
+                and repaired_session.get("state") == session_payload.get("state")
+                and repaired_session.get("metadata", {}).get(
+                    "active_backlog_task_id"
+                )
+                == replacement_backlog_task_id
+                and repaired_session.get("metadata", {}).get(
+                    "active_backlog_task_status"
+                )
+                == "ACTIVE",
+                "TASK_CHECKPOINT_SESSION_BINDING_READBACK_MISMATCH",
+                "The governed session did not read back at the exact successor cursor.",
+                status="MISMATCH",
+            )
             return {
                 "status": "PASS",
                 "idempotent_reuse": after,
@@ -5344,6 +5754,12 @@ class ProjectStore:
                 "activation_event": activation_event,
                 "completion_receipt": completion_receipt,
                 "sub_pv_acceptance": sub_pv_acceptance,
+                "host_projection_repaired": host_projection_repaired,
+                "session_binding_repaired": session_binding_repaired,
+                "session_binding": session_binding,
+                "session_file_sha256": sha256_file(session_path),
+                "host_plan_window_repaired": host_plan_window_repaired,
+                "host_plan_window_task_ids": aligned_window_task_ids,
             }
 
     def batch_completion_receipt(
@@ -6808,7 +7224,24 @@ class ProjectStore:
         require(
             sectors_manifest.is_file(),
             "PV0_BOOTSTRAP_SECTOR_MANIFEST_MISSING",
-            "Initial Build must materialize all sector lanes through Source Intake before PV0 can be bound.",
+            "Initial Build must materialize the fired sector lanes through Source Intake before PV0 can be bound.",
+            status="MISMATCH",
+        )
+        sector_manifest_payload = json.loads(
+            sectors_manifest.read_text(encoding="utf-8")
+        )
+        emitted_lane_ids = list(sector_manifest_payload.get("emitted_lane_ids") or [])
+        require(
+            int(sector_manifest_payload.get("canonical_lane_count") or 0)
+            == len(CANONICAL_LANE_IDS)
+            and emitted_lane_ids
+            == [
+                lane_id
+                for lane_id in CANONICAL_LANE_IDS
+                if lane_id in emitted_lane_ids
+            ],
+            "PV0_BOOTSTRAP_SECTOR_REGISTRY_MISMATCH",
+            "PV0 requires one ordered fired-lane projection from the current registry.",
             status="MISMATCH",
         )
         sector_manifest_sha256 = sha256_file(sectors_manifest)
@@ -6821,6 +7254,15 @@ class ProjectStore:
             "source_intake_event_id": exact_event_id,
             "working_refresh_receipt_sha256": exact_refresh_sha256,
             "sector_manifest_sha256": sector_manifest_sha256,
+            "canonical_lane_count": len(CANONICAL_LANE_IDS),
+            "emitted_lane_ids": emitted_lane_ids,
+            "unfired_lane_ids": [
+                lane_id
+                for lane_id in CANONICAL_LANE_IDS
+                if lane_id not in emitted_lane_ids
+            ],
+            "unfired_lane_directories_created": False,
+            "fired_lane_directories_reused_when_unchanged": True,
             "bootstrapped_by": exact_actor,
             "initial_authority": "LIVE_PROJECT_ROOT_SECTORS",
             "human_hil_required": False,
@@ -6836,6 +7278,51 @@ class ProjectStore:
         receipt = {**receipt_body, "receipt_sha256": receipt_sha256}
         receipt_path = root / "receipts" / "pv0-live-root-bootstrap.json"
         pointer_path = root / "active_pointer.json"
+        config = self.config(project_id)
+
+        def ensure_layout() -> dict[str, Any]:
+            layout_path = root / "project_authority.json"
+            if layout_path.is_file():
+                layout = json.loads(layout_path.read_text(encoding="utf-8"))
+                accepted_pointer = dict(layout.get("accepted_pointer") or {})
+                require(
+                    layout.get("schema") == "evidence-lane.project-authority-layout.v1"
+                    and int(layout.get("canonical_lane_count") or 0)
+                    == len(CANONICAL_LANE_IDS)
+                    and int(layout.get("materialized_sector_directory_count") or 0)
+                    == len(emitted_lane_ids)
+                    and layout.get("materialized_sector_lane_ids")
+                    == emitted_lane_ids
+                    and accepted_pointer.get("accepted_pv") == "PV0"
+                    and accepted_pointer.get("generation") == 0
+                    and accepted_pointer.get("accepted_manifest_sha256")
+                    == receipt_sha256,
+                    "PV0_PROJECT_AUTHORITY_LAYOUT_MISMATCH",
+                    "The existing Project/PV authority layout does not match the PV0 bootstrap identity.",
+                    status="MISMATCH",
+                    project_id=project_id,
+                )
+                status = self.project_authority_status(project_id)
+                require(
+                    status.get("layout_materialized") is True,
+                    "PV0_PROJECT_AUTHORITY_LAYOUT_INCOMPLETE",
+                    "The PV0 Project/PV authority layout is incomplete.",
+                    status="MISMATCH",
+                    project_id=project_id,
+                )
+                return {**status, "state": "PV0_LAYOUT_IDEMPOTENT_REUSE"}
+            return materialize_project_authority_layout(
+                root,
+                published_root=root,
+                control_root=self.root,
+                project_id=project_id,
+                repository_path=config.repository_path,
+                accepted_pv="PV0",
+                pointer_generation=0,
+                accepted_manifest_sha256=receipt_sha256,
+                legacy_history_root=None,
+            )
+
         with self._lock(project_id):
             before = self.pointer(project_id)
             if before.accepted_pv == "PV0":
@@ -6849,12 +7336,14 @@ class ProjectStore:
                     "An existing PV0 pointer does not match the exact bootstrap receipt.",
                     status="MISMATCH",
                 )
+                layout = ensure_layout()
                 return {
                     "status": "PASS",
                     "state": "PV0_BASELINE_IDEMPOTENT_REUSE",
                     "pointer": before.as_dict(),
                     "receipt": receipt,
                     "receipt_path": str(receipt_path),
+                    "project_authority_layout": layout,
                 }
             require(
                 before.accepted_pv is None
@@ -6874,6 +7363,7 @@ class ProjectStore:
                 )
             else:
                 atomic_write_json(receipt_path, receipt)
+            layout = ensure_layout()
             after = ActivePointer(
                 project_id=project_id,
                 accepted_pv="PV0",
@@ -6892,6 +7382,7 @@ class ProjectStore:
             "pointer": self.pointer(project_id).as_dict(),
             "receipt": receipt,
             "receipt_path": str(receipt_path),
+            "project_authority_layout": layout,
         }
 
     def pointer(self, project_id: str) -> ActivePointer:

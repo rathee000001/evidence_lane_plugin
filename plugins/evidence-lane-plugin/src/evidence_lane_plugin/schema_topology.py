@@ -72,10 +72,15 @@ def physical_schema_projection(
         foreign_keys = connection.execute(
             f'PRAGMA foreign_key_list("{quoted}")'  # nosec B608
         ).fetchall()
-        row_count = int(
-            connection.execute(
-                f'SELECT COUNT(*) FROM "{quoted}"'  # nosec B608
-            ).fetchone()[0]
+        contract_required = table in lane.schema_contract
+        row_count = (
+            int(
+                connection.execute(
+                    f'SELECT COUNT(*) FROM "{quoted}"'  # nosec B608
+                ).fetchone()[0]
+            )
+            if contract_required
+            else None
         )
         column_projection = [
             {
@@ -105,8 +110,13 @@ def physical_schema_projection(
             "ordinal": ordinal,
             "table": table,
             "role": _table_role(lane, table),
-            "contract_required": table in lane.schema_contract,
+            "contract_required": contract_required,
             "rows": row_count,
+            "row_count_policy": (
+                "EXACT_AUTHORITY_ROWS"
+                if contract_required
+                else "VOLATILE_SQLITE_AUXILIARY_COUNT_OMITTED"
+            ),
             "columns": column_projection,
             "foreign_keys": foreign_key_projection,
             "definition_sha256": sha256_bytes(actual_sql[table].encode("utf-8")),

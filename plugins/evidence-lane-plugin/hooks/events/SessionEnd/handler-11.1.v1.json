@@ -7,7 +7,7 @@
   "event": "SessionEnd",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_validate.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SessionEnd --handler subhook_validate.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SessionEnd subhook_validate.py",
     "timeout": 3,
     "statusMessage": "Validating and bounding Evidence Lane hook signal"
@@ -32,5 +32,5 @@
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "9656EF643D8E43BC635577CCF1A066C951210175AA9BD2DC94EF20CCC3C78B52"
+  "receipt_sha256": "9E018695E54A30C89081B5AE81A3F2888E8DB040C987318AD646710A24988F52"
 }

@@ -2,10 +2,12 @@
 
 The complete native Plan Lane remains the only row/status authority.  The host
 artifact contains one permanent non-Delta progress item followed by one fixed
-batch of at most nine executable Delta rows from that authority.  The batch
-identity must already be persisted by the canonical Plan/Goal activation and
-is never inferred from the ACTIVE row.  Task transitions update statuses in
-place; Plan steers refresh only changed labels.  This module never claims
+batch of at most nine executable Delta rows from that authority.  Ordinary
+reads never infer a replacement batch.  Canonical Plan activation, a Plan
+mutation, verified row transition, or installed-version reattachment must
+explicitly bind the aligned batch before the read surface can use it.  Task
+transitions update statuses in place; Plan steers refresh only changed labels.
+This module never claims
 that the host rendered or accepted an artifact.  Visibility and the one State
 Travel Plan-acceptance gate are separate observed facts; Sources/icon presence,
 a backlog readback, or an empty host receipt are not substitutes for either
@@ -85,6 +87,43 @@ _REACTIVATION_TRIGGERS = {
     "TASK_PANEL_LOSS",
     "CHANGES_SURFACE_LOSS",
 }
+
+
+def aligned_host_plan_window_task_ids(
+    store: ProjectStore,
+    *,
+    project_id: str,
+) -> list[str]:
+    """Derive the exact nine-row batch for a lifecycle-owned binding write."""
+
+    goal = cast(
+        dict[str, Any], store.backlog_status(project_id).get("goal_projection") or {}
+    )
+    rows = cast(list[dict[str, Any]], goal.get("rows") or [])
+    active_indexes = [
+        index
+        for index, row in enumerate(rows)
+        if row.get("status") == "in_progress"
+        and row.get("lifecycle_status") == "ACTIVE"
+    ]
+    require(
+        goal.get("canonical_authority") == "PLAN_LANE"
+        and bool(rows)
+        and len(active_indexes) == 1,
+        "HOST_PLAN_ALIGNED_WINDOW_AUTHORITY_INVALID",
+        "A lifecycle-owned window binding requires one canonical Plan and one ACTIVE row.",
+        status="MISMATCH",
+        active_count=len(active_indexes),
+    )
+    start = (active_indexes[0] // _HOST_PLAN_WINDOW_SIZE) * _HOST_PLAN_WINDOW_SIZE
+    batch = rows[start : start + _HOST_PLAN_WINDOW_SIZE]
+    require(
+        rows[active_indexes[0]] in batch,
+        "HOST_PLAN_ALIGNED_WINDOW_ACTIVE_ROW_MISSING",
+        "The deterministic aligned Plan batch does not contain the ACTIVE row.",
+        status="MISMATCH",
+    )
+    return [str(row["task_id"]) for row in batch]
 
 
 def _compact_ui_token(value: Any, *, max_chars: int) -> str:
@@ -354,12 +393,18 @@ def _exact_projection(
     physical_final_rows = [
         row for row in full_rows if row.get("panel_role") == "PHYSICALLY_FINAL_HIL"
     ]
+    physical_final_row = physical_final_rows[0] if physical_final_rows else None
     require(
-        len(physical_final_rows) == 1
-        and physical_final_rows[0].get("task_id") == full_rows[-1].get("task_id")
-        and physical_final_rows[0].get("number") == row_end,
+        len(physical_final_rows) <= 1
+        and (
+            physical_final_row is None
+            or (
+                physical_final_row.get("task_id") == full_rows[-1].get("task_id")
+                and physical_final_row.get("number") == row_end
+            )
+        ),
         "HOST_PLAN_PHYSICALLY_FINAL_HIL_INVALID",
-        "Exactly one PHYSICALLY_FINAL_HIL row must be physically last.",
+        "A declared PHYSICALLY_FINAL_HIL row must be unique and physically last; an open continuation Plan may omit it.",
         status="MISMATCH",
     )
     pointer = store.pointer(project_id).as_dict()
@@ -524,13 +569,13 @@ def _exact_projection(
         row for row in full_rows[window_end_index:] if row.get("status") == "pending"
     ]
     final_hil_text = " ".join(
-        [str(full_rows[-1].get("step") or "")]
+        [str(physical_final_row.get("step") or "")]
         + [
             str(delta.get("text") or "")
-            for delta in full_rows[-1].get("steer_deltas") or []
+            for delta in physical_final_row.get("steer_deltas") or []
             if isinstance(delta, dict)
         ]
-    )
+    ) if physical_final_row is not None else ""
     final_hil_candidate_matches: list[str] = []
     for pattern in (
         r"\bPHYSICALLY\s+FINAL\s+(PV\d+)\s+HIL\b",
@@ -586,10 +631,26 @@ def _exact_projection(
         "next_hil_boundary_task_id": (
             str(next_hil["task_id"]) if next_hil is not None else None
         ),
-        "physically_final_row": int(full_rows[-1]["number"]),
-        "physically_final_task_id": str(full_rows[-1]["task_id"]),
+        "physically_final_row": (
+            int(physical_final_row["number"])
+            if physical_final_row is not None
+            else None
+        ),
+        "physically_final_task_id": (
+            str(physical_final_row["task_id"])
+            if physical_final_row is not None
+            else None
+        ),
         "physically_final_candidate": final_hil_candidate,
-        "physically_final_hil_scope": "FINAL_PROJECT_HIL_NOT_INTERMEDIATE",
+        "physically_final_hil_scope": (
+            "FINAL_PROJECT_HIL_NOT_INTERMEDIATE"
+            if physical_final_row is not None
+            else "NOT_YET_DECLARED_OPEN_PLAN_CONTINUATION"
+        ),
+        "terminal_row": int(full_rows[-1]["number"]),
+        "terminal_task_id": str(full_rows[-1]["task_id"]),
+        "terminal_panel_role": str(full_rows[-1].get("panel_role") or "STANDARD"),
+        "open_plan_continuation": physical_final_row is None,
         "detailed_hil_queue_surface": "EVIDENCE_LANE_PROJECT_RENDERER",
         "hil_controls_in_step_task_list": False,
     }
@@ -599,7 +660,11 @@ def _exact_projection(
         f"ACTIVE R{continuity_header['absolute_active_row']} | "
         f"ACTIVE BATCH R{window_row_start}-R{window_row_end} | "
         f"NEXT_HIL R{continuity_header['next_hil_boundary_row'] or 'NONE'} | "
-        f"FINAL_HIL R{continuity_header['physically_final_row']}"
+        + (
+            f"FINAL_HIL R{continuity_header['physically_final_row']}"
+            if physical_final_row is not None
+            else f"FINAL_HIL NONE | PLAN_END R{row_end}"
+        )
     )
     header_lines = str(continuity_header["visible_text"]).splitlines()
     require(
@@ -710,9 +775,24 @@ def _exact_projection(
             "detailed_hil_queue_in_step_task_list": False,
         },
         "final_window_may_contain_fewer_than_ten": True,
-        "physically_final_hil_row": full_rows[-1]["number"],
-        "physically_final_hil_task_id": full_rows[-1]["task_id"],
-        "physically_final_hil_visible_in_window": (full_rows[-1] in window_rows),
+        "physically_final_hil_row": (
+            physical_final_row["number"]
+            if physical_final_row is not None
+            else None
+        ),
+        "physically_final_hil_task_id": (
+            physical_final_row["task_id"]
+            if physical_final_row is not None
+            else None
+        ),
+        "physically_final_hil_visible_in_window": (
+            physical_final_row in window_rows
+            if physical_final_row is not None
+            else False
+        ),
+        "terminal_row": full_rows[-1]["number"],
+        "terminal_task_id": full_rows[-1]["task_id"],
+        "open_plan_continuation": physical_final_row is None,
         "full_ledger_preserved_outside_host_window": True,
         "window_advancement_rewrites_plan_history": False,
         "native_host_plan_projection_only_law": {

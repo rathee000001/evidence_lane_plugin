@@ -7,7 +7,7 @@
   "event": "SubagentStart",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_seal.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event SubagentStart --handler subhook_seal.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" SubagentStart subhook_seal.py",
     "timeout": 10,
     "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
@@ -32,5 +32,5 @@
   "adapter_sha256": "3EA6FE46F77CBE1CE537C01E71F4332A6D12CD04E716B84E88FB03A2D73C289C",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "18B02A39AFC0B8ABB41A929A4F54F3BBC0A6A2A5390F147F1386675C30853D27"
+  "receipt_sha256": "F3EE668589AB4AE4479949CA84E6CD998C157AA57CE2E8EE718697E1D9126A90"
 }

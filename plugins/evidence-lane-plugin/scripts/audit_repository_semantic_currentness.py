@@ -24,6 +24,10 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 SCHEMA = "evidence-lane.repository-semantic-currentness-audit.v1"
+EXACT_PLUGIN_VERSION_RE = re.compile(
+    r"^(?P<base>\d+\.\d+\.\d+)\+codex\."
+    r"(?P<cachebuster>[0-9A-Za-z](?:[0-9A-Za-z.-]*[0-9A-Za-z])?)$"
+)
 FINAL_CLASSIFICATIONS = {
     "CURRENT",
     "HISTORICAL_ALLOWED_WITH_BOUNDARY",
@@ -430,8 +434,51 @@ def build_audit(repository: Path, index_file: Path) -> dict[str, Any]:
     plugin_prefix = "plugins/evidence-lane-plugin/"
     plugin_manifest = _load_index_json(plugin_prefix + ".codex-plugin/plugin.json", current, blobs)
     current_version = str(plugin_manifest.get("version") or "")
-    if current_version != "3.0.0":
+    version_match = EXACT_PLUGIN_VERSION_RE.fullmatch(current_version)
+    if version_match is None or current_version.count("+codex.") != 1:
         raise RuntimeError(f"SEMANTIC_AUDIT_PLUGIN_VERSION_INVALID:{current_version}")
+    current_base_release = version_match.group("base")
+
+    root_project = tomllib.loads(
+        _decode_text("pyproject.toml", blobs[current["pyproject.toml"]["index_object_id"]])
+    )
+    plugin_project_path = plugin_prefix + "pyproject.toml"
+    plugin_project = tomllib.loads(
+        _decode_text(
+            plugin_project_path,
+            blobs[current[plugin_project_path]["index_object_id"]],
+        )
+    )
+    constants_path = plugin_prefix + "src/evidence_lane_plugin/constants.py"
+    constants_text = _decode_text(
+        constants_path,
+        blobs[current[constants_path]["index_object_id"]],
+    )
+    engine_match = re.search(
+        r'^ENGINE_VERSION\s*=\s*"(?P<version>[^"]+)"',
+        constants_text,
+        flags=re.MULTILINE,
+    )
+    executable_surface = _load_index_json(
+        plugin_prefix + "manifests/executable-surface-registry.v1.json",
+        current,
+        blobs,
+    )
+    manifest_member = next(
+        (
+            row
+            for row in executable_surface.get("members") or []
+            if isinstance(row, dict)
+            and row.get("path") == ".codex-plugin/plugin.json"
+        ),
+        None,
+    )
+    manifest_path = plugin_prefix + ".codex-plugin/plugin.json"
+    manifest_sha256 = _sha256(blobs[current[manifest_path]["index_object_id"]])
+    docs_binding_path = (
+        "apps/evidence-lane-app/app/_data/public-docs-backend-binding.json"
+    )
+    docs_binding = _load_index_json(docs_binding_path, current, blobs)
 
     public = _load_index_json(plugin_prefix + "schemas/public-action-schemas.v001.json", current, blobs)
     skills = _load_index_json(plugin_prefix + "skills/skill-surface-registry.v1.json", current, blobs)
@@ -445,7 +492,27 @@ def build_audit(repository: Path, index_file: Path) -> dict[str, Any]:
         for group in groups
     )
     registry_checks = {
-        "plugin_version": current_version == "3.0.0",
+        "plugin_exact_version": (
+            plugin_manifest.get("name") == "evidence-lane-plugin"
+            and current_base_release
+            == str(root_project.get("project", {}).get("version") or "")
+            == str(plugin_project.get("project", {}).get("version") or "")
+            == (engine_match.group("version") if engine_match is not None else "")
+        ),
+        "plugin_executable_surface_identity": (
+            executable_surface.get("schema")
+            == "evidence-lane.executable-package-surface-registry.v1"
+            and executable_surface.get("status") == "PASS"
+            and executable_surface.get("plugin_version") == current_version
+            and isinstance(manifest_member, dict)
+            and manifest_member.get("sha256") == manifest_sha256
+        ),
+        "public_docs_plugin_identity": (
+            docs_binding.get("schema")
+            == "evidence-lane.public-docs-backend-binding.v1"
+            and docs_binding.get("status") == "PASS"
+            and docs_binding.get("plugin_version") == current_version
+        ),
         "public_action_count": int(public.get("tool_count", -1)) == len(public.get("tools") or []) == 91,
         "skill_count": int(skills.get("skill_count", -1)) == len(skills.get("skills") or []) == 26,
         "hook_event_count": len(hooks.get("hooks") or {}) == 11,

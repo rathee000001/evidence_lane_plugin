@@ -7,7 +7,7 @@
   "event": "PreCompact",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_validate.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreCompact --handler subhook_validate.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreCompact subhook_validate.py",
     "timeout": 10,
     "statusMessage": "Validating and bounding Evidence Lane hook signal"
@@ -32,5 +32,5 @@
   "adapter_sha256": "150692035D4830902D891B5BC8556E430B83A45BDD2C435222FE0A02BD188381",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "9027D3A63950BE5AFD28A7C0CEEC0B3D440760F9858D2F577EA4B097B4A9E9EE"
+  "receipt_sha256": "7FFCE65987B862CD805D3252510DE523E5FD7E837251BC73BE4368896C122B57"
 }

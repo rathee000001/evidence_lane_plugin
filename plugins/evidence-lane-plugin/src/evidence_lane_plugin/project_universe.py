@@ -28,6 +28,7 @@ from .hashing import (
 from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY
 from .package_root import resolve_plugin_root
 from .project_authority import resolved_plan_runtime_path
+from .project_root_binding import validate_project_root_binding
 from .sqlite_indexing import rebuild_connection_authority_index
 from .timeutil import utc_now
 
@@ -44,15 +45,11 @@ _MAX_QUERY_LIMIT = 100
 
 
 def _root(project_root: str | Path, *, project_id: str) -> Path:
-    root = Path(project_root).resolve()
-    require(
-        root.name == project_id,
-        "PROJECT_UNIVERSE_ROOT_MISMATCH",
-        "The Project Universe root does not match the exact project identity.",
-        status="MISMATCH",
+    return validate_project_root_binding(
+        project_root,
         project_id=project_id,
+        error_code="PROJECT_UNIVERSE_ROOT_MISMATCH",
     )
-    return root
 
 
 def _json(path: Path, *, code: str) -> dict[str, Any]:

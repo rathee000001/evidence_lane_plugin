@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from typing import Any, cast
 
+from .constants import ENGINE_VERSION
 from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes
 from .models import HostKind, normalize_host_kind
+from .plugin_build_identity import resolve_plugin_build_identity
 from .runtime_host_classifier import (
     build_runtime_namespace,
+    validate_historical_runtime_namespace,
     validate_runtime_host_classifier,
     validate_runtime_namespace,
 )
@@ -101,6 +104,9 @@ def build_runtime_continuity(
         workspace_id=workspace_id,
         host_session_id=host_session_id,
         classifier=runtime_classifier,
+        plugin_version=resolve_plugin_build_identity(
+            expected_base_release=ENGINE_VERSION,
+        )["exact_version"],
     )
     accepted_integrity_validated = bool(
         accepted_pv and accepted_manifest_sha256 and accepted_package_sha256
@@ -309,7 +315,11 @@ def build_runtime_continuity(
     return core
 
 
-def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
+def validate_runtime_continuity(
+    value: dict[str, Any],
+    *,
+    allow_historical_base_plugin_version: bool = False,
+) -> dict[str, Any]:
     require(
         value.get("schema") == RUNTIME_CONTINUITY_SCHEMA,
         "RUNTIME_CONTINUITY_SCHEMA_INVALID",
@@ -417,10 +427,22 @@ def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
         return value
 
     invocation = cast(dict[str, Any], invocation)
+    authority_hil_policy_preserved = invocation.get(
+        "authority_hil_policy_preserved"
+    )
+    if (
+        authority_hil_policy_preserved is None
+        and invocation.get("six_way_hil_preserved") is True
+    ):
+        # Immutable receipts produced by the immediately preceding ABI used
+        # the narrower six-way-HIL field name for the same no-authority-effect
+        # invariant.  Accept it only as read-only prior evidence; the next
+        # Boot/Resume emits the current field and a new receipt hash.
+        authority_hil_policy_preserved = True
     require(
         invocation.get("api_billing_affects_storage_or_tunnel") is False
         and invocation.get("account_tier_affects_storage_or_tunnel") is False
-        and invocation.get("authority_hil_policy_preserved") is True,
+        and authority_hil_policy_preserved is True,
         "RUNTIME_CONTINUITY_INVOCATION_BOUNDARY_INVALID",
         "Runtime invocation continuity must not alter storage, tunnel, or governed HIL law.",
         status="FAIL",
@@ -436,7 +458,12 @@ def validate_runtime_continuity(value: dict[str, Any]) -> dict[str, Any]:
             status="FAIL",
         )
         validate_runtime_host_classifier(cast(dict[str, Any], runtime_classifier))
-        validate_runtime_namespace(cast(dict[str, Any], runtime_namespace))
+        if allow_historical_base_plugin_version:
+            validate_historical_runtime_namespace(
+                cast(dict[str, Any], runtime_namespace)
+            )
+        else:
+            validate_runtime_namespace(cast(dict[str, Any], runtime_namespace))
         runtime_classifier = cast(dict[str, Any], runtime_classifier)
         runtime_namespace = cast(dict[str, Any], runtime_namespace)
         require(

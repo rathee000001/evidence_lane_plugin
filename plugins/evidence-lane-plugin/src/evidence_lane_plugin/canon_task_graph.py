@@ -20,6 +20,7 @@ from typing import Any, Protocol, cast
 from .errors import require
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
 from .package_root import resolve_plugin_root
+from .project_root_binding import validate_project_root_binding
 from .redaction import contains_secret
 
 CANON_ENVELOPE_SCHEMA = "evidence-lane.canon-envelope.v2"
@@ -222,16 +223,11 @@ def _timestamp_value(value: str) -> datetime:
 
 
 def _project_root(project_root: str | Path, *, project_id: str) -> Path:
-    root = Path(project_root).resolve()
-    require(
-        root.name == project_id,
-        "CANON_CROSS_PROJECT_AUTHORITY_DENIED",
-        "The Canon authority root does not match the exact project identity.",
-        status="BLOCKED",
+    return validate_project_root_binding(
+        project_root,
         project_id=project_id,
-        root=str(root),
+        error_code="CANON_CROSS_PROJECT_AUTHORITY_DENIED",
     )
-    return root
 
 
 def _canon_root(root: Path) -> Path:
@@ -391,7 +387,9 @@ def _canon_sqlite_schema_signature(connection: sqlite3.Connection) -> str:
             """
             SELECT type,name,tbl_name,sql
             FROM sqlite_master
-            WHERE type IN ('table','index') AND name NOT LIKE 'sqlite_%'
+            WHERE type IN ('table','index')
+              AND name NOT LIKE 'sqlite_%'
+              AND name NOT LIKE 'authority_index_%'
             ORDER BY type,name
             """
         ).fetchall()

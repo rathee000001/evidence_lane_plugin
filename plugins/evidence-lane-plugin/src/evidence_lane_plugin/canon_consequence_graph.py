@@ -32,6 +32,7 @@ from .hashing import (
 from .lanes import lane_artifact_contract, lane_schema_asset
 from .package_root import resolve_plugin_root
 from .project_authority import resolved_plan_runtime_path
+from .project_root_binding import validate_project_root_binding
 from .timeutil import utc_now
 
 CONSEQUENCE_GRAPH_SCHEMA = "evidence-lane.canon-consequence-graph.v1"
@@ -56,15 +57,11 @@ _ROOT_INVENTORY_EXCLUDED_RELATIVE_PREFIXES = (
 
 
 def _project_root(project_root: str | Path, *, project_id: str) -> Path:
-    root = Path(project_root).resolve()
-    require(
-        root.name == project_id,
-        "CANON_CONSEQUENCE_PROJECT_ROOT_MISMATCH",
-        "The Canon consequence graph root does not match the exact project identity.",
-        status="MISMATCH",
+    return validate_project_root_binding(
+        project_root,
         project_id=project_id,
+        error_code="CANON_CONSEQUENCE_PROJECT_ROOT_MISMATCH",
     )
-    return root
 
 
 def _json(path: Path, *, code: str) -> dict[str, Any]:

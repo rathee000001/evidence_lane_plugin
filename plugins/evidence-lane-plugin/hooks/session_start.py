@@ -17,6 +17,10 @@ _ENGINE_VERSION_RE = re.compile(
     r'^ENGINE_VERSION\s*=\s*"(?P<version>[^"]+)"',
     flags=re.MULTILINE,
 )
+_PLUGIN_PACKAGE_VERSION_RE = re.compile(
+    r"^\d+\.\d+\.\d+\+codex\."
+    r"[0-9A-Za-z](?:[0-9A-Za-z.-]*[0-9A-Za-z])?$"
+)
 _EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
     "routing_axes_independent": True,
     "account_tier_affects_routing": False,
@@ -110,6 +114,122 @@ def _store_root() -> Path:
     return resolve_codex_hook_store_root()
 
 
+def _version_bound_tunnel_identity(
+    *,
+    release: str,
+    slot_role: str,
+    plugin_version: str,
+    tunnel_compatibility_sha256: str,
+    runtime_control_root: Path,
+) -> dict[str, str]:
+    """Derive the installer's exact package-version-bound tunnel identity."""
+
+    if not re.fullmatch(r"\d+\.\d+\.\d+", release):
+        raise ValueError("selected slot release is not exact semver")
+    if slot_role not in {"main-git-release", "versioned-local-testing"}:
+        raise ValueError("selected tunnel slot role is unsupported")
+    if (
+        _PLUGIN_PACKAGE_VERSION_RE.fullmatch(plugin_version) is None
+        or plugin_version.split("+", 1)[0] != release
+        or re.fullmatch(r"[A-F0-9]{64}", tunnel_compatibility_sha256) is None
+    ):
+        raise ValueError("current plugin package version does not match the slot release")
+    release_token = "v" + release.replace(".", "")
+    plugin_version_token = re.sub(
+        r"[^a-z0-9]+", "-", plugin_version.lower()
+    ).strip("-")
+    plugin_version_sha256 = hashlib.sha256(plugin_version.encode("utf-8")).hexdigest()
+    plugin_version_digest = plugin_version_sha256[:12]
+    tunnel_compatibility_digest = tunnel_compatibility_sha256[:12].lower()
+    slot_name_token = re.sub(r"[^a-z0-9]+", "-", slot_role.lower()).strip("-")
+    tunnel_version_token = (
+        f"{release_token}-{slot_name_token}-abi-{tunnel_compatibility_digest}"
+    )
+    file_prefix = "evidence_lane_" + tunnel_version_token.replace("-", "_")
+    runtime_root = (
+        runtime_control_root / f"tunnel-runtime-{tunnel_version_token}"
+    ).resolve()
+    return {
+        "release": release,
+        "release_token": release_token,
+        "slot_role": slot_role,
+        "plugin_version": plugin_version,
+        "plugin_version_token": plugin_version_token,
+        "plugin_version_sha256": plugin_version_sha256.upper(),
+        "plugin_version_digest": plugin_version_digest,
+        "tunnel_compatibility_sha256": tunnel_compatibility_sha256,
+        "tunnel_compatibility_digest": tunnel_compatibility_digest,
+        "tunnel_version_token": tunnel_version_token,
+        "file_prefix": file_prefix,
+        "runtime_root": str(runtime_root),
+        "profile_name": f"{file_prefix}_transport",
+        "task_name": f"EvidenceLane-Tunnel-{tunnel_version_token}",
+    }
+
+
+def _version_bound_tunnel_marker_matches(
+    marker: dict[str, object],
+    *,
+    identity: dict[str, str],
+    interaction_profile: str,
+    host_lifetime: str,
+    vm_instance_id_sha256: str | None,
+) -> bool:
+    """Validate one current v2 marker without starting or inspecting a tunnel."""
+
+    expected_vm_identity = (
+        vm_instance_id_sha256
+        if host_lifetime == "EPHEMERAL"
+        else "NOT_APPLICABLE"
+    )
+    marker_plugin_version = str(marker.get("plugin_version") or "")
+    marker_release = str(marker.get("release") or "")
+    marker_runtime_root = str(marker.get("runtime_root") or "")
+    try:
+        runtime_matches = (
+            Path(marker_runtime_root).resolve()
+            == Path(identity["runtime_root"]).resolve()
+        )
+    except (OSError, RuntimeError, ValueError):
+        runtime_matches = False
+    return bool(
+        marker.get("schema")
+        == "evidence-lane.versioned-secure-mcp-tunnel-installation.v2"
+        and marker_release == identity["release"]
+        and marker_plugin_version == identity["plugin_version"]
+        and marker_plugin_version.split("+", 1)[0] == marker_release
+        and marker.get("release_token") == identity["release_token"]
+        and marker.get("plugin_version_token")
+        == identity["plugin_version_token"]
+        and marker.get("plugin_version_sha256")
+        == identity["plugin_version_sha256"]
+        and marker.get("plugin_version_digest")
+        == identity["plugin_version_digest"]
+        and marker.get("tunnel_compatibility_schema")
+        == "evidence-lane.tunnel-capability-compatibility.v1"
+        and marker.get("tunnel_compatibility_sha256")
+        == identity["tunnel_compatibility_sha256"]
+        and marker.get("tunnel_compatibility_digest")
+        == identity["tunnel_compatibility_digest"]
+        and marker.get("tunnel_version_token")
+        == identity["tunnel_version_token"]
+        and marker.get("file_prefix") == identity["file_prefix"]
+        and runtime_matches
+        and marker.get("profile_name") == identity["profile_name"]
+        and marker.get("task_name") == identity["task_name"]
+        and marker.get("slot_role") == identity["slot_role"]
+        and marker.get("runtime_identity_matches_release") is True
+        and marker.get("interaction_profile") == interaction_profile
+        and marker.get("host_tool_transport") == "HOST_TOOL_GAP"
+        and marker.get("host_lifetime") == host_lifetime
+        and marker.get("runtime_key_plaintext_written") is False
+        and marker.get("host_wide_project_neutral") is True
+        and marker.get("per_project_or_task_tunnel_allowed") is False
+        and marker.get("scheduled_task_transport_used") is True
+        and marker.get("vm_instance_id_sha256") == expected_vm_identity
+    )
+
+
 def _load_turn_control():
     source_root = _plugin_root() / "src"
     if str(source_root) not in sys.path:
@@ -179,7 +299,10 @@ def _plugin_version_context() -> dict[str, object]:
         manifest_base = manifest_version.split("+", 1)[0]
         state = (
             "FRESH"
-            if runtime_version and manifest_base == runtime_version
+            if runtime_version
+            and _PLUGIN_PACKAGE_VERSION_RE.fullmatch(manifest_version) is not None
+            and manifest_version.count("+codex.") == 1
+            and manifest_base == runtime_version
             else "MISMATCH"
         )
         release_contract_path = root / "scripts" / "codex-release-channel.json"
@@ -478,30 +601,51 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
             or slot_contract.get("release_line")
             or ""
         )
-        match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version)
-        if match is None:
-            raise ValueError("selected slot release is not exact semver")
-        token = f"v{match.group(1)}{match.group(2)}{match.group(3)}"
         expected_ephemeral = (
             str(route.get("vm_lifetime") or "") == "EPHEMERAL_VM"
         )
+        plugin_manifest = json.loads(
+            (_plugin_root() / ".codex-plugin" / "plugin.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        plugin_version = str(plugin_manifest.get("version") or "").strip()
+        tunnel_manifest = json.loads(
+            (_plugin_root() / "tunnel" / "tunnel-manifest.v1.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        tunnel_compatibility_sha256 = str(
+            tunnel_manifest.get("tunnel_compatibility_sha256") or ""
+        )
+        runtime_control_root = (
+            Path.home()
+            / ".codex"
+            / "plugins"
+            / "runtime"
+            / "evidence-lane-plugin"
+            if expected_ephemeral
+            else _store_root()
+        ).resolve()
+        tunnel_identity = _version_bound_tunnel_identity(
+            release=version,
+            slot_role=slot_role,
+            plugin_version=plugin_version,
+            tunnel_compatibility_sha256=tunnel_compatibility_sha256,
+            runtime_control_root=runtime_control_root,
+        )
+        runtime_root = Path(tunnel_identity["runtime_root"])
         configured_runtime_root = str(
             os.environ.get("EVIDENCE_LANE_TUNNEL_RUNTIME_ROOT") or ""
         ).strip()
-        runtime_root = (
-            Path(configured_runtime_root).resolve()
-            if configured_runtime_root
-            else (
-                Path.home()
-                / ".codex"
-                / "plugins"
-                / "runtime"
-                / "evidence-lane-plugin"
-                / f"tunnel-runtime-{token}-{slot_role}"
-                if expected_ephemeral
-                else _store_root() / f"tunnel-runtime-{token}-{slot_role}"
+        if (
+            configured_runtime_root
+            and Path(configured_runtime_root).resolve() != runtime_root
+        ):
+            raise ValueError(
+                "configured tunnel runtime root does not match the current "
+                "plugin-version-bound runtime identity"
             )
-        )
         marker_path = runtime_root / "evidence-lane-tunnel-installation.json"
         installer = (
             _plugin_root()
@@ -525,6 +669,8 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 "project_id": project_id,
                 "release": version,
                 "slot_role": slot_role,
+                "plugin_version": plugin_version,
+                "tunnel_version_token": tunnel_identity["tunnel_version_token"],
                 "interaction_profile": interaction,
                 "host_tool_transport": "HOST_TOOL_GAP",
                 "native_mcp_available": False,
@@ -541,6 +687,10 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 "project_id": project_id,
                 "release": version,
                 "slot_role": slot_role,
+                "plugin_version": plugin_version,
+                "tunnel_version_token": tunnel_identity["tunnel_version_token"],
+                "expected_task_name": tunnel_identity["task_name"],
+                "expected_profile_name": tunnel_identity["profile_name"],
                 "interaction_profile": interaction,
                 "host_lifetime": expected_lifetime,
                 "account_tier": route.get("account_tier"),
@@ -561,25 +711,12 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
                 "cross_project_disclosure": False,
             }
         marker = json.loads(marker_path.read_text(encoding="utf-8"))
-        valid = (
-            marker.get("schema")
-            == "evidence-lane.versioned-secure-mcp-tunnel-installation.v2"
-            and marker.get("release") == version
-            and marker.get("slot_role") == slot_role
-            and marker.get("legacy_version_manager_authoritative") is False
-            and marker.get("interaction_profile") == interaction
-            and marker.get("host_tool_transport") == "HOST_TOOL_GAP"
-            and marker.get("host_lifetime") == expected_lifetime
-            and marker.get("runtime_key_plaintext_written") is False
-            and marker.get("host_wide_project_neutral") is True
-            and marker.get("per_project_or_task_tunnel_allowed") is False
-            and marker.get("scheduled_task_transport_used") is False
-            and marker.get("vm_instance_id_sha256")
-            == (
-                vm_instance_id_sha256
-                if expected_lifetime == "EPHEMERAL"
-                else "NOT_APPLICABLE"
-            )
+        valid = _version_bound_tunnel_marker_matches(
+            marker,
+            identity=tunnel_identity,
+            interaction_profile=interaction,
+            host_lifetime=expected_lifetime,
+            vm_instance_id_sha256=vm_instance_id_sha256,
         )
         return {
             "state": (
@@ -590,6 +727,10 @@ def _host_activation_context(project_id: str | None) -> dict[str, object]:
             "project_id": project_id,
             "release": version,
             "slot_role": slot_role,
+            "plugin_version": plugin_version,
+            "tunnel_version_token": tunnel_identity["tunnel_version_token"],
+            "expected_task_name": tunnel_identity["task_name"],
+            "expected_profile_name": tunnel_identity["profile_name"],
             "interaction_profile": interaction,
             "host_tool_transport": "HOST_TOOL_GAP",
             "native_mcp_available": False,

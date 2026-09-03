@@ -435,7 +435,7 @@ _ROUTES = (
     ),
     _route(
         "local_install",
-        "PLUGIN_CREATOR_STAGE_MATERIALIZE_PREPARE_TERMINAL_USER_RESTART_REATTACH",
+        "PLUGIN_CREATOR_STAGE_MATERIALIZE_TERMINAL_USER_RESTART_REATTACH",
         "plugin-creator",
         schema="evidence-lane.codex-stable-installation.v2",
         plan_families=("INSTALL", "PACKAGE", "LOCAL_SLOT"),
@@ -448,9 +448,9 @@ _ROUTES = (
     ),
     _route(
         "restart_reattachment",
-        "TERMINAL_SAFE_PREPARATION_THEN_USER_EXACT_CHANNEL_RESTART",
-        "Prepare-EvidenceLaneCodexRestart.ps1",
-        schema="evidence-lane.codex-terminal-safe-restart-preparation.v1",
+        "USER_MANUAL_RESTART_THEN_NATIVE_EXACT_TASK_READBACK",
+        "task_attachment_rehydration.py",
+        schema="evidence-lane.task-attachment-rehydration.v1",
         plan_families=("RESTART", "RUNTIME_ATTACHMENT", "GOAL"),
         verification=(
             "NO_PROGRAMMATIC_APP_STOP",
@@ -459,7 +459,7 @@ _ROUTES = (
             "POST_RESTART_NATIVE_EXACT_TASK_READBACK",
             "NO_HIDDEN_OVERLAY",
         ),
-        implementation_class="SDK_GOVERNED_PREPARATION_ONLY_HOST_ADAPTER",
+        implementation_class="SDK_GOVERNED_POST_RESTART_READBACK_ADAPTER",
     ),
     _route(
         "tunnel_transport",

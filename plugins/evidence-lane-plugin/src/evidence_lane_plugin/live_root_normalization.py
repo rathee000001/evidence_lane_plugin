@@ -18,6 +18,7 @@ from typing import Any
 from .compact_storage import compress_exact_bytes, decompress_exact_bytes
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
 from .lanes import LANE_REGISTRY
+from .project_root_binding import validate_project_root_binding
 from .receipt_ledger import (
     append_receipt_bytes,
     initialize_receipt_ledger,
@@ -40,6 +41,16 @@ _ROOT_PROJECT_FILES = {
     "project_authority.mmd",
     "project_authority.tools.json",
     "project.json",
+}
+_PRESERVED_RECEIPT_RELATIVE_PATHS = {
+    "project-authority/working-sector-migration.json",
+}
+_PRESERVED_ROOT_PROJECT_FILES = {
+    "active_pointer.json",
+    "active_session.json",
+    "capture_route.json",
+    "project.json",
+    "project_authority.json",
 }
 _RECEIPT_AUTHORITY_FILES = {
     "receipt-ledger.sqlite",
@@ -78,6 +89,7 @@ def _migration_row(
     target_database: Path,
     owner: str,
     logical_path: str,
+    preserve_source_after_readback: bool = False,
 ) -> dict[str, Any]:
     return {
         "source_relative_path": source.relative_to(project_root).as_posix(),
@@ -88,7 +100,34 @@ def _migration_row(
         "logical_path": logical_path,
         "byte_count": source.stat().st_size,
         "sha256": sha256_file(source),
+        "preserve_source_after_readback": preserve_source_after_readback,
     }
+
+
+def _versioned_receipt_logical_path(
+    database: Path,
+    *,
+    logical_path: str,
+    receipt_sha256: str,
+) -> str:
+    """Reuse one logical path by hash or derive an immutable changed version."""
+
+    if not database.is_file():
+        return logical_path
+    connection = sqlite3.connect(
+        f"file:{database.resolve().as_posix()}?mode=ro&immutable=1",
+        uri=True,
+    )
+    try:
+        existing = connection.execute(
+            "SELECT receipt_sha256 FROM receipt_record WHERE logical_path=?",
+            (logical_path,),
+        ).fetchone()
+    finally:
+        connection.close()
+    if existing is None or str(existing[0]) == receipt_sha256:
+        return logical_path
+    return f"{logical_path}@{receipt_sha256.lower()}"
 
 
 def plan_live_root_normalization(project_root: str | Path) -> dict[str, Any]:
@@ -130,7 +169,7 @@ def plan_live_root_normalization(project_root: str | Path) -> dict[str, Any]:
                 rows.append(row)
     receipts = root / "receipts"
     if receipts.is_dir():
-        rows.extend(
+        receipt_rows = [
             _migration_row(
                 root,
                 source,
@@ -141,7 +180,23 @@ def plan_live_root_normalization(project_root: str | Path) -> dict[str, Any]:
             )
             for source in _files(receipts)
             if source.name not in _RECEIPT_AUTHORITY_FILES
-        )
+        ]
+        for row in receipt_rows:
+            row["logical_path"] = _versioned_receipt_logical_path(
+                receipt_db,
+                logical_path=str(row["logical_path"]),
+                receipt_sha256=str(row["sha256"]),
+            )
+            if str(row["source_relative_path"]).startswith(
+                "receipts/candidate-overlays/"
+            ):
+                row["preserve_source_after_readback"] = True
+            receipt_relative = str(row["source_relative_path"]).removeprefix(
+                "receipts/"
+            )
+            if receipt_relative in _PRESERVED_RECEIPT_RELATIVE_PATHS:
+                row["preserve_source_after_readback"] = True
+        rows.extend(receipt_rows)
     sessions = root / "sessions"
     if sessions.is_dir():
         rows.extend(
@@ -151,6 +206,7 @@ def plan_live_root_normalization(project_root: str | Path) -> dict[str, Any]:
                 target_database=session_db,
                 owner="SESSION_AUTHORITY",
                 logical_path="legacy-session/" + source.name,
+                preserve_source_after_readback=True,
             )
             for source in _files(sessions)
             if source.name not in _SESSION_AUTHORITY_FILES
@@ -190,26 +246,17 @@ def plan_live_root_normalization(project_root: str | Path) -> dict[str, Any]:
                     target_database=project_db,
                     owner="PROJECT_AUTHORITY",
                     logical_path="legacy-root/" + name,
+                    preserve_source_after_readback=(
+                        name in _PRESERVED_ROOT_PROJECT_FILES
+                    ),
                 )
             )
     sectors = root / "sectors"
-    if sectors.is_dir():
-        for lane_id, lane in LANE_REGISTRY.items():
-            history = sectors / lane_id / "accepted_history"
-            if not history.is_dir():
-                continue
-            lane_database = sectors / lane_id / lane.sqlite_filename
-            rows.extend(
-                _migration_row(
-                    root,
-                    source,
-                    target_database=lane_database,
-                    owner=f"PROJECT_SECTOR:{lane_id}",
-                    logical_path="legacy-accepted-history/"
-                    + source.relative_to(history).as_posix(),
-                )
-                for source in _files(history)
-            )
+    preserved_root_nested_history_lane_ids = [
+        lane_id
+        for lane_id in LANE_REGISTRY
+        if (sectors / lane_id / "accepted_history").is_dir()
+    ]
     connector_source = root / "connector_brain.sqlite"
     root / "connector_brain" / "connector-brain.sqlite"
     connector = (
@@ -253,6 +300,13 @@ def plan_live_root_normalization(project_root: str | Path) -> dict[str, Any]:
             root / "runtime"
         ).exists(),
         "source_removal_requires_hash_readback": True,
+        "preserved_operational_file_count": sum(
+            bool(row.get("preserve_source_after_readback")) for row in ordered
+        ),
+        "preserved_root_nested_history_lane_ids": (
+            preserved_root_nested_history_lane_ids
+        ),
+        "root_nested_accepted_history_ingested_into_live_rows": False,
     }
     return {**core, "plan_sha256": sha256_bytes(canonical_json_bytes(core))}
 
@@ -360,6 +414,23 @@ def _ingest_generic(
             if sha256_bytes(data) != row["sha256"] or len(data) != row["byte_count"]:
                 raise RuntimeError("LIVE_ROOT_NORMALIZATION_SOURCE_CHANGED")
             migrated_at = utc_now()
+            logical_path = str(row["logical_path"])
+            existing_logical = connection.execute(
+                "SELECT source_sha256 FROM authority_file_migration "
+                "WHERE logical_path=?",
+                (logical_path,),
+            ).fetchone()
+            if (
+                existing_logical is not None
+                and str(existing_logical[0]) != row["sha256"]
+            ):
+                if row.get("preserve_source_after_readback") is not True:
+                    raise RuntimeError(
+                        "LIVE_ROOT_NORMALIZATION_IMMUTABLE_LOGICAL_PATH_CONFLICT"
+                    )
+                logical_path = (
+                    f"{logical_path}@{str(row['sha256'])[:16].lower()}"
+                )
             compression, compressed_bytes = compress_exact_bytes(data)
             connection.execute(
                 "INSERT OR IGNORE INTO authority_file_content_cas "
@@ -375,7 +446,7 @@ def _ingest_generic(
             connection.execute(
                 "INSERT OR IGNORE INTO authority_file_migration VALUES(?,?,?,?,?)",
                 (
-                    row["logical_path"],
+                    logical_path,
                     row["source_relative_path"],
                     row["sha256"],
                     row["byte_count"],
@@ -387,7 +458,7 @@ def _ingest_generic(
                 "c.compressed_bytes FROM authority_file_migration AS m "
                 "JOIN authority_file_content_cas AS c "
                 "ON c.source_sha256=m.source_sha256 WHERE m.logical_path=?",
-                (row["logical_path"],),
+                (logical_path,),
             ).fetchone()
             if (
                 stored is None
@@ -409,7 +480,7 @@ def _ingest_generic(
             fts_rowid = int(
                 connection.execute(
                     "SELECT rowid FROM authority_file_migration WHERE logical_path=?",
-                    (row["logical_path"],),
+                    (logical_path,),
                 ).fetchone()[0]
             )
             connection.execute(
@@ -422,7 +493,7 @@ def _ingest_generic(
                 "VALUES(?,?,?,?)",
                 (
                     fts_rowid,
-                    row["logical_path"],
+                    logical_path,
                     row["source_relative_path"],
                     payload_text,
                 ),
@@ -435,7 +506,13 @@ def _ingest_generic(
         connection.close()
 
 
-def _project_legacy_sessions(database: Path, project_root: Path, rows: list[dict[str, Any]]) -> None:
+def _project_legacy_sessions(
+    database: Path,
+    project_root: Path,
+    rows: list[dict[str, Any]],
+    *,
+    project_id: str,
+) -> None:
     initialize_session_authority(database)
     connection = sqlite3.connect(database, timeout=60)
     try:
@@ -447,7 +524,7 @@ def _project_legacy_sessions(database: Path, project_root: Path, rows: list[dict
                 continuity = dict(metadata.get("runtime_continuity") or {})
                 upsert_session(
                     connection,
-                    project_id=str(payload.get("project_id") or project_root.name),
+                    project_id=str(payload.get("project_id") or project_id),
                     session_id=str(payload["session_id"]),
                     state=str(payload.get("state") or "UNKNOWN"),
                     generation=int(continuity.get("generation") or 0),
@@ -516,6 +593,11 @@ def execute_live_root_normalization(
     root = Path(project_root).resolve()
     if confirmation != LIVE_ROOT_NORMALIZATION_CONFIRMATION:
         raise ValueError("LIVE_ROOT_NORMALIZATION_CONFIRMATION_REQUIRED")
+    project_registry = json.loads(
+        (root / "project.json").read_text(encoding="utf-8")
+    )
+    project_id = str(project_registry.get("project_id") or "").strip()
+    validate_project_root_binding(root, project_id=project_id)
     plan = plan_live_root_normalization(root)
     if plan["plan_sha256"] != expected_plan_sha256:
         raise RuntimeError("LIVE_ROOT_NORMALIZATION_PLAN_CHANGED")
@@ -535,7 +617,7 @@ def execute_live_root_normalization(
                         logical_path=row["logical_path"],
                         data=source.read_bytes(),
                         receipt_kind="HISTORICAL_LIVE_ROOT_MIGRATION",
-                        project_id=root.name,
+                        project_id=project_id,
                     )
                     if result["receipt_sha256"] != row["sha256"]:
                         raise RuntimeError("LIVE_ROOT_NORMALIZATION_READBACK_MISMATCH")
@@ -547,7 +629,12 @@ def execute_live_root_normalization(
                 initialize_session_authority(database)
             _ingest_generic(database, project_root=root, rows=rows)
             if relative == "sessions/session-authority.sqlite":
-                _project_legacy_sessions(database, root, rows)
+                _project_legacy_sessions(
+                    database,
+                    root,
+                    rows,
+                    project_id=project_id,
+                )
     _ingest_purge_manifest(
         root / "project_authority" / "project-authority.sqlite",
         project_root=root,
@@ -577,6 +664,8 @@ def execute_live_root_normalization(
         else:
             staged.unlink()
     for row in plan["rows"]:
+        if row.get("preserve_source_after_readback") is True:
+            continue
         source = root / row["source_relative_path"]
         if source.is_file():
             if sha256_file(source) != row["sha256"]:
@@ -600,19 +689,23 @@ def execute_live_root_normalization(
         "profiles",
     ):
         _remove_empty_tree(root / relative)
-    sectors = root / "sectors"
-    if sectors.is_dir():
-        for lane_id in LANE_REGISTRY:
-            _remove_empty_tree(sectors / lane_id / "accepted_history")
     receipt = {
         "schema": LIVE_ROOT_NORMALIZATION_SCHEMA,
         "status": "PASS",
         "state": "MIGRATED_AND_PURGED_AFTER_READBACK",
+        "project_id": project_id,
         "plan_sha256": plan["plan_sha256"],
         "migrated_file_count": plan["file_count"],
         "migrated_byte_count": plan["byte_count"],
         "exact_byte_migration_file_count": plan["migration_file_count"],
         "purge_only_file_count": plan["purge_only_file_count"],
+        "preserved_operational_file_count": plan[
+            "preserved_operational_file_count"
+        ],
+        "preserved_root_nested_history_lane_ids": plan[
+            "preserved_root_nested_history_lane_ids"
+        ],
+        "root_nested_accepted_history_ingested_into_live_rows": False,
         "connector_brain_relocated": connector is not None,
         "accepted_folder_queried": False,
         "accepted_archive_used_as_authority": False,

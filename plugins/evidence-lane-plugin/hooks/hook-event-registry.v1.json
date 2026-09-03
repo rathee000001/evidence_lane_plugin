@@ -8,7 +8,7 @@
       "event_number": 1,
       "event": "SessionStart",
       "path": "hooks/events/SessionStart",
-      "event_sha256": "EF784DBDB229023E28A7F983057FE06466042EAB7315E670E2AF8012AA43FF47",
+      "event_sha256": "245A0A704640D4516B4D94BD31A224BD195F15B391A06BD50B6EAAB8EF234F9E",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "SESSION_ENTRY_BEFORE_VISIBLE_INPUT",
@@ -28,7 +28,7 @@
       "event_number": 2,
       "event": "SubagentStart",
       "path": "hooks/events/SubagentStart",
-      "event_sha256": "FCFF4C6AD6947325B698D8D69D493A48C578C7BCA551F28DB4C13F30E33045C2",
+      "event_sha256": "1AB1E5A41BAA40EE577A0C1B6C137697CFF58C43719DC9A004C5BF323F2E97C5",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "OPTIONAL_SUBAGENT_ENTRY_OBSERVATION",
@@ -46,7 +46,7 @@
       "event_number": 3,
       "event": "UserPromptSubmit",
       "path": "hooks/events/UserPromptSubmit",
-      "event_sha256": "371479827D1C2D400ED1921E3DBCD1994C06677AF4AAFE01606B001735803125",
+      "event_sha256": "773E03D8738555F2A6816B9B5E97B76AEA6431F8F16A1D673D3047AE568A8EE2",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "BEFORE_MODEL_REASONING_AND_TOOL_SELECTION",
@@ -66,7 +66,7 @@
       "event_number": 4,
       "event": "PreToolUse",
       "path": "hooks/events/PreToolUse",
-      "event_sha256": "4DC43A61C7CDEAC5D20B05868F8DC669AB197A5120B5BFA2042B7D5B6317163F",
+      "event_sha256": "CC49C254A541C5FEAA62417A5C9B87F4B854F6070B61E705A31C8D83E674D330",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
@@ -85,7 +85,7 @@
       "event_number": 5,
       "event": "PermissionRequest",
       "path": "hooks/events/PermissionRequest",
-      "event_sha256": "BCDFC44FC57CF8D0596E8197FB28FA1FF0F5C9B442E26F7D52B80AB758A553D1",
+      "event_sha256": "3EB093465152E084E7B6188FAA75629AB25FF9A443BBE4A10A05FFDBCBA33DAC",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
@@ -103,7 +103,7 @@
       "event_number": 6,
       "event": "PostToolUse",
       "path": "hooks/events/PostToolUse",
-      "event_sha256": "C8724326E00ACE109B985EFB1ED02E5313EDA56520D54DA80896B904D9A7FAAF",
+      "event_sha256": "E5436F717B7B1967065B82A3E521F80FA2719E8A243841C36AD29ADB415752DE",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
@@ -122,7 +122,7 @@
       "event_number": 7,
       "event": "PreCompact",
       "path": "hooks/events/PreCompact",
-      "event_sha256": "596BCFD2A2655918E464C4F92FE62B4F4B7D7083FDC0842868CB97C0E21C69C4",
+      "event_sha256": "4E266883BBF2B011103F71D064FF05C9FE59FC7076B70B3E717C9A14AF6F960C",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "BEFORE_CONTEXT_COMPACTION",
@@ -140,7 +140,7 @@
       "event_number": 8,
       "event": "PostCompact",
       "path": "hooks/events/PostCompact",
-      "event_sha256": "904D177C1ABEE58FF3A0533F3B1783B7F7C6FEC99461A2AF3B7CC855EA4F46A4",
+      "event_sha256": "E29BE56651001FFAF90A13F24761739904B29E71B47BBA1676C52139AFA2B99C",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "AFTER_CONTEXT_COMPACTION_BEFORE_NEXT_ACTION",
@@ -159,7 +159,7 @@
       "event_number": 9,
       "event": "SubagentStop",
       "path": "hooks/events/SubagentStop",
-      "event_sha256": "78F557ED36CDD9074489579B438F944CE6F7AE33F995CFEB66D40C74166EC1C9",
+      "event_sha256": "5830CB0CEC13ABDC8B52CBF412931D3F8C663ED8AE66FCFA81BDD8567F054D29",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "OPTIONAL_SUBAGENT_EXIT_OBSERVATION",
@@ -177,7 +177,7 @@
       "event_number": 10,
       "event": "Stop",
       "path": "hooks/events/Stop",
-      "event_sha256": "DE6C84DEBAB6802122D4983F6F2B70529A5BEA5FA1F85DEE9704765A4008F99D",
+      "event_sha256": "397933705830A16418373B2DDD7F1652D768D8BF7020FCAA3A0AAEE5A4219A9C",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "AFTER_VISIBLE_RESPONSE_BEFORE_NEXT_TURN",
@@ -195,7 +195,7 @@
       "event_number": 11,
       "event": "SessionEnd",
       "path": "hooks/events/SessionEnd",
-      "event_sha256": "98D66BF6B53ECDBAD2A274476D62EA665D23A0013F379B1BD3C34DBBC65D1721",
+      "event_sha256": "19342FD3DC206106A6BD044706DA177B2E6EC28728B2588C84990D429B1B0E6B",
       "handler_count": 4,
       "workflow_contract": {
         "host_timing": "BEST_EFFORT_AFTER_SESSION_END",
@@ -210,8 +210,8 @@
       "workflow_contract_sha256": "06D747FA7B497048205FE80F1EDF4399BFABF9512B30F57EB995EAF3C6B56011"
     }
   ],
-  "hooks_manifest_sha256": "C37DB05DD4701087EAD0BD31203C843AAFA79ED39A081F2E9DFF313A77631EEF",
+  "hooks_manifest_sha256": "6FC9AF1BEDCC3552B0E0839B8907ADFA960DC81D5E9AA8BEFB88C7EC9391A4B8",
   "logical_actions_sha256": "B63F604D0610EFC6D192534E3E54851D86171A42AB54E0221FD3F861312549C8",
   "compiled_host_receipt_sha256": "015F99841381717B0AE88C62DEE710786F425A2F3E882136A1A26E0FC082371A",
-  "receipt_sha256": "63BC906CEC87DAEDBD94AF571B8F54A53696B245B4688570811B985BEA9B39D9"
+  "receipt_sha256": "90028C77C3CCDB862BB5D235D4BE4ABE1C517BF1EE34C520150831AEF816F913"
 }

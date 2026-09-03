@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "sqlite_brain",
   "authority_root": "authorities/project_sectors/sqlite_brain",
-  "authority_manifest_sha256": "34A7FEA4B84F74E0AE64B19B3C52220D2B1D9A983992864A12A38C4BB0E4EC70",
+  "authority_manifest_sha256": "2B1474DA0D33CE43133D8E9E58A46357A11F39DD1FA2DAEC9F72EF75B5169644",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -43,8 +43,8 @@
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/schema.sql",
-      "bytes": 11267,
-      "sha256": "C0705809A69EBB32E13A1765381C7DA1B9DA124F671FC4CFEB14645F2B51AEDF"
+      "bytes": 12569,
+      "sha256": "06B4C1AF60AC8AC289B22357052C7E04FF4047AA6D53953002455935486E307B"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/sqlite-artifact.schema.json",
@@ -58,7 +58,7 @@
     }
   ],
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
-  "canonical_lane_contract_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
+  "canonical_lane_contract_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "C6FD76AE1C4A87130190A52158563EE66E6A448B7143A314A7496F701A58F484"
+  "receipt_sha256": "69FCF2A893791A4B8239BFB63025D2345D2DE4900537E965BD889328E0DB8C33"
 }

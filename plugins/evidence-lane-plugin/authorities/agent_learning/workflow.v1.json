@@ -6,7 +6,7 @@
   "source_pairing": {
     "authority_id": "agent_learning",
     "path": "authorities/agent_learning",
-    "table_count": 28,
+    "table_count": 29,
     "linked_public_action_count": 9,
     "persistent_sqlite_authority": true,
     "eligible_tools": [
@@ -575,5 +575,5 @@
   "superseded_route_retained": false,
   "hil_inference_allowed": false,
   "workflow_or_count_ceiling": false,
-  "receipt_sha256": "278938281577ABDD82D8D74FA8FB4FED2C6FE86A93D2B819ECDEEAD19A052E6F"
+  "receipt_sha256": "2CF83AA355ACA33E3935B7B1B58308A76B66DBCAB3A678413F74CE43E9E4E855"
 }

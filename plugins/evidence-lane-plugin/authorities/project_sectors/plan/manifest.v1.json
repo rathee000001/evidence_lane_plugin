@@ -4,8 +4,8 @@
   "lane_id": "plan",
   "sqlite_filename": "plan_sector_v001.sqlite",
   "sqlite_integrity": "ok",
-  "sqlite_table_count": 37,
-  "schema_contract_table_count": 29,
+  "sqlite_table_count": 39,
+  "schema_contract_table_count": 31,
   "members": [
     {
       "path": "authorities/project_sectors/plan/builder-contract.schema.json",
@@ -24,8 +24,8 @@
     },
     {
       "path": "authorities/project_sectors/plan/lane-contract.v1.json",
-      "bytes": 8377,
-      "sha256": "5E55D40C5EB4DC7338BB9FFEB3D51CCF02EE6697C7ED50FC5DBDA83512A74D4B"
+      "bytes": 61869,
+      "sha256": "6FD90D6156F68750998A54BA703C3F9CB1C100BF4DADD2F69099659246C038E8"
     },
     {
       "path": "authorities/project_sectors/plan/lane-pointer.schema.json",
@@ -44,18 +44,18 @@
     },
     {
       "path": "authorities/project_sectors/plan/plan.dot",
-      "bytes": 19492,
-      "sha256": "2A423EFA9B5D2ABD500648ECC48E48D98AFB175EC3644263D64D0E1612FE4093"
+      "bytes": 20110,
+      "sha256": "B11BE9D38D8C1052A8ABE8F2A7FF761181D6194087E90D7E7C866E059FED351C"
     },
     {
       "path": "authorities/project_sectors/plan/plan.mmd",
-      "bytes": 15471,
-      "sha256": "A8F12D43565BCFF5089CDEE14A0C8C8B892F28A5C9658ED0C6D152E72D33394C"
+      "bytes": 15970,
+      "sha256": "7E4F2A13AE753ADB1E0B456B6E75B547FAF8C60918A717DE594FA8DFADCDC757"
     },
     {
       "path": "authorities/project_sectors/plan/plan_sector_v001.sqlite",
-      "bytes": 253952,
-      "sha256": "A1C34F46C9D2D9B8DC0C11CDE193A028C551F9ED19B816BCAB2FACCC8B2CF411"
+      "bytes": 483328,
+      "sha256": "12978137BDD9FD5E1A255ED3BFB15347138ADC0E4BE77C38A20076B3AB4BBF11"
     },
     {
       "path": "authorities/project_sectors/plan/reader-contract.schema.json",
@@ -79,8 +79,8 @@
     },
     {
       "path": "authorities/project_sectors/plan/schema.sql",
-      "bytes": 10169,
-      "sha256": "A82662F07386FAB4757D5CB060FADCAC23A1FCD5B7F302D27E0D1E6EFEBE3E00"
+      "bytes": 11471,
+      "sha256": "4C471B01966A8B616B30E0A0AD072F4BAB65139C4E6129D28917DA849AAD184C"
     },
     {
       "path": "authorities/project_sectors/plan/sqlite-artifact.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/plan/tools.json",
-      "bytes": 16192,
-      "sha256": "58BA029A87E1F439FCA3F200B398AD445231D9CD9939CACB785D10B98E59B3BC"
+      "bytes": 157197,
+      "sha256": "FCEE0652EBCE0CB94F6B3C35BC301722913B0786F429D1DF652BD394AC84C62D"
     },
     {
       "path": "authorities/project_sectors/plan/tools.schema.json",
@@ -113,10 +113,10 @@
       "sha256": "1FD199B05344A3027E1A0DF8EE640AECF43F85D2158A3E6E45440AACEB573DC4"
     }
   ],
-  "schema_registry_sha256": "201212993DE8C93E966863FAB781B1B64EF8C6D100FEC62152B9A9226923EE67",
+  "schema_registry_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "94D373969AEE389468EE487C1C80C60536D7F5D65A043B40496535C2A94164E4"
+  "receipt_sha256": "6B1583F435E5DD5A0C7585958FCCB792736968FFBC9886B50583D76E134FB928"
 }

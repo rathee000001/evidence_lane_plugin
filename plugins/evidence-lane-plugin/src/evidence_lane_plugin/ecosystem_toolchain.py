@@ -290,10 +290,12 @@ def validate_ecosystem_adapter_catalog(
 
 def inspect_ecosystem_adapter_runtime(tool_id: str) -> dict[str, Any]:
     adapter = ECOSYSTEM_ADAPTERS[tool_id]
-    modules = {
-        name: importlib.util.find_spec(name) is not None
-        for name in adapter.python_modules
-    }
+    modules = {}
+    for name in adapter.python_modules:
+        try:
+            modules[name] = importlib.util.find_spec(name) is not None
+        except (ImportError, ModuleNotFoundError, ValueError):
+            modules[name] = False
     commands = {name: shutil.which(name) for name in adapter.commands}
     if adapter.python_modules:
         state = "ACTIVE" if all(modules.values()) else "UNAVAILABLE"

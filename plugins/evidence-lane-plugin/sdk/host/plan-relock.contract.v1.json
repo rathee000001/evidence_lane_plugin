@@ -4,10 +4,10 @@
   "contract": "plan-relock",
   "law": "ONE_COMPACT_HEADER_PLUS_FIXED_NINE_ROWS_AND_CHANGES",
   "owner": "src/evidence_lane_plugin/host_plan_rehydration.py",
-  "owner_sha256": "997B9BCBB644C34B647F873AEDE2FCFA7195D52DFCE834AA1B772A3ED48D7277",
+  "owner_sha256": "A5120AF803A386B4DE9312CCB9A81BC5CF24A09B35FC56C7F451AA1A2C92DE88",
   "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
   "project_root_hardcoded": false,
   "workspace_hardcoded": false,
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "7689D562E4D7D58A8EF9AB786FE85478DB3ED18B3160FC55DD52DB63E93AE141"
+  "receipt_sha256": "C8A7119EED2D1FC70489905AC3B556251689A424FB6293784EC2ECD0A8254EDC"
 }

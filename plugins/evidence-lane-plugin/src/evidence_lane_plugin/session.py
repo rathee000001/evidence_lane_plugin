@@ -26,7 +26,10 @@ from .git_adapter import (
     run_git_digest,
 )
 from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes, sha256_file
-from .host_plan_rehydration import prepare_host_plan_rehydration
+from .host_plan_rehydration import (
+    aligned_host_plan_window_task_ids,
+    prepare_host_plan_rehydration,
+)
 from .ids import prefixed_id
 from .ingest import iter_source_files
 from .install_deferral import adaptive_install_deferral_facts
@@ -49,6 +52,11 @@ from .next_actions import (
     boot_next_action,
 )
 from .package_root import resolve_plugin_root
+from .plugin_build_identity import (
+    PluginBuildIdentityError,
+    parse_exact_plugin_version,
+    resolve_plugin_build_identity,
+)
 from .project_authority import resolved_chat_lineage_root, resolved_plan_auxiliary_path
 from .prompt_index import PromptIndex, is_prompt_reference
 from .pv_package import validate_pv_package
@@ -256,7 +264,7 @@ class SessionManager:
         fixed_window_task_ids: list[str] | None = None,
         reuse_previous_window: bool = True,
     ) -> dict[str, Any] | None:
-        """Prepare the exact host projection when a physical-final Plan exists."""
+        """Prepare the exact host projection when an executable Plan exists."""
 
         host_task_id = str(
             session.metadata.get("current_host_session_id") or ""
@@ -267,9 +275,7 @@ class SessionManager:
             .get("goal_projection", {})
             .get("rows", []),
         )
-        if not host_task_id or not any(
-            row.get("panel_role") == "PHYSICALLY_FINAL_HIL" for row in goal_rows
-        ):
+        if not host_task_id or not goal_rows:
             return None
         persisted_window_task_ids = [
             str(task_id).strip()
@@ -726,12 +732,18 @@ class SessionManager:
 
     def installation_status(self) -> dict[str, Any]:
         path = self.store.root / "installation.json"
+        build = resolve_plugin_build_identity(
+            expected_base_release=ENGINE_VERSION,
+        )
         if not path.is_file():
             return {
                 "schema": "evidence-lane.plugin-installation.v1",
-                "plugin_id": "evidence-lane-plugin",
+                "plugin_id": build["plugin_id"],
                 "display_name": "Evidence Lane",
-                "version": ENGINE_VERSION,
+                "version": build["exact_version"],
+                "base_release": build["base_release"],
+                "plugin_manifest_sha256": build["plugin_manifest_sha256"],
+                "package_identity_sha256": build["package_identity_sha256"],
                 "state": "NOT_INITIALIZED",
                 "session_boot_context_inside_pv": False,
                 "session_flash_required": True,
@@ -749,7 +761,13 @@ class SessionManager:
             ) from exc
         require(
             payload.get("schema") == "evidence-lane.plugin-installation.v1"
-            and payload.get("plugin_id") == "evidence-lane-plugin",
+            and payload.get("plugin_id") == build["plugin_id"]
+            and payload.get("version") == build["exact_version"]
+            and payload.get("base_release") == build["base_release"]
+            and payload.get("plugin_manifest_sha256")
+            == build["plugin_manifest_sha256"]
+            and payload.get("package_identity_sha256")
+            == build["package_identity_sha256"],
             "PLUGIN_INSTALLATION_RECEIPT_INVALID",
             "The persistent plugin installation receipt is invalid.",
             status="MISMATCH",
@@ -1466,6 +1484,39 @@ class SessionManager:
                 "writes_on_precondition_mismatch": 0,
             },
         }
+
+    def reconcile_dynamic_host_plan(
+        self,
+        project_id: str,
+        *,
+        snapshot: dict[str, Any],
+        actor: str,
+        expected_backlog_sha256: str,
+        expected_runtime_sha256: str,
+        protected_paths: list[str],
+        expected_protected_file_sha256s: dict[str, str] | None = None,
+        drop_contracts: list[dict[str, str]] | None = None,
+        dry_run: bool = True,
+        recorded_at: str | None = None,
+    ) -> dict[str, Any]:
+        """Coordinate the Store-owned Plan projection transaction.
+
+        This route changes neither session/Goal selectors nor native Changes;
+        all ordered work stays in the canonical Plan Lane.
+        """
+
+        return self.store.reconcile_dynamic_host_plan(
+            project_id,
+            snapshot=snapshot,
+            actor=actor,
+            expected_backlog_sha256=expected_backlog_sha256,
+            expected_runtime_sha256=expected_runtime_sha256,
+            protected_paths=protected_paths,
+            expected_protected_file_sha256s=expected_protected_file_sha256s,
+            drop_contracts=drop_contracts,
+            dry_run=dry_run,
+            recorded_at=recorded_at,
+        )
 
     def normalize_plan_tasks(
         self,
@@ -3231,11 +3282,32 @@ class SessionManager:
 
     def ensure_installation(self) -> dict[str, Any]:
         path = self.store.root / "installation.json"
+        build = resolve_plugin_build_identity(
+            expected_base_release=ENGINE_VERSION,
+        )
         if path.exists():
-            payload = self.installation_status()
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                raise EvidenceLaneError(
+                    "PLUGIN_INSTALLATION_RECEIPT_JSON_INVALID",
+                    "The persistent plugin installation receipt is not valid JSON.",
+                    status="FAIL",
+                    details={"error": str(exc)},
+                ) from exc
+            require(
+                payload.get("schema") == "evidence-lane.plugin-installation.v1"
+                and payload.get("plugin_id") == build["plugin_id"],
+                "PLUGIN_INSTALLATION_RECEIPT_INVALID",
+                "The persistent plugin installation receipt is invalid.",
+                status="MISMATCH",
+            )
             additions = {
                 "display_name": "Evidence Lane",
-                "version": ENGINE_VERSION,
+                "version": build["exact_version"],
+                "base_release": build["base_release"],
+                "plugin_manifest_sha256": build["plugin_manifest_sha256"],
+                "package_identity_sha256": build["package_identity_sha256"],
                 "session_boot_context_inside_pv": False,
                 "session_flash_required": True,
                 "session_flash_inside_pv": False,
@@ -3244,12 +3316,15 @@ class SessionManager:
             if any(payload.get(key) != value for key, value in additions.items()):
                 payload.update(additions)
                 atomic_write_json(path, payload)
-            return payload
+            return self.installation_status()
         payload = {
             "schema": "evidence-lane.plugin-installation.v1",
-            "plugin_id": "evidence-lane-plugin",
+            "plugin_id": build["plugin_id"],
             "display_name": "Evidence Lane",
-            "version": ENGINE_VERSION,
+            "version": build["exact_version"],
+            "base_release": build["base_release"],
+            "plugin_manifest_sha256": build["plugin_manifest_sha256"],
+            "package_identity_sha256": build["package_identity_sha256"],
             "state": "INSTALLED_UNTIL_USER_REMOVES_PLUGIN",
             "installed_at": utc_now(),
             "session_boot_context_inside_pv": False,
@@ -3681,13 +3756,17 @@ class SessionManager:
         )
         previous_continuity = session.metadata.get("runtime_continuity")
         if isinstance(previous_continuity, dict):
-            validate_runtime_continuity(previous_continuity)
+            validate_runtime_continuity(
+                previous_continuity,
+                allow_historical_base_plugin_version=True,
+            )
         entry_validation: dict[str, Any] | None = None
         if pointer.accepted_pv:
             entry_validation = self.accepted_entry_validation(
                 project_id,
                 pointer.accepted_pv,
                 session=session,
+                allow_historical_runtime_identity=True,
             )
             require(
                 entry_validation["manifest_sha256"] == pointer.accepted_manifest_sha256,
@@ -3822,6 +3901,26 @@ class SessionManager:
             host_session_id=exact_host_session_id,
             flash=flash,
         )
+        goal_rows = cast(
+            list[dict[str, Any]],
+            self.store.backlog_status(project_id)
+            .get("goal_projection", {})
+            .get("rows", []),
+        )
+        host_plan_rehydration = None
+        if goal_rows:
+            host_plan_rehydration = self._prepare_host_plan_rehydration(
+                project_id,
+                session,
+                trigger="HOT_REATTACH",
+                trigger_event_id=runtime_continuity["continuity_receipt_sha256"],
+                host_goal_active=None,
+                fixed_window_task_ids=aligned_host_plan_window_task_ids(
+                    self.store,
+                    project_id=project_id,
+                ),
+                reuse_previous_window=False,
+            )
         if session.state in {SessionState.PV1_CANDIDATE, SessionState.PVN1_CANDIDATE}:
             entry_action = "PRESENT_PENDING_HIL"
         elif session.state in {
@@ -3848,6 +3947,7 @@ class SessionManager:
             "event": event,
             "runtime_activation": runtime_activation,
             "runtime_continuity": runtime_continuity,
+            "host_plan_rehydration": host_plan_rehydration,
         }
 
     def accepted_entry_validation(
@@ -3856,6 +3956,7 @@ class SessionManager:
         pv_id: str,
         *,
         session: SessionRecord | None = None,
+        allow_historical_runtime_identity: bool = False,
     ) -> dict[str, Any]:
         """Validate legacy bytes or external live-root continuity.
 
@@ -3912,7 +4013,12 @@ class SessionManager:
             project_id=project_id,
             pv_id=pv_id,
         )
-        continuity = validate_runtime_continuity(cast(dict[str, Any], continuity_value))
+        continuity = validate_runtime_continuity(
+            cast(dict[str, Any], continuity_value),
+            allow_historical_base_plugin_version=(
+                allow_historical_runtime_identity
+            ),
+        )
         entry_pointer = cast(dict[str, Any], continuity.get("entry_pointer") or {})
         pointer = self.store.pointer(project_id)
         unaccepted_candidate_is_independent = bool(
@@ -4588,6 +4694,14 @@ class SessionManager:
             and 0 <= installed_catalog.get("write", -1) <= expected_catalog["write"]
             and installed_catalog.get("skills") == expected_catalog["skills"]
         )
+        try:
+            parse_exact_plugin_version(
+                surface.get("plugin_version"),
+                expected_base_release=ENGINE_VERSION,
+            )
+            exact_surface_version = True
+        except PluginBuildIdentityError:
+            exact_surface_version = False
         require(
             route.get("schema") == "evidence-lane.native-mcp-route-receipt.v1"
             and route.get("status") == "PASS"
@@ -4606,8 +4720,7 @@ class SessionManager:
         require(
             surface.get("schema")
             == "evidence-lane.codex-installed-surface-inventory.v2"
-            and str(surface.get("plugin_version") or "").split("+", 1)[0]
-            == ENGINE_VERSION
+            and exact_surface_version
             and (
                 (not deferred_install and installed_catalog == expected_catalog)
                 or (deferred_install and deferred_catalog_valid)
@@ -5723,6 +5836,22 @@ class SessionManager:
                 task_checkpoint_advance["plan_transition"] = claimed_advance
                 session.metadata["active_backlog_task_id"] = backlog_task_id
                 session.metadata["active_backlog_task_status"] = "ACTIVE"
+                checkpoint_session_binding = cast(
+                    dict[str, Any], claimed_advance["session_binding"]
+                )
+                checkpoint_session_bindings = session.metadata.setdefault(
+                    "task_checkpoint_session_bindings", []
+                )
+                if not any(
+                    isinstance(row, dict)
+                    and row.get("receipt_sha256")
+                    == checkpoint_session_binding["receipt_sha256"]
+                    for row in checkpoint_session_bindings
+                ):
+                    checkpoint_session_bindings.append(checkpoint_session_binding)
+                session.metadata["last_task_checkpoint_session_binding"] = (
+                    checkpoint_session_binding
+                )
                 session.metadata.setdefault("completed_runs", []).append(
                     {
                         **cast(dict[str, Any], prior_task_checkpoint_run),
@@ -5734,9 +5863,15 @@ class SessionManager:
                         ],
                     }
                 )
-                session.metadata.setdefault("task_checkpoint_advances", []).append(
-                    receipt
+                checkpoint_advances = session.metadata.setdefault(
+                    "task_checkpoint_advances", []
                 )
+                if not any(
+                    isinstance(row, dict)
+                    and row.get("receipt_sha256") == receipt["receipt_sha256"]
+                    for row in checkpoint_advances
+                ):
+                    checkpoint_advances.append(receipt)
                 session.metadata["last_task_checkpoint_advance"] = receipt
             else:
                 claimed = self.store.claim_backlog_task(
@@ -7907,37 +8042,17 @@ class SessionManager:
     def _state_travel_plugin_build_identity() -> dict[str, Any]:
         """Seal the package-local build rather than trusting a slot title."""
 
-        manifest_path = (
-            resolve_plugin_root(__file__) / ".codex-plugin" / "plugin.json"
-        )
-        require(
-            manifest_path.is_file(),
-            "STATE_TRAVEL_PLUGIN_MANIFEST_MISSING",
-            "State Travel requires the running package-local plugin manifest.",
-            status="BLOCKED",
-        )
-        manifest_bytes = manifest_path.read_bytes()
         try:
-            manifest = json.loads(manifest_bytes.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            build = resolve_plugin_build_identity(
+                expected_base_release=ENGINE_VERSION,
+                require_executable_surface_match=True,
+            )
+        except PluginBuildIdentityError as exc:
             raise EvidenceLaneError(
-                "STATE_TRAVEL_PLUGIN_MANIFEST_INVALID",
-                "The running package-local plugin manifest is not valid UTF-8 JSON.",
-                status="BLOCKED",
+                "STATE_TRAVEL_PLUGIN_BUILD_IDENTITY_MISMATCH",
+                "The running package does not have one exact cachebuster and current executable surface.",
+                status="MISMATCH",
             ) from exc
-        plugin_name = str(manifest.get("name") or "").strip()
-        plugin_version = str(manifest.get("version") or "").strip()
-        require(
-            plugin_name == "evidence-lane-plugin"
-            and bool(plugin_version)
-            and plugin_version.split("+", 1)[0] == ENGINE_VERSION,
-            "STATE_TRAVEL_PLUGIN_BUILD_IDENTITY_MISMATCH",
-            "The running plugin manifest does not match the Evidence Lane engine.",
-            status="MISMATCH",
-            plugin_name=plugin_name or None,
-            plugin_version=plugin_version or None,
-            engine_version=ENGINE_VERSION,
-        )
         plugin_root = resolve_plugin_root(__file__)
         routing_path = (
             plugin_root / "skills" / "evi" / "references" / "mcp-tool-routing.v1.json"
@@ -7950,10 +8065,14 @@ class SessionManager:
         )
         body = {
             "schema": "evidence-lane.state-travel-plugin-build.v1",
-            "plugin_name": plugin_name,
-            "plugin_version": plugin_version,
+            "plugin_name": build["plugin_id"],
+            "plugin_version": build["exact_version"],
             "engine_version": ENGINE_VERSION,
-            "plugin_manifest_sha256": sha256_bytes(manifest_bytes),
+            "plugin_manifest_sha256": build["plugin_manifest_sha256"],
+            "executable_surface_registry_sha256": build[
+                "executable_surface_registry_sha256"
+            ],
+            "package_identity_sha256": build["package_identity_sha256"],
             "routing_manifest_sha256": sha256_file(routing_path),
             "tool_count": NATIVE_TOOL_COUNT,
             "read_tool_count": NATIVE_READ_TOOL_COUNT,

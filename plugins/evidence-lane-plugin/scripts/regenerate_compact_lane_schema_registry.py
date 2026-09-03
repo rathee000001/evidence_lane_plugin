@@ -13,6 +13,74 @@ PACKAGE_SOURCE = PLUGIN_ROOT / "src"
 if str(PACKAGE_SOURCE) not in sys.path:
     sys.path.insert(0, str(PACKAGE_SOURCE))
 
+REGISTRY = PLUGIN_ROOT / "schemas" / "lane-schema-registry.v001.json"
+SOURCE_COMPACT_TABLE = "source_content_cas"
+AUTHORITY_COMPACT_TABLE = "authority_index_content_cas"
+TOOL_ROUTE_TABLE = "tool_route_contract"
+TOOL_EXECUTION_TABLE = "tool_execution_receipt"
+PRIMARY_CODE_LANES = {"github_code", "local_code"}
+
+
+def _bootstrap_registry_contract() -> None:
+    """Make the versioned registry importable before computing new SQL hashes."""
+
+    payload = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    base_tables = list(payload["base_schema"]["tables"])
+    for table in (TOOL_ROUTE_TABLE, TOOL_EXECUTION_TABLE):
+        if table in base_tables:
+            base_tables.remove(table)
+    parser_index = base_tables.index("parser_capability") + 1
+    base_tables[parser_index:parser_index] = [TOOL_ROUTE_TABLE, TOOL_EXECUTION_TABLE]
+    payload["base_schema"]["schema_id"] = "evidence-lane.universal-lane.v5"
+    payload["base_schema"]["tables"] = sorted(base_tables)
+    for row in payload["lanes"]:
+        tables = list(row["tables"])
+        for table in (TOOL_ROUTE_TABLE, TOOL_EXECUTION_TABLE):
+            if table in tables:
+                tables.remove(table)
+        parser_index = tables.index("parser_capability") + 1
+        tables[parser_index:parser_index] = [TOOL_ROUTE_TABLE, TOOL_EXECUTION_TABLE]
+        migrations = list(row["migration_ledger"])
+        if not any(
+            item.get("operation") == "REBUILD_WITH_TOOL_ROUTE_AND_EXECUTION_LEDGER"
+            for item in migrations
+        ):
+            current_version = int(migrations[-1]["to_version"])
+            migrations.append(
+                {
+                    "migration_id": (
+                        f"{row['lane_id']}.tool-route-execution-ledger."
+                        f"v{current_version + 1:03d}"
+                    ),
+                    "sequence": len(migrations) + 1,
+                    "from_version": current_version,
+                    "to_version": current_version + 1,
+                    "operation": "REBUILD_WITH_TOOL_ROUTE_AND_EXECUTION_LEDGER",
+                    "additive_only": False,
+                    "rebuild_required": True,
+                }
+            )
+        version = int(migrations[-1]["to_version"])
+        row.update(
+            {
+                "base_schema_id": "evidence-lane.universal-lane.v5",
+                "schema_version": version,
+                "schema_id": (
+                    f"evidence-lane.lane-schema.{row['lane_id']}.v{version:03d}"
+                ),
+                "tables": tables,
+                "migration_ledger": migrations,
+            }
+        )
+    REGISTRY.write_text(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
+_bootstrap_registry_contract()
+
 from evidence_lane_plugin.hashing import (
     atomic_write_bytes,
     canonical_json_bytes,
@@ -21,10 +89,6 @@ from evidence_lane_plugin.hashing import (
 from evidence_lane_plugin.lane_engine import _create_lane_schema
 from evidence_lane_plugin.lanes import LANE_REGISTRY
 
-REGISTRY = PLUGIN_ROOT / "schemas" / "lane-schema-registry.v001.json"
-SOURCE_COMPACT_TABLE = "source_content_cas"
-AUTHORITY_COMPACT_TABLE = "authority_index_content_cas"
-PRIMARY_CODE_LANES = {"github_code", "local_code"}
 OBSOLETE_CODE_SCHEMA_TABLES = {
     "sector_meta",
     "sector_head",
@@ -66,6 +130,11 @@ def _with_compact_tables(tables: list[str]) -> list[str]:
     ]
     rows.insert(rows.index("lane_pointer") + 1, SOURCE_COMPACT_TABLE)
     rows.insert(rows.index("authority_index_source"), AUTHORITY_COMPACT_TABLE)
+    for table in (TOOL_ROUTE_TABLE, TOOL_EXECUTION_TABLE):
+        if table in rows:
+            rows.remove(table)
+    parser_index = rows.index("parser_capability") + 1
+    rows[parser_index:parser_index] = [TOOL_ROUTE_TABLE, TOOL_EXECUTION_TABLE]
     return rows
 
 
@@ -90,7 +159,7 @@ def _projection(database: Path, lane_id: str, tables: list[str]) -> str:
 
 def main() -> None:
     payload = json.loads(REGISTRY.read_text(encoding="utf-8"))
-    payload["base_schema"]["schema_id"] = "evidence-lane.universal-lane.v4"
+    payload["base_schema"]["schema_id"] = "evidence-lane.universal-lane.v5"
     payload["base_schema"]["tables"] = sorted(
         _with_compact_tables(list(payload["base_schema"]["tables"]))
     )
@@ -192,10 +261,32 @@ def main() -> None:
                         "rebuild_required": True,
                     }
                 )
+            if not any(
+                item.get("operation")
+                == "REBUILD_WITH_TOOL_ROUTE_AND_EXECUTION_LEDGER"
+                for item in migrations
+            ):
+                current_version = int(migrations[-1]["to_version"])
+                migrations.append(
+                    {
+                        "migration_id": (
+                            f"{lane_id}.tool-route-execution-ledger."
+                            f"v{current_version + 1:03d}"
+                        ),
+                        "sequence": len(migrations) + 1,
+                        "from_version": current_version,
+                        "to_version": current_version + 1,
+                        "operation": (
+                            "REBUILD_WITH_TOOL_ROUTE_AND_EXECUTION_LEDGER"
+                        ),
+                        "additive_only": False,
+                        "rebuild_required": True,
+                    }
+                )
             version = int(migrations[-1]["to_version"])
             row.update(
                 {
-                    "base_schema_id": "evidence-lane.universal-lane.v4",
+                    "base_schema_id": "evidence-lane.universal-lane.v5",
                     "schema_id": (
                         f"evidence-lane.lane-schema.{lane_id}.v{version:03d}"
                     ),

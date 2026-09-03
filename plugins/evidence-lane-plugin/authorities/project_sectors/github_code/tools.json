@@ -1,27 +1,327 @@
 {
-  "schema": "evidence-lane.installed-lane-tooling.v1",
-  "status": "PASS",
-  "lane_id": "github_code",
-  "builder": "builder.py:build_lane_sources",
-  "reader": "reader.py:LaneReader",
-  "query_traversal": "pointer + manifest + MMD + DOT + tools + SQLite",
-  "retrieval_modes": [
-    "hybrid",
-    "fts5",
-    "bm25",
-    "tfidf"
+  "lane": {
+    "canonical_lane_id": "github_code",
+    "display_label": "GitHub Code",
+    "command": "evi-source-intake --lane github_code",
+    "aliases": [
+      "github_code",
+      "GitHub Code",
+      "evi-source-intake --lane github_code",
+      "code",
+      "git",
+      "github",
+      "github repository",
+      "git remote"
+    ],
+    "source_types": [
+      "github_repository",
+      "git_remote"
+    ],
+    "extensions": [
+      ".bat",
+      ".c",
+      ".cfg",
+      ".cjs",
+      ".cmd",
+      ".css",
+      ".go",
+      ".h",
+      ".hpp",
+      ".htm",
+      ".html",
+      ".ini",
+      ".java",
+      ".js",
+      ".jsx",
+      ".kt",
+      ".lua",
+      ".mjs",
+      ".php",
+      ".ps1",
+      ".py",
+      ".rb",
+      ".rs",
+      ".scss",
+      ".sh",
+      ".sql",
+      ".swift",
+      ".toml",
+      ".ts",
+      ".tsx",
+      ".vue",
+      ".yaml",
+      ".yml"
+    ],
+    "parser_id": "github_code_reverse_history_v2",
+    "chunker_version": "tiered_git_history_v2_incremental",
+    "fts_table": "code_chunk_fts",
+    "schema_contract": [
+      "lane_meta",
+      "lane_pointer",
+      "source_content_cas",
+      "source_registry",
+      "chunk_index",
+      "chunk_content_cas",
+      "chunk_history",
+      "structured_fact",
+      "parser_capability",
+      "tool_route_contract",
+      "tool_execution_receipt",
+      "tfidf_term",
+      "tfidf_vector",
+      "refresh_receipt",
+      "mutation_receipt",
+      "authority_index_content_cas",
+      "authority_index_source",
+      "authority_index_node",
+      "authority_index_fts",
+      "authority_index_refresh_receipt",
+      "code_symbol",
+      "code_import",
+      "code_call",
+      "code_parser_receipt",
+      "code_parser_diagnostic",
+      "code_route",
+      "code_dependency",
+      "git_commit_registry",
+      "git_commit_parent",
+      "git_file_change",
+      "git_ref_registry",
+      "git_blob_cas",
+      "git_content_chunk_cas",
+      "git_chunk_occurrence",
+      "git_history_fts",
+      "code_chunk_fts"
+    ],
+    "mutation_policy": "explicit_named_one_turn_grant_receipt_snapshot_relock",
+    "sqlite_filename": "github_code_sector_v001.sqlite",
+    "mmd_filename": "github_code.mmd",
+    "dot_filename": "github_code.dot",
+    "mmd_node_id": "lane_github_code",
+    "lane_schema_id": "evidence-lane.lane-schema.github_code.v006",
+    "lane_schema_version": 6,
+    "lane_schema_contract_sha256": "00D8108E35835B784BAD8F43369C095AE7DCE53C74A2D507CAD3AD76AF5699DE",
+    "lane_schema_registry_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
+    "extension_namespace": "evidence_lane.github_code.extensions",
+    "migration_head": "github_code.tool-route-execution-ledger.v006",
+    "lane_schema_evolution_policy_sha256": "D86688543BE69A14A8FD4F34FEAAA84593A032C1BCF25655DBAE3483B35E3F30",
+    "lane_schema_evolution_user_gate": true,
+    "lane_artifact_contract_sha256": "CE74BAF6C3DF6E117621097C8708EF4A30D1983F9CD799CB02E0A0E028B34217",
+    "lane_artifact_registry_sha256": "453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2"
+  },
+  "capabilities": [
+    {
+      "capability": "exact_source_bytes",
+      "state": "ACTIVE",
+      "tool": "python pathlib/hashlib",
+      "detail": "Every routed source is hash-bound even when parsing is unavailable.",
+      "requirement": "REQUIRED"
+    },
+    {
+      "capability": "fts5_bm25",
+      "state": "ACTIVE",
+      "tool": "sqlite3 FTS5",
+      "detail": "Unicode FTS with explicit BM25 ranking.",
+      "requirement": "REQUIRED"
+    },
+    {
+      "capability": "sqlite_full_api",
+      "state": "ACTIVE",
+      "tool": "APSW",
+      "detail": "Preferred hidden-runtime SQLite adapter for integrity, optimize, backup, Session/RBU capability, and tracing; bulk writes remain one explicit transaction.",
+      "requirement": "OPTIONAL"
+    },
+    {
+      "capability": "llamaindex_sqlite_nodes",
+      "state": "ACTIVE",
+      "tool": "LlamaIndex",
+      "detail": "Deterministic nodes are persisted into the owning SQLite and FTS5 index.",
+      "requirement": "OPTIONAL"
+    },
+    {
+      "capability": "pydantic_tool_contracts",
+      "state": "ACTIVE",
+      "tool": "Pydantic",
+      "detail": "Validates typed tool requests and results before SQLite persistence.",
+      "requirement": "REQUIRED"
+    },
+    {
+      "capability": "tfidf",
+      "state": "ACTIVE",
+      "tool": "deterministic Python term statistics",
+      "detail": "Bounded query-time TF/DF/IDF over FTS candidates; no duplicate materialized vector table.",
+      "requirement": "REQUIRED"
+    },
+    {
+      "capability": "mermaid_source",
+      "state": "ACTIVE",
+      "tool": "deterministic Mermaid emitter",
+      "detail": "Authoritative lane topology is emitted as Mermaid source.",
+      "requirement": "REQUIRED"
+    },
+    {
+      "capability": "dot_source",
+      "state": "ACTIVE",
+      "tool": "deterministic DOT emitter",
+      "detail": "Authoritative lane topology is emitted as Graphviz DOT source.",
+      "requirement": "REQUIRED"
+    },
+    {
+      "capability": "mermaid_render_mmdc",
+      "state": "ACTIVE",
+      "tool": "mmdc",
+      "detail": "Optional derived render; Mermaid source remains authoritative.",
+      "requirement": "OPTIONAL"
+    },
+    {
+      "capability": "graphviz_render_dot",
+      "state": "ACTIVE",
+      "tool": "dot",
+      "detail": "Hidden-runtime native DOT validation/render; DOT source remains authoritative.",
+      "requirement": "OPTIONAL"
+    }
   ],
-  "json_build_refresh_tooling": [
-    "lane_pointer.json",
-    "refresh_receipt.json",
-    "lane_manifest.json"
-  ],
-  "canonical_shared_modules": {
-    "src/evidence_lane_plugin/lanes.py": "1FE3EF29F00CD144566BB72E74B8059B6DA51A0CC138AD97B6FCD609133A3FC3",
-    "src/evidence_lane_plugin/lane_engine.py": "3789EFE347EA0EADDA54520E67F42B2FC88218F94A345D98892A0D928701FD96",
-    "src/evidence_lane_plugin/lane_reader.py": "E131620487F19CC2E6B3188F0B53A3483D7179F9AC4BA7BE87249750097BE7E7",
-    "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
-    "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
+  "lane_schema_version": "evidence-lane.universal-lane.v5",
+  "lane_schema_asset": {
+    "registry": {
+      "schema": "evidence-lane.lane-schema-registry.v1",
+      "registry_version": 1,
+      "asset_path": "schemas/lane-schema-registry.v001.json",
+      "asset_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
+      "lane_count": 18,
+      "base_schema_id": "evidence-lane.universal-lane.v5",
+      "entity_table_template_id": "GENERIC_ENTITY_RECORD_V1",
+      "extension_model": "PER_LANE_NAMESPACED_ADDITIVE_VERSIONING"
+    },
+    "schema_id": "evidence-lane.lane-schema.github_code.v006",
+    "schema_version": 6,
+    "contract_sha256": "00D8108E35835B784BAD8F43369C095AE7DCE53C74A2D507CAD3AD76AF5699DE",
+    "sqlite_master_projection_sha256": "B6175E7ACB4366AE5EBCF06C1E86521B9DC88AF59C9D334B70FFCFE83EC0CE91",
+    "extension_namespace": "evidence_lane.github_code.extensions",
+    "migration_head": {
+      "additive_only": false,
+      "from_version": 5,
+      "migration_id": "github_code.tool-route-execution-ledger.v006",
+      "operation": "REBUILD_WITH_TOOL_ROUTE_AND_EXECUTION_LEDGER",
+      "rebuild_required": true,
+      "sequence": 6,
+      "to_version": 6
+    }
+  },
+  "topology_generator": {
+    "schema": "evidence-lane.lane-topology-generator.v5",
+    "module": "lane_engine.py",
+    "module_sha256": "E4A3773B3EB281B4527D193074954E450E36C2F3927AAF29A122C10F2F38301D",
+    "schema_topology_module_sha256": "F1A09DC05100982CCB50C9E9259918B97DFC150EAA2D801EDA36E218ACE727BD",
+    "topology_reconciliation_module_sha256": "2154B784B5C02E04EED92D95FCA935D4F0ECE6BCA16B7B91EE058EE493C4AFA1",
+    "lane_id": "github_code",
+    "lane_schema_contract": [
+      "lane_meta",
+      "lane_pointer",
+      "source_content_cas",
+      "source_registry",
+      "chunk_index",
+      "chunk_content_cas",
+      "chunk_history",
+      "structured_fact",
+      "parser_capability",
+      "tool_route_contract",
+      "tool_execution_receipt",
+      "tfidf_term",
+      "tfidf_vector",
+      "refresh_receipt",
+      "mutation_receipt",
+      "authority_index_content_cas",
+      "authority_index_source",
+      "authority_index_node",
+      "authority_index_fts",
+      "authority_index_refresh_receipt",
+      "code_symbol",
+      "code_import",
+      "code_call",
+      "code_parser_receipt",
+      "code_parser_diagnostic",
+      "code_route",
+      "code_dependency",
+      "git_commit_registry",
+      "git_commit_parent",
+      "git_file_change",
+      "git_ref_registry",
+      "git_blob_cas",
+      "git_content_chunk_cas",
+      "git_chunk_occurrence",
+      "git_history_fts",
+      "code_chunk_fts"
+    ],
+    "lane_schema_contract_sha256": "00D8108E35835B784BAD8F43369C095AE7DCE53C74A2D507CAD3AD76AF5699DE",
+    "lane_schema_registry_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
+    "mmd_dot_shared_graph": true,
+    "physical_schema_projection_schema": "evidence-lane.sqlite-physical-schema-projection.v1",
+    "sqlite_brain_builder_mmd_authority_sha256": "1B87064906E8A805C4A69A7A3A14668DCCE963E00928ED3EB23CC186AB8A65EC",
+    "sqlite_brain_builder_master_topology_authority_sha256": "E9E610D982B5E855A54C39B7A16E06C6FD4D28A2538C8790CC2B9E34C9FECA01",
+    "graph_projection_contract": {
+      "implementation": "PROJECT_AUTHORED_GRAPHIFY_INFORMED",
+      "stable_node_identity": true,
+      "stable_edge_identity": true,
+      "confidence_vocabulary": [
+        "EXTRACTED",
+        "INFERRED",
+        "AMBIGUOUS"
+      ],
+      "coverage_and_impact_visible": true,
+      "network_or_llm_extraction": false,
+      "profile": "GITHUB_REPOSITORY_HISTORY"
+    },
+    "code_logical_topology": [
+      [
+        "code_repo",
+        "Repo",
+        "lane_meta"
+      ],
+      [
+        "git_commit",
+        "Commit",
+        "git_commit_registry"
+      ],
+      [
+        "code_file",
+        "File",
+        "source_registry"
+      ],
+      [
+        "code_symbol",
+        "Symbol",
+        "code_symbol"
+      ],
+      [
+        "app_route",
+        "Route",
+        "code_route"
+      ],
+      [
+        "dependency_item",
+        "Dependency",
+        "code_dependency"
+      ],
+      [
+        "project_artifact",
+        "Artifact",
+        "structured_fact"
+      ]
+    ],
+    "sha256": "20497E7799D7A576719F22DE9CA2594740948E7CF5164AC6CEECC2926786FFA7"
+  },
+  "artifact_contract": {
+    "four_file_schema": "evidence-lane.lane-four-file-contract.v1",
+    "tools_authority_schema": "evidence-lane.tools-artifact-authority.v1",
+    "module_sha256": "5FFC789BF918B726536B3E073360F610E35C8A21E38BF2EFF4BF8F55583B7ACB"
+  },
+  "parser_implementation": {
+    "lane_engine_sha256": "E4A3773B3EB281B4527D193074954E450E36C2F3927AAF29A122C10F2F38301D",
+    "tabular_toolchain_sha256": "79674643BBE0CC5CBC099A380F358FBAB6A2E587A6036E37BE3C0C700536CC63",
+    "sqlite_execution_sha256": "86AAB88E767837E6C328C636C949BE8097A5D7AB427A91777E9C47D3045CC245",
+    "code_ingest_sha256": "A9B4981A20140D89E79137C01C34ABF28F8218E949F521BC8EA744C44CDB786C",
+    "dependency_detection_sha256": "A801532038529CB8244669D8B6E8B009B66D3D8424401625701E6AA1444A0830"
   },
   "registry_linked_workflow": {
     "schema": "evidence-lane.lane-registry-linked-workflow.v1",
@@ -508,17 +808,17 @@
       },
       "public_actions": {
         "path": "schemas/public-action-schemas.v001.json",
-        "sha256": "78BCC5C9797ECBCE3B5DAA5FCFC7B5E83E35315A912EDB5C34E7354CE4D68CED",
+        "sha256": "6408DF34A1E61226E09D5BEC1620DEB845893EA969AE4D42660B86055ECB744F",
         "direct_hash_embedded": true
       },
       "skills": {
         "path": "skills/skill-surface-registry.v1.json",
-        "sha256": "25E9B40FF82732C2E9900D9E68A4D1A939CF5B13BF16A597AE8E927AF5AB6E09",
+        "sha256": "532DFAF8DC4EF2ADC31C0EC8D44B81F264644291EC431CBAA57A84B1996715C4",
         "direct_hash_embedded": true
       },
       "hooks": {
         "path": "hooks/hook-event-registry.v1.json",
-        "sha256": "67DDC5EBD44F858D53C207F773C2893CC0C79D5AD64A87CE2F2A41B2B29E7549",
+        "sha256": "32804ACD34132AC69219595CD8501572801AC30D46D1126163D19B8EE130A340",
         "direct_hash_embedded": true
       },
       "sdk": {
@@ -534,7 +834,2775 @@
         "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
       }
     },
-    "receipt_sha256": "649DD237F45CDA2C41420193D0007E0F0D1B3ED24023E2F463DE5E728E6B37D1"
+    "receipt_sha256": "15EAE56484C0D3AD5A7DF3F8BA829FF8046DCE081F934EBD53284C46FC110377"
+  },
+  "source_conditioned_toolchain": {
+    "schema": "evidence-lane.source-conditioned-lane-toolchain.v1",
+    "status": "PASS",
+    "lane_id": "github_code",
+    "source_path_count": 0,
+    "detected_source_lanes": [
+      "github_code"
+    ],
+    "eligible_tools": [
+      "Git",
+      "Python",
+      "hashlib_pathlib",
+      "SQLite_CAS",
+      "SQLite_FTS5_BM25",
+      "APSW_SQLite_engine",
+      "deterministic_TFIDF",
+      "LangGraph_Mermaid_engine",
+      "Python_Graphviz_DOT_engine",
+      "LlamaIndex_SQLite_indexer",
+      "Mermaid_CLI_mmdc",
+      "Graphviz_dot",
+      "Python_structural_parser",
+      "NodeJS_TypeScript",
+      "pytest",
+      "Ruff",
+      "MyPy",
+      "Secret_redactor",
+      "MCP_Python_SDK",
+      "Pydantic",
+      "SentenceTransformers",
+      "FAISS_CPU",
+      "rank_bm25",
+      "PyGithub",
+      "GitPython",
+      "TreeSitter_LanguagePack",
+      "rustworkx",
+      "sqlite_vec",
+      "OpenAI_Agents_SDK",
+      "FastMCP",
+      "GitHub_MCP_Server",
+      "Filesystem_MCP_Server",
+      "Pinecone",
+      "Weaviate",
+      "Milvus",
+      "OpenSearch",
+      "LangSmith",
+      "Langfuse",
+      "OpenTelemetry",
+      "Docker",
+      "Kubernetes"
+    ],
+    "eligible_tool_count": 41,
+    "rows": [
+      {
+        "tool": "Git",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_OPTIONAL_FOR_PROJECT_ENGULF",
+        "action_classes": [
+          "CODE"
+        ],
+        "primary": [
+          "CODE"
+        ],
+        "fallback": [],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "project_engulf",
+          "runtime_git_delivery"
+        ],
+        "implementation_owner": "git_optional.py + git_history.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "80B737FA44F87B4BFA90860D37BEAC6A3A395D48B190E14CC394C912A9B06C80"
+      },
+      {
+        "tool": "Python",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED",
+        "action_classes": [
+          "CODE",
+          "RUNTIME_API"
+        ],
+        "primary": [
+          "RUNTIME_API"
+        ],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "package_runtime"
+        ],
+        "implementation_owner": "scripts/bootstrap.py hidden runtime",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "102D19CEA31C0619410E5068E3201D5D0A2B478F1FE5AB8C0B779D32C7D6FD54"
+      },
+      {
+        "tool": "hashlib_pathlib",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_INTERNAL",
+        "action_classes": [
+          "SOURCE_ROUTING"
+        ],
+        "primary": [
+          "SOURCE_ROUTING"
+        ],
+        "fallback": [],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "plan",
+          "canon",
+          "learning",
+          "memory",
+          "receipts"
+        ],
+        "implementation_owner": "hashing.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "3032EFA658C44147AB344EFC64D494F6268173E431FF6381F6D6DDF3AFF47E10"
+      },
+      {
+        "tool": "SQLite_CAS",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED",
+        "action_classes": [
+          "GOVERNANCE"
+        ],
+        "primary": [],
+        "fallback": [
+          "GOVERNANCE"
+        ],
+        "eligible_lanes": [
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "project_authority",
+          "plan",
+          "chat_lineage",
+          "canon",
+          "learning",
+          "memory",
+          "sources",
+          "universe",
+          "project_overlay",
+          "connector_brain",
+          "receipt_ledger",
+          "session_authority"
+        ],
+        "implementation_owner": "lane_engine.py + store.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "E06786067AD83C4C19F3C7E154966186AF67924D7F745081F311DDD165C88820"
+      },
+      {
+        "tool": "SQLite_FTS5_BM25",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "every_queryable_project_authority"
+        ],
+        "implementation_owner": "sqlite_indexing.py + lane_reader.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "128975D551018909917C330279BB441458EFE29A0C0C594C3C65F3468134F8E9"
+      },
+      {
+        "tool": "APSW_SQLite_engine",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RETRIEVAL",
+          "DATA"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL",
+          "DATA"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "every_sqlite_authority",
+          "receipt_ledger",
+          "session_authority"
+        ],
+        "implementation_owner": "sqlite_execution.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "B0F4A36336E6951FEFF1F6E1728FC82F6222620DEF404C1FC36BFA94A2DB27D9"
+      },
+      {
+        "tool": "deterministic_TFIDF",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_INTERNAL",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors"
+        ],
+        "implementation_owner": "lane_engine.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "529502C7B0360E671C329E137A27505E42C0BADB4DB97B5E3F0929234919CF78"
+      },
+      {
+        "tool": "LangGraph_Mermaid_engine",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "GRAPH"
+        ],
+        "primary": [],
+        "fallback": [
+          "GRAPH"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "plan",
+          "canon_topology",
+          "all_named_authorities",
+          "all_workflows"
+        ],
+        "implementation_owner": "graph_pipeline.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "7D0D5216451D761D30C3CBB4E95AB626FA09286FED45CB89D389B09861FCB501"
+      },
+      {
+        "tool": "Python_Graphviz_DOT_engine",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "GRAPH"
+        ],
+        "primary": [],
+        "fallback": [
+          "GRAPH"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "plan",
+          "canon_topology",
+          "all_named_authorities",
+          "all_workflows"
+        ],
+        "implementation_owner": "graph_pipeline.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "293A1C635B93020CED1C89FD0EABA741F87F44F4CD9CCC8A6DA16964138E2278"
+      },
+      {
+        "tool": "LlamaIndex_SQLite_indexer",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "project_authority",
+          "canon",
+          "learning",
+          "memory",
+          "sources",
+          "universe",
+          "project_overlay",
+          "connector_brain",
+          "receipt_ledger",
+          "session_authority"
+        ],
+        "implementation_owner": "sqlite_indexing.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "863816DCCDA9191612C6FA5D282330D546F5D023AA37F83ABB0D88D91E4219BB"
+      },
+      {
+        "tool": "Mermaid_CLI_mmdc",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "OPTIONAL_HIDDEN_RUNTIME_RENDERER",
+        "action_classes": [
+          "GRAPH"
+        ],
+        "primary": [],
+        "fallback": [
+          "GRAPH"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_graph_surfaces"
+        ],
+        "implementation_owner": "native_toolchain.py (optional renderer)",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "61D3F1381172B58F52CB77AF2F1517C474AA5497AB391A6BDCFF15A14A5ECF4F"
+      },
+      {
+        "tool": "Graphviz_dot",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+        "action_classes": [
+          "GRAPH"
+        ],
+        "primary": [],
+        "fallback": [
+          "GRAPH"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_graph_surfaces"
+        ],
+        "implementation_owner": "native_toolchain.py + graph_pipeline.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "3E2D707486AF4ABFC9FBF22BDDD1C92AC150F169B7C2432F2B779B9A29ECC01C"
+      },
+      {
+        "tool": "Python_structural_parser",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_INTERNAL",
+        "action_classes": [
+          "CODE"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "surfaces": [
+          "all_structured_project_sectors"
+        ],
+        "implementation_owner": "lane_engine.py + ingest.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "529502C7B0360E671C329E137A27505E42C0BADB4DB97B5E3F0929234919CF78"
+      },
+      {
+        "tool": "NodeJS_TypeScript",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_REPOSITORY_ONLY",
+        "action_classes": [
+          "CODE",
+          "DEPLOYMENT"
+        ],
+        "primary": [
+          "DEPLOYMENT"
+        ],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "public_adapter"
+        ],
+        "implementation_owner": "repository CI and remote_adapter build",
+        "runs_only_when_selected": true,
+        "runtime_state": "REPOSITORY_ONLY_AVAILABLE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "ECE65B84E399F2AE7F8BB561BD792F2296F7B186FF50C67A4672E8B3DF5FBCFD"
+      },
+      {
+        "tool": "pytest",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_CODE_ACCEPTANCE",
+        "action_classes": [],
+        "primary": [],
+        "fallback": [],
+        "eligible_lanes": [],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "plugin_tests"
+        ],
+        "implementation_owner": "plugin tests + repository tests",
+        "runs_only_when_selected": true,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
+      },
+      {
+        "tool": "Ruff",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_CONFIGURED_GATE",
+        "action_classes": [],
+        "primary": [],
+        "fallback": [],
+        "eligible_lanes": [],
+        "surfaces": [
+          "github_code",
+          "local_code"
+        ],
+        "implementation_owner": "repository quality gate",
+        "runs_only_when_selected": true,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
+      },
+      {
+        "tool": "MyPy",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_CONFIGURED_GATE",
+        "action_classes": [],
+        "primary": [],
+        "fallback": [],
+        "eligible_lanes": [],
+        "surfaces": [
+          "github_code",
+          "local_code"
+        ],
+        "implementation_owner": "repository type gate",
+        "runs_only_when_selected": true,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
+      },
+      {
+        "tool": "Secret_redactor",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_INTERNAL",
+        "action_classes": [
+          "SOURCE_ROUTING"
+        ],
+        "primary": [],
+        "fallback": [
+          "SOURCE_ROUTING"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "chat_lineage",
+          "every_source_policy"
+        ],
+        "implementation_owner": "redaction.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "BA5AFDCFE698A00DD93C387A188E870FA53258E67F329F008EB92F0B196B54F8"
+      },
+      {
+        "tool": "MCP_Python_SDK",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RUNTIME_API",
+          "MCP_COMPOSITION"
+        ],
+        "primary": [],
+        "fallback": [
+          "RUNTIME_API",
+          "MCP_COMPOSITION"
+        ],
+        "eligible_lanes": [],
+        "surfaces": [
+          "native_mcp",
+          "internal_sdk"
+        ],
+        "implementation_owner": "mcp_server.py + internal_sdk.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "29BC4EB84F5AF59EA50453C609CE347A00FF00C6152A479A7AD591640E595E15"
+      },
+      {
+        "tool": "Pydantic",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "GOVERNANCE",
+          "RUNTIME_API"
+        ],
+        "primary": [],
+        "fallback": [
+          "GOVERNANCE",
+          "RUNTIME_API"
+        ],
+        "eligible_lanes": [],
+        "surfaces": [
+          "native_mcp",
+          "internal_sdk"
+        ],
+        "implementation_owner": "typed tool/request/result modules",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "BDAFE3E4061CB027143AA2CDB729F603DA13D6DC644BB934A689760D39DE71BC"
+      },
+      {
+        "tool": "SentenceTransformers",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_queryable_authorities",
+          "research",
+          "memory"
+        ],
+        "implementation_owner": "semantic_retrieval.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "6C97098831224BBC8E117B4787797B841ACB1D6A68752672A6F8B9645A1D8588"
+      },
+      {
+        "tool": "FAISS_CPU",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_queryable_authorities",
+          "research",
+          "memory"
+        ],
+        "implementation_owner": "hybrid_retrieval.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "3CD6CF686D0133129B7E6A9A82EA36403405348A577E8413AB9C7EA700C38BE2"
+      },
+      {
+        "tool": "rank_bm25",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_queryable_authorities"
+        ],
+        "implementation_owner": "hybrid_retrieval.py + sqlite_indexing.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "AEF4D4599AF8E712734E8E2E757033CE74E58F000ECABFBF970F3AD2F256DC5B"
+      },
+      {
+        "tool": "PyGithub",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "CODE"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code"
+        ],
+        "surfaces": [
+          "github_code",
+          "git_delivery"
+        ],
+        "implementation_owner": "github_toolchain.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "5C658F97944FC4239155C8E37B5F669412E757B449506227841B2AF5D9FAF8AE"
+      },
+      {
+        "tool": "GitPython",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "CODE"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "implementation_owner": "git_optional.py parity",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "8FC54AD4863BE340518E6E789335DDA969D1D9727FEE140873BC8D0C2D420C70"
+      },
+      {
+        "tool": "TreeSitter_LanguagePack",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "CODE"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "implementation_owner": "code_toolchain.py + ingest.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "0D14D7ED3590F7A9D162CC6D9448146A38ACA4C1733CDA12CEB05DC22E8BE9E2"
+      },
+      {
+        "tool": "rustworkx",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "GRAPH"
+        ],
+        "primary": [],
+        "fallback": [
+          "GRAPH"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "canon_topology",
+          "all_named_authorities",
+          "project_universe",
+          "connector_brain",
+          "project_overlay"
+        ],
+        "implementation_owner": "graph_pipeline.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "61A1A19F5E7850B444265DBE1A3DBEF9A2DD21B2963B90989E681C57FBC6118D"
+      },
+      {
+        "tool": "sqlite_vec",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "CONDITIONAL_SQLITE_VECTOR_EXTENSION",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "every_queryable_project_authority",
+          "memory",
+          "research",
+          "learning"
+        ],
+        "implementation_owner": "semantic_retrieval.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "885BF09D5086805FD492122C08F170D63A35EA9CAD17CD0AD3064239A065724A"
+      },
+      {
+        "tool": "OpenAI_Agents_SDK",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "GOVERNANCE",
+          "RETRIEVAL",
+          "CODE",
+          "DOCUMENT",
+          "OCR_MEDIA",
+          "DATA",
+          "WEB_RESEARCH",
+          "GRAPH",
+          "RUNTIME_API"
+        ],
+        "primary": [],
+        "fallback": [
+          "GOVERNANCE",
+          "RETRIEVAL",
+          "CODE",
+          "DOCUMENT",
+          "OCR_MEDIA",
+          "DATA",
+          "WEB_RESEARCH",
+          "GRAPH",
+          "RUNTIME_API"
+        ],
+        "eligible_lanes": [],
+        "surfaces": [
+          "internal_sdk",
+          "outer_sdk",
+          "native_mcp"
+        ],
+        "implementation_owner": "ecosystem_toolchain.py + internal_sdk.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "9FA13961D5151DCD6A770C34B926B21E079BC0AE5CD5E58AD4CCD95F234C4F45"
+      },
+      {
+        "tool": "FastMCP",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RUNTIME_API",
+          "MCP_COMPOSITION"
+        ],
+        "primary": [
+          "MCP_COMPOSITION"
+        ],
+        "fallback": [
+          "RUNTIME_API"
+        ],
+        "eligible_lanes": [],
+        "surfaces": [
+          "native_mcp",
+          "tunnel",
+          "outer_sdk"
+        ],
+        "implementation_owner": "ecosystem_toolchain.py + mcp_server.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "487869847FE288357C0D11E58DF7B68B5E4CF63B6EA31E58FA29ED8D9668F8C8"
+      },
+      {
+        "tool": "GitHub_MCP_Server",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+        "action_classes": [
+          "CODE",
+          "RUNTIME_API"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE",
+          "RUNTIME_API"
+        ],
+        "eligible_lanes": [
+          "github_code"
+        ],
+        "surfaces": [
+          "github_code",
+          "git_delivery",
+          "outer_sdk",
+          "tunnel"
+        ],
+        "implementation_owner": "mcp_adapter_routing.py + outer SDK tunnel route",
+        "runs_only_when_selected": true,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "E16853590B713656E373D0108C99C239DA59139F4B50F191F1DF1DE1652DE98D"
+      },
+      {
+        "tool": "Filesystem_MCP_Server",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+        "action_classes": [
+          "CODE",
+          "RUNTIME_API"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE",
+          "RUNTIME_API"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "docs",
+          "data_excel",
+          "outer_sdk",
+          "tunnel"
+        ],
+        "implementation_owner": "mcp_adapter_routing.py + root-scoped outer SDK route",
+        "runs_only_when_selected": true,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "38F5472CD0940D7A991B36507A63D010BB314C05D8B12284930684639E455D81"
+      },
+      {
+        "tool": "Pinecone",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_queryable_authorities",
+          "research",
+          "memory"
+        ],
+        "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "E437D9B724BAF6DEFD9962788C87E833B3D6B3004595A1DB7EA5F00A297D1A00"
+      },
+      {
+        "tool": "Weaviate",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_queryable_authorities",
+          "research",
+          "memory"
+        ],
+        "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "4D02D25F4D0EB3FB8501F07E17CE2F2B670FA15FD3FC73402D05D5C6D0035F21"
+      },
+      {
+        "tool": "Milvus",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_queryable_authorities",
+          "research",
+          "memory"
+        ],
+        "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "E29EC612861C2882F133F026E19D5E40CE4E7082C3E74C36DA1F750981796893"
+      },
+      {
+        "tool": "OpenSearch",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_queryable_authorities",
+          "research",
+          "memory"
+        ],
+        "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "89FB5A9A681ACFBDD9EEF0199C477229AD253FB1596888E1292D4CD733F910F6"
+      },
+      {
+        "tool": "LangSmith",
+        "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "EVALUATION"
+        ],
+        "primary": [
+          "EVALUATION"
+        ],
+        "fallback": [],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "research",
+          "project_engulf",
+          "analysis",
+          "plan",
+          "custom"
+        ],
+        "surfaces": [
+          "evaluation",
+          "testing",
+          "observability",
+          "all_workflows"
+        ],
+        "implementation_owner": "evaluation_toolchain.py + ai_toolchain.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "9771A758F0B532EB0CAB6A8C09634AFB9A1823F19CD271F2B40C858E6A14E638"
+      },
+      {
+        "tool": "Langfuse",
+        "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "OBSERVABILITY"
+        ],
+        "primary": [],
+        "fallback": [
+          "OBSERVABILITY"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "observability",
+          "all_workflows",
+          "tunnel"
+        ],
+        "implementation_owner": "observability_toolchain.py + runtime_toolchain.py",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "094C551B7AB2A9260FBB8E93575EAB5199587CBB7B9A07AD80D0FAED6B94BF55"
+      },
+      {
+        "tool": "OpenTelemetry",
+        "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "OBSERVABILITY"
+        ],
+        "primary": [
+          "OBSERVABILITY"
+        ],
+        "fallback": [],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "observability",
+          "all_workflows",
+          "tunnel",
+          "runtime_doctor"
+        ],
+        "implementation_owner": "observability_toolchain.py + runtime trace correlation",
+        "runs_only_when_selected": true,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "638DCA3F4E1B796232A6C802477642F634B3118D81FA69488D05EB9EF7CDEF6C"
+      },
+      {
+        "tool": "Docker",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+        "action_classes": [
+          "DEPLOYMENT"
+        ],
+        "primary": [],
+        "fallback": [
+          "DEPLOYMENT"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "artifacts"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "artifacts",
+          "deployment"
+        ],
+        "implementation_owner": "deployment_toolchain.py + delivery gate",
+        "runs_only_when_selected": true,
+        "runtime_state": "AVAILABLE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "91FD3497738ED6AA7A69EEBE682716D1AB1E994623A345AFAD9C6865AC7275E5"
+      },
+      {
+        "tool": "Kubernetes",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+        "action_classes": [
+          "DEPLOYMENT"
+        ],
+        "primary": [],
+        "fallback": [
+          "DEPLOYMENT"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "artifacts"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "artifacts",
+          "deployment"
+        ],
+        "implementation_owner": "deployment_toolchain.py + delivery gate",
+        "runs_only_when_selected": true,
+        "runtime_state": "AVAILABLE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "AB94DF6CCB6CDF2505E39CA1D3A13DE027AB690AF278B02300EE3033CA56A815"
+      }
+    ],
+    "all_linked_required_steps_must_run_or_fail_visible": true,
+    "all_registry_tools_run": false,
+    "selection_is_source_shape_action_workflow_env_uop_dependent": true,
+    "outside_project_root_execution_surfaces_included": true,
+    "counts_are_current_snapshot_not_ceiling": true,
+    "routing_registry": {
+      "path": "toolchains/tool-execution-routing.v1.json",
+      "sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182"
+    },
+    "pairing_registry": {
+      "path": "toolchains/unified-tool-workflow-pairing.v1.json",
+      "sha256": "EA429DFA223AC93BC1018BCA55AB15955F1A1736BB6A9AE3CC5551814CA80388"
+    },
+    "receipt_sha256": "885991D75A0CFE06DF00BC89F4373A3167FE8F9AE9E0B572B8CF84EFF7AF7EA4",
+    "runtime_inventory_schema": "evidence-lane.runtime-toolchain-prewarm.v1",
+    "runtime_inventory_status": "PASS",
+    "runtime_inventory_receipt_sha256": "8926C29E97FDBD0B0B28E8A172D8EB71531DBB121DCF1B9ACFE4455E206B7DF0",
+    "lane_resolution_sha256": "DC70E3913034642BB55D20177064E73C7C7D348668A18E13F1768107878A1505",
+    "runtime_availability_measured": true,
+    "installed_presence_is_execution_proof": false
+  },
+  "source_conditioned_tool_identity": {
+    "lane_id": "github_code",
+    "detected_source_lanes": [
+      "github_code"
+    ],
+    "eligible_tools": [
+      "Git",
+      "Python",
+      "hashlib_pathlib",
+      "SQLite_CAS",
+      "SQLite_FTS5_BM25",
+      "APSW_SQLite_engine",
+      "deterministic_TFIDF",
+      "LangGraph_Mermaid_engine",
+      "Python_Graphviz_DOT_engine",
+      "LlamaIndex_SQLite_indexer",
+      "Mermaid_CLI_mmdc",
+      "Graphviz_dot",
+      "Python_structural_parser",
+      "NodeJS_TypeScript",
+      "pytest",
+      "Ruff",
+      "MyPy",
+      "Secret_redactor",
+      "MCP_Python_SDK",
+      "Pydantic",
+      "SentenceTransformers",
+      "FAISS_CPU",
+      "rank_bm25",
+      "PyGithub",
+      "GitPython",
+      "TreeSitter_LanguagePack",
+      "rustworkx",
+      "sqlite_vec",
+      "OpenAI_Agents_SDK",
+      "FastMCP",
+      "GitHub_MCP_Server",
+      "Filesystem_MCP_Server",
+      "Pinecone",
+      "Weaviate",
+      "Milvus",
+      "OpenSearch",
+      "LangSmith",
+      "Langfuse",
+      "OpenTelemetry",
+      "Docker",
+      "Kubernetes"
+    ],
+    "routing_registry": {
+      "path": "toolchains/tool-execution-routing.v1.json",
+      "sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182"
+    },
+    "pairing_registry": {
+      "path": "toolchains/unified-tool-workflow-pairing.v1.json",
+      "sha256": "EA429DFA223AC93BC1018BCA55AB15955F1A1736BB6A9AE3CC5551814CA80388"
+    },
+    "source_path_count_affects_tool_identity": false,
+    "runtime_availability_affects_tool_identity": false,
+    "hardware_telemetry_affects_tool_identity": false
+  },
+  "sha256": "AD1AF4930480D8A3A2A1839F9FC122A1B6AE395AF3E6792BF9EFE401820A6D4F",
+  "runtime_toolchain_resolution": {
+    "schema": "evidence-lane.ai-toolchain-lane-resolution.v1",
+    "status": "PASS",
+    "host_profile": "CODEX_DESKTOP",
+    "lane_id": "github_code",
+    "action_classes": [
+      "CODE",
+      "RETRIEVAL",
+      "GRAPH",
+      "EVALUATION",
+      "DEPLOYMENT",
+      "OBSERVABILITY",
+      "SOURCE_ROUTING"
+    ],
+    "ordered_tools": [
+      "Git",
+      "Python",
+      "NodeJS_TypeScript",
+      "GitPython",
+      "PyGithub",
+      "TreeSitter_LanguagePack",
+      "Python_structural_parser",
+      "GitHub_MCP_Server",
+      "Filesystem_MCP_Server",
+      "LlamaIndex_SQLite_indexer",
+      "APSW_SQLite_engine",
+      "SQLite_FTS5_BM25",
+      "sqlite_vec",
+      "rank_bm25",
+      "SentenceTransformers",
+      "FAISS_CPU",
+      "Pinecone",
+      "Weaviate",
+      "Milvus",
+      "OpenSearch",
+      "deterministic_TFIDF",
+      "LangGraph_Mermaid_engine",
+      "rustworkx",
+      "Python_Graphviz_DOT_engine",
+      "Graphviz_dot",
+      "Mermaid_CLI_mmdc",
+      "LangSmith",
+      "Docker",
+      "Kubernetes",
+      "OpenTelemetry",
+      "Langfuse",
+      "hashlib_pathlib",
+      "Secret_redactor"
+    ],
+    "runnable_tools": [
+      "Git",
+      "Python",
+      "NodeJS_TypeScript",
+      "GitPython",
+      "PyGithub",
+      "TreeSitter_LanguagePack",
+      "Python_structural_parser",
+      "LlamaIndex_SQLite_indexer",
+      "APSW_SQLite_engine",
+      "SQLite_FTS5_BM25",
+      "sqlite_vec",
+      "rank_bm25",
+      "SentenceTransformers",
+      "FAISS_CPU",
+      "deterministic_TFIDF",
+      "LangGraph_Mermaid_engine",
+      "rustworkx",
+      "Python_Graphviz_DOT_engine",
+      "Graphviz_dot",
+      "Mermaid_CLI_mmdc",
+      "LangSmith",
+      "OpenTelemetry",
+      "Langfuse",
+      "hashlib_pathlib",
+      "Secret_redactor"
+    ],
+    "unavailable_tools": [
+      "GitHub_MCP_Server",
+      "Filesystem_MCP_Server",
+      "Pinecone",
+      "Weaviate",
+      "Milvus",
+      "OpenSearch",
+      "Docker",
+      "Kubernetes"
+    ],
+    "resolution_sha256": "DC70E3913034642BB55D20177064E73C7C7D348668A18E13F1768107878A1505"
+  },
+  "schema": "evidence-lane.installed-lane-tooling.v1",
+  "status": "PASS",
+  "lane_id": "github_code",
+  "builder": "builder.py:build_lane_sources",
+  "reader": "reader.py:LaneReader",
+  "query_traversal": "pointer + manifest + MMD + DOT + tools + SQLite",
+  "retrieval_modes": [
+    "hybrid",
+    "fts5",
+    "bm25",
+    "tfidf"
+  ],
+  "json_build_refresh_tooling": [
+    "lane_pointer.json",
+    "refresh_receipt.json",
+    "lane_manifest.json"
+  ],
+  "canonical_shared_modules": {
+    "src/evidence_lane_plugin/lanes.py": "B63A8708B7C27EEF09C7680AB97CA3410554F4AFACF819D39E0BE1E824193376",
+    "src/evidence_lane_plugin/lane_engine.py": "E4A3773B3EB281B4527D193074954E450E36C2F3927AAF29A122C10F2F38301D",
+    "src/evidence_lane_plugin/lane_reader.py": "EA46B419880515E04101EBDD6C1D7497F95EA78AD5E9DB6B02AD531CB9F57456",
+    "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
+    "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
+  },
+  "graph_pipeline_receipt": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "lane_github_code",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 87,
+    "edge_count": 115,
+    "group_count": 9,
+    "semantic_topology_sha256": "09686D28CE25B1CFD6025729E7A3DE6EEC3DF201EF760D0555056806096A7AE2",
+    "mmd_sha256": "C470C451F2099BB83E6CB06AF84684508BFD6B44A23ED22A65F8FA72CC1A230A",
+    "dot_sha256": "1615E4D36BFF5D8A82D7E3648230739759402E06295EBACB16DBF2183ED90D68",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "A5FEE2D182069DFAFC4AA738C6A3A0868821639D2556C7E7FF25341869294058",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": true,
+    "native_graphviz_hidden_runtime_available": true,
+    "native_graphviz_validation": {
+      "schema": "evidence-lane.native-tool-invocation.v1",
+      "status": "PASS",
+      "tool_id": "graphviz",
+      "version": "15.1.1",
+      "host_profile": "CODEX_DESKTOP",
+      "argument_count": 1,
+      "arguments_sha256": "246AE09F32080625E413605E605DCAF70F8A393CD69269634175C7241F9C02DE",
+      "arguments_disclosed": false,
+      "input_sha256": "1615E4D36BFF5D8A82D7E3648230739759402E06295EBACB16DBF2183ED90D68",
+      "stdout": "digraph lane_github_code {\r\n\tgraph [bb=\"0,0,5493.9,2843.6\",\r\n\t\tbgcolor=white,\r\n\t\tcompound=true,\r\n\t\tfontname=Arial,\r\n\t\tnewrank=true,\r\n\t\tnodesep=0.35,\r\n\t\trankdir=TB,\r\n\t\tranksep=0.65,\r\n\t\tsplines=polyline\r\n\t];\r\n\tnode [color=\"#667085\",\r\n\t\tfontname=Arial,\r\n\t\tlabel=\"\\N\",\r\n\t\tshape=box,\r\n\t\tstyle=\"rounded,filled\"\r\n\t];\r\n\tedge [color=\"#667085\",\r\n\t\tfontname=Arial\r\n\t];\r\n\tsubgraph cluster_source_intake {\r\n\t\tgraph [bb=\"706,2587.6,960,2771.1\",\r\n\t\t\tlabel=\"1. Source intake and exact-byte registry\",\r\n\t\t\tlheight=0.22,\r\n\t\t\tlp=\"833,2759.2\",\r\n\t\t\tlwidth=3.30,\r\n\t\t\trankdir=TB\r\n\t\t];\r\n\t\tSOURCE_REG\t[color=\"#125cdd\",\r\n\t\t\tfillcolor=\"#edf5ff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"source_registry\\nrows=0 | SHA-256 + parser state\",\r\n\t\t\tpos=\"845,2719.6\",\r\n\t\t\twidth=2.9618];\r\n\t\tSOURCE_EMPTY\t[color=\"#c88722\",\r\n\t\t\tfillcolor=\"#fff7e7\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"schema ready\\nno routed source in this build\",\r\n\t\t\tpos=\"845,2615.4\",\r\n\t\t\twidth=2.6181];\r\n\t\tSOURCE_REG -> SOURCE_EMPTY\t[pos=\"e,845,2635.5 845,2699.4 845,2684.5 845,2663.7 845,2646.6\"];\r\n\t}\r\n\tsubgraph cluster_semantic_model {\r\n\t\tgraph [bb=\"968,2484.4,1455,2666.9\",\r\n\t\t\tlabel=\"2. Lane-specific semantic model from SQLite\",\r\n\t\t\tlheight=0.22,\r\n\t\t\tlp=\"1211.5,2655\",\r\n\t\t\tlwidth=3.77,\r\n\t\t\trankdir=TB\r\n\t\t];\r\n\t\tFACT_INDEX\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"structured_fact\\nrows=0 | kinds=0\",\r\n\t\t\tpos=\"1104,2615.4\",\r\n\t\t\twidth=1.6493];\r\n\t\tSEMANTIC_SCHEMA_HANDOFF\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"lane semantic schema\\nentities=15 | exact rows projected below\",\r\n\t\t\tpos=\"1104,2512.1\",\r\n\t\t\twidth=3.5556];\r\n\t\tFACT_INDEX -> SEMANTIC_SCHEMA_HANDOFF\t[label=materializes,\r\n\t\t\tlp=\"1140.4,2563.8\",\r\n\t\t\tpos=\"e,1104,2532.1 1104,2595.3 1104,2580.8 1104,2560.4 1104,2543.6\"];\r\n\t\tFACT_EMPTY\t[color=\"#c88722\",\r\n\t\t\tfillcolor=\"#fff7e7\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"no semantic rows yet\\nlane schema remains explicit\",\r\n\t\t\tpos=\"1352,2512.1\",\r\n\t\t\twidth=2.6493];\r\n\t\tFACT_INDEX -> FACT_EMPTY\t[pos=\"e,1305.3,2532.2 1150.9,2595.2 1191.8,2578.5 1251.2,2554.3 1294.8,2536.5\"];\r\n\t}\r\n\tsubgraph cluster_sqlite_physical_schema {\r\n\t\tgraph [bb=\"8,8,1890,2444.6\",\r\n\t\t\tlabel=\"3. Additive SQLite physical schema contract\",\r\n\t\t\tlheight=0.22,\r\n\t\t\tlp=\"949,2432.8\",\r\n\t\t\tlwidth=3.67,\r\n\t\t\trankdir=TB\r\n\t\t];\r\n\t\tPHYSICAL_SCHEMA_SECTOR\t[color=\"#101828\",\r\n\t\t\tfillcolor=\"#101828\",\r\n\t\t\tfontcolor=white,\r\n\t\t\theight=0.76736,\r\n\t\t\tlabel=\"SQLite physical schema\\ncontract=36 | tables=48 | auxiliaries=12 | relations=23\\nprojection_sha256=91076C745678634EFCBC3CE5E5F8B490AA94CE9EE102D644724048361049EF0F\",\r\n\t\t\tpos=\"1104,2385.2\",\r\n\t\t\twidth=8.9931];\r\n\t\tPHYSICAL_GROUP_CORE\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"shared lane core\\ntables=20 | ordered from SQLite\",\r\n\t\t\tpos=\"729,2258.4\",\r\n\t\t\twidth=2.9201];\r\n\t\tPHYSICAL_SCHEMA_SECTOR -> PHYSICAL_GROUP_CORE\t[label=\"ordered table group\",\r\n\t\t\tlp=\"862.12,2325.8\",\r\n\t\t\tpos=\"e,748.12,2278.5 943.06,2357.2 871.55,2345.1 803.25,2333.6 803.25,2333.6 803.25,2333.6 777.43,2307.8 756.24,2286.6\"];\r\n\t\tPHYSICAL_GROUP_LANE\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"lane semantic contract\\ntables=8 | ordered from SQLite\",\r\n\t\t\tpos=\"931,2194.9\",\r\n\t\t\twidth=2.816];\r\n\t\tPHYSICAL_SCHEMA_SECTOR -> PHYSICAL_GROUP_LANE\t[label=\"ordered table group\",\r\n\t\t\tlp=\"1039.1,2325.8\",\r\n\t\t\tpos=\"e,937.85,2215 1037.8,2357.2 1008.4,2345.1 980.25,2333.6 980.25,2333.6 980.25,2333.6 956.13,2266.2 941.65,2225.7\"];\r\n\t\tPHYSICAL_GROUP_GIT\t[color=\"#c88722\",\r\n\t\t\tfillcolor=\"#fff7e7\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"Git history and impact\\ntables=12 | ordered from SQLite\",\r\n\t\t\tpos=\"1104,2258.4\",\r\n\t\t\twidth=2.9201];\r\n\t\tPHYSICAL_SCHEMA_SECTOR -> PHYSICAL_GROUP_GIT\t[label=\"ordered table group\",\r\n\t\t\tlp=\"1162.9,2325.8\",\r\n\t\t\tpos=\"e,1104,2278.3 1104,2357.2 1104,2337.2 1104,2310.2 1104,2289.6\"];\r\n\t\tPHYSICAL_GROUP_AUXILIARY\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"SQLite engine auxiliaries\\ntables=8 | ordered from SQLite\",\r\n\t\t\tpos=\"1454,2258.4\",\r\n\t\t\twidth=2.816];\r\n\t\tPHYSICAL_SCHEMA_SECTOR -> PHYSICAL_GROUP_AUXILIARY\t[label=\"ordered table group\",\r\n\t\t\tlp=\"1348.4,2325.8\",\r\n\t\t\tpos=\"e,1400.1,2278.6 1179.9,2357.2 1242.5,2334.8 1330.2,2303.5 1389.4,2282.4\"];\r\n\t\tPHYSICAL_TABLE_000\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"lane_meta\\nrows=4 | columns=2 | role=core_contract\",\r\n\t\t\tpos=\"691,2107.8\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_GROUP_CORE -> PHYSICAL_TABLE_000\t[label=\"next physical table\",\r\n\t\t\tlp=\"761.5,2194.9\",\r\n\t\t\tpos=\"e,693.68,2127.7 718.84,2238.5 712.68,2227 706,2214.6 706,2214.6 706,2214.6 699.71,2170.2 695.27,2138.9\"];\r\n\t\tPHYSICAL_TABLE_001\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"lane_pointer\\nrows=0 | columns=4 | role=core_contract\",\r\n\t\t\tpos=\"691,1973\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_000 -> PHYSICAL_TABLE_001\t[label=\"next physical table\",\r\n\t\t\tlp=\"746.5,2048.2\",\r\n\t\t\tpos=\"e,691,1993 691,2087.7 691,2065.9 691,2030 691,2004.3\"];\r\n\t\tPHYSICAL_TABLE_002\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"source_content_cas\\nrows=0 | columns=5 | role=core_contract\",\r\n\t\t\tpos=\"691,1846.1\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_001 -> PHYSICAL_TABLE_002\t[label=\"next physical table\",\r\n\t\t\tlp=\"746.5,1913.5\",\r\n\t\t\tpos=\"e,691,1866.2 691,1952.8 691,1932.7 691,1901 691,1877.6\"];\r\n\t\tPHYSICAL_TABLE_003\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"source_registry\\nrows=0 | columns=9 | role=core_contract\",\r\n\t\t\tpos=\"718,1735\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_002 -> PHYSICAL_TABLE_003\t[label=\"next physical table\",\r\n\t\t\tlp=\"762.42,1786.6\",\r\n\t\t\tpos=\"e,713.26,1755.2 695.7,1826.1 699.78,1809.6 705.76,1785.5 710.5,1766.3\"];\r\n\t\tPHYSICAL_TABLE_002 -> PHYSICAL_TABLE_003\t[label=\"sha256 -> source_content_cas.sha256\",\r\n\t\t\tlp=\"581.38,1786.6\",\r\n\t\t\tpos=\"e,603.97,1755.2 605.14,1825.9 541.14,1811.6 464.75,1794.5 464.75,1794.5 464.75,1794.5 464.75,1778.8 464.75,1778.8 464.75,1778.8 \\\r\n529.09,1767.9 592.91,1757.1\"];\r\n\t\tPHYSICAL_TABLE_004\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"chunk_index\\nrows=0 | columns=8 | role=core_contract\",\r\n\t\t\tpos=\"641,1631.8\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_003 -> PHYSICAL_TABLE_004\t[label=\"next physical table\",\r\n\t\t\tlp=\"472.5,1683.4\",\r\n\t\t\tpos=\"e,540.14,1652 586.85,1715.4 505.74,1703.9 417,1691.2 417,1691.2 417,1691.2 417,1675.5 417,1675.5 417,1675.5 472.97,1664.8 528.96,\\\r\n1654.1\"];\r\n\t\tPHYSICAL_TABLE_003 -> PHYSICAL_TABLE_004\t[label=\"source_id -> source_registry.source_id\",\r\n\t\t\tlp=\"674.75,1683.4\",\r\n\t\t\tpos=\"e,604.09,1651.9 646.18,1714.8 603.85,1703.4 558.5,1691.2 558.5,1691.2 558.5,1691.2 558.5,1675.5 558.5,1675.5 558.5,1675.5 575.48,\\\r\n1666.7 594.03,1657.1\"];\r\n\t\tPHYSICAL_TABLE_007\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"structured_fact\\nrows=0 | columns=5 | role=core_contract\",\r\n\t\t\tpos=\"641,1306.2\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_003 -> PHYSICAL_TABLE_007\t[label=\"source_id -> source_registry.source_id\",\r\n\t\t\tlp=\"203.75,1528.5\",\r\n\t\t\tpos=\"e,551.46,1326.4 586.91,1715.7 503.47,1704.1 411,1691.2 411,1691.2 411,1691.2 87.5,1548.2 87.5,1548.2 87.5,1548.2 87.5,1500.8 87.5,\\\r\n1500.8 87.5,1500.8 220,1397.5 220,1397.5 220,1397.5 415.85,1355.5 540.39,1328.8\"];\r\n\t\tPHYSICAL_TABLE_020\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_symbol\\nrows=0 | columns=4 | role=lane_contract\",\r\n\t\t\tpos=\"1029,1195.1\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_003 -> PHYSICAL_TABLE_020\t[label=\"source_id -> source_registry.source_id\",\r\n\t\t\tlp=\"885.75,1476.9\",\r\n\t\t\tpos=\"e,990.82,1215.3 769.33,1714.8 799.59,1703.4 832,1691.2 832,1691.2 832,1691.2 832,1612 832,1612 832,1612 769.5,1484.8 769.5,1484.8 \\\r\n769.5,1484.8 769.5,1469 769.5,1469 769.5,1469 962,1445 962,1445 962,1445 962,1397.5 962,1397.5 962,1397.5 918,1365.8 918,1365.8 \\\r\n918,1365.8 872,1357.8 872,1357.8 872,1357.8 872,1286.5 872,1286.5 872,1286.5 928,1246.8 928,1246.8 928,1246.8 954.67,1233.4 980.59,\\\r\n1220.4\"];\r\n\t\tPHYSICAL_TABLE_021\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_import\\nrows=0 | columns=4 | role=lane_contract\",\r\n\t\t\tpos=\"1015,1068.2\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_003 -> PHYSICAL_TABLE_021\t[label=\"source_id -> source_registry.source_id\",\r\n\t\t\tlp=\"839.75,1425.2\",\r\n\t\t\tpos=\"e,987.64,1088.4 757.17,1714.8 780.27,1703.4 805,1691.2 805,1691.2 805,1691.2 805,1612 805,1612 805,1612 771,1548.2 771,1548.2 771,\\\r\n1548.2 723.5,1445 723.5,1445 723.5,1445 723.5,1397.5 723.5,1397.5 723.5,1397.5 906,1381.5 906,1381.5 906,1381.5 906,1365.8 906,1365.8 \\\r\n906,1365.8 866,1357.8 866,1357.8 866,1357.8 866,1286.5 866,1286.5 866,1286.5 886,1159.5 886,1159.5 886,1159.5 940.2,1121.6 978.34,\\\r\n1094.9\"];\r\n\t\tPHYSICAL_TABLE_022\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_call\\nrows=0 | columns=4 | role=lane_contract\",\r\n\t\t\tpos=\"1015,965\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_003 -> PHYSICAL_TABLE_022\t[label=\"source_id -> source_registry.source_id\",\r\n\t\t\tlp=\"783.75,1373.6\",\r\n\t\t\tpos=\"e,981.83,985.13 751.55,1714.9 771.52,1703.5 793,1691.2 793,1691.2 793,1691.2 793,1675.5 793,1675.5 793,1675.5 785,1612 785,1612 \\\r\n785,1612 743,1548.2 743,1548.2 743,1548.2 667.5,1381.5 667.5,1381.5 667.5,1381.5 667.5,1365.8 667.5,1365.8 667.5,1365.8 785,1357.8 \\\r\n785,1357.8 785,1357.8 832,1222.8 832,1222.8 832,1222.8 872,1048.5 872,1048.5 872,1048.5 929.93,1015.1 972.05,990.78\"];\r\n\t\tPHYSICAL_TABLE_023\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_parser_receipt\\nrows=0 | columns=4 | role=lane_contract\",\r\n\t\t\tpos=\"1056,861.75\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_003 -> PHYSICAL_TABLE_023\t[label=\"source_id -> source_registry.source_id\",\r\n\t\t\tlp=\"1038.8,1306.2\",\r\n\t\t\tpos=\"e,1100.6,882 772.48,1714.8 804.6,1703.4 839,1691.2 839,1691.2 839,1691.2 868,1500.8 868,1500.8 868,1500.8 1004,1484.8 1004,1484.8 \\\r\n1004,1484.8 1004,1469 1004,1469 1004,1469 969,1397.5 969,1397.5 969,1397.5 936,1365.8 936,1365.8 936,1365.8 922.5,1357.8 922.5,1357.8 \\\r\n922.5,1357.8 922.5,1286.5 922.5,1286.5 922.5,1286.5 967,1246.8 967,1246.8 967,1246.8 1172,1222.8 1172,1222.8 1172,1222.8 1186,1136.6 \\\r\n1186,1136.6 1186,1136.6 1186,1136.6 1186,964 1186,964 1155,905.5 1155,905.5 1155,905.5 1133.8,896.36 1111.1,886.53\"];\r\n\t\tPHYSICAL_TABLE_024\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_parser_diagnostic\\nrows=0 | columns=4 | role=lane_contract\",\r\n\t\t\tpos=\"1079,758.5\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_003 -> PHYSICAL_TABLE_024\t[label=\"source_id -> source_registry.source_id\",\r\n\t\t\tlp=\"1120.8,1254.6\",\r\n\t\t\tpos=\"e,1127.2,778.75 776.08,1714.8 810.32,1703.4 847,1691.2 847,1691.2 847,1691.2 895,1500.8 895,1500.8 895,1500.8 1011,1484.8 1011,1484.8 \\\r\n1011,1484.8 1056,1397.5 1056,1397.5 1056,1397.5 1124,1365.8 1124,1365.8 1124,1365.8 1157,1357.8 1157,1357.8 1157,1357.8 1157,1286.5 \\\r\n1157,1286.5 1157,1286.5 1004.5,1262.5 1004.5,1262.5 1004.5,1262.5 1004.5,1246.8 1004.5,1246.8 1004.5,1246.8 1184,1222.8 1184,1222.8 \\\r\n1184,1222.8 1213,1136.6 1213,1136.6 1213,1136.6 1213,1136.6 1213,860.75 1213,860.75 1186,802.25 1186,802.25 1186,802.25 1162.7,792.94 \\\r\n1137.9,783.02\"];\r\n\t\tPHYSICAL_TABLE_025\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_route\\nrows=0 | columns=4 | role=lane_contract\",\r\n\t\t\tpos=\"1079,655.25\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_003 -> PHYSICAL_TABLE_025\t[label=\"source_id -> source_registry.source_id\",\r\n\t\t\tlp=\"167.75,1195.1\",\r\n\t\t\tpos=\"e,948.24,668.47 586.93,1717.9 488.28,1705.8 370,1691.2 370,1691.2 370,1691.2 226,1651.5 226,1651.5 226,1651.5 81,1548.2 81,1548.2 \\\r\n81,1548.2 51.5,1222.8 51.5,1222.8 51.5,1222.8 51.5,1159.5 51.5,1159.5 51.5,1159.5 196,738.75 196,738.75 196,738.75 687.22,692.85 \\\r\n936.9,669.53\"];\r\n\t\tPHYSICAL_TABLE_026\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_dependency\\nrows=0 | columns=4 | role=lane_contract\",\r\n\t\t\tpos=\"1193,552\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_003 -> PHYSICAL_TABLE_026\t[label=\"source_id -> source_registry.source_id\",\r\n\t\t\tlp=\"1360.2,1135.6\",\r\n\t\t\tpos=\"e,1213.6,572.12 780.14,1714.8 816.77,1703.4 856,1691.2 856,1691.2 856,1691.2 967,1500.8 967,1500.8 967,1500.8 1018,1484.8 1018,1484.8 \\\r\n1018,1484.8 1028,1469 1028,1469 1028,1469 1051,1445 1051,1445 1051,1445 1068,1397.5 1068,1397.5 1068,1397.5 1114,1381.5 1114,1381.5 \\\r\n1114,1381.5 1164,1357.8 1164,1357.8 1164,1357.8 1239,1262.5 1239,1262.5 1239,1262.5 1244,1196.1 1244,1196.1 1244,1196.1 1244,1196.1 \\\r\n1244,654.25 1244,654.25 1239,595.75 1239,595.75 1239,595.75 1231.1,588.43 1221.9,579.84\"];\r\n\t\tPHYSICAL_TABLE_005\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"chunk_content_cas\\nrows=0 | columns=5 | role=core_contract\",\r\n\t\t\tpos=\"484,1528.5\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_004 -> PHYSICAL_TABLE_005\t[label=\"next physical table\",\r\n\t\t\tlp=\"578.5,1580.1\",\r\n\t\t\tpos=\"e,496.77,1548.7 587.87,1611.5 556.55,1600.2 523,1588 523,1588 523,1588 513,1573 503.13,1558.2\"];\r\n\t\tPHYSICAL_TABLE_004 -> PHYSICAL_TABLE_007\t[constraint=true,\r\n\t\t\tpos=\"e,641,1326.5 641,1612 641,1558.3 641,1403.8 641,1337.8\",\r\n\t\t\tstyle=invis,\r\n\t\t\tweight=100];\r\n\t\tPHYSICAL_TABLE_012\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"tfidf_vector\\nrows=0 | columns=6 | role=core_contract\",\r\n\t\t\tpos=\"339,758.5\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_004 -> PHYSICAL_TABLE_012\t[label=\"chunk_id -> chunk_index.chunk_id\",\r\n\t\t\tlp=\"418.59,1195.1\",\r\n\t\t\tpos=\"e,336.18,778.54 571.04,1611.5 482.39,1587.1 341,1548.2 341,1548.2 341,1548.2 322,1500.8 322,1500.8 322,1500.8 215,1484.8 215,1484.8 \\\r\n215,1484.8 215,1469 215,1469 215,1469 220,1397.5 220,1397.5 220,1397.5 324,1136.6 324,1136.6 324,1136.6 324,1136.6 324,860.75 324,\\\r\n860.75 330.11,819.54 334.53,789.7\"];\r\n\t\tPHYSICAL_TABLE_006\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"chunk_history\\nrows=0 | columns=9 | role=core_contract\",\r\n\t\t\tpos=\"363,1425.2\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_005 -> PHYSICAL_TABLE_006\t[label=\"next physical table\",\r\n\t\t\tlp=\"276.5,1476.9\",\r\n\t\t\tpos=\"e,299.06,1445.5 376.18,1508.3 352.33,1504 334,1500.8 334,1500.8 334,1500.8 221,1484.8 221,1484.8 221,1484.8 221,1469 221,1469 221,\\\r\n1469 254.16,1459 288.43,1448.7\"];\r\n\t\tPHYSICAL_TABLE_005 -> PHYSICAL_TABLE_006\t[label=\"chunk_sha256 -> chunk_content_cas.sha256\",\r\n\t\t\tlp=\"497.88,1476.9\",\r\n\t\t\tpos=\"e,362.45,1445.1 428.95,1508.3 396.51,1496.9 361.75,1484.8 361.75,1484.8 361.75,1484.8 361.75,1469 361.75,1469 361.75,1469 361.91,\\\r\n1463.4 362.12,1456.2\"];\r\n\t\tPHYSICAL_TABLE_006 -> PHYSICAL_TABLE_007\t[label=\"next physical table\",\r\n\t\t\tlp=\"557.5,1373.6\",\r\n\t\t\tpos=\"e,595.38,1326.4 408.59,1405.1 456.87,1384.7 533.13,1352.6 585.02,1330.8\"];\r\n\t\tPHYSICAL_TABLE_008\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"parser_capability\\nrows=0 | columns=4 | role=core_contract\",\r\n\t\t\tpos=\"688,1195.1\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_007 -> PHYSICAL_TABLE_008\t[label=\"next physical table\",\r\n\t\t\tlp=\"721.41,1254.6\",\r\n\t\t\tpos=\"e,679.75,1215.3 649.19,1286.2 656.39,1269.5 666.99,1244.9 675.29,1225.6\"];\r\n\t\tPHYSICAL_TABLE_007 -> PHYSICAL_TABLE_020\t[constraint=true,\r\n\t\t\tpos=\"e,959.18,1215.3 708.08,1286 767.54,1269 845,1246.8 845,1246.8 845,1246.8 898.92,1231.9 948.38,1218.3\",\r\n\t\t\tstyle=invis,\r\n\t\t\tweight=100];\r\n\t\tPHYSICAL_TABLE_009\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"tool_route_contract\\nrows=41 | columns=11 | role=core_contract\",\r\n\t\t\tpos=\"681,1068.2\",\r\n\t\t\twidth=3.8368];\r\n\t\tPHYSICAL_TABLE_008 -> PHYSICAL_TABLE_009\t[label=\"next physical table\",\r\n\t\t\tlp=\"740.63,1135.6\",\r\n\t\t\tpos=\"e,682.07,1088.3 686.92,1174.9 685.8,1154.8 684.02,1123.2 682.71,1099.7\"];\r\n\t\tPHYSICAL_TABLE_010\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"tool_execution_receipt\\nrows=41 | columns=11 | role=core_contract\",\r\n\t\t\tpos=\"507,965\",\r\n\t\t\twidth=3.8368];\r\n\t\tPHYSICAL_TABLE_009 -> PHYSICAL_TABLE_010\t[label=\"next physical table\",\r\n\t\t\tlp=\"732.11,1016.6\",\r\n\t\t\tpos=\"e,582.65,985.25 679.04,1048.1 677.29,1031 675,1008.8 675,1008.8 675,1008.8 634.75,998.51 593.65,988.05\"];\r\n\t\tPHYSICAL_TABLE_009 -> PHYSICAL_TABLE_010\t[label=\"tool -> tool_route_contract.tool\",\r\n\t\t\tlp=\"577.5,1016.6\",\r\n\t\t\tpos=\"e,497.73,984.88 593.2,1048 541.44,1036.7 486,1024.5 486,1024.5 486,1024.5 486,1008.8 486,1008.8 486,1008.8 489.02,1002.6 492.76,\\\r\n994.98\"];\r\n\t\tPHYSICAL_TABLE_011\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"tfidf_term\\nrows=0 | columns=4 | role=core_contract\",\r\n\t\t\tpos=\"507,861.75\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_010 -> PHYSICAL_TABLE_011\t[label=\"next physical table\",\r\n\t\t\tlp=\"562.5,913.38\",\r\n\t\t\tpos=\"e,507,881.71 507,944.96 507,930.39 507,910.02 507,893.19\"];\r\n\t\tPHYSICAL_TABLE_011 -> PHYSICAL_TABLE_012\t[label=\"next physical table\",\r\n\t\t\tlp=\"552.25,810.12\",\r\n\t\t\tpos=\"e,408.34,778.75 502.42,841.59 498.33,824.53 493,802.25 493,802.25 493,802.25 456.73,792.18 419.4,781.82\"];\r\n\t\tPHYSICAL_TABLE_011 -> PHYSICAL_TABLE_012\t[label=\"term -> tfidf_term.term\",\r\n\t\t\tlp=\"418.75,810.12\",\r\n\t\t\tpos=\"e,342.77,778.66 436.53,841.5 394.99,830.15 350.5,818 350.5,818 350.5,818 347.77,804.13 344.97,789.89\"];\r\n\t\tPHYSICAL_TABLE_013\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"refresh_receipt\\nrows=0 | columns=11 | role=core_contract\",\r\n\t\t\tpos=\"166,655.25\",\r\n\t\t\twidth=3.7326];\r\n\t\tPHYSICAL_TABLE_012 -> PHYSICAL_TABLE_013\t[label=\"next physical table\",\r\n\t\t\tlp=\"318.36,706.88\",\r\n\t\t\tpos=\"e,198.69,675.38 306.46,738.46 278.76,722.24 238.77,698.84 208.53,681.14\"];\r\n\t\tPHYSICAL_TABLE_014\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"mutation_receipt\\nrows=0 | columns=6 | role=core_contract\",\r\n\t\t\tpos=\"172,552\",\r\n\t\t\twidth=3.6389];\r\n\t\tPHYSICAL_TABLE_013 -> PHYSICAL_TABLE_014\t[label=\"next physical table\",\r\n\t\t\tlp=\"224.86,603.62\",\r\n\t\t\tpos=\"e,170.88,571.96 167.13,635.21 167.99,620.64 169.2,600.27 170.2,583.44\"];\r\n\t\tPHYSICAL_TABLE_015\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"authority_index_content_cas\\nrows=172 | columns=5 | role=core_contract\",\r\n\t\t\tpos=\"182,448.75\",\r\n\t\t\twidth=3.8472];\r\n\t\tPHYSICAL_TABLE_014 -> PHYSICAL_TABLE_015\t[label=\"next physical table\",\r\n\t\t\tlp=\"233.1,500.38\",\r\n\t\t\tpos=\"e,180.13,468.71 173.88,531.96 175.33,517.25 177.37,496.62 179.04,479.71\"];\r\n\t\tPHYSICAL_TABLE_016\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"authority_index_source\\nrows=86 | columns=7 | role=core_contract\",\r\n\t\t\tpos=\"167,345.5\",\r\n\t\t\twidth=3.7431];\r\n\t\tPHYSICAL_TABLE_015 -> PHYSICAL_TABLE_016\t[label=\"next physical table\",\r\n\t\t\tlp=\"95.5,397.12\",\r\n\t\t\tpos=\"e,109.82,365.75 118.06,428.5 80.371,417.15 40,405 40,405 40,405 40,389.25 40,389.25 40,389.25 68.892,379.52 99.115,369.35\"];\r\n\t\tPHYSICAL_TABLE_015 -> PHYSICAL_TABLE_016\t[label=\"metadata_sha256 -> authority_index_content_cas.sha256\",\r\n\t\t\tlp=\"349.77,397.12\",\r\n\t\t\tpos=\"e,169.81,365.46 179.18,428.71 177,414 173.94,393.37 171.44,376.46\"];\r\n\t\tPHYSICAL_TABLE_017\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"authority_index_node\\nrows=86 | columns=7 | role=core_contract\",\r\n\t\t\tpos=\"393,242.25\",\r\n\t\t\twidth=3.7431];\r\n\t\tPHYSICAL_TABLE_015 -> PHYSICAL_TABLE_017\t[label=\"metadata_sha256 -> authority_index_content_cas.sha256\",\r\n\t\t\tlp=\"705.89,345.5\",\r\n\t\t\tpos=\"e,455.59,262.5 320.79,430.7 417.78,418.79 530,405 530,405 530,405 532,301.75 532,301.75 532,301.75 532,286 532,286 532,286 499.82,\\\r\n276.1 466.43,265.83\"];\r\n\t\tPHYSICAL_TABLE_015 -> PHYSICAL_TABLE_017\t[label=\"text_sha256 -> authority_index_content_cas.sha256\",\r\n\t\t\tlp=\"1042.8,345.5\",\r\n\t\t\tpos=\"e,507.96,262.49 320.67,431.5 525.76,407.47 886,365.25 886,365.25 886,365.25 886,325.75 886,325.75 886,325.75 665.29,288.82 519.22,\\\r\n264.37\"];\r\n\t\tPHYSICAL_TABLE_016 -> PHYSICAL_TABLE_017\t[label=\"next physical table\",\r\n\t\t\tlp=\"163.5,293.88\",\r\n\t\t\tpos=\"e,264.67,262.5 140.61,325.38 124.9,313.99 108,301.75 108,301.75 108,301.75 108,286 108,286 108,286 181.31,275 253.56,264.17\"];\r\n\t\tPHYSICAL_TABLE_016 -> PHYSICAL_TABLE_017\t[label=\"source_id -> authority_index_source.source_id\",\r\n\t\t\tlp=\"389.75,293.88\",\r\n\t\t\tpos=\"e,328.39,262.5 194.01,325.34 218.07,308.28 249.5,286 249.5,286 249.5,286 283.01,276.02 317.64,265.7\"];\r\n\t\tPHYSICAL_TABLE_018\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"authority_index_fts\\nrows=86 | columns=7 | role=core_contract\",\r\n\t\t\tpos=\"393,139\",\r\n\t\t\twidth=3.7431];\r\n\t\tPHYSICAL_TABLE_017 -> PHYSICAL_TABLE_018\t[label=\"next physical table\",\r\n\t\t\tlp=\"448.5,190.62\",\r\n\t\t\tpos=\"e,393,158.96 393,222.21 393,207.64 393,187.27 393,170.44\"];\r\n\t\tPHYSICAL_TABLE_019\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"authority_index_refresh_receipt\\nrows=1 | columns=12 | role=core_contract\",\r\n\t\t\tpos=\"393,35.75\",\r\n\t\t\twidth=3.7431];\r\n\t\tPHYSICAL_TABLE_018 -> PHYSICAL_TABLE_019\t[label=\"next physical table\",\r\n\t\t\tlp=\"448.5,87.375\",\r\n\t\t\tpos=\"e,393,55.709 393,118.96 393,104.39 393,84.015 393,67.195\"];\r\n\t\tPHYSICAL_GROUP_LANE -> PHYSICAL_TABLE_020\t[label=\"next physical table\",\r\n\t\t\tlp=\"991.01,1683.4\",\r\n\t\t\tpos=\"e,1106,1215.3 928.03,2174.7 921.41,2131.9 906,2032.4 906,2032.4 906,2032.4 889,1897.6 889,1897.6 889,1897.6 889,1707.2 889,1707.2 \\\r\n889,1707.2 931,1691.2 931,1691.2 931,1691.2 987,1500.8 987,1500.8 987,1500.8 1025,1484.8 1025,1484.8 1025,1484.8 1035,1469 1035,\\\r\n1469 1035,1469 1070,1445 1070,1445 1070,1445 1104,1397.5 1104,1397.5 1104,1397.5 1161,1357.8 1161,1357.8 1161,1357.8 1232,1262.5 \\\r\n1232,1262.5 1232,1262.5 1232,1246.8 1232,1246.8 1232,1246.8 1171.8,1231.7 1116.9,1218\"];\r\n\t\tPHYSICAL_TABLE_020 -> PHYSICAL_TABLE_021\t[label=\"next physical table\",\r\n\t\t\tlp=\"1078.8,1135.6\",\r\n\t\t\tpos=\"e,1017.1,1088.3 1026.8,1174.9 1024.6,1154.8 1021,1123.2 1018.4,1099.7\"];\r\n\t\tPHYSICAL_TABLE_021 -> PHYSICAL_TABLE_022\t[label=\"next physical table\",\r\n\t\t\tlp=\"1070.5,1016.6\",\r\n\t\t\tpos=\"e,1015,984.96 1015,1048.2 1015,1033.6 1015,1013.3 1015,996.44\"];\r\n\t\tPHYSICAL_TABLE_022 -> PHYSICAL_TABLE_023\t[label=\"next physical table\",\r\n\t\t\tlp=\"1093.5,913.38\",\r\n\t\t\tpos=\"e,1048.3,881.71 1022.7,944.96 1028.7,930.11 1037.2,909.22 1044.1,892.22\"];\r\n\t\tPHYSICAL_TABLE_023 -> PHYSICAL_TABLE_024\t[label=\"next physical table\",\r\n\t\t\tlp=\"1124.4,810.12\",\r\n\t\t\tpos=\"e,1074.7,778.46 1060.3,841.71 1063.7,827 1068.4,806.37 1072.2,789.46\"];\r\n\t\tPHYSICAL_TABLE_024 -> PHYSICAL_TABLE_025\t[label=\"next physical table\",\r\n\t\t\tlp=\"1134.5,706.88\",\r\n\t\t\tpos=\"e,1079,675.21 1079,738.46 1079,723.89 1079,703.52 1079,686.69\"];\r\n\t\tPHYSICAL_TABLE_025 -> PHYSICAL_TABLE_026\t[label=\"next physical table\",\r\n\t\t\tlp=\"1181.5,603.62\",\r\n\t\t\tpos=\"e,1163,572.12 1094.4,635.09 1108.1,618.03 1126,595.75 1126,595.75 1126,595.75 1138.9,587.51 1153.4,578.27\"];\r\n\t\tPHYSICAL_TABLE_035\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_chunk_fts\\nrows=0 | columns=6 | role=lane_fts_contract\",\r\n\t\t\tpos=\"1193,448.75\",\r\n\t\t\twidth=3.9306];\r\n\t\tPHYSICAL_TABLE_026 -> PHYSICAL_TABLE_035\t[label=\"next physical table\",\r\n\t\t\tlp=\"1248.5,500.38\",\r\n\t\t\tpos=\"e,1193,468.71 1193,531.96 1193,517.39 1193,497.02 1193,480.19\"];\r\n\t\tPHYSICAL_TABLE_027\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_commit_registry\\nrows=0 | columns=10 | role=lane_contract\",\r\n\t\t\tpos=\"1104,2107.8\",\r\n\t\t\twidth=3.7326];\r\n\t\tPHYSICAL_GROUP_GIT -> PHYSICAL_TABLE_027\t[label=\"next physical table\",\r\n\t\t\tlp=\"1159.5,2194.9\",\r\n\t\t\tpos=\"e,1104,2127.8 1104,2238.2 1104,2213.2 1104,2168.9 1104,2139.2\"];\r\n\t\tPHYSICAL_TABLE_028\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_commit_parent\\nrows=0 | columns=3 | role=lane_contract\",\r\n\t\t\tpos=\"1345,1973\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_027 -> PHYSICAL_TABLE_028\t[label=\"next physical table\",\r\n\t\t\tlp=\"1393.2,2048.2\",\r\n\t\t\tpos=\"e,1342.9,1993 1192,2087.5 1257.7,2073.2 1336,2056.1 1336,2056.1 1336,2056.1 1339.1,2027.7 1341.7,2004.3\"];\r\n\t\tPHYSICAL_TABLE_027 -> PHYSICAL_TABLE_028\t[label=\"commit_sha -> git_commit_registry.commit_sha\",\r\n\t\t\tlp=\"1184.9,2048.2\",\r\n\t\t\tpos=\"e,1295.9,1993.1 1079.7,2087.6 1061.5,2073.3 1039.8,2056.1 1039.8,2056.1 1039.8,2056.1 1039.8,2040.4 1039.8,2040.4 1039.8,2040.4 \\\r\n1195,2032.4 1195,2032.4 1195,2032.4 1243.6,2013.5 1285.4,1997.2\"];\r\n\t\tPHYSICAL_TABLE_029\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_file_change\\nrows=0 | columns=5 | role=lane_contract\",\r\n\t\t\tpos=\"1032,1846.1\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_027 -> PHYSICAL_TABLE_029\t[label=\"commit_sha -> git_commit_registry.commit_sha\",\r\n\t\t\tlp=\"1056.9,1973\",\r\n\t\t\tpos=\"e,1008.5,1866.3 1054.5,2087.6 997.53,2065.6 911.75,2032.4 911.75,2032.4 911.75,2032.4 911.75,1945.4 911.75,1945.4 911.75,1945.4 \\\r\n964.26,1902.5 999.88,1873.4\"];\r\n\t\tPHYSICAL_TABLE_033\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_chunk_occurrence\\nrows=0 | columns=7 | role=lane_contract\",\r\n\t\t\tpos=\"1247,1425.2\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_027 -> PHYSICAL_TABLE_033\t[label=\"commit_sha -> git_commit_registry.commit_sha\",\r\n\t\t\tlp=\"1370.9,1735\",\r\n\t\t\tpos=\"e,1377.7,1444.8 1237.4,2087.5 1336.7,2073.2 1455,2056.1 1455,2056.1 1455,2056.1 1488,2032.4 1488,2032.4 1488,2032.4 1488,1945.4 \\\r\n1488,1945.4 1488,1945.4 1225.8,1754.8 1225.8,1754.8 1225.8,1754.8 1225.8,1707.2 1225.8,1707.2 1225.8,1707.2 1488,1548.2 1488,1548.2 \\\r\n1488,1548.2 1516,1500.8 1516,1500.8 1516,1500.8 1548,1484.8 1548,1484.8 1548,1484.8 1548,1469 1548,1469 1548,1469 1466.8,1457.5 \\\r\n1388.7,1446.4\"];\r\n\t\tPHYSICAL_TABLE_028 -> PHYSICAL_TABLE_029\t[label=\"next physical table\",\r\n\t\t\tlp=\"1272,1913.5\",\r\n\t\t\tpos=\"e,1080,1866.3 1296.8,1952.8 1241.2,1930.6 1149.9,1894.2 1090.4,1870.4\"];\r\n\t\tPHYSICAL_TABLE_030\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_ref_registry\\nrows=0 | columns=4 | role=lane_contract\",\r\n\t\t\tpos=\"1032,1735\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_029 -> PHYSICAL_TABLE_030\t[label=\"next physical table\",\r\n\t\t\tlp=\"1087.5,1786.6\",\r\n\t\t\tpos=\"e,1032,1755.2 1032,1826.1 1032,1809.7 1032,1785.7 1032,1766.6\"];\r\n\t\tPHYSICAL_TABLE_031\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_blob_cas\\nrows=0 | columns=8 | role=lane_contract\",\r\n\t\t\tpos=\"1117,1631.8\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_030 -> PHYSICAL_TABLE_031\t[label=\"next physical table\",\r\n\t\t\tlp=\"1143.2,1683.4\",\r\n\t\t\tpos=\"e,1103.9,1651.9 1052.1,1714.9 1064.1,1703.5 1077,1691.2 1077,1691.2 1077,1691.2 1087.4,1676 1097.7,1661\"];\r\n\t\tPHYSICAL_TABLE_032\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_content_chunk_cas\\nrows=0 | columns=4 | role=lane_contract\",\r\n\t\t\tpos=\"1345,1528.5\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_031 -> PHYSICAL_TABLE_032\t[label=\"next physical table\",\r\n\t\t\tlp=\"1300.2,1580.1\",\r\n\t\t\tpos=\"e,1302,1548.6 1160.2,1611.6 1197.5,1595 1251.6,1571 1291.6,1553.2\"];\r\n\t\tPHYSICAL_TABLE_031 -> PHYSICAL_TABLE_033\t[label=\"blob_sha -> git_blob_cas.blob_sha\",\r\n\t\t\tlp=\"1097.4,1528.5\",\r\n\t\t\tpos=\"e,1163.3,1445.5 1088.2,1611.6 1051.5,1587.2 992.75,1548.2 992.75,1548.2 992.75,1548.2 992.75,1500.8 992.75,1500.8 992.75,1500.8 \\\r\n1032,1484.8 1032,1484.8 1032,1484.8 1061,1469 1061,1469 1061,1469 1106.3,1458.6 1152.2,1448\"];\r\n\t\tPHYSICAL_TABLE_032 -> PHYSICAL_TABLE_033\t[label=\"next physical table\",\r\n\t\t\tlp=\"1122.5,1476.9\",\r\n\t\t\tpos=\"e,1166,1445.5 1237.2,1508.3 1213.3,1504 1195,1500.8 1195,1500.8 1195,1500.8 1067,1484.8 1067,1484.8 1067,1484.8 1067,1469 1067,1469 \\\r\n1067,1469 1110.7,1458.6 1155,1448.1\"];\r\n\t\tPHYSICAL_TABLE_032 -> PHYSICAL_TABLE_033\t[label=\"chunk_sha256 -> git_content_chunk_cas.chunk_sha256\",\r\n\t\t\tlp=\"1377.2,1476.9\",\r\n\t\t\tpos=\"e,1230,1445.1 1283.5,1508.3 1247.3,1496.9 1208.5,1484.8 1208.5,1484.8 1208.5,1484.8 1208.5,1469 1208.5,1469 1208.5,1469 1214.9,1461.9 \\\r\n1222.5,1453.4\"];\r\n\t\tPHYSICAL_TABLE_034\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_history_fts\\nrows=0 | columns=6 | role=lane_contract\",\r\n\t\t\tpos=\"1373,1306.2\",\r\n\t\t\twidth=3.6285];\r\n\t\tPHYSICAL_TABLE_033 -> PHYSICAL_TABLE_034\t[label=\"next physical table\",\r\n\t\t\tlp=\"1365.5,1373.6\",\r\n\t\t\tpos=\"e,1352.5,1326.3 1267.5,1405.2 1288.4,1385.8 1320.9,1355.6 1344.3,1333.9\"];\r\n\t\tPHYSICAL_TABLE_044\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_history_fts_config\\nrows=derived | columns=2 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1477,1195.1\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_034 -> PHYSICAL_TABLE_044\t[label=\"next physical table\",\r\n\t\t\tlp=\"1483.6,1254.6\",\r\n\t\t\tpos=\"e,1458.7,1215.3 1391.1,1286.2 1407.6,1268.9 1432.3,1243.1 1450.9,1223.5\"];\r\n\t\tPHYSICAL_TABLE_045\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_history_fts_data\\nrows=derived | columns=2 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1507,1068.2\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_044 -> PHYSICAL_TABLE_045\t[label=\"next physical table\",\r\n\t\t\tlp=\"1548.4,1135.6\",\r\n\t\t\tpos=\"e,1502.4,1088.3 1481.6,1174.9 1486.5,1154.8 1494.1,1122.9 1499.8,1099.4\"];\r\n\t\tPHYSICAL_TABLE_046\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_history_fts_docsize\\nrows=derived | columns=3 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1507,965\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_045 -> PHYSICAL_TABLE_046\t[label=\"next physical table\",\r\n\t\t\tlp=\"1562.5,1016.6\",\r\n\t\t\tpos=\"e,1507,984.96 1507,1048.2 1507,1033.6 1507,1013.3 1507,996.44\"];\r\n\t\tPHYSICAL_TABLE_047\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_history_fts_idx\\nrows=derived | columns=3 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1507,861.75\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_046 -> PHYSICAL_TABLE_047\t[label=\"next physical table\",\r\n\t\t\tlp=\"1562.5,913.38\",\r\n\t\t\tpos=\"e,1507,881.71 1507,944.96 1507,930.39 1507,910.02 1507,893.19\"];\r\n\t\tPHYSICAL_TABLE_036\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"authority_index_fts_config\\nrows=derived | columns=2 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1536,2107.8\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_GROUP_AUXILIARY -> PHYSICAL_TABLE_036\t[label=\"next physical table\",\r\n\t\t\tlp=\"1553,2194.9\",\r\n\t\t\tpos=\"e,1525.5,2127.8 1464.6,2238.2 1478.6,2212.7 1503.7,2167.3 1520.1,2137.6\"];\r\n\t\tPHYSICAL_TABLE_037\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"authority_index_fts_data\\nrows=derived | columns=2 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1705,1973\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_036 -> PHYSICAL_TABLE_037\t[label=\"next physical table\",\r\n\t\t\tlp=\"1676,2048.2\",\r\n\t\t\tpos=\"e,1680.6,1993.2 1560.2,2087.7 1589.5,2064.7 1638.9,2025.9 1671.8,2000.1\"];\r\n\t\tPHYSICAL_TABLE_038\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"authority_index_fts_docsize\\nrows=derived | columns=3 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1705,1846.1\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_037 -> PHYSICAL_TABLE_038\t[label=\"next physical table\",\r\n\t\t\tlp=\"1760.5,1913.5\",\r\n\t\t\tpos=\"e,1705,1866.2 1705,1952.8 1705,1932.7 1705,1901 1705,1877.6\"];\r\n\t\tPHYSICAL_TABLE_039\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"authority_index_fts_idx\\nrows=derived | columns=3 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1705,1735\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_038 -> PHYSICAL_TABLE_039\t[label=\"next physical table\",\r\n\t\t\tlp=\"1760.5,1786.6\",\r\n\t\t\tpos=\"e,1705,1755.2 1705,1826.1 1705,1809.7 1705,1785.7 1705,1766.6\"];\r\n\t\tPHYSICAL_TABLE_040\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_chunk_fts_config\\nrows=derived | columns=2 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1705,1631.8\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_039 -> PHYSICAL_TABLE_040\t[label=\"next physical table\",\r\n\t\t\tlp=\"1760.5,1683.4\",\r\n\t\t\tpos=\"e,1705,1651.7 1705,1715 1705,1700.4 1705,1680 1705,1663.2\"];\r\n\t\tPHYSICAL_TABLE_041\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_chunk_fts_data\\nrows=derived | columns=2 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1705,1528.5\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_040 -> PHYSICAL_TABLE_041\t[label=\"next physical table\",\r\n\t\t\tlp=\"1760.5,1580.1\",\r\n\t\t\tpos=\"e,1705,1548.5 1705,1611.7 1705,1597.1 1705,1576.8 1705,1559.9\"];\r\n\t\tPHYSICAL_TABLE_042\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_chunk_fts_docsize\\nrows=derived | columns=3 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1705,1425.2\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_041 -> PHYSICAL_TABLE_042\t[label=\"next physical table\",\r\n\t\t\tlp=\"1760.5,1476.9\",\r\n\t\t\tpos=\"e,1705,1445.2 1705,1508.5 1705,1493.9 1705,1473.5 1705,1456.7\"];\r\n\t\tPHYSICAL_TABLE_043\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_chunk_fts_idx\\nrows=derived | columns=3 | role=sqlite_engine_auxiliary\",\r\n\t\t\tpos=\"1705,1306.2\",\r\n\t\t\twidth=4.9097];\r\n\t\tPHYSICAL_TABLE_042 -> PHYSICAL_TABLE_043\t[label=\"next physical table\",\r\n\t\t\tlp=\"1760.5,1373.6\",\r\n\t\t\tpos=\"e,1705,1326.3 1705,1405.2 1705,1386.9 1705,1359 1705,1337.7\"];\r\n\t}\r\n\tsubgraph cluster_code_logical_topology {\r\n\t\tgraph [bb=\"2479,1500.8,3512,2309.9\",\r\n\t\t\tlabel=\"4. Authorized seven-entity logical code contract and relations\",\r\n\t\t\tlheight=0.22,\r\n\t\t\tlp=\"2995.5,2298\",\r\n\t\t\tlwidth=5.04,\r\n\t\t\trankdir=TB\r\n\t\t];\r\n\t\tCODE_SECTOR\t[color=\"#101828\",\r\n\t\t\tfillcolor=\"#101828\",\r\n\t\t\tfontcolor=white,\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"Code Sector\\n7 logical entities | SQLite-derived relationships | physical schema retained\",\r\n\t\t\tpos=\"2716,2258.4\",\r\n\t\t\twidth=6.3576];\r\n\t\tCODE_REPO\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_repo\\nrows=4 | Repo -> lane_meta\",\r\n\t\t\tpos=\"2890,2107.8\",\r\n\t\t\twidth=2.6076];\r\n\t\tCODE_SECTOR -> CODE_REPO\t[pos=\"e,2867.7,2127.8 2738.4,2238.2 2769.2,2211.9 2824.7,2164.5 2859.4,2134.9\"];\r\n\t\tGIT_COMMIT\t[color=\"#c88722\",\r\n\t\t\tfillcolor=\"#fff7e7\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"git_commit\\nrows=0 | Commit -> git_commit_registry\",\r\n\t\t\tpos=\"2890,1973\",\r\n\t\t\twidth=3.5868];\r\n\t\tCODE_SECTOR -> GIT_COMMIT\t[pos=\"e,2871,1993 2723.3,2238.4 2740.8,2192.7 2784,2080.1 2784,2080.1 2784,2080.1 2831.7,2032.4 2863.1,2001\"];\r\n\t\tCODE_FILE\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_file\\nrows=0 | File -> source_registry\",\r\n\t\t\tpos=\"3035,1846.1\",\r\n\t\t\twidth=2.8576];\r\n\t\tCODE_SECTOR -> CODE_FILE\t[pos=\"e,3138.2,1861.9 2785.5,2238.2 2967.4,2187.9 3444,2056.1 3444,2056.1 3444,2056.1 3444,1905.6 3444,1905.6 3444,1905.6 3270.4,1880.8 \\\r\n3149.4,1863.5\"];\r\n\t\tCODE_SYMBOL\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_symbol\\nrows=0 | Symbol -> code_symbol\",\r\n\t\t\tpos=\"3365,1735\",\r\n\t\t\twidth=3.0243];\r\n\t\tCODE_SECTOR -> CODE_SYMBOL\t[pos=\"e,3412.7,1755.2 2821.4,2238.1 2883.5,2226.8 2950,2214.6 2950,2214.6 2950,2214.6 3206,2167.1 3206,2167.1 3206,2167.1 3476,2108.8 \\\r\n3476,2108.8 3476,2108.8 3476,2108.8 3476,1845.1 3476,1845.1 3471,1778.8 3471,1778.8 3471,1778.8 3447.9,1769.4 3423.3,1759.5\"];\r\n\t\tAPP_ROUTE\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"app_route\\nrows=0 | Route -> code_route\",\r\n\t\t\tpos=\"3365,1631.8\",\r\n\t\t\twidth=2.7118];\r\n\t\tCODE_SECTOR -> APP_ROUTE\t[pos=\"e,3267.2,1644.2 2631.8,2238.1 2582.2,2226.8 2529,2214.6 2529,2214.6 2529,2214.6 2529,2080.1 2529,2080.1 2529,2080.1 2901,1707.2 \\\r\n2901,1707.2 2901,1707.2 3000,1675.5 3000,1675.5 3000,1675.5 3148.4,1658.1 3255.9,1645.5\"];\r\n\t\tDEPENDENCY_ITEM\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"dependency_item\\nrows=0 | Dependency -> code_dependency\",\r\n\t\t\tpos=\"3365,1528.5\",\r\n\t\t\twidth=3.8576];\r\n\t\tCODE_SECTOR -> DEPENDENCY_ITEM\t[pos=\"e,3391,1548.5 2871.3,2238.1 2962.9,2226.8 3061,2214.6 3061,2214.6 3061,2214.6 3348,2167.1 3348,2167.1 3348,2167.1 3503,2108.8 3503,\\\r\n2108.8 3503,2108.8 3503,2108.8 3503,1630.8 3503,1630.8 3441,1585.2 3400.1,1555.2\"];\r\n\t\tPROJECT_ARTIFACT\t[color=\"#7147c7\",\r\n\t\t\tfillcolor=\"#f0ebff\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"project_artifact\\nrows=0 | Artifact -> structured_fact\",\r\n\t\t\tpos=\"2625,1973\",\r\n\t\t\twidth=3.0868];\r\n\t\tCODE_SECTOR -> PROJECT_ARTIFACT\t[pos=\"e,2608.9,1993 2634.5,2238.1 2586.5,2226.8 2535,2214.6 2535,2214.6 2535,2214.6 2535,2080.1 2535,2080.1 2535,2080.1 2575.1,2032.8 \\\r\n2601.8,2001.4\"];\r\n\t\tCODE_REPO -> GIT_COMMIT\t[constraint=true,\r\n\t\t\tpos=\"e,2890,1993 2890,2087.7 2890,2065.9 2890,2030 2890,2004.3\",\r\n\t\t\tstyle=invis,\r\n\t\t\tweight=100];\r\n\t\tCODE_REPO -> CODE_FILE\t[label=\"logical contains | EXTRACTED | edge=15682886733D\",\r\n\t\t\tlp=\"3254.5,1973\",\r\n\t\t\tpos=\"e,3053.3,1866.3 2966.3,2087.5 3023.1,2073.2 3091,2056.1 3091,2056.1 3091,2056.1 3091,1905.6 3091,1905.6 3091,1905.6 3075.8,1889.8 \\\r\n3061.3,1874.6\"];\r\n\t\tCODE_REPO -> DEPENDENCY_ITEM\t[label=\"logical declares dependency | EXTRACTED | edge=B585C9C0E8DD\",\r\n\t\t\tlp=\"2921.6,1786.6\",\r\n\t\t\tpos=\"e,3314.7,1548.7 2946.7,2087.6 2989.2,2073.3 3040,2056.1 3040,2056.1 3040,2056.1 3040,1905.6 3040,1905.6 3040,1905.6 2714.2,1794.5 \\\r\n2714.2,1794.5 2714.2,1794.5 2714.2,1778.8 2714.2,1778.8 2714.2,1778.8 3142.2,1614.8 3304,1552.9\"];\r\n\t\tCODE_REPO -> PROJECT_ARTIFACT\t[label=\"logical produces | EXTRACTED | edge=2AB7E45AB337\",\r\n\t\t\tlp=\"2869.2,2048.2\",\r\n\t\t\tpos=\"e,2642.5,1993 2818.1,2087.5 2764.5,2073.2 2700.5,2056.1 2700.5,2056.1 2700.5,2056.1 2672.2,2025.3 2650.2,2001.5\"];\r\n\t\tGIT_COMMIT -> CODE_FILE\t[label=\"logical changes when Git history is loaded | EXTRACTED | edge=554530D45797\",\r\n\t\t\tlp=\"2845.6,1913.5\",\r\n\t\t\tpos=\"e,2994.2,1866.4 2794,1952.8 2773.1,1948.6 2757,1945.4 2757,1945.4 2757,1945.4 2602.2,1921.4 2602.2,1921.4 2602.2,1921.4 2602.2,1905.6 \\\r\n2602.2,1905.6 2602.2,1905.6 2928,1897.6 2928,1897.6 2928,1897.6 2956.6,1884.1 2984.2,1871.1\"];\r\n\t\tCODE_FILE -> CODE_SYMBOL\t[label=\"logical declares | EXTRACTED | edge=0D91CE9AF880\",\r\n\t\t\tlp=\"3329.1,1786.6\",\r\n\t\t\tpos=\"e,3273.7,1755.2 3071.8,1825.9 3109.4,1806.3 3162.2,1778.8 3162.2,1778.8 3162.2,1778.8 3212.3,1768.2 3262.6,1757.6\"];\r\n\t\tCODE_FILE -> APP_ROUTE\t[label=\"logical exposes | EXTRACTED | edge=C5AFD936AC8C\",\r\n\t\t\tlp=\"3075.2,1735\",\r\n\t\t\tpos=\"e,3266.9,1648.7 3026.6,1825.9 3018,1806.3 3006,1778.8 3006,1778.8 3006,1778.8 2906.5,1754.8 2906.5,1754.8 2906.5,1754.8 2906.5,1707.2 \\\r\n2906.5,1707.2 2906.5,1707.2 3120.1,1672.6 3255.7,1650.5\"];\r\n\t\tCODE_SYMBOL -> APP_ROUTE\t[constraint=true,\r\n\t\t\tpos=\"e,3365,1651.7 3365,1715 3365,1700.4 3365,1680 3365,1663.2\",\r\n\t\t\tstyle=invis,\r\n\t\t\tweight=100];\r\n\t\tAPP_ROUTE -> DEPENDENCY_ITEM\t[constraint=true,\r\n\t\t\tpos=\"e,3365,1548.5 3365,1611.7 3365,1597.1 3365,1576.8 3365,1559.9\",\r\n\t\t\tstyle=invis,\r\n\t\t\tweight=100];\r\n\t}\r\n\tsubgraph cluster_code_evidence_graph {\r\n\t\tgraph [bb=\"1898,1707.2,2404,2167.1\",\r\n\t\t\tlabel=\"5. SQLite-derived files, semantics, and stable evidence identities\",\r\n\t\t\tlheight=0.22,\r\n\t\t\tlp=\"2151,2155.2\",\r\n\t\t\tlwidth=5.38,\r\n\t\t\trankdir=LR\r\n\t\t];\r\n\t\tCODE_EVIDENCE_COVERAGE\t[color=\"#101828\",\r\n\t\t\tfillcolor=\"#101828\",\r\n\t\t\tfontcolor=white,\r\n\t\t\theight=0.76736,\r\n\t\t\tlabel=\"code evidence coverage\\nfiles=0 | symbols=0 | imports=0 | calls=0 | routes=0 | dependencies=0 | facts=0\\nstable nodes + stable edges | \\\r\nproject-authored Graphify concepts\",\r\n\t\t\tpos=\"2151,2107.8\",\r\n\t\t\twidth=6.8056];\r\n\t\tCODE_EVIDENCE_EMPTY\t[color=\"#c88722\",\r\n\t\t\tfillcolor=\"#fff7e7\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"no code files registered\\nschema remains explicit\",\r\n\t\t\tpos=\"2195,1735\",\r\n\t\t\twidth=2.2431];\r\n\t}\r\n\tsubgraph cluster_github_repository_graph {\r\n\t\tgraph [bb=\"3779,1810.5,5457,2032.4\",\r\n\t\t\tlabel=\"6. GitHub repository ref, history, content, and impact evidence\",\r\n\t\t\tlheight=0.22,\r\n\t\t\tlp=\"4618,2020.5\",\r\n\t\t\tlwidth=5.15,\r\n\t\t\trankdir=LR\r\n\t\t];\r\n\t\tGITHUB_GRAPH_ROOT\t[color=\"#101828\",\r\n\t\t\tfillcolor=\"#101828\",\r\n\t\t\tfontcolor=white,\r\n\t\t\theight=0.76736,\r\n\t\t\tlabel=\"GitHub repository evidence graph\\nrefs=0 | commits=0 | parents=0 | changes=0\\nblobs=0 | chunks=0 | occurrences=0\",\r\n\t\t\tpos=\"4101,1973\",\r\n\t\t\twidth=3.9306];\r\n\t\tGITHUB_GRAPH_BOUNDARY\t[color=\"#c88722\",\r\n\t\t\tfillcolor=\"#fff7e7\",\r\n\t\t\theight=0.76736,\r\n\t\t\tlabel=\"project-authored bounded projection\\nstable identity + EXTRACTED confidence + coverage + impact\\nno Graphify runtime, LLM extraction, \\\r\nserver, or network dependency\",\r\n\t\t\tpos=\"3999,1846.1\",\r\n\t\t\twidth=5.8993];\r\n\t\tGITHUB_GRAPH_ROOT -> GITHUB_GRAPH_BOUNDARY\t[label=\"governance boundary | EXTRACTED | edge=18CCB0BB8D34\",\r\n\t\t\tlp=\"4246.3,1913.5\",\r\n\t\t\tpos=\"e,4021.1,1874.2 4078.9,1944.9 4064,1926.7 4044.3,1902.6 4028.2,1882.9\"];\r\n\t\tGITHUB_IMPACT_COVERAGE\t[color=\"#c88722\",\r\n\t\t\tfillcolor=\"#fff7e7\",\r\n\t\t\theight=0.76736,\r\n\t\t\tlabel=\"source-impact seed coverage\\nchanged_files=0 | symbols=0 | routes=0 | dependencies=0 | structured_facts=0\\nfull affected closure \\\r\nis resolved by the source graph; no duplicate impact tables\",\r\n\t\t\tpos=\"4482,1846.1\",\r\n\t\t\twidth=6.816];\r\n\t\tGITHUB_GRAPH_ROOT -> GITHUB_IMPACT_COVERAGE\t[label=\"summarizes impact evidence | EXTRACTED | edge=5A247815E958\",\r\n\t\t\tlp=\"4508.8,1913.5\",\r\n\t\t\tpos=\"e,4399.5,1874.2 4183.7,1944.9 4244.1,1925.1 4326.1,1898.2 4388.8,1877.7\"];\r\n\t\tGITHUB_RENDER_COVERAGE\t[color=\"#c88722\",\r\n\t\t\tfillcolor=\"#fff7e7\",\r\n\t\t\theight=0.76736,\r\n\t\t\tlabel=\"bounded render coverage\\ncommits=0/0 | changes=0/0 | blobs=0/0 | chunk edges=0/0\\ncounts cover the full SQLite package; nodes are \\\r\ndeterministic samples\",\r\n\t\t\tpos=\"4972,1846.1\",\r\n\t\t\twidth=6.0972];\r\n\t\tGITHUB_GRAPH_ROOT -> GITHUB_RENDER_COVERAGE\t[label=\"declares visual coverage | EXTRACTED | edge=915220611BB0\",\r\n\t\t\tlp=\"4932.3,1913.5\",\r\n\t\t\tpos=\"e,4867.5,1874.2 4243,1959.7 4416.1,1944.7 4686,1921.4 4686,1921.4 4686,1921.4 4777.1,1897.7 4856.4,1877.1\"];\r\n\t\tGITHUB_HISTORY_EMPTY\t[color=\"#c88722\",\r\n\t\t\tfillcolor=\"#fff7e7\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"no Git commits loaded\\nGitHub history profile is not satisfied\",\r\n\t\t\tpos=\"5333,1846.1\",\r\n\t\t\twidth=3.2222];\r\n\t\tGITHUB_GRAPH_ROOT -> GITHUB_HISTORY_EMPTY\t[label=\"empty history | EXTRACTED | edge=8A586E27AB0E\",\r\n\t\t\tlp=\"5333.4,1913.5\",\r\n\t\t\tpos=\"e,5287.3,1866.4 4242.9,1964.8 4518.5,1950.8 5099,1921.4 5099,1921.4 5099,1921.4 5213,1897.6 5213,1897.6 5213,1897.6 5245.6,1883.9 \\\r\n5276.8,1870.8\"];\r\n\t}\r\n\tsubgraph cluster_retrieval {\r\n\t\tgraph [bb=\"3520,1397.5,3771,1897.6\",\r\n\t\t\tlabel=\"7. Retrieval and changed-section reuse\",\r\n\t\t\tlheight=0.22,\r\n\t\t\tlp=\"3645.5,1885.8\",\r\n\t\t\tlwidth=3.26,\r\n\t\t\trankdir=TB\r\n\t\t];\r\n\t\tCHUNK_INDEX\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"chunk_index\\nrows=0\",\r\n\t\t\tpos=\"3711,1846.1\",\r\n\t\t\twidth=1.2743];\r\n\t\tCHUNK_CAS\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"chunk_content_cas\\nrows=0\",\r\n\t\t\tpos=\"3697,1735\",\r\n\t\t\twidth=1.8368];\r\n\t\tCHUNK_INDEX -> CHUNK_CAS\t[pos=\"e,3699.5,1755.2 3708.6,1826.1 3706.4,1809.6 3703.3,1785.5 3700.9,1766.3\"];\r\n\t\tCHUNK_HISTORY\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"chunk_history\\nrows=0\",\r\n\t\t\tpos=\"3697,1631.8\",\r\n\t\t\twidth=1.3785];\r\n\t\tCHUNK_CAS -> CHUNK_HISTORY\t[pos=\"e,3697,1651.7 3697,1715 3697,1700.4 3697,1680 3697,1663.2\"];\r\n\t\tFTS\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"code_chunk_fts\\nrows=0\",\r\n\t\t\tpos=\"3697,1528.5\",\r\n\t\t\twidth=1.5347];\r\n\t\tCHUNK_HISTORY -> FTS\t[pos=\"e,3697,1548.5 3697,1611.7 3697,1597.1 3697,1576.8 3697,1559.9\"];\r\n\t\tTFIDF\t[color=\"#24805c\",\r\n\t\t\tfillcolor=\"#eaf8f1\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"tfidf_vector\\nrows=0\",\r\n\t\t\tpos=\"3697,1425.2\",\r\n\t\t\twidth=1.1389];\r\n\t\tFTS -> TFIDF\t[pos=\"e,3697,1445.2 3697,1508.5 3697,1493.9 3697,1473.5 3697,1456.7\"];\r\n\t}\r\n\tsubgraph cluster_lifecycle {\r\n\t\tgraph [bb=\"3364,1159.5,4030,1357.8\",\r\n\t\t\tlabel=\"8. Refresh, pointer, and mutation evidence\",\r\n\t\t\tlheight=0.22,\r\n\t\t\tlp=\"3697,1345.9\",\r\n\t\t\tlwidth=3.53,\r\n\t\t\trankdir=TB\r\n\t\t];\r\n\t\tREFRESH\t[color=\"#ba4236\",\r\n\t\t\tfillcolor=\"#fff1f0\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"refresh classification\\nunchanged_reuse=0 | changed_rebuild=0 | new_register=0 | removed_purge=0 | blocked_unsupported=0\",\r\n\t\t\tpos=\"3697,1306.2\",\r\n\t\t\twidth=9.0139];\r\n\t\tPOINTER\t[color=\"#ba4236\",\r\n\t\t\tfillcolor=\"#fff1f0\",\r\n\t\t\theight=0.76736,\r\n\t\t\tlabel=\"lane pointer evidence\\nentered_from=none | generation=0\\nproposed=unknown\",\r\n\t\t\tpos=\"3536,1195.1\",\r\n\t\t\twidth=3.1389];\r\n\t\tREFRESH -> POINTER\t[pos=\"e,3575.8,1223.1 3669,1286.2 3645.9,1270.6 3612.7,1248.1 3585.2,1229.5\"];\r\n\t\tMUTATION\t[color=\"#ba4236\",\r\n\t\t\tfillcolor=\"#fff1f0\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"append-only change evidence\\ndirect_purges=0 | mutation_receipts=0\",\r\n\t\t\tpos=\"3798,1195.1\",\r\n\t\t\twidth=3.441];\r\n\t\tREFRESH -> MUTATION\t[pos=\"e,3780.3,1215.3 3714.6,1286.2 3730.6,1268.9 3754.5,1243.1 3772.7,1223.5\"];\r\n\t}\r\n\tsubgraph cluster_outputs {\r\n\t\tgraph [bb=\"3143,937.25,3920,1119.8\",\r\n\t\t\tlabel=\"9. Inspectable lane package\",\r\n\t\t\tlheight=0.22,\r\n\t\t\tlp=\"3531.5,1107.9\",\r\n\t\t\tlwidth=2.33,\r\n\t\t\trankdir=TB\r\n\t\t];\r\n\t\tSQLITE_OUT\t[fillcolor=\"#f7f9fc\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"github_code_sector_v001.sqlite\\nSQLite/FK/FTS authority\",\r\n\t\t\tpos=\"3536,1068.2\",\r\n\t\t\twidth=2.8576];\r\n\t\tMMD_OUT\t[fillcolor=\"#f7f9fc\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"github_code.mmd\\nsemantic Mermaid authority\",\r\n\t\t\tpos=\"3243,965\",\r\n\t\t\twidth=2.5556];\r\n\t\tSQLITE_OUT -> MMD_OUT\t[pos=\"e,3298.2,985.09 3480.5,1048.1 3431.8,1031.2 3360.6,1006.7 3308.9,988.79\"];\r\n\t\tDOT_OUT\t[fillcolor=\"#f7f9fc\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"github_code.dot\\nsemantic DOT authority\",\r\n\t\t\tpos=\"3440,965\",\r\n\t\t\twidth=2.2118];\r\n\t\tSQLITE_OUT -> DOT_OUT\t[pos=\"e,3458,984.96 3517.9,1048.2 3503.2,1032.6 3482.2,1010.5 3465.7,993.07\"];\r\n\t\tPOINTER_OUT\t[fillcolor=\"#f7f9fc\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"lane_pointer.json\\ncandidate pointer evidence\",\r\n\t\t\tpos=\"3633,965\",\r\n\t\t\twidth=2.4618];\r\n\t\tSQLITE_OUT -> POINTER_OUT\t[pos=\"e,3614.8,984.96 3554.2,1048.2 3569.1,1032.6 3590.4,1010.5 3607.1,993.07\"];\r\n\t\tRECEIPT_OUT\t[fillcolor=\"#f7f9fc\",\r\n\t\t\theight=0.54861,\r\n\t\t\tlabel=\"refresh_receipt.json\\nclassification + validation\",\r\n\t\t\tpos=\"3829,965\",\r\n\t\t\twidth=2.2951];\r\n\t\tSQLITE_OUT -> RECEIPT_OUT\t[pos=\"e,3773.8,985.09 3591.5,1048.1 3640.2,1031.2 3711.4,1006.7 3763.1,988.79\"];\r\n\t}\r\n\tLANE_ROOT\t[color=\"#101828\",\r\n\t\tfillcolor=\"#101828\",\r\n\t\tfontcolor=white,\r\n\t\theight=0.54861,\r\n\t\tlabel=\"GitHub Code\\n0 sources | 0 chunks | 0 structured facts\",\r\n\t\tpos=\"845,2823.9\",\r\n\t\twidth=3.5347];\r\n\tLANE_ROOT -> SOURCE_REG\t[pos=\"e,845,2739.8 845,2803.6 845,2788.8 845,2768 845,2750.9\"];\r\n\tSOURCE_REG -> FACT_INDEX\t[pos=\"e,1055.5,2635.5 893.72,2699.4 936.58,2682.5 999.12,2657.8 1044.8,2639.7\"];\r\n\tSEMANTIC_SCHEMA_HANDOFF -> PHYSICAL_SCHEMA_SECTOR\t[label=\"derives exact SQLite schema\",\r\n\t\tlp=\"1192.5,2460.5\",\r\n\t\tpos=\"e,1104,2413.2 1104,2491.9 1104,2474 1104,2446.9 1104,2424.6\"];\r\n\tPHYSICAL_SCHEMA_SECTOR -> CODE_SECTOR\t[label=\"projects code contract\",\r\n\t\tlp=\"2024.3,2325.8\",\r\n\t\tpos=\"e,2486.7,2277.1 1427.8,2359.2 1737.3,2335.2 2196.9,2299.6 2475.2,2278\"];\r\n\tCODE_SECTOR -> CODE_EVIDENCE_COVERAGE\t[label=\"projects exact SQLite rows | EXTRACTED | edge=C671616371B8\",\r\n\t\tlp=\"2282.2,2194.9\",\r\n\t\tpos=\"e,2123.5,2135.7 2486.8,2241.9 2305.7,2229.6 2083.5,2214.6 2083.5,2214.6 2083.5,2214.6 2083.5,2175.1 2083.5,2175.1 2083.5,2175.1 \\\r\n2099.3,2159.6 2115.6,2143.6\"];\r\n\tCODE_REPO -> GITHUB_GRAPH_ROOT\t[label=\"history profile | EXTRACTED | edge=F2B3BF6A1D8C\",\r\n\t\tlp=\"4028.2,2048.2\",\r\n\t\tpos=\"e,4034,2001 2984.3,2100.9 3198.3,2087.5 3702,2056.1 3702,2056.1 3702,2056.1 3956,2032.4 3956,2032.4 3956,2032.4 3989.2,2019 4023.8,\\\r\n2005.1\"];\r\n\tCODE_FILE -> CODE_EVIDENCE_EMPTY\t[label=\"coverage boundary | EXTRACTED | edge=F7CF7DC90B01\",\r\n\t\tlp=\"2380.1,1786.6\",\r\n\t\tpos=\"e,2197,1755.2 2975.6,1825.9 2950.9,1817.9 2928,1810.5 2928,1810.5 2928,1810.5 2201.2,1794.5 2201.2,1794.5 2201.2,1794.5 2199.8,1780.6 \\\r\n2198.2,1766.4\"];\r\n\tGITHUB_GRAPH_ROOT -> CHUNK_INDEX\t[pos=\"e,3734.4,1866.2 3981.7,1944.9 3887.9,1923.7 3773,1897.6 3773,1897.6 3773,1897.6 3758.3,1885.7 3743.3,1873.4\"];\r\n\tTFIDF -> REFRESH\t[pos=\"e,3697,1326.3 3697,1405.2 3697,1386.9 3697,1359 3697,1337.7\"];\r\n\tPOINTER -> SQLITE_OUT\t[pos=\"e,3536,1088.2 3536,1167 3536,1147.1 3536,1120.1 3536,1099.5\"];\r\n}\r\n",
+      "stderr": "",
+      "returncode": 0,
+      "executable_sha256": "7483FCA1E95D371335FF60CA28D0D6F91A8C54232055154A86B93C6FDC13ED6C",
+      "executable_path_disclosed": false,
+      "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
+      "shell_used": false,
+      "workspace_install_used": false,
+      "receipt_sha256": "40A4F040AC1CE9A3F1A84A2C5B51D40338A582A68E116809B8222B59C8EFF1BE"
+    },
+    "graph_analysis": {
+      "status": "PASS",
+      "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 87,
+      "edge_count": 115,
+      "weak_component_count": 1,
+      "strong_component_count": 87,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "PHYSICAL_TABLE_003",
+          "in_degree": 2,
+          "out_degree": 10
+        },
+        {
+          "node_id": "CODE_SECTOR",
+          "in_degree": 1,
+          "out_degree": 8
+        },
+        {
+          "node_id": "CODE_FILE",
+          "in_degree": 3,
+          "out_degree": 3
+        },
+        {
+          "node_id": "GITHUB_GRAPH_ROOT",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "PHYSICAL_SCHEMA_SECTOR",
+          "in_degree": 1,
+          "out_degree": 5
+        },
+        {
+          "node_id": "CODE_REPO",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_015",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_017",
+          "in_degree": 4,
+          "out_degree": 1
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_027",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_033",
+          "in_degree": 4,
+          "out_degree": 1
+        },
+        {
+          "node_id": "SQLITE_OUT",
+          "in_degree": 1,
+          "out_degree": 4
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_004",
+          "in_degree": 2,
+          "out_degree": 2
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_012",
+          "in_degree": 3,
+          "out_degree": 1
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_016",
+          "in_degree": 2,
+          "out_degree": 2
+        },
+        {
+          "node_id": "FACT_INDEX",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_002",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_005",
+          "in_degree": 1,
+          "out_degree": 2
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_006",
+          "in_degree": 2,
+          "out_degree": 1
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_007",
+          "in_degree": 2,
+          "out_degree": 1
+        },
+        {
+          "node_id": "PHYSICAL_TABLE_009",
+          "in_degree": 1,
+          "out_degree": 2
+        }
+      ],
+      "bounded_analysis": true,
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "0E6E72D715D9FD78BB8A7FDBE8B1EAFD12C60125409CF2BC82DAF37B7DEC5C4A",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 5,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "55CD2D3041F9C2129CCB3E25A9AB0388A12068AA64D9213C1F4FB79345BACC01"
+  },
+  "sqlite_execution_receipt": {
+    "schema_name": "evidence-lane.sqlite-execution.v1",
+    "status": "PASS",
+    "engine": "APSW",
+    "engine_version": "3.53.4.0",
+    "sqlite_version": "3.53.4",
+    "database_path": "F:\\test codex\\plugins\\evidence-lane-plugin\\authorities\\project_sectors\\github_code\\github_code_sector_v001.sqlite",
+    "database_sha256": "CCA01936D50EA04EF40C2701BB532E6EB7DAF288C712EDACD7BC51A4B8AA8A9F",
+    "integrity_check": "ok",
+    "journal_mode": "delete",
+    "page_count": 141,
+    "page_size": 4096,
+    "explicit_bulk_transaction_required": true,
+    "apsw_full_api_available": true,
+    "sqlite_session_available": true,
+    "sqlite_rbu_available": false,
+    "sqlite_backup_available": true,
+    "sqlite_fts5_available": true,
+    "durable_authority": true,
+    "receipt_sha256": "4C9466E66FB032F9CAD6008BA18A73ED3A1A3AB08063153388BB58DC36ED0C51"
+  },
+  "tool_execution_evidence": {
+    "schema": "evidence-lane.lane-tool-execution-evidence.v1",
+    "status": "PASS",
+    "lane_id": "github_code",
+    "rows": [
+      {
+        "tool": "Git",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "Git history phase not requested for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "80B737FA44F87B4BFA90860D37BEAC6A3A395D48B190E14CC394C912A9B06C80"
+      },
+      {
+        "tool": "Python",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "TRANSPORT"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "current Python lane builder process",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "102D19CEA31C0619410E5068E3201D5D0A2B478F1FE5AB8C0B779D32C7D6FD54"
+      },
+      {
+        "tool": "hashlib_pathlib",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "GOVERN"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no routed source selected the source hashing/CAS phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "3032EFA658C44147AB344EFC64D494F6268173E431FF6381F6D6DDF3AFF47E10"
+      },
+      {
+        "tool": "SQLite_CAS",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "GOVERN"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no routed source selected the source hashing/CAS phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "E06786067AD83C4C19F3C7E154966186AF67924D7F745081F311DDD165C88820"
+      },
+      {
+        "tool": "SQLite_FTS5_BM25",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "code_chunk_fts row parity with chunk_index",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "128975D551018909917C330279BB441458EFE29A0C0C594C3C65F3468134F8E9"
+      },
+      {
+        "tool": "APSW_SQLite_engine",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "APSW full-API SQLite execution receipt",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "B0F4A36336E6951FEFF1F6E1728FC82F6222620DEF404C1FC36BFA94A2DB27D9"
+      },
+      {
+        "tool": "deterministic_TFIDF",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "query phase not requested during lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "529502C7B0360E671C329E137A27505E42C0BADB4DB97B5E3F0929234919CF78"
+      },
+      {
+        "tool": "LangGraph_Mermaid_engine",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "LangGraph semantic topology + github_code.mmd",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "7D0D5216451D761D30C3CBB4E95AB626FA09286FED45CB89D389B09861FCB501"
+      },
+      {
+        "tool": "Python_Graphviz_DOT_engine",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "Python Graphviz DOT construction + github_code.dot",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "293A1C635B93020CED1C89FD0EABA741F87F44F4CD9CCC8A6DA16964138E2278"
+      },
+      {
+        "tool": "LlamaIndex_SQLite_indexer",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no routed source selected the source hashing/CAS phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "863816DCCDA9191612C6FA5D282330D546F5D023AA37F83ABB0D88D91E4219BB"
+      },
+      {
+        "tool": "Mermaid_CLI_mmdc",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "derived visual render not requested; availability=ACTIVE",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "61D3F1381172B58F52CB77AF2F1517C474AA5497AB391A6BDCFF15A14A5ECF4F"
+      },
+      {
+        "tool": "Graphviz_dot",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "hidden-runtime native dot parse/validation receipt",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "3E2D707486AF4ABFC9FBF22BDDD1C92AC150F169B7C2432F2B779B9A29ECC01C"
+      },
+      {
+        "tool": "Python_structural_parser",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no routed source selected the structural-code parser phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "529502C7B0360E671C329E137A27505E42C0BADB4DB97B5E3F0929234919CF78"
+      },
+      {
+        "tool": "NodeJS_TypeScript",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "DELIVER"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "eligible capability not selected by the current build phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "REPOSITORY_ONLY_AVAILABLE",
+        "runtime_evidence_sha256": "ECE65B84E399F2AE7F8BB561BD792F2296F7B186FF50C67A4672E8B3DF5FBCFD"
+      },
+      {
+        "tool": "pytest",
+        "role_class": "TASK_EXECUTION",
+        "phases": [],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "eligible capability not selected by the current build phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
+      },
+      {
+        "tool": "Ruff",
+        "role_class": "TASK_EXECUTION",
+        "phases": [],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "eligible capability not selected by the current build phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
+      },
+      {
+        "tool": "MyPy",
+        "role_class": "TASK_EXECUTION",
+        "phases": [],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "eligible capability not selected by the current build phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
+      },
+      {
+        "tool": "Secret_redactor",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "GOVERN"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "source-policy exclusion plus redacted topology labels",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "BA5AFDCFE698A00DD93C387A188E870FA53258E67F329F008EB92F0B196B54F8"
+      },
+      {
+        "tool": "MCP_Python_SDK",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "phases": [
+          "TRANSPORT"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "package-local lane build required no outer transport",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "29BC4EB84F5AF59EA50453C609CE347A00FF00C6152A479A7AD591640E595E15"
+      },
+      {
+        "tool": "Pydantic",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "phases": [
+          "GOVERN",
+          "TRANSPORT"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "typed SQLite execution receipt",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "BDAFE3E4061CB027143AA2CDB729F603DA13D6DC644BB934A689760D39DE71BC"
+      },
+      {
+        "tool": "SentenceTransformers",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "query phase not requested during lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "6C97098831224BBC8E117B4787797B841ACB1D6A68752672A6F8B9645A1D8588"
+      },
+      {
+        "tool": "FAISS_CPU",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "query phase not requested during lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "3CD6CF686D0133129B7E6A9A82EA36403405348A577E8413AB9C7EA700C38BE2"
+      },
+      {
+        "tool": "rank_bm25",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "query phase not requested during lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "AEF4D4599AF8E712734E8E2E757033CE74E58F000ECABFBF970F3AD2F256DC5B"
+      },
+      {
+        "tool": "PyGithub",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "GitHub API phase not requested; local Git history uses no remote API",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "5C658F97944FC4239155C8E37B5F669412E757B449506227841B2AF5D9FAF8AE"
+      },
+      {
+        "tool": "GitPython",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "Git history phase not requested for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "8FC54AD4863BE340518E6E789335DDA969D1D9727FEE140873BC8D0C2D420C70"
+      },
+      {
+        "tool": "TreeSitter_LanguagePack",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "{}",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "0D14D7ED3590F7A9D162CC6D9448146A38ACA4C1733CDA12CEB05DC22E8BE9E2"
+      },
+      {
+        "tool": "rustworkx",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "rustworkx bounded graph analysis receipt",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "61A1A19F5E7850B444265DBE1A3DBEF9A2DD21B2963B90989E681C57FBC6118D"
+      },
+      {
+        "tool": "sqlite_vec",
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "query phase not requested during lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "885BF09D5086805FD492122C08F170D63A35EA9CAD17CD0AD3064239A065724A"
+      },
+      {
+        "tool": "OpenAI_Agents_SDK",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "GOVERN",
+          "INDEX_OR_QUERY",
+          "TOPOLOGY",
+          "TRANSPORT"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "package-local lane build required no outer transport",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "9FA13961D5151DCD6A770C34B926B21E079BC0AE5CD5E58AD4CCD95F234C4F45"
+      },
+      {
+        "tool": "FastMCP",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "phases": [
+          "TRANSPORT"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "package-local lane build required no outer transport",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "487869847FE288357C0D11E58DF7B68B5E4CF63B6EA31E58FA29ED8D9668F8C8"
+      },
+      {
+        "tool": "GitHub_MCP_Server",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "TRANSPORT"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit project grant/action/credential for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_evidence_sha256": "E16853590B713656E373D0108C99C239DA59139F4B50F191F1DF1DE1652DE98D"
+      },
+      {
+        "tool": "Filesystem_MCP_Server",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "TRANSPORT"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit project grant/action/credential for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_evidence_sha256": "38F5472CD0940D7A991B36507A63D010BB314C05D8B12284930684639E455D81"
+      },
+      {
+        "tool": "Pinecone",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit project grant/action/credential for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_evidence_sha256": "E437D9B724BAF6DEFD9962788C87E833B3D6B3004595A1DB7EA5F00A297D1A00"
+      },
+      {
+        "tool": "Weaviate",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit project grant/action/credential for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_evidence_sha256": "4D02D25F4D0EB3FB8501F07E17CE2F2B670FA15FD3FC73402D05D5C6D0035F21"
+      },
+      {
+        "tool": "Milvus",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit project grant/action/credential for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_evidence_sha256": "E29EC612861C2882F133F026E19D5E40CE4E7082C3E74C36DA1F750981796893"
+      },
+      {
+        "tool": "OpenSearch",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit project grant/action/credential for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_evidence_sha256": "89FB5A9A681ACFBDD9EEF0199C477229AD253FB1596888E1292D4CD733F910F6"
+      },
+      {
+        "tool": "LangSmith",
+        "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
+        "phases": [
+          "VALIDATE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit evaluation or observability export requested",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "9771A758F0B532EB0CAB6A8C09634AFB9A1823F19CD271F2B40C858E6A14E638"
+      },
+      {
+        "tool": "Langfuse",
+        "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
+        "phases": [
+          "OBSERVE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit evaluation or observability export requested",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "094C551B7AB2A9260FBB8E93575EAB5199587CBB7B9A07AD80D0FAED6B94BF55"
+      },
+      {
+        "tool": "OpenTelemetry",
+        "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
+        "phases": [
+          "OBSERVE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit evaluation or observability export requested",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "638DCA3F4E1B796232A6C802477642F634B3118D81FA69488D05EB9EF7CDEF6C"
+      },
+      {
+        "tool": "Docker",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "phases": [
+          "DELIVER"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit project grant/action/credential for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "AVAILABLE",
+        "runtime_evidence_sha256": "91FD3497738ED6AA7A69EEBE682716D1AB1E994623A345AFAD9C6865AC7275E5"
+      },
+      {
+        "tool": "Kubernetes",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "phases": [
+          "DELIVER"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit project grant/action/credential for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "AVAILABLE",
+        "runtime_evidence_sha256": "AB94DF6CCB6CDF2505E39CA1D3A13DE027AB690AF278B02300EE3033CA56A815"
+      }
+    ],
+    "eligible_tool_count": 41,
+    "condition_true_tool_count": 9,
+    "selected_tool_count": 9,
+    "executed_tool_count": 9,
+    "blocked_tool_count": 0,
+    "condition_false_tool_count": 32,
+    "all_condition_true_tools_executed_or_failed_visible": true,
+    "all_condition_true_tools_executed": true,
+    "presence_or_eligibility_is_execution_proof": false,
+    "multiple_compatible_tools_may_form_one_pipeline": true,
+    "recorded_at": "1970-01-01T00:00:00Z",
+    "receipt_sha256": "1ED30B1887DCF6EB67881F6011166326A5F0CD1C4817BE9AD64FF268E1400B6C"
+  },
+  "empty_table_classification": {
+    "schema": "evidence-lane.empty-table-classification.v1",
+    "status": "PASS",
+    "lane_id": "github_code",
+    "empty_table_count": 28,
+    "defect_table_count": 0,
+    "defect_tables": [],
+    "rows": [
+      {
+        "table": "lane_pointer",
+        "row_count": 0,
+        "classification": "INTENTIONALLY_EMPTY_TEMPLATE",
+        "reason": "NO_ROUTED_SOURCE_IN_THIS_GENERATION"
+      },
+      {
+        "table": "source_content_cas",
+        "row_count": 0,
+        "classification": "INTENTIONALLY_EMPTY_TEMPLATE",
+        "reason": "NO_ROUTED_SOURCE_IN_THIS_GENERATION"
+      },
+      {
+        "table": "source_registry",
+        "row_count": 0,
+        "classification": "INTENTIONALLY_EMPTY_TEMPLATE",
+        "reason": "NO_ROUTED_SOURCE_IN_THIS_GENERATION"
+      },
+      {
+        "table": "chunk_index",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_TEXT_CHUNK_EMITTED"
+      },
+      {
+        "table": "chunk_content_cas",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_TEXT_CHUNK_EMITTED"
+      },
+      {
+        "table": "chunk_history",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_TEXT_CHUNK_EMITTED"
+      },
+      {
+        "table": "structured_fact",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_STRUCTURED_FACT_EMITTED"
+      },
+      {
+        "table": "parser_capability",
+        "row_count": 0,
+        "classification": "INTENTIONALLY_EMPTY_TEMPLATE",
+        "reason": "NO_ROUTED_SOURCE_IN_THIS_GENERATION"
+      },
+      {
+        "table": "tfidf_term",
+        "row_count": 0,
+        "classification": "QUERY_TIME_MATERIALIZATION",
+        "reason": "TF_DF_IDF_IS_COMPUTED_OVER_BOUNDED_FTS_CANDIDATES_AT_QUERY_TIME"
+      },
+      {
+        "table": "tfidf_vector",
+        "row_count": 0,
+        "classification": "QUERY_TIME_MATERIALIZATION",
+        "reason": "TF_DF_IDF_IS_COMPUTED_OVER_BOUNDED_FTS_CANDIDATES_AT_QUERY_TIME"
+      },
+      {
+        "table": "refresh_receipt",
+        "row_count": 0,
+        "classification": "INTENTIONALLY_EMPTY_TEMPLATE",
+        "reason": "NO_ROUTED_SOURCE_IN_THIS_GENERATION"
+      },
+      {
+        "table": "mutation_receipt",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_MUTATION_OR_SUPERSEDED_CAS_PURGE_IN_THIS_DELTA"
+      },
+      {
+        "table": "code_symbol",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_MATCHING_EXTRACTED_FACT_FOR_THIS_SOURCE_SHAPE"
+      },
+      {
+        "table": "code_import",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_MATCHING_EXTRACTED_FACT_FOR_THIS_SOURCE_SHAPE"
+      },
+      {
+        "table": "code_call",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_MATCHING_EXTRACTED_FACT_FOR_THIS_SOURCE_SHAPE"
+      },
+      {
+        "table": "code_parser_receipt",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_MATCHING_EXTRACTED_FACT_FOR_THIS_SOURCE_SHAPE"
+      },
+      {
+        "table": "code_parser_diagnostic",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_PARSER_DIAGNOSTIC_EMITTED"
+      },
+      {
+        "table": "code_route",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_MATCHING_EXTRACTED_FACT_FOR_THIS_SOURCE_SHAPE"
+      },
+      {
+        "table": "code_dependency",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_MATCHING_EXTRACTED_FACT_FOR_THIS_SOURCE_SHAPE"
+      },
+      {
+        "table": "git_commit_registry",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "GIT_HISTORY_PHASE_NOT_REQUESTED"
+      },
+      {
+        "table": "git_commit_parent",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "GIT_HISTORY_PHASE_NOT_REQUESTED"
+      },
+      {
+        "table": "git_file_change",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "GIT_HISTORY_PHASE_NOT_REQUESTED"
+      },
+      {
+        "table": "git_ref_registry",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "GIT_HISTORY_PHASE_NOT_REQUESTED"
+      },
+      {
+        "table": "git_blob_cas",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "GIT_HISTORY_PHASE_NOT_REQUESTED"
+      },
+      {
+        "table": "git_content_chunk_cas",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "GIT_HISTORY_PHASE_NOT_REQUESTED"
+      },
+      {
+        "table": "git_chunk_occurrence",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "GIT_HISTORY_PHASE_NOT_REQUESTED"
+      },
+      {
+        "table": "git_history_fts",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "GIT_HISTORY_PHASE_NOT_REQUESTED"
+      },
+      {
+        "table": "code_chunk_fts",
+        "row_count": 0,
+        "classification": "CONDITION_FALSE",
+        "reason": "NO_TEXT_CHUNK_EMITTED"
+      }
+    ],
+    "counts_are_current_generation_facts_not_schema_requirements": true,
+    "recorded_at": "1970-01-01T00:00:00Z",
+    "receipt_sha256": "3829DC58512C8775D01DE9217DDF168E9563B3399221BD8891D0EC01A1A6F82E"
   },
   "dedicated_workflow": {
     "json": "authorities/project_sectors/github_code/workflow.v1.json",
@@ -544,5 +3612,36 @@
     "mmd_sha256": "F81E6228431C8B93BA741C5E7360860778FD7BB4712D55BD30E48AC611FDA14F",
     "dot_sha256": "F988497CC34FBA7890729D2B40EDC1E6DC8B415F8203E5B5C8DEEE0B77B844E9"
   },
-  "receipt_sha256": "311C10D4B692D5C25AB2FA74DE7C59E01A04C0FF67859BDB8ADE652957399869"
+  "artifact_authority": {
+    "schema": "evidence-lane.tools-artifact-authority.v1",
+    "lane_id": "github_code",
+    "tool_identity_sha256": "AD1AF4930480D8A3A2A1839F9FC122A1B6AE395AF3E6792BF9EFE401820A6D4F",
+    "ordered_members": [
+      "github_code_sector_v001.sqlite",
+      "github_code.mmd",
+      "github_code.dot"
+    ],
+    "members": [
+      {
+        "path": "github_code_sector_v001.sqlite",
+        "role": "sqlite_authority",
+        "bytes": 577536,
+        "sha256": "CCA01936D50EA04EF40C2701BB532E6EB7DAF288C712EDACD7BC51A4B8AA8A9F"
+      },
+      {
+        "path": "github_code.mmd",
+        "role": "mermaid_projection",
+        "bytes": 19633,
+        "sha256": "C470C451F2099BB83E6CB06AF84684508BFD6B44A23ED22A65F8FA72CC1A230A"
+      },
+      {
+        "path": "github_code.dot",
+        "role": "dot_projection",
+        "bytes": 24305,
+        "sha256": "1615E4D36BFF5D8A82D7E3648230739759402E06295EBACB16DBF2183ED90D68"
+      }
+    ],
+    "authority_sha256": "7D16E0DDA5D45354D1F7A661719CFAEF8B0D20C704E45939F428A35986501E9E"
+  },
+  "receipt_sha256": "FA750ABEA8942645A6E2DE681CC61BE6A1E706311527CF9E80D87DB05748C449"
 }

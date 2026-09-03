@@ -326,7 +326,9 @@ def run_full_ai_toolchain(request: FullAIToolchainRequest) -> dict[str, Any]:
                 break
     core = {
         "schema": FULL_AI_TOOLCHAIN_WORKFLOW_SCHEMA,
-        "status": "PASS",
+        "status": (
+            "PASS" if resolved.get("status") == "PASS" else "BLOCKED"
+        ),
         "lane_id": request.lane_id,
         "host_profile": request.host_profile,
         "resolved_toolchain": resolved,
@@ -334,6 +336,7 @@ def run_full_ai_toolchain(request: FullAIToolchainRequest) -> dict[str, Any]:
         "project_id": request.project_id,
         "task_id": request.task_id,
         "conditional_dispatch": True,
+        "runtime_route_ready": resolved.get("status") == "PASS",
         "run_everything": False,
         "one_ecosystem_adapter_maximum": True,
         "mode_is_owner": False,

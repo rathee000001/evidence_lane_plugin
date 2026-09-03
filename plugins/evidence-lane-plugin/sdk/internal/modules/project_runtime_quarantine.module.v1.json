@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.sdk-internal-module-binding.v1",
+  "status": "PASS",
+  "module": "evidence_lane_plugin.project_runtime_quarantine",
+  "source_path": "src/evidence_lane_plugin/project_runtime_quarantine.py",
+  "source_sha256": "A9CD995FD87B8D56C4F0384E35C7A5CF73007A9CAFD4407D7FAB57C4E215AEA6",
+  "source_bytes": 4209,
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "public_action_registry": "sdk/internal/public-action-registry.v1.json",
+  "workflow_registry": "sdk/internal/workflow-registry.v1.json",
+  "execution_logic_duplicated_in_binding": false,
+  "receipt_sha256": "1A7CFA3742B1D66EEAA998E6093BA9525B474EA6970A56DAEEE7978CE7E4C9C6"
+}

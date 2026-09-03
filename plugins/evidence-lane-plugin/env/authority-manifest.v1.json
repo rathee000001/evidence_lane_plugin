@@ -39,17 +39,17 @@
     {
       "path": "env/env_sqlite.sqlite",
       "canonical_path": "env/env_sqlite.sqlite",
-      "bytes": 5394432,
-      "sha256": "CD65224AF81852965F4A7E4B500557970BEDA60EFF05D7EE1199001DDC586C86"
+      "bytes": 6217728,
+      "sha256": "9E055B4B3029F17EA7448C9A38483466FD436139ACD2AE16FF732BCCFEAF15C4"
     },
     {
       "path": "env/locked_mmd_hash.txt",
       "canonical_path": "env/locked_mmd_hash.txt",
       "bytes": 609,
-      "sha256": "C68B9C14D2A948E86059D18609ACD84E0B1BF7B3C59D1C80511249E591E0241A"
+      "sha256": "05707A04FD39F0224D1CEF357C3761EF21B071E25E5DBE17BA213438695DB3A0"
     }
   ],
   "canonical_packaged_authority": true,
   "duplicate_authority_copy_present": false,
-  "receipt_sha256": "37E82479E003A45D132C69CC0BB4B5D0F0899DFDB82E3FC143A43902301A5769"
+  "receipt_sha256": "0A33A6AB2FC0BFB702572DA00C98CF4E0465968B8B56E9D1097148C73BA519ED"
 }

@@ -73,13 +73,14 @@ The selected skill narrows these rules; it never expands permission.
 - Boot or resume uses the installed native server and server-derived runtime
   attestation. State Travel is user-timed or context-exhaustion-timed, exact
   once, and never a normal intake, install, or restart path.
-- Plugin validation, cachebust, packaging, installation, terminal-safe restart,
+- Plugin validation, cachebust, packaging, installation, user-manual restart,
   task reattachment, Git staging, commit, push, merge, and stable-slot upgrade
   are separate gates. Each requires its own exact receipt and never moves HIL or
   Project/PV authority.
-- Keep helpers outside executable authority. A restart helper may only validate
-  and reopen the exact app/task after a completed response; it cannot install,
-  drain turns, start a tunnel, replay State Travel, or mutate project state.
+- No restart helper exists. The sealed install receipt is the pre-restart
+  boundary; after the response completes, the user closes and reopens the app.
+  No executable may drain turns, control the app, replay State Travel, or mutate
+  project state as part of restart.
 
 ## Focused-skill rule
 

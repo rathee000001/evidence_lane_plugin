@@ -11,7 +11,7 @@ import subprocess
 import threading
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from .compact_storage import decompress_exact_bytes
 from .errors import EvidenceLaneError, require
@@ -36,6 +36,7 @@ from .lanes import (
     lane_schema_asset,
     route_batch,
 )
+from .project_root_binding import validate_project_root_binding
 from .source_policy import content_exclusion_reason, path_exclusion_reason
 from .timeutil import utc_now
 
@@ -46,6 +47,44 @@ PROJECT_AUTHORITY_CONFIRMATION = "MOVE_ACTIVE_PROJECT_AUTHORITY_PRESERVE_LEGACY_
 STUDY_BRAIN_PROFILE_ID = "study-brain-routing-profile-v1"
 _WORKING_QUERY_TOKEN_RE = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.:/-]{1,63}")
 
+PROJECT_AUTHORITY_LAYOUT_DIRS = (
+    "accepted",
+    "sectors",
+    "ai_learning",
+    "canon",
+    "memory",
+    "sources",
+    "universe",
+    "project_overlay",
+    "connector_brain",
+    "project_authority",
+    "receipts",
+    "sessions",
+)
+PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_IDS = tuple(
+    lane_id
+    for lane_id in CANONICAL_LANE_IDS
+    if lane_id in {"plan", "chat_lineage"}
+)
+WORKING_ALWAYS_LOADED_LANE_IDS = tuple(
+    lane_id
+    for lane_id in CANONICAL_LANE_IDS
+    if lane_id in {"plan", "chat_lineage", "artifacts"}
+)
+PROJECT_AUTHORITY_MANDATORY_DIRS = tuple(
+    value for value in PROJECT_AUTHORITY_LAYOUT_DIRS if value not in {"accepted", "sectors"}
+) + tuple(
+    f"sectors/{lane_id}" for lane_id in PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_IDS
+)
+PROJECT_AUTHORITY_FORBIDDEN_SHADOW_DIRS = (
+    "learning",
+    "lineage",
+    "project_sectors",
+    "receipt_ledger",
+    "runtime",
+    "session_authority",
+)
+
 _LEGACY_HISTORY_TOP_LEVEL = frozenset(
     {
         ".build",
@@ -54,6 +93,11 @@ _LEGACY_HISTORY_TOP_LEVEL = frozenset(
     }
 )
 _TRANSIENT_LOCK_NAMES = frozenset({".store.lock", ".state-travel-resume.lock"})
+_PURGE_ONLY_INTERNAL_SOURCE_PREFIXES = (
+    "github_docs_history_",
+    "remote_adapter_generated_caches_",
+    "removed_",
+)
 _WINDOWS_TRANSIENT_PATH_WINERRORS = frozenset({5, 32, 33})
 _WINDOWS_PATH_RETRY_ATTEMPTS = 12
 _WINDOWS_PATH_RETRY_BASE_SECONDS = 0.05
@@ -594,17 +638,140 @@ def validate_external_project_authority_root(
     control = Path(control_root).expanduser().resolve()
     require(
         target.is_absolute()
-        and target.name == project_id
+        and target.parent != target
         and target != control
         and not _is_relative_to(target, control)
         and not _is_relative_to(control, target),
         "PROJECT_AUTHORITY_ROOT_INVALID",
-        "The user-project authority root must be an exact project-named directory outside host runtime control.",
+        "The user-project authority root must be an explicit absolute directory outside host runtime control.",
         status="BLOCKED",
         project_id=project_id,
         target=str(target),
     )
     return target
+
+
+def materialize_project_authority_skeleton(
+    project_root: str | Path,
+    *,
+    control_root: str | Path,
+    project_id: str,
+    repository_path: str | Path,
+) -> dict[str, Any]:
+    """Create the invariant live-root tree without fabricating authority payloads."""
+
+    root = Path(project_root).resolve()
+    control = Path(control_root).resolve()
+    repository = Path(repository_path).resolve()
+    require(
+        root.is_dir()
+        and root != control
+        and not _is_relative_to(root, control)
+        and not _is_relative_to(control, root),
+        "PROJECT_AUTHORITY_SKELETON_ROOT_INVALID",
+        "The Project/PV skeleton requires one prepared external root.",
+        status="BLOCKED",
+        project_id=project_id,
+        project_root=str(root),
+    )
+    for relative in PROJECT_AUTHORITY_LAYOUT_DIRS:
+        (root / relative).mkdir(parents=True, exist_ok=True)
+    for lane_id in PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_IDS:
+        (root / "sectors" / lane_id).mkdir(parents=True, exist_ok=True)
+
+    operational_markers: dict[str, dict[str, Any]] = {}
+    for lane_id, authority in (
+        (PLAN_SECTOR_ID, "PLAN"),
+        (CHAT_LINEAGE_SECTOR_ID, "CHAT_LINEAGE"),
+    ):
+        marker_path = root / "sectors" / lane_id / OPERATIONAL_AUTHORITY_MARKER
+        marker = {
+            "schema": "evidence-lane.sector-operational-authority.v1",
+            "state": "CANONICAL_ACTIVE",
+            "project_id": project_id,
+            "authority": authority,
+            "layout": "DIRECT_SECTOR_ROOT",
+            "phase": "REGISTERED_PRE_PV0",
+            "candidate_created": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+        if marker_path.is_file():
+            existing_marker = json.loads(marker_path.read_text(encoding="utf-8"))
+            require(
+                existing_marker.get("schema") == marker["schema"]
+                and existing_marker.get("state") == "CANONICAL_ACTIVE"
+                and existing_marker.get("project_id") == project_id
+                and existing_marker.get("authority") == authority,
+                "PROJECT_AUTHORITY_OPERATIONAL_MARKER_CONFLICT",
+                "An always-on authority lane is bound to a different project route.",
+                status="MISMATCH",
+                project_id=project_id,
+                lane_id=lane_id,
+            )
+            operational_markers[lane_id] = {
+                "authority": authority,
+                "path": marker_path.relative_to(root).as_posix(),
+            }
+        else:
+            atomic_write_json(marker_path, marker)
+            operational_markers[lane_id] = {
+                "authority": authority,
+                "path": marker_path.relative_to(root).as_posix(),
+            }
+
+    body = {
+        "schema": "evidence-lane.project-authority-skeleton.v1",
+        "status": "PASS",
+        "project_id": project_id,
+        "resolved_project_root": str(root),
+        "repository_path": str(repository),
+        "host_control_root": str(control),
+        "canonical_lane_count": len(CANONICAL_LANE_IDS),
+        "ordered_lane_ids": list(CANONICAL_LANE_IDS),
+        "materialized_sector_directory_count": len(
+            PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_IDS
+        ),
+        "materialized_sector_lane_ids": list(
+            PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_IDS
+        ),
+        "unfired_sector_lane_ids": [
+            lane_id
+            for lane_id in CANONICAL_LANE_IDS
+            if lane_id not in PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_IDS
+        ],
+        "mandatory_authority_directories": list(PROJECT_AUTHORITY_MANDATORY_DIRS),
+        "always_on_operational_authorities": operational_markers,
+        "authority_payload_state": "CANONICAL_ACTIVE_OR_SCHEMA_READY",
+        "sector_payload_state": "MATERIALIZE_ON_FIRST_FIRE_REUSE_IF_PRESENT",
+        "authority_lane_directories_always_present": True,
+        "sector_registry_always_present": True,
+        "unfired_sector_directories_created": False,
+        "fired_sector_directories_reused": True,
+        "empty_authority_payload_fabricated": False,
+        "empty_sector_payload_fabricated": False,
+        "accepted_folder_queried": False,
+        "accepted_archive_used_as_authority": False,
+        "candidate_created": False,
+        "hil_inferred": False,
+        "pointer_moved": False,
+    }
+    receipt = {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
+    path = root / "project_authority_skeleton.json"
+    if path.is_file():
+        require(
+            json.loads(path.read_text(encoding="utf-8")) == receipt,
+            "PROJECT_AUTHORITY_SKELETON_CONFLICT",
+            "The existing Project/PV skeleton differs from the registered authority.",
+            status="MISMATCH",
+            project_id=project_id,
+        )
+    else:
+        atomic_write_json(path, receipt)
+    return {
+        **receipt,
+        "receipt_path": str(path),
+    }
 
 
 def _file_manifest(root: Path, relative_roots: list[str]) -> dict[str, Any]:
@@ -654,12 +821,46 @@ def copy_active_project_authority(
     )
     staging.mkdir(parents=True)
     copied_roots: list[str] = []
+    purged_reconstructable_internal_roots: list[dict[str, Any]] = []
     for item in sorted(source.iterdir(), key=lambda value: value.name.casefold()):
         if item.name in _TRANSIENT_LOCK_NAMES:
             continue
         if item.name in _LEGACY_HISTORY_TOP_LEVEL or item.name == "accepted":
             continue
         destination = staging / item.name
+        if item.name == "internal_sources" and item.is_dir():
+            destination.mkdir(parents=True)
+            for member in sorted(
+                item.iterdir(), key=lambda value: value.name.casefold()
+            ):
+                if member.name.casefold().startswith(
+                    _PURGE_ONLY_INTERNAL_SOURCE_PREFIXES
+                ):
+                    purged_reconstructable_internal_roots.append(
+                        {
+                            "source_relative_path": member.relative_to(
+                                source
+                            ).as_posix(),
+                            "classification": (
+                                "PURGE_NON_AUTHORITY_GENERATED_OR_REMOVED_HISTORY"
+                            ),
+                            "copied": False,
+                        }
+                    )
+                    continue
+                member_destination = destination / member.name
+                if member.is_dir():
+                    shutil.copytree(
+                        member, member_destination, copy_function=shutil.copy2
+                    )
+                elif member.is_file():
+                    shutil.copy2(member, member_destination)
+                else:
+                    continue
+                copied_roots.append(
+                    f"internal_sources/{member.name}"
+                )
+            continue
         if item.is_dir():
             shutil.copytree(item, destination, copy_function=shutil.copy2)
         elif item.is_file():
@@ -689,6 +890,9 @@ def copy_active_project_authority(
         "accepted_pv_identity": accepted_pv,
         "accepted_folder_queried": False,
         "accepted_archive_copied": False,
+        "purged_reconstructable_internal_roots": (
+            purged_reconstructable_internal_roots
+        ),
     }
 
 
@@ -1039,6 +1243,124 @@ def _retire_empty_source_scaffolds(
     return receipt
 
 
+def validate_project_authority_root_topology(
+    project_root: str | Path,
+    *,
+    project_id: str,
+) -> dict[str, Any]:
+    """Fail closed unless one project root has the exact current authority tree."""
+
+    root = Path(project_root).resolve()
+    project_path = root / "project.json"
+    layout_path = root / "project_authority.json"
+    require(
+        root.is_dir() and project_path.is_file() and layout_path.is_file(),
+        "PROJECT_AUTHORITY_ROOT_TOPOLOGY_MISSING",
+        "The project root lacks its current registry or authority layout.",
+        status="MISMATCH",
+    )
+    project = json.loads(project_path.read_text(encoding="utf-8"))
+    layout = json.loads(layout_path.read_text(encoding="utf-8"))
+    require(
+        project.get("project_id") == project_id
+        and Path(str(project.get("project_authority_root") or "")).resolve() == root
+        and layout.get("project_id") == project_id,
+        "PROJECT_AUTHORITY_ROOT_TOPOLOGY_IDENTITY_MISMATCH",
+        "The root registry/layout does not bind the selected project and exact path.",
+        status="MISMATCH",
+    )
+    expected_directories = set(PROJECT_AUTHORITY_LAYOUT_DIRS)
+    actual_directories = {
+        path.name for path in root.iterdir() if path.is_dir()
+    }
+    forbidden_present = sorted(
+        set(PROJECT_AUTHORITY_FORBIDDEN_SHADOW_DIRS) & actual_directories
+    )
+    unexpected_directories = sorted(actual_directories - expected_directories)
+    missing_directories = sorted(expected_directories - actual_directories)
+    require(
+        not forbidden_present
+        and not unexpected_directories
+        and not missing_directories,
+        "PROJECT_AUTHORITY_ROOT_TOPOLOGY_DIRECTORY_MISMATCH",
+        "The live root contains a shadow/runtime directory or lacks a canonical authority.",
+        status="MISMATCH",
+        forbidden_present=forbidden_present,
+        unexpected_directories=unexpected_directories,
+        missing_directories=missing_directories,
+    )
+    named_authorities = dict(layout.get("named_authorities") or {})
+    missing_authority_members = sorted(
+        relative
+        for authority in named_authorities.values()
+        for relative in authority.get("paths") or []
+        if not (root / str(relative)).is_file()
+    )
+    require(
+        len(named_authorities) == 12 and not missing_authority_members,
+        "PROJECT_AUTHORITY_ROOT_TOPOLOGY_MEMBER_MISSING",
+        "A mandatory named-authority SQLite/MMD/DOT/tools member is absent.",
+        status="MISMATCH",
+        missing_authority_members=missing_authority_members,
+    )
+    from .lane_engine import validate_lane_bundle
+
+    lane_validation = validate_lane_bundle(root / "sectors")
+    require(
+        lane_validation.get("valid") is True,
+        "PROJECT_AUTHORITY_ROOT_TOPOLOGY_LANE_INVALID",
+        "The current sector bundle failed its exact schema/topology/tool contract.",
+        status="FAIL",
+    )
+    sqlite_rows: list[dict[str, Any]] = []
+    for authority_dir in sorted(expected_directories - {"accepted"}):
+        for database in sorted((root / authority_dir).rglob("*.sqlite")):
+            connection = sqlite3.connect(
+                f"file:{database.resolve().as_posix()}?mode=ro&immutable=1",
+                uri=True,
+            )
+            try:
+                integrity = [
+                    str(row[0])
+                    for row in connection.execute("PRAGMA integrity_check")
+                ]
+                foreign_keys = list(connection.execute("PRAGMA foreign_key_check"))
+            finally:
+                connection.close()
+            require(
+                integrity == ["ok"] and not foreign_keys,
+                "PROJECT_AUTHORITY_ROOT_TOPOLOGY_SQLITE_INVALID",
+                "A live authority SQLite failed integrity or foreign-key validation.",
+                status="FAIL",
+                path=database.relative_to(root).as_posix(),
+            )
+            sqlite_rows.append(
+                {
+                    "path": database.relative_to(root).as_posix(),
+                    "bytes": database.stat().st_size,
+                    "sha256": sha256_file(database),
+                }
+            )
+    body = {
+        "schema": "evidence-lane.project-authority-root-topology.v1",
+        "status": "PASS",
+        "project_id": project_id,
+        "project_root": str(root),
+        "canonical_top_level_directories": sorted(expected_directories),
+        "forbidden_shadow_directories_absent": True,
+        "named_authority_count": len(named_authorities),
+        "sector_lane_count": lane_validation["lane_count"],
+        "sqlite_count": len(sqlite_rows),
+        "sqlite_rows": sqlite_rows,
+        "accepted_archive_queried": False,
+        "runtime_state_inside_project_root": False,
+        "pointer_moved": False,
+        "candidate_created": False,
+        "hil_inferred": False,
+    }
+    return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
+
+
 def materialize_project_authority_layout(
     project_root: str | Path,
     *,
@@ -1070,7 +1392,10 @@ def materialize_project_authority_layout(
         emitted_lane_ids = [
             lane_id
             for lane_id in CANONICAL_LANE_IDS
-            if (root / "sectors" / lane_id / LANE_REGISTRY[lane_id].sqlite_filename).is_file()
+            if lane_id in PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_IDS
+            or (
+                root / "sectors" / lane_id / LANE_REGISTRY[lane_id].sqlite_filename
+            ).is_file()
         ]
         lane_manifest = {
             "schema": "evidence-lane.live-sector-registry-bootstrap.v1",
@@ -1090,23 +1415,18 @@ def materialize_project_authority_layout(
         "The live lane bundle does not bind the current canonical registry.",
         status="MISMATCH",
     )
-
-    layout_dirs = (
-        "accepted",
-        "sectors",
-        "ai_learning",
-        "canon",
-        "memory",
-        "sources",
-        "universe",
-        "project_overlay",
-        "connector_brain",
-        "project_authority",
-        "receipts",
-        "sessions",
+    require(
+        set(PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_IDS) <= emitted,
+        "PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_MISSING",
+        "The live project layout requires the permanent Plan and ChatLineage authority lanes.",
+        status="MISMATCH",
+        emitted_lane_ids=sorted(emitted),
     )
-    for relative in layout_dirs:
+
+    for relative in PROJECT_AUTHORITY_LAYOUT_DIRS:
         (root / relative).mkdir(parents=True, exist_ok=True)
+    for lane_id in PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_IDS:
+        (root / "sectors" / lane_id).mkdir(parents=True, exist_ok=True)
 
     from .receipt_ledger import initialize_receipt_ledger
     from .session_authority import initialize_session_authority
@@ -1121,16 +1441,62 @@ def materialize_project_authority_layout(
     initialize_session_authority(session_database)
 
     sector_rows: list[dict[str, Any]] = []
-    for lane_id in CANONICAL_LANE_IDS:
+    ordered_emitted_lane_ids = tuple(
+        lane_id for lane_id in CANONICAL_LANE_IDS if lane_id in emitted
+    )
+    actual_sector_lane_ids = tuple(
+        lane_id
+        for lane_id in CANONICAL_LANE_IDS
+        if (root / "sectors" / lane_id).is_dir()
+    )
+    require(
+        actual_sector_lane_ids == ordered_emitted_lane_ids,
+        "PROJECT_AUTHORITY_SECTOR_DIRECTORY_SET_MISMATCH",
+        "Only fired or always-on project sector directories may exist in the live root.",
+        status="MISMATCH",
+        expected_lane_ids=list(ordered_emitted_lane_ids),
+        actual_lane_ids=list(actual_sector_lane_ids),
+    )
+    for lane_id in ordered_emitted_lane_ids:
         sector_root = root / "sectors" / lane_id
-        sector_root.mkdir(parents=True, exist_ok=True)
         reference = _lane_reference(
             root,
             lane_id=lane_id,
             accepted_pv=accepted_pv,
             emitted_lane_ids=emitted,
         )
-        atomic_write_json(sector_root / "authority.ref.json", reference)
+        sector_reference_path = sector_root / "authority.ref.json"
+        existing_sector_reference = (
+            json.loads(sector_reference_path.read_text(encoding="utf-8"))
+            if sector_reference_path.is_file()
+            else None
+        )
+        if (
+            isinstance(existing_sector_reference, dict)
+            and existing_sector_reference.get("schema")
+            == "evidence-lane.working-sector-authority.v1"
+        ):
+            # The working bundle seals this file into its recursive checksum.
+            # Project Authority keeps its own layout reference outside the
+            # sector bundle so registration/layout refresh cannot invalidate
+            # a live lane before its owning Source Intake refresh.
+            project_reference_path = (
+                root
+                / "project_authority"
+                / "sector-references"
+                / f"{lane_id}.json"
+            )
+            reference["reference_projection_path"] = (
+                project_reference_path.relative_to(root).as_posix()
+            )
+            reference["working_sector_reference_preserved"] = True
+            atomic_write_json(project_reference_path, reference)
+        else:
+            reference["reference_projection_path"] = (
+                sector_reference_path.relative_to(root).as_posix()
+            )
+            reference["working_sector_reference_preserved"] = False
+            atomic_write_json(sector_reference_path, reference)
         sector_rows.append(reference)
 
     named_authorities: dict[str, dict[str, Any]] = {
@@ -1246,12 +1612,12 @@ def materialize_project_authority_layout(
         },
     }
     for authority in named_authorities:
-        reference_root = (
-            root / "sectors" / authority
-            if authority in {PLAN_SECTOR_ID, CHAT_LINEAGE_SECTOR_ID}
-            else root / authority
-        )
-        reference_root.mkdir(parents=True, exist_ok=True)
+        reference_root = {
+            PLAN_SECTOR_ID: root / "sectors" / PLAN_SECTOR_ID,
+            CHAT_LINEAGE_SECTOR_ID: root / "sectors" / CHAT_LINEAGE_SECTOR_ID,
+            "receipt_ledger": root / "receipts",
+            "session_authority": root / "sessions",
+        }.get(authority, root / authority)
         reference_root.mkdir(parents=True, exist_ok=True)
 
     legacy_history = (
@@ -1305,6 +1671,14 @@ def materialize_project_authority_layout(
         "canonical_lane_count": len(CANONICAL_LANE_IDS),
         "ordered_lane_ids": list(CANONICAL_LANE_IDS),
         "materialized_sector_directory_count": len(sector_rows),
+        "materialized_sector_lane_ids": list(ordered_emitted_lane_ids),
+        "unfired_sector_lane_ids": [
+            lane_id
+            for lane_id in CANONICAL_LANE_IDS
+            if lane_id not in emitted
+        ],
+        "unfired_sector_directories_created": False,
+        "fired_sector_directories_reused": True,
         "accepted_materialized_lane_count": len(emitted),
         "schema_ready_unpopulated_lane_count": len(CANONICAL_LANE_IDS) - len(emitted),
         "study_brain": study_profile,
@@ -1446,7 +1820,7 @@ def materialize_project_authority_layout(
     for node_id, label, kind in (
         ("PROJECT", "User project authority SQLite", "root"),
         ("RUNTIME", "Hidden plugin runtime", "source"),
-        ("SECTORS", "18 typed sector SQLite authorities", "semantic"),
+        ("SECTORS", "18 registered sectors; fired lanes materialized", "semantic"),
         ("NAMED", "Named SQLite authorities", "semantic"),
         ("PROFILE", "Study Brain routing profile", "retrieval"),
     ):
@@ -1515,10 +1889,13 @@ def materialize_project_authority_layout(
         "resolved_project_root": str(published),
         "canonical_lane_count": len(CANONICAL_LANE_IDS),
         "materialized_sector_directory_count": len(sector_rows),
+        "materialized_sector_lane_ids": list(ordered_emitted_lane_ids),
         "accepted_materialized_lane_count": len(emitted),
         "schema_ready_unpopulated_lane_ids": [
             lane_id for lane_id in CANONICAL_LANE_IDS if lane_id not in emitted
         ],
+        "unfired_sector_directories_created": False,
+        "fired_sector_directories_reused": True,
         "study_brain_profile": study_profile,
         "layout_sha256": layout["layout_sha256"],
         "manifest_sha256": manifest["manifest_sha256"],
@@ -2172,7 +2549,10 @@ def _load_validated_committed_working_receipt(
         and receipt.get("pointer_generation") == pointer_generation
         and receipt.get("working_identity") == working_identity
         and sector_bundle_binding_valid
-        and receipt.get("all_18_sectors_materialized") is True
+        and (
+            receipt.get("canonical_lane_registry_bound") is True
+            or receipt.get("all_18_sectors_materialized") is True
+        )
         and receipt.get("candidate_created") is False
         and receipt.get("pointer_moved") is False
         and receipt.get("hil_inferred") is False
@@ -2203,8 +2583,7 @@ def _recover_interrupted_working_sector_stage(
     """Promote one complete interrupted stage only when active sectors are absent."""
 
     active_sectors = root / "sectors"
-    if active_sectors.exists():
-        return None
+    active_sectors_present = active_sectors.exists()
     stages = sorted(root.glob(".sectors-working-*.staging"))
     if not stages:
         return None
@@ -2251,6 +2630,14 @@ def _recover_interrupted_working_sector_stage(
     )
     receipt = decoded_receipt
     staged_identity = dict(receipt.get("working_identity") or {})
+    staged_emitted_lane_ids = list(
+        receipt.get("emitted_lane_ids")
+        or (
+            CANONICAL_LANE_IDS
+            if receipt.get("all_18_sectors_materialized") is True
+            else []
+        )
+    )
     require(
         validation.get("valid") is True
         and receipt.get("schema")
@@ -2260,7 +2647,11 @@ def _recover_interrupted_working_sector_stage(
         and receipt.get("historical_parent_pv") == accepted_pv
         and receipt.get("pointer_generation") == pointer_generation
         and staged_identity == working_identity
-        and receipt.get("all_18_sectors_materialized") is True
+        and (
+            receipt.get("canonical_lane_registry_bound") is True
+            or receipt.get("all_18_sectors_materialized") is True
+        )
+        and staged_emitted_lane_ids == validation.get("emitted_lane_ids")
         and receipt.get("candidate_created") is False
         and receipt.get("pointer_moved") is False
         and receipt.get("hil_inferred") is False,
@@ -2269,6 +2660,131 @@ def _recover_interrupted_working_sector_stage(
         status="MISMATCH",
         staged_path=str(staging),
     )
+    if active_sectors_present:
+        staged_snapshot = dict(receipt.get("operational_authority_snapshot") or {})
+        current_snapshot = _operational_authority_snapshot(
+            resolved_plan_authority_root(root),
+            resolved_chat_lineage_root(root),
+            lineage_member_names=set(
+                dict(staged_snapshot.get("chat_lineage_members") or {})
+            ),
+        )
+        require(
+            bool(staged_snapshot)
+            and staged_snapshot.get("receipt_sha256")
+            == current_snapshot.get("receipt_sha256"),
+            "PROJECT_WORKING_RECOVERY_OPERATIONAL_AUTHORITY_CHANGED",
+            "Plan or ChatLineage changed after the working-sector stage was sealed.",
+            status="MISMATCH",
+            staged_snapshot_sha256=staged_snapshot.get("receipt_sha256"),
+            current_snapshot_sha256=current_snapshot.get("receipt_sha256"),
+        )
+        migration_id = str(receipt["migration_id"])
+        backup = root / f".sectors-working-{migration_id}.previous"
+        require(
+            not backup.exists(),
+            "PROJECT_WORKING_RECOVERY_BACKUP_ALREADY_EXISTS",
+            "A sealed-stage recovery found a conflicting previous-authority path.",
+            status="BLOCKED",
+            backup_path=str(backup),
+        )
+        operations: list[dict[str, Any]] = []
+        moved_current = False
+        promoted = False
+        try:
+            operations.append(
+                _replace_path_with_retry(
+                    active_sectors,
+                    backup,
+                    operation="RECOVERY_MOVE_CURRENT_AUTHORITY_TO_BACKUP",
+                )
+            )
+            moved_current = True
+            operations.append(
+                _replace_path_with_retry(
+                    staging,
+                    active_sectors,
+                    operation="RECOVERY_PROMOTE_SEALED_STAGE",
+                )
+            )
+            promoted = True
+            recovered_validation = validate_lane_bundle(active_sectors)
+            require(
+                recovered_validation.get("valid") is True
+                and recovered_validation.get("bundle_sha256")
+                == validation.get("bundle_sha256"),
+                "PROJECT_WORKING_RECOVERY_PROMOTED_BUNDLE_MISMATCH",
+                "The promoted sealed stage differs from its preflighted bundle.",
+                status="FAIL",
+            )
+            committed_body = {
+                **receipt,
+                "state": "COMMITTED",
+                "commit_kind": "RECOVERED_STAGED_WORKING_AUTHORITY_PROMOTION",
+                "sector_bundle_sha256": recovered_validation.get("bundle_sha256"),
+                "path_operation_reports": operations,
+                "accepted_storage_changed": False,
+                "accepted_directory_purged": False,
+                "completed_at": utc_now(),
+            }
+            committed = {
+                **committed_body,
+                "receipt_sha256": sha256_bytes(canonical_json_bytes(committed_body)),
+            }
+            atomic_write_json(
+                root
+                / "receipts"
+                / "project-authority"
+                / "working-sector-migration.json",
+                committed,
+            )
+            operations.append(
+                _remove_tree_with_retry(
+                    backup,
+                    operation="RECOVERY_REMOVE_EXACT_PREVIOUS_AUTHORITY",
+                )
+            )
+        except Exception:
+            if promoted and active_sectors.exists():
+                failed = root / f".sectors-working-{migration_id}.failed"
+                _replace_path_with_retry(
+                    active_sectors,
+                    failed,
+                    operation="RECOVERY_QUARANTINE_FAILED_PROMOTION",
+                )
+            if moved_current and backup.exists() and not active_sectors.exists():
+                _replace_path_with_retry(
+                    backup,
+                    active_sectors,
+                    operation="RECOVERY_RESTORE_EXACT_PREVIOUS_AUTHORITY",
+                )
+            raise
+        recovery_body = {
+            "schema": "evidence-lane.working-sector-recovery.v1",
+            "status": "PASS",
+            "state": "SEALED_STAGE_PROMOTED_OVER_ACTIVE_AUTHORITY",
+            "project_id": project_id,
+            "historical_parent_pv": accepted_pv,
+            "pointer_generation": pointer_generation,
+            "working_identity_sha256": working_identity[
+                "working_identity_sha256"
+            ],
+            "recovered_stage": staging.name,
+            "sector_bundle_sha256": validation.get("bundle_sha256"),
+            "path_operation_reports": operations,
+            "candidate_created": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+        recovery = {
+            **recovery_body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(recovery_body)),
+        }
+        atomic_write_json(
+            root / "receipts" / "project-authority" / "working-sector-recovery.json",
+            recovery,
+        )
+        return recovery
     committed_receipt_path = (
         root
         / "receipts"
@@ -2293,6 +2809,9 @@ def _recover_interrupted_working_sector_stage(
         "historical_parent_pv",
         "pointer_generation",
         "working_identity",
+        "canonical_lane_registry_bound",
+        "emitted_lane_ids",
+        "unloaded_lane_ids",
         "all_18_sectors_materialized",
         "candidate_created",
         "pointer_moved",
@@ -2345,6 +2864,48 @@ def _recover_interrupted_working_sector_stage(
         recovery_record,
     )
     return recovery_record
+
+
+def _operational_authority_snapshot(
+    plan_root: Path,
+    lineage_root: Path,
+    *,
+    lineage_member_names: set[str] | None = None,
+) -> dict[str, Any]:
+    """Bind the exact mutable Plan and ChatLineage files copied into a stage."""
+
+    def member_identity(path: Path) -> dict[str, Any]:
+        if path.suffix.casefold() in {".sqlite", ".db"}:
+            logical = _sqlite_logical_report(path)
+            return {
+                "identity_kind": "SQLITE_LOGICAL_SNAPSHOT",
+                "identity_sha256": sha256_bytes(canonical_json_bytes(logical)),
+                "logical_report": logical,
+            }
+        return {
+            "identity_kind": "EXACT_BYTES",
+            "identity_sha256": sha256_file(path),
+        }
+
+    plan_members = {
+        relative: member_identity(plan_root / relative)
+        for relative in ("task_backlog.json", "plan_runtime_projection.sqlite")
+    }
+    lineage_members = {
+        path.name: member_identity(path)
+        for path in _chat_lineage_operational_files(lineage_root)
+        if path.name != OPERATIONAL_AUTHORITY_MARKER
+        and (
+            lineage_member_names is None
+            or path.name in lineage_member_names
+        )
+    }
+    body = {
+        "schema": "evidence-lane.working-operational-authority-snapshot.v1",
+        "plan_members": plan_members,
+        "chat_lineage_members": lineage_members,
+    }
+    return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
 
 
 def _accepted_lane_schema_binding_compatibility(
@@ -2438,7 +2999,7 @@ def _working_sector_source_rebuild_required(
 
     This does not accept or reseal the changed lane databases.  It only permits
     the explicit working-sector Source Intake action to discard those derived
-    databases and rebuild all eighteen lanes from the governed current source
+    databases and rebuild the currently fired lanes from the governed current source
     boundary.  Any structural, topology, route, database-integrity, or
     non-operational wrapper mismatch remains fail-closed.
     """
@@ -2446,10 +3007,37 @@ def _working_sector_source_rebuild_required(
     lane_errors = dict(validation.get("lane_manifest_errors") or {})
     lane_reports = dict(validation.get("lanes") or {})
     checksum_mismatches = dict(validation.get("checksum_mismatches") or {})
+    tool_ledger_upgrade = bool(
+        lane_errors
+        and set(lane_errors) == set(validation.get("emitted_lane_ids") or [])
+        and set(lane_reports) == set(validation.get("emitted_lane_ids") or [])
+        and validation.get("lane_emission_contract_valid") is True
+        and validation.get("lane_directory_set_valid") is True
+        and validation.get("source_routes_valid") is True
+        and all(
+            row.get("integrity") == ["ok"]
+            and not row.get("foreign_key_errors")
+            and row.get("schema_version") == "evidence-lane.universal-lane.v4"
+            and set(
+                dict(row.get("lane_schema_builder_projection") or {}).get(
+                    "missing_tables"
+                )
+                or []
+            )
+            == {"tool_route_contract", "tool_execution_receipt"}
+            for row in lane_reports.values()
+        )
+        and all(
+            is_working_sector_operational_member(path)
+            for path in checksum_mismatches
+        )
+    )
+    if tool_ledger_upgrade:
+        return True
     structural_contracts_valid = bool(
         lane_errors
         and set(lane_errors) <= set(CANONICAL_LANE_IDS)
-        and set(lane_reports) == set(CANONICAL_LANE_IDS)
+        and set(lane_reports) == set(validation.get("emitted_lane_ids") or [])
         and all(row.get("valid") is True for row in lane_reports.values())
         and validation.get("lane_emission_contract_valid") is True
         and validation.get("lane_directory_set_valid") is True
@@ -2520,13 +3108,19 @@ def migrate_working_project_sectors(
     expected_branch: str | None = None,
     expected_head: str | None = None,
     bootstrap_pv0: bool = False,
+    include_untracked_sources: bool = False,
+    include_git_history: bool = False,
 ) -> dict[str, Any]:
-    """Make all 18 sectors own the live WORKING state without PV movement."""
+    """Refresh fired sectors and reuse their live WORKING state without PV movement."""
 
-    root = Path(project_root).resolve()
+    root = validate_project_root_binding(
+        project_root,
+        project_id=project_id,
+        error_code="PROJECT_WORKING_MIGRATION_BINDING_INVALID",
+    )
     repository = Path(repository_root).resolve()
     require(
-        root.is_dir() and root.name == project_id and (repository / ".git").exists(),
+        root.is_dir() and (repository / ".git").exists(),
         "PROJECT_WORKING_MIGRATION_BINDING_INVALID",
         "Working-sector migration requires the exact project and Git workspace.",
         status="BLOCKED",
@@ -2595,34 +3189,78 @@ def migrate_working_project_sectors(
         pointer_generation=pointer_generation,
         working_identity=identity_before,
     )
+    unresolved_interrupted_stages = sorted(root.glob(".sectors-working-*.staging"))
+    require(
+        not unresolved_interrupted_stages,
+        "PROJECT_WORKING_INTERRUPTED_STAGE_UNCLASSIFIED",
+        "A partial or conflicting working-sector stage must be quarantined before Refresh can continue.",
+        status="BLOCKED",
+        staged_paths=[str(path) for path in unresolved_interrupted_stages],
+        active_sectors_present=(root / "sectors").is_dir(),
+    )
     active_sectors_existed = active_sectors.is_dir()
-    active_sector_bundle_ready = bool(
+    active_emitted_lane_ids: tuple[str, ...] = ()
+    active_declared_emitted_lane_ids: list[str] = []
+    active_bundle_contract_paths_exist = bool(
         active_sectors.is_dir()
         and (active_sectors / "manifest.json").is_file()
         and (active_sectors / "SHA256SUMS.json").is_file()
         and (active_sectors / "routes.json").is_file()
-        and all(
-            (active_sectors / lane_id).is_dir()
-            for lane_id in CANONICAL_LANE_IDS
+    )
+    if active_bundle_contract_paths_exist:
+        try:
+            active_manifest = json.loads(
+                (active_sectors / "manifest.json").read_text(encoding="utf-8")
+            )
+        except (OSError, json.JSONDecodeError):
+            active_manifest = {}
+        active_declared_emitted_lane_ids = list(
+            active_manifest.get("emitted_lane_ids") or []
         )
+        active_emitted_lane_ids = tuple(
+            lane_id
+            for lane_id in CANONICAL_LANE_IDS
+            if lane_id in active_declared_emitted_lane_ids
+        )
+    actual_active_sector_lane_ids = tuple(
+        lane_id
+        for lane_id in CANONICAL_LANE_IDS
+        if (active_sectors / lane_id).is_dir()
+    )
+    active_sector_bundle_ready = bool(
+        active_bundle_contract_paths_exist
+        and list(active_emitted_lane_ids)
+        == active_declared_emitted_lane_ids
+        and actual_active_sector_lane_ids == active_emitted_lane_ids
+        and set(PROJECT_AUTHORITY_ALWAYS_ON_SECTOR_IDS)
+        <= set(active_emitted_lane_ids)
+    )
+    active_validation = (
+        validate_lane_bundle(active_sectors) if active_sector_bundle_ready else None
+    )
+    legacy_parent_migration_eligible = bool(
+        active_validation
+        and active_validation.get("legacy_inline_migration_eligible") is True
     )
     build_parent_bundle: Path | None = (
         active_sectors if active_sector_bundle_ready else None
     )
     build_parent_kind = (
-        "CURRENT_ROOT_WORKING_SECTORS"
+        "LEGACY_INLINE_WORKING_SECTORS_REQUIRING_CURRENT_SCHEMA_ENGULFMENT"
+        if legacy_parent_migration_eligible
+        else "CURRENT_ROOT_WORKING_SECTORS"
         if build_parent_bundle is not None
         else "NO_PRIOR_WORKING_SECTOR_BUNDLE"
     )
     refreshing_existing = bool(
         active_sector_bundle_ready
+        and not legacy_parent_migration_eligible
         and _sector_operational_authority_ready(plan_sector_root(root))
         and _sector_operational_authority_ready(chat_lineage_sector_root(root))
-        and all((active_sectors / lane_id).is_dir() for lane_id in CANONICAL_LANE_IDS)
         and not any((root / name).exists() for name in (*_LEGACY_PLAN_PATHS, "lineage"))
     )
     if refreshing_existing:
-        validation = validate_lane_bundle(active_sectors)
+        validation = cast(dict[str, Any], active_validation)
         checksum_mismatches = dict(validation.get("checksum_mismatches") or {})
         operational_authority_only_drift = bool(checksum_mismatches) and all(
             is_working_sector_operational_member(path)
@@ -2640,6 +3278,20 @@ def migrate_working_project_sectors(
             and validation.get("topology_valid") is True
         )
         source_rebuild_required = _working_sector_source_rebuild_required(validation)
+        tool_ledger_upgrade_required = bool(
+            source_rebuild_required
+            and all(
+                row.get("schema_version") == "evidence-lane.universal-lane.v4"
+                and set(
+                    dict(row.get("lane_schema_builder_projection") or {}).get(
+                        "missing_tables"
+                    )
+                    or []
+                )
+                == {"tool_route_contract", "tool_execution_receipt"}
+                for row in dict(validation.get("lanes") or {}).values()
+            )
+        )
         require(
             validation.get("valid") is True
             or refreshable_existing_authority
@@ -2663,7 +3315,11 @@ def migrate_working_project_sectors(
             # source boundary and later carries root-nested immutable history
             # and operational Plan/ChatLineage authorities independently.
             build_parent_bundle = None
-            build_parent_kind = "CURRENT_WORKING_SECTORS_SOURCE_REBUILD_REQUIRED"
+            build_parent_kind = (
+                "CURRENT_WORKING_SECTORS_TOOL_ROUTE_EXECUTION_SCHEMA_UPGRADE"
+                if tool_ledger_upgrade_required
+                else "CURRENT_WORKING_SECTORS_SOURCE_REBUILD_REQUIRED"
+            )
         else:
             build_parent_bundle = active_sectors
             build_parent_kind = "CURRENT_VALIDATED_WORKING_SECTORS"
@@ -2695,7 +3351,10 @@ def migrate_working_project_sectors(
             and existing_receipt.get("project_id") == project_id
             and existing_receipt.get("historical_parent_pv") == accepted_pv
             and existing_receipt.get("pointer_generation") == pointer_generation
-            and existing_receipt.get("all_18_sectors_materialized") is True
+            and (
+                existing_receipt.get("canonical_lane_registry_bound") is True
+                or existing_receipt.get("all_18_sectors_materialized") is True
+            )
             and existing_receipt.get("candidate_created") is False
             and existing_receipt.get("pointer_moved") is False
             and existing_receipt.get("hil_inferred") is False,
@@ -2714,14 +3373,27 @@ def migrate_working_project_sectors(
             )
             existing_reports = list(existing_manifest.get("reports") or [])
             existing_lane_ids = [str(row.get("lane_id") or "") for row in existing_reports]
+            declared_existing_lane_ids = list(
+                existing_manifest.get("emitted_lane_ids") or []
+            )
+            receipt_existing_lane_ids = list(
+                existing_receipt.get("emitted_lane_ids")
+                or (
+                    CANONICAL_LANE_IDS
+                    if existing_receipt.get("all_18_sectors_materialized") is True
+                    else []
+                )
+            )
             require(
                 existing_manifest.get("lane_emission_policy")
-                == "ALL_18_WORKING_AUTHORITY"
+                in {"LOADED_OR_DETECTED_ONLY", "ALL_18_WORKING_AUTHORITY"}
                 and int(existing_manifest.get("canonical_lane_count") or 0)
                 == len(CANONICAL_LANE_IDS)
-                and existing_lane_ids == list(CANONICAL_LANE_IDS),
+                and existing_lane_ids == declared_existing_lane_ids
+                and existing_lane_ids == receipt_existing_lane_ids
+                and set(WORKING_ALWAYS_LOADED_LANE_IDS) <= set(existing_lane_ids),
                 "PROJECT_WORKING_IDEMPOTENT_LANE_SCOPE_MISMATCH",
-                "Idempotent working authority reuse requires the exact all-18-lane manifest.",
+                "Idempotent working authority reuse requires the exact fired-lane manifest.",
                 status="MISMATCH",
             )
             existing_fallbacks = list(
@@ -2741,10 +3413,15 @@ def migrate_working_project_sectors(
                 status="MISMATCH",
             )
             canonical_lane_refresh = {
-                "authority_scope": "ALL_18_CANONICAL_LANES",
+                "authority_scope": "CURRENT_FIRED_CANONICAL_LANES",
                 "refresh_action": "IDEMPOTENT_WORKING_AUTHORITY_REUSE",
                 "canonical_lane_count": len(CANONICAL_LANE_IDS),
                 "emitted_lane_ids": existing_lane_ids,
+                "unloaded_lane_ids": [
+                    lane_id
+                    for lane_id in CANONICAL_LANE_IDS
+                    if lane_id not in existing_lane_ids
+                ],
                 "lane_report_count": len(existing_reports),
                 "lane_reports": [
                     {
@@ -2829,8 +3506,16 @@ def migrate_working_project_sectors(
     copy_reports: list[dict[str, Any]] = []
     path_operation_reports: list[dict[str, Any]] = []
     swapped = False
+    active_moved_to_backup = False
+    staged_authority_validated = False
     migration_phase = "BUILD_LANE_BUNDLE"
     try:
+        refresh_always_loaded_lane_ids = tuple(
+            lane_id
+            for lane_id in CANONICAL_LANE_IDS
+            if lane_id in set(WORKING_ALWAYS_LOADED_LANE_IDS)
+            | set(active_emitted_lane_ids)
+        )
         lane_build = build_lane_bundle(
             repository_root=repository,
             output_directory=staging,
@@ -2844,8 +3529,9 @@ def migrate_working_project_sectors(
             # tracked paths are indexed; unstaged local testing/evidence is
             # retained only in the dirty inventory until it is explicitly
             # staged or independently admitted through Source Intake.
-            include_untracked=False,
-            materialize_all_lanes=True,
+            include_untracked=include_untracked_sources,
+            materialize_all_lanes=False,
+            always_loaded_lane_ids=refresh_always_loaded_lane_ids,
             source_overrides={
                 row["path"]: row["lane_id"]
                 for row in delta_rows
@@ -2859,18 +3545,28 @@ def migrate_working_project_sectors(
             # parent rows or omit clean current files.
             source_paths_override=None,
             preserve_parent_unmentioned=True,
-            index_git_history=False,
+            preserve_parent_external_sources=legacy_parent_migration_eligible,
+            # Ordinary WORKING local_code refreshes current source and Delta
+            # mutations only. Full reachable history is condition-bound to an
+            # explicit initial/Git/rollback intake and should use the selected
+            # Git-oriented code lane rather than silently inflating local_code.
+            index_git_history=include_git_history,
             allow_parent_operational_authority_drift=refreshing_existing,
         )
         lane_reports = list(lane_build.get("reports") or [])
         emitted_lane_ids = [str(row.get("lane_id") or "") for row in lane_reports]
         require(
-            lane_build.get("lane_emission_policy") == "ALL_18_WORKING_AUTHORITY"
+            lane_build.get("lane_emission_policy") == "LOADED_OR_DETECTED_ONLY"
             and int(lane_build.get("canonical_lane_count") or 0)
             == len(CANONICAL_LANE_IDS)
-            and emitted_lane_ids == list(CANONICAL_LANE_IDS),
+            and emitted_lane_ids == list(lane_build.get("emitted_lane_ids") or [])
+            and set(WORKING_ALWAYS_LOADED_LANE_IDS) <= set(emitted_lane_ids)
+            and dict(lane_build.get("parallel_execution") or {}).get(
+                "unloaded_lane_artifacts_fabricated"
+            )
+            is False,
             "PROJECT_WORKING_LANE_REFRESH_SCOPE_MISMATCH",
-            "Working-sector Refresh must emit exactly the ordered 18 canonical lanes.",
+            "Working-sector Refresh must emit only the ordered fired lanes and reuse them by hash.",
             status="MISMATCH",
         )
         full_validation_fallbacks = list(
@@ -2888,7 +3584,7 @@ def migrate_working_project_sectors(
             status="MISMATCH",
         )
         canonical_lane_refresh = {
-            "authority_scope": "ALL_18_CANONICAL_LANES",
+            "authority_scope": "CURRENT_FIRED_CANONICAL_LANES",
             "refresh_action": (
                 "WORKING_TO_WORKING_INCREMENTAL_REFRESH"
                 if refreshing_existing
@@ -2896,7 +3592,14 @@ def migrate_working_project_sectors(
             ),
             "canonical_lane_count": len(CANONICAL_LANE_IDS),
             "emitted_lane_ids": emitted_lane_ids,
+            "unloaded_lane_ids": [
+                lane_id
+                for lane_id in CANONICAL_LANE_IDS
+                if lane_id not in emitted_lane_ids
+            ],
             "lane_report_count": len(lane_reports),
+            "include_untracked_sources": include_untracked_sources,
+            "include_git_history": include_git_history,
             "lane_reports": [
                 {
                     "lane_id": row["lane_id"],
@@ -2917,13 +3620,17 @@ def migrate_working_project_sectors(
                 "source_snapshot_sha256"
             ),
             "complete_governed_source_replay": True,
-            "current_source_authority_scope": "GIT_INDEX_CURRENT_WORKTREE_BYTES",
+            "current_source_authority_scope": (
+                "GIT_TRACKED_AND_EXPLICIT_UNTRACKED_CURRENT_WORKTREE_BYTES"
+                if include_untracked_sources
+                else "GIT_INDEX_CURRENT_WORKTREE_BYTES"
+            ),
         }
         initial_validation = validate_lane_bundle(staging)
         require(
             initial_validation.get("valid") is True,
             "PROJECT_WORKING_LANE_BUILD_INVALID",
-            "The staged all-lane working authority failed validation.",
+            "The staged fired-lane working authority failed validation.",
             status="FAIL",
             invalid_lane_ids=sorted(
                 lane_id
@@ -2999,7 +3706,7 @@ def migrate_working_project_sectors(
 
         migration_phase = "SEAL_CANONICAL_LANE_REFERENCES"
         historical_lane_references: list[dict[str, Any]] = []
-        for lane_id in CANONICAL_LANE_IDS:
+        for lane_id in emitted_lane_ids:
             lane_root = staging / lane_id
             schema = lane_schema_asset(lane_id)
             artifacts = lane_artifact_contract(lane_id)
@@ -3080,6 +3787,11 @@ def migrate_working_project_sectors(
                 staging / CHAT_LINEAGE_SECTOR_ID
             )
         }
+        operational_authority_snapshot = _operational_authority_snapshot(
+            plan_stage,
+            staging / CHAT_LINEAGE_SECTOR_ID,
+            lineage_member_names={path.name for path in lineage_sources},
+        )
         marker_base = {
             "schema": "evidence-lane.sector-operational-authority.v1",
             "state": "CANONICAL_ACTIVE",
@@ -3124,7 +3836,18 @@ def migrate_working_project_sectors(
             "pointer_generation": pointer_generation,
             "pv0_bootstrap": pointer_matches_pv0_bootstrap,
             "working_identity": identity_before,
-            "all_18_sectors_materialized": True,
+            "canonical_lane_registry_bound": True,
+            "canonical_lane_count": len(CANONICAL_LANE_IDS),
+            "emitted_lane_ids": emitted_lane_ids,
+            "unloaded_lane_ids": [
+                lane_id
+                for lane_id in CANONICAL_LANE_IDS
+                if lane_id not in emitted_lane_ids
+            ],
+            "all_18_sectors_materialized": len(emitted_lane_ids)
+            == len(CANONICAL_LANE_IDS),
+            "unloaded_lane_artifacts_fabricated": False,
+            "fired_lane_directories_reused_when_unchanged": True,
             "historical_lanes_replayed": bool(root_nested_history_reports),
             "historical_parent_copied_once": False,
             "historical_parent_reference_mode": (
@@ -3152,11 +3875,13 @@ def migrate_working_project_sectors(
             "local_only_exclusion": local_only_exclusion,
             "changed_lane_ids": sorted(
                 {str(row["lane_id"]) for row in delta_rows}
-                | {PLAN_SECTOR_ID, CHAT_LINEAGE_SECTOR_ID}
+                | set(WORKING_ALWAYS_LOADED_LANE_IDS)
             ),
             "canonical_lane_refresh": canonical_lane_refresh,
             "plan_sector_owned": True,
             "chat_lineage_sector_owned": True,
+            "operational_authority_snapshot": operational_authority_snapshot,
+            "state": "STAGED",
             "candidate_created": False,
             "pointer_moved": False,
             "hil_inferred": False,
@@ -3172,6 +3897,7 @@ def migrate_working_project_sectors(
             "The complete staged sector authority failed final validation.",
             status="FAIL",
         )
+        staged_authority_validated = True
         identity_after_build = _working_repository_identity(repository)
         require(
             identity_after_build == identity_before,
@@ -3185,6 +3911,17 @@ def migrate_working_project_sectors(
             "The accepted pointer changed during working-sector migration.",
             status="MISMATCH",
         )
+        require(
+            _operational_authority_snapshot(
+                plan_source_root,
+                lineage_source,
+                lineage_member_names={path.name for path in lineage_sources},
+            ).get("receipt_sha256")
+            == operational_authority_snapshot.get("receipt_sha256"),
+            "PROJECT_WORKING_OPERATIONAL_AUTHORITY_CHANGED_DURING_MIGRATION",
+            "Plan or ChatLineage changed after staging and before promotion.",
+            status="MISMATCH",
+        )
 
         migration_phase = "COMMIT_ACTIVE_SECTOR_SWAP"
         if active_sectors_existed:
@@ -3195,6 +3932,7 @@ def migrate_working_project_sectors(
                     operation="MOVE_CURRENT_AUTHORITY_TO_EXACT_BACKUP",
                 )
             )
+            active_moved_to_backup = True
         path_operation_reports.append(
             _replace_path_with_retry(
                 staging,
@@ -3307,6 +4045,12 @@ def migrate_working_project_sectors(
             "receipt_sha256": receipt["receipt_sha256"],
             "working_identity": identity_after_build,
             "canonical_lane_count": len(CANONICAL_LANE_IDS),
+            "emitted_lane_ids": emitted_lane_ids,
+            "unloaded_lane_ids": [
+                lane_id
+                for lane_id in CANONICAL_LANE_IDS
+                if lane_id not in emitted_lane_ids
+            ],
             "build_parent_kind": build_parent_kind,
             "canonical_lane_refresh": canonical_lane_refresh,
             "path_operation_reports": path_operation_reports,
@@ -3337,7 +4081,59 @@ def migrate_working_project_sectors(
                         active_sectors,
                         operation="RESTORE_EXACT_PREVIOUS_AUTHORITY",
                     )
-            if staging.exists():
+            elif active_moved_to_backup and backup.exists():
+                require(
+                    not active_sectors.exists(),
+                    "PROJECT_WORKING_PREPROMOTION_ROLLBACK_TARGET_OCCUPIED",
+                    "The exact prior sector authority cannot be restored over an occupied target.",
+                    status="BLOCKED",
+                )
+                _replace_path_with_retry(
+                    backup,
+                    active_sectors,
+                    operation="RESTORE_PREPROMOTION_EXACT_PREVIOUS_AUTHORITY",
+                )
+                active_moved_to_backup = False
+            preserve_sealed_stage = bool(
+                migration_phase == "COMMIT_ACTIVE_SECTOR_SWAP"
+                and not swapped
+                and staged_authority_validated
+                and staging.is_dir()
+                and (staging / "manifest.json").is_file()
+                and (staging / "SHA256SUMS.json").is_file()
+                and (staging / "working_migration_receipt.json").is_file()
+            )
+            if preserve_sealed_stage:
+                blocked_body = {
+                    "schema": "evidence-lane.working-sector-promotion-block.v1",
+                    "status": "BLOCKED",
+                    "migration_id": migration_id,
+                    "project_id": project_id,
+                    "staged_path": str(staging),
+                    "sector_bundle_sha256": final_validation.get("bundle_sha256"),
+                    "working_identity_sha256": identity_before[
+                        "working_identity_sha256"
+                    ],
+                    "pointer_sha256": pointer_before,
+                    "exception_type": type(exc).__name__,
+                    "candidate_created": False,
+                    "pointer_moved": False,
+                    "hil_inferred": False,
+                    "recorded_at": utc_now(),
+                }
+                atomic_write_json(
+                    root
+                    / "receipts"
+                    / "project-authority"
+                    / "working-sector-promotion-block.json",
+                    {
+                        **blocked_body,
+                        "receipt_sha256": sha256_bytes(
+                            canonical_json_bytes(blocked_body)
+                        ),
+                    },
+                )
+            elif staging.exists():
                 _remove_tree_with_retry(
                     staging,
                     operation="REMOVE_FAILED_STAGING_AUTHORITY",
@@ -3719,11 +4515,29 @@ def _query_root_nested_pv_history(
             lambda value: int(_working_source_path_key(value) in current_path_keys),
             deterministic=True,
         )
+        cas_columns = {
+            str(row[1])
+            for row in connection.execute("PRAGMA table_info(chunk_content_cas)")
+        }
+        compressed_cas = {"compression", "compressed_text"} <= cas_columns
+        inline_legacy_cas = "text_content" in cas_columns
+        require(
+            compressed_cas or inline_legacy_cas,
+            "PROJECT_ROOT_NESTED_HISTORY_CAS_SCHEMA_UNSUPPORTED",
+            "The immutable lane-local history uses an unsupported chunk CAS schema.",
+            status="MISMATCH",
+            lane_id=lane_id,
+        )
+        selected_cas_columns = (
+            "cas.compression,cas.compressed_text"
+            if compressed_cas
+            else "NULL,cas.text_content"
+        )
         rows = connection.execute(
             (
                 "SELECT c.chunk_id,s.path,c.locator,"
                 f"bm25({lane.fts_table}),c.sha256,cas.size_bytes,"
-                "cas.compression,cas.compressed_text "
+                f"{selected_cas_columns} "
                 f"FROM {lane.fts_table} AS f "
                 "JOIN chunk_index AS c ON c.chunk_id="
                 "COALESCE(CAST(f.chunk_id AS INTEGER),f.rowid) "
@@ -3735,21 +4549,34 @@ def _query_root_nested_pv_history(
             ),
             (fts_query, int(limit)),
         ).fetchall()
-        decoded_rows = [
-            (
-                int(row[0]),
-                str(row[1]),
-                str(row[2]),
-                decompress_exact_bytes(
+        decoded_rows = []
+        for row in rows:
+            if compressed_cas:
+                content = decompress_exact_bytes(
                     compression=str(row[6]),
                     payload=bytes(row[7]),
                     expected_size=int(row[5]),
                     expected_sha256=str(row[4]),
-                ).decode("utf-8")[:1000],
-                float(row[3]),
+                )
+            else:
+                content = str(row[7]).encode("utf-8")
+                require(
+                    len(content) == int(row[5])
+                    and sha256_bytes(content) == str(row[4]),
+                    "PROJECT_ROOT_NESTED_HISTORY_LEGACY_CAS_HASH_MISMATCH",
+                    "The immutable legacy lane-local history failed exact-byte readback.",
+                    status="MISMATCH",
+                    lane_id=lane_id,
+                )
+            decoded_rows.append(
+                (
+                    int(row[0]),
+                    str(row[1]),
+                    str(row[2]),
+                    content.decode("utf-8")[:1000],
+                    float(row[3]),
+                )
             )
-            for row in rows
-        ]
         excluded_current_path_count = int(
             connection.execute(
                 (
@@ -3767,6 +4594,11 @@ def _query_root_nested_pv_history(
         connection.close()
     return {
         "rows": decoded_rows,
+        "cas_storage_format": (
+            "COMPRESSED_CONTENT_ADDRESSED"
+            if compressed_cas
+            else "IMMUTABLE_LEGACY_INLINE_TEXT"
+        ),
         "excluded_current_path_count": excluded_current_path_count,
     }
 
@@ -3810,14 +4642,12 @@ def query_working_project_sectors(
         status="BLOCKED",
         lane_ids=exact_lanes,
     )
-    root = Path(project_root).resolve()
-    repository = Path(repository_root).resolve()
-    require(
-        root.is_dir() and root.name == project_id,
-        "PROJECT_WORKING_QUERY_BINDING_INVALID",
-        "Working-sector query requires the exact governed project root.",
-        status="BLOCKED",
+    root = validate_project_root_binding(
+        project_root,
+        project_id=project_id,
+        error_code="PROJECT_WORKING_QUERY_BINDING_INVALID",
     )
+    repository = Path(repository_root).resolve()
     pointer_path = root / "active_pointer.json"
     pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
     require(
@@ -3897,7 +4727,7 @@ def query_working_project_sectors(
             for path, lane_id in project_current_routes.items()
         ),
         "PROJECT_WORKING_QUERY_GLOBAL_SOURCE_ROUTES_MISMATCH",
-        "The sealed all-lane source-route authority is invalid.",
+        "The sealed fired-lane source-route authority is invalid.",
         status="MISMATCH",
         project_id=project_id,
     )

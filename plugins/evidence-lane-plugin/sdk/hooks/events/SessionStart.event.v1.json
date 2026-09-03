@@ -5,27 +5,27 @@
   "event": "SessionStart",
   "handler_count": 4,
   "event_binding": "hooks/events/SessionStart/event.v1.json",
-  "event_binding_sha256": "EF784DBDB229023E28A7F983057FE06466042EAB7315E670E2AF8012AA43FF47",
+  "event_binding_sha256": "245A0A704640D4516B4D94BD31A224BD195F15B391A06BD50B6EAAB8EF234F9E",
   "handlers": [
     {
       "display_id": "1.1",
       "path": "hooks/events/SessionStart/handler-1.1.v1.json",
-      "sha256": "4A64CF972771DD36573CB4615C9BD49EE09698F5A61855E3DE6177E36002314C"
+      "sha256": "922016C7B504B53CE926CE374DEB68842016D7C600F0E90483F7C3EF067FD722"
     },
     {
       "display_id": "1.2",
       "path": "hooks/events/SessionStart/handler-1.2.v1.json",
-      "sha256": "FFC25ACDB100C6F8E41EE9D70B1483192E135BB72DCDA85A8CA16F326F9D0D0E"
+      "sha256": "53A1EC1D5FD14833F40FA284092A830F8D67BA26A0D1C6337B059804CC62C1E7"
     },
     {
       "display_id": "1.3",
       "path": "hooks/events/SessionStart/handler-1.3.v1.json",
-      "sha256": "CCB5091C0AB7A329222042CAF07E10F4DD470889603579E61243E7DEFC9FEA01"
+      "sha256": "42FB7D42EDE9FE3C20930F7C8C86A8B67A69B9AC8A470798FDF368E20303164C"
     },
     {
       "display_id": "1.4",
       "path": "hooks/events/SessionStart/handler-1.4.v1.json",
-      "sha256": "F873C1B7A4AA60C1F2493F3E1D9796D561F656DC58579E47242A040C24D26ADE"
+      "sha256": "27266B8589B25E5C0A7311B209ED18638D95F5D059FE471A91D2387A6B939D40"
     }
   ],
   "workflow_contract": {
@@ -44,5 +44,5 @@
   "canonical_hook_manifest": "hooks/hooks.json",
   "canonical_logical_actions": "hooks/logical-actions.json",
   "enabled_only_after_installed_event_pass": true,
-  "receipt_sha256": "D958DDA046715E3CA7E817AB4DD5ECD0A287BED297995643F912F8EA632842DF"
+  "receipt_sha256": "5D751431C80299DB5697AB0381ABEA0DD17DB97E80B8FFA034EA421CCE26AE3A"
 }

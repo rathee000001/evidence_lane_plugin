@@ -999,7 +999,7 @@
     {
       "capability": "local_install",
       "status": "CURRENT_ROUTE",
-      "current_route": "PLUGIN_CREATOR_STAGE_MATERIALIZE_PREPARE_TERMINAL_USER_RESTART_REATTACH",
+      "current_route": "PLUGIN_CREATOR_STAGE_MATERIALIZE_TERMINAL_USER_RESTART_REATTACH",
       "owner": "plugin-creator",
       "schema": "evidence-lane.codex-stable-installation.v2",
       "public_tools": [],
@@ -1036,9 +1036,9 @@
     {
       "capability": "restart_reattachment",
       "status": "CURRENT_ROUTE",
-      "current_route": "TERMINAL_SAFE_PREPARATION_THEN_USER_EXACT_CHANNEL_RESTART",
-      "owner": "Prepare-EvidenceLaneCodexRestart.ps1",
-      "schema": "evidence-lane.codex-terminal-safe-restart-preparation.v1",
+      "current_route": "USER_MANUAL_RESTART_THEN_NATIVE_EXACT_TASK_READBACK",
+      "owner": "task_attachment_rehydration.py",
+      "schema": "evidence-lane.task-attachment-rehydration.v1",
       "public_tools": [],
       "plan_families": [
         "RESTART",
@@ -1066,7 +1066,7 @@
         "NO_HIDDEN_OVERLAY"
       ],
       "sdk_governance": {
-        "implementation_class": "SDK_GOVERNED_PREPARATION_ONLY_HOST_ADAPTER",
+        "implementation_class": "SDK_GOVERNED_POST_RESTART_READBACK_ADAPTER",
         "behavior_owner": "INTERNAL_SDK",
         "outer_business_logic_allowed": false,
         "outer_adapter_may_reason_about_lifecycle": false
@@ -2342,6 +2342,6 @@
   "all_public_tools_have_one_route": true,
   "obsolete_execution_allowed": false,
   "fallback_to_historical_route_allowed": false,
-  "registry_sha256": "CE4227131F8874568011B38B6A11EE578CECB709CA804E4E1BAF3A07060B1372",
-  "receipt_sha256": "15B5166425A08A752BD180E9DA314C509FB9BD987500446795E67AB7197BB38C"
+  "registry_sha256": "84A7854C142BFC246A7FF5230464415016DA15980F267786FF70B3159754B192",
+  "receipt_sha256": "D9F079E1F2B27B24FDF6641C5EC3942FB0F1B0C4879860E3116CACEE399172F7"
 }

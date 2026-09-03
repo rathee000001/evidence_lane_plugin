@@ -8,28 +8,28 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_validate.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_validate.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_validate.py",
           "timeout": 10,
           "statusMessage": "Validating and bounding Evidence Lane hook signal"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_seal.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_seal.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_seal.py",
           "timeout": 10,
           "statusMessage": "Deduplicating and sealing Evidence Lane hook occurrence"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_transport.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_transport.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_transport.py",
           "timeout": 10,
           "statusMessage": "Rehydrating Evidence Lane after compaction"
         },
         {
           "type": "command",
-          "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_emit.py",
+          "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PostCompact --handler subhook_emit.py",
           "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PostCompact subhook_emit.py",
           "timeout": 10,
           "statusMessage": "Verifying and emitting Evidence Lane hook result"
@@ -42,22 +42,22 @@
     {
       "display_id": "8.1",
       "path": "hooks/events/PostCompact/handler-8.1.v1.json",
-      "sha256": "509C798323AACEB3F2A9D7894087F0084C4E98FD73726CA1B5167F5926B25254"
+      "sha256": "67632A4723D73B05370EB694AC25F208F7A264524FBCF4CBD2921010A33DFDE2"
     },
     {
       "display_id": "8.2",
       "path": "hooks/events/PostCompact/handler-8.2.v1.json",
-      "sha256": "E9DC406277C5C9747F6AEA80F88C7BCEF5F2724E2D1FDD1AC317A148E676ED65"
+      "sha256": "C2A3DB80670CE4C09973A9D0CDDD8134AA4ADA74E104C56BC88CB670967E7069"
     },
     {
       "display_id": "8.3",
       "path": "hooks/events/PostCompact/handler-8.3.v1.json",
-      "sha256": "FA2B31351F006E6CBBC5F0EE0D0E267CCD22E60E711A9EC49DDE88159B98E989"
+      "sha256": "C1DB153B3C05E80D2BD2882A1F461890CE6C42686D81468CF8990D6EAAD0E99C"
     },
     {
       "display_id": "8.4",
       "path": "hooks/events/PostCompact/handler-8.4.v1.json",
-      "sha256": "CA8C4F38BC26F6AEFDBF31FF459ACBF1463D7C13DD794380B5B0BBC5D9E34A4A"
+      "sha256": "D5BDC33E1AA8D556FF5EF4E58458A4658BFDEC70AF9029F78F0A895BC3F2F4A7"
     }
   ],
   "adapter": "hooks/lifecycle_boundary.py",
@@ -76,5 +76,5 @@
   "workflow_contract_sha256": "43E7DEE69980B7596D9ECA9746C51537DA2F27FFB68AE87C27C5FF5129D508B5",
   "precompact_seals_before_compaction": true,
   "postcompact_rehydrates_after_compaction": true,
-  "receipt_sha256": "EB076ED33C997229EC749E30FBD3C1956789F8E7DB34D9FD913E32544C564B18"
+  "receipt_sha256": "056305F3F9687DB6212452357376A56614B7A719FF56B5707E55B7D93DC35534"
 }

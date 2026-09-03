@@ -3,10 +3,10 @@
   "status": "PASS",
   "authority_id": "project_authority",
   "authority_root": "authorities/project_authority",
-  "authority_manifest_sha256": "696BCF47A0FEACC648C3712AE80E57410B70E18111F477B94BB81FCC679A60DD",
+  "authority_manifest_sha256": "07C7B0D8F5E637FD975074E6AD934BB9F2AB4F0E7B473FD1443A3F977CF339F5",
   "schema_surface": "schemas/authorities/project_authority/schema-surface.v1.json",
   "persistent_sqlite_authority": true,
   "linked_public_action_count": 21,
   "merged_with_project_sector_or_peer": false,
-  "receipt_sha256": "06F2D497D0955BBE3836ADC3DEF564E933029C03EAE99A48F3C3B40DF83EAC29"
+  "receipt_sha256": "B6806DCC41B050C0756E7FA07D83E08EE8183CA6E6D82349D2D86F76E9BCF046"
 }

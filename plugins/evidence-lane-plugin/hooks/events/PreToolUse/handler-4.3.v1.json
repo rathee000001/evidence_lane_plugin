@@ -7,7 +7,7 @@
   "event": "PreToolUse",
   "handler": {
     "type": "command",
-    "command": "python3 \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_transport.py",
+    "command": "python3 -B \"$PLUGIN_ROOT/hooks/invoke_hook.py\" --event PreToolUse --handler subhook_transport.py",
     "commandWindows": "& \"${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe\" PreToolUse subhook_transport.py",
     "timeout": 10,
     "statusMessage": "Guarding Evidence Lane governed tool use"
@@ -33,5 +33,5 @@
   "adapter_sha256": "1D5EE052FD282B7DB09B56EA534762E4ABF49E5DC52A2F7D97B8B82EE97E746C",
   "pipeline": "hooks/subhook_pipeline.py",
   "pipeline_sha256": "6F9D3B6FD12F7B69994E1D783895CB73C52144865F2C4F4B1754B7E7BEDEABD0",
-  "receipt_sha256": "35208F9C23CE0FFA1C4609CDCEF61EC48579E404CF88B91F865EF1673F2585C8"
+  "receipt_sha256": "BEB4EB1C861EB84F5DB7767B318EEF64C2830C024180E178DFAB43D7D5FB4AAF"
 }

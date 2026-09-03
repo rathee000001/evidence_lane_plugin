@@ -147,6 +147,8 @@ _CORE_SCHEMA = (
     "chunk_history",
     "structured_fact",
     "parser_capability",
+    "tool_route_contract",
+    "tool_execution_receipt",
     "tfidf_term",
     "tfidf_vector",
     "refresh_receipt",
@@ -796,7 +798,7 @@ def _lane_schema_registry_payload() -> tuple[
     if not isinstance(base, dict) or set(base) != {"schema_id", "tables", "owner"}:
         raise LaneRegistryError("Lane base-schema contract is malformed.")
     if base != {
-        "schema_id": "evidence-lane.universal-lane.v4",
+        "schema_id": "evidence-lane.universal-lane.v5",
         "tables": sorted(CORE_SCHEMA_TABLES),
         "owner": "lane_engine.py:_create_lane_schema",
     }:

@@ -4,6 +4,7 @@
       "cwd": ".",
       "command": "python",
       "args": [
+        "-B",
         "./scripts/run_mcp.py",
         "--transport",
         "stdio"

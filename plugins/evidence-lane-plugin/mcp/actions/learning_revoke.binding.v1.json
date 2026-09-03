@@ -76,11 +76,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/learning_revoke.action.v1.json",
-  "sdk_action_binding_sha256": "0D6BC381CD0A59E57BE8191E9CFA900820E7D84D9AB430AC6DF66F9D71959B03",
+  "sdk_action_binding_sha256": "77BB7A9E15ECE645C87378CE6E4C3FC7C3F156D50261D600037144E39EDA7E87",
   "public_action_schema": "schemas/actions/learning_revoke.schema.json",
   "public_action_schema_sha256": "4BEB37F6D8AA83DECB715558CE9964ACB3D4420D538B3CA71BB4BB4C858936B9",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "28D95BB846108471E38AD0D6222FC91E86D3357A2F43493991449E6C65F923D0",
+  "canonical_server_sha256": "46465CE68730BF4160F6EBD446CB11FCB693C59947083B090842B34A291388CE",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "583CA6CBE8B7374423F4DD4A09A3B127680E02EAEAC48DBA0F0F6B2EB8E3312D"
+  "receipt_sha256": "34E30F0E8F8BEC161ECAE39832CB2EE84CB6A9DD92BB6FCA602E02D295051843"
 }

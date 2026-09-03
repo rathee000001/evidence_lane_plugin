@@ -20,7 +20,7 @@ DELTA_EVENT_SCHEMA = "evidence-lane.delta-lifecycle-event.v1"
 PLANNING_MODE_EVENT_SCHEMA = "evidence-lane.planning-mode-event.v1"
 TASK_FORMULA_EVENT_SCHEMA = "evidence-lane.task-formula-event.v1"
 SUB_PV_ACCEPTANCE_SCHEMA = "evidence-lane.delta-row-sub-pv-acceptance.v1"
-PLAN_RUNTIME_SCHEMA = "evidence-lane.plan-runtime-projection.v4"
+PLAN_RUNTIME_SCHEMA = "evidence-lane.plan-runtime-projection.v5"
 PLAN_RUNTIME_USER_VERSION = 4
 _TASK_FORMULA_EVENT_KINDS = frozenset({"ENTRY_FORMULA", "MUTATION", "EXIT_FORMULA"})
 _PV_ID_RE = re.compile(r"^PV([1-9][0-9]*)$")
@@ -244,6 +244,17 @@ def _validate_transition(
         # This reverse transition is available only to the journaled correction
         # path. It preserves the mistaken supersession as immutable history while
         # restoring the exact pre-normalization live task contract.
+        return
+    if (
+        from_status == "SUPERSEDED"
+        and to_status == "QUEUED"
+        and event_type == "PLAN_DOWNSTREAM_PARITY_RESTORED"
+    ):
+        # A hash-bound downstream reconciliation may restore a still-required
+        # future Delta that an earlier normalization collapsed into a broader
+        # coordinating row.  It never reopens completed work or changes the
+        # sole ACTIVE row; the correction rewires the full future chain and
+        # preserves the supersession event as immutable history.
         return
     if (
         from_status == "DROPPED"
@@ -1159,6 +1170,12 @@ def _task_contract_projection(
         ),
         "current_status": str(task["status"]),
         "supersedes_task_id": task.get("supersedes_task_id"),
+        "supersedes_task_ids": _string_list(task.get("supersedes_task_ids"))
+        or (
+            [str(task["supersedes_task_id"])]
+            if task.get("supersedes_task_id")
+            else []
+        ),
         "superseded_by_task_id": task.get("superseded_by_task_id"),
         "last_event_id": task.get("last_event_id"),
         "last_event_sha256": task.get("last_event_sha256"),
@@ -1183,6 +1200,7 @@ def _task_contract_projection(
             "git_commit_stage",
             "current_version",
             "current_branch",
+            "supersedes_task_ids",
         )
     }
     return {
@@ -1600,6 +1618,7 @@ def _read_projection_payload(
         "current_branch",
         "current_status",
         "supersedes_task_id",
+        "supersedes_task_ids_json",
         "superseded_by_task_id",
         "last_event_id",
         "last_event_sha256",
@@ -1743,7 +1762,8 @@ def _read_projection_payload(
                 plan_group, commit_batch_id, dependencies_json,
                 git_commit_stage, current_version, current_branch,
                 current_status,
-                supersedes_task_id, superseded_by_task_id,
+                supersedes_task_id, supersedes_task_ids_json,
+                superseded_by_task_id,
                 last_event_id, last_event_sha256, updated_at,
                 task_contract_sha256
             FROM delta_task
@@ -1756,6 +1776,9 @@ def _read_projection_payload(
         task["permitted_tools"] = json.loads(str(task.pop("permitted_tools_json")))
         task["acceptance_checks"] = json.loads(str(task.pop("acceptance_checks_json")))
         task["dependencies"] = json.loads(str(task.pop("dependencies_json")))
+        task["supersedes_task_ids"] = json.loads(
+            str(task.pop("supersedes_task_ids_json"))
+        )
     steers = []
     for row in connection.execute(
         """
@@ -1942,6 +1965,7 @@ def write_plan_runtime_projection(
                     current_branch TEXT,
                     current_status TEXT NOT NULL,
                     supersedes_task_id TEXT,
+                    supersedes_task_ids_json TEXT NOT NULL,
                     superseded_by_task_id TEXT,
                     last_event_id TEXT,
                     last_event_sha256 TEXT,
@@ -2105,12 +2129,13 @@ def write_plan_runtime_projection(
                         plan_group, commit_batch_id, dependencies_json,
                         git_commit_stage, current_version, current_branch,
                         current_status,
-                        supersedes_task_id, superseded_by_task_id,
+                        supersedes_task_id, supersedes_task_ids_json,
+                        superseded_by_task_id,
                         last_event_id, last_event_sha256, updated_at,
                         task_contract_sha256
                     ) VALUES (
                         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                     )
                     """,
                     (
@@ -2133,6 +2158,9 @@ def write_plan_runtime_projection(
                         task.get("current_branch"),
                         task["current_status"],
                         task.get("supersedes_task_id"),
+                        json.dumps(
+                            task["supersedes_task_ids"], separators=(",", ":")
+                        ),
                         task.get("superseded_by_task_id"),
                         task.get("last_event_id"),
                         task.get("last_event_sha256"),

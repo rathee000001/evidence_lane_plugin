@@ -84,6 +84,7 @@ from .host_entry_continuity import (
     derive_host_entry_env_uop,
     inspect_host_entry_continuity,
 )
+from .legacy_learning_normalization import migrate_legacy_learning_files
 from .lineage import ChatLineage
 from .live_root_normalization import (
     execute_live_root_normalization,
@@ -103,6 +104,7 @@ from .project_memory import (
     rehydrate_memory_checkpoint,
     seal_memory_checkpoint,
 )
+from .project_runtime_quarantine import quarantine_project_runtime_history
 from .project_universe import (
     inspect_project_universe,
     query_project_universe,
@@ -196,6 +198,16 @@ SDK_INTERNAL_SUPPORT_BINDINGS: dict[str, dict[str, Any]] = {
             plan_live_root_normalization,
             execute_live_root_normalization,
         ),
+        "public_action": False,
+    },
+    "legacy_learning_normalization": {
+        "owner_module": "agent_learning",
+        "functions": (migrate_legacy_learning_files,),
+        "public_action": False,
+    },
+    "project_runtime_quarantine": {
+        "owner_module": "storage_connectors",
+        "functions": (quarantine_project_runtime_history,),
         "public_action": False,
     },
     "runtime_api": {
@@ -2006,8 +2018,44 @@ class InternalEvidenceLaneSDK:
         return value if isinstance(value, SDKBinding) else SDKBinding.from_dict(value)
 
     def _validate_binding(self, binding: SDKBinding) -> None:
+        project_record_path = self.project_root / "project.json"
+        project_record: dict[str, Any] | None = None
+        if project_record_path.is_file():
+            try:
+                decoded_project_record = json.loads(
+                    project_record_path.read_text(encoding="utf-8")
+                )
+            except (OSError, json.JSONDecodeError) as exc:
+                raise EvidenceLaneError(
+                    "SDK_PROJECT_NAMESPACE_MISMATCH",
+                    "The SDK project authority binding is unreadable.",
+                    status="MISMATCH",
+                    details={"project_root": str(self.project_root)},
+                ) from exc
+            require(
+                isinstance(decoded_project_record, dict),
+                "SDK_PROJECT_NAMESPACE_MISMATCH",
+                "The SDK project authority binding must be structured.",
+                status="MISMATCH",
+                project_root=str(self.project_root),
+            )
+            project_record = dict(decoded_project_record)
+        recorded_root = (
+            Path(str(project_record.get("project_authority_root"))).resolve()
+            if project_record
+            and str(project_record.get("project_authority_root") or "").strip()
+            else self.project_root
+        )
         require(
-            self.project_root.name == binding.project_id,
+            (
+                project_record is not None
+                and project_record.get("project_id") == binding.project_id
+                and recorded_root == self.project_root
+            )
+            or (
+                project_record is None
+                and self.project_root.name == binding.project_id
+            ),
             "SDK_PROJECT_NAMESPACE_MISMATCH",
             "The SDK storage namespace does not match the bound project.",
             status="MISMATCH",

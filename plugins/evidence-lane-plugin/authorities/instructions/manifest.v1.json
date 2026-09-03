@@ -61,8 +61,8 @@
     },
     {
       "path": "authorities/instructions/tools.json",
-      "bytes": 9701,
-      "sha256": "B750995C41BE67822FC4BD502D543BC701F3C710E17229122F049292CBD67AEA"
+      "bytes": 12491,
+      "sha256": "AE9EF7DA40724EE64C6B7EFDB55EC91A7F2214B174E58B3D41EE630CBE863AB9"
     },
     {
       "path": "authorities/instructions/tools.schema.json",
@@ -106,15 +106,58 @@
     "langgraph_export_sha256": "28F35FCC10312D614ED5FE6686EEF681F2F2B8AA4279F0EE6B54D56D5A64608F",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
-    "native_graphviz_dot_available": false,
-    "native_graphviz_hidden_runtime_available": false,
-    "native_graphviz_validation": null,
+    "native_graphviz_dot_available": true,
+    "native_graphviz_hidden_runtime_available": true,
+    "native_graphviz_validation": {
+      "schema": "evidence-lane.native-tool-invocation.v1",
+      "status": "PASS",
+      "tool_id": "graphviz",
+      "version": "15.1.1",
+      "host_profile": "CODEX_DESKTOP",
+      "argument_count": 1,
+      "arguments_sha256": "246AE09F32080625E413605E605DCAF70F8A393CD69269634175C7241F9C02DE",
+      "arguments_disclosed": false,
+      "input_sha256": "2882598004FF4CD996B9FD364C2901CC46F5EAA7BB2668F7D015DACCC6C507F5",
+      "stdout": "digraph instructions_authority {\r\n\tgraph [bb=\"0,0,602.75,97\",\r\n\t\tbgcolor=white,\r\n\t\tcompound=true,\r\n\t\tfontname=Arial,\r\n\t\tnewrank=true,\r\n\t\tnodesep=0.35,\r\n\t\trankdir=LR,\r\n\t\tranksep=0.65,\r\n\t\tsplines=polyline\r\n\t];\r\n\tnode [color=\"#667085\",\r\n\t\tfontname=Arial,\r\n\t\tlabel=\"\\N\",\r\n\t\tshape=box,\r\n\t\tstyle=\"rounded,filled\"\r\n\t];\r\n\tedge [color=\"#667085\",\r\n\t\tfontname=Arial\r\n\t];\r\n\tAGENTS\t[color=\"#101828\",\r\n\t\tfillcolor=\"#101828\",\r\n\t\tfontcolor=white,\r\n\t\theight=0.5,\r\n\t\tlabel=\"AGENTS.md scoped instruction chain\",\r\n\t\tpos=\"134,79\",\r\n\t\twidth=3.3889];\r\n\tWORK\t[color=\"#ba4236\",\r\n\t\tfillcolor=\"#fff1f0\",\r\n\t\theight=0.5,\r\n\t\tlabel=\"ENV/UOP governed work\",\r\n\t\tpos=\"517.88,48\",\r\n\t\twidth=2.3576];\r\n\tAGENTS -> WORK\t[label=governs,\r\n\t\tlp=\"350.5,73.231\",\r\n\t\tpos=\"e,432.71,54.832 256.35,69.149 309.64,64.823 371.3,59.817 421.26,55.762\"];\r\n\tMEMORY\t[color=\"#125cdd\",\r\n\t\tfillcolor=\"#edf5ff\",\r\n\t\theight=0.5,\r\n\t\tlabel=\"Host MEMORY.md bounded helpful recall\",\r\n\t\tpos=\"134,18\",\r\n\t\twidth=3.7222];\r\n\tMEMORY -> WORK\t[label=\"bounded recall only\",\r\n\t\tlp=\"350.5,40.125\",\r\n\t\tpos=\"e,432.67,35.706 268.39,24.937 338.07,28.561 409,32.25 409,32.25 409,32.25 413.78,32.948 421.33,34.05\"];\r\n}\r\n",
+      "stderr": "",
+      "returncode": 0,
+      "executable_sha256": "7483FCA1E95D371335FF60CA28D0D6F91A8C54232055154A86B93C6FDC13ED6C",
+      "executable_path_disclosed": false,
+      "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
+      "shell_used": false,
+      "workspace_install_used": false,
+      "receipt_sha256": "F51F0E0E3741E7A3516195E4B6D312958341C202C0D97D628A4934FFF40A2FB0"
+    },
     "graph_analysis": {
-      "status": "UNAVAILABLE",
+      "status": "PASS",
       "engine": "rustworkx",
+      "version": "0.18.1",
+      "node_count": 3,
+      "edge_count": 2,
+      "weak_component_count": 1,
+      "strong_component_count": 3,
+      "is_directed_acyclic": true,
+      "highest_degree_nodes": [
+        {
+          "node_id": "WORK",
+          "in_degree": 2,
+          "out_degree": 0
+        },
+        {
+          "node_id": "AGENTS",
+          "in_degree": 0,
+          "out_degree": 1
+        },
+        {
+          "node_id": "MEMORY",
+          "in_degree": 0,
+          "out_degree": 1
+        }
+      ],
+      "bounded_analysis": true,
       "authority_replaced": false
     },
-    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
+    "graph_analysis_sha256": "9FA4DDE3A552BD36920357B42D013A5236CCBA0219D0F97F5E4B4F73026B744D",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
     "layout_constraint_count": 0,
@@ -123,8 +166,8 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "5E52EED70A186C5D02A58C04430F2591DCC36B006CBC19AD6C0F25D880575AFF"
+    "receipt_sha256": "89825B389DAA80972CAEE99241D07ED73D29231C23BD70F8F47BB233B0307B61"
   },
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "D5A888FEAA80A67667F8FF28302FD415E93E0FAA3525E9386D2C658135D1CA33"
+  "receipt_sha256": "F2870DE5E8DFAC3044E7F9194B5431F3FC43BFEB54CE8757CAC7AFB68E6C1D5E"
 }
