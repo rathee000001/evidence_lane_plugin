@@ -72,11 +72,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/canon_classify.action.v1.json",
-  "sdk_action_binding_sha256": "6C910F83E615E1250CDBFEC6AD5A43F541CF84A910EF3768C745006D49D41F4F",
+  "sdk_action_binding_sha256": "F43390A4666CFFB7895327D4D7A8A5A2227C80E585924A87998476E6D29D7DF0",
   "public_action_schema": "schemas/actions/canon_classify.schema.json",
   "public_action_schema_sha256": "1BDDA5DF420C85885B1876CFEC2F747CDD17147E5949B56008648F08D98AE808",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "DD867CCDBEFB06D645B4E313E259B2482E631FD07419A0F133ABF5A481C33A3E"
+  "receipt_sha256": "2B9A8ECEC683FAAF747799503C0881A5CB33A99D34D72DE9DAD90E21776EA624"
 }

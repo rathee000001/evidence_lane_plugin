@@ -894,7 +894,7 @@
     {
       "path": "schemas/mcp/mcp-binding.v1.json",
       "bytes": 7258,
-      "sha256": "231198844CEA4A8216BD8FE0DE1A04F706C621417893C6876993D6E4B3F10903",
+      "sha256": "AAEB2F1F6F360B92422D864B00A36028E7AF73E27F6AD8D8C76A3A5C7C2CF3B6",
       "category": "mcp"
     },
     {
@@ -1068,7 +1068,7 @@
     {
       "path": "schemas/sdk/sdk-binding.v1.json",
       "bytes": 77473,
-      "sha256": "A381C760E3576E0FB05AB41FEA3BF0D70FF9A3D51061BD48DE2FAAA6D5F085F3",
+      "sha256": "B3B5FEDD25A0F718A792723E3F7AAE0CF331A0592F8CDBC7E6E82C1210BAB7A9",
       "category": "sdk"
     },
     {
@@ -1124,5 +1124,5 @@
   "canonical_public_catalog_sha256": "C18495E8E5233E3A38871737997262A108ADDE0995A9A7947479BBF7746CF9D7",
   "generated_from_current_executable_source_only": true,
   "historical_schema_fallback_allowed": false,
-  "receipt_sha256": "8744B33D52D0652643CEF5A796DAF923CFD940D4CE3B475C1BDA7D12358FCDD5"
+  "receipt_sha256": "C481CB2C337313072962628006FD9E4A3B94699F88AE48160B09EABE0D4A89BA"
 }

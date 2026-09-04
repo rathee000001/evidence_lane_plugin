@@ -771,6 +771,52 @@ def test_private_app_route_reuses_existing_blob_tree_on_idempotent_recovery() ->
     assert not any(call["path"].endswith("/git/blobs") for call in transport.calls)
 
 
+def test_private_app_route_recovers_receipt_after_exact_ref_update() -> None:
+    change = GitTreeChange.create(
+        path="README.md",
+        mode="100644",
+        content=b"Evidence Lane\n",
+    )
+    transport = _SequenceGitHubTransport(
+        [
+            GitHubAPIResponse(200, {"object": {"sha": "4" * 40}}, "req-ref"),
+            GitHubAPIResponse(
+                200,
+                {
+                    "sha": "4" * 40,
+                    "tree": {"sha": "3" * 40},
+                    "parents": [{"sha": "1" * 40}],
+                },
+                "req-commit",
+            ),
+        ]
+    )
+    route = GitHubAppExactCommitPushRoute(
+        broker=InstallationTokenBroker(
+            manifest=_write_manifest(),
+            binding=_write_binding(),
+            provider=DeterministicMockGitHubProvider(
+                b"exact-ref-recovery-provider-seed"
+            ),
+        ),
+        transport=transport,
+    )
+
+    receipt = route.execute(
+        _exact_push_request(change),
+        token_request=_write_token_request(),
+        now=NOW,
+    )
+
+    assert receipt["status"] == "PASS"
+    assert receipt["commit_created"] is False
+    assert receipt["ref_pushed"] is False
+    assert receipt["remote_ref_verified"] is True
+    assert receipt["recovered_after_exact_ref_update"] is True
+    assert receipt["idempotent_reuse"] is True
+    assert [call["method"] for call in transport.calls] == ["GET", "GET"]
+
+
 def test_private_app_route_allows_remote_ancestor_before_exact_parent() -> None:
     change = GitTreeChange.create(
         path="README.md",

@@ -1310,6 +1310,92 @@ class GitHubAppExactCommitPushRoute:
         remote_before_sha = self._oid_from_object(
             remote_before.body, field="remote_ref_sha"
         )
+        if remote_before_sha == request.expected_commit_sha:
+            existing_commit = record(
+                self._request(
+                    token=token,
+                    method="GET",
+                    path=(
+                        f"{repository_path}/git/commits/"
+                        f"{request.expected_commit_sha}"
+                    ),
+                    body={},
+                    expected_status=200,
+                )
+            )
+            existing_tree = existing_commit.body.get("tree")
+            existing_parents = existing_commit.body.get("parents")
+            expected_parents = [
+                request.expected_parent_commit_sha,
+                *request.additional_parent_commit_shas,
+            ]
+            require(
+                isinstance(existing_tree, Mapping)
+                and _git_oid(
+                    cast(Mapping[str, Any], existing_tree).get("sha"),
+                    field="existing_remote_tree_sha",
+                )
+                == request.expected_tree_sha
+                and isinstance(existing_parents, list)
+                and [
+                    _git_oid(
+                        cast(Mapping[str, Any], parent).get("sha"),
+                        field="existing_remote_parent_sha",
+                    )
+                    for parent in existing_parents
+                    if isinstance(parent, Mapping)
+                ]
+                == expected_parents,
+                "GITHUB_APP_EXISTING_REMOTE_COMMIT_MISMATCH",
+                "The existing remote commit does not match the exact local tree and parents.",
+                status="MISMATCH",
+            )
+            receipt = _receipt(
+                "evidence-lane.github-app-exact-commit-push-receipt.v1",
+                status="PASS",
+                route=self.route_id,
+                request_sha256=request.sha256,
+                token_broker_receipt_sha256=token_receipt["receipt_sha256"],
+                project_id=request.project_id,
+                task_id=request.task_id,
+                repository=request.repository,
+                branch=request.branch,
+                remote_ref_before_commit_sha=remote_before_sha,
+                remote_to_parent_fast_forward_verified=True,
+                remote_to_parent_ahead_by=0,
+                parent_commit_sha=request.expected_parent_commit_sha,
+                parent_tree_sha=request.expected_parent_tree_sha,
+                tree_sha=request.expected_tree_sha,
+                commit_sha=request.expected_commit_sha,
+                changed_path_count=len(request.changes),
+                changed_path_set_sha256=sha256_bytes(
+                    canonical_json_bytes([change.path for change in request.changes])
+                ),
+                github_request_ids=request_ids,
+                source_write_authorized=True,
+                workflow_write_authorized=workflow_change,
+                commit_created=False,
+                existing_blob_set_reused=True,
+                ref_pushed=False,
+                force_push=False,
+                remote_ref_verified=True,
+                credential_values_persisted=False,
+                private_key_persisted=False,
+                installation_token_persisted=False,
+                candidate_created_or_accepted=False,
+                pointer_moved=False,
+                hil_inferred=False,
+                recovered_after_exact_ref_update=True,
+                idempotent_reuse=True,
+            )
+            require(
+                not receipt_contains_secret(receipt),
+                "GITHUB_APP_PUSH_RECEIPT_SECRET_BLOCKED",
+                "The exact push recovery receipt contains a forbidden secret field.",
+                status="BLOCKED",
+            )
+            self._replay[request.idempotency_key] = (request.sha256, receipt)
+            return receipt
         remote_to_parent_ahead_by = 0
         if remote_before_sha != request.expected_parent_commit_sha:
             comparison = record(

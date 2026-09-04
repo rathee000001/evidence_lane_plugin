@@ -358,8 +358,8 @@
     {
       "module": "evidence_lane_plugin.github_app_distribution",
       "path": "src/evidence_lane_plugin/github_app_distribution.py",
-      "bytes": 116806,
-      "sha256": "9D83C807AE9E91F4C28E7C39E4AB35231A7234FBAA5D1B28F5DEE38BE1FDB0AB",
+      "bytes": 120666,
+      "sha256": "AE4E99879DA4C81D064C034372E011AF0C7977562A5C264FB5E1CE6D29B78843",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -1068,5 +1068,5 @@
   ],
   "root_surfaces_duplicated_inside_python_namespace": false,
   "loose_python_modules_directly_under_src_allowed": false,
-  "receipt_sha256": "00DBDAACF161DAC9DD6BA47E2938993AB8A1ECA7184A39DB04C88EBC3741EED2"
+  "receipt_sha256": "5F7269294BFDC316C262AEAF1F17D444539EE39C5837F0776BA15B8766D90548"
 }
