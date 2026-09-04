@@ -1031,7 +1031,7 @@
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "88EA443FCA39B415B66BBFBFF9AC09185B780D17EFB94639B01A36679AD1093F"
+        "runtime_evidence_sha256": "D3104225E3E0E8351B0176A6D9EBF510B293A4D07DA69B19561E4F40C6556ABA"
       },
       {
         "tool": "Git",
@@ -2412,10 +2412,10 @@
       "path": "toolchains/unified-tool-workflow-pairing.v1.json",
       "sha256": "EA429DFA223AC93BC1018BCA55AB15955F1A1736BB6A9AE3CC5551814CA80388"
     },
-    "receipt_sha256": "2CA9935BED57045D6B7541FEDB4BEF9F98E184B29F1837BED0825E68F7F5F3BB",
+    "receipt_sha256": "FF5C23FBB22F5917F22F92AE05B3BD638672F481054BB84CD4FF4C317DA2E7A0",
     "runtime_inventory_schema": "evidence-lane.runtime-toolchain-prewarm.v1",
     "runtime_inventory_status": "PASS",
-    "runtime_inventory_receipt_sha256": "793704736C126C96394DCEA945E4F02B78FD72E36BE432DAB40F55564E678E67",
+    "runtime_inventory_receipt_sha256": "FEEFDC7EF8573537EB219602CCFA062D489BA986621187C158C6C3DE5DAAE21E",
     "lane_resolution_sha256": "A20015B0A56E5403C95D7C5EC0071D20BEC29CCA584028FB32522BE2FB7CE26D",
     "runtime_availability_measured": true,
     "installed_presence_is_execution_proof": false
@@ -2797,7 +2797,7 @@
     "engine_version": "3.53.4.0",
     "sqlite_version": "3.53.4",
     "database_path": "F:\\test codex\\plugins\\evidence-lane-plugin\\authorities\\project_sectors\\brain_loader\\brain_loader_sector_v001.sqlite",
-    "database_sha256": "207B6EC91577639220DF077994BB686EFC29017A3F64C1E1AC4D5A95DDF0B910",
+    "database_sha256": "FC73CD46A5C72BB03B2A9D2E33D8F62BCFE6AA9D2B697F8FAE925384A790FADB",
     "integrity_check": "ok",
     "journal_mode": "delete",
     "page_count": 122,
@@ -2809,7 +2809,7 @@
     "sqlite_backup_available": true,
     "sqlite_fts5_available": true,
     "durable_authority": true,
-    "receipt_sha256": "7506F0804D9D72B1958863241D2A44D194A264A7059F0E1DEF81F60DEDBA1AF4"
+    "receipt_sha256": "A29B7B785E0057676D0397EF6111A5B4343A310F2FF1DCA23B2044E7E6AED730"
   },
   "tool_execution_evidence": {
     "schema": "evidence-lane.lane-tool-execution-evidence.v1",
@@ -2927,7 +2927,7 @@
         "network_call_performed": false,
         "credential_value_read": false,
         "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "88EA443FCA39B415B66BBFBFF9AC09185B780D17EFB94639B01A36679AD1093F"
+        "runtime_evidence_sha256": "D3104225E3E0E8351B0176A6D9EBF510B293A4D07DA69B19561E4F40C6556ABA"
       },
       {
         "tool": "Git",
@@ -3666,7 +3666,7 @@
     "presence_or_eligibility_is_execution_proof": false,
     "multiple_compatible_tools_may_form_one_pipeline": true,
     "recorded_at": "1970-01-01T00:00:00Z",
-    "receipt_sha256": "D3B541910A4D9382F749A8CEB556ED1E0E3AA1730BE777DF8515096496B546FD"
+    "receipt_sha256": "A96DA3C3BA0C73D4C90142C193F99A332C63E076BE1C320323551377D4F998F8"
   },
   "empty_table_classification": {
     "schema": "evidence-lane.empty-table-classification.v1",
@@ -3841,7 +3841,7 @@
         "path": "brain_loader_sector_v001.sqlite",
         "role": "sqlite_authority",
         "bytes": 499712,
-        "sha256": "207B6EC91577639220DF077994BB686EFC29017A3F64C1E1AC4D5A95DDF0B910"
+        "sha256": "FC73CD46A5C72BB03B2A9D2E33D8F62BCFE6AA9D2B697F8FAE925384A790FADB"
       },
       {
         "path": "brain_loader.mmd",
@@ -3856,7 +3856,7 @@
         "sha256": "926173C7FF2F194716DCC48F090EBE2F3DA4DC2E8BC69324BB2D2E7A8F7B045F"
       }
     ],
-    "authority_sha256": "6C0C37D527F424680901A496BA6C1A6D4AAC704932673535826CF7D23B3385DE"
+    "authority_sha256": "B3DD291592AACF7ABD7BA60E0B0607221AF3B483B4EE398397A97B127809AF83"
   },
-  "receipt_sha256": "77F4B3800A33B2347D7052EA6C17DEAFD3D1C6854E5643CF8AA0CA6344DFB459"
+  "receipt_sha256": "144F7A37EBFDC7080A58F7737C77B57865A1E6CB35891A3B320700A9CFE4EAC8"
 }

@@ -869,8 +869,8 @@
     {
       "module": "evidence_lane_plugin.source_authority",
       "path": "src/evidence_lane_plugin/source_authority.py",
-      "bytes": 116274,
-      "sha256": "BE7494E2B929A85560A03AD2FF666C4CEEE44AFBD321F4516654F3C80A6E734E",
+      "bytes": 116293,
+      "sha256": "7798E0EB40C49952209AA1DDDE16A2F2477ECCE7305AF638A526EA05E4346C32",
       "role": "PROJECT_AUTHORITIES"
     },
     {
@@ -1068,5 +1068,5 @@
   ],
   "root_surfaces_duplicated_inside_python_namespace": false,
   "loose_python_modules_directly_under_src_allowed": false,
-  "receipt_sha256": "829C3295351D0CCFB4C68C3C2F0E593B3274C3A9827055E0D67A3F021670FFCE"
+  "receipt_sha256": "439F3D9D72394B1E7C951F2C1E6B0D0D3BFA41B3A4C3EE16AFB3C3BCDFAE83FA"
 }

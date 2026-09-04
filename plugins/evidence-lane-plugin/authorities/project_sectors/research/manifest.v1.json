@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/research/tools.json",
       "bytes": 178143,
-      "sha256": "E52988D4265B0F99E8A7C69AA308DF0AE9648AB2C8AD2EEA88981FD0F1BB3F88"
+      "sha256": "1B14C60F01511EE9493722FA4C98A6947F5D621BA9746B93736BA920D8CD0AEC"
     },
     {
       "path": "authorities/project_sectors/research/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "6948548263E0BBFE884463C5F9B7843D0127CED4E8191741B0F2A476FE67C185"
+  "receipt_sha256": "4939ACFF59A38FDE106E7879EDB0D7CB1BBC89140F14DCB1E7E3A3DC5DF18C2D"
 }

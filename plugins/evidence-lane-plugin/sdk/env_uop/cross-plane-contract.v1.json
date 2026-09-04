@@ -6631,7 +6631,7 @@
     {
       "authority_id": "source_authority",
       "path": "authorities/source_authority",
-      "manifest_sha256": "C1B2B6BFA91B11D593C1FF387C0F7F02C7DB451637BB90AEB4D98DF7B1C579D3",
+      "manifest_sha256": "29F1C8BDC00AEF6B21F8EC187CCDE26DF5645A7F4C9D6C2498E536104BEBC192",
       "database_sha256": "FF40216E676B1842AED6BB2D0EA20C38DE06D1E01AAD8A4416E4515C0DAB44E7",
       "table_count": 57,
       "linked_public_action_count": 18,
@@ -6716,5 +6716,5 @@
     "hook_presence_required_for_explicit_actions": false,
     "chatgpt_host_identity_imported": false
   },
-  "receipt_sha256": "C2448B5BDFB29720A22C7B5CA18C1E57FC579911931B778DC2B314E85EB410FA"
+  "receipt_sha256": "FE879EDFB6F225EEC089EF0998B5464925FDFFC9E7644DEF9CE69601FCE31922"
 }

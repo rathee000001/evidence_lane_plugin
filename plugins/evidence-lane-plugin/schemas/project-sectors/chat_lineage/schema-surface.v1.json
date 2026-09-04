@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "chat_lineage",
   "authority_root": "authorities/project_sectors/chat_lineage",
-  "authority_manifest_sha256": "CDA0B0241AB069F41647509697CE3DD5B016CC2771FD8877D758028144590A05",
+  "authority_manifest_sha256": "9C01FBFC1AF3DD60CDEA453A3F55F8713817A888EDE4FC0AF0BB46D9E0A87901",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -60,5 +60,5 @@
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
   "canonical_lane_contract_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "C29FFC4A42D59AA50861A5A9708EEA1A4549111FAF9C53F7468A64AC6F5D3721"
+  "receipt_sha256": "37ABCC0A5917EF8CE927C20EF6F8560B9437FE27228EECE9599BD8AFE293DCC2"
 }

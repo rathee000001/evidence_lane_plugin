@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/chat_lineage/tools.json",
       "bytes": 185469,
-      "sha256": "A9498C1787EFC166B2DC6F960CDFA68115372924A82986E587EA04D29A9F39D3"
+      "sha256": "9AD1B82519112403A5C10091E517A2AA416F520C5CF1079B335BD9A5CE5D7BD0"
     },
     {
       "path": "authorities/project_sectors/chat_lineage/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "645C3F95744E3C4A76242308C92079A68C553A35AA503424D86F9E8B0E71318E"
+  "receipt_sha256": "11101918876CE927EFF62E5625A07CAA09B738A6DF5311DFBF25055322FB2CE2"
 }

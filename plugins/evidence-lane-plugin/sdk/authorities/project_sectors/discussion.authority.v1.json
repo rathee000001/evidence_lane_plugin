@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "discussion",
   "authority_root": "authorities/project_sectors/discussion",
-  "authority_manifest_sha256": "1A9BDA9A0A99344341B396A842807E11814E3ED24CE51DAD061DC56161EC6C75",
+  "authority_manifest_sha256": "82AFD505564CCBB0720957FD494CA77C85CDCF080A5B7D3AC10BBB805AD5671B",
   "schema_surface": "schemas/project-sectors/discussion/schema-surface.v1.json",
   "builder": "authorities/project_sectors/discussion/builder.py",
   "reader": "authorities/project_sectors/discussion/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "D737D98724846B253D01F9D922C3C94DA70AD48B1CD18ADA376253EE555EE886"
+  "receipt_sha256": "38DC5E5A90046E7AAB9213042A80C4F8C4B27BEB906EABEB66429219086753C2"
 }

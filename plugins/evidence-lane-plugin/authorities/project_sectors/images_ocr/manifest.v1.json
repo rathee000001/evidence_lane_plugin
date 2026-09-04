@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/images_ocr/tools.json",
       "bytes": 163192,
-      "sha256": "0BC412AE6338A77AF856615D90B9AC38F9B272433FB1F2A0B547CCE0217C699C"
+      "sha256": "4AB61D3B02D3A8CC191F647775E3B7FE9F48F2B2CAD16283621AF7DE4FE02BD0"
     },
     {
       "path": "authorities/project_sectors/images_ocr/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "8191FBE1B9143DBC022FAB3BBE5C378360B11250CBA904C415BF2F267DC3CE96"
+  "receipt_sha256": "2FDB3E49F9D5C8DAF29EE3A506A6519BC59EF3E601FE312440F056D25AC3A443"
 }

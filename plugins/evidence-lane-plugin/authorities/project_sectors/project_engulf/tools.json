@@ -1047,7 +1047,7 @@
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "88EA443FCA39B415B66BBFBFF9AC09185B780D17EFB94639B01A36679AD1093F"
+        "runtime_evidence_sha256": "D3104225E3E0E8351B0176A6D9EBF510B293A4D07DA69B19561E4F40C6556ABA"
       },
       {
         "tool": "Project_inventory",
@@ -2550,10 +2550,10 @@
       "path": "toolchains/unified-tool-workflow-pairing.v1.json",
       "sha256": "EA429DFA223AC93BC1018BCA55AB15955F1A1736BB6A9AE3CC5551814CA80388"
     },
-    "receipt_sha256": "F85CA1D206CC789B46E3A43A11EC2E68A06C84DBC3A12A5690EC2F2DE1D563B9",
+    "receipt_sha256": "BFA84C83248515F5279B55316353DA1FB3F6E92F2D6F52877B7115EDF21B5AE6",
     "runtime_inventory_schema": "evidence-lane.runtime-toolchain-prewarm.v1",
     "runtime_inventory_status": "PASS",
-    "runtime_inventory_receipt_sha256": "793704736C126C96394DCEA945E4F02B78FD72E36BE432DAB40F55564E678E67",
+    "runtime_inventory_receipt_sha256": "FEEFDC7EF8573537EB219602CCFA062D489BA986621187C158C6C3DE5DAAE21E",
     "lane_resolution_sha256": "1B7099E762977A07E7873ED0FB7E6CD002DA5DD5DBA9795F7C41A1D1E1D26E6E",
     "runtime_availability_measured": true,
     "installed_presence_is_execution_proof": false
@@ -2960,7 +2960,7 @@
     "engine_version": "3.53.4.0",
     "sqlite_version": "3.53.4",
     "database_path": "F:\\test codex\\plugins\\evidence-lane-plugin\\authorities\\project_sectors\\project_engulf\\project_engulf_sector_v001.sqlite",
-    "database_sha256": "38A7F9D03496B5DCE2B790BD93E21AEABA43B5ACF7A9A72BE3FD0207414D89C6",
+    "database_sha256": "D816BF82C90E392CD835C8C9F873D327A13259955A3306FE1420E8BFA7961972",
     "integrity_check": "ok",
     "journal_mode": "delete",
     "page_count": 138,
@@ -2972,7 +2972,7 @@
     "sqlite_backup_available": true,
     "sqlite_fts5_available": true,
     "durable_authority": true,
-    "receipt_sha256": "12D75CE51370A7ED51946DAE230A95C1CBFF3C95779B5782A639786864E16A70"
+    "receipt_sha256": "1ACE722E96D2786FD81047EAD19D960BEB72C58F53E5112FCFD2599AF5B484BB"
   },
   "tool_execution_evidence": {
     "schema": "evidence-lane.lane-tool-execution-evidence.v1",
@@ -3090,7 +3090,7 @@
         "network_call_performed": false,
         "credential_value_read": false,
         "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "88EA443FCA39B415B66BBFBFF9AC09185B780D17EFB94639B01A36679AD1093F"
+        "runtime_evidence_sha256": "D3104225E3E0E8351B0176A6D9EBF510B293A4D07DA69B19561E4F40C6556ABA"
       },
       {
         "tool": "Project_inventory",
@@ -3901,7 +3901,7 @@
     "presence_or_eligibility_is_execution_proof": false,
     "multiple_compatible_tools_may_form_one_pipeline": true,
     "recorded_at": "1970-01-01T00:00:00Z",
-    "receipt_sha256": "8D07AF9911F1BB3C3F7E616D2E708473DEEBC2E46D9C7A61E618EF0529368BBF"
+    "receipt_sha256": "169436873E9EAB4225D36A27C65F70364A0E05D00421677D94C33557F551E72F"
   },
   "empty_table_classification": {
     "schema": "evidence-lane.empty-table-classification.v1",
@@ -4094,7 +4094,7 @@
         "path": "project_engulf_sector_v001.sqlite",
         "role": "sqlite_authority",
         "bytes": 565248,
-        "sha256": "38A7F9D03496B5DCE2B790BD93E21AEABA43B5ACF7A9A72BE3FD0207414D89C6"
+        "sha256": "D816BF82C90E392CD835C8C9F873D327A13259955A3306FE1420E8BFA7961972"
       },
       {
         "path": "project_engulf.mmd",
@@ -4109,7 +4109,7 @@
         "sha256": "7D4633F93F9354D1860E7F98CCAC72B680A8C1CF76667194B1385BE23AE37BDB"
       }
     ],
-    "authority_sha256": "A6B61C4592BCDDF4B84BED0A083682EB4C5F971C7819AEC03F19980132617831"
+    "authority_sha256": "6629A2C68236EED246DF0A3C078E95AD94C7C91FD1ECD2AA4C90839ABCEF70F8"
   },
-  "receipt_sha256": "E24AA42989BB7FD1E9D90A35454BCED3ED3A04E86119A24B933462D35CF0136D"
+  "receipt_sha256": "8C34B8EA9849DAD1A240DF4BE941DBE9CE72DCD953D9C1CD0090F8802091BDAD"
 }

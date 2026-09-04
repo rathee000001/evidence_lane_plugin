@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/pdf_ocr/tools.json",
       "bytes": 181997,
-      "sha256": "7AC7AA6E8AE8DC2AB94CD629D734AAA4F62AB074C294223A827896F13F9A3125"
+      "sha256": "9D0BCB6683BEC806EEF418AD987089699CFC905C191A626335FF81646F3329C8"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "6B9DA4EC58A2587A0B60C34485504A95D52E8DC3E1F476EB6502BD05A0985016"
+  "receipt_sha256": "CC7C360CFB84C7B52403691A465CB8C8722DAAA36C6555B4053652CF5A986D66"
 }

@@ -1722,9 +1722,9 @@ def _counterpart_relations(
     for archive in archives:
         unsafe_reasons = sorted(
             {
-                str(member["policy_reason"])
-                for member in archive.members
-                if member["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
+                str(exclusion["policy_reason"])
+                for exclusion in archive.exclusion_summary
+                if exclusion["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
             }
         )
         if unsafe_reasons:

@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/data_excel/tools.json",
       "bytes": 216829,
-      "sha256": "7E4B4D1C35D75CB2B92CABA54B5390FDC3C84B37FD160D75870B8C19B60780DE"
+      "sha256": "E7BD51681E3E5447036B8D1FA35D4E45AEA4B072A53BB0A99458B879E37D0596"
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "5D8485605BF0CAC82936237896EB23672CDB26B8C736F3BC27C0E04E21A7DE5B"
+  "receipt_sha256": "534B4BDB84FAE9806762436800356071CA27CB5C1CAEBD1A6503A053ED655F88"
 }

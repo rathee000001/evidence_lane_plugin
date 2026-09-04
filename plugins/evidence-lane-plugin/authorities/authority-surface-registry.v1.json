@@ -42,7 +42,7 @@
     {
       "authority_id": "source_authority",
       "path": "authorities/source_authority",
-      "manifest_sha256": "C1B2B6BFA91B11D593C1FF387C0F7F02C7DB451637BB90AEB4D98DF7B1C579D3",
+      "manifest_sha256": "29F1C8BDC00AEF6B21F8EC187CCDE26DF5645A7F4C9D6C2498E536104BEBC192",
       "database_sha256": "FF40216E676B1842AED6BB2D0EA20C38DE06D1E01AAD8A4416E4515C0DAB44E7",
       "table_count": 57,
       "linked_public_action_count": 18,
@@ -110,9 +110,9 @@
   ],
   "sector_lane_count": 18,
   "project_sector_registry": "authorities/project_sectors/lane-surface-registry.v1.json",
-  "project_sector_registry_sha256": "846C3013B15BE94EC45F95DB2A23768A51D66731F978D60352F9E628E34A8EC1",
+  "project_sector_registry_sha256": "BB4643009846EB2077CD8A91E50253D2108F40D8C6EAC6B4D4D9F27EF6435EEC",
   "authorities_are_outside_sector_count": true,
   "sqlite_mmd_dot_tools_pointer_runtime_complete": true,
   "shared_support_source_sha256": "277EA6E2B9B0111A658E1AE00C727F14A7B041C94CD4C09FB71DDE214B79EB4B",
-  "receipt_sha256": "DD53E9C522D899657C1275C107C4B8B27A36AFC39C8107AA0B5D30AAF6E7E3D8"
+  "receipt_sha256": "8BC89DA83FE6D01FFB84ACC41E3F4B20C77E9B7895C02C336129FFD1816E59B4"
 }

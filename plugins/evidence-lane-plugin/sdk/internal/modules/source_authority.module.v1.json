@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.source_authority",
   "source_path": "src/evidence_lane_plugin/source_authority.py",
-  "source_sha256": "BE7494E2B929A85560A03AD2FF666C4CEEE44AFBD321F4516654F3C80A6E734E",
-  "source_bytes": 116274,
+  "source_sha256": "7798E0EB40C49952209AA1DDDE16A2F2477ECCE7305AF638A526EA05E4346C32",
+  "source_bytes": 116293,
   "role": "PROJECT_AUTHORITIES",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "09B1F305D41FD72920CD373FDDAEEBC646812A6EFF34CB1FD0CB5A65CD5BFC76"
+  "receipt_sha256": "C9914B894D5891CD1094D2479FBE4989663569B816BF559610AD3EB7BC4F135B"
 }

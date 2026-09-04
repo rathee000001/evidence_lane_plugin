@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/plan/tools.json",
       "bytes": 166169,
-      "sha256": "810B53785F1DB27612EBB6F522C9A9FF2AF42E9F2B6CC5DD562C0FC6CFBD215B"
+      "sha256": "3B145E6F15724D751077E7E9FE4FF8E8194A340A6333576537B73F4FFCD5FB36"
     },
     {
       "path": "authorities/project_sectors/plan/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "B837A20561E13569709770588F7C9FF5EDB18CA5DC6254D950E05220EAEA98FF"
+  "receipt_sha256": "356C7991A00A282AAD04AFCEC04CD19B2171CC16CA183A25047DBA24613CA373"
 }

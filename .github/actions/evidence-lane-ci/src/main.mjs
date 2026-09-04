@@ -86,6 +86,8 @@ function commandPlan(profile, pythonExecutable, pnpmExecutable) {
           '.git/index',
           '--output',
           '.runtime/ci/governed-quality-semantic-currentness.json',
+          '--deferred-contract',
+          'contracts/task35-publication-deferral.v1.json',
           '--require-pass'
         ]
       ],

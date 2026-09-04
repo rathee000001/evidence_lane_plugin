@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/ppt/tools.json",
       "bytes": 171581,
-      "sha256": "B9EBDAF0594D61F4606C3CBB981B14B15719E2C241C86A720CF62862EE154761"
+      "sha256": "8F1B062D7948855484A9F6EFF9ED5D1543F393A60E74E73D25C371349CA2CA33"
     },
     {
       "path": "authorities/project_sectors/ppt/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "99535B0051776150F05A5930D7078C904EA0885CBF93E18200CAE67AF2B49F53"
+  "receipt_sha256": "5C734DF42023D0A9A504470E81F0F8CD6BDC8E7DBEBC50983B1884703681313E"
 }

@@ -77,11 +77,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/lane_configure_routes.action.v1.json",
-  "sdk_action_binding_sha256": "568DAB25549B511EE809C3DCA73BE0E7C5B3483898DF258046105B26B15BA5DB",
+  "sdk_action_binding_sha256": "B4E88FBA483E1D79659A27DEA129253A8CE16006C93B08204A1A48324E0E7905",
   "public_action_schema": "schemas/actions/lane_configure_routes.schema.json",
   "public_action_schema_sha256": "8564E7D3CF3A2814854D1285BE78BF6D7490F9462D588CC45441ECCF30BB0ED0",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "E7191442DA016ACA5CF2E88653EDD40EC29ED87D7C0BD1B7F09078DADC7B5B6E"
+  "receipt_sha256": "8BF09145A473A630E4E38955F0832735839128C8DFDEF0D1970EFDE1DC1B25EB"
 }

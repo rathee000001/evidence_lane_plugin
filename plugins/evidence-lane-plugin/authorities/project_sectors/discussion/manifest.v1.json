@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/discussion/tools.json",
       "bytes": 156847,
-      "sha256": "13F225B625D23348F1E01C3BED40B0CC217443331C5E163372A4C176D44CF1DA"
+      "sha256": "1C849C76F8BA59306D5A40213DA8A33E4D5936428EB0E56C4601CB6B143F98AE"
     },
     {
       "path": "authorities/project_sectors/discussion/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "2CDCACDB324B418F540924807EC183654B84D6746FEA0E72CE6176F8B7148B1B"
+  "receipt_sha256": "B3EEDCF1D912700443BC57C56389356519FB53EB5E5A863433B6A410F99E5A13"
 }
