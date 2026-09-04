@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "brain_loader",
   "authority_root": "authorities/project_sectors/brain_loader",
-  "authority_manifest_sha256": "910C6CC4ECC3BB3DA314718C358568C865B7E080027266B401EC35D716584730",
+  "authority_manifest_sha256": "BD951C5B322582CF521E6BBFC9DC1A3A581DE3C2BAB79DD0B7C6C1AC14DB56E6",
   "schema_surface": "schemas/project-sectors/brain_loader/schema-surface.v1.json",
   "builder": "authorities/project_sectors/brain_loader/builder.py",
   "reader": "authorities/project_sectors/brain_loader/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "D2345D704EB57E57ACA58155EA2D7DD2FF2987AF95989D26DF5677FBE954CFA4"
+  "receipt_sha256": "0548058C106DC7097C92C678CAA590B6C86A14626F37A819BE406EBDEF3CF647"
 }

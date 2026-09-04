@@ -154,11 +154,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/pv_plan_tasks.action.v1.json",
-  "sdk_action_binding_sha256": "3B7DED40F68B0E8F7F1EE53D9E94C500DF130AB8A6E652FBE0270602682707BC",
+  "sdk_action_binding_sha256": "5AA4E85FFA922F156159864B74EF420449BDF71429F414FE18F2FBA9FF691D07",
   "public_action_schema": "schemas/actions/pv_plan_tasks.schema.json",
   "public_action_schema_sha256": "30330226D264AC6695BC1E7563B579858B0B845B1ECBA028D01952034BC091F7",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "76C1F9B8617C78A20AFC85EFD92CBB07B48FCB478B2FF9A96151661BCCDB38D6"
+  "receipt_sha256": "ABE8ACD671E5560D27F36E141A60A4FDD848B86735A175D1A3C1A49248EC11A7"
 }

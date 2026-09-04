@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "3.0.0+codex.20260904184454",
+  "version": "3.0.0+codex.20260904202025",
   "description": "Evidence Lane turns fragmented long-running Codex work into one evidence-backed, resumable project without taking the user's decisions away.",
   "author": {
     "name": "Praveen Rathee",

@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/local_code/tools.json",
       "bytes": 173962,
-      "sha256": "83A51F238C9AFBA0D95843218F47A86D9D6D8BACC844E1B4AC839A3BC3116750"
+      "sha256": "CC5C5E8F1012C6D3280AF40D30E73A59D784D7CA144A3667A271542D72D19FFF"
     },
     {
       "path": "authorities/project_sectors/local_code/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "C76E754E9EF6D63AE2E88684766CF725616A06B34BB5F386CFF7B4200330C905"
+  "receipt_sha256": "82C611CA575611682B3F729DDA88E39D194387EBD368ED322EA1D3FB1400138B"
 }

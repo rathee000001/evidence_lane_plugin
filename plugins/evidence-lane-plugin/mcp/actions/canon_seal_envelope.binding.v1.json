@@ -238,11 +238,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/canon_seal_envelope.action.v1.json",
-  "sdk_action_binding_sha256": "0BF4790B5CE6C0763AD0A95B70F71FA127538E8AB3E06F280ABB650E1EC81F84",
+  "sdk_action_binding_sha256": "4ABBCBF2305E27ADE73A1534732C87C8D7877EFC857806053ED00E8FD008E8F9",
   "public_action_schema": "schemas/actions/canon_seal_envelope.schema.json",
   "public_action_schema_sha256": "D500882100CE6C427CC2D908923A4FFDFDB70BA10798551BF13A4EA3D4E343DD",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "6DF2D515DC331F4454CF79E48D67A7DA8F62BF1A526B61173422ABAFC327B27A"
+  "receipt_sha256": "613E80D12BD6F69F714215ECEF6E042784490AC1667B598E9100D2003617801E"
 }

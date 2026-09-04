@@ -1498,6 +1498,22 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     assert first_tfidf == second_tfidf
 
 
+def test_llama_sentence_splitter_prewarm_materializes_lazy_punkt(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from llama_index.core.utils import globals_helper
+
+    monkeypatch.setattr(globals_helper, "_punkt_tokenizer", None)
+    monkeypatch.setattr(globals_helper, "_stopwords", None)
+
+    assert (
+        lane_engine_module.prewarm_llama_index_sentence_splitter()
+        == "llama-index-sentence-splitter"
+    )
+    assert globals_helper._punkt_tokenizer is not None
+    assert globals_helper._stopwords is not None
+
+
 def test_lane_build_parallelizes_compute_and_serializes_canonical_assembly(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

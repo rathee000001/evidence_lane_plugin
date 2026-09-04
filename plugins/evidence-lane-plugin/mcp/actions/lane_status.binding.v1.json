@@ -57,11 +57,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/lane_status.action.v1.json",
-  "sdk_action_binding_sha256": "51AB5B1E59D4D831BE56C2876982EFD439ABE82D86D37204C13055A038CF17D5",
+  "sdk_action_binding_sha256": "89DA74011ECAEEF611125664575E6FF68DB9D8697C683DED157CA5232EB805C0",
   "public_action_schema": "schemas/actions/lane_status.schema.json",
   "public_action_schema_sha256": "DEB520B0BE7F4CE06B290A401F2EE2E665D80A2F89D3F97EA94566B774CDF8CE",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "08CC1EF8BB8519471268473F68654DC7C8B436928831AD5DFDC1FF7E1FA84B27"
+  "receipt_sha256": "CED5FF8ACC7F020B50C1DFF40EDA88A98537E00DD47874B078440ABFEAEE89B1"
 }

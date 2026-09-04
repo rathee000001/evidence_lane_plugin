@@ -39,11 +39,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/lifecycle_transition_law.action.v1.json",
-  "sdk_action_binding_sha256": "45B0C8BA29C5F0C17555A92A605ADF0A50B3EFCE09FEAAC677CCC6A4A9C38F4B",
+  "sdk_action_binding_sha256": "2BC62FF434123CC0D6E7B062BA284A166511BFF22B529471EFDEB141E5270EED",
   "public_action_schema": "schemas/actions/lifecycle_transition_law.schema.json",
   "public_action_schema_sha256": "63C0E741C352C2566A32247FD5E07B4F00824337593D82DDD354EA02F146636D",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "E7A3080F684B0CF2867F1696DFF3F657DCD169014AAB40BE15D66F177DCEE0AB"
+  "receipt_sha256": "EAB7803D0D8F9E8A156688C7ADE309061B4354FFC1FCEBD09180EFA83749FBBD"
 }

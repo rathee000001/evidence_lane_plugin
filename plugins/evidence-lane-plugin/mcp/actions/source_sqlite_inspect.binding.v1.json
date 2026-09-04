@@ -74,11 +74,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/source_sqlite_inspect.action.v1.json",
-  "sdk_action_binding_sha256": "56C18969609AB7C969B6365966A75F8401D7F8760E5E27183F66A98115AC7AF8",
+  "sdk_action_binding_sha256": "0D67261A3EBE231EA4FDF0FE0BD2428B323104C140B3202F4526746703E66F69",
   "public_action_schema": "schemas/actions/source_sqlite_inspect.schema.json",
   "public_action_schema_sha256": "24A35A5E03D087628D1F096F369739797424D28C6A997AA59EA47B97B97557C4",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "00E855082FCD9B6B0DC2A34747998B2EEB133B01271DF8E88C98925AB4FE172F"
+  "receipt_sha256": "4F3C01CE5ABD3CC76D5C2E407C32F16AFB349D4B43116E052EF1677F0C440D3F"
 }

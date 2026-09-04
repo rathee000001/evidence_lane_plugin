@@ -932,8 +932,8 @@
     {
       "module": "evidence_lane_plugin.sqlite_indexing",
       "path": "src/evidence_lane_plugin/sqlite_indexing.py",
-      "bytes": 22063,
-      "sha256": "584B186634A7A62CC2AD013F6E0AA3159CDA5CACD26A847CE9D3130D28F58421",
+      "bytes": 22767,
+      "sha256": "34C38FE1696AAE11AA62DD1823A0ED827AAD8B1D4E0D2B425C37708E942E061D",
       "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
@@ -1068,5 +1068,5 @@
   ],
   "root_surfaces_duplicated_inside_python_namespace": false,
   "loose_python_modules_directly_under_src_allowed": false,
-  "receipt_sha256": "633AD251CA97BF722D646CD4E82500AF23D051E7DC348BDCD3908A26BFAA8AF8"
+  "receipt_sha256": "0EE7F4BAE0E6BCE39E500473F660EAB7DA68AFD8CEBA8E88D9D16E46224E4C42"
 }

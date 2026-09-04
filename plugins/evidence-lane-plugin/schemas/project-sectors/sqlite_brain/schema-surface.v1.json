@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "sqlite_brain",
   "authority_root": "authorities/project_sectors/sqlite_brain",
-  "authority_manifest_sha256": "674DEDE516BAC71EE639D8069A391D96A775769D2476C338C5DAB9D997B9BECD",
+  "authority_manifest_sha256": "ED4A0891D2A1DB94E231CB21E434810517D5C2DE64E0B0862CC6CE995AB94340",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -60,5 +60,5 @@
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
   "canonical_lane_contract_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "F0D1330AC4A7562E60AD312F339E5CBE363EBD747DDE9C537A5D588704A15DA6"
+  "receipt_sha256": "740BDCB0BBA38EF20E597E503E8DF8198DF227C5D2C08C85A4DA98D327B01FF3"
 }

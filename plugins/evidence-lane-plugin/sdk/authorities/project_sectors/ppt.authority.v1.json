@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "ppt",
   "authority_root": "authorities/project_sectors/ppt",
-  "authority_manifest_sha256": "10E855431DEB24DF7EBB4781D116B1EC61009EAB260B98137AD34AD486B385BA",
+  "authority_manifest_sha256": "191C8BBED1E9A3D86162A3B9C1A486AED0662BD2827C461BD77E958269C729EB",
   "schema_surface": "schemas/project-sectors/ppt/schema-surface.v1.json",
   "builder": "authorities/project_sectors/ppt/builder.py",
   "reader": "authorities/project_sectors/ppt/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "DE16FABE8EEC53461607FE561571B880EDCF5D2BD0775031058316C04F8DDFDA"
+  "receipt_sha256": "0A6AD45DDB6E8A107FBC06A0AFBA918E81C0164F611682A9A72B3D8172DEA91B"
 }

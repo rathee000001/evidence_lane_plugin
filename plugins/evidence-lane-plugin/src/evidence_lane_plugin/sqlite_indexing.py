@@ -18,6 +18,7 @@ from typing import Any
 
 from llama_index.core import Document
 from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.utils import globals_helper
 
 from .compact_storage import compress_exact_bytes, decompress_exact_bytes
 from .hashing import canonical_json_bytes, sha256_bytes
@@ -135,6 +136,17 @@ def prewarm_llama_index_sentence_splitter() -> str:
     the lane executor removes that cold-start race without serializing lane
     work.
     """
+
+    # A short document does not necessarily enter SentenceSplitter._split and
+    # therefore does not touch the lazy Punkt property at all. Resolve that
+    # property explicitly on the calling thread; returning from the property
+    # proves the complete NLTK import (including its SciPy imports) finished
+    # before any lane worker can contend for Python's import lock.
+    tokenizer = globals_helper.punkt_tokenizer
+    probe_text = "Evidence Lane initializes one sentence. It verifies another."
+    spans = list(tokenizer.span_tokenize(probe_text))
+    if len(spans) != 2:
+        raise RuntimeError("LLAMA_INDEX_PUNKT_TOKENIZER_PREWARM_FAILED")
 
     nodes = llama_index_nodes(
         "Evidence Lane initializes deterministic sentence splitting.",

@@ -86,11 +86,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/git_sync_selected.action.v1.json",
-  "sdk_action_binding_sha256": "74876EF053ADE3DBD3B151722190CCD30AD840BB8D120C036AF5C91517ED5B34",
+  "sdk_action_binding_sha256": "5AA60E0DCF36E4A012064A2DCA8D0AF615F25D5F0CD086A427758A5B06AA607C",
   "public_action_schema": "schemas/actions/git_sync_selected.schema.json",
   "public_action_schema_sha256": "80573BC0E7795EA6C656B7C43D95ECA722B036D5423228C87C06C27D2684EBBB",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "4BE40486C6411784A1E1D1C708C1DD94B561B89810FB911911A7B97D65E3CC5E"
+  "receipt_sha256": "27E8E8387D76372F8EC0F72D4CBADB6A628F4E3FDC81E51D694AB4C8A88183A8"
 }

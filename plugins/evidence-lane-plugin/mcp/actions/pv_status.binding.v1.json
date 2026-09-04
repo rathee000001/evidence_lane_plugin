@@ -87,11 +87,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/pv_status.action.v1.json",
-  "sdk_action_binding_sha256": "DBFEA7FF558D9E3ED89E18196DC72F635900CE8593A60135DDBBBBC68F35065A",
+  "sdk_action_binding_sha256": "E7E3761BEB65EF9C445A7F575A97E509975E8D50CD89BABC693DD438DCD7BD40",
   "public_action_schema": "schemas/actions/pv_status.schema.json",
   "public_action_schema_sha256": "B27CDB8C5F25ED0683230254432F0501A433821D9DC15C7FAFA220AB4AC9ABF1",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "BF5EC9952EEC07DC0B80E3692D2D676B78F6D935DA97869533057700492889D3"
+  "receipt_sha256": "57D1065C1DC2FD765F29A3DFE06CA33886C29AD6136259D252D34A2A8D63EA52"
 }

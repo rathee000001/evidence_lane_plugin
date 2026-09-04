@@ -110,9 +110,9 @@
   ],
   "sector_lane_count": 18,
   "project_sector_registry": "authorities/project_sectors/lane-surface-registry.v1.json",
-  "project_sector_registry_sha256": "9C37777E447EC478086682251ACFA7225B3462C2216F1E0417C72DAD9BD6E02F",
+  "project_sector_registry_sha256": "EFFB71F3C5545C0CFAC2A95A4E13C862F4B95D8B77C19EE098665DE1580A2CFD",
   "authorities_are_outside_sector_count": true,
   "sqlite_mmd_dot_tools_pointer_runtime_complete": true,
   "shared_support_source_sha256": "277EA6E2B9B0111A658E1AE00C727F14A7B041C94CD4C09FB71DDE214B79EB4B",
-  "receipt_sha256": "44EB59B98EF4DAC1F8DE19AA5E5945090E0048B7AB6691092D8F4F56FEE92E3A"
+  "receipt_sha256": "7B486D5ABFC6190F65CAC9A7581919AF0553E5FFA7629066AEB1F35A2937FFEB"
 }

@@ -90,7 +90,7 @@
     {
       "path": "authorities/project_sectors/github_code/tools.json",
       "bytes": 175549,
-      "sha256": "7D254DA6C25C448774CA862B22A64E713295A49FFA3EB95FE425CACD74164711"
+      "sha256": "3C2CA0B3985D413DE3E0E7FD48CEAD1110F85302BFDF85B796AE50311D8DDFD3"
     },
     {
       "path": "authorities/project_sectors/github_code/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "4CDEEF0C4CEB9D3D853E5FDF5463695DF8B702F11EF0F05218968C63DF7F61F8"
+  "receipt_sha256": "F5FC62663FB2AC7A4E7B459A6DE1C03B536BD5BA2B94678F95B30BED6401D767"
 }

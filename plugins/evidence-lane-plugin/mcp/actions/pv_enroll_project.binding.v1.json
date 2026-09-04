@@ -82,11 +82,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/pv_enroll_project.action.v1.json",
-  "sdk_action_binding_sha256": "22330FDEAB850AA258B9CAE19AB9E3143A20D74F353ABA9CC86800698A2CE1B8",
+  "sdk_action_binding_sha256": "B7FA260E452A6AC7CF303D8BF198A30D51912CDFBD90DBE4514E85A9B2EFBFFE",
   "public_action_schema": "schemas/actions/pv_enroll_project.schema.json",
   "public_action_schema_sha256": "92F105F20B958F4D2177B2F9B9F43D6A773A6484EABAE884183E67EF18525273",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "9411E02450BBDCEDDA61436D4335A3D8A3B3400B50076B3F0B7DED3969D4246F"
+  "receipt_sha256": "0166C74289FE288D95CB6DCE0BEDAA8BE10BCF9BB5423485BA1C4C3C2A96002F"
 }
