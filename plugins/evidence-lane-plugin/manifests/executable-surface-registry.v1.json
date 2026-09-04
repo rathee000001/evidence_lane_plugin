@@ -1,14 +1,14 @@
 {
   "schema": "evidence-lane.executable-package-surface-registry.v1",
   "status": "PASS",
-  "plugin_version": "3.0.0+codex.20260904090841",
+  "plugin_version": "3.0.0+codex.20260904093630",
   "installed_directory_count": 16,
   "installed_directories": [
     {
       "path": ".codex-plugin",
       "role": "HOST_DISCOVERY_MANIFEST",
       "member_count": 1,
-      "members_sha256": "8EC7A72A99CB79E9722964326BBAAE9D4E083556BBCA96E123A234C070BDFCF8"
+      "members_sha256": "7DCC5EB8E354A5388B8BF3AAE67E3961BA4BB605848D492C0FC4FF2DF84E66F8"
     },
     {
       "path": "assets",
@@ -80,7 +80,7 @@
       "path": "tests",
       "role": "INSTALLED_PACKAGE_SMOKE_TESTS_ONLY",
       "member_count": 3,
-      "members_sha256": "8CBA99E2351666FC1EF44A041ABE01915DCD37F0A66C3B464F53F1B38E9F6A9E"
+      "members_sha256": "B04349517FDA51F6BB8F7C95B3DF854CC0FEB5C03F6D62EF2CD5E994B5CEA35A"
     },
     {
       "path": "toolchains",
@@ -119,7 +119,7 @@
     {
       "path": ".codex-plugin/plugin.json",
       "bytes": 2952,
-      "sha256": "B9B4024CAB8E8FAF6EFF18377C1574FFCB302EB7249C35E1B7889F6E6906CF31"
+      "sha256": "8A217A2260081D01367765576DB37943F048502531241CE08AEDFAD2F2C469DC"
     },
     {
       "path": ".mcp.json",
@@ -9428,8 +9428,8 @@
     },
     {
       "path": "tests/test_installed_package_surface_smoke.py",
-      "bytes": 17606,
-      "sha256": "E085E3DEB0A32215C475244107CF085B61FBC65BA2FCB6AAD19277F0B99E534B"
+      "bytes": 18285,
+      "sha256": "E154CF2F48D78DE1E00E68871C715631776C5C3356595AD8E3753F5C5D3C747C"
     },
     {
       "path": "toolchains/MEMORY_AUTHORITY_ARCHITECTURE.dot",
@@ -10299,5 +10299,5 @@
   "local_cache_or_output_included": false,
   "historical_fallback_used": false,
   "all_installed_members_hash_bound": true,
-  "receipt_sha256": "8B9F77FEFB78B35F79FD82E913929193B0189F7A4B42DC9E9DEE0681510F7FEB"
+  "receipt_sha256": "4C1F0D7D786BE88175B8772027F5223D1163C983DDAA32AE5624BAE99437AA01"
 }

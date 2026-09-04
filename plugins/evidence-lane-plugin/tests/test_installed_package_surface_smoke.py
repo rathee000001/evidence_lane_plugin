@@ -153,31 +153,56 @@ def test_installed_mcp_stdio_catalog_is_ready_after_explicit_bootstrap(
         timeout=600,
     )
     assert bootstrap.returncode == 0, bootstrap.stderr[-2000:]
-    process = subprocess.run(
+    process = subprocess.Popen(
         [
             sys.executable,
             str(PLUGIN / "scripts" / "run_mcp.py"),
             "--transport",
             "stdio",
         ],
-        input="".join(
-            json.dumps(message, sort_keys=True, separators=(",", ":")) + "\n"
-            for message in messages
-        ),
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
         encoding="utf-8",
-        capture_output=True,
         cwd=PLUGIN,
         env=environment,
-        check=False,
-        timeout=600,
+        bufsize=1,
     )
-    assert process.returncode == 0, process.stderr[-2000:]
-    responses = [
-        json.loads(line) for line in process.stdout.splitlines() if line.strip()
-    ]
-    initialize = next(row for row in responses if row.get("id") == 1)
-    tools = next(row for row in responses if row.get("id") == 2)
+    assert process.stdin is not None
+    assert process.stdout is not None
+    assert process.stderr is not None
+
+    def send(message: dict) -> None:
+        process.stdin.write(
+            json.dumps(message, sort_keys=True, separators=(",", ":")) + "\n"
+        )
+        process.stdin.flush()
+
+    def response(response_id: int) -> dict:
+        while line := process.stdout.readline():
+            parsed = json.loads(line)
+            if parsed.get("id") == response_id:
+                return parsed
+        error = process.stderr.read()
+        raise AssertionError(
+            f"MCP stdio closed before response {response_id}: {error[-2000:]}"
+        )
+
+    try:
+        send(messages[0])
+        initialize = response(1)
+        send(messages[1])
+        send(messages[2])
+        tools = response(2)
+        process.stdin.close()
+        returncode = process.wait(timeout=600)
+        stderr = process.stderr.read()
+        assert returncode == 0, stderr[-2000:]
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait(timeout=30)
     listed = list(tools["result"]["tools"])
     assert initialize["result"]["serverInfo"] == {
         "name": "Evidence Lane",
@@ -193,7 +218,7 @@ def test_installed_mcp_stdio_catalog_is_ready_after_explicit_bootstrap(
     }
     assert len(listed) == NATIVE_TOOL_COUNT
     assert listed[0]["name"] == "runtime_doctor"
-    assert "RapidOCR" not in process.stderr
+    assert "RapidOCR" not in stderr
 
 
 def test_installed_schema_surface_is_complete_and_source_bound() -> None:
