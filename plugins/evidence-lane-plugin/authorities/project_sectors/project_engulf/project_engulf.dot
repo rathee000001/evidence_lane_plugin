@@ -221,13 +221,9 @@ digraph lane_project_engulf {
   SQLITE_OUT -> RECEIPT_OUT
   SCHEMA_ENTITY_0 -> SCHEMA_ENTITY_1 [constraint=true style=invis weight=100]
   SCHEMA_ENTITY_1 -> SCHEMA_ENTITY_2 [constraint=true style=invis weight=100]
-  SCHEMA_ENTITY_2 -> SCHEMA_ENTITY_3 [constraint=true style=invis weight=100]
   SCHEMA_ENTITY_4 -> SCHEMA_ENTITY_5 [constraint=true style=invis weight=100]
-  SCHEMA_ENTITY_5 -> SCHEMA_ENTITY_6 [constraint=true style=invis weight=100]
   SCHEMA_ENTITY_6 -> SCHEMA_ENTITY_7 [constraint=true style=invis weight=100]
   SCHEMA_ENTITY_8 -> SCHEMA_ENTITY_9 [constraint=true style=invis weight=100]
-  SCHEMA_ENTITY_9 -> SCHEMA_ENTITY_10 [constraint=true style=invis weight=100]
   SCHEMA_ENTITY_10 -> SCHEMA_ENTITY_11 [constraint=true style=invis weight=100]
-  PHYSICAL_TABLE_004 -> PHYSICAL_TABLE_007 [constraint=true style=invis weight=100]
   PHYSICAL_TABLE_007 -> PHYSICAL_TABLE_020 [constraint=true style=invis weight=100]
 }

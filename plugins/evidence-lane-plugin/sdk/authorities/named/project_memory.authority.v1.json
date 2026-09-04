@@ -3,10 +3,10 @@
   "status": "PASS",
   "authority_id": "project_memory",
   "authority_root": "authorities/project_memory",
-  "authority_manifest_sha256": "D0908D1E5E7CC8ABE6C66074ABFC8339F1B2C9A387E58B0C3FB092E3AB274ACB",
+  "authority_manifest_sha256": "437F2DC8CE17FF5BC9C98BE37DF33A426DCC941E460927E7FD4BB8CF2A2692E0",
   "schema_surface": "schemas/authorities/project_memory/schema-surface.v1.json",
   "persistent_sqlite_authority": true,
   "linked_public_action_count": 5,
   "merged_with_project_sector_or_peer": false,
-  "receipt_sha256": "A696454179CD9AC810AE88E4150B4DC7550F057F86B2E0AF38CE2677BECA74AE"
+  "receipt_sha256": "2AEEA645901E5B84B061E366D3DD9A17EBAAD605DA3F459C190EDCC8F1BD6D29"
 }

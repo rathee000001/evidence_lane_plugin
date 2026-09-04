@@ -24,8 +24,8 @@
     },
     {
       "path": "authorities/project_sectors/project_engulf/lane-contract.v1.json",
-      "bytes": 69202,
-      "sha256": "C727B864BD2F65BA612A2AECD9ABBEB304EDC5F15A9CB891B67F3F9910A31386"
+      "bytes": 69286,
+      "sha256": "CBD88CAFF81CA4B664D14384462B965C54D24BA0F7085E6B0AE5FE78E4906D38"
     },
     {
       "path": "authorities/project_sectors/project_engulf/lane-pointer.schema.json",
@@ -44,18 +44,18 @@
     },
     {
       "path": "authorities/project_sectors/project_engulf/project_engulf.dot",
-      "bytes": 22438,
-      "sha256": "7D4633F93F9354D1860E7F98CCAC72B680A8C1CF76667194B1385BE23AE37BDB"
+      "bytes": 22119,
+      "sha256": "5DE0987185E958059E538C016C768B4A48E0D7F036911ACE33DDA0777C97F33E"
     },
     {
       "path": "authorities/project_sectors/project_engulf/project_engulf.mmd",
-      "bytes": 17834,
-      "sha256": "1B47BF1B85819E812180592CB29300081F30E5BD40083D519575F5F152ECE28C"
+      "bytes": 17674,
+      "sha256": "FF8CF578AA4C5E31D017F6946CD47A96133F5B2032BF57247496552A1F3A666F"
     },
     {
       "path": "authorities/project_sectors/project_engulf/project_engulf_sector_v001.sqlite",
       "bytes": 565248,
-      "sha256": "D816BF82C90E392CD835C8C9F873D327A13259955A3306FE1420E8BFA7961972"
+      "sha256": "0C45A810E77F6387C20DFC8C66936E1425665F9C8E59C5D08BB65DB6A76371A8"
     },
     {
       "path": "authorities/project_sectors/project_engulf/reader-contract.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/project_engulf/tools.json",
-      "bytes": 183490,
-      "sha256": "71E59DE802D176C44E250BE072EC42C8FA4846BA816B9FCB848723D32EFADA1C"
+      "bytes": 183574,
+      "sha256": "6A192967D87B916F97E5245262E139C7125EDB6B9CE7DF330F0FF4268F41114F"
     },
     {
       "path": "authorities/project_sectors/project_engulf/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "C03CEB3B470E3F3018DA087A12BD49F5B58EBD4D928C8CC75A30B1FF0BB853F2"
+  "receipt_sha256": "E10952E20934ECAFA2052DE93ED8E0E3DEAD2AC7C24D7544801029AF33D132B1"
 }

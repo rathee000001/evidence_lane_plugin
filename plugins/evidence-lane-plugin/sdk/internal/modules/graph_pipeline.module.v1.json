@@ -3,11 +3,11 @@
   "status": "PASS",
   "module": "evidence_lane_plugin.graph_pipeline",
   "source_path": "src/evidence_lane_plugin/graph_pipeline.py",
-  "source_sha256": "F1C1AD56D52DD339DA0B9E196898C1420E2EBF539B547CC86FB4B4ADBCC49014",
-  "source_bytes": 33893,
+  "source_sha256": "BB76A790578B062B7E2DC89BDAA0D30A598F26015C3B94CC126AEFB3E476A582",
+  "source_bytes": 35116,
   "role": "AI_TOOLCHAIN_EXECUTION",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "workflow_registry": "sdk/internal/workflow-registry.v1.json",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "A7FC73700579FFFE004A17DA814598DC6F15AA6666ED396DB77A446A8CE1333F"
+  "receipt_sha256": "B772393540E432D929001B8AFE635CCB930967A3F252621413AD6BFC10F05323"
 }

@@ -125,6 +125,26 @@ def llama_index_nodes(
     return rows
 
 
+def prewarm_llama_index_sentence_splitter() -> str:
+    """Resolve the lazy NLTK/SciPy tokenizer stack before lane workers start.
+
+    LlamaIndex defers its NLTK tokenizer import until the first real split.  If
+    multiple lane workers reach that cold import together, Python's import lock
+    can leave one worker importing SciPy while another waits inside the same
+    NLTK initialization barrier.  A deterministic single-thread split before
+    the lane executor removes that cold-start race without serializing lane
+    work.
+    """
+
+    nodes = llama_index_nodes(
+        "Evidence Lane initializes deterministic sentence splitting.",
+        source_id="evidence-lane-llama-index-prewarm",
+    )
+    if len(nodes) != 1:
+        raise RuntimeError("LLAMA_INDEX_SENTENCE_SPLITTER_PREWARM_FAILED")
+    return "llama-index-sentence-splitter"
+
+
 def ensure_authority_index_schema(connection: sqlite3.Connection) -> None:
     legacy_columns = {
         str(row[1])
@@ -599,6 +619,7 @@ __all__ = [
     "IndexedNode",
     "ensure_authority_index_schema",
     "llama_index_nodes",
+    "prewarm_llama_index_sentence_splitter",
     "query_authority_index",
     "rebuild_connection_authority_index",
     "rebuild_sqlite_authority_index",

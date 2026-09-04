@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "project_overlay",
   "authority_root": "authorities/project_overlay",
-  "authority_manifest_sha256": "2D724536ACBC7E37976C7B47A1CD24951AC7A770F8899FC6A73DF1D9BB8F6404",
+  "authority_manifest_sha256": "1336EBF1054F270E908AFE707616BBAA93DA25E8713D0F0402203EE8ED77BDC1",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "9D828924DEA3778B3D5BFD35B0609B66568519C743AE993C99D8E593593532D7"
+  "receipt_sha256": "7EA6CF9061601443C94F4E988CC255E16CCE55BAB373583F7ACAAA0D8AC16317"
 }

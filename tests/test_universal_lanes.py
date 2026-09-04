@@ -762,7 +762,7 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         source_overrides=overrides,
     )
     assert result["summary"]["full_build_lanes"] == list(CANONICAL_LANE_IDS)
-    expected_prewarm = (
+    expected_prewarm = ["llama-index-sentence-splitter"] + (
         ["rapidocr+onnxruntime"]
         if importlib.util.find_spec("rapidocr") is not None
         else []
@@ -1508,11 +1508,22 @@ def test_lane_build_parallelizes_compute_and_serializes_canonical_assembly(
         encoding="utf-8",
     )
     original = lane_engine_module._build_one_lane
+    original_prewarm = lane_engine_module.prewarm_llama_index_sentence_splitter
     first_two = threading.Barrier(2, timeout=10)
+    tokenizer_ready = threading.Event()
     state_lock = threading.Lock()
-    state = {"arrivals": 0}
+    state = {"arrivals": 0, "prewarm_calls": 0}
+
+    def observed_prewarm() -> str:
+        assert threading.current_thread() is threading.main_thread()
+        result = original_prewarm()
+        with state_lock:
+            state["prewarm_calls"] += 1
+        tokenizer_ready.set()
+        return result
 
     def observed_build(**kwargs):
+        assert tokenizer_ready.is_set()
         with state_lock:
             state["arrivals"] += 1
             wait_at_barrier = state["arrivals"] <= 2
@@ -1520,6 +1531,11 @@ def test_lane_build_parallelizes_compute_and_serializes_canonical_assembly(
             first_two.wait()
         return original(**kwargs)
 
+    monkeypatch.setattr(
+        lane_engine_module,
+        "prewarm_llama_index_sentence_splitter",
+        observed_prewarm,
+    )
     monkeypatch.setattr(lane_engine_module, "_build_one_lane", observed_build)
     output = tmp_path / "parallel-bundle"
     manifest = build_lane_bundle(
@@ -1535,10 +1551,13 @@ def test_lane_build_parallelizes_compute_and_serializes_canonical_assembly(
 
     execution = manifest["parallel_execution"]
     emitted = ["chat_lineage", "docs"]
+    assert state["prewarm_calls"] == 1
     assert state["arrivals"] == len(emitted)
     assert first_two.broken is False
     assert execution["parallel_lane_compute"] is True
-    assert execution["prewarmed_dependencies"] == []
+    assert execution["prewarmed_dependencies"] == [
+        "llama-index-sentence-splitter"
+    ]
     assert execution["worker_count"] == 2
     assert execution["barrier_status"] == "PASS"
     assert execution["source_snapshot_unchanged"] is True

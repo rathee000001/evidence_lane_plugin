@@ -3,14 +3,14 @@
   "status": "PASS",
   "sector_lane_count": 18,
   "sector_lane_registry": "authorities/project_sectors/lane-surface-registry.v1.json",
-  "sector_lane_registry_sha256": "BB4643009846EB2077CD8A91E50253D2108F40D8C6EAC6B4D4D9F27EF6435EEC",
+  "sector_lane_registry_sha256": "9C37777E447EC478086682251ACFA7225B3462C2216F1E0417C72DAD9BD6E02F",
   "non_sector_authority_count": 11,
   "non_sector_authority_registry": "authorities/authority-surface-registry.v1.json",
-  "non_sector_authority_registry_sha256": "29217348D60F37731659DC72F6699B16BCA5F91C237A8F250A1FA93F1C0ED80D",
+  "non_sector_authority_registry_sha256": "5683FBF5094B7FFFDF0905EC62C2DAFE801163C90405B5DC3EE1601079CB84AC",
   "env_uop_action_plane": "sdk/env_uop/action-plane.v1.json",
   "public_action_registry": "sdk/internal/public-action-registry.v1.json",
   "outer_routing_registry": "sdk/routing/current-route-registry.v1.json",
   "sector_and_named_authorities_merged": false,
   "instructions_merged_with_project_memory": false,
-  "receipt_sha256": "3E22DC1CFB58E3BE86EF9B4387C02CD722BFF5BC2DCC9E92C7199DB3308460AA"
+  "receipt_sha256": "27EC135BE891D8AEAF8B78038A110F86514A9741908842307C71C0E950221B55"
 }

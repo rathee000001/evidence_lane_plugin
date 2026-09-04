@@ -201,6 +201,5 @@ digraph lane_docs {
   SCHEMA_ENTITY_4 -> SCHEMA_ENTITY_5 [constraint=true style=invis weight=100]
   SCHEMA_ENTITY_6 -> SCHEMA_ENTITY_7 [constraint=true style=invis weight=100]
   SCHEMA_ENTITY_7 -> SCHEMA_ENTITY_8 [constraint=true style=invis weight=100]
-  PHYSICAL_TABLE_004 -> PHYSICAL_TABLE_007 [constraint=true style=invis weight=100]
   PHYSICAL_TABLE_007 -> PHYSICAL_TABLE_020 [constraint=true style=invis weight=100]
 }

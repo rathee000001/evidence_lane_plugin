@@ -181,18 +181,9 @@ digraph skill_evi_source_intake {
   WF_BOUNDED_SOURCE_RETRIEVAL_ACTION_006 -> SCHEMA [label="typed execution"]
   RECEIPT -> EXIT
   LANE_GITHUB_CODE -> LANE_LOCAL_CODE [constraint=true style=invis weight=100]
-  LANE_LOCAL_CODE -> LANE_CHAT_LINEAGE [constraint=true style=invis weight=100]
   LANE_CHAT_LINEAGE -> LANE_DISCUSSION [constraint=true style=invis weight=100]
-  LANE_DISCUSSION -> LANE_ANALYSIS [constraint=true style=invis weight=100]
-  LANE_ANALYSIS -> LANE_PLAN [constraint=true style=invis weight=100]
   LANE_PLAN -> LANE_MODE [constraint=true style=invis weight=100]
-  LANE_DOCS -> LANE_DATA_EXCEL [constraint=true style=invis weight=100]
-  LANE_DATA_EXCEL -> LANE_PPT [constraint=true style=invis weight=100]
   LANE_PPT -> LANE_PDF_OCR [constraint=true style=invis weight=100]
-  LANE_PDF_OCR -> LANE_IMAGES_OCR [constraint=true style=invis weight=100]
-  LANE_IMAGES_OCR -> LANE_ARTIFACTS [constraint=true style=invis weight=100]
   LANE_ARTIFACTS -> LANE_CUSTOM [constraint=true style=invis weight=100]
-  LANE_BRAIN_LOADER -> LANE_RESEARCH [constraint=true style=invis weight=100]
-  LANE_RESEARCH -> LANE_PROJECT_ENGULF [constraint=true style=invis weight=100]
   LANE_PROJECT_ENGULF -> LANE_SQLITE_BRAIN [constraint=true style=invis weight=100]
 }

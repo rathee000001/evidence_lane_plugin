@@ -6,7 +6,7 @@
     {
       "authority_id": "agent_learning",
       "path": "authorities/agent_learning",
-      "manifest_sha256": "B1190DCF7F7787CC401DF00A24AA56A8218F5D4E16E291FAF06F309E17569F66",
+      "manifest_sha256": "1F90527A5CCFAB48D14D17E1868D041C187571DAC53700B9C1FD370B412A6FF4",
       "database_sha256": "5C13BCC310C62A40A07356CA9EC0FEAEA066FDF7ADADC1E566119D7B6DE15315",
       "table_count": 29,
       "linked_public_action_count": 9,
@@ -15,7 +15,7 @@
     {
       "authority_id": "canon_input",
       "path": "authorities/canon_input",
-      "manifest_sha256": "F6FB14E7362B3F0680DC4C3FE93FD7E3AEACC12CE4023CF6157DCAE8176710A6",
+      "manifest_sha256": "A8F7B0054FB7367CAF052E39BBC84023909CF22BDB67E398A0559E83B993A1EA",
       "database_sha256": "6B5288C9E6848F9AED7F82ADF4C0F551DBB0C3EF1EFFD32AD20CDF0E2B353C4D",
       "table_count": 18,
       "linked_public_action_count": 19,
@@ -24,7 +24,7 @@
     {
       "authority_id": "project_memory",
       "path": "authorities/project_memory",
-      "manifest_sha256": "D0908D1E5E7CC8ABE6C66074ABFC8339F1B2C9A387E58B0C3FB092E3AB274ACB",
+      "manifest_sha256": "437F2DC8CE17FF5BC9C98BE37DF33A426DCC941E460927E7FD4BB8CF2A2692E0",
       "database_sha256": "1B535B51A02A2A15D33F87211D45D14341469544EC37993E3F427E7D971D88CC",
       "table_count": 22,
       "linked_public_action_count": 5,
@@ -33,7 +33,7 @@
     {
       "authority_id": "project_overlay",
       "path": "authorities/project_overlay",
-      "manifest_sha256": "2D724536ACBC7E37976C7B47A1CD24951AC7A770F8899FC6A73DF1D9BB8F6404",
+      "manifest_sha256": "1336EBF1054F270E908AFE707616BBAA93DA25E8713D0F0402203EE8ED77BDC1",
       "database_sha256": "3CBF92BC9C1D682499D9134574AE9BD26D09BB0A5857533DB2C2248BAAFF61C4",
       "table_count": 28,
       "linked_public_action_count": 10,
@@ -42,7 +42,7 @@
     {
       "authority_id": "source_authority",
       "path": "authorities/source_authority",
-      "manifest_sha256": "29F1C8BDC00AEF6B21F8EC187CCDE26DF5645A7F4C9D6C2498E536104BEBC192",
+      "manifest_sha256": "F8501A8F8D5939A06F9C63FEF0E959758CEAA40065B27AD69E66A1A586A6B5FE",
       "database_sha256": "FF40216E676B1842AED6BB2D0EA20C38DE06D1E01AAD8A4416E4515C0DAB44E7",
       "table_count": 57,
       "linked_public_action_count": 18,
@@ -51,7 +51,7 @@
     {
       "authority_id": "project_universe",
       "path": "authorities/project_universe",
-      "manifest_sha256": "254AD997F28DA525DE9565ACE960206A4116CCA1D7CEE8646804EF3B4C09CCA3",
+      "manifest_sha256": "08EC3023F7A2170C14D30EF4058D04C80DC8D4405075F87C05600B967E215BF0",
       "database_sha256": "78ADE3960EF298456F94EAD92A1E7DC06E2A5D61E5C5BA52F62AB184791BF214",
       "table_count": 20,
       "linked_public_action_count": 4,
@@ -60,7 +60,7 @@
     {
       "authority_id": "connector_brain",
       "path": "authorities/connector_brain",
-      "manifest_sha256": "A3512186FBBCA67E82B8BB2EA789ABE679882CC726ECCBA4A531687EA75880C3",
+      "manifest_sha256": "8092F8E1BDA997379321441F180CF5A51823C2C2D5ABE3253B5B0E4644FF8948",
       "database_sha256": "0323050ECC28005283B9D5A101726E4E41951B6B115C67C1E5A11A8C71FC2381",
       "table_count": 29,
       "linked_public_action_count": 5,
@@ -69,7 +69,7 @@
     {
       "authority_id": "project_authority",
       "path": "authorities/project_authority",
-      "manifest_sha256": "0CC7E52AA9222D673D1007E98186B0E2EF05F8FA1EEE8D819C50559B8CC1A85B",
+      "manifest_sha256": "D2E9FCD5F6BF609B0C5E53A9813028AE11257D2244D6425A2D8223B4020F38EB",
       "database_sha256": "203BCC8D5DBFC102CBFADE6DFB09DAAFA15A7496FCBB6AFC174E0B6EE5BD7993",
       "table_count": 20,
       "linked_public_action_count": 21,
@@ -78,7 +78,7 @@
     {
       "authority_id": "receipt_ledger",
       "path": "authorities/receipt_ledger",
-      "manifest_sha256": "8870956A54DAA2C3C78981213D30BD88B757289A80E440CEC719C026E45F5835",
+      "manifest_sha256": "A2B3B7D59DA9A5DF92AD58B55355988E9AF26195E14033ABE9C8AD0ED213E992",
       "database_sha256": "DD890E559279F8701C0F11CD9DF7441045D0E891D0F04057D2E3B4D6D79EDBFB",
       "table_count": 18,
       "linked_public_action_count": 17,
@@ -87,7 +87,7 @@
     {
       "authority_id": "session_authority",
       "path": "authorities/session_authority",
-      "manifest_sha256": "3CF7F8FDC264483C18631516BC2CE143C07CD3C42513B5EB61FC6419BE04EBFD",
+      "manifest_sha256": "1BF7EA8D6690C29BB88DBB68DBCB37B0E6373313737EE29998932A3E90686E3B",
       "database_sha256": "F8046E7533F455EEB81ED8F08EE095940C9672F5DDD99766EE76E1F605F54606",
       "table_count": 19,
       "linked_public_action_count": 12,
@@ -96,7 +96,7 @@
     {
       "authority_id": "instructions",
       "path": "authorities/instructions",
-      "manifest_sha256": "B91313AEEA266128E633AF792C925AC220A9F9CF409DF64305C31F11A595C660",
+      "manifest_sha256": "330B9CD53D2B3C1FDFAC3EC6A03297E6812C6D6B240884261BBC6BB39019426E",
       "database_sha256": null,
       "table_count": null,
       "linked_public_action_count": 4,
@@ -110,9 +110,9 @@
   ],
   "sector_lane_count": 18,
   "project_sector_registry": "authorities/project_sectors/lane-surface-registry.v1.json",
-  "project_sector_registry_sha256": "BB4643009846EB2077CD8A91E50253D2108F40D8C6EAC6B4D4D9F27EF6435EEC",
+  "project_sector_registry_sha256": "9C37777E447EC478086682251ACFA7225B3462C2216F1E0417C72DAD9BD6E02F",
   "authorities_are_outside_sector_count": true,
   "sqlite_mmd_dot_tools_pointer_runtime_complete": true,
   "shared_support_source_sha256": "277EA6E2B9B0111A658E1AE00C727F14A7B041C94CD4C09FB71DDE214B79EB4B",
-  "receipt_sha256": "8BC89DA83FE6D01FFB84ACC41E3F4B20C77E9B7895C02C336129FFD1816E59B4"
+  "receipt_sha256": "44EB59B98EF4DAC1F8DE19AA5E5945090E0048B7AB6691092D8F4F56FEE92E3A"
 }

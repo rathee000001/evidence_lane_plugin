@@ -114,6 +114,7 @@ from .sqlite_execution import verify_and_optimize_sqlite_authority
 from .sqlite_indexing import (
     ensure_authority_index_schema,
     llama_index_nodes,
+    prewarm_llama_index_sentence_splitter,
     rebuild_connection_authority_index,
 )
 from .tabular_toolchain import (
@@ -9581,6 +9582,13 @@ def build_lane_bundle(
         for lane_id in emitted_lane_ids
     }
 
+    # LlamaIndex lazily imports the NLTK/SciPy tokenizer stack on its first
+    # sentence split. Resolve that import once on the calling thread before
+    # multiple lane workers can enter Python's import lock concurrently.
+    prewarmed_dependencies: list[str] = [
+        prewarm_llama_index_sentence_splitter()
+    ]
+
     # RapidOCR lazily imports NumPy/OpenCV and creates ONNX Runtime native
     # thread pools. On Windows, starting that cold runtime inside one lane
     # worker while the Git lane repeatedly creates subprocess pipe-reader
@@ -9588,7 +9596,6 @@ def build_lane_bundle(
     # shared OCR engine once, before the lane pool, then retain the existing
     # lock around individual OCR calls. This is a dependency cold-start
     # barrier only; independent lane computation remains parallel below.
-    prewarmed_dependencies: list[str] = []
     if by_lane["images_ocr"] or by_lane["pdf_ocr"]:
         prewarmed_dependencies.extend(prewarm_native_dependencies())
 

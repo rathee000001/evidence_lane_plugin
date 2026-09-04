@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "ppt",
   "authority_root": "authorities/project_sectors/ppt",
-  "authority_manifest_sha256": "BE13231C4ED6E858E28B925400B0F4693161450B291F2CC38A406AA76209C57E",
+  "authority_manifest_sha256": "10E855431DEB24DF7EBB4781D116B1EC61009EAB260B98137AD34AD486B385BA",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -60,5 +60,5 @@
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
   "canonical_lane_contract_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "EB1F3FDC0E4AC4417BA88162E673FD34C75F400E36847181359A99CE0F5C63D5"
+  "receipt_sha256": "26A9E05AD84BD9AD8E8659AAABF25D52937C4ADDDB8F7C1D2E393C39DB9157D5"
 }

@@ -24,8 +24,8 @@
     },
     {
       "path": "authorities/project_sectors/ppt/lane-contract.v1.json",
-      "bytes": 63787,
-      "sha256": "33AFC01DF1FD2BB5A362E756E11B9806A7B97411903B0DF883FC169C6739CFFE"
+      "bytes": 63986,
+      "sha256": "DE0AA2513B1B1BE502120B9B856523614840E9A1A12D1EFF6CEA46A47084630A"
     },
     {
       "path": "authorities/project_sectors/ppt/lane-pointer.schema.json",
@@ -44,18 +44,18 @@
     },
     {
       "path": "authorities/project_sectors/ppt/ppt.dot",
-      "bytes": 20804,
-      "sha256": "7C45329A2D1D7373DC7E82305AA7BC2DE95790EDE6334D7E9455C8830040506C"
+      "bytes": 20564,
+      "sha256": "CCCC0F533F3E0E1A3F2080CB2479BF5C4683324A3104FC78FBE0AA64E6D63C57"
     },
     {
       "path": "authorities/project_sectors/ppt/ppt.mmd",
-      "bytes": 16501,
-      "sha256": "98DC256157A9ACD1F339AA3D90C80883ED054245FB781C1D4164834FA3D6D134"
+      "bytes": 16380,
+      "sha256": "5DB4F7E117815E35D179CB82A156E8FE7D78C6B1F39279D426C5DB9D9CB9BC44"
     },
     {
       "path": "authorities/project_sectors/ppt/ppt_sector_v001.sqlite",
       "bytes": 528384,
-      "sha256": "71C1596CDF95E7DDE92FE9AF46262EB6BFBD33202B1DAE868823A9101A3F53CD"
+      "sha256": "A100F64FDF3BC9F92FC695C17863C08431B168A1AE7DBC6BEDC5B02A9635C36F"
     },
     {
       "path": "authorities/project_sectors/ppt/reader-contract.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/ppt/tools.json",
-      "bytes": 171581,
-      "sha256": "8F1B062D7948855484A9F6EFF9ED5D1543F393A60E74E73D25C371349CA2CA33"
+      "bytes": 171780,
+      "sha256": "213FA42EDFCFB652462B6E7BF7B4007AB46540989626C37A80D5B73928653F46"
     },
     {
       "path": "authorities/project_sectors/ppt/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "5C734DF42023D0A9A504470E81F0F8CD6BDC8E7DBEBC50983B1884703681313E"
+  "receipt_sha256": "AF7354912CD89BAD87843396E6ED487F37B6BDCD0123DE77490AD985DD137E91"
 }

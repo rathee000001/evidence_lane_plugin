@@ -27,29 +27,29 @@
     {
       "path": "env/env_mmd.dot",
       "canonical_path": "env/env_mmd.dot",
-      "bytes": 119968,
-      "sha256": "F766A1BE94DCA98A18AE840806FA8067078AB692776F867425CF0FF8FA0E1A8A"
+      "bytes": 106029,
+      "sha256": "5A6C324638E241AD5391EEDABD362E2C8D7E7C6CA2733AC0A77126D060D613B6"
     },
     {
       "path": "env/env_mmd.mmd",
       "canonical_path": "env/env_mmd.mmd",
-      "bytes": 88722,
-      "sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB"
+      "bytes": 81101,
+      "sha256": "9283F3B99DEAB9FB28077CF303EC6C2E1B6E2263C07EFA9E87D930E45A48700F"
     },
     {
       "path": "env/env_sqlite.sqlite",
       "canonical_path": "env/env_sqlite.sqlite",
-      "bytes": 6217728,
-      "sha256": "9F6CE0C859EB0107634CF8D188A970C744ED05AF9BE2A2C9D579D83551C169C8"
+      "bytes": 6057984,
+      "sha256": "9A9583A6AED0D906CD95899B17322CF4241EC751E291AC572F3909E40AE14D72"
     },
     {
       "path": "env/locked_mmd_hash.txt",
       "canonical_path": "env/locked_mmd_hash.txt",
       "bytes": 609,
-      "sha256": "A53FA72FB7181939BA0FF600CF951FA3EC0780362A319704D7DF1904DA94A346"
+      "sha256": "36CE2ABC27FA9B17AC75336B2D78A6F67D24A481EFC7E707A8B397872903FF0C"
     }
   ],
   "canonical_packaged_authority": true,
   "duplicate_authority_copy_present": false,
-  "receipt_sha256": "5F2F69C78AFEA400163F676AB5DD10A00A71D3E1C0AF8392B6DC820CC93F9A9A"
+  "receipt_sha256": "C46059DA2DB8CBBB07BD2C648606E4ABC9587411E251E013BE9A16C620D86C95"
 }

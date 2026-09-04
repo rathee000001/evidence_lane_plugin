@@ -91,11 +91,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/project_memory_query.action.v1.json",
-  "sdk_action_binding_sha256": "A7D98A83AA7C956D7D398BF76F35D68AA3DA49966169BEE05A0110360A12F858",
+  "sdk_action_binding_sha256": "01A8CF361F4EB8DB39BC2BE64E468F17B9A54A737602E67E349C4AE26A8BC4DA",
   "public_action_schema": "schemas/actions/project_memory_query.schema.json",
   "public_action_schema_sha256": "988AE22ABDAE4BB894D12B8D51AD08C33BEFBD159169043BB95FADE91F5D8799",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "A4D4F1C696879D047D18DC272C0DE6529684D4DF6A021CD94C7DCAF78B99C8E1"
+  "receipt_sha256": "C1C443C44D1313AF2FE3AD00691351C39A947D7D4162FA2EF3B2721EAD22E180"
 }

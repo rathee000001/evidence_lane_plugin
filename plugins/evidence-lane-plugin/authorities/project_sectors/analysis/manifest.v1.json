@@ -9,18 +9,18 @@
   "members": [
     {
       "path": "authorities/project_sectors/analysis/analysis.dot",
-      "bytes": 19605,
-      "sha256": "B982CD13A7A44A0F75C0EEE83DB42066031466CA68E7622FD0C08FE1B3030852"
+      "bytes": 19521,
+      "sha256": "1728F29586069B9A35ECA1303077FB8C33C30903ED8C21494F83EF75AB3FDD22"
     },
     {
       "path": "authorities/project_sectors/analysis/analysis.mmd",
-      "bytes": 15626,
-      "sha256": "46167454C69E727988FB464DC4FD3A90DDB729F63AE2257A322A150FA4810948"
+      "bytes": 15582,
+      "sha256": "8115181E022FB853F461C336A8E0C638131B0C065B6612FC5D62F60D4F25F393"
     },
     {
       "path": "authorities/project_sectors/analysis/analysis_sector_v001.sqlite",
       "bytes": 516096,
-      "sha256": "887F4DCA3C2FA220066CDE59BD35652609CB6F0F6E8F0FD6300FA893101A062E"
+      "sha256": "4EBCC254DB04C1979A8185809DC0C70291CE98C78FD76472EDB050C3985785CA"
     },
     {
       "path": "authorities/project_sectors/analysis/builder-contract.schema.json",
@@ -39,8 +39,8 @@
     },
     {
       "path": "authorities/project_sectors/analysis/lane-contract.v1.json",
-      "bytes": 60134,
-      "sha256": "EBF11EB800819B9D5E02DF18BD233AFD1F8642B1B4B21C3F9BAA50219337B6A4"
+      "bytes": 59898,
+      "sha256": "99191816711D4A954DC9EEB573A68A1E80C981457FE3BA01FC522E66AB5616FF"
     },
     {
       "path": "authorities/project_sectors/analysis/lane-pointer.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/analysis/tools.json",
-      "bytes": 169439,
-      "sha256": "98E1C0E736C3B92CC1BC21C2822A11B0634D1F6A8433314FB08317AA180229D3"
+      "bytes": 169203,
+      "sha256": "A91DB424295D3B2F0325AAA8B55439AB81969B4ABF2ADB60AF1FDB6AA0C55EDC"
     },
     {
       "path": "authorities/project_sectors/analysis/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "66E4CB8B15547AA862A7B17630415ADF8BEBC635F5E1FD0F1811342F7B279925"
+  "receipt_sha256": "383DD2185C11021AB9ADC34C33AAB41B6F1FBA7286CAA0386C7A907C5A7D3CCB"
 }

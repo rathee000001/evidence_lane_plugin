@@ -119,11 +119,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/source_git_history_build.action.v1.json",
-  "sdk_action_binding_sha256": "51934303FE5A84608FCED2BFB5F73EBF10C3687688726A443587010547F82518",
+  "sdk_action_binding_sha256": "85E9D7A158F729548528FFD585BEC813A8384AC418BC521C92DBA2167BC11B8A",
   "public_action_schema": "schemas/actions/source_git_history_build.schema.json",
   "public_action_schema_sha256": "0992486BD5B65B71E96DD88692E3BDF72A7E1C1AB73357254DBAC0513EE82F20",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "92F692CAA3CB406FFD83F651FA362E63AC79BB82028FEF32756BCFF93D5839B4"
+  "receipt_sha256": "3CEDD5751014BD06F4DAAD482BDEC5725474F9FD49D22A3DC3CFAA5AC55889BC"
 }

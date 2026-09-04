@@ -19,18 +19,18 @@
     },
     {
       "path": "authorities/project_sectors/docs/docs.dot",
-      "bytes": 19467,
-      "sha256": "3172BF3BACDE4D636CD0183A36FA5AC9F25480E59A5A2D3C116D2838E6AEF92C"
+      "bytes": 19383,
+      "sha256": "D06EE4987B89F431504268DABF724485B8BF488DEA41E3F805CC4495C5EF2ECB"
     },
     {
       "path": "authorities/project_sectors/docs/docs.mmd",
-      "bytes": 15492,
-      "sha256": "92BF5A24618F4323D2B9323D91926F4F13728ADB78128583CB536554A3FDC7F2"
+      "bytes": 15448,
+      "sha256": "2597C97A06053AFEE43B009303F55F181F3959D0C441C169A02DEF88911404B6"
     },
     {
       "path": "authorities/project_sectors/docs/docs_sector_v001.sqlite",
       "bytes": 536576,
-      "sha256": "0AC7AC7AE5D82A87A389DF73BD8EBBEE3C19CAF68BCD9735BF22E86D05562D9E"
+      "sha256": "4654018CC00F97C38A2406AE84C37E7F9B13B037115C7B7E02F68D4CF6EE32E4"
     },
     {
       "path": "authorities/project_sectors/docs/dot-artifact.schema.json",
@@ -39,8 +39,8 @@
     },
     {
       "path": "authorities/project_sectors/docs/lane-contract.v1.json",
-      "bytes": 60027,
-      "sha256": "933BBA5A6D6D8AB1F1BD9685F334EA5083F567E42ECB7AB3D8FE35C1F7D841C2"
+      "bytes": 59894,
+      "sha256": "70436B53A110A96D9EA2CA00372E62A19F5B92D69683C28AD8159A6E8669E6D7"
     },
     {
       "path": "authorities/project_sectors/docs/lane-pointer.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/docs/tools.json",
-      "bytes": 168883,
-      "sha256": "DA797B09603FBB8A1883CF1B53F9E26685815F82FE27029CEA9C85F7DCD91ED4"
+      "bytes": 168750,
+      "sha256": "C0094BB46D030D7063B55A956CA1FD30FD1012B361C568AB8B5288B9F2A09E67"
     },
     {
       "path": "authorities/project_sectors/docs/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "1E700E7E58FF5E523CEB6BEB5D439A732A900FC8A4752726E99307F5DB70FBA2"
+  "receipt_sha256": "5C60BACC57E145601C2C839693D333771FFF8A7F941A4A16615575F92C1F73F3"
 }

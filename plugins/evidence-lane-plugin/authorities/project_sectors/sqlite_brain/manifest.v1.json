@@ -24,8 +24,8 @@
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/lane-contract.v1.json",
-      "bytes": 69615,
-      "sha256": "404F9155944DB24952B2DDE59AE127036F4941533FC11531EEDF5CF0F0BD0504"
+      "bytes": 69701,
+      "sha256": "2D31C949FC71FD3324EB2BABF55319FFE0B8A9D52E3B829ED832BFE5E6F3456E"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/lane-pointer.schema.json",
@@ -74,23 +74,23 @@
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/sqlite_brain.dot",
-      "bytes": 22636,
-      "sha256": "816D4560FE27921857D7D94BED07E5F3D09BAA9C6CE78FEDAD514BA8E4C7EAA4"
+      "bytes": 22317,
+      "sha256": "EB7BFB8DE361DCF7655C04BA535755B3B7CA332011FB4E7EED38FAB233619C2F"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/sqlite_brain.mmd",
-      "bytes": 18034,
-      "sha256": "AB2A997DDC107BCCEE0791DC9F356DCE44042C75983AA6415975C7507FF045CB"
+      "bytes": 17874,
+      "sha256": "E7388943A2117D26F4A95A4EDD80C4E953BCF43087AD993743536C2C2B957F77"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/sqlite_brain_sector_v001.sqlite",
       "bytes": 561152,
-      "sha256": "3B42A5564B5245134D25744B3695DA420651EA45330766251A293886DF175276"
+      "sha256": "244FB9CE5EDC5DCFBF39DB4EC97251AAF575182E14E9767F7643FFCAA96E1423"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/tools.json",
-      "bytes": 180477,
-      "sha256": "C2793CA90EE10A3FE57DBA39A524EB652EEB63D49418CE678F4CC2AB159D7194"
+      "bytes": 180563,
+      "sha256": "DD6909E6A6F2FCC292C1216E57FAA989FA56E8446B78FF061527533E66A61F2A"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "530559642E3C3C3F6C5E6D41CC798AB39B60D3B153F3186DD1077C184BB11268"
+  "receipt_sha256": "C06230629E919862A5BBB2CAF2D0A49F79060FF6E7688F687214BB142611C481"
 }

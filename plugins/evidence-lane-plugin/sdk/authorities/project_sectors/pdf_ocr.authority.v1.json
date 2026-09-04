@@ -3,11 +3,11 @@
   "status": "PASS",
   "lane_id": "pdf_ocr",
   "authority_root": "authorities/project_sectors/pdf_ocr",
-  "authority_manifest_sha256": "6CA335C8393C3260EFAC42D2437F0279CC3C53226AD173303E79266854956666",
+  "authority_manifest_sha256": "B97CA24D97658FE7B2C1F53BA3902945F195FA5C208720062EBC0604142EFE6D",
   "schema_surface": "schemas/project-sectors/pdf_ocr/schema-surface.v1.json",
   "builder": "authorities/project_sectors/pdf_ocr/builder.py",
   "reader": "authorities/project_sectors/pdf_ocr/reader.py",
   "separate_sqlite_authority": true,
   "live_project_bytes_in_binding": false,
-  "receipt_sha256": "A45DAFEB8156101BE5B20BD7DAB5B911D4FF5364DFB05FE565368949FA5C1EA3"
+  "receipt_sha256": "2C3BCE76D916EE081C48706BAC8CBAFE1E7BFF30223F6AD55210889F27455B24"
 }

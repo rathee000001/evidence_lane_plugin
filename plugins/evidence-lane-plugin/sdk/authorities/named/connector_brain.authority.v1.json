@@ -3,10 +3,10 @@
   "status": "PASS",
   "authority_id": "connector_brain",
   "authority_root": "authorities/connector_brain",
-  "authority_manifest_sha256": "A3512186FBBCA67E82B8BB2EA789ABE679882CC726ECCBA4A531687EA75880C3",
+  "authority_manifest_sha256": "8092F8E1BDA997379321441F180CF5A51823C2C2D5ABE3253B5B0E4644FF8948",
   "schema_surface": "schemas/authorities/connector_brain/schema-surface.v1.json",
   "persistent_sqlite_authority": true,
   "linked_public_action_count": 5,
   "merged_with_project_sector_or_peer": false,
-  "receipt_sha256": "B82EE7B89173376189588ED3BDA7B30C2E82BBD5FD1F5417B4841165D107B1E3"
+  "receipt_sha256": "16F8FC9150AAE122AA509DA0EE94B6EC64D682920C2DD50D08DBDFEF2D2E47CA"
 }

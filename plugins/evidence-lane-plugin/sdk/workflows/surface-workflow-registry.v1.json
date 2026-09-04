@@ -24397,7 +24397,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "FD77CF53DAA3E404E82C13EDEFAC6DF644B604A2F6BB91CE1FED369A26D031B8"
+          "receipt_sha256": "FD77CF53DAA3E404E82C13EDEFAC6DF644B604A2F6BB91CE1FED369A26D031B8",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -24522,7 +24523,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "AA23F361059A5825174026E56F68B063AF514E88918ED1AFE813ADF67148A1E4"
+        "receipt_sha256": "15783CE5896F29634240A1505197FF0CCD964C5A4937DE312C93F75F3433A570"
       }
     },
     {
@@ -24571,7 +24572,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "4FF65535B1205D42CDD7EDD99B7FD0733F3D6E381F9F41F0FF9EA153E69D6366"
+          "receipt_sha256": "4FF65535B1205D42CDD7EDD99B7FD0733F3D6E381F9F41F0FF9EA153E69D6366",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -24696,7 +24698,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "2C5FFD4388253A5C614976845FE53B46E02B15BC74B9F0E89AC21B0E4BE4065D"
+        "receipt_sha256": "456DFCB6845376CD7B5D06407DAFDA034F6727C9213BCF3776D11418EB6153C3"
       }
     },
     {
@@ -24745,7 +24747,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "37E35F6ACA3D22A2FADCC31F5CC4A9E3C1811303E14E398894951A621588B0F7"
+          "receipt_sha256": "37E35F6ACA3D22A2FADCC31F5CC4A9E3C1811303E14E398894951A621588B0F7",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -24870,7 +24873,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "65FB2737F876FB4B8AE578C642A0C7F860A8EC423D9F73A5235F72E658685111"
+        "receipt_sha256": "9BC9552FCE52787157B3D06C01C4CA0C69ADB8309D815A4A9B47749BAE79F40F"
       }
     },
     {
@@ -24919,7 +24922,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "9338C11638782C7B3404C3A2C05443E04E7918606D7D1DD0FBDDFB5F0A45A349"
+          "receipt_sha256": "9338C11638782C7B3404C3A2C05443E04E7918606D7D1DD0FBDDFB5F0A45A349",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -25044,7 +25048,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "410434797F1DF63570DE3FA9694266EAD47F75CEC45570BB4D2C5533F80119C7"
+        "receipt_sha256": "738C6ACF4F808A795AF0325FA80A9E05457A977969932D3DFCFC6A74941FE93B"
       }
     },
     {
@@ -25093,7 +25097,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "D72106E96AE2C9C1B7B133FB88EDF226C9492C47631F5CC324D8116B7BAC6817"
+          "receipt_sha256": "D72106E96AE2C9C1B7B133FB88EDF226C9492C47631F5CC324D8116B7BAC6817",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -25218,7 +25223,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "C0046F17C1F8F703999A4CF13EEF84559DB04F1F849EB25AB251344E7D18B75B"
+        "receipt_sha256": "6C1EDEBC6B93899DB79D48A4EA1CEEFB244E12B2536A8E2EE3EE0DFF686A1836"
       }
     },
     {
@@ -25267,7 +25272,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "3F820B5BCF03F27A39888DBC6A5B01FBD8EF4AE30AE34BEC04AC1842AC96CED6"
+          "receipt_sha256": "3F820B5BCF03F27A39888DBC6A5B01FBD8EF4AE30AE34BEC04AC1842AC96CED6",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -25392,7 +25398,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "F1EAE816169E2CB6277652A87085008306086F82A92CB619B4116D3481AF66B7"
+        "receipt_sha256": "0401591BD22B742F31E90EA20F4BBF2AF5A7CDFD3C62EAECAE3FDC9A7D908C64"
       }
     },
     {
@@ -25441,7 +25447,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "764B4B6711278771041DD75C059D2043BA46F3362687DB7B4DB754A8F5A77D9B"
+          "receipt_sha256": "764B4B6711278771041DD75C059D2043BA46F3362687DB7B4DB754A8F5A77D9B",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -25566,7 +25573,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "D84E55EF42C24AAF766A10B741ACAD33FD2F020CE775F22708EBFA96C2899B1B"
+        "receipt_sha256": "56B5FE4C0719C3009EB6F149B79E5DC8F9D3C9D60B946742A47D7DEB33AFCF2A"
       }
     },
     {
@@ -25615,7 +25622,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "8B9B6F4665D1F892AECDAF2A7C0A1535C073B5487C5710F577E2C0D0999F4796"
+          "receipt_sha256": "8B9B6F4665D1F892AECDAF2A7C0A1535C073B5487C5710F577E2C0D0999F4796",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -25740,7 +25748,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "FC5AE3F7D69E453B7827668B826FD39AF00BA8F1E702C928C5469724EF36D941"
+        "receipt_sha256": "E2A0A53560ED1F4990E02C21D37DC4EBEC3B86BA3F96E9133D6652CCF6AFED87"
       }
     },
     {
@@ -25789,7 +25797,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "CBB4051D4D430605E0E77941CB232DE56F8801201EFF92339FE8572146F75075"
+          "receipt_sha256": "CBB4051D4D430605E0E77941CB232DE56F8801201EFF92339FE8572146F75075",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -25914,7 +25923,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "B584E6F251702CD5DC5F82B2E109FADCE15C020AE2F9978CBA2821EBF1A6AEAB"
+        "receipt_sha256": "F465728CBB9E1BC77A466FC9C08CC78EA2472209A1976432B6148B48D9CEB2F4"
       }
     },
     {
@@ -25963,7 +25972,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "64772E6F7AAD65255D65510869FB8131B7972C2B6F2B71BA7C4E2F1100F87E66"
+          "receipt_sha256": "64772E6F7AAD65255D65510869FB8131B7972C2B6F2B71BA7C4E2F1100F87E66",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -26088,7 +26098,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "DC2107FD1ECEEC9867463CF0B1841D7EF060EFFB3F7BAE75F2C7E4C6C0939B41"
+        "receipt_sha256": "1C616769188B3F46245F93EE4311DF569E969DFF1559C34D7F233D37A5C45776"
       }
     },
     {
@@ -26137,7 +26147,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "9E49794B728F23F8633837B8A4F0D9E629C63ABD5A536700176E53C46F3B2E26"
+          "receipt_sha256": "9E49794B728F23F8633837B8A4F0D9E629C63ABD5A536700176E53C46F3B2E26",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -26262,7 +26273,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "C39E98F1A66EBC772618BCD68CC4D8E8A88D0469FCA542DDE0F80E9A7F1C498B"
+        "receipt_sha256": "8D28FF498DF11E4DAEF92405B89DD609BE2ABB7FC7AC76D83345E7F691CF7A3E"
       }
     },
     {
@@ -26311,7 +26322,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "2319B14C0DB1D9D0796C6598BE409222289B1C41CEE66827024A39587B25A3A2"
+          "receipt_sha256": "2319B14C0DB1D9D0796C6598BE409222289B1C41CEE66827024A39587B25A3A2",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -26436,7 +26448,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "740AAF84BC6BCF4F243209E9217E1A55D471F50FE2DCF16A78976D1EB1210A20"
+        "receipt_sha256": "F63F57F6C6C324BA48D6DC6D76A3E25FF57CD0135BC3F4B1026D98FBBAEDA974"
       }
     },
     {
@@ -26485,7 +26497,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "B59BD7975DAE5A08C9884307621C26CB156D9A32B827C1D9BF648F15F3DF341C"
+          "receipt_sha256": "B59BD7975DAE5A08C9884307621C26CB156D9A32B827C1D9BF648F15F3DF341C",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -26610,7 +26623,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "ECC5642E766B1155C9607590AF59C38B25EFD925A5A9ECF74516D225E23DD134"
+        "receipt_sha256": "D6FF912EBD2AB7933BE44B34CDF85AADFF5DEEF818F3A29965CF8608239B54DD"
       }
     },
     {
@@ -26659,7 +26672,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "2EB48CF201F26D385277ADE6F65BD65CFC91DEFC49E8CD60AF98E8525AF37E23"
+          "receipt_sha256": "2EB48CF201F26D385277ADE6F65BD65CFC91DEFC49E8CD60AF98E8525AF37E23",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -26784,7 +26798,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "D332419662BE29AB220B161E8EF1E23BFD2A8B506FC07254E404EA979B53635F"
+        "receipt_sha256": "D78C3929F09A4FDF3CE65958885E4CC4CAD03E3458BD70D12A1C44E23DB89069"
       }
     },
     {
@@ -26833,7 +26847,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "8E2E03695BDF5979986605C515E66E76F52BF40BA40B07F5D1A6CB3191E4211F"
+          "receipt_sha256": "8E2E03695BDF5979986605C515E66E76F52BF40BA40B07F5D1A6CB3191E4211F",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -26958,7 +26973,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "63370C707424794A10AC27619FA31B83DA0C0C1FCE2ECB86D64681C925C2250C"
+        "receipt_sha256": "E6C142593FDB4847BFB8F29160B4F3E3F4242FCF4F26B64F89A37F3F0653CDB5"
       }
     },
     {
@@ -27007,7 +27022,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "C8E551A9105EAF20903D451BF5A04928BEE23954CC100A327D3621B3907B2FC7"
+          "receipt_sha256": "C8E551A9105EAF20903D451BF5A04928BEE23954CC100A327D3621B3907B2FC7",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -27132,7 +27148,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "EFF4A73B653C738073483B05AA3A1232B2656C386312813321D8F4A01AEB67DB"
+        "receipt_sha256": "EB37227E00D48A940560D1B50AE2FBE0298F05E76AAC3091DD63F7FB9622B9CE"
       }
     },
     {
@@ -27181,7 +27197,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "387C852AA75BFDF67AA75A8903B23235549718C65134BB7E960BE1FFB2B3D963"
+          "receipt_sha256": "387C852AA75BFDF67AA75A8903B23235549718C65134BB7E960BE1FFB2B3D963",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -27306,7 +27323,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "78A5E327F892CF4AD58B4C4C2D5F860A8C2EB01476CA05EB8DA97F2A3B62D59C"
+        "receipt_sha256": "6BD3FC731C010DAEB2843F8D8CDA933000A1434E3E202D2D8365A003ABD85E25"
       }
     },
     {
@@ -27355,7 +27372,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "FAF056EAF847C9FBED3F70039393C7C0814F3CD47FE5E06B8AE6456CD994AEE6"
+          "receipt_sha256": "FAF056EAF847C9FBED3F70039393C7C0814F3CD47FE5E06B8AE6456CD994AEE6",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -27480,7 +27498,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "7552C27B4E5AE0363EA5DE95C3B420CE3D9C040B6EFFFECF1ACEF6D5B4591543"
+        "receipt_sha256": "F973C97C294650A963A2D7F3AAB3A751F0C3362297402C6F5A3A24F3BB3056EE"
       }
     },
     {
@@ -27529,7 +27547,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "AA238B33B5A813D2556401599739FB9B16265CCC9F049EAB3AB8CC585F5481EE"
+          "receipt_sha256": "AA238B33B5A813D2556401599739FB9B16265CCC9F049EAB3AB8CC585F5481EE",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -27654,7 +27673,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "3D00E6A478280EE14CA21099B1CE67733666823054DC80030ABCBDBE1166814E"
+        "receipt_sha256": "D015EB1CB57ECE595640323CC5D0C510B624AD3822B397599201384ED59D7520"
       }
     },
     {
@@ -27703,7 +27722,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "8AF172AE4E3F866D194F26F30ABC988C805FDEF7C84FFD1822E06140D5B40E85"
+          "receipt_sha256": "8AF172AE4E3F866D194F26F30ABC988C805FDEF7C84FFD1822E06140D5B40E85",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -27828,7 +27848,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "1BC91E7ECFCE257F9490B330BBDB831D8D3035F7C9BD0273BC7F0005687496A3"
+        "receipt_sha256": "3EA0E91856AC6DB24B7E7A9DEEFD70BD49A28765F4DA8305F24BD80621F41287"
       }
     },
     {
@@ -27877,7 +27897,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "2BB7E7591DFA35F22F878DA46F93F6AFAF178A850DB60728EADBE2BBA127DF4A"
+          "receipt_sha256": "2BB7E7591DFA35F22F878DA46F93F6AFAF178A850DB60728EADBE2BBA127DF4A",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -28002,7 +28023,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "B35E1B5B555E5AC79E1E32CE46D274A37DE2477273B82CA3BB3501A0648C00C0"
+        "receipt_sha256": "0E0BB391C4344F6843A5D8BF69E233FA8FB422C713DA066B75E62858AF6B6469"
       }
     },
     {
@@ -28051,7 +28072,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "7373615AB1CDE3BE94C2FC2EAD210532B659D3B2C9EA9AEDA1B5523B8818C03B"
+          "receipt_sha256": "7373615AB1CDE3BE94C2FC2EAD210532B659D3B2C9EA9AEDA1B5523B8818C03B",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -28176,7 +28198,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "45DAFEA8839C2BC5B902A2C070692B57C4E0F5E9B0FB0FBC501DDE49A1E90AAE"
+        "receipt_sha256": "CED0793109A1BC0AAA35186F54B4EA2D4465497A6EDBA6C9017A3F725EB428F6"
       }
     },
     {
@@ -28225,7 +28247,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "3BE9A0246BDD98231414ADF6D53EBEBA557212DDE197761B147B0B1EA2C09CBC"
+          "receipt_sha256": "3BE9A0246BDD98231414ADF6D53EBEBA557212DDE197761B147B0B1EA2C09CBC",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -28350,7 +28373,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "CDE1B2DA145B554F0346F0DB704410C60145FEBA49EB1B3827CC21DE84F26BEB"
+        "receipt_sha256": "B72AC17364D5E3B159703C7E8A530207BCEA0E728CA17F85AA743E441BC665E1"
       }
     },
     {
@@ -28399,7 +28422,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "019536A9B99E4CBA3A911B80CBAA015B48D9771F38FA00E97C626BE0E269A7AF"
+          "receipt_sha256": "019536A9B99E4CBA3A911B80CBAA015B48D9771F38FA00E97C626BE0E269A7AF",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -28524,7 +28548,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "193940887BBF33C36729E6F9125BC8860E433284D0747934E29B6081CD596AD9"
+        "receipt_sha256": "E1B1286CDEE797A41720C83A7FA3B42C5B028024449B74C99C1F2DAF61B9EA33"
       }
     },
     {
@@ -28573,7 +28597,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "8F057FE6F9DA7D0D88874A41F02B04BF396415398CAD5179B1306F1336A45D4E"
+          "receipt_sha256": "8F057FE6F9DA7D0D88874A41F02B04BF396415398CAD5179B1306F1336A45D4E",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -28698,7 +28723,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "59D779CC573848181309ADBDFD576CC2D34A3C571066BFF899FECBC05105D1B3"
+        "receipt_sha256": "C0ECC6D1B59A44F4F077CCDC5EE4C6F78580A6A535E30B5BDE13372B80185D8E"
       }
     },
     {
@@ -28747,7 +28772,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "55C663751B75A8CE34F36980B92195D63363E2570B96B8CAAF2819098DA2462D"
+          "receipt_sha256": "55C663751B75A8CE34F36980B92195D63363E2570B96B8CAAF2819098DA2462D",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -28872,7 +28898,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "EDD753DF030B3701D7CB035C05D5D3D833C786558A5546C7FA64AD3DCFF31195"
+        "receipt_sha256": "2D3E3523B5F7E5388D44FF747EA8681011A4DEDB770ABC561212353DB3160729"
       }
     },
     {
@@ -28921,7 +28947,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "9DBE2DDE751B6B62C3F32ABACD92B8D0E6E5FE48FC9F8F3374BD229A7EFD80D5"
+          "receipt_sha256": "9DBE2DDE751B6B62C3F32ABACD92B8D0E6E5FE48FC9F8F3374BD229A7EFD80D5",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -29046,7 +29073,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "E1D2B4693006B1F5F2C93A33BA0AAB14CD478748BA4BE63B04D9412F9A7CBC58"
+        "receipt_sha256": "063941B72D1468495D5F2B4CBD0DB00C58B6176DFF59A2D7983D4CAA3AB257B1"
       }
     },
     {
@@ -29095,7 +29122,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "8D81587246756624F019692A8C4C93D8F372171FB5EBB84B8FE979E68D0942FD"
+          "receipt_sha256": "8D81587246756624F019692A8C4C93D8F372171FB5EBB84B8FE979E68D0942FD",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -29220,7 +29248,7 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "21E996E5ECED7199780C41027F5B8C00AD86B26B42B28F49D93D0E33BA33A4FF"
+        "receipt_sha256": "B13FB7FF371D18A4DBF7BF512A14093562E441249D7B5374CCE6248399BE8491"
       }
     },
     {
@@ -29269,7 +29297,8 @@
           "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
           "shell_used": false,
           "workspace_install_used": false,
-          "receipt_sha256": "7FA8D2CC42D980F1564791C080801AC53F7C6E8D4B4E222F89E8DEE935AD0749"
+          "receipt_sha256": "7FA8D2CC42D980F1564791C080801AC53F7C6E8D4B4E222F89E8DEE935AD0749",
+          "complexity_scaled_timeout_seconds": 30
         },
         "graph_analysis": {
           "status": "PASS",
@@ -29394,9 +29423,9 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "7D27DD5807C851E14086B5527A0C72D081215831CCDC5B4609FA889EF5AC3004"
+        "receipt_sha256": "80A10372D682A65C99B6F094B6365296C7BF93A9B93015C6F7BD0A42C1A05F2A"
       }
     }
   ],
-  "receipt_sha256": "B271A12D919B54007CE378BBF759ACC08041E14D8C12FA92C706E5B24C689C23"
+  "receipt_sha256": "898B83D3451E40658CB34156908F737EEA39ED66874ADD656E95FA5D1B7BB815"
 }

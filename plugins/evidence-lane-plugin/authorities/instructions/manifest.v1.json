@@ -61,8 +61,8 @@
     },
     {
       "path": "authorities/instructions/tools.json",
-      "bytes": 12491,
-      "sha256": "AE9EF7DA40724EE64C6B7EFDB55EC91A7F2214B174E58B3D41EE630CBE863AB9"
+      "bytes": 12538,
+      "sha256": "0CEDC9F491C5BC722FB1B90FE3E3F6F2F2213BCB56B24EFFB66C5E3C46DFCC40"
     },
     {
       "path": "authorities/instructions/tools.schema.json",
@@ -126,7 +126,8 @@
       "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
       "shell_used": false,
       "workspace_install_used": false,
-      "receipt_sha256": "F51F0E0E3741E7A3516195E4B6D312958341C202C0D97D628A4934FFF40A2FB0"
+      "receipt_sha256": "F51F0E0E3741E7A3516195E4B6D312958341C202C0D97D628A4934FFF40A2FB0",
+      "complexity_scaled_timeout_seconds": 30
     },
     "graph_analysis": {
       "status": "PASS",
@@ -166,8 +167,8 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "89825B389DAA80972CAEE99241D07ED73D29231C23BD70F8F47BB233B0307B61"
+    "receipt_sha256": "9E5851F59D967D0CDF5F9460C4D665B47504E4EC49E98EA9EA3379E89364F9F8"
   },
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "F2870DE5E8DFAC3044E7F9194B5431F3FC43BFEB54CE8757CAC7AFB68E6C1D5E"
+  "receipt_sha256": "2EF87F7C97059C812B838C5EAE67BCC10B4D1120EC1AEC0EAB1E9DC15CEAA1ED"
 }

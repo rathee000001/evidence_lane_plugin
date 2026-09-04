@@ -216,7 +216,7 @@
   "topology_generator": {
     "schema": "evidence-lane.lane-topology-generator.v5",
     "module": "lane_engine.py",
-    "module_sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+    "module_sha256": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65",
     "schema_topology_module_sha256": "F1A09DC05100982CCB50C9E9259918B97DFC150EAA2D801EDA36E218ACE727BD",
     "topology_reconciliation_module_sha256": "2154B784B5C02E04EED92D95FCA935D4F0ECE6BCA16B7B91EE058EE493C4AFA1",
     "lane_id": "images_ocr",
@@ -269,7 +269,7 @@
       "profile": "SQLITE_SCHEMA_RELATION_SAMPLE"
     },
     "code_logical_topology": null,
-    "sha256": "EE11EFF5E6E8BA8DDDE04ADCB2C5EAD91EDAEDE842379E6FB6194023E6442EA5"
+    "sha256": "E8CB79C3AFAFC2A2353F3D9C0A0475B45F888E435EEF2DEEA57364125AF0579A"
   },
   "artifact_contract": {
     "four_file_schema": "evidence-lane.lane-four-file-contract.v1",
@@ -277,12 +277,12 @@
     "module_sha256": "5FFC789BF918B726536B3E073360F610E35C8A21E38BF2EFF4BF8F55583B7ACB"
   },
   "parser_implementation": {
-    "lane_engine_sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+    "lane_engine_sha256": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65",
     "ai_toolchain_sha256": "AB48E32E727716CE3AD319C1DE4BABA8DFDFB709DEAF50A605A649E03A78065D",
     "code_toolchain_sha256": "B8B896A668AD57268BD7F53EF4D6829C22DC006926EB4C50188553954A056D5D",
     "runtime_toolchain_sha256": "17A967D65F46A423932DE06510B7BD19280427C3FDAD5F0B8B0A92444369EE6E",
-    "native_toolchain_sha256": "36BF974C5C759B64515E4624FC0DB982F36ED8334081DBA52F1D683A130A3470",
-    "graph_pipeline_sha256": "F1C1AD56D52DD339DA0B9E196898C1420E2EBF539B547CC86FB4B4ADBCC49014",
+    "native_toolchain_sha256": "63D3FC36B0FE1CB27B135B19CCD36BEFCC4F7774DF59EBBDEACB174314736121",
+    "graph_pipeline_sha256": "BB76A790578B062B7E2DC89BDAA0D30A598F26015C3B94CC126AEFB3E476A582",
     "tabular_toolchain_sha256": "79674643BBE0CC5CBC099A380F358FBAB6A2E587A6036E37BE3C0C700536CC63",
     "sqlite_execution_sha256": "86AAB88E767837E6C328C636C949BE8097A5D7AB427A91777E9C47D3045CC245",
     "code_ingest_sha256": "A9B4981A20140D89E79137C01C34ABF28F8218E949F521BC8EA744C44CDB786C",
@@ -1970,7 +1970,7 @@
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "40ED0A41913F06E5458742C1A8E1D9616BF3789E979AAEF49E11FC476B70BA6D"
+        "runtime_evidence_sha256": "94E353382DA679A22967A23828023C2A53D9F16A6813798A44BAD6F4BE4E5785"
       },
       {
         "tool": "LangGraph_Mermaid_engine",
@@ -2499,10 +2499,10 @@
       "path": "toolchains/unified-tool-workflow-pairing.v1.json",
       "sha256": "EA429DFA223AC93BC1018BCA55AB15955F1A1736BB6A9AE3CC5551814CA80388"
     },
-    "receipt_sha256": "4D364205F92A04AE424D3710A7AAEB4C137ACD0A73B69C16CED356DE89FD2FA1",
+    "receipt_sha256": "550FF07E42078ADF3037BA029DA787BE6AF08A0AE247305B04FAB19E6159A48D",
     "runtime_inventory_schema": "evidence-lane.runtime-toolchain-prewarm.v1",
     "runtime_inventory_status": "PASS",
-    "runtime_inventory_receipt_sha256": "FEEFDC7EF8573537EB219602CCFA062D489BA986621187C158C6C3DE5DAAE21E",
+    "runtime_inventory_receipt_sha256": "5BC571019005B110754738531AAA78AE8CA3ABB039922790D8A4AD040048944C",
     "lane_resolution_sha256": "B619A11B4B16C1DAFCD99620B45990A1432A144F1863540F99A27BA6F096C823",
     "runtime_availability_measured": true,
     "installed_presence_is_execution_proof": false
@@ -2570,7 +2570,7 @@
     "runtime_availability_affects_tool_identity": false,
     "hardware_telemetry_affects_tool_identity": false
   },
-  "sha256": "D8C665A33F1E2EA4EE991CF4D2C6D12FB1C834866248CD00882BC0BB7DE6C6AB",
+  "sha256": "1718E7EB944B60CF1B237922F84B0D67E895AD9C95DEC292A120B43B82D7DF79",
   "runtime_toolchain_resolution": {
     "schema": "evidence-lane.ai-toolchain-lane-resolution.v1",
     "status": "PASS",
@@ -2715,7 +2715,7 @@
   ],
   "canonical_shared_modules": {
     "src/evidence_lane_plugin/lanes.py": "B63A8708B7C27EEF09C7680AB97CA3410554F4AFACF819D39E0BE1E824193376",
-    "src/evidence_lane_plugin/lane_engine.py": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+    "src/evidence_lane_plugin/lane_engine.py": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65",
     "src/evidence_lane_plugin/lane_reader.py": "EA46B419880515E04101EBDD6C1D7497F95EA78AD5E9DB6B02AD531CB9F57456",
     "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
     "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
@@ -2757,7 +2757,8 @@
       "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
       "shell_used": false,
       "workspace_install_used": false,
-      "receipt_sha256": "BB0A8595ADE0BA2B32044B6833A9753128405195D1F3BFFD779250809377AAE9"
+      "receipt_sha256": "BB0A8595ADE0BA2B32044B6833A9753128405195D1F3BFFD779250809377AAE9",
+      "complexity_scaled_timeout_seconds": 30
     },
     "graph_analysis": {
       "status": "PASS",
@@ -2882,7 +2883,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "94719158B354790247C815DC2EE549D67601A30120109AADF75FC41BEC6CD524"
+    "receipt_sha256": "E17AD19F03FF4FDB7370E69D556CA253BCFC2D3E45EE35E5109DBD7D32F8A43E"
   },
   "sqlite_execution_receipt": {
     "schema_name": "evidence-lane.sqlite-execution.v1",
@@ -2891,7 +2892,7 @@
     "engine_version": "3.53.4.0",
     "sqlite_version": "3.53.4",
     "database_path": "F:\\test codex\\plugins\\evidence-lane-plugin\\authorities\\project_sectors\\images_ocr\\images_ocr_sector_v001.sqlite",
-    "database_sha256": "7759BF1799E7920EB7A13C7A43359BD9A4BCFD8CC7D2281320A6634E6D59E387",
+    "database_sha256": "2913854CE9CDEB174D1CFAA94AECACD3EAF43130D0A3DD40CC5694F3D83E4B68",
     "integrity_check": "ok",
     "journal_mode": "delete",
     "page_count": 129,
@@ -2903,7 +2904,7 @@
     "sqlite_backup_available": true,
     "sqlite_fts5_available": true,
     "durable_authority": true,
-    "receipt_sha256": "26BB7F5A5B5DD4ED6310470854019A8DADEF7034F639BE14134FA8B64C0BE7E3"
+    "receipt_sha256": "F563020323EBD441A48BF3007364F96A1FC25817A79DA267E19550EB5A896B44"
   },
   "tool_execution_evidence": {
     "schema": "evidence-lane.lane-tool-execution-evidence.v1",
@@ -3458,7 +3459,7 @@
         "network_call_performed": false,
         "credential_value_read": false,
         "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "40ED0A41913F06E5458742C1A8E1D9616BF3789E979AAEF49E11FC476B70BA6D"
+        "runtime_evidence_sha256": "94E353382DA679A22967A23828023C2A53D9F16A6813798A44BAD6F4BE4E5785"
       },
       {
         "tool": "LangGraph_Mermaid_engine",
@@ -3796,7 +3797,7 @@
     "presence_or_eligibility_is_execution_proof": false,
     "multiple_compatible_tools_may_form_one_pipeline": true,
     "recorded_at": "1970-01-01T00:00:00Z",
-    "receipt_sha256": "CEF52B8CF86E6879CE33085BFBD44599BB998BDA8416C37E78A00EC0807A4EBE"
+    "receipt_sha256": "E207D78633625FF0968A6944B6CF49AC984BA52790A19DE510DB04405C96E3B0"
   },
   "empty_table_classification": {
     "schema": "evidence-lane.empty-table-classification.v1",
@@ -3936,7 +3937,7 @@
   "artifact_authority": {
     "schema": "evidence-lane.tools-artifact-authority.v1",
     "lane_id": "images_ocr",
-    "tool_identity_sha256": "D8C665A33F1E2EA4EE991CF4D2C6D12FB1C834866248CD00882BC0BB7DE6C6AB",
+    "tool_identity_sha256": "1718E7EB944B60CF1B237922F84B0D67E895AD9C95DEC292A120B43B82D7DF79",
     "ordered_members": [
       "images_ocr_sector_v001.sqlite",
       "images_ocr.mmd",
@@ -3947,7 +3948,7 @@
         "path": "images_ocr_sector_v001.sqlite",
         "role": "sqlite_authority",
         "bytes": 528384,
-        "sha256": "7759BF1799E7920EB7A13C7A43359BD9A4BCFD8CC7D2281320A6634E6D59E387"
+        "sha256": "2913854CE9CDEB174D1CFAA94AECACD3EAF43130D0A3DD40CC5694F3D83E4B68"
       },
       {
         "path": "images_ocr.mmd",
@@ -3962,7 +3963,7 @@
         "sha256": "DFC952446F601B9219773F4964BEBD72DEB49BE7A28A6343A56F837734742618"
       }
     ],
-    "authority_sha256": "4BD275AA539FB1D0FCF7C752D06157D45ED4F8A64F1176DFB79992766A0E4783"
+    "authority_sha256": "AA509D1C973046F64CB3D65A6DD73CCF61E35F1B938896BB009A2A3C43E9A6B0"
   },
-  "receipt_sha256": "825C469F80407CFB0905A347D431DBF4A2C8D14450E2D092CEF101FEF5D80551"
+  "receipt_sha256": "786783DC9F2F73CDA484509487DB6AE6823656EACCF389CF9EB01D76117F0443"
 }

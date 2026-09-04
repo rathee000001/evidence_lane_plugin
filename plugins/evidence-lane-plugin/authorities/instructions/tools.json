@@ -283,7 +283,8 @@
       "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
       "shell_used": false,
       "workspace_install_used": false,
-      "receipt_sha256": "F51F0E0E3741E7A3516195E4B6D312958341C202C0D97D628A4934FFF40A2FB0"
+      "receipt_sha256": "F51F0E0E3741E7A3516195E4B6D312958341C202C0D97D628A4934FFF40A2FB0",
+      "complexity_scaled_timeout_seconds": 30
     },
     "graph_analysis": {
       "status": "PASS",
@@ -323,7 +324,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "89825B389DAA80972CAEE99241D07ED73D29231C23BD70F8F47BB233B0307B61"
+    "receipt_sha256": "9E5851F59D967D0CDF5F9460C4D665B47504E4EC49E98EA9EA3379E89364F9F8"
   },
   "dedicated_workflow": {
     "json": "authorities/instructions/workflow.v1.json",
@@ -333,5 +334,5 @@
     "mmd_sha256": "0C4CB802BA979C80EF5879B2EA8E57087753DB70B832BD855781DBDF5F4F2CFF",
     "dot_sha256": "3A489B38EE048A3F7709A372C6D5E37FA134021DC18D530431F7373CF86A3F95"
   },
-  "receipt_sha256": "4C97B61735B772579257A66B729DB6133164E3E8280D58F2A620A61D04898B3F"
+  "receipt_sha256": "74DA901FD3FBEBA811FD3CEF505A18FEB890A41B63E41B769A97282FB6A99985"
 }

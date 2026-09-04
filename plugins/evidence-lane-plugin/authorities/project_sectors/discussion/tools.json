@@ -173,7 +173,7 @@
   "topology_generator": {
     "schema": "evidence-lane.lane-topology-generator.v5",
     "module": "lane_engine.py",
-    "module_sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+    "module_sha256": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65",
     "schema_topology_module_sha256": "F1A09DC05100982CCB50C9E9259918B97DFC150EAA2D801EDA36E218ACE727BD",
     "topology_reconciliation_module_sha256": "2154B784B5C02E04EED92D95FCA935D4F0ECE6BCA16B7B91EE058EE493C4AFA1",
     "lane_id": "discussion",
@@ -228,7 +228,7 @@
       "profile": "SQLITE_SCHEMA_RELATION_SAMPLE"
     },
     "code_logical_topology": null,
-    "sha256": "8243369099253230E9A1A9EF8932EDC9AA98CA50DFE9AFF3B4895AB1973743DE"
+    "sha256": "C9DA9A54E8CEACEE9D352CCEB596B860D38CD80F24CDB0CCD64BEF4983D06E08"
   },
   "artifact_contract": {
     "four_file_schema": "evidence-lane.lane-four-file-contract.v1",
@@ -236,12 +236,12 @@
     "module_sha256": "5FFC789BF918B726536B3E073360F610E35C8A21E38BF2EFF4BF8F55583B7ACB"
   },
   "parser_implementation": {
-    "lane_engine_sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+    "lane_engine_sha256": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65",
     "ai_toolchain_sha256": "AB48E32E727716CE3AD319C1DE4BABA8DFDFB709DEAF50A605A649E03A78065D",
     "code_toolchain_sha256": "B8B896A668AD57268BD7F53EF4D6829C22DC006926EB4C50188553954A056D5D",
     "runtime_toolchain_sha256": "17A967D65F46A423932DE06510B7BD19280427C3FDAD5F0B8B0A92444369EE6E",
-    "native_toolchain_sha256": "36BF974C5C759B64515E4624FC0DB982F36ED8334081DBA52F1D683A130A3470",
-    "graph_pipeline_sha256": "F1C1AD56D52DD339DA0B9E196898C1420E2EBF539B547CC86FB4B4ADBCC49014",
+    "native_toolchain_sha256": "63D3FC36B0FE1CB27B135B19CCD36BEFCC4F7774DF59EBBDEACB174314736121",
+    "graph_pipeline_sha256": "BB76A790578B062B7E2DC89BDAA0D30A598F26015C3B94CC126AEFB3E476A582",
     "tabular_toolchain_sha256": "79674643BBE0CC5CBC099A380F358FBAB6A2E587A6036E37BE3C0C700536CC63",
     "sqlite_execution_sha256": "86AAB88E767837E6C328C636C949BE8097A5D7AB427A91777E9C47D3045CC245",
     "code_ingest_sha256": "A9B4981A20140D89E79137C01C34ABF28F8218E949F521BC8EA744C44CDB786C",
@@ -1851,7 +1851,7 @@
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "40ED0A41913F06E5458742C1A8E1D9616BF3789E979AAEF49E11FC476B70BA6D"
+        "runtime_evidence_sha256": "94E353382DA679A22967A23828023C2A53D9F16A6813798A44BAD6F4BE4E5785"
       },
       {
         "tool": "LangGraph_Mermaid_engine",
@@ -2296,10 +2296,10 @@
       "path": "toolchains/unified-tool-workflow-pairing.v1.json",
       "sha256": "EA429DFA223AC93BC1018BCA55AB15955F1A1736BB6A9AE3CC5551814CA80388"
     },
-    "receipt_sha256": "084709F60442544227F8A5C25E9E958C26BCDBCF8809006470EC1131AF15F50F",
+    "receipt_sha256": "2BEE5EB6FA0680709FF5A62497AAEDF3091803E49F6BE6ACDA19E192BC8B4AEA",
     "runtime_inventory_schema": "evidence-lane.runtime-toolchain-prewarm.v1",
     "runtime_inventory_status": "PASS",
-    "runtime_inventory_receipt_sha256": "FEEFDC7EF8573537EB219602CCFA062D489BA986621187C158C6C3DE5DAAE21E",
+    "runtime_inventory_receipt_sha256": "5BC571019005B110754738531AAA78AE8CA3ABB039922790D8A4AD040048944C",
     "lane_resolution_sha256": "622D311EB8E134A367AAEB7622C73B89CC4BD97CECBACE25018493339EA0E8FF",
     "runtime_availability_measured": true,
     "installed_presence_is_execution_proof": false
@@ -2361,7 +2361,7 @@
     "runtime_availability_affects_tool_identity": false,
     "hardware_telemetry_affects_tool_identity": false
   },
-  "sha256": "0D24A616A5BE4A975D33DA7A76A60AFF1632D0384B1E0DA298BDBB0BE98E2FB5",
+  "sha256": "1EB42DA4502CEAFA4EA2A6A2825ADE081197DDB2995FAE4436D28D0BE8D9C43C",
   "runtime_toolchain_resolution": {
     "schema": "evidence-lane.ai-toolchain-lane-resolution.v1",
     "status": "PASS",
@@ -2480,7 +2480,7 @@
   ],
   "canonical_shared_modules": {
     "src/evidence_lane_plugin/lanes.py": "B63A8708B7C27EEF09C7680AB97CA3410554F4AFACF819D39E0BE1E824193376",
-    "src/evidence_lane_plugin/lane_engine.py": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+    "src/evidence_lane_plugin/lane_engine.py": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65",
     "src/evidence_lane_plugin/lane_reader.py": "EA46B419880515E04101EBDD6C1D7497F95EA78AD5E9DB6B02AD531CB9F57456",
     "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
     "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
@@ -2522,7 +2522,8 @@
       "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
       "shell_used": false,
       "workspace_install_used": false,
-      "receipt_sha256": "DB0DC302127C7B570CACDD0F6031BFD6E07291C09C24358EF1DC757AD505D47F"
+      "receipt_sha256": "DB0DC302127C7B570CACDD0F6031BFD6E07291C09C24358EF1DC757AD505D47F",
+      "complexity_scaled_timeout_seconds": 30
     },
     "graph_analysis": {
       "status": "PASS",
@@ -2647,7 +2648,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "FF6406CC0FE76C6EE6BC3F9E7DB04D2C62FAC64C2E3565363FA6703D5CE67D50"
+    "receipt_sha256": "39E7BFFC5A21D5595C788BDC60773C1E4FB4CC426BBF93D4F9AAD56A7414801D"
   },
   "sqlite_execution_receipt": {
     "schema_name": "evidence-lane.sqlite-execution.v1",
@@ -2656,7 +2657,7 @@
     "engine_version": "3.53.4.0",
     "sqlite_version": "3.53.4",
     "database_path": "F:\\test codex\\plugins\\evidence-lane-plugin\\authorities\\project_sectors\\discussion\\discussion_sector_v001.sqlite",
-    "database_sha256": "AB9F1918FE76F4543020CD70137BBEF7304E50DEFB82198C6A1DB25A79BA4AA9",
+    "database_sha256": "37CECB85BA4A9A4155922788A52D55F4100BB5428B60D02919B9B019B9962E7D",
     "integrity_check": "ok",
     "journal_mode": "delete",
     "page_count": 116,
@@ -2668,7 +2669,7 @@
     "sqlite_backup_available": true,
     "sqlite_fts5_available": true,
     "durable_authority": true,
-    "receipt_sha256": "2A30F4CC58D2434C8ED98617F227E5D11F0967F9F2E7513FF1AB54FAA046DF69"
+    "receipt_sha256": "95C69869AA321590CEF7F2218B5A39BBC0F2774919D9320063C2B7A387CB4239"
   },
   "tool_execution_evidence": {
     "schema": "evidence-lane.lane-tool-execution-evidence.v1",
@@ -3151,7 +3152,7 @@
         "network_call_performed": false,
         "credential_value_read": false,
         "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "40ED0A41913F06E5458742C1A8E1D9616BF3789E979AAEF49E11FC476B70BA6D"
+        "runtime_evidence_sha256": "94E353382DA679A22967A23828023C2A53D9F16A6813798A44BAD6F4BE4E5785"
       },
       {
         "tool": "LangGraph_Mermaid_engine",
@@ -3445,7 +3446,7 @@
     "presence_or_eligibility_is_execution_proof": false,
     "multiple_compatible_tools_may_form_one_pipeline": true,
     "recorded_at": "1970-01-01T00:00:00Z",
-    "receipt_sha256": "91E6E15652914546AB35EFE30F893503652F61F51E7EB82B17431D40A53B8945"
+    "receipt_sha256": "4C1376A49369AE13DD23AF7E3C14F39F69FE5891284B1037C61E9C36C4931991"
   },
   "empty_table_classification": {
     "schema": "evidence-lane.empty-table-classification.v1",
@@ -3597,7 +3598,7 @@
   "artifact_authority": {
     "schema": "evidence-lane.tools-artifact-authority.v1",
     "lane_id": "discussion",
-    "tool_identity_sha256": "0D24A616A5BE4A975D33DA7A76A60AFF1632D0384B1E0DA298BDBB0BE98E2FB5",
+    "tool_identity_sha256": "1EB42DA4502CEAFA4EA2A6A2825ADE081197DDB2995FAE4436D28D0BE8D9C43C",
     "ordered_members": [
       "discussion_sector_v001.sqlite",
       "discussion.mmd",
@@ -3608,7 +3609,7 @@
         "path": "discussion_sector_v001.sqlite",
         "role": "sqlite_authority",
         "bytes": 475136,
-        "sha256": "AB9F1918FE76F4543020CD70137BBEF7304E50DEFB82198C6A1DB25A79BA4AA9"
+        "sha256": "37CECB85BA4A9A4155922788A52D55F4100BB5428B60D02919B9B019B9962E7D"
       },
       {
         "path": "discussion.mmd",
@@ -3623,7 +3624,7 @@
         "sha256": "5E1B02EA2406AB5EAFB8274C54369D0992FA0EB2DBE4D5C4338A7606F86FA64D"
       }
     ],
-    "authority_sha256": "71A8A202D1CF67AB44BC36FF745590E928F1CD8FB4A1DF8F72AAE9BBF9C9B81E"
+    "authority_sha256": "F48AA0CA82CF6F48AAB9F437173383827C8362DC6C417AE0C99C67F554B21E89"
   },
-  "receipt_sha256": "4F2B078A357A888C09A93446474C4C6A45DC2A0BD52BF371D742215FDCF72F91"
+  "receipt_sha256": "479F112FECA4D35BBCAB90CB109AB473782E532D9ED9D0E0D2AC4520787BAE22"
 }

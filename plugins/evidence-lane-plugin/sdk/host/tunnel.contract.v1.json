@@ -4,10 +4,10 @@
   "contract": "tunnel",
   "law": "HIDDEN_PREWARMED_PROJECT_ID_ROUTED_TUNNEL",
   "owner": "tunnel/tunnel-manifest.v1.json",
-  "owner_sha256": "D6BD6F1E1163969EBB63A75E519067F4BD802290E7A78591880190FBFDD64257",
+  "owner_sha256": "545A09891F2353B341941A3EA6B35FA6753FE73338CA181DB28AFE1BE0736B5A",
   "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
   "project_root_hardcoded": false,
   "workspace_hardcoded": false,
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "5FC72E3CACFD3F0B407A8D357C9DA579838F12EC966380EA1F104D940FFF7160"
+  "receipt_sha256": "FFFB44529CCE3F99A65C533863D45934D4CDB5A8392AEC4B88AE5037850417FC"
 }

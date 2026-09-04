@@ -24,8 +24,8 @@
     },
     {
       "path": "authorities/project_sectors/plan/lane-contract.v1.json",
-      "bytes": 61869,
-      "sha256": "8805798157F3551D2D0CF94B1F05EF200E809F2C6A7903443C2D535BFDCDC2F2"
+      "bytes": 61179,
+      "sha256": "0ABCC25043E086B7C1E2C7BDF94F21E283A59345087ADC805599E0FC66C81976"
     },
     {
       "path": "authorities/project_sectors/plan/lane-pointer.schema.json",
@@ -44,18 +44,18 @@
     },
     {
       "path": "authorities/project_sectors/plan/plan.dot",
-      "bytes": 20110,
-      "sha256": "B11BE9D38D8C1052A8ABE8F2A7FF761181D6194087E90D7E7C866E059FED351C"
+      "bytes": 19948,
+      "sha256": "48CA6F07504A3DBE4996671F2B30E6374553DE44AA51E6C8C9605D7C1BAB866D"
     },
     {
       "path": "authorities/project_sectors/plan/plan.mmd",
-      "bytes": 15970,
-      "sha256": "7E4F2A13AE753ADB1E0B456B6E75B547FAF8C60918A717DE594FA8DFADCDC757"
+      "bytes": 15888,
+      "sha256": "573229B55881E562391F8702510D046A5886FADFC6B75D1A60C486F63BB1AC2E"
     },
     {
       "path": "authorities/project_sectors/plan/plan_sector_v001.sqlite",
       "bytes": 483328,
-      "sha256": "7C7CEC9D4CBFE09845B70DF1627736741B3552F35719B53AA56E349B64C52B97"
+      "sha256": "77FAAA76F94DDA11D2F39BE9F0ABA989D2D1DD27C33930A005AF634D3E1AEFA6"
     },
     {
       "path": "authorities/project_sectors/plan/reader-contract.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/plan/tools.json",
-      "bytes": 166169,
-      "sha256": "3B145E6F15724D751077E7E9FE4FF8E8194A340A6333576537B73F4FFCD5FB36"
+      "bytes": 165479,
+      "sha256": "D0D9CE64A771E202B1E8D975CCFB05D3AF7FD56367402B0F351EF77AAC33DE3C"
     },
     {
       "path": "authorities/project_sectors/plan/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "356C7991A00A282AAD04AFCEC04CD19B2171CC16CA183A25047DBA24613CA373"
+  "receipt_sha256": "16F2F82252B03CBBC4258A82F9B01273229E1251B74F882E4E55428097396449"
 }

@@ -24,8 +24,8 @@
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/lane-contract.v1.json",
-      "bytes": 61911,
-      "sha256": "98C07D69104DBBDF3C3C4A8360BAA2D8FE1F277959AF17F87B2B2A0F94808BE2"
+      "bytes": 61117,
+      "sha256": "295036CF1A159A18776199F073A02E33AC933236C542D9E897D04EE825EC61CC"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/lane-pointer.schema.json",
@@ -44,18 +44,18 @@
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/pdf_ocr.dot",
-      "bytes": 20143,
-      "sha256": "9C963DFF055E7DECDD4256C8954F6E462C06E4A8AC143D36D408A8A7F8B3C3EE"
+      "bytes": 19981,
+      "sha256": "DA64F41ED37FE53933A4C3E5723AF9D34EBD12BC87DDC014F00E5F2BE967D5AE"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/pdf_ocr.mmd",
-      "bytes": 16000,
-      "sha256": "43A767FC461B59AF1DD7216037B4B1CBEF695660924FFD8A22263BA92FD9E1E8"
+      "bytes": 15918,
+      "sha256": "9DCDE9A8AFA2532A08ED018DFB76F9E9FD16DD491001004505EDF894820834C3"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
       "bytes": 552960,
-      "sha256": "1DAF1C4C00EB3F94C5201B19958869BE6DFDEAF3101B62FAEC2A24EA7D3AF186"
+      "sha256": "8E3BCB218BE7B9E6FDCC64D284A4E635883562BC610F43781D19BC0E02A375AE"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/reader-contract.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/tools.json",
-      "bytes": 181997,
-      "sha256": "9D0BCB6683BEC806EEF418AD987089699CFC905C191A626335FF81646F3329C8"
+      "bytes": 181203,
+      "sha256": "909B37A250196E760DBAF5F2B310B1D388EABACBE4CDF9838C441760B3AC79B1"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "CC7C360CFB84C7B52403691A465CB8C8722DAAA36C6555B4053652CF5A986D66"
+  "receipt_sha256": "1AEC7B9BB732199B3E098AD2809FB1708A29FA0B18149697B339F7B7054AA98B"
 }

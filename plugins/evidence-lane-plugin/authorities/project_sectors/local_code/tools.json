@@ -210,7 +210,7 @@
   "topology_generator": {
     "schema": "evidence-lane.lane-topology-generator.v5",
     "module": "lane_engine.py",
-    "module_sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+    "module_sha256": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65",
     "schema_topology_module_sha256": "F1A09DC05100982CCB50C9E9259918B97DFC150EAA2D801EDA36E218ACE727BD",
     "topology_reconciliation_module_sha256": "2154B784B5C02E04EED92D95FCA935D4F0ECE6BCA16B7B91EE058EE493C4AFA1",
     "lane_id": "local_code",
@@ -308,7 +308,7 @@
         "structured_fact"
       ]
     ],
-    "sha256": "EAA23F239B778C445266CFF70CE3ECB7FB5CC76789DCDF5D190DCFB5DDE92F47"
+    "sha256": "7F2CECA35C551005980A28D3D1D5D0A00B72CE6BCA4FF011E5C7A7D5E393E357"
   },
   "artifact_contract": {
     "four_file_schema": "evidence-lane.lane-four-file-contract.v1",
@@ -316,12 +316,12 @@
     "module_sha256": "5FFC789BF918B726536B3E073360F610E35C8A21E38BF2EFF4BF8F55583B7ACB"
   },
   "parser_implementation": {
-    "lane_engine_sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+    "lane_engine_sha256": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65",
     "ai_toolchain_sha256": "AB48E32E727716CE3AD319C1DE4BABA8DFDFB709DEAF50A605A649E03A78065D",
     "code_toolchain_sha256": "B8B896A668AD57268BD7F53EF4D6829C22DC006926EB4C50188553954A056D5D",
     "runtime_toolchain_sha256": "17A967D65F46A423932DE06510B7BD19280427C3FDAD5F0B8B0A92444369EE6E",
-    "native_toolchain_sha256": "36BF974C5C759B64515E4624FC0DB982F36ED8334081DBA52F1D683A130A3470",
-    "graph_pipeline_sha256": "F1C1AD56D52DD339DA0B9E196898C1420E2EBF539B547CC86FB4B4ADBCC49014",
+    "native_toolchain_sha256": "63D3FC36B0FE1CB27B135B19CCD36BEFCC4F7774DF59EBBDEACB174314736121",
+    "graph_pipeline_sha256": "BB76A790578B062B7E2DC89BDAA0D30A598F26015C3B94CC126AEFB3E476A582",
     "tabular_toolchain_sha256": "79674643BBE0CC5CBC099A380F358FBAB6A2E587A6036E37BE3C0C700536CC63",
     "sqlite_execution_sha256": "86AAB88E767837E6C328C636C949BE8097A5D7AB427A91777E9C47D3045CC245",
     "code_ingest_sha256": "A9B4981A20140D89E79137C01C34ABF28F8218E949F521BC8EA744C44CDB786C",
@@ -1302,7 +1302,7 @@
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "40ED0A41913F06E5458742C1A8E1D9616BF3789E979AAEF49E11FC476B70BA6D"
+        "runtime_evidence_sha256": "94E353382DA679A22967A23828023C2A53D9F16A6813798A44BAD6F4BE4E5785"
       },
       {
         "tool": "GitHub_MCP_Server",
@@ -1914,7 +1914,7 @@
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "40ED0A41913F06E5458742C1A8E1D9616BF3789E979AAEF49E11FC476B70BA6D"
+        "runtime_evidence_sha256": "94E353382DA679A22967A23828023C2A53D9F16A6813798A44BAD6F4BE4E5785"
       },
       {
         "tool": "LangGraph_Mermaid_engine",
@@ -2478,10 +2478,10 @@
       "path": "toolchains/unified-tool-workflow-pairing.v1.json",
       "sha256": "EA429DFA223AC93BC1018BCA55AB15955F1A1736BB6A9AE3CC5551814CA80388"
     },
-    "receipt_sha256": "B09FF32ACEF7F4786B53961162A6590CF240D0B1E24F561042872FD1ADDD7E19",
+    "receipt_sha256": "AF818174BA72A22A76B53B8C917755128741324D7B3AE5FE9F87F9125CB51E79",
     "runtime_inventory_schema": "evidence-lane.runtime-toolchain-prewarm.v1",
     "runtime_inventory_status": "PASS",
-    "runtime_inventory_receipt_sha256": "FEEFDC7EF8573537EB219602CCFA062D489BA986621187C158C6C3DE5DAAE21E",
+    "runtime_inventory_receipt_sha256": "5BC571019005B110754738531AAA78AE8CA3ABB039922790D8A4AD040048944C",
     "lane_resolution_sha256": "7B69207014621D402BE23DFDC2AE6FA6245C3002F0EBFCA82E9BAC8994D7D041",
     "runtime_availability_measured": true,
     "installed_presence_is_execution_proof": false
@@ -2546,7 +2546,7 @@
     "runtime_availability_affects_tool_identity": false,
     "hardware_telemetry_affects_tool_identity": false
   },
-  "sha256": "E83992718AD99C3F0F64677A583EFE9C8E4CA705135DBF497D23C022B9C95A46",
+  "sha256": "7420047DAF74A2EDFB5FC78E8B3C2E617881CCD89C8F9A9BBD322652A7B81C3A",
   "runtime_toolchain_resolution": {
     "schema": "evidence-lane.ai-toolchain-lane-resolution.v1",
     "status": "PASS",
@@ -2700,7 +2700,7 @@
   ],
   "canonical_shared_modules": {
     "src/evidence_lane_plugin/lanes.py": "B63A8708B7C27EEF09C7680AB97CA3410554F4AFACF819D39E0BE1E824193376",
-    "src/evidence_lane_plugin/lane_engine.py": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+    "src/evidence_lane_plugin/lane_engine.py": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65",
     "src/evidence_lane_plugin/lane_reader.py": "EA46B419880515E04101EBDD6C1D7497F95EA78AD5E9DB6B02AD531CB9F57456",
     "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
     "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
@@ -2742,7 +2742,8 @@
       "license_receipt_sha256": "AD5125E79D79CEB2E10C94ECED6AAA481F1E8967B60D3E50B33C0CCD0D1DA2AE",
       "shell_used": false,
       "workspace_install_used": false,
-      "receipt_sha256": "B276AC3E2CA5BE064C4620B00277CCC8FF53FFF887E51A5F8F9A599350534CDB"
+      "receipt_sha256": "B276AC3E2CA5BE064C4620B00277CCC8FF53FFF887E51A5F8F9A599350534CDB",
+      "complexity_scaled_timeout_seconds": 30
     },
     "graph_analysis": {
       "status": "PASS",
@@ -2867,7 +2868,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "73D00C690EEF2B7554DC1F218ECEE7D62CC7BD09C6460E1455450F4B057617BA"
+    "receipt_sha256": "B458D46EC4D4C360093F26F7FB563F1664F7322BC43EFA58EBFA8E25FDD60B1A"
   },
   "sqlite_execution_receipt": {
     "schema_name": "evidence-lane.sqlite-execution.v1",
@@ -2876,7 +2877,7 @@
     "engine_version": "3.53.4.0",
     "sqlite_version": "3.53.4",
     "database_path": "F:\\test codex\\plugins\\evidence-lane-plugin\\authorities\\project_sectors\\local_code\\local_code_sector_v001.sqlite",
-    "database_sha256": "ACC68BD0FD0D6A82DDA5B173BED4B556F10504F827175D5B92735129ABA66774",
+    "database_sha256": "55E4745C7DD2C65271C112B224216C319E21B74235C67C3AD73E2796A6E4192F",
     "integrity_check": "ok",
     "journal_mode": "delete",
     "page_count": 140,
@@ -2888,7 +2889,7 @@
     "sqlite_backup_available": true,
     "sqlite_fts5_available": true,
     "durable_authority": true,
-    "receipt_sha256": "81747FD6B633A43BE98E2E7D011D0987FB0902149B2BF8CC11E641D0A32FBACD"
+    "receipt_sha256": "252B641DD6CF57C54DEA10DF565825354ED9B8687ECB90D48E63BAB21EEB83CB"
   },
   "tool_execution_evidence": {
     "schema": "evidence-lane.lane-tool-execution-evidence.v1",
@@ -3116,7 +3117,7 @@
         "network_call_performed": false,
         "credential_value_read": false,
         "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "40ED0A41913F06E5458742C1A8E1D9616BF3789E979AAEF49E11FC476B70BA6D"
+        "runtime_evidence_sha256": "94E353382DA679A22967A23828023C2A53D9F16A6813798A44BAD6F4BE4E5785"
       },
       {
         "tool": "GitHub_MCP_Server",
@@ -3371,7 +3372,7 @@
         "network_call_performed": false,
         "credential_value_read": false,
         "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "40ED0A41913F06E5458742C1A8E1D9616BF3789E979AAEF49E11FC476B70BA6D"
+        "runtime_evidence_sha256": "94E353382DA679A22967A23828023C2A53D9F16A6813798A44BAD6F4BE4E5785"
       },
       {
         "tool": "LangGraph_Mermaid_engine",
@@ -3727,7 +3728,7 @@
     "presence_or_eligibility_is_execution_proof": false,
     "multiple_compatible_tools_may_form_one_pipeline": true,
     "recorded_at": "1970-01-01T00:00:00Z",
-    "receipt_sha256": "4145C35C325F6B3AE07B82B1955C50F6AE3DDC6A92A7C97ABE6A4117CED6C76F"
+    "receipt_sha256": "53FC11CE86EDF98D99BEC102F2D8D5AD990A9A2764625A8788B757E9FB66C8E5"
   },
   "empty_table_classification": {
     "schema": "evidence-lane.empty-table-classification.v1",
@@ -3921,7 +3922,7 @@
   "artifact_authority": {
     "schema": "evidence-lane.tools-artifact-authority.v1",
     "lane_id": "local_code",
-    "tool_identity_sha256": "E83992718AD99C3F0F64677A583EFE9C8E4CA705135DBF497D23C022B9C95A46",
+    "tool_identity_sha256": "7420047DAF74A2EDFB5FC78E8B3C2E617881CCD89C8F9A9BBD322652A7B81C3A",
     "ordered_members": [
       "local_code_sector_v001.sqlite",
       "local_code.mmd",
@@ -3932,7 +3933,7 @@
         "path": "local_code_sector_v001.sqlite",
         "role": "sqlite_authority",
         "bytes": 573440,
-        "sha256": "ACC68BD0FD0D6A82DDA5B173BED4B556F10504F827175D5B92735129ABA66774"
+        "sha256": "55E4745C7DD2C65271C112B224216C319E21B74235C67C3AD73E2796A6E4192F"
       },
       {
         "path": "local_code.mmd",
@@ -3947,7 +3948,7 @@
         "sha256": "A18C8076A8C902971AE59E2914FF3893BE7B57C04C7F193028F0D3D0D7ABCBA3"
       }
     ],
-    "authority_sha256": "6032B9BAEF7D53AED5F4D127128BC18D8BA43655B48D92A860DDDF0F61072F8A"
+    "authority_sha256": "BEF01D62FD2EC8FF0FFA306E87DF42F7AFBAB72216262B299EEA4667106E0468"
   },
-  "receipt_sha256": "FAB62F3D9C850B6FBE23C62EC972366E8CF43AE9A8E0A53116D2126A550B7813"
+  "receipt_sha256": "389036145DE022EBEA2A59EB1111568142998CB4616D7920D4A10733FE89D67C"
 }

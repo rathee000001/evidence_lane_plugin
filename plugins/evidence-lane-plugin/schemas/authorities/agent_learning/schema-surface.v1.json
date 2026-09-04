@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "agent_learning",
   "authority_root": "authorities/agent_learning",
-  "authority_manifest_sha256": "B1190DCF7F7787CC401DF00A24AA56A8218F5D4E16E291FAF06F309E17569F66",
+  "authority_manifest_sha256": "1F90527A5CCFAB48D14D17E1868D041C187571DAC53700B9C1FD370B412A6FF4",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "BFC2961C6624C894BB802A859E81D62FED36C6487CF89FA19F7558B01D249BDE"
+  "receipt_sha256": "5520FF7E77E81DD0D5E7F408EA6F603CD440A0B909C126537C1251B25666819F"
 }

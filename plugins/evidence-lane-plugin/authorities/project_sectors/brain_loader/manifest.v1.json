@@ -9,18 +9,18 @@
   "members": [
     {
       "path": "authorities/project_sectors/brain_loader/brain_loader.dot",
-      "bytes": 20408,
-      "sha256": "926173C7FF2F194716DCC48F090EBE2F3DA4DC2E8BC69324BB2D2E7A8F7B045F"
+      "bytes": 20246,
+      "sha256": "E3BDB01198D3165F9EC7427FA825213F5A26B4C3E11C7FB03E6F89B4E3661593"
     },
     {
       "path": "authorities/project_sectors/brain_loader/brain_loader.mmd",
-      "bytes": 16260,
-      "sha256": "4EB1483FBBD961853058F0F925F90308ABD207527183B186D7EEB5A65B58B3F2"
+      "bytes": 16178,
+      "sha256": "59DC3B5C99D487B3E6A498DA2CFA0CFDE1D0C34E83D84153580ED8AB58E2DD40"
     },
     {
       "path": "authorities/project_sectors/brain_loader/brain_loader_sector_v001.sqlite",
       "bytes": 499712,
-      "sha256": "FC73CD46A5C72BB03B2A9D2E33D8F62BCFE6AA9D2B697F8FAE925384A790FADB"
+      "sha256": "17BB4B5014D72E3BAD3204B23F713B592B1B72B87A73DF89F66EBE8FAA255923"
     },
     {
       "path": "authorities/project_sectors/brain_loader/builder-contract.schema.json",
@@ -39,8 +39,8 @@
     },
     {
       "path": "authorities/project_sectors/brain_loader/lane-contract.v1.json",
-      "bytes": 62712,
-      "sha256": "F2B02C602FEE0EB0B4241A0CB06D2C3FDB0847DA95AEE78E95B02D630CA60852"
+      "bytes": 62058,
+      "sha256": "8A45F8A0A963C7EF87F23EC16AE1500E70BA21F377BE78558A47729AC75D0031"
     },
     {
       "path": "authorities/project_sectors/brain_loader/lane-pointer.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/brain_loader/tools.json",
-      "bytes": 169325,
-      "sha256": "5DCB6677C429AB71DD7EE09984F46D566C4563F45E14AE90B7CCE5CABCE07A1B"
+      "bytes": 168671,
+      "sha256": "F5063C664E7396AC2586DC1A483E68C8061E2D1B70F57A23878AF4F483628D1D"
     },
     {
       "path": "authorities/project_sectors/brain_loader/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "C555735867AD762B517C9D72E6B0AFAFAB5BF37EDD15025EB6A54FB7766FE74C"
+  "receipt_sha256": "105C5D84CE3966771D9527B7DAA46598A40E69CED321007F232D5EA2C105DC41"
 }

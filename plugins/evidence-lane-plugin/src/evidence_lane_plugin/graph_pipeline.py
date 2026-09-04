@@ -59,6 +59,22 @@ _MMD_IMPORT_NODE = re.compile(
     r'(?P<shape>\(\[.*?\]\)|\[\(.*?\)\]|\{\{.*?\}\}|\{.*?\}|\[.*?\])?'
     r'(?P<class>:::[A-Za-z_][A-Za-z0-9_]*)?\s*$'
 )
+
+
+def _native_graphviz_timeout_seconds(
+    *,
+    node_count: int,
+    edge_count: int,
+    layout_constraint_count: int,
+) -> int:
+    """Return a bounded DOT validation budget derived from graph complexity."""
+
+    complexity = max(0, node_count) + max(0, edge_count) + max(
+        0, layout_constraint_count
+    )
+    return min(300, max(30, math.ceil(complexity / 16)))
+
+
 _KIND_STYLES: dict[str, dict[str, str]] = {
     "root": {
         "fillcolor": "#101828",
@@ -531,6 +547,17 @@ class SemanticGraph:
                             continue
                         seen.add(pair)
                         constraints.append(pair)
+        maximum_constraints = max(
+            4,
+            math.ceil(math.log2(max(len(self.nodes), 2))),
+        )
+        if len(constraints) > maximum_constraints:
+            final_index = len(constraints) - 1
+            divisor = maximum_constraints - 1
+            constraints = [
+                constraints[(ordinal * final_index) // divisor]
+                for ordinal in range(maximum_constraints)
+            ]
         return constraints
 
     def _langchain_graph(self) -> LangChainGraph:
@@ -746,10 +773,19 @@ class SemanticGraph:
         }:
             if try_resolve_native_tool("graphviz") is None:
                 raise ValueError("NATIVE_GRAPHVIZ_DOT_REQUIRED_RUNTIME_TOOL_MISSING")
+            native_timeout_seconds = _native_graphviz_timeout_seconds(
+                node_count=len(self.nodes),
+                edge_count=len(self.edges),
+                layout_constraint_count=len(layout_constraints),
+            )
             native_validation = validate_dot_source(
                 source,
                 runtime_root=runtime_root,
                 host_profile=host_profile,
+                timeout_seconds=native_timeout_seconds,
+            )
+            native_validation["complexity_scaled_timeout_seconds"] = (
+                native_timeout_seconds
             )
             if native_validation["status"] != "PASS":
                 raise ValueError("NATIVE_GRAPHVIZ_DOT_VALIDATION_FAILED")

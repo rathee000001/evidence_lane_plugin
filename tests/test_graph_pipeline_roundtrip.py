@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import math
+
 from evidence_lane_plugin.graph_pipeline import (
     SemanticGraph,
+    _native_graphviz_timeout_seconds,
     semantic_graph_from_mermaid,
 )
 
@@ -52,6 +55,35 @@ def test_high_fanout_adds_balanced_render_constraints_without_semantic_edges() -
     assert "style=invis" in dot
     assert receipt["balanced_two_dimensional_projection"] is True
     assert receipt["layout_constraints_change_semantic_topology"] is False
-    assert receipt["layout_constraint_count"] > 0
+    assert receipt["layout_constraint_count"] == math.ceil(
+        math.log2(len(graph.nodes))
+    )
     assert len(restored.nodes) == len(graph.nodes)
     assert len(restored.edges) == len(graph.edges)
+
+
+def test_native_graphviz_timeout_scales_with_graph_complexity_and_stays_bounded() -> None:
+    assert (
+        _native_graphviz_timeout_seconds(
+            node_count=25,
+            edge_count=25,
+            layout_constraint_count=10,
+        )
+        == 30
+    )
+    assert (
+        _native_graphviz_timeout_seconds(
+            node_count=327,
+            edge_count=1735,
+            layout_constraint_count=310,
+        )
+        == 149
+    )
+    assert (
+        _native_graphviz_timeout_seconds(
+            node_count=10_000,
+            edge_count=50_000,
+            layout_constraint_count=10_000,
+        )
+        == 300
+    )

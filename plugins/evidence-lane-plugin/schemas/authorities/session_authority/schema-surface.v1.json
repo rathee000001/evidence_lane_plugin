@@ -3,7 +3,7 @@
   "status": "PASS",
   "authority_id": "session_authority",
   "authority_root": "authorities/session_authority",
-  "authority_manifest_sha256": "3CF7F8FDC264483C18631516BC2CE143C07CD3C42513B5EB61FC6419BE04EBFD",
+  "authority_manifest_sha256": "1BF7EA8D6690C29BB88DBB68DBCB37B0E6373313737EE29998932A3E90686E3B",
   "persistent_sqlite_authority": true,
   "schema_file_count": 11,
   "schema_files": [
@@ -64,5 +64,5 @@
     }
   ],
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "0E3A4E84614AB2F759FCB0065DF28BBAE9E47CECF50515E13DBB57CC8A2F5FFC"
+  "receipt_sha256": "056B127F7B5EF53EB784F43C4D7C90743A92DC79B2234E809EE66E4CC54B2314"
 }

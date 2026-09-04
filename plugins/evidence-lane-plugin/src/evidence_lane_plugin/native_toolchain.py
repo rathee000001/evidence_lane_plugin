@@ -219,6 +219,7 @@ def validate_dot_source(
     *,
     runtime_root: str | Path,
     host_profile: str,
+    timeout_seconds: int = 30,
 ) -> dict[str, Any]:
     return run_native_tool(
         NativeInvocationRequest(
@@ -226,6 +227,7 @@ def validate_dot_source(
             arguments=["-Tdot"],
             input_bytes=source.encode("utf-8"),
             host_profile=host_profile,
+            timeout_seconds=timeout_seconds,
         ),
         runtime_root=runtime_root,
     )

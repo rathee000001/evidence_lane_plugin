@@ -296,7 +296,7 @@
       "module": "evidence_lane_plugin.flash_authority",
       "path": "src/evidence_lane_plugin/flash_authority.py",
       "bytes": 28044,
-      "sha256": "5EEFE8669CA5406D65C8E1890AF2DC9CC67CBD611B1655114E1572F7E0EBA73A",
+      "sha256": "0E01A4254A7A16965897E0626907097FFE3F5F90C1B36A8F80E6B66213EA8840",
       "role": "ENV_UOP_AI_ACTION_PLANE"
     },
     {
@@ -386,8 +386,8 @@
     {
       "module": "evidence_lane_plugin.graph_pipeline",
       "path": "src/evidence_lane_plugin/graph_pipeline.py",
-      "bytes": 33893,
-      "sha256": "F1C1AD56D52DD339DA0B9E196898C1420E2EBF539B547CC86FB4B4ADBCC49014",
+      "bytes": 35116,
+      "sha256": "BB76A790578B062B7E2DC89BDAA0D30A598F26015C3B94CC126AEFB3E476A582",
       "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
@@ -498,8 +498,8 @@
     {
       "module": "evidence_lane_plugin.lane_engine",
       "path": "src/evidence_lane_plugin/lane_engine.py",
-      "bytes": 398718,
-      "sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+      "bytes": 399040,
+      "sha256": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65",
       "role": "SECTOR_LANE_ENGINE"
     },
     {
@@ -583,7 +583,7 @@
       "module": "evidence_lane_plugin.mode_governance",
       "path": "src/evidence_lane_plugin/mode_governance.py",
       "bytes": 81531,
-      "sha256": "DF6461E95BEFB477109B0222822754818A48D78D405A152AA6D990E69C78A867",
+      "sha256": "6ADDC3815BA1E85E98B096995400363DED7E522DE5EACF6114258D8D4C69DDE8",
       "role": "ENV_UOP_AI_ACTION_PLANE"
     },
     {
@@ -603,8 +603,8 @@
     {
       "module": "evidence_lane_plugin.native_toolchain",
       "path": "src/evidence_lane_plugin/native_toolchain.py",
-      "bytes": 8762,
-      "sha256": "36BF974C5C759B64515E4624FC0DB982F36ED8334081DBA52F1D683A130A3470",
+      "bytes": 8838,
+      "sha256": "63D3FC36B0FE1CB27B135B19CCD36BEFCC4F7774DF59EBBDEACB174314736121",
       "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
@@ -932,8 +932,8 @@
     {
       "module": "evidence_lane_plugin.sqlite_indexing",
       "path": "src/evidence_lane_plugin/sqlite_indexing.py",
-      "bytes": 21171,
-      "sha256": "B127B94C01452FA83E13EF87261348A633D101EF1E03FFEDA093EFED3737E50B",
+      "bytes": 22063,
+      "sha256": "584B186634A7A62CC2AD013F6E0AA3159CDA5CACD26A847CE9D3130D28F58421",
       "role": "AI_TOOLCHAIN_EXECUTION"
     },
     {
@@ -1068,5 +1068,5 @@
   ],
   "root_surfaces_duplicated_inside_python_namespace": false,
   "loose_python_modules_directly_under_src_allowed": false,
-  "receipt_sha256": "D3D2E047E3030368D18BB48C2FAA6B48A576D978FD826B504554B3A55C4686B9"
+  "receipt_sha256": "633AD251CA97BF722D646CD4E82500AF23D051E7DC348BDCD3908A26BFAA8AF8"
 }

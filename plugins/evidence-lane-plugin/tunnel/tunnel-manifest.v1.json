@@ -11,7 +11,7 @@
   "routes_by_project_id": true,
   "one_active_tunnel": true,
   "tunnel_compatibility_schema": "evidence-lane.tunnel-capability-compatibility.v1",
-  "tunnel_compatibility_sha256": "9DF943CA2A290D68A48B5B09A2C56DECB5CBC21F2451CF2E526AEEA80B801E03",
+  "tunnel_compatibility_sha256": "53B593ED4CC881DB28B6FD58657A56D9CC430A73F587EA7E56F9F97CDF78CDE0",
   "tunnel_compatibility_inputs": [
     {
       "path": ".mcp.json",
@@ -100,8 +100,8 @@
     },
     {
       "path": "src/evidence_lane_plugin/lane_engine.py",
-      "bytes": 398718,
-      "sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D"
+      "bytes": 399040,
+      "sha256": "AC617E93FBF74621FA16F4F3E6698638F775DAF6A345F7BC13FD51561A9C0F65"
     },
     {
       "path": "src/evidence_lane_plugin/mcp_server.py",
@@ -192,5 +192,5 @@
   "user_manual_restart_required": true,
   "programmatic_app_stop_allowed": false,
   "turn_drain_utility_present": false,
-  "receipt_sha256": "3F2DC4AAE18133902F224020A6E4B6FBF2A7078A1B125E5C82B23B39EFE51143"
+  "receipt_sha256": "A3E1F6464A9B99D9761C32E5CDA4B45CB5F33516FB942C87F87829514FEE2C95"
 }

@@ -24,8 +24,8 @@
     },
     {
       "path": "authorities/project_sectors/mode/lane-contract.v1.json",
-      "bytes": 61799,
-      "sha256": "D3550131AD87005FA0D6DCB5A92C37E849846F5F710BD1CFE91A13B8DA3F5EC6"
+      "bytes": 61054,
+      "sha256": "BF33076C182A31432BFC408634EA51B3CD71657B8D4AE94B98BCBA338A85DA9B"
     },
     {
       "path": "authorities/project_sectors/mode/lane-pointer.schema.json",
@@ -44,18 +44,18 @@
     },
     {
       "path": "authorities/project_sectors/mode/mode.dot",
-      "bytes": 20136,
-      "sha256": "0FAF057B88268B801DC717390D6985CD8C3C5A6412DEECAEEC6C85031A385089"
+      "bytes": 19974,
+      "sha256": "03FA8C20907BE18EE54FE94B5BDF33C0E5980E7BACC8E12604D2C7C1ACA41CB5"
     },
     {
       "path": "authorities/project_sectors/mode/mode.mmd",
-      "bytes": 15996,
-      "sha256": "D96280EF148F92701699A907263A5BC9BCCF66B58DDCFFB153A82EC4A0777AFA"
+      "bytes": 15914,
+      "sha256": "53D0C82C44D2ECB46349448521B87EF81E7C3F55618C60DD54441A19D9702378"
     },
     {
       "path": "authorities/project_sectors/mode/mode_sector_v001.sqlite",
       "bytes": 495616,
-      "sha256": "51922E730AAB3F63FD57E3C530C0E08612CCB0D3E04A80A054C7B0B71450EDA9"
+      "sha256": "31D7E81FCED9D14F6E2DF648A7F1A05FE6D542533A6AD0205968A494E0B32BD8"
     },
     {
       "path": "authorities/project_sectors/mode/reader-contract.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/mode/tools.json",
-      "bytes": 167824,
-      "sha256": "73BCE326987D8C91F43537EA0E6A29A66213D3770889B68544AD359D4FE1E0D2"
+      "bytes": 167079,
+      "sha256": "7CD3F54EB45D33109DE37561131B2BF3DBE7885A762EB7E1D15191F1FA3E2783"
     },
     {
       "path": "authorities/project_sectors/mode/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "79499E0E4838FF76955EDB4F95E65D36E3209966D15FF91F133A7882025D93CB"
+  "receipt_sha256": "39ADDF2CDEA8E7FAD9B93D373B6BED2D95F63B4F46A022FC6855D62BDF33D09E"
 }
