@@ -26,11 +26,11 @@
     "route_operator",
     "status"
   ],
-  "env_authority_manifest_sha256": "59BD460F4ED2431C2AAA45AFB54DFD3360079E43B5F096F6CDEA9A4278D61AF9",
+  "env_authority_manifest_sha256": "4E5C019DE3B0C1E20394A875362C2F91E37926232FA1B6231D815D0D103750C6",
   "uop_authority_manifest_sha256": "864132315889A8D308D8773F2D8C76905A4E88AEF1B8138B945ED3CB09199DCA",
   "canonical_implementation": "src/evidence_lane_plugin/mode_governance.py",
   "cross_plane_contract": "sdk/env_uop/cross-plane-contract.v1.json",
-  "cross_plane_contract_sha256": "49CBF02B5DF9C7C4A7D17B89352B10BFC1BC8E09ECDFE0A61A98E0489926816B",
+  "cross_plane_contract_sha256": "E6478CAD6E275482D4C9FDCED4BB772A0EF705C516568F0F664578204B628888",
   "cross_plane_counts": {
     "actions": 91,
     "skills": 26,
@@ -40,5 +40,5 @@
     "named_root_authorities": 11,
     "tools": 119
   },
-  "receipt_sha256": "E55A98DA6C36AA902DD1528E512C2426EBA2C43F1F8A66D413C619F094B16095"
+  "receipt_sha256": "4C1DA723744BB5EBE885C4637DAAC41BE71D4ACDF0043F68721703DB3643AE46"
 }

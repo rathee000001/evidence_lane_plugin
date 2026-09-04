@@ -65,7 +65,7 @@
     {
       "path": "authorities/project_overlay/project_overlay.tools.json",
       "bytes": 150754,
-      "sha256": "8D5D1448C424E364A6574C8287E114BF1C3293E77CB50ACF65F1DD10AA8E77BF"
+      "sha256": "197C72A8106AFCF9321791D04526FBBA9881652259F784D38B8F9A452E97EFCE"
     },
     {
       "path": "authorities/project_overlay/reader-contract.schema.json",
@@ -136,7 +136,7 @@
   "canonical_source_hashes": {
     "src/evidence_lane_plugin/project_overlay.py": "F9C2D4D6339DEA0EC413A28F16F03AB8D99CF083F796B5B73815974490EAEF86",
     "src/evidence_lane_plugin/adaptive_delta_exit.py": "36847646D49534C0649CE9D15C806A9A52890A1B90BADE3F30E5FEA0B35D6149",
-    "src/evidence_lane_plugin/store.py": "41C2A3237AB401E886DE59DFB7CBC01934E86F84C7311B4424796939E05A0755",
+    "src/evidence_lane_plugin/store.py": "7B72725015A3DC64440A5A1AA1D80DAE1DAD5DCE3BB45375249C630EADD65DBC",
     "src/evidence_lane_plugin/authority_support.py": "277EA6E2B9B0111A658E1AE00C727F14A7B041C94CD4C09FB71DDE214B79EB4B"
   },
   "linked_subauthorities": [],
@@ -345,5 +345,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "73F3494D46D40996F6FCBDD8631715B98EAB933D88CDBC35AF8374855C8D87F3"
+  "receipt_sha256": "043E053E6C78B153962052350136E00B8493BE2C14F1299E8C2351FC41AC569D"
 }

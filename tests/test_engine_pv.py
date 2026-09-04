@@ -39,6 +39,24 @@ def test_live_root_initial_build_bootstraps_pv0_without_hil_or_candidate(
         project_authority_root=str(project_root),
     )
     assert registered["status"] == "PASS"
+    skeleton = registered["project_authority_skeleton"]
+    assert skeleton["status"] == "PASS"
+    assert skeleton["canonical_lane_count"] == 18
+    assert skeleton["materialized_sector_directory_count"] == 2
+    assert not (project_root / "project_authority.json").exists()
+    assert {
+        path.name for path in (project_root / "sectors").iterdir() if path.is_dir()
+    } == {"plan", "chat_lineage"}
+    assert skeleton["unfired_sector_directories_created"] is False
+    for authority in skeleton["mandatory_authority_directories"]:
+        assert (project_root / authority).is_dir()
+    assert not (project_root / "task_backlog.json").exists()
+    assert not (project_root / "plan_runtime_projection.sqlite").exists()
+    assert not (project_root / "lineage").exists()
+    assert (project_root / "sectors" / "plan" / "task_backlog.json").is_file()
+    assert (
+        project_root / "sectors" / "plan" / "plan_runtime_projection.sqlite"
+    ).is_file()
     application.plan_tasks(
         "live-root-project",
         tasks=[
@@ -92,6 +110,28 @@ def test_live_root_initial_build_bootstraps_pv0_without_hil_or_candidate(
         is True
     )
     assert (project_root / "sectors" / "manifest.json").is_file()
+    authority_layout = result["baseline"]["project_authority_layout"]
+    assert authority_layout["status"] == "PASS"
+    assert authority_layout["canonical_lane_count"] == 18
+    manifest = json.loads(
+        (project_root / "sectors" / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert authority_layout["materialized_sector_directory_count"] == len(
+        manifest["emitted_lane_ids"]
+    )
+    assert authority_layout["materialized_sector_lane_ids"] == manifest[
+        "emitted_lane_ids"
+    ]
+    assert {
+        path.name for path in (project_root / "sectors").iterdir() if path.is_dir()
+    } == set(manifest["emitted_lane_ids"])
+    assert authority_layout["unfired_sector_directories_created"] is False
+    assert (project_root / "project_authority.json").is_file()
+    assert (project_root / "project_authority" / "project-authority.sqlite").is_file()
+    assert (project_root / "receipts" / "receipt-ledger.sqlite").is_file()
+    assert (project_root / "sessions" / "session-authority.sqlite").is_file()
+    assert not (project_root / "receipt_ledger").exists()
+    assert not (project_root / "session_authority").exists()
     assert not (project_root / "candidates").exists()
     assert result["accepted_archive_opened"] is False
     assert result["accepted_archive_queried"] is False
@@ -132,7 +172,10 @@ def test_live_root_initial_build_requires_evi_plan_before_source_work(
             boot["session"]["session_id"],
         )
     assert blocked.value.code == "PV0_INITIAL_PLAN_REQUIRED"
-    assert not (project_root / "sectors").exists()
+    assert {
+        path.name for path in (project_root / "sectors").iterdir() if path.is_dir()
+    } == {"plan", "chat_lineage"}
+    assert not (project_root / "sectors" / "local_code").exists()
 
 
 def test_mermaid_renderer_uses_explicit_installed_browser(

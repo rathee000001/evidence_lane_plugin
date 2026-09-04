@@ -12,6 +12,7 @@ from evidence_lane_plugin.lineage import ChatLineage
 from evidence_lane_plugin.project_authority import PROJECT_AUTHORITY_CONFIRMATION
 from evidence_lane_plugin.source_authority import (
     SourceAuthoritySpec,
+    initialize_source_authority_registry,
     load_source_batch,
     register_source_batch,
     register_source_crosswalk,
@@ -236,7 +237,7 @@ def test_registry_detects_changed_source_after_classification(tmp_path: Path) ->
     assert stale.value.status == "STALE"
 
 
-def test_secret_shaped_members_are_counted_but_not_content_hashed(
+def test_secret_shaped_members_are_aggregated_without_path_or_content(
     tmp_path: Path,
 ) -> None:
     source = tmp_path / "project"
@@ -251,10 +252,14 @@ def test_secret_shaped_members_are_counted_but_not_content_hashed(
         secret = connection.execute(
             "SELECT * FROM source_member WHERE member_path='.env'"
         ).fetchone()
-        assert secret is not None
-        assert secret["policy_state"] == "EXCLUDED"
-        assert secret["policy_reason"] == "SECRET_SHAPED_BASENAME"
-        assert secret["sha256"] is None
+        assert secret is None
+        summary = connection.execute(
+            "SELECT * FROM source_exclusion_summary "
+            "WHERE policy_reason='SECRET_SHAPED_BASENAME'"
+        ).fetchone()
+        assert summary is not None
+        assert summary["excluded_entry_count"] == 1
+        assert summary["member_paths_stored"] == 0
         event_text = "\n".join(
             row[0]
             for row in connection.execute("SELECT event_json FROM registry_event")
@@ -263,7 +268,9 @@ def test_secret_shaped_members_are_counted_but_not_content_hashed(
     assert receipt["source_payloads_copied"] is False
 
 
-def test_excluded_member_rename_changes_path_size_identity(tmp_path: Path) -> None:
+def test_excluded_member_rename_with_same_policy_class_keeps_identity(
+    tmp_path: Path,
+) -> None:
     source = tmp_path / "project"
     source.mkdir()
     secret = source / ".env"
@@ -272,9 +279,89 @@ def test_excluded_member_rename_changes_path_size_identity(tmp_path: Path) -> No
     receipt = register_source_batch(registry, [_spec(source, 1)])
     secret.rename(source / ".env.local")
 
-    with pytest.raises(EvidenceLaneError) as stale:
-        verify_source_batch_unchanged(registry, receipt["batch_id"])
-    assert stale.value.code == "SOURCE_AUTHORITY_BATCH_CHANGED"
+    assert verify_source_batch_unchanged(registry, receipt["batch_id"])["status"] == "PASS"
+
+
+def test_runtime_directory_is_pruned_and_aggregated_without_member_paths(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "project"
+    runtime = source / ".venv" / "Lib" / "site-packages" / "example"
+    runtime.mkdir(parents=True)
+    for index in range(20):
+        (runtime / f"module_{index}.py").write_text("VALUE = 1\n", encoding="utf-8")
+    (source / "app.py").write_text("print('included')\n", encoding="utf-8")
+    registry = tmp_path / "authority.sqlite"
+
+    receipt = register_source_batch(registry, [_spec(source, 1)])
+
+    with sqlite3.connect(registry) as connection:
+        paths = [row[0] for row in connection.execute("SELECT member_path FROM source_member")]
+        summary = connection.execute(
+            "SELECT excluded_entry_count,descendant_members_enumerated,member_paths_stored "
+            "FROM source_exclusion_summary WHERE policy_reason='RUNTIME_DIRECTORY'"
+        ).fetchone()
+    assert paths == ["app.py"]
+    assert summary == (1, 0, 0)
+    assert receipt["source_payloads_copied"] is False
+
+
+def test_registry_initialization_migrates_legacy_excluded_member_rows(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "project"
+    source.mkdir()
+    (source / "app.py").write_text("print('included')\n", encoding="utf-8")
+    registry = tmp_path / "authority.sqlite"
+
+    register_source_batch(registry, [_spec(source, 1)])
+    with sqlite3.connect(registry) as connection:
+        object_id, source_pointer = connection.execute(
+            "SELECT object_id,source_pointer FROM source_object"
+        ).fetchone()
+        connection.execute(
+            "INSERT INTO source_member VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (
+                object_id,
+                ".venv/Lib/site-packages/example/__init__.py",
+                "file",
+                17,
+                None,
+                "EXCLUDED",
+                "RUNTIME_DIRECTORY",
+            ),
+        )
+        connection.execute(
+            "INSERT INTO source_authority_fts(object_id,source_pointer,member_path) "
+            "VALUES (?, ?, ?)",
+            (
+                object_id,
+                source_pointer,
+                ".venv/Lib/site-packages/example/__init__.py",
+            ),
+        )
+
+    initialize_source_authority_registry(registry)
+
+    with sqlite3.connect(registry) as connection:
+        excluded_rows = connection.execute(
+            "SELECT COUNT(*) FROM source_member WHERE policy_state='EXCLUDED'"
+        ).fetchone()[0]
+        summary = connection.execute(
+            "SELECT excluded_entry_count,descendant_members_enumerated,"
+            "member_paths_stored,capture_mode FROM source_exclusion_summary "
+            "WHERE object_id=? AND policy_reason='RUNTIME_DIRECTORY'",
+            (object_id,),
+        ).fetchone()
+        fts_paths = [
+            row[0]
+            for row in connection.execute(
+                "SELECT member_path FROM source_authority_fts ORDER BY member_path"
+            )
+        ]
+    assert excluded_rows == 0
+    assert summary == (1, 1, 0, "LEGACY_PER_MEMBER_ROWS_PURGED")
+    assert fts_paths == ["app.py"]
 
 
 def test_source_intake_governed_registry_is_explicit_and_pointer_neutral(
@@ -519,7 +606,7 @@ def test_turn_entry_queries_live_sectors_and_records_formula_lineage(
         "STALE",
         "DIRTY_WORKING_TREE",
     }
-    assert receipt["fallback_authority"] == "LIVE_ROOT_ALL_18_SECTORS"
+    assert receipt["fallback_authority"] == "LIVE_ROOT_CURRENT_FIRED_SECTORS"
     assert receipt["accepted_archive_opened"] is False
     assert receipt["accepted_archive_queried"] is False
     assert receipt["accepted_pointer_used_as_baseline_only"] is True

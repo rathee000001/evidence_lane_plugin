@@ -25,6 +25,10 @@ from typing import Any
 
 SCHEMA = "evidence-lane.non-lifecycle-local-package-rehearsal.v1"
 BOUNDARY = "NON_LIFECYCLE_LOCAL_PACKAGE_REHEARSAL"
+REGRESSION_PASS_STATUSES = {
+    "PASS_WITH_TARGETED_FAILURE_CLOSURE",
+    "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED",
+}
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 EXPECTED_LANE_COUNT = 18
 EXPECTED_HOST_STORAGE_TUNNEL_MATRIX = {
@@ -1869,6 +1873,7 @@ def _load_executable_fingerprint_refresh(
         ) from exc
     full = dict(receipt.get("full_regression") or {})
     closure = dict(receipt.get("targeted_closure") or {})
+    publication = dict(receipt.get("publication_scope") or {})
     surface = dict(receipt.get("executable_surface") or {})
     repository = dict(receipt.get("repository_fingerprints") or {})
     impact = dict(receipt.get("source_impact") or {})
@@ -1877,7 +1882,21 @@ def _load_executable_fingerprint_refresh(
         receipt.get("schema") != "evidence-lane.executable-fingerprint-refresh.v1"
         or receipt.get("status") != "PASS"
         or receipt.get("plugin_version") != expected_version
-        or full.get("status") != "PASS_WITH_TARGETED_FAILURE_CLOSURE"
+        or full.get("status") not in REGRESSION_PASS_STATUSES
+        or (
+            full.get("status")
+            == "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED"
+            and (
+                publication.get("status") != "DEFERRED_NOT_PASSED"
+                or publication.get("publication_authorized") is not False
+                or int(publication.get("deferred_selector_count", 0)) <= 0
+                or re.fullmatch(
+                    r"[A-F0-9]{64}",
+                    str(publication.get("deferral_contract_file_sha256") or ""),
+                )
+                is None
+            )
+        )
         or full.get("authorized_run_count") != 1
         or closure.get("status") != "PASS"
         or closure.get("failed") != 0
@@ -1907,6 +1926,14 @@ def _load_executable_fingerprint_refresh(
         "full_regression_status": full["status"],
         "authorized_run_count": 1,
         "targeted_closure_status": closure["status"],
+        "publication_scope_status": publication.get("status"),
+        "publication_authorized": publication.get("publication_authorized"),
+        "deferred_publication_selector_count": int(
+            publication.get("deferred_selector_count", 0)
+        ),
+        "deferral_contract_file_sha256": publication.get(
+            "deferral_contract_file_sha256"
+        ),
         "executable_member_count": surface["member_count"],
         "executable_registry_receipt_sha256": surface["receipt_sha256"],
         "repository_fingerprint_receipt_sha256": repository["receipt_sha256"],

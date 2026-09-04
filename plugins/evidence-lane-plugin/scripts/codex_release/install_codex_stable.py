@@ -36,6 +36,10 @@ from pathlib import Path
 from typing import Any
 
 BASE_RELEASE = "3.0.0"
+LOCAL_REGRESSION_PASS_STATUSES = {
+    "PASS_WITH_TARGETED_FAILURE_CLOSURE",
+    "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED",
+}
 MARKETPLACE_NAME = "evidence-lane-github"
 MARKETPLACE_DISPLAY_NAME = "Main Git Plugin Version"
 LOCAL_TESTING_MARKETPLACE_NAME = "evidence-lane-v300-testing-new"
@@ -1626,11 +1630,29 @@ def _require_local_executable_fingerprint_refresh(
     receipt: dict[str, Any],
 ) -> dict[str, Any]:
     audit = receipt.get("executable_fingerprint_refresh")
+    scoped_publication_deferral = (
+        isinstance(audit, dict)
+        and audit.get("full_regression_status")
+        == "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED"
+    )
     if (
         not isinstance(audit, dict)
         or audit.get("schema") != "evidence-lane.executable-fingerprint-refresh.v1"
         or audit.get("status") != "PASS"
-        or audit.get("full_regression_status") != "PASS_WITH_TARGETED_FAILURE_CLOSURE"
+        or audit.get("full_regression_status") not in LOCAL_REGRESSION_PASS_STATUSES
+        or (
+            scoped_publication_deferral
+            and (
+                audit.get("publication_scope_status") != "DEFERRED_NOT_PASSED"
+                or audit.get("publication_authorized") is not False
+                or int(audit.get("deferred_publication_selector_count", 0)) <= 0
+                or re.fullmatch(
+                    r"[A-F0-9]{64}",
+                    str(audit.get("deferral_contract_file_sha256") or ""),
+                )
+                is None
+            )
+        )
         or audit.get("authorized_run_count") != 1
         or audit.get("targeted_closure_status") != "PASS"
         or int(audit.get("executable_member_count", 0)) <= 0

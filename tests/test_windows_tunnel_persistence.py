@@ -17,8 +17,11 @@ def test_boot_launcher_pins_binary_and_dpapi_envelope() -> None:
     assert "ConvertTo-SecureString" in boot
     assert "ZeroFreeBSTR" in boot
     assert "--require-control-plane-poll" in boot
-    assert 'ProfileName = "evidence_lane_v300_stable_build_transport"' in boot
-    assert 'ReleaseToken = "v300"' in boot
+    assert '[string]$ProfileName = ""' in boot
+    assert '[string]$ReleaseToken = ""' in boot
+    assert "$ProfileName = [string]$marker.profile_name" in boot
+    assert "$ReleaseToken = [string]$marker.release_token" in boot
+    assert "$filePrefix = [string]$marker.file_prefix" in boot
     assert "release-bound tunnel marker" in boot
     assert 'ProfileDir = "$env:APPDATA\\tunnel-client"' in boot
     assert "RECOVER_STALE_PROCESS" in boot
@@ -59,7 +62,8 @@ def test_installer_uses_current_user_dpapi_and_resilient_host_task() -> None:
     assert "--mcp-command $mcpCommand" in installer
     assert '"main-git-release"' in installer
     assert '"versioned-local-testing"' in installer
-    assert 'TaskName = "EvidenceLane-Tunnel-$releaseToken-stable-build"' in installer
+    assert 'task_name = "EvidenceLane-Tunnel-$tunnelVersionToken"' in installer
+    assert "$TaskName = [string]$versionIdentity.task_name" in installer
     assert "exact_visible_tool_count = $exactVisibleToolCount" in installer
     assert "exact_active_read_tool_count = $exactActiveReadToolCount" in installer
     assert "exact_fail_closed_write_tool_count = $exactFailClosedWriteToolCount" in installer
@@ -67,9 +71,10 @@ def test_installer_uses_current_user_dpapi_and_resilient_host_task() -> None:
     assert "exact_hook_event_count = $exactHookEventCount" in installer
     assert "exact_provider_count = $exactProviderCount" in installer
     assert "codex_platform_tunnel_setup_required_once = $true" in installer
+    assert 'runtime_directory_name = "tunnel-runtime-$tunnelVersionToken"' in installer
     assert (
-        'Join-Path $RuntimeControlRoot '
-        '"tunnel-runtime-$releaseToken-stable-build"'
+        "Join-Path $RuntimeControlRoot "
+        "([string]$versionIdentity.runtime_directory_name)"
     ) in installer
     assert '.codex\\plugins\\runtime\\evidence-lane-plugin' in installer
     assert 'project_authority_lookup = "HIDDEN_REGISTRY_BY_PROJECT_ID"' in installer
@@ -81,20 +86,21 @@ def test_installer_uses_current_user_dpapi_and_resilient_host_task() -> None:
     assert "pre_3_0_fallback_allowed = $false" in installer
     assert "release_identity_source = \"CODEX_RELEASE_CHANNEL_CONTRACT\"" in installer
     assert "runtime_identity_matches_release = $true" in installer
-    assert "prior_versioned_runtimes_retained = $false" in installer
-    assert "prior_versioned_tasks_retained = $false" in installer
-    assert "prior_versioned_runtime_deletion_required = $true" in installer
+    assert "prior_versioned_runtimes_retained = $true" in installer
+    assert "prior_versioned_tasks_retained = $true" in installer
+    assert "prior_versioned_tasks_disabled = $true" in installer
+    assert "prior_versioned_runtime_deletion_required = $false" in installer
     assert "one_active_version_required = $true" in installer
     assert "Manage-EvidenceLaneTunnelVersions.ps1" not in installer
     assert 'active_tunnel_registration = $true' in installer
     assert 'registered_slot = $SlotRole' in installer
-    assert "Remove-StoppedPriorTunnelRuntimes" in installer
-    assert "Another Evidence Lane tunnel is active" in installer
-    assert "could not be proven stopped; activation is blocked" in installer
+    assert "Stop-AndRetainPriorTunnelRuntimes" in installer
+    assert "could not be stopped and retained" in installer
+    assert "could not be proven stopped, disabled, and retained" in installer
     assert "$managerCommand.Parameters.ContainsKey($optionalParameter)" in installer
     assert '@("ProfileName", "TaskName", "ReleaseToken")' in installer
     assert '[string]::IsNullOrWhiteSpace($markerValue)' in installer
-    assert "Remove-StoppedPriorTunnelTasks" in installer
+    assert "Stop-DisableAndRetainPriorTunnelTasks" in installer
     assert 'TaskName -like "EvidenceLane-Tunnel-*"' in installer
     assert "if ($Activate)" in installer
     assert "MigrateCurrentRuntime" not in installer
@@ -152,6 +158,9 @@ def test_installer_reuses_verified_dependencies_and_can_acquire_missing_client()
     assert "Resolve-PriorRuntimeKeyEnvelope" in installer
     assert "tunnel_id_reused = $tunnelIdReused" in installer
     assert "runtime_key_envelope_reused = $runtimeKeyEnvelopeReused" in installer
+    assert "COMPATIBLE_TUNNEL_RUNTIME_KEY_REUSED" in installer
+    assert "runtime_key_reused_from_compatible_tunnel = -not $interactiveKeyEntry" in installer
+    assert "tunnel_compatibility_sha256 = $tunnelCompatibilitySha256" in installer
     assert "profileTunnelId" in installer
 
 
@@ -173,7 +182,8 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
     assert "[int]$marker.exact_hook_event_count" in manager
     assert "[int]$marker.exact_provider_count" in manager
     assert "runtime_key_plaintext_reported = $false" in manager
-    assert 'ReleaseToken = "v300"' in manager
+    assert '[string]$ReleaseToken = ""' in manager
+    assert '$ReleaseToken = [string]$identityMarker.release_token' in manager
     assert "release_token = if ($null -ne $marker)" in manager
     assert (
         "management request does not match the exact release-bound host-wide tunnel marker"
@@ -202,28 +212,38 @@ def test_manager_exposes_start_status_repair_and_ready_gate() -> None:
 def test_prior_tunnel_version_manager_is_physically_absent() -> None:
     installer = _read("Install-EvidenceLaneTunnel.ps1")
     assert not (TUNNEL_SCRIPTS / "Manage-EvidenceLaneTunnelVersions.ps1").exists()
-    assert "Remove-StoppedPriorTunnelRuntimes" in installer
-    assert "Remove-StoppedPriorTunnelTasks" in installer
-    assert "prior_versioned_runtimes_retained = $false" in installer
-    assert "prior_versioned_tasks_retained = $false" in installer
-    assert "prior_versioned_runtime_deletion_required = $true" in installer
+    assert "Stop-AndRetainPriorTunnelRuntimes" in installer
+    assert "Stop-DisableAndRetainPriorTunnelTasks" in installer
+    assert "prior_versioned_runtimes_retained = $true" in installer
+    assert "prior_versioned_tasks_retained = $true" in installer
+    assert "prior_versioned_tasks_disabled = $true" in installer
+    assert "prior_versioned_runtime_deletion_required = $false" in installer
 
 
 
 def test_all_tunnel_scripts_use_release_bound_runtime_names() -> None:
     installer = _read("Install-EvidenceLaneTunnel.ps1")
-    assert '"v" + ($release -replace' in installer
+    assert '$releaseToken = "v" + ($Release -replace' in installer
+    assert "$pluginVersionSha256 = Get-StringSha256 -Value $PluginVersion" in installer
     assert (
-        'Join-Path $RuntimeControlRoot '
-        '"tunnel-runtime-$releaseToken-stable-build"'
+        "$pluginVersionDigest = "
+        "$pluginVersionSha256.Substring(0, 12).ToLowerInvariant()"
     ) in installer
-    assert '"EvidenceLane-Tunnel-$releaseToken-stable-build"' in installer
-    assert '"evidence_lane_${releaseToken}"' in installer
+    assert (
+        '$tunnelVersionToken = "${releaseToken}-${slotNameToken}-abi-'
+        '${tunnelCompatibilityDigest}"'
+    ) in installer
+    assert "$tunnelCompatibilityDigest = " in installer
+    assert "$TunnelCompatibilitySha256.Substring(0, 12).ToLowerInvariant()" in installer
+    assert 'runtime_directory_name = "tunnel-runtime-$tunnelVersionToken"' in installer
+    assert 'task_name = "EvidenceLane-Tunnel-$tunnelVersionToken"' in installer
+    assert '$filePrefix = "evidence_lane_" + $tunnelVersionToken.Replace' in installer
 
     for name in ("EvidenceLaneTunnel.Boot.ps1", "Manage-EvidenceLaneTunnel.ps1"):
         text = _read(name)
-        assert 'ReleaseToken = "v300"' in text
-        assert '"evidence_lane_${ReleaseToken}"' in text
+        assert '[string]$ReleaseToken = ""' in text
+        assert "marker.release_token" in text
+        assert "marker.file_prefix" in text or "identityMarker.file_prefix" in text
         assert "release-bound" in text and "tunnel marker" in text
         assert "evidence_lane_v150" not in text
         assert "tunnel-runtime-v150" not in text

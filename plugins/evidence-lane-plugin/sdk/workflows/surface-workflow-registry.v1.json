@@ -20025,7 +20025,7 @@
       "source_pairing": {
         "authority_id": "source_authority",
         "path": "authorities/source_authority",
-        "table_count": 56,
+        "table_count": 57,
         "linked_public_action_count": 18,
         "persistent_sqlite_authority": true,
         "eligible_tools": [
@@ -20594,7 +20594,7 @@
       "superseded_route_retained": false,
       "hil_inference_allowed": false,
       "workflow_or_count_ceiling": false,
-      "receipt_sha256": "418BF0E5932EFE40AAA0A1FE8987D3EC94F6F638FC2BF7AED38D0DD8A2B07C93"
+      "receipt_sha256": "01A5A9DB2A390637D3241533C193B4C09884C21709122E9BF8659075CCD9245A"
     },
     {
       "schema": "evidence-lane.surface-workflow.v1",
@@ -28183,7 +28183,7 @@
       "surface_kind": "NAMED_ROOT_AUTHORITY",
       "surface_id": "source_authority",
       "json": "authorities/source_authority/workflow.v1.json",
-      "json_sha256": "9B598699D7FF9695D1D0101617D42175DC752254A1AD490C635AD421F4B0A420",
+      "json_sha256": "ED96177D27A39425E02B7DAE7E8A592BCE770897B4CA0F87E0F297B960C95017",
       "mmd": "authorities/source_authority/workflow.mmd",
       "mmd_sha256": "FEF95E5343C500E9C29DA26E06A71A447533A55077F2BD76FED7BE55695C58EF",
       "dot": "authorities/source_authority/workflow.dot",
@@ -29398,5 +29398,5 @@
       }
     }
   ],
-  "receipt_sha256": "93628BD4B20E37FE3BFA08F0734DB2FB2A0899B448CFEB2776F17F3216BBCD58"
+  "receipt_sha256": "B271A12D919B54007CE378BBF759ACC08041E14D8C12FA92C706E5B24C689C23"
 }

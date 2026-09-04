@@ -37,6 +37,7 @@ from .lanes import (
     route_batch,
 )
 from .project_root_binding import validate_project_root_binding
+from .receipt_ledger import append_project_authority_operational_receipt
 from .source_policy import content_exclusion_reason, path_exclusion_reason
 from .timeutil import utc_now
 
@@ -1000,6 +1001,74 @@ def _accepted_lane_history_reference(
     }
 
 
+def _lane_population_projection(
+    project_root: Path,
+    *,
+    project_id: str,
+    accepted_pv: str,
+    current_lane_ids: list[str] | tuple[str, ...],
+    historical_references: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Keep current live lanes separate from immutable accepted-history lanes."""
+
+    current_lane_set = set(current_lane_ids)
+    ordered_current = [
+        lane_id for lane_id in CANONICAL_LANE_IDS if lane_id in current_lane_set
+    ]
+    references = historical_references or [
+        _accepted_lane_history_reference(
+            project_root,
+            project_id=project_id,
+            lane_id=lane_id,
+            accepted_pv=accepted_pv,
+        )
+        for lane_id in CANONICAL_LANE_IDS
+    ]
+    reference_by_lane = {str(row["lane_id"]): row for row in references}
+    require(
+        set(reference_by_lane) == set(CANONICAL_LANE_IDS),
+        "PROJECT_AUTHORITY_ACCEPTED_HISTORY_LANE_SET_MISMATCH",
+        "Accepted-history population must classify every canonical lane exactly once.",
+        status="MISMATCH",
+    )
+    accepted_materialized = [
+        lane_id
+        for lane_id in CANONICAL_LANE_IDS
+        if reference_by_lane[lane_id].get("state") == "IMMUTABLE_ACCEPTED_HISTORY"
+    ]
+    accepted_unpopulated = [
+        lane_id
+        for lane_id in CANONICAL_LANE_IDS
+        if reference_by_lane[lane_id].get("state") == "SCHEMA_READY_UNPOPULATED"
+    ]
+    require(
+        len(accepted_materialized) + len(accepted_unpopulated)
+        == len(CANONICAL_LANE_IDS),
+        "PROJECT_AUTHORITY_ACCEPTED_HISTORY_STATE_INVALID",
+        "Every accepted-history lane must be materialized or schema-ready unpopulated.",
+        status="MISMATCH",
+    )
+    return {
+        "current_canonical_lane_count": len(CANONICAL_LANE_IDS),
+        "current_materialized_lane_count": len(ordered_current),
+        "current_materialized_lane_ids": ordered_current,
+        "current_unmaterialized_lane_count": len(CANONICAL_LANE_IDS)
+        - len(ordered_current),
+        "current_unmaterialized_lane_ids": [
+            lane_id for lane_id in CANONICAL_LANE_IDS if lane_id not in ordered_current
+        ],
+        "accepted_history_materialized_lane_count": len(accepted_materialized),
+        "accepted_history_materialized_lane_ids": accepted_materialized,
+        "accepted_history_schema_ready_unpopulated_lane_count": len(
+            accepted_unpopulated
+        ),
+        "accepted_history_schema_ready_unpopulated_lane_ids": accepted_unpopulated,
+        "current_and_accepted_history_counts_are_separate": True,
+        "accepted_archive_opened": False,
+        "accepted_archive_queried": False,
+    }
+
+
 def _preserve_root_nested_lane_histories(
     source_sectors: Path | None,
     staged_sectors: Path,
@@ -1153,6 +1222,25 @@ def _inspect_source_scaffold_retirement(project_root: Path) -> dict[str, Any]:
     }
 
 
+def _ledger_project_authority_operational_receipt(
+    project_root: Path,
+    filename: str,
+) -> dict[str, Any]:
+    project = json.loads((project_root / "project.json").read_text(encoding="utf-8"))
+    project_id = str(project.get("project_id") or "").strip()
+    require(
+        bool(project_id),
+        "PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_PROJECT_ID_MISSING",
+        "Operational receipt admission requires the exact project registry identity.",
+        status="MISMATCH",
+    )
+    return append_project_authority_operational_receipt(
+        project_root,
+        project_id=project_id,
+        filename=filename,
+    )
+
+
 def _retire_empty_source_scaffolds(
     project_root: Path,
     *,
@@ -1227,6 +1315,10 @@ def _retire_empty_source_scaffolds(
             and existing.get("receipt_sha256")
             == sha256_bytes(canonical_json_bytes(existing_receipt_body))
         ):
+            _ledger_project_authority_operational_receipt(
+                project_root,
+                "source-scaffold-retirement.json",
+            )
             return existing
     receipt_body = {**stable_receipt_body, "recorded_at": utc_now()}
     receipt = {
@@ -1240,6 +1332,10 @@ def _retire_empty_source_scaffolds(
         / "source-scaffold-retirement.json"
     )
     atomic_write_json(receipt_path, receipt)
+    _ledger_project_authority_operational_receipt(
+        project_root,
+        "source-scaffold-retirement.json",
+    )
     return receipt
 
 
@@ -1623,6 +1719,28 @@ def materialize_project_authority_layout(
     legacy_history = (
         Path(legacy_history_root).resolve() if legacy_history_root is not None else None
     )
+    if legacy_history is None and receipt_database.is_file():
+        prior_connection = sqlite3.connect(
+            f"file:{receipt_database.resolve().as_posix()}?mode=ro&immutable=1",
+            uri=True,
+        )
+        try:
+            prior_row = prior_connection.execute(
+                "SELECT payload_json FROM receipt_record "
+                "WHERE logical_path=? ORDER BY sequence DESC LIMIT 1",
+                ("project-authority/legacy-history-reference.json",),
+            ).fetchone()
+        finally:
+            prior_connection.close()
+        if prior_row and prior_row[0]:
+            prior_reference = json.loads(str(prior_row[0]))
+            prior_root = str(prior_reference.get("legacy_history_root") or "").strip()
+            if (
+                prior_reference.get("schema")
+                == "evidence-lane.legacy-project-history-reference.v1"
+                and prior_root
+            ):
+                legacy_history = Path(prior_root).resolve()
     legacy_history_receipt = {
         "schema": "evidence-lane.legacy-project-history-reference.v1",
         "state": "NON_AUTHORITATIVE_HISTORY_PENDING_HIDDEN_RUNTIME_MIGRATION",
@@ -1660,6 +1778,12 @@ def materialize_project_authority_layout(
         "project_truth_promotion_allowed": False,
         "raw_payload_duplication_allowed": False,
     }
+    lane_population = _lane_population_projection(
+        root,
+        project_id=project_id,
+        accepted_pv=accepted_pv,
+        current_lane_ids=ordered_emitted_lane_ids,
+    )
 
     layout = {
         "schema": PROJECT_AUTHORITY_LAYOUT_SCHEMA,
@@ -1679,8 +1803,13 @@ def materialize_project_authority_layout(
         ],
         "unfired_sector_directories_created": False,
         "fired_sector_directories_reused": True,
-        "accepted_materialized_lane_count": len(emitted),
-        "schema_ready_unpopulated_lane_count": len(CANONICAL_LANE_IDS) - len(emitted),
+        "accepted_materialized_lane_count": lane_population[
+            "accepted_history_materialized_lane_count"
+        ],
+        "schema_ready_unpopulated_lane_count": lane_population[
+            "accepted_history_schema_ready_unpopulated_lane_count"
+        ],
+        "lane_population": lane_population,
         "study_brain": study_profile,
         "named_authorities": named_authorities,
         "accepted_pointer": {
@@ -1890,10 +2019,13 @@ def materialize_project_authority_layout(
         "canonical_lane_count": len(CANONICAL_LANE_IDS),
         "materialized_sector_directory_count": len(sector_rows),
         "materialized_sector_lane_ids": list(ordered_emitted_lane_ids),
-        "accepted_materialized_lane_count": len(emitted),
-        "schema_ready_unpopulated_lane_ids": [
-            lane_id for lane_id in CANONICAL_LANE_IDS if lane_id not in emitted
+        "accepted_materialized_lane_count": lane_population[
+            "accepted_history_materialized_lane_count"
         ],
+        "schema_ready_unpopulated_lane_ids": lane_population[
+            "accepted_history_schema_ready_unpopulated_lane_ids"
+        ],
+        "lane_population": lane_population,
         "unfired_sector_directories_created": False,
         "fired_sector_directories_reused": True,
         "study_brain_profile": study_profile,
@@ -2738,6 +2870,10 @@ def _recover_interrupted_working_sector_stage(
                 / "working-sector-migration.json",
                 committed,
             )
+            _ledger_project_authority_operational_receipt(
+                root,
+                "working-sector-migration.json",
+            )
             operations.append(
                 _remove_tree_with_retry(
                     backup,
@@ -2783,6 +2919,10 @@ def _recover_interrupted_working_sector_stage(
         atomic_write_json(
             root / "receipts" / "project-authority" / "working-sector-recovery.json",
             recovery,
+        )
+        _ledger_project_authority_operational_receipt(
+            root,
+            "working-sector-recovery.json",
         )
         return recovery
     committed_receipt_path = (
@@ -2862,6 +3002,10 @@ def _recover_interrupted_working_sector_stage(
     atomic_write_json(
         root / "receipts" / "project-authority" / "working-sector-recovery.json",
         recovery_record,
+    )
+    _ledger_project_authority_operational_receipt(
+        root,
+        "working-sector-recovery.json",
     )
     return recovery_record
 
@@ -3460,6 +3604,10 @@ def migrate_working_project_sectors(
                 root,
                 preflight=source_scaffold_preflight,
             )
+            _ledger_project_authority_operational_receipt(
+                root,
+                "working-sector-migration.json",
+            )
             return {
                 "status": "PASS",
                 "state": "WORKING_SECTOR_AUTHORITY_IDEMPOTENT_REUSE",
@@ -3705,18 +3853,23 @@ def migrate_working_project_sectors(
             )
 
         migration_phase = "SEAL_CANONICAL_LANE_REFERENCES"
-        historical_lane_references: list[dict[str, Any]] = []
-        for lane_id in emitted_lane_ids:
-            lane_root = staging / lane_id
-            schema = lane_schema_asset(lane_id)
-            artifacts = lane_artifact_contract(lane_id)
-            historical_reference = _accepted_lane_history_reference(
+        historical_lane_references = [
+            _accepted_lane_history_reference(
                 root,
                 project_id=project_id,
                 lane_id=lane_id,
                 accepted_pv=accepted_pv,
             )
-            historical_lane_references.append(historical_reference)
+            for lane_id in CANONICAL_LANE_IDS
+        ]
+        historical_reference_by_lane = {
+            str(row["lane_id"]): row for row in historical_lane_references
+        }
+        for lane_id in emitted_lane_ids:
+            lane_root = staging / lane_id
+            schema = lane_schema_asset(lane_id)
+            artifacts = lane_artifact_contract(lane_id)
+            historical_reference = historical_reference_by_lane[lane_id]
             atomic_write_json(
                 lane_root / "historical_authority.ref.json",
                 historical_reference,
@@ -3807,6 +3960,13 @@ def migrate_working_project_sectors(
             plan_stage / OPERATIONAL_AUTHORITY_MARKER,
             {**marker_base, "authority": "PLAN", "canonical_files": plan_files},
         )
+        lane_population = _lane_population_projection(
+            root,
+            project_id=project_id,
+            accepted_pv=accepted_pv,
+            current_lane_ids=emitted_lane_ids,
+            historical_references=historical_lane_references,
+        )
         atomic_write_json(
             staging / CHAT_LINEAGE_SECTOR_ID / OPERATIONAL_AUTHORITY_MARKER,
             {
@@ -3857,10 +4017,13 @@ def migrate_working_project_sectors(
             "accepted_archive_opened": False,
             "accepted_archive_queried": False,
             "historical_lane_reference_count": len(historical_lane_references),
-            "historical_materialized_lane_count": sum(
-                row["state"] == "IMMUTABLE_ACCEPTED_HISTORY"
-                for row in historical_lane_references
-            ),
+            "historical_materialized_lane_count": lane_population[
+                "accepted_history_materialized_lane_count"
+            ],
+            "historical_schema_ready_unpopulated_lane_count": lane_population[
+                "accepted_history_schema_ready_unpopulated_lane_count"
+            ],
+            "lane_population": lane_population,
             "content_delta_path_count": len(content_paths),
             "complete_governed_source_path_count": int(
                 lane_build.get("source_count") or 0
@@ -4034,6 +4197,10 @@ def migrate_working_project_sectors(
             root / "receipts" / "project-authority" / "working-sector-migration.json",
             receipt,
         )
+        _ledger_project_authority_operational_receipt(
+            root,
+            "working-sector-migration.json",
+        )
         return {
             "status": "PASS",
             "state": (
@@ -4132,6 +4299,10 @@ def migrate_working_project_sectors(
                             canonical_json_bytes(blocked_body)
                         ),
                     },
+                )
+                _ledger_project_authority_operational_receipt(
+                    root,
+                    "working-sector-promotion-block.json",
                 )
             elif staging.exists():
                 _remove_tree_with_retry(

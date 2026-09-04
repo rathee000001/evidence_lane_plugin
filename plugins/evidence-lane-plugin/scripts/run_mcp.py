@@ -97,6 +97,7 @@ def _runtime_ready(
         completed = subprocess.run(  # nosec B603
             [
                 str(python),
+                "-B",
                 "-c",
                 (
                     "import sys; sys.path.insert(0, sys.argv[3]); import mcp; "
@@ -132,6 +133,7 @@ def _bootstrap_runtime(
     completed = subprocess.run(  # nosec B603
         [
             sys.executable,
+            "-B",
             str(bootstrap),
             "--environment",
             str(environment),
@@ -250,6 +252,7 @@ def main() -> int:
         completed = subprocess.run(  # nosec B603
             [
                 str(python),
+                "-B",
                 str(Path(__file__).resolve()),
                 "--bootstrap-only",
                 "--host-profile",
@@ -288,6 +291,7 @@ def main() -> int:
         completed = subprocess.run(  # nosec B603
             [
                 str(python),
+                "-B",
                 str(Path(__file__).resolve()),
                 "--prewarm-only",
                 "--host-profile",
@@ -342,6 +346,7 @@ def main() -> int:
         completed = subprocess.run(  # nosec B603
             [
                 str(python),
+                "-B",
                 str(Path(__file__).resolve()),
                 "--transport",
                 args.transport,

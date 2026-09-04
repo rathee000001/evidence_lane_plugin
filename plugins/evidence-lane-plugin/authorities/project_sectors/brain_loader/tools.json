@@ -184,7 +184,7 @@
   "topology_generator": {
     "schema": "evidence-lane.lane-topology-generator.v5",
     "module": "lane_engine.py",
-    "module_sha256": "E4A3773B3EB281B4527D193074954E450E36C2F3927AAF29A122C10F2F38301D",
+    "module_sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
     "schema_topology_module_sha256": "F1A09DC05100982CCB50C9E9259918B97DFC150EAA2D801EDA36E218ACE727BD",
     "topology_reconciliation_module_sha256": "2154B784B5C02E04EED92D95FCA935D4F0ECE6BCA16B7B91EE058EE493C4AFA1",
     "lane_id": "brain_loader",
@@ -241,7 +241,7 @@
       "profile": "SQLITE_SCHEMA_RELATION_SAMPLE"
     },
     "code_logical_topology": null,
-    "sha256": "97081DB41EC02683B6127E5C1F32A8A189B8E0D4484CB3BF81C29754994175B7"
+    "sha256": "02B804068FD80E1DED579A4E64E98283572A2E40091111E0BDFAB893526929FE"
   },
   "artifact_contract": {
     "four_file_schema": "evidence-lane.lane-four-file-contract.v1",
@@ -249,7 +249,12 @@
     "module_sha256": "5FFC789BF918B726536B3E073360F610E35C8A21E38BF2EFF4BF8F55583B7ACB"
   },
   "parser_implementation": {
-    "lane_engine_sha256": "E4A3773B3EB281B4527D193074954E450E36C2F3927AAF29A122C10F2F38301D",
+    "lane_engine_sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
+    "ai_toolchain_sha256": "AB48E32E727716CE3AD319C1DE4BABA8DFDFB709DEAF50A605A649E03A78065D",
+    "code_toolchain_sha256": "B8B896A668AD57268BD7F53EF4D6829C22DC006926EB4C50188553954A056D5D",
+    "runtime_toolchain_sha256": "17A967D65F46A423932DE06510B7BD19280427C3FDAD5F0B8B0A92444369EE6E",
+    "native_toolchain_sha256": "36BF974C5C759B64515E4624FC0DB982F36ED8334081DBA52F1D683A130A3470",
+    "graph_pipeline_sha256": "F1C1AD56D52DD339DA0B9E196898C1420E2EBF539B547CC86FB4B4ADBCC49014",
     "tabular_toolchain_sha256": "79674643BBE0CC5CBC099A380F358FBAB6A2E587A6036E37BE3C0C700536CC63",
     "sqlite_execution_sha256": "86AAB88E767837E6C328C636C949BE8097A5D7AB427A91777E9C47D3045CC245",
     "code_ingest_sha256": "A9B4981A20140D89E79137C01C34ABF28F8218E949F521BC8EA744C44CDB786C",
@@ -703,7 +708,7 @@
       },
       "tool_routing": {
         "path": "toolchains/tool-execution-routing.v1.json",
-        "sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182",
+        "sha256": "342B1FDB7A8502CA494F9FDF9709C294FDCE42DE5F419E99D974C94F65294988",
         "direct_hash_embedded": true
       },
       "unified_pairing": {
@@ -714,12 +719,12 @@
       },
       "public_actions": {
         "path": "schemas/public-action-schemas.v001.json",
-        "sha256": "6408DF34A1E61226E09D5BEC1620DEB845893EA969AE4D42660B86055ECB744F",
+        "sha256": "C18495E8E5233E3A38871737997262A108ADDE0995A9A7947479BBF7746CF9D7",
         "direct_hash_embedded": true
       },
       "skills": {
         "path": "skills/skill-surface-registry.v1.json",
-        "sha256": "532DFAF8DC4EF2ADC31C0EC8D44B81F264644291EC431CBAA57A84B1996715C4",
+        "sha256": "8F212FE824B468BC506773F89B96CFCA21211BBCAD04C6A238ACBA83CDF352A1",
         "direct_hash_embedded": true
       },
       "hooks": {
@@ -740,7 +745,7 @@
         "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
       }
     },
-    "receipt_sha256": "4F6A3EC824345A67053F26FA183EA832A4E37D51435D9CEA328F7C7B06ED3BB8"
+    "receipt_sha256": "2CC115BA62EAA72ED32FAC38C7193C5AB132653ECA24C50B7D1449D6D938DCED"
   },
   "source_conditioned_toolchain": {
     "schema": "evidence-lane.source-conditioned-lane-toolchain.v1",
@@ -751,109 +756,162 @@
       "brain_loader"
     ],
     "eligible_tools": [
+      "Pydantic",
+      "SQLite_CAS",
+      "OpenAI_Agents_SDK",
+      "hashlib_pathlib",
+      "Secret_redactor",
+      "Safe_archive_intake",
       "Git",
       "Python",
-      "hashlib_pathlib",
-      "SQLite_CAS",
-      "SQLite_FTS5_BM25",
-      "APSW_SQLite_engine",
-      "deterministic_TFIDF",
-      "LangGraph_Mermaid_engine",
-      "Python_Graphviz_DOT_engine",
-      "LlamaIndex_SQLite_indexer",
-      "Mermaid_CLI_mmdc",
-      "Graphviz_dot",
       "NodeJS_TypeScript",
-      "pytest",
-      "Ruff",
-      "MyPy",
-      "Secret_redactor",
-      "SQLite_immutable_URI_reader",
-      "Safe_archive_intake",
-      "MCP_Python_SDK",
-      "Pydantic",
-      "Tableau_Hyper_API",
-      "SentenceTransformers",
-      "FAISS_CPU",
-      "rank_bm25",
-      "PyGithub",
       "GitPython",
+      "PyGithub",
       "TreeSitter_LanguagePack",
-      "rustworkx",
-      "sqlite_vec",
-      "OpenAI_Agents_SDK",
-      "FastMCP",
       "GitHub_MCP_Server",
       "Filesystem_MCP_Server",
+      "SQLite_immutable_URI_reader",
+      "APSW_SQLite_engine",
+      "Tableau_Hyper_API",
+      "LlamaIndex_SQLite_indexer",
+      "SQLite_FTS5_BM25",
+      "sqlite_vec",
+      "rank_bm25",
+      "SentenceTransformers",
+      "FAISS_CPU",
       "Pinecone",
       "Weaviate",
       "Milvus",
       "OpenSearch",
-      "Langfuse",
+      "deterministic_TFIDF",
+      "LangGraph_Mermaid_engine",
+      "rustworkx",
+      "Python_Graphviz_DOT_engine",
+      "Graphviz_dot",
+      "Mermaid_CLI_mmdc",
+      "FastMCP",
+      "MCP_Python_SDK",
       "OpenTelemetry",
+      "Langfuse",
       "Docker",
-      "Kubernetes"
+      "Kubernetes",
+      "pytest",
+      "Ruff",
+      "MyPy"
     ],
     "eligible_tool_count": 42,
     "rows": [
       {
-        "tool": "Git",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_OPTIONAL_FOR_PROJECT_ENGULF",
+        "tool": "Pydantic",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "requirement": "REQUIRED_DEPENDENCY",
         "action_classes": [
-          "CODE"
-        ],
-        "primary": [
-          "CODE"
-        ],
-        "fallback": [],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "project_engulf"
-        ],
-        "surfaces": [
-          "github_code",
-          "local_code",
-          "project_engulf",
-          "runtime_git_delivery"
-        ],
-        "implementation_owner": "git_optional.py + git_history.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": false,
-        "runtime_evidence_sha256": "80B737FA44F87B4BFA90860D37BEAC6A3A395D48B190E14CC394C912A9B06C80"
-      },
-      {
-        "tool": "Python",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED",
-        "action_classes": [
-          "CODE",
+          "GOVERNANCE",
           "RUNTIME_API"
         ],
-        "primary": [
-          "RUNTIME_API"
-        ],
+        "primary": [],
         "fallback": [
-          "CODE"
+          "GOVERNANCE",
+          "RUNTIME_API"
         ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code"
-        ],
+        "eligible_lanes": [],
         "surfaces": [
-          "github_code",
-          "local_code",
-          "package_runtime"
+          "native_mcp",
+          "internal_sdk"
         ],
-        "implementation_owner": "scripts/bootstrap.py hidden runtime",
+        "implementation_owner": "typed tool/request/result modules",
         "runs_only_when_selected": true,
+        "registry_order": 48,
+        "orchestration_order": 1,
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "102D19CEA31C0619410E5068E3201D5D0A2B478F1FE5AB8C0B779D32C7D6FD54"
+        "runtime_evidence_sha256": "71F2BD23C06597C6F300649CC0A22B0A6A446516181E3BA122C31E8744A080A8"
+      },
+      {
+        "tool": "SQLite_CAS",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED",
+        "action_classes": [
+          "GOVERNANCE"
+        ],
+        "primary": [],
+        "fallback": [
+          "GOVERNANCE"
+        ],
+        "eligible_lanes": [
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "project_authority",
+          "plan",
+          "chat_lineage",
+          "canon",
+          "learning",
+          "memory",
+          "sources",
+          "universe",
+          "project_overlay",
+          "connector_brain",
+          "receipt_ledger",
+          "session_authority"
+        ],
+        "implementation_owner": "lane_engine.py + store.py",
+        "runs_only_when_selected": true,
+        "registry_order": 4,
+        "orchestration_order": 2,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "E06786067AD83C4C19F3C7E154966186AF67924D7F745081F311DDD165C88820"
+      },
+      {
+        "tool": "OpenAI_Agents_SDK",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "GOVERNANCE",
+          "RETRIEVAL",
+          "CODE",
+          "DOCUMENT",
+          "OCR_MEDIA",
+          "DATA",
+          "WEB_RESEARCH",
+          "GRAPH",
+          "RUNTIME_API"
+        ],
+        "primary": [],
+        "fallback": [
+          "GOVERNANCE",
+          "RETRIEVAL",
+          "CODE",
+          "DOCUMENT",
+          "OCR_MEDIA",
+          "DATA",
+          "WEB_RESEARCH",
+          "GRAPH",
+          "RUNTIME_API"
+        ],
+        "eligible_lanes": [],
+        "surfaces": [
+          "internal_sdk",
+          "outer_sdk",
+          "native_mcp"
+        ],
+        "implementation_owner": "ecosystem_toolchain.py + internal_sdk.py",
+        "runs_only_when_selected": true,
+        "registry_order": 95,
+        "orchestration_order": 3,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "9FA13961D5151DCD6A770C34B926B21E079BC0AE5CD5E58AD4CCD95F234C4F45"
       },
       {
         "tool": "hashlib_pathlib",
@@ -896,62 +954,23 @@
         ],
         "implementation_owner": "hashing.py",
         "runs_only_when_selected": true,
+        "registry_order": 3,
+        "orchestration_order": 4,
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
         "runtime_evidence_sha256": "3032EFA658C44147AB344EFC64D494F6268173E431FF6381F6D6DDF3AFF47E10"
       },
       {
-        "tool": "SQLite_CAS",
+        "tool": "Secret_redactor",
         "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED",
+        "requirement": "REQUIRED_INTERNAL",
         "action_classes": [
-          "GOVERNANCE"
+          "SOURCE_ROUTING"
         ],
         "primary": [],
         "fallback": [
-          "GOVERNANCE"
-        ],
-        "eligible_lanes": [
-          "analysis",
-          "discussion",
-          "plan",
-          "mode",
-          "chat_lineage",
-          "custom"
-        ],
-        "surfaces": [
-          "all_18_project_sectors",
-          "project_authority",
-          "plan",
-          "chat_lineage",
-          "canon",
-          "learning",
-          "memory",
-          "sources",
-          "universe",
-          "project_overlay",
-          "connector_brain",
-          "receipt_ledger",
-          "session_authority"
-        ],
-        "implementation_owner": "lane_engine.py + store.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "E06786067AD83C4C19F3C7E154966186AF67924D7F745081F311DDD165C88820"
-      },
-      {
-        "tool": "SQLite_FTS5_BM25",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED",
-        "action_classes": [
-          "RETRIEVAL"
-        ],
-        "primary": [],
-        "fallback": [
-          "RETRIEVAL"
+          "SOURCE_ROUTING"
         ],
         "eligible_lanes": [
           "github_code",
@@ -974,15 +993,322 @@
           "custom"
         ],
         "surfaces": [
-          "all_18_project_sectors",
-          "every_queryable_project_authority"
+          "chat_lineage",
+          "every_source_policy"
         ],
-        "implementation_owner": "sqlite_indexing.py + lane_reader.py",
+        "implementation_owner": "redaction.py",
         "runs_only_when_selected": true,
+        "registry_order": 19,
+        "orchestration_order": 5,
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "128975D551018909917C330279BB441458EFE29A0C0C594C3C65F3468134F8E9"
+        "runtime_evidence_sha256": "BA5AFDCFE698A00DD93C387A188E870FA53258E67F329F008EB92F0B196B54F8"
+      },
+      {
+        "tool": "Safe_archive_intake",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_INTERNAL",
+        "action_classes": [
+          "SOURCE_ROUTING"
+        ],
+        "primary": [],
+        "fallback": [
+          "SOURCE_ROUTING"
+        ],
+        "eligible_lanes": [
+          "brain_loader",
+          "project_engulf"
+        ],
+        "surfaces": [
+          "brain_loader",
+          "project_engulf"
+        ],
+        "implementation_owner": "lane_engine.py + source_authority.py",
+        "runs_only_when_selected": true,
+        "registry_order": 42,
+        "orchestration_order": 6,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "88EA443FCA39B415B66BBFBFF9AC09185B780D17EFB94639B01A36679AD1093F"
+      },
+      {
+        "tool": "Git",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_OPTIONAL_FOR_PROJECT_ENGULF",
+        "action_classes": [
+          "CODE"
+        ],
+        "primary": [
+          "CODE"
+        ],
+        "fallback": [],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "project_engulf",
+          "runtime_git_delivery"
+        ],
+        "implementation_owner": "git_optional.py + git_history.py",
+        "runs_only_when_selected": true,
+        "registry_order": 1,
+        "orchestration_order": 7,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "80B737FA44F87B4BFA90860D37BEAC6A3A395D48B190E14CC394C912A9B06C80"
+      },
+      {
+        "tool": "Python",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED",
+        "action_classes": [
+          "CODE",
+          "RUNTIME_API"
+        ],
+        "primary": [
+          "RUNTIME_API"
+        ],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "package_runtime"
+        ],
+        "implementation_owner": "scripts/bootstrap.py hidden runtime",
+        "runs_only_when_selected": true,
+        "registry_order": 2,
+        "orchestration_order": 8,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "102D19CEA31C0619410E5068E3201D5D0A2B478F1FE5AB8C0B779D32C7D6FD54"
+      },
+      {
+        "tool": "NodeJS_TypeScript",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_REPOSITORY_ONLY",
+        "action_classes": [
+          "CODE",
+          "DEPLOYMENT"
+        ],
+        "primary": [
+          "DEPLOYMENT"
+        ],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "public_adapter"
+        ],
+        "implementation_owner": "repository CI and remote_adapter build",
+        "runs_only_when_selected": true,
+        "registry_order": 15,
+        "orchestration_order": 9,
+        "runtime_state": "REPOSITORY_ONLY_AVAILABLE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "ECE65B84E399F2AE7F8BB561BD792F2296F7B186FF50C67A4672E8B3DF5FBCFD"
+      },
+      {
+        "tool": "GitPython",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "CODE"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "implementation_owner": "git_optional.py parity",
+        "runs_only_when_selected": true,
+        "registry_order": 82,
+        "orchestration_order": 10,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "EEA060FF2D7F24C2F2393EC0091998A25EBF066CD4C8F2EC204D1C9CE4CBCA3C"
+      },
+      {
+        "tool": "PyGithub",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "CODE"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code"
+        ],
+        "surfaces": [
+          "github_code",
+          "git_delivery"
+        ],
+        "implementation_owner": "github_toolchain.py",
+        "runs_only_when_selected": true,
+        "registry_order": 81,
+        "orchestration_order": 11,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "6CB8D685375BBF1EBE19463E0F4C0205C42D83A47894A5DE44A834AFC0E297EA"
+      },
+      {
+        "tool": "TreeSitter_LanguagePack",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "CODE"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "project_engulf"
+        ],
+        "implementation_owner": "code_toolchain.py + ingest.py",
+        "runs_only_when_selected": true,
+        "registry_order": 87,
+        "orchestration_order": 12,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "0219C6AAECF97A7C102F6C634139DC4A2F6491495C2DEB53A84DA1CCC00980FD"
+      },
+      {
+        "tool": "GitHub_MCP_Server",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+        "action_classes": [
+          "CODE",
+          "RUNTIME_API"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE",
+          "RUNTIME_API"
+        ],
+        "eligible_lanes": [
+          "github_code"
+        ],
+        "surfaces": [
+          "github_code",
+          "git_delivery",
+          "outer_sdk",
+          "tunnel"
+        ],
+        "implementation_owner": "mcp_adapter_routing.py + outer SDK tunnel route",
+        "runs_only_when_selected": true,
+        "registry_order": 97,
+        "orchestration_order": 13,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "E16853590B713656E373D0108C99C239DA59139F4B50F191F1DF1DE1652DE98D"
+      },
+      {
+        "tool": "Filesystem_MCP_Server",
+        "role_class": "EXTERNAL_SERVICE_OR_STORE",
+        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+        "action_classes": [
+          "CODE",
+          "RUNTIME_API"
+        ],
+        "primary": [],
+        "fallback": [
+          "CODE",
+          "RUNTIME_API"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code"
+        ],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "docs",
+          "data_excel",
+          "outer_sdk",
+          "tunnel"
+        ],
+        "implementation_owner": "mcp_adapter_routing.py + root-scoped outer SDK route",
+        "runs_only_when_selected": true,
+        "registry_order": 98,
+        "orchestration_order": 14,
+        "runtime_state": "CONFIGURATION_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "38F5472CD0940D7A991B36507A63D010BB314C05D8B12284930684639E455D81"
+      },
+      {
+        "tool": "SQLite_immutable_URI_reader",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_INTERNAL",
+        "action_classes": [
+          "DOCUMENT",
+          "DATA"
+        ],
+        "primary": [],
+        "fallback": [
+          "DOCUMENT",
+          "DATA"
+        ],
+        "eligible_lanes": [
+          "brain_loader",
+          "sqlite_brain"
+        ],
+        "surfaces": [
+          "brain_loader",
+          "sqlite_brain"
+        ],
+        "implementation_owner": "lane_engine.py",
+        "runs_only_when_selected": true,
+        "registry_order": 41,
+        "orchestration_order": 15,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "E06786067AD83C4C19F3C7E154966186AF67924D7F745081F311DDD165C88820"
       },
       {
         "tool": "APSW_SQLite_engine",
@@ -1025,139 +1351,40 @@
         ],
         "implementation_owner": "sqlite_execution.py",
         "runs_only_when_selected": true,
+        "registry_order": 6,
+        "orchestration_order": 16,
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "B0F4A36336E6951FEFF1F6E1728FC82F6222620DEF404C1FC36BFA94A2DB27D9"
+        "runtime_evidence_sha256": "73E768031082210FF3C30D28E7E1D532EDFBB7D7D083C8768D7EDA1E33D4190A"
       },
       {
-        "tool": "deterministic_TFIDF",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_INTERNAL",
-        "action_classes": [
-          "RETRIEVAL"
-        ],
-        "primary": [],
-        "fallback": [
-          "RETRIEVAL"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "docs",
-          "pdf_ocr",
-          "images_ocr",
-          "ppt",
-          "data_excel",
-          "research",
-          "brain_loader",
-          "sqlite_brain",
-          "project_engulf",
-          "artifacts",
-          "analysis",
-          "discussion",
-          "plan",
-          "mode",
-          "chat_lineage",
-          "custom"
-        ],
-        "surfaces": [
-          "all_18_project_sectors"
-        ],
-        "implementation_owner": "lane_engine.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "529502C7B0360E671C329E137A27505E42C0BADB4DB97B5E3F0929234919CF78"
-      },
-      {
-        "tool": "LangGraph_Mermaid_engine",
+        "tool": "Tableau_Hyper_API",
         "role_class": "TASK_EXECUTION",
         "requirement": "REQUIRED_DEPENDENCY",
         "action_classes": [
-          "GRAPH"
+          "DATA"
         ],
         "primary": [],
         "fallback": [
-          "GRAPH"
+          "DATA"
         ],
         "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "docs",
-          "pdf_ocr",
-          "images_ocr",
-          "ppt",
           "data_excel",
-          "research",
-          "brain_loader",
-          "sqlite_brain",
-          "project_engulf",
-          "artifacts",
-          "analysis",
-          "plan",
-          "mode",
-          "chat_lineage",
-          "custom"
+          "brain_loader"
         ],
         "surfaces": [
-          "all_18_project_sectors",
-          "plan",
-          "canon_topology",
-          "all_named_authorities",
-          "all_workflows"
+          "data_excel",
+          "brain_loader"
         ],
-        "implementation_owner": "graph_pipeline.py",
+        "implementation_owner": "data_toolchain.py",
         "runs_only_when_selected": true,
+        "registry_order": 65,
+        "orchestration_order": 17,
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "7D0D5216451D761D30C3CBB4E95AB626FA09286FED45CB89D389B09861FCB501"
-      },
-      {
-        "tool": "Python_Graphviz_DOT_engine",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "GRAPH"
-        ],
-        "primary": [],
-        "fallback": [
-          "GRAPH"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "docs",
-          "pdf_ocr",
-          "images_ocr",
-          "ppt",
-          "data_excel",
-          "research",
-          "brain_loader",
-          "sqlite_brain",
-          "project_engulf",
-          "artifacts",
-          "analysis",
-          "plan",
-          "mode",
-          "chat_lineage",
-          "custom"
-        ],
-        "surfaces": [
-          "all_18_project_sectors",
-          "plan",
-          "canon_topology",
-          "all_named_authorities",
-          "all_workflows"
-        ],
-        "implementation_owner": "graph_pipeline.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "293A1C635B93020CED1C89FD0EABA741F87F44F4CD9CCC8A6DA16964138E2278"
+        "runtime_evidence_sha256": "E977F4AF0420CC5793802001D6EFBC58BCD7BCD8118F2F1C6AD2114C36F67975"
       },
       {
         "tool": "LlamaIndex_SQLite_indexer",
@@ -1205,355 +1432,17 @@
         ],
         "implementation_owner": "sqlite_indexing.py",
         "runs_only_when_selected": true,
+        "registry_order": 10,
+        "orchestration_order": 18,
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "863816DCCDA9191612C6FA5D282330D546F5D023AA37F83ABB0D88D91E4219BB"
+        "runtime_evidence_sha256": "1D0F5596B46CF9E9FDD3BF476F610CAE137F57644F90AD13C61287BFF3F2CDAF"
       },
       {
-        "tool": "Mermaid_CLI_mmdc",
+        "tool": "SQLite_FTS5_BM25",
         "role_class": "TASK_EXECUTION",
-        "requirement": "OPTIONAL_HIDDEN_RUNTIME_RENDERER",
-        "action_classes": [
-          "GRAPH"
-        ],
-        "primary": [],
-        "fallback": [
-          "GRAPH"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "docs",
-          "pdf_ocr",
-          "images_ocr",
-          "ppt",
-          "data_excel",
-          "research",
-          "brain_loader",
-          "sqlite_brain",
-          "project_engulf",
-          "artifacts",
-          "analysis",
-          "plan",
-          "mode",
-          "chat_lineage",
-          "custom"
-        ],
-        "surfaces": [
-          "all_graph_surfaces"
-        ],
-        "implementation_owner": "native_toolchain.py (optional renderer)",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": false,
-        "runtime_evidence_sha256": "61D3F1381172B58F52CB77AF2F1517C474AA5497AB391A6BDCFF15A14A5ECF4F"
-      },
-      {
-        "tool": "Graphviz_dot",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
-        "action_classes": [
-          "GRAPH"
-        ],
-        "primary": [],
-        "fallback": [
-          "GRAPH"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "docs",
-          "pdf_ocr",
-          "images_ocr",
-          "ppt",
-          "data_excel",
-          "research",
-          "brain_loader",
-          "sqlite_brain",
-          "project_engulf",
-          "artifacts",
-          "analysis",
-          "plan",
-          "mode",
-          "chat_lineage",
-          "custom"
-        ],
-        "surfaces": [
-          "all_graph_surfaces"
-        ],
-        "implementation_owner": "native_toolchain.py + graph_pipeline.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "3E2D707486AF4ABFC9FBF22BDDD1C92AC150F169B7C2432F2B779B9A29ECC01C"
-      },
-      {
-        "tool": "NodeJS_TypeScript",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_REPOSITORY_ONLY",
-        "action_classes": [
-          "CODE",
-          "DEPLOYMENT"
-        ],
-        "primary": [
-          "DEPLOYMENT"
-        ],
-        "fallback": [
-          "CODE"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code"
-        ],
-        "surfaces": [
-          "github_code",
-          "local_code",
-          "public_adapter"
-        ],
-        "implementation_owner": "repository CI and remote_adapter build",
-        "runs_only_when_selected": true,
-        "runtime_state": "REPOSITORY_ONLY_AVAILABLE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": false,
-        "runtime_evidence_sha256": "ECE65B84E399F2AE7F8BB561BD792F2296F7B186FF50C67A4672E8B3DF5FBCFD"
-      },
-      {
-        "tool": "pytest",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_CODE_ACCEPTANCE",
-        "action_classes": [],
-        "primary": [],
-        "fallback": [],
-        "eligible_lanes": [],
-        "surfaces": [
-          "github_code",
-          "local_code",
-          "plugin_tests"
-        ],
-        "implementation_owner": "plugin tests + repository tests",
-        "runs_only_when_selected": true,
-        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
-        "runtime_status": "PASS",
-        "runtime_startup_required": false,
-        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
-      },
-      {
-        "tool": "Ruff",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_CONFIGURED_GATE",
-        "action_classes": [],
-        "primary": [],
-        "fallback": [],
-        "eligible_lanes": [],
-        "surfaces": [
-          "github_code",
-          "local_code"
-        ],
-        "implementation_owner": "repository quality gate",
-        "runs_only_when_selected": true,
-        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
-        "runtime_status": "PASS",
-        "runtime_startup_required": false,
-        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
-      },
-      {
-        "tool": "MyPy",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_CONFIGURED_GATE",
-        "action_classes": [],
-        "primary": [],
-        "fallback": [],
-        "eligible_lanes": [],
-        "surfaces": [
-          "github_code",
-          "local_code"
-        ],
-        "implementation_owner": "repository type gate",
-        "runs_only_when_selected": true,
-        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
-        "runtime_status": "PASS",
-        "runtime_startup_required": false,
-        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
-      },
-      {
-        "tool": "Secret_redactor",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_INTERNAL",
-        "action_classes": [
-          "SOURCE_ROUTING"
-        ],
-        "primary": [],
-        "fallback": [
-          "SOURCE_ROUTING"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "docs",
-          "pdf_ocr",
-          "images_ocr",
-          "ppt",
-          "data_excel",
-          "research",
-          "brain_loader",
-          "sqlite_brain",
-          "project_engulf",
-          "artifacts",
-          "analysis",
-          "discussion",
-          "plan",
-          "mode",
-          "chat_lineage",
-          "custom"
-        ],
-        "surfaces": [
-          "chat_lineage",
-          "every_source_policy"
-        ],
-        "implementation_owner": "redaction.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "BA5AFDCFE698A00DD93C387A188E870FA53258E67F329F008EB92F0B196B54F8"
-      },
-      {
-        "tool": "SQLite_immutable_URI_reader",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_INTERNAL",
-        "action_classes": [
-          "DOCUMENT",
-          "DATA"
-        ],
-        "primary": [],
-        "fallback": [
-          "DOCUMENT",
-          "DATA"
-        ],
-        "eligible_lanes": [
-          "brain_loader",
-          "sqlite_brain"
-        ],
-        "surfaces": [
-          "brain_loader",
-          "sqlite_brain"
-        ],
-        "implementation_owner": "lane_engine.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "E06786067AD83C4C19F3C7E154966186AF67924D7F745081F311DDD165C88820"
-      },
-      {
-        "tool": "Safe_archive_intake",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_INTERNAL",
-        "action_classes": [
-          "SOURCE_ROUTING"
-        ],
-        "primary": [],
-        "fallback": [
-          "SOURCE_ROUTING"
-        ],
-        "eligible_lanes": [
-          "brain_loader",
-          "project_engulf"
-        ],
-        "surfaces": [
-          "brain_loader",
-          "project_engulf"
-        ],
-        "implementation_owner": "lane_engine.py + source_authority.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "F177884017B580263A3B7338E3D4C7EC0EB545646F7381883E47D2CCF9AA1595"
-      },
-      {
-        "tool": "MCP_Python_SDK",
-        "role_class": "TRANSPORT_OR_ORCHESTRATION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "RUNTIME_API",
-          "MCP_COMPOSITION"
-        ],
-        "primary": [],
-        "fallback": [
-          "RUNTIME_API",
-          "MCP_COMPOSITION"
-        ],
-        "eligible_lanes": [],
-        "surfaces": [
-          "native_mcp",
-          "internal_sdk"
-        ],
-        "implementation_owner": "mcp_server.py + internal_sdk.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "29BC4EB84F5AF59EA50453C609CE347A00FF00C6152A479A7AD591640E595E15"
-      },
-      {
-        "tool": "Pydantic",
-        "role_class": "TRANSPORT_OR_ORCHESTRATION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "GOVERNANCE",
-          "RUNTIME_API"
-        ],
-        "primary": [],
-        "fallback": [
-          "GOVERNANCE",
-          "RUNTIME_API"
-        ],
-        "eligible_lanes": [],
-        "surfaces": [
-          "native_mcp",
-          "internal_sdk"
-        ],
-        "implementation_owner": "typed tool/request/result modules",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "BDAFE3E4061CB027143AA2CDB729F603DA13D6DC644BB934A689760D39DE71BC"
-      },
-      {
-        "tool": "Tableau_Hyper_API",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "DATA"
-        ],
-        "primary": [],
-        "fallback": [
-          "DATA"
-        ],
-        "eligible_lanes": [
-          "data_excel",
-          "brain_loader"
-        ],
-        "surfaces": [
-          "data_excel",
-          "brain_loader"
-        ],
-        "implementation_owner": "data_toolchain.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "BE497BA7D7DC08302EFBCE61CD3A3C111EF5C25B86A84ACA4ACCB56DC0268830"
-      },
-      {
-        "tool": "SentenceTransformers",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_DEPENDENCY",
+        "requirement": "REQUIRED",
         "action_classes": [
           "RETRIEVAL"
         ],
@@ -1576,213 +1465,6 @@
           "artifacts",
           "analysis",
           "discussion",
-          "plan",
-          "mode",
-          "chat_lineage",
-          "custom"
-        ],
-        "surfaces": [
-          "all_queryable_authorities",
-          "research",
-          "memory"
-        ],
-        "implementation_owner": "semantic_retrieval.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "6C97098831224BBC8E117B4787797B841ACB1D6A68752672A6F8B9645A1D8588"
-      },
-      {
-        "tool": "FAISS_CPU",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "RETRIEVAL"
-        ],
-        "primary": [],
-        "fallback": [
-          "RETRIEVAL"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "docs",
-          "pdf_ocr",
-          "images_ocr",
-          "ppt",
-          "data_excel",
-          "research",
-          "brain_loader",
-          "sqlite_brain",
-          "project_engulf",
-          "artifacts",
-          "analysis",
-          "discussion",
-          "plan",
-          "mode",
-          "chat_lineage",
-          "custom"
-        ],
-        "surfaces": [
-          "all_queryable_authorities",
-          "research",
-          "memory"
-        ],
-        "implementation_owner": "hybrid_retrieval.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "3CD6CF686D0133129B7E6A9A82EA36403405348A577E8413AB9C7EA700C38BE2"
-      },
-      {
-        "tool": "rank_bm25",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "RETRIEVAL"
-        ],
-        "primary": [],
-        "fallback": [
-          "RETRIEVAL"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "docs",
-          "pdf_ocr",
-          "images_ocr",
-          "ppt",
-          "data_excel",
-          "research",
-          "brain_loader",
-          "sqlite_brain",
-          "project_engulf",
-          "artifacts",
-          "analysis",
-          "discussion",
-          "plan",
-          "mode",
-          "chat_lineage",
-          "custom"
-        ],
-        "surfaces": [
-          "all_queryable_authorities"
-        ],
-        "implementation_owner": "hybrid_retrieval.py + sqlite_indexing.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "AEF4D4599AF8E712734E8E2E757033CE74E58F000ECABFBF970F3AD2F256DC5B"
-      },
-      {
-        "tool": "PyGithub",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "CODE"
-        ],
-        "primary": [],
-        "fallback": [
-          "CODE"
-        ],
-        "eligible_lanes": [
-          "github_code"
-        ],
-        "surfaces": [
-          "github_code",
-          "git_delivery"
-        ],
-        "implementation_owner": "github_toolchain.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "5C658F97944FC4239155C8E37B5F669412E757B449506227841B2AF5D9FAF8AE"
-      },
-      {
-        "tool": "GitPython",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "CODE"
-        ],
-        "primary": [],
-        "fallback": [
-          "CODE"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "project_engulf"
-        ],
-        "surfaces": [
-          "github_code",
-          "local_code",
-          "project_engulf"
-        ],
-        "implementation_owner": "git_optional.py parity",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "8FC54AD4863BE340518E6E789335DDA969D1D9727FEE140873BC8D0C2D420C70"
-      },
-      {
-        "tool": "TreeSitter_LanguagePack",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "CODE"
-        ],
-        "primary": [],
-        "fallback": [
-          "CODE"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "project_engulf"
-        ],
-        "surfaces": [
-          "github_code",
-          "local_code",
-          "project_engulf"
-        ],
-        "implementation_owner": "code_toolchain.py + ingest.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "0D14D7ED3590F7A9D162CC6D9448146A38ACA4C1733CDA12CEB05DC22E8BE9E2"
-      },
-      {
-        "tool": "rustworkx",
-        "role_class": "TASK_EXECUTION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "GRAPH"
-        ],
-        "primary": [],
-        "fallback": [
-          "GRAPH"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code",
-          "docs",
-          "pdf_ocr",
-          "images_ocr",
-          "ppt",
-          "data_excel",
-          "research",
-          "brain_loader",
-          "sqlite_brain",
-          "project_engulf",
-          "artifacts",
-          "analysis",
           "plan",
           "mode",
           "chat_lineage",
@@ -1790,18 +1472,16 @@
         ],
         "surfaces": [
           "all_18_project_sectors",
-          "canon_topology",
-          "all_named_authorities",
-          "project_universe",
-          "connector_brain",
-          "project_overlay"
+          "every_queryable_project_authority"
         ],
-        "implementation_owner": "graph_pipeline.py",
+        "implementation_owner": "sqlite_indexing.py + lane_reader.py",
         "runs_only_when_selected": true,
+        "registry_order": 5,
+        "orchestration_order": 19,
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "61A1A19F5E7850B444265DBE1A3DBEF9A2DD21B2963B90989E681C57FBC6118D"
+        "runtime_evidence_sha256": "128975D551018909917C330279BB441458EFE29A0C0C594C3C65F3468134F8E9"
       },
       {
         "tool": "sqlite_vec",
@@ -1842,138 +1522,145 @@
         ],
         "implementation_owner": "semantic_retrieval.py",
         "runs_only_when_selected": true,
+        "registry_order": 90,
+        "orchestration_order": 20,
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": false,
-        "runtime_evidence_sha256": "885BF09D5086805FD492122C08F170D63A35EA9CAD17CD0AD3064239A065724A"
+        "runtime_evidence_sha256": "302D09FCFC0E2BF8791ACB92F9992EC9E5D6A218679F6D9310872E790CB785ED"
       },
       {
-        "tool": "OpenAI_Agents_SDK",
-        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "tool": "rank_bm25",
+        "role_class": "TASK_EXECUTION",
         "requirement": "REQUIRED_DEPENDENCY",
         "action_classes": [
-          "GOVERNANCE",
-          "RETRIEVAL",
-          "CODE",
-          "DOCUMENT",
-          "OCR_MEDIA",
-          "DATA",
-          "WEB_RESEARCH",
-          "GRAPH",
-          "RUNTIME_API"
+          "RETRIEVAL"
         ],
         "primary": [],
         "fallback": [
-          "GOVERNANCE",
-          "RETRIEVAL",
-          "CODE",
-          "DOCUMENT",
-          "OCR_MEDIA",
-          "DATA",
-          "WEB_RESEARCH",
-          "GRAPH",
-          "RUNTIME_API"
-        ],
-        "eligible_lanes": [],
-        "surfaces": [
-          "internal_sdk",
-          "outer_sdk",
-          "native_mcp"
-        ],
-        "implementation_owner": "ecosystem_toolchain.py + internal_sdk.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "9FA13961D5151DCD6A770C34B926B21E079BC0AE5CD5E58AD4CCD95F234C4F45"
-      },
-      {
-        "tool": "FastMCP",
-        "role_class": "TRANSPORT_OR_ORCHESTRATION",
-        "requirement": "REQUIRED_DEPENDENCY",
-        "action_classes": [
-          "RUNTIME_API",
-          "MCP_COMPOSITION"
-        ],
-        "primary": [
-          "MCP_COMPOSITION"
-        ],
-        "fallback": [
-          "RUNTIME_API"
-        ],
-        "eligible_lanes": [],
-        "surfaces": [
-          "native_mcp",
-          "tunnel",
-          "outer_sdk"
-        ],
-        "implementation_owner": "ecosystem_toolchain.py + mcp_server.py",
-        "runs_only_when_selected": true,
-        "runtime_state": "ACTIVE",
-        "runtime_status": "PASS",
-        "runtime_startup_required": true,
-        "runtime_evidence_sha256": "487869847FE288357C0D11E58DF7B68B5E4CF63B6EA31E58FA29ED8D9668F8C8"
-      },
-      {
-        "tool": "GitHub_MCP_Server",
-        "role_class": "EXTERNAL_SERVICE_OR_STORE",
-        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
-        "action_classes": [
-          "CODE",
-          "RUNTIME_API"
-        ],
-        "primary": [],
-        "fallback": [
-          "CODE",
-          "RUNTIME_API"
+          "RETRIEVAL"
         ],
         "eligible_lanes": [
-          "github_code"
-        ],
-        "surfaces": [
-          "github_code",
-          "git_delivery",
-          "outer_sdk",
-          "tunnel"
-        ],
-        "implementation_owner": "mcp_adapter_routing.py + outer SDK tunnel route",
-        "runs_only_when_selected": true,
-        "runtime_state": "CONFIGURATION_REQUIRED",
-        "runtime_status": "PASS",
-        "runtime_startup_required": false,
-        "runtime_evidence_sha256": "E16853590B713656E373D0108C99C239DA59139F4B50F191F1DF1DE1652DE98D"
-      },
-      {
-        "tool": "Filesystem_MCP_Server",
-        "role_class": "EXTERNAL_SERVICE_OR_STORE",
-        "requirement": "CONFIGURED_EXTERNAL_SERVICE",
-        "action_classes": [
-          "CODE",
-          "RUNTIME_API"
-        ],
-        "primary": [],
-        "fallback": [
-          "CODE",
-          "RUNTIME_API"
-        ],
-        "eligible_lanes": [
-          "github_code",
-          "local_code"
-        ],
-        "surfaces": [
           "github_code",
           "local_code",
           "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
           "data_excel",
-          "outer_sdk",
-          "tunnel"
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
         ],
-        "implementation_owner": "mcp_adapter_routing.py + root-scoped outer SDK route",
+        "surfaces": [
+          "all_queryable_authorities"
+        ],
+        "implementation_owner": "hybrid_retrieval.py + sqlite_indexing.py",
         "runs_only_when_selected": true,
-        "runtime_state": "CONFIGURATION_REQUIRED",
+        "registry_order": 69,
+        "orchestration_order": 21,
+        "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
-        "runtime_startup_required": false,
-        "runtime_evidence_sha256": "38F5472CD0940D7A991B36507A63D010BB314C05D8B12284930684639E455D81"
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "E2F90B67FDC2D9D625C880749715DE213A110222924DE5956B4E454EFBCF726F"
+      },
+      {
+        "tool": "SentenceTransformers",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_queryable_authorities",
+          "research",
+          "memory"
+        ],
+        "implementation_owner": "semantic_retrieval.py",
+        "runs_only_when_selected": true,
+        "registry_order": 67,
+        "orchestration_order": 22,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "37760BFD724692C2BCEC369A3A57338B78EA2A98FCB7F03581D39011E4F3E539"
+      },
+      {
+        "tool": "FAISS_CPU",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RETRIEVAL"
+        ],
+        "primary": [],
+        "fallback": [
+          "RETRIEVAL"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_queryable_authorities",
+          "research",
+          "memory"
+        ],
+        "implementation_owner": "hybrid_retrieval.py",
+        "runs_only_when_selected": true,
+        "registry_order": 68,
+        "orchestration_order": 23,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "72826848CD2F7A895B5A4317485087070A1BFCA6C7620A0925D880B187BFF5A2"
       },
       {
         "tool": "Pinecone",
@@ -2013,6 +1700,8 @@
         ],
         "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
         "runs_only_when_selected": true,
+        "registry_order": 101,
+        "orchestration_order": 24,
         "runtime_state": "CONFIGURATION_REQUIRED",
         "runtime_status": "PASS",
         "runtime_startup_required": false,
@@ -2056,6 +1745,8 @@
         ],
         "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
         "runs_only_when_selected": true,
+        "registry_order": 102,
+        "orchestration_order": 25,
         "runtime_state": "CONFIGURATION_REQUIRED",
         "runtime_status": "PASS",
         "runtime_startup_required": false,
@@ -2099,6 +1790,8 @@
         ],
         "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
         "runs_only_when_selected": true,
+        "registry_order": 103,
+        "orchestration_order": 26,
         "runtime_state": "CONFIGURATION_REQUIRED",
         "runtime_status": "PASS",
         "runtime_startup_required": false,
@@ -2142,21 +1835,23 @@
         ],
         "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
         "runs_only_when_selected": true,
+        "registry_order": 104,
+        "orchestration_order": 27,
         "runtime_state": "CONFIGURATION_REQUIRED",
         "runtime_status": "PASS",
         "runtime_startup_required": false,
         "runtime_evidence_sha256": "89FB5A9A681ACFBDD9EEF0199C477229AD253FB1596888E1292D4CD733F910F6"
       },
       {
-        "tool": "Langfuse",
-        "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
-        "requirement": "REQUIRED_DEPENDENCY",
+        "tool": "deterministic_TFIDF",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_INTERNAL",
         "action_classes": [
-          "OBSERVABILITY"
+          "RETRIEVAL"
         ],
         "primary": [],
         "fallback": [
-          "OBSERVABILITY"
+          "RETRIEVAL"
         ],
         "eligible_lanes": [
           "github_code",
@@ -2179,16 +1874,295 @@
           "custom"
         ],
         "surfaces": [
-          "observability",
-          "all_workflows",
-          "tunnel"
+          "all_18_project_sectors"
         ],
-        "implementation_owner": "observability_toolchain.py + runtime_toolchain.py",
+        "implementation_owner": "lane_engine.py",
         "runs_only_when_selected": true,
+        "registry_order": 7,
+        "orchestration_order": 28,
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
-        "runtime_evidence_sha256": "094C551B7AB2A9260FBB8E93575EAB5199587CBB7B9A07AD80D0FAED6B94BF55"
+        "runtime_evidence_sha256": "40ED0A41913F06E5458742C1A8E1D9616BF3789E979AAEF49E11FC476B70BA6D"
+      },
+      {
+        "tool": "LangGraph_Mermaid_engine",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "GRAPH"
+        ],
+        "primary": [],
+        "fallback": [
+          "GRAPH"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "plan",
+          "canon_topology",
+          "all_named_authorities",
+          "all_workflows"
+        ],
+        "implementation_owner": "graph_pipeline.py",
+        "runs_only_when_selected": true,
+        "registry_order": 8,
+        "orchestration_order": 29,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "2087E2D5CA4164366651657C2ABBBCA1D87E145C492B24E4323EE817BCA7E4C8"
+      },
+      {
+        "tool": "rustworkx",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "GRAPH"
+        ],
+        "primary": [],
+        "fallback": [
+          "GRAPH"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "canon_topology",
+          "all_named_authorities",
+          "project_universe",
+          "connector_brain",
+          "project_overlay"
+        ],
+        "implementation_owner": "graph_pipeline.py",
+        "runs_only_when_selected": true,
+        "registry_order": 89,
+        "orchestration_order": 30,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "9A87B2960D981B526FB20D0A1647C4E58AA990BBB7A0C6DB582EDE5287836DAC"
+      },
+      {
+        "tool": "Python_Graphviz_DOT_engine",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "GRAPH"
+        ],
+        "primary": [],
+        "fallback": [
+          "GRAPH"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_18_project_sectors",
+          "plan",
+          "canon_topology",
+          "all_named_authorities",
+          "all_workflows"
+        ],
+        "implementation_owner": "graph_pipeline.py",
+        "runs_only_when_selected": true,
+        "registry_order": 9,
+        "orchestration_order": 31,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "45E1BC8465F11954A4F9A0685CB23FCE3F91B5935165FA1EB1E8737D7FFE0BC8"
+      },
+      {
+        "tool": "Graphviz_dot",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+        "action_classes": [
+          "GRAPH"
+        ],
+        "primary": [],
+        "fallback": [
+          "GRAPH"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_graph_surfaces"
+        ],
+        "implementation_owner": "native_toolchain.py + graph_pipeline.py",
+        "runs_only_when_selected": true,
+        "registry_order": 12,
+        "orchestration_order": 32,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "3E2D707486AF4ABFC9FBF22BDDD1C92AC150F169B7C2432F2B779B9A29ECC01C"
+      },
+      {
+        "tool": "Mermaid_CLI_mmdc",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "OPTIONAL_HIDDEN_RUNTIME_RENDERER",
+        "action_classes": [
+          "GRAPH"
+        ],
+        "primary": [],
+        "fallback": [
+          "GRAPH"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "all_graph_surfaces"
+        ],
+        "implementation_owner": "native_toolchain.py (optional renderer)",
+        "runs_only_when_selected": true,
+        "registry_order": 11,
+        "orchestration_order": 33,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "61D3F1381172B58F52CB77AF2F1517C474AA5497AB391A6BDCFF15A14A5ECF4F"
+      },
+      {
+        "tool": "FastMCP",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RUNTIME_API",
+          "MCP_COMPOSITION"
+        ],
+        "primary": [
+          "MCP_COMPOSITION"
+        ],
+        "fallback": [
+          "RUNTIME_API"
+        ],
+        "eligible_lanes": [],
+        "surfaces": [
+          "native_mcp",
+          "tunnel",
+          "outer_sdk"
+        ],
+        "implementation_owner": "ecosystem_toolchain.py + mcp_server.py",
+        "runs_only_when_selected": true,
+        "registry_order": 96,
+        "orchestration_order": 34,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "487869847FE288357C0D11E58DF7B68B5E4CF63B6EA31E58FA29ED8D9668F8C8"
+      },
+      {
+        "tool": "MCP_Python_SDK",
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "RUNTIME_API",
+          "MCP_COMPOSITION"
+        ],
+        "primary": [],
+        "fallback": [
+          "RUNTIME_API",
+          "MCP_COMPOSITION"
+        ],
+        "eligible_lanes": [],
+        "surfaces": [
+          "native_mcp",
+          "internal_sdk"
+        ],
+        "implementation_owner": "mcp_server.py + internal_sdk.py",
+        "runs_only_when_selected": true,
+        "registry_order": 47,
+        "orchestration_order": 35,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "7860A5113161B41980799492CB28CF5E2E9B7536C2A8C7980E99CA5A6BC2292C"
       },
       {
         "tool": "OpenTelemetry",
@@ -2229,10 +2203,57 @@
         ],
         "implementation_owner": "observability_toolchain.py + runtime trace correlation",
         "runs_only_when_selected": true,
+        "registry_order": 111,
+        "orchestration_order": 36,
         "runtime_state": "ACTIVE",
         "runtime_status": "PASS",
         "runtime_startup_required": true,
         "runtime_evidence_sha256": "638DCA3F4E1B796232A6C802477642F634B3118D81FA69488D05EB9EF7CDEF6C"
+      },
+      {
+        "tool": "Langfuse",
+        "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
+        "requirement": "REQUIRED_DEPENDENCY",
+        "action_classes": [
+          "OBSERVABILITY"
+        ],
+        "primary": [],
+        "fallback": [
+          "OBSERVABILITY"
+        ],
+        "eligible_lanes": [
+          "github_code",
+          "local_code",
+          "docs",
+          "pdf_ocr",
+          "images_ocr",
+          "ppt",
+          "data_excel",
+          "research",
+          "brain_loader",
+          "sqlite_brain",
+          "project_engulf",
+          "artifacts",
+          "analysis",
+          "discussion",
+          "plan",
+          "mode",
+          "chat_lineage",
+          "custom"
+        ],
+        "surfaces": [
+          "observability",
+          "all_workflows",
+          "tunnel"
+        ],
+        "implementation_owner": "observability_toolchain.py + runtime_toolchain.py",
+        "runs_only_when_selected": true,
+        "registry_order": 109,
+        "orchestration_order": 37,
+        "runtime_state": "ACTIVE",
+        "runtime_status": "PASS",
+        "runtime_startup_required": true,
+        "runtime_evidence_sha256": "094C551B7AB2A9260FBB8E93575EAB5199587CBB7B9A07AD80D0FAED6B94BF55"
       },
       {
         "tool": "Docker",
@@ -2258,6 +2279,8 @@
         ],
         "implementation_owner": "deployment_toolchain.py + delivery gate",
         "runs_only_when_selected": true,
+        "registry_order": 113,
+        "orchestration_order": 38,
         "runtime_state": "AVAILABLE",
         "runtime_status": "PASS",
         "runtime_startup_required": false,
@@ -2287,12 +2310,95 @@
         ],
         "implementation_owner": "deployment_toolchain.py + delivery gate",
         "runs_only_when_selected": true,
+        "registry_order": 114,
+        "orchestration_order": 39,
         "runtime_state": "AVAILABLE",
         "runtime_status": "PASS",
         "runtime_startup_required": false,
         "runtime_evidence_sha256": "AB94DF6CCB6CDF2505E39CA1D3A13DE027AB690AF278B02300EE3033CA56A815"
+      },
+      {
+        "tool": "pytest",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_CODE_ACCEPTANCE",
+        "action_classes": [],
+        "primary": [],
+        "fallback": [],
+        "eligible_lanes": [],
+        "surfaces": [
+          "github_code",
+          "local_code",
+          "plugin_tests"
+        ],
+        "implementation_owner": "plugin tests + repository tests",
+        "runs_only_when_selected": true,
+        "registry_order": 16,
+        "orchestration_order": 40,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
+      },
+      {
+        "tool": "Ruff",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_CONFIGURED_GATE",
+        "action_classes": [],
+        "primary": [],
+        "fallback": [],
+        "eligible_lanes": [],
+        "surfaces": [
+          "github_code",
+          "local_code"
+        ],
+        "implementation_owner": "repository quality gate",
+        "runs_only_when_selected": true,
+        "registry_order": 17,
+        "orchestration_order": 41,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
+      },
+      {
+        "tool": "MyPy",
+        "role_class": "TASK_EXECUTION",
+        "requirement": "REQUIRED_CONFIGURED_GATE",
+        "action_classes": [],
+        "primary": [],
+        "fallback": [],
+        "eligible_lanes": [],
+        "surfaces": [
+          "github_code",
+          "local_code"
+        ],
+        "implementation_owner": "repository type gate",
+        "runs_only_when_selected": true,
+        "registry_order": 18,
+        "orchestration_order": 42,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_status": "PASS",
+        "runtime_startup_required": false,
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
       }
     ],
+    "orchestration_action_class_order": [
+      "GOVERNANCE",
+      "SOURCE_ROUTING",
+      "CODE",
+      "DOCUMENT",
+      "OCR_MEDIA",
+      "DATA",
+      "WEB_RESEARCH",
+      "RETRIEVAL",
+      "GRAPH",
+      "RUNTIME_API",
+      "MCP_COMPOSITION",
+      "EVALUATION",
+      "OBSERVABILITY",
+      "DEPLOYMENT"
+    ],
+    "all_rows_in_exact_contract_order": true,
     "all_linked_required_steps_must_run_or_fail_visible": true,
     "all_registry_tools_run": false,
     "selection_is_source_shape_action_workflow_env_uop_dependent": true,
@@ -2300,17 +2406,17 @@
     "counts_are_current_snapshot_not_ceiling": true,
     "routing_registry": {
       "path": "toolchains/tool-execution-routing.v1.json",
-      "sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182"
+      "sha256": "342B1FDB7A8502CA494F9FDF9709C294FDCE42DE5F419E99D974C94F65294988"
     },
     "pairing_registry": {
       "path": "toolchains/unified-tool-workflow-pairing.v1.json",
       "sha256": "EA429DFA223AC93BC1018BCA55AB15955F1A1736BB6A9AE3CC5551814CA80388"
     },
-    "receipt_sha256": "8614CDC545DB3FE5A486ADAA1AFB7EA6E38629036634C0256216D47A37C1FC7D",
+    "receipt_sha256": "2CA9935BED57045D6B7541FEDB4BEF9F98E184B29F1837BED0825E68F7F5F3BB",
     "runtime_inventory_schema": "evidence-lane.runtime-toolchain-prewarm.v1",
     "runtime_inventory_status": "PASS",
-    "runtime_inventory_receipt_sha256": "8926C29E97FDBD0B0B28E8A172D8EB71531DBB121DCF1B9ACFE4455E206B7DF0",
-    "lane_resolution_sha256": "7B5BE47178483CFDB92BBC5FED10F84FF856821C03AD8FFD5232B775DED5EE23",
+    "runtime_inventory_receipt_sha256": "793704736C126C96394DCEA945E4F02B78FD72E36BE432DAB40F55564E678E67",
+    "lane_resolution_sha256": "A20015B0A56E5403C95D7C5EC0071D20BEC29CCA584028FB32522BE2FB7CE26D",
     "runtime_availability_measured": true,
     "installed_presence_is_execution_proof": false
   },
@@ -2320,52 +2426,52 @@
       "brain_loader"
     ],
     "eligible_tools": [
+      "Pydantic",
+      "SQLite_CAS",
+      "OpenAI_Agents_SDK",
+      "hashlib_pathlib",
+      "Secret_redactor",
+      "Safe_archive_intake",
       "Git",
       "Python",
-      "hashlib_pathlib",
-      "SQLite_CAS",
-      "SQLite_FTS5_BM25",
-      "APSW_SQLite_engine",
-      "deterministic_TFIDF",
-      "LangGraph_Mermaid_engine",
-      "Python_Graphviz_DOT_engine",
-      "LlamaIndex_SQLite_indexer",
-      "Mermaid_CLI_mmdc",
-      "Graphviz_dot",
       "NodeJS_TypeScript",
-      "pytest",
-      "Ruff",
-      "MyPy",
-      "Secret_redactor",
-      "SQLite_immutable_URI_reader",
-      "Safe_archive_intake",
-      "MCP_Python_SDK",
-      "Pydantic",
-      "Tableau_Hyper_API",
-      "SentenceTransformers",
-      "FAISS_CPU",
-      "rank_bm25",
-      "PyGithub",
       "GitPython",
+      "PyGithub",
       "TreeSitter_LanguagePack",
-      "rustworkx",
-      "sqlite_vec",
-      "OpenAI_Agents_SDK",
-      "FastMCP",
       "GitHub_MCP_Server",
       "Filesystem_MCP_Server",
+      "SQLite_immutable_URI_reader",
+      "APSW_SQLite_engine",
+      "Tableau_Hyper_API",
+      "LlamaIndex_SQLite_indexer",
+      "SQLite_FTS5_BM25",
+      "sqlite_vec",
+      "rank_bm25",
+      "SentenceTransformers",
+      "FAISS_CPU",
       "Pinecone",
       "Weaviate",
       "Milvus",
       "OpenSearch",
-      "Langfuse",
+      "deterministic_TFIDF",
+      "LangGraph_Mermaid_engine",
+      "rustworkx",
+      "Python_Graphviz_DOT_engine",
+      "Graphviz_dot",
+      "Mermaid_CLI_mmdc",
+      "FastMCP",
+      "MCP_Python_SDK",
       "OpenTelemetry",
+      "Langfuse",
       "Docker",
-      "Kubernetes"
+      "Kubernetes",
+      "pytest",
+      "Ruff",
+      "MyPy"
     ],
     "routing_registry": {
       "path": "toolchains/tool-execution-routing.v1.json",
-      "sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182"
+      "sha256": "342B1FDB7A8502CA494F9FDF9709C294FDCE42DE5F419E99D974C94F65294988"
     },
     "pairing_registry": {
       "path": "toolchains/unified-tool-workflow-pairing.v1.json",
@@ -2375,21 +2481,71 @@
     "runtime_availability_affects_tool_identity": false,
     "hardware_telemetry_affects_tool_identity": false
   },
-  "sha256": "56CF56273FA07259FADB676FC6F4B24F09000CED4F18FEC6F29EE2423895192E",
+  "sha256": "504F327B850E560C621F8CC8D8396C116C521C72299A61E8AF74ED79B7AB8974",
   "runtime_toolchain_resolution": {
     "schema": "evidence-lane.ai-toolchain-lane-resolution.v1",
     "status": "PASS",
     "host_profile": "CODEX_DESKTOP",
     "lane_id": "brain_loader",
     "action_classes": [
+      "GOVERNANCE",
+      "SOURCE_ROUTING",
       "DOCUMENT",
       "DATA",
       "RETRIEVAL",
       "GRAPH",
-      "OBSERVABILITY",
-      "SOURCE_ROUTING"
+      "OBSERVABILITY"
     ],
     "ordered_tools": [
+      "Pydantic",
+      "SQLite_CAS",
+      "OpenAI_Agents_SDK",
+      "hashlib_pathlib",
+      "Secret_redactor",
+      "Safe_archive_intake",
+      "Git",
+      "Python",
+      "NodeJS_TypeScript",
+      "GitPython",
+      "PyGithub",
+      "TreeSitter_LanguagePack",
+      "GitHub_MCP_Server",
+      "Filesystem_MCP_Server",
+      "SQLite_immutable_URI_reader",
+      "APSW_SQLite_engine",
+      "Tableau_Hyper_API",
+      "LlamaIndex_SQLite_indexer",
+      "SQLite_FTS5_BM25",
+      "sqlite_vec",
+      "rank_bm25",
+      "SentenceTransformers",
+      "FAISS_CPU",
+      "Pinecone",
+      "Weaviate",
+      "Milvus",
+      "OpenSearch",
+      "deterministic_TFIDF",
+      "LangGraph_Mermaid_engine",
+      "rustworkx",
+      "Python_Graphviz_DOT_engine",
+      "Graphviz_dot",
+      "Mermaid_CLI_mmdc",
+      "FastMCP",
+      "MCP_Python_SDK",
+      "OpenTelemetry",
+      "Langfuse",
+      "Docker",
+      "Kubernetes",
+      "pytest",
+      "Ruff",
+      "MyPy"
+    ],
+    "ordered_tool_count": 42,
+    "lane_action_ordered_tools": [
+      "SQLite_CAS",
+      "hashlib_pathlib",
+      "Secret_redactor",
+      "Safe_archive_intake",
       "SQLite_immutable_URI_reader",
       "APSW_SQLite_engine",
       "Tableau_Hyper_API",
@@ -2410,12 +2566,14 @@
       "Graphviz_dot",
       "Mermaid_CLI_mmdc",
       "OpenTelemetry",
-      "Langfuse",
+      "Langfuse"
+    ],
+    "lane_action_ordered_tool_count": 25,
+    "runnable_tools": [
+      "SQLite_CAS",
       "hashlib_pathlib",
       "Secret_redactor",
-      "Safe_archive_intake"
-    ],
-    "runnable_tools": [
+      "Safe_archive_intake",
       "SQLite_immutable_URI_reader",
       "APSW_SQLite_engine",
       "Tableau_Hyper_API",
@@ -2432,10 +2590,7 @@
       "Graphviz_dot",
       "Mermaid_CLI_mmdc",
       "OpenTelemetry",
-      "Langfuse",
-      "hashlib_pathlib",
-      "Secret_redactor",
-      "Safe_archive_intake"
+      "Langfuse"
     ],
     "unavailable_tools": [
       "Pinecone",
@@ -2443,7 +2598,9 @@
       "Milvus",
       "OpenSearch"
     ],
-    "resolution_sha256": "7B5BE47178483CFDB92BBC5FED10F84FF856821C03AD8FFD5232B775DED5EE23"
+    "availability_scope": "LANE_ACTION_ORDERED_TOOLS",
+    "lane_action_resolution_sha256": "A20015B0A56E5403C95D7C5EC0071D20BEC29CCA584028FB32522BE2FB7CE26D",
+    "resolution_sha256": "A20015B0A56E5403C95D7C5EC0071D20BEC29CCA584028FB32522BE2FB7CE26D"
   },
   "schema": "evidence-lane.installed-lane-tooling.v1",
   "status": "PASS",
@@ -2464,7 +2621,7 @@
   ],
   "canonical_shared_modules": {
     "src/evidence_lane_plugin/lanes.py": "B63A8708B7C27EEF09C7680AB97CA3410554F4AFACF819D39E0BE1E824193376",
-    "src/evidence_lane_plugin/lane_engine.py": "E4A3773B3EB281B4527D193074954E450E36C2F3927AAF29A122C10F2F38301D",
+    "src/evidence_lane_plugin/lane_engine.py": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D",
     "src/evidence_lane_plugin/lane_reader.py": "EA46B419880515E04101EBDD6C1D7497F95EA78AD5E9DB6B02AD531CB9F57456",
     "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
     "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
@@ -2640,7 +2797,7 @@
     "engine_version": "3.53.4.0",
     "sqlite_version": "3.53.4",
     "database_path": "F:\\test codex\\plugins\\evidence-lane-plugin\\authorities\\project_sectors\\brain_loader\\brain_loader_sector_v001.sqlite",
-    "database_sha256": "6E2E81268A554F54298658FBBE0F4092748631BE2546365485CC3DA479C2445B",
+    "database_sha256": "207B6EC91577639220DF077994BB686EFC29017A3F64C1E1AC4D5A95DDF0B910",
     "integrity_check": "ok",
     "journal_mode": "delete",
     "page_count": 122,
@@ -2652,7 +2809,7 @@
     "sqlite_backup_available": true,
     "sqlite_fts5_available": true,
     "durable_authority": true,
-    "receipt_sha256": "B5CD33DCEF1E601132529A87CA40252939A11E747EA7ED3E1DF871C1A7E19C83"
+    "receipt_sha256": "7506F0804D9D72B1958863241D2A44D194A264A7059F0E1DEF81F60DEDBA1AF4"
   },
   "tool_execution_evidence": {
     "schema": "evidence-lane.lane-tool-execution-evidence.v1",
@@ -2660,324 +2817,9 @@
     "lane_id": "brain_loader",
     "rows": [
       {
-        "tool": "Git",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "BUILD_OR_PARSE"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "Git history phase not requested for this lane build",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "80B737FA44F87B4BFA90860D37BEAC6A3A395D48B190E14CC394C912A9B06C80"
-      },
-      {
-        "tool": "Python",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "BUILD_OR_PARSE",
-          "TRANSPORT"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
-        "condition_state": "CONDITION_TRUE",
-        "execution_state": "EXECUTED",
-        "evidence": "current Python lane builder process",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "102D19CEA31C0619410E5068E3201D5D0A2B478F1FE5AB8C0B779D32C7D6FD54"
-      },
-      {
-        "tool": "hashlib_pathlib",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "GOVERN"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "no routed source selected the source hashing/CAS phase",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "3032EFA658C44147AB344EFC64D494F6268173E431FF6381F6D6DDF3AFF47E10"
-      },
-      {
-        "tool": "SQLite_CAS",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "GOVERN"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "no routed source selected the source hashing/CAS phase",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "E06786067AD83C4C19F3C7E154966186AF67924D7F745081F311DDD165C88820"
-      },
-      {
-        "tool": "SQLite_FTS5_BM25",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "INDEX_OR_QUERY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
-        "condition_state": "CONDITION_TRUE",
-        "execution_state": "EXECUTED",
-        "evidence": "brain_loader_fts row parity with chunk_index",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "128975D551018909917C330279BB441458EFE29A0C0C594C3C65F3468134F8E9"
-      },
-      {
-        "tool": "APSW_SQLite_engine",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "BUILD_OR_PARSE",
-          "INDEX_OR_QUERY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
-        "condition_state": "CONDITION_TRUE",
-        "execution_state": "EXECUTED",
-        "evidence": "APSW full-API SQLite execution receipt",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "B0F4A36336E6951FEFF1F6E1728FC82F6222620DEF404C1FC36BFA94A2DB27D9"
-      },
-      {
-        "tool": "deterministic_TFIDF",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "INDEX_OR_QUERY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "query phase not requested during lane build",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "529502C7B0360E671C329E137A27505E42C0BADB4DB97B5E3F0929234919CF78"
-      },
-      {
-        "tool": "LangGraph_Mermaid_engine",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "TOPOLOGY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
-        "condition_state": "CONDITION_TRUE",
-        "execution_state": "EXECUTED",
-        "evidence": "LangGraph semantic topology + brain_loader.mmd",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "7D0D5216451D761D30C3CBB4E95AB626FA09286FED45CB89D389B09861FCB501"
-      },
-      {
-        "tool": "Python_Graphviz_DOT_engine",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "TOPOLOGY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
-        "condition_state": "CONDITION_TRUE",
-        "execution_state": "EXECUTED",
-        "evidence": "Python Graphviz DOT construction + brain_loader.dot",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "293A1C635B93020CED1C89FD0EABA741F87F44F4CD9CCC8A6DA16964138E2278"
-      },
-      {
-        "tool": "LlamaIndex_SQLite_indexer",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "INDEX_OR_QUERY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "no routed source selected the source hashing/CAS phase",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "863816DCCDA9191612C6FA5D282330D546F5D023AA37F83ABB0D88D91E4219BB"
-      },
-      {
-        "tool": "Mermaid_CLI_mmdc",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "TOPOLOGY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "derived visual render not requested; availability=ACTIVE",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "61D3F1381172B58F52CB77AF2F1517C474AA5497AB391A6BDCFF15A14A5ECF4F"
-      },
-      {
-        "tool": "Graphviz_dot",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "TOPOLOGY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
-        "condition_state": "CONDITION_TRUE",
-        "execution_state": "EXECUTED",
-        "evidence": "hidden-runtime native dot parse/validation receipt",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "3E2D707486AF4ABFC9FBF22BDDD1C92AC150F169B7C2432F2B779B9A29ECC01C"
-      },
-      {
-        "tool": "NodeJS_TypeScript",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "BUILD_OR_PARSE",
-          "DELIVER"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "eligible capability not selected by the current build phase",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "REPOSITORY_ONLY_AVAILABLE",
-        "runtime_evidence_sha256": "ECE65B84E399F2AE7F8BB561BD792F2296F7B186FF50C67A4672E8B3DF5FBCFD"
-      },
-      {
-        "tool": "pytest",
-        "role_class": "TASK_EXECUTION",
-        "phases": [],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "eligible capability not selected by the current build phase",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
-        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
-      },
-      {
-        "tool": "Ruff",
-        "role_class": "TASK_EXECUTION",
-        "phases": [],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "eligible capability not selected by the current build phase",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
-        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
-      },
-      {
-        "tool": "MyPy",
-        "role_class": "TASK_EXECUTION",
-        "phases": [],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "eligible capability not selected by the current build phase",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
-        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
-      },
-      {
-        "tool": "Secret_redactor",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "GOVERN"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
-        "condition_state": "CONDITION_TRUE",
-        "execution_state": "EXECUTED",
-        "evidence": "source-policy exclusion plus redacted topology labels",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "BA5AFDCFE698A00DD93C387A188E870FA53258E67F329F008EB92F0B196B54F8"
-      },
-      {
-        "tool": "SQLite_immutable_URI_reader",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "BUILD_OR_PARSE"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "eligible capability not selected by the current build phase",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "E06786067AD83C4C19F3C7E154966186AF67924D7F745081F311DDD165C88820"
-      },
-      {
-        "tool": "Safe_archive_intake",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "GOVERN"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "eligible capability not selected by the current build phase",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "F177884017B580263A3B7338E3D4C7EC0EB545646F7381883E47D2CCF9AA1595"
-      },
-      {
-        "tool": "MCP_Python_SDK",
-        "role_class": "TRANSPORT_OR_ORCHESTRATION",
-        "phases": [
-          "TRANSPORT"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "package-local lane build required no outer transport",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "29BC4EB84F5AF59EA50453C609CE347A00FF00C6152A479A7AD591640E595E15"
-      },
-      {
         "tool": "Pydantic",
+        "orchestration_order": 1,
+        "registry_order": 48,
         "role_class": "TRANSPORT_OR_ORCHESTRATION",
         "phases": [
           "GOVERN",
@@ -2991,154 +2833,30 @@
         "network_call_performed": false,
         "credential_value_read": false,
         "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "BDAFE3E4061CB027143AA2CDB729F603DA13D6DC644BB934A689760D39DE71BC"
+        "runtime_evidence_sha256": "71F2BD23C06597C6F300649CC0A22B0A6A446516181E3BA122C31E8744A080A8"
       },
       {
-        "tool": "Tableau_Hyper_API",
+        "tool": "SQLite_CAS",
+        "orchestration_order": 2,
+        "registry_order": 4,
         "role_class": "TASK_EXECUTION",
         "phases": [
-          "BUILD_OR_PARSE"
+          "GOVERN"
         ],
         "eligibility_state": "ELIGIBLE",
         "selection_state": "NOT_SELECTED",
         "condition_state": "CONDITION_FALSE",
         "execution_state": "NOT_EXECUTED",
-        "evidence": "alternate parser not selected by current source/path",
+        "evidence": "no routed source selected the source hashing/CAS phase",
         "network_call_performed": false,
         "credential_value_read": false,
         "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "BE497BA7D7DC08302EFBCE61CD3A3C111EF5C25B86A84ACA4ACCB56DC0268830"
-      },
-      {
-        "tool": "SentenceTransformers",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "INDEX_OR_QUERY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "query phase not requested during lane build",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "6C97098831224BBC8E117B4787797B841ACB1D6A68752672A6F8B9645A1D8588"
-      },
-      {
-        "tool": "FAISS_CPU",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "INDEX_OR_QUERY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "query phase not requested during lane build",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "3CD6CF686D0133129B7E6A9A82EA36403405348A577E8413AB9C7EA700C38BE2"
-      },
-      {
-        "tool": "rank_bm25",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "INDEX_OR_QUERY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "query phase not requested during lane build",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "AEF4D4599AF8E712734E8E2E757033CE74E58F000ECABFBF970F3AD2F256DC5B"
-      },
-      {
-        "tool": "PyGithub",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "BUILD_OR_PARSE"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "GitHub API phase not requested; local Git history uses no remote API",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "5C658F97944FC4239155C8E37B5F669412E757B449506227841B2AF5D9FAF8AE"
-      },
-      {
-        "tool": "GitPython",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "BUILD_OR_PARSE"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "Git history phase not requested for this lane build",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "8FC54AD4863BE340518E6E789335DDA969D1D9727FEE140873BC8D0C2D420C70"
-      },
-      {
-        "tool": "TreeSitter_LanguagePack",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "BUILD_OR_PARSE"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "{}",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "0D14D7ED3590F7A9D162CC6D9448146A38ACA4C1733CDA12CEB05DC22E8BE9E2"
-      },
-      {
-        "tool": "rustworkx",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "TOPOLOGY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
-        "condition_state": "CONDITION_TRUE",
-        "execution_state": "EXECUTED",
-        "evidence": "rustworkx bounded graph analysis receipt",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "61A1A19F5E7850B444265DBE1A3DBEF9A2DD21B2963B90989E681C57FBC6118D"
-      },
-      {
-        "tool": "sqlite_vec",
-        "role_class": "TASK_EXECUTION",
-        "phases": [
-          "INDEX_OR_QUERY"
-        ],
-        "eligibility_state": "ELIGIBLE",
-        "selection_state": "NOT_SELECTED",
-        "condition_state": "CONDITION_FALSE",
-        "execution_state": "NOT_EXECUTED",
-        "evidence": "query phase not requested during lane build",
-        "network_call_performed": false,
-        "credential_value_read": false,
-        "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "885BF09D5086805FD492122C08F170D63A35EA9CAD17CD0AD3064239A065724A"
+        "runtime_evidence_sha256": "E06786067AD83C4C19F3C7E154966186AF67924D7F745081F311DDD165C88820"
       },
       {
         "tool": "OpenAI_Agents_SDK",
+        "orchestration_order": 3,
+        "registry_order": 95,
         "role_class": "TRANSPORT_OR_ORCHESTRATION",
         "phases": [
           "BUILD_OR_PARSE",
@@ -3158,23 +2876,173 @@
         "runtime_evidence_sha256": "9FA13961D5151DCD6A770C34B926B21E079BC0AE5CD5E58AD4CCD95F234C4F45"
       },
       {
-        "tool": "FastMCP",
-        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "tool": "hashlib_pathlib",
+        "orchestration_order": 4,
+        "registry_order": 3,
+        "role_class": "TASK_EXECUTION",
         "phases": [
-          "TRANSPORT"
+          "GOVERN"
         ],
         "eligibility_state": "ELIGIBLE",
         "selection_state": "NOT_SELECTED",
         "condition_state": "CONDITION_FALSE",
         "execution_state": "NOT_EXECUTED",
-        "evidence": "package-local lane build required no outer transport",
+        "evidence": "no routed source selected the source hashing/CAS phase",
         "network_call_performed": false,
         "credential_value_read": false,
         "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "487869847FE288357C0D11E58DF7B68B5E4CF63B6EA31E58FA29ED8D9668F8C8"
+        "runtime_evidence_sha256": "3032EFA658C44147AB344EFC64D494F6268173E431FF6381F6D6DDF3AFF47E10"
+      },
+      {
+        "tool": "Secret_redactor",
+        "orchestration_order": 5,
+        "registry_order": 19,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "GOVERN"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "source-policy exclusion plus redacted topology labels",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "BA5AFDCFE698A00DD93C387A188E870FA53258E67F329F008EB92F0B196B54F8"
+      },
+      {
+        "tool": "Safe_archive_intake",
+        "orchestration_order": 6,
+        "registry_order": 42,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "GOVERN"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "eligible capability not selected by the current build phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "88EA443FCA39B415B66BBFBFF9AC09185B780D17EFB94639B01A36679AD1093F"
+      },
+      {
+        "tool": "Git",
+        "orchestration_order": 7,
+        "registry_order": 1,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "Git history phase not requested for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "80B737FA44F87B4BFA90860D37BEAC6A3A395D48B190E14CC394C912A9B06C80"
+      },
+      {
+        "tool": "Python",
+        "orchestration_order": 8,
+        "registry_order": 2,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "TRANSPORT"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "current Python lane builder process",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "102D19CEA31C0619410E5068E3201D5D0A2B478F1FE5AB8C0B779D32C7D6FD54"
+      },
+      {
+        "tool": "NodeJS_TypeScript",
+        "orchestration_order": 9,
+        "registry_order": 15,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "DELIVER"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "eligible capability not selected by the current build phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "REPOSITORY_ONLY_AVAILABLE",
+        "runtime_evidence_sha256": "ECE65B84E399F2AE7F8BB561BD792F2296F7B186FF50C67A4672E8B3DF5FBCFD"
+      },
+      {
+        "tool": "GitPython",
+        "orchestration_order": 10,
+        "registry_order": 82,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "Git history phase not requested for this lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "EEA060FF2D7F24C2F2393EC0091998A25EBF066CD4C8F2EC204D1C9CE4CBCA3C"
+      },
+      {
+        "tool": "PyGithub",
+        "orchestration_order": 11,
+        "registry_order": 81,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "GitHub API phase not requested; local Git history uses no remote API",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "6CB8D685375BBF1EBE19463E0F4C0205C42D83A47894A5DE44A834AFC0E297EA"
+      },
+      {
+        "tool": "TreeSitter_LanguagePack",
+        "orchestration_order": 12,
+        "registry_order": 87,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "{}",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "0219C6AAECF97A7C102F6C634139DC4A2F6491495C2DEB53A84DA1CCC00980FD"
       },
       {
         "tool": "GitHub_MCP_Server",
+        "orchestration_order": 13,
+        "registry_order": 97,
         "role_class": "EXTERNAL_SERVICE_OR_STORE",
         "phases": [
           "BUILD_OR_PARSE",
@@ -3192,6 +3060,8 @@
       },
       {
         "tool": "Filesystem_MCP_Server",
+        "orchestration_order": 14,
+        "registry_order": 98,
         "role_class": "EXTERNAL_SERVICE_OR_STORE",
         "phases": [
           "BUILD_OR_PARSE",
@@ -3208,7 +3078,172 @@
         "runtime_evidence_sha256": "38F5472CD0940D7A991B36507A63D010BB314C05D8B12284930684639E455D81"
       },
       {
+        "tool": "SQLite_immutable_URI_reader",
+        "orchestration_order": 15,
+        "registry_order": 41,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "eligible capability not selected by the current build phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "E06786067AD83C4C19F3C7E154966186AF67924D7F745081F311DDD165C88820"
+      },
+      {
+        "tool": "APSW_SQLite_engine",
+        "orchestration_order": 16,
+        "registry_order": 6,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "APSW full-API SQLite execution receipt",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "73E768031082210FF3C30D28E7E1D532EDFBB7D7D083C8768D7EDA1E33D4190A"
+      },
+      {
+        "tool": "Tableau_Hyper_API",
+        "orchestration_order": 17,
+        "registry_order": 65,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "BUILD_OR_PARSE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "alternate parser not selected by current source/path",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "E977F4AF0420CC5793802001D6EFBC58BCD7BCD8118F2F1C6AD2114C36F67975"
+      },
+      {
+        "tool": "LlamaIndex_SQLite_indexer",
+        "orchestration_order": 18,
+        "registry_order": 10,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no routed source selected the source hashing/CAS phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "1D0F5596B46CF9E9FDD3BF476F610CAE137F57644F90AD13C61287BFF3F2CDAF"
+      },
+      {
+        "tool": "SQLite_FTS5_BM25",
+        "orchestration_order": 19,
+        "registry_order": 5,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "brain_loader_fts row parity with chunk_index",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "128975D551018909917C330279BB441458EFE29A0C0C594C3C65F3468134F8E9"
+      },
+      {
+        "tool": "sqlite_vec",
+        "orchestration_order": 20,
+        "registry_order": 90,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "query phase not requested during lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "302D09FCFC0E2BF8791ACB92F9992EC9E5D6A218679F6D9310872E790CB785ED"
+      },
+      {
+        "tool": "rank_bm25",
+        "orchestration_order": 21,
+        "registry_order": 69,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "query phase not requested during lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "E2F90B67FDC2D9D625C880749715DE213A110222924DE5956B4E454EFBCF726F"
+      },
+      {
+        "tool": "SentenceTransformers",
+        "orchestration_order": 22,
+        "registry_order": 67,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "query phase not requested during lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "37760BFD724692C2BCEC369A3A57338B78EA2A98FCB7F03581D39011E4F3E539"
+      },
+      {
+        "tool": "FAISS_CPU",
+        "orchestration_order": 23,
+        "registry_order": 68,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "query phase not requested during lane build",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "72826848CD2F7A895B5A4317485087070A1BFCA6C7620A0925D880B187BFF5A2"
+      },
+      {
         "tool": "Pinecone",
+        "orchestration_order": 24,
+        "registry_order": 101,
         "role_class": "EXTERNAL_SERVICE_OR_STORE",
         "phases": [
           "INDEX_OR_QUERY"
@@ -3225,6 +3260,8 @@
       },
       {
         "tool": "Weaviate",
+        "orchestration_order": 25,
+        "registry_order": 102,
         "role_class": "EXTERNAL_SERVICE_OR_STORE",
         "phases": [
           "INDEX_OR_QUERY"
@@ -3241,6 +3278,8 @@
       },
       {
         "tool": "Milvus",
+        "orchestration_order": 26,
+        "registry_order": 103,
         "role_class": "EXTERNAL_SERVICE_OR_STORE",
         "phases": [
           "INDEX_OR_QUERY"
@@ -3257,6 +3296,8 @@
       },
       {
         "tool": "OpenSearch",
+        "orchestration_order": 27,
+        "registry_order": 104,
         "role_class": "EXTERNAL_SERVICE_OR_STORE",
         "phases": [
           "INDEX_OR_QUERY"
@@ -3272,23 +3313,153 @@
         "runtime_evidence_sha256": "89FB5A9A681ACFBDD9EEF0199C477229AD253FB1596888E1292D4CD733F910F6"
       },
       {
-        "tool": "Langfuse",
-        "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
+        "tool": "deterministic_TFIDF",
+        "orchestration_order": 28,
+        "registry_order": 7,
+        "role_class": "TASK_EXECUTION",
         "phases": [
-          "OBSERVE"
+          "INDEX_OR_QUERY"
         ],
         "eligibility_state": "ELIGIBLE",
         "selection_state": "NOT_SELECTED",
         "condition_state": "CONDITION_FALSE",
         "execution_state": "NOT_EXECUTED",
-        "evidence": "no explicit evaluation or observability export requested",
+        "evidence": "query phase not requested during lane build",
         "network_call_performed": false,
         "credential_value_read": false,
         "runtime_state": "ACTIVE",
-        "runtime_evidence_sha256": "094C551B7AB2A9260FBB8E93575EAB5199587CBB7B9A07AD80D0FAED6B94BF55"
+        "runtime_evidence_sha256": "40ED0A41913F06E5458742C1A8E1D9616BF3789E979AAEF49E11FC476B70BA6D"
+      },
+      {
+        "tool": "LangGraph_Mermaid_engine",
+        "orchestration_order": 29,
+        "registry_order": 8,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "LangGraph semantic topology + brain_loader.mmd",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "2087E2D5CA4164366651657C2ABBBCA1D87E145C492B24E4323EE817BCA7E4C8"
+      },
+      {
+        "tool": "rustworkx",
+        "orchestration_order": 30,
+        "registry_order": 89,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "rustworkx bounded graph analysis receipt",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "9A87B2960D981B526FB20D0A1647C4E58AA990BBB7A0C6DB582EDE5287836DAC"
+      },
+      {
+        "tool": "Python_Graphviz_DOT_engine",
+        "orchestration_order": 31,
+        "registry_order": 9,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "Python Graphviz DOT construction + brain_loader.dot",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "45E1BC8465F11954A4F9A0685CB23FCE3F91B5935165FA1EB1E8737D7FFE0BC8"
+      },
+      {
+        "tool": "Graphviz_dot",
+        "orchestration_order": 32,
+        "registry_order": 12,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "SELECTED_FOR_CURRENT_ACTION_PHASE",
+        "condition_state": "CONDITION_TRUE",
+        "execution_state": "EXECUTED",
+        "evidence": "hidden-runtime native dot parse/validation receipt",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "3E2D707486AF4ABFC9FBF22BDDD1C92AC150F169B7C2432F2B779B9A29ECC01C"
+      },
+      {
+        "tool": "Mermaid_CLI_mmdc",
+        "orchestration_order": 33,
+        "registry_order": 11,
+        "role_class": "TASK_EXECUTION",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "derived visual render not requested; availability=ACTIVE",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "61D3F1381172B58F52CB77AF2F1517C474AA5497AB391A6BDCFF15A14A5ECF4F"
+      },
+      {
+        "tool": "FastMCP",
+        "orchestration_order": 34,
+        "registry_order": 96,
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "phases": [
+          "TRANSPORT"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "package-local lane build required no outer transport",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "487869847FE288357C0D11E58DF7B68B5E4CF63B6EA31E58FA29ED8D9668F8C8"
+      },
+      {
+        "tool": "MCP_Python_SDK",
+        "orchestration_order": 35,
+        "registry_order": 47,
+        "role_class": "TRANSPORT_OR_ORCHESTRATION",
+        "phases": [
+          "TRANSPORT"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "package-local lane build required no outer transport",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "7860A5113161B41980799492CB28CF5E2E9B7536C2A8C7980E99CA5A6BC2292C"
       },
       {
         "tool": "OpenTelemetry",
+        "orchestration_order": 36,
+        "registry_order": 111,
         "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
         "phases": [
           "OBSERVE"
@@ -3304,7 +3475,27 @@
         "runtime_evidence_sha256": "638DCA3F4E1B796232A6C802477642F634B3118D81FA69488D05EB9EF7CDEF6C"
       },
       {
+        "tool": "Langfuse",
+        "orchestration_order": 37,
+        "registry_order": 109,
+        "role_class": "OBSERVABILITY_OR_EVALUATION_ATTACHMENT",
+        "phases": [
+          "OBSERVE"
+        ],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "no explicit evaluation or observability export requested",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "ACTIVE",
+        "runtime_evidence_sha256": "094C551B7AB2A9260FBB8E93575EAB5199587CBB7B9A07AD80D0FAED6B94BF55"
+      },
+      {
         "tool": "Docker",
+        "orchestration_order": 38,
+        "registry_order": 113,
         "role_class": "EXTERNAL_SERVICE_OR_STORE",
         "phases": [
           "DELIVER"
@@ -3321,6 +3512,8 @@
       },
       {
         "tool": "Kubernetes",
+        "orchestration_order": 39,
+        "registry_order": 114,
         "role_class": "EXTERNAL_SERVICE_OR_STORE",
         "phases": [
           "DELIVER"
@@ -3334,8 +3527,134 @@
         "credential_value_read": false,
         "runtime_state": "AVAILABLE",
         "runtime_evidence_sha256": "AB94DF6CCB6CDF2505E39CA1D3A13DE027AB690AF278B02300EE3033CA56A815"
+      },
+      {
+        "tool": "pytest",
+        "orchestration_order": 40,
+        "registry_order": 16,
+        "role_class": "TASK_EXECUTION",
+        "phases": [],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "eligible capability not selected by the current build phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
+      },
+      {
+        "tool": "Ruff",
+        "orchestration_order": 41,
+        "registry_order": 17,
+        "role_class": "TASK_EXECUTION",
+        "phases": [],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "eligible capability not selected by the current build phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
+      },
+      {
+        "tool": "MyPy",
+        "orchestration_order": 42,
+        "registry_order": 18,
+        "role_class": "TASK_EXECUTION",
+        "phases": [],
+        "eligibility_state": "ELIGIBLE",
+        "selection_state": "NOT_SELECTED",
+        "condition_state": "CONDITION_FALSE",
+        "execution_state": "NOT_EXECUTED",
+        "evidence": "eligible capability not selected by the current build phase",
+        "network_call_performed": false,
+        "credential_value_read": false,
+        "runtime_state": "BUILD_GATE_NOT_RUNTIME_REQUIRED",
+        "runtime_evidence_sha256": "CA3D163BAB055381827226140568F3BEF7EAAC187CEBD76878E0B63E9E442356"
       }
     ],
+    "selected_execution_sequence": [
+      {
+        "orchestration_order": 1,
+        "tool": "Pydantic",
+        "phases": [
+          "GOVERN",
+          "TRANSPORT"
+        ],
+        "execution_state": "EXECUTED"
+      },
+      {
+        "orchestration_order": 5,
+        "tool": "Secret_redactor",
+        "phases": [
+          "GOVERN"
+        ],
+        "execution_state": "EXECUTED"
+      },
+      {
+        "orchestration_order": 8,
+        "tool": "Python",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "TRANSPORT"
+        ],
+        "execution_state": "EXECUTED"
+      },
+      {
+        "orchestration_order": 16,
+        "tool": "APSW_SQLite_engine",
+        "phases": [
+          "BUILD_OR_PARSE",
+          "INDEX_OR_QUERY"
+        ],
+        "execution_state": "EXECUTED"
+      },
+      {
+        "orchestration_order": 19,
+        "tool": "SQLite_FTS5_BM25",
+        "phases": [
+          "INDEX_OR_QUERY"
+        ],
+        "execution_state": "EXECUTED"
+      },
+      {
+        "orchestration_order": 29,
+        "tool": "LangGraph_Mermaid_engine",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "execution_state": "EXECUTED"
+      },
+      {
+        "orchestration_order": 30,
+        "tool": "rustworkx",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "execution_state": "EXECUTED"
+      },
+      {
+        "orchestration_order": 31,
+        "tool": "Python_Graphviz_DOT_engine",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "execution_state": "EXECUTED"
+      },
+      {
+        "orchestration_order": 32,
+        "tool": "Graphviz_dot",
+        "phases": [
+          "TOPOLOGY"
+        ],
+        "execution_state": "EXECUTED"
+      }
+    ],
+    "all_rows_in_exact_contract_order": true,
     "eligible_tool_count": 42,
     "condition_true_tool_count": 9,
     "selected_tool_count": 9,
@@ -3347,7 +3666,7 @@
     "presence_or_eligibility_is_execution_proof": false,
     "multiple_compatible_tools_may_form_one_pipeline": true,
     "recorded_at": "1970-01-01T00:00:00Z",
-    "receipt_sha256": "D72D63B3030D6419B0624686AF9E08E53DCE38C758F2327C547D21F7D665E819"
+    "receipt_sha256": "D3B541910A4D9382F749A8CEB556ED1E0E3AA1730BE777DF8515096496B546FD"
   },
   "empty_table_classification": {
     "schema": "evidence-lane.empty-table-classification.v1",
@@ -3511,7 +3830,7 @@
   "artifact_authority": {
     "schema": "evidence-lane.tools-artifact-authority.v1",
     "lane_id": "brain_loader",
-    "tool_identity_sha256": "56CF56273FA07259FADB676FC6F4B24F09000CED4F18FEC6F29EE2423895192E",
+    "tool_identity_sha256": "504F327B850E560C621F8CC8D8396C116C521C72299A61E8AF74ED79B7AB8974",
     "ordered_members": [
       "brain_loader_sector_v001.sqlite",
       "brain_loader.mmd",
@@ -3522,7 +3841,7 @@
         "path": "brain_loader_sector_v001.sqlite",
         "role": "sqlite_authority",
         "bytes": 499712,
-        "sha256": "6E2E81268A554F54298658FBBE0F4092748631BE2546365485CC3DA479C2445B"
+        "sha256": "207B6EC91577639220DF077994BB686EFC29017A3F64C1E1AC4D5A95DDF0B910"
       },
       {
         "path": "brain_loader.mmd",
@@ -3537,7 +3856,7 @@
         "sha256": "926173C7FF2F194716DCC48F090EBE2F3DA4DC2E8BC69324BB2D2E7A8F7B045F"
       }
     ],
-    "authority_sha256": "9A56E8EDD6F400856F348F0697DA8D7AC1DBAFDBEECEB7F8C96A4C8827724489"
+    "authority_sha256": "6C0C37D527F424680901A496BA6C1A6D4AAC704932673535826CF7D23B3385DE"
   },
-  "receipt_sha256": "22EE2D771E4709C0E84B713F6CFE880BE6247A011864639DCB86C67943B6C31F"
+  "receipt_sha256": "77F4B3800A33B2347D7052EA6C17DEAFD3D1C6854E5643CF8AA0CA6344DFB459"
 }

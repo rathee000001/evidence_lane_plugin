@@ -24,7 +24,7 @@ def _four_files(root: Path, lane_id: str = "chat_lineage") -> tuple[object, dict
         connection.commit()
     finally:
         connection.close()
-    mermaid, dot = lane_engine_module._lane_topology(lane, database_path, {})
+    mermaid, dot, _ = lane_engine_module._lane_topology(lane, database_path, {})
     atomic_write_bytes(root / lane.mmd_filename, mermaid.encode("utf-8"))
     atomic_write_bytes(root / lane.dot_filename, dot.encode("utf-8"))
     tools = lane_engine_module._tool_identity(lane)

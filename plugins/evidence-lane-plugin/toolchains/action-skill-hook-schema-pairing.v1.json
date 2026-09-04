@@ -12500,7 +12500,7 @@
       "action_class": [
         "GOVERNANCE"
       ],
-      "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D",
+      "schema_sha256": "F92398CEBA02038F3970FC654AE53EC484A289E0AC99F5BC0B15B406E64163BB",
       "schema_path": "schemas/actions/task_record_activity.schema.json",
       "sdk_binding": "sdk/actions/task_record_activity.action.v1.json",
       "mcp_binding": "mcp/actions/task_record_activity.binding.v1.json",
@@ -12624,7 +12624,7 @@
         {
           "path": "skills/evi/references/public-tool-conformance-release-gate.v1.json",
           "bytes": 3110,
-          "sha256": "F9907BBB8736BA5C2F744FB950081F8536CDA9BB52AE09673FB600CDADBEC912"
+          "sha256": "12B9CC5D057F4E8F6F3C60FC5E327CB5E6F32934D0BF6F125E58B247CEDA657F"
         },
         {
           "path": "skills/evi/SKILL.md",
@@ -14201,8 +14201,8 @@
         },
         {
           "path": "skills/evidence-lane-code-lifecycle/references/shared-boundaries.md",
-          "bytes": 4822,
-          "sha256": "6D0AB6EC61365D5B0D990DC914392471703C56F5571B09D478B1051A88400D34"
+          "bytes": 4881,
+          "sha256": "6FAC092C0DC4A472694D63B8FF111D0AA862039CC9610C74C99E9D84B328A987"
         },
         {
           "path": "skills/evidence-lane-code-lifecycle/SKILL.md",
@@ -14960,5 +14960,5 @@
   "first_class_workflow_requires_first_class_skill": true,
   "separate_command_layer_present": false,
   "all_pairings_generated_from_current_source_graph": true,
-  "receipt_sha256": "4FD7654CC639A25258D7A287F99F8988E1D9FCD2A3E7391BDE566D6916E2D054"
+  "receipt_sha256": "4E0FECB1A53376706B791466A21955F51499D8C1593B47D9D4FB4892223C9D05"
 }

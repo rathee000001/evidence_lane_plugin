@@ -80,7 +80,7 @@
     {
       "path": "authorities/receipt_ledger/receipt-ledger.tools.json",
       "bytes": 107445,
-      "sha256": "063F172962093B30C4DFF5106878E36E104DB6DE6D505AB41FDC5B853DB1DC84"
+      "sha256": "66150D914B1CC0BC8CD23F67F873E3344C849A9EDE37288E754FFE3CD1A7D288"
     },
     {
       "path": "authorities/receipt_ledger/refresh-receipt.schema.json",
@@ -90,7 +90,7 @@
     {
       "path": "authorities/receipt_ledger/runtime-binding.schema.json",
       "bytes": 596,
-      "sha256": "B7C6DBEBED23F4EFAEDD1055C3D11BBBA7FF57197599430676AF9014B6E7A32D"
+      "sha256": "817B79A1255C26950084E0220657A07EBF1C3B4C14C4B9E7D48BA3644B8D30D0"
     },
     {
       "path": "authorities/receipt_ledger/runtime.py",
@@ -134,7 +134,7 @@
     }
   ],
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/receipt_ledger.py": "275B21B21AC05C889B24087F1039EB1E455D36BAE7E91B73F4843D9B110EF0D9",
+    "src/evidence_lane_plugin/receipt_ledger.py": "76CA0DD991A1A5F5F6D60B2BA4930F8F888958C72FBA4F992C9C5A4091657E58",
     "src/evidence_lane_plugin/authority_support.py": "277EA6E2B9B0111A658E1AE00C727F14A7B041C94CD4C09FB71DDE214B79EB4B"
   },
   "linked_subauthorities": [],
@@ -343,5 +343,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "CAA9C7DFCB5A6808AC0AA508B40717FF2F3E4FA15B1ACD4E87C1FEFFEF85ABD2"
+  "receipt_sha256": "761AF7EC1D1B6916E72CCBB9DFAB427D424A221BB22ADA4E985C4C78B69DD6FA"
 }

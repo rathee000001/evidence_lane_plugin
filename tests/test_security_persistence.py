@@ -545,10 +545,20 @@ def test_installation_activation_updates_a_stale_version(
 
     result = json.loads(capsys.readouterr().out)
     persisted = json.loads((store / "installation.json").read_text(encoding="utf-8"))
+    plugin_version = json.loads(
+        (
+            Path(__file__).resolve().parents[1]
+            / "plugins"
+            / "evidence-lane-plugin"
+            / ".codex-plugin"
+            / "plugin.json"
+        ).read_text(encoding="utf-8")
+    )["version"]
     assert result["tool"] == "activate-installation"
-    assert result["data"]["version"] == ENGINE_VERSION
+    assert result["data"]["version"] == plugin_version
+    assert str(plugin_version).split("+", 1)[0] == ENGINE_VERSION
     assert result["data"]["public_result_boundary"]["bounded_public_result"] is True
-    assert persisted["version"] == ENGINE_VERSION
+    assert persisted["version"] == plugin_version
     assert persisted["display_name"] == "Evidence Lane"
     assert persisted["installed_at"] == "2026-07-26T20:33:04.325482Z"
     assert persisted["hil_approval_inferred"] is False

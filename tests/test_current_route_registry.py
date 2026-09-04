@@ -35,7 +35,7 @@ def test_named_current_routes_cover_r265_cross_surface_corrections() -> None:
         "RESET_AWARE_RICH_GOAL_COMPLETION_METRICS"
     )
     assert current_route("local_install")["current_route"] == (
-        "PLUGIN_CREATOR_STAGE_MATERIALIZE_PREPARE_TERMINAL_USER_RESTART_REATTACH"
+        "PLUGIN_CREATOR_STAGE_MATERIALIZE_TERMINAL_USER_RESTART_REATTACH"
     )
 
 

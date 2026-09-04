@@ -339,7 +339,7 @@ def test_namespace_hash_prevents_project_session_workspace_and_version_collision
             workspace_id="workspace-a",
             host_session_id="host-session-namespace",
             classifier=classifier,
-            plugin_version=f"{ENGINE_VERSION}+next",
+            plugin_version=f"{ENGINE_VERSION}+codex.next",
         ),
     ]
 
@@ -349,3 +349,25 @@ def test_namespace_hash_prevents_project_session_workspace_and_version_collision
     assert "host-session-namespace" not in json.dumps(base)
     assert "workspace-a" not in json.dumps(base)
     assert len({base["namespace_sha256"], *(v["namespace_sha256"] for v in variants)}) == 5
+
+
+def test_runtime_namespace_rejects_base_only_plugin_identity() -> None:
+    classifier = classify_runtime_host(
+        HostKind.CODEX_DESKTOP,
+        ephemeral=False,
+        server_has_durable_filesystem=True,
+        runtime_context=_desktop_context("CHATGPT_DESKTOP_STABLE_OR_CURRENT"),
+        host_session_id="host-session-base-version",
+    )
+
+    with pytest.raises(EvidenceLaneError) as error:
+        build_runtime_namespace(
+            project_id="project-a",
+            governed_session_id="session-a",
+            workspace_id="workspace-a",
+            host_session_id="host-session-base-version",
+            classifier=classifier,
+            plugin_version=ENGINE_VERSION,
+        )
+
+    assert error.value.code == "RUNTIME_NAMESPACE_PLUGIN_VERSION_INVALID"

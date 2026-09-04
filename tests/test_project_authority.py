@@ -23,8 +23,53 @@ from evidence_lane_plugin.project_overlay import (
     validate_project_overlay,
 )
 from evidence_lane_plugin.reader import PVReader
+from evidence_lane_plugin.service import EvidenceLaneService
 
 from .conftest import build_and_approve_pv1, git
+
+
+def test_active_authority_copy_purges_only_reconstructable_internal_cache_roots(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "source-root"
+    staging = tmp_path / "staging-root"
+    generated = (
+        source
+        / "internal_sources"
+        / "remote_adapter_generated_caches_20260827"
+    )
+    retained = source / "internal_sources" / "current-authority"
+    generated.mkdir(parents=True)
+    retained.mkdir(parents=True)
+    (generated / "cache.txt").write_text("reconstructable", encoding="utf-8")
+    (retained / "evidence.json").write_text("{}", encoding="utf-8")
+    (source / "active_pointer.json").write_text("{}", encoding="utf-8")
+
+    receipt = project_authority.copy_active_project_authority(
+        source,
+        staging,
+        accepted_pv="PV12",
+    )
+
+    assert not (
+        staging
+        / "internal_sources"
+        / "remote_adapter_generated_caches_20260827"
+    ).exists()
+    assert (
+        staging / "internal_sources" / "current-authority" / "evidence.json"
+    ).is_file()
+    assert receipt["purged_reconstructable_internal_roots"] == [
+        {
+            "source_relative_path": (
+                "internal_sources/remote_adapter_generated_caches_20260827"
+            ),
+            "classification": (
+                "PURGE_NON_AUTHORITY_GENERATED_OR_REMOVED_HISTORY"
+            ),
+            "copied": False,
+        }
+    ]
 
 
 def test_windows_path_replace_retries_transient_permission_error(
@@ -157,6 +202,7 @@ def test_working_sector_source_rebuild_recognizes_only_lane_sqlite_seal_drift() 
             },
         }
     validation = {
+        "emitted_lane_ids": list(CANONICAL_LANE_IDS),
         "lane_manifest_errors": lane_errors,
         "lanes": lane_reports,
         "checksum_mismatches": {
@@ -190,6 +236,53 @@ def test_working_sector_source_rebuild_recognizes_only_lane_sqlite_seal_drift() 
     assert not project_authority._working_sector_source_rebuild_required(
         non_operational_wrapper
     )
+
+
+def test_lane_population_keeps_current_18_separate_from_accepted_history_13_plus_5(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    accepted_materialized = set(CANONICAL_LANE_IDS[:13])
+
+    def historical_reference(
+        _project_root: Path,
+        *,
+        project_id: str,
+        lane_id: str,
+        accepted_pv: str,
+    ) -> dict[str, object]:
+        return {
+            "schema": "evidence-lane.accepted-lane-history-reference.v1",
+            "state": (
+                "IMMUTABLE_ACCEPTED_HISTORY"
+                if lane_id in accepted_materialized
+                else "SCHEMA_READY_UNPOPULATED"
+            ),
+            "project_id": project_id,
+            "lane_id": lane_id,
+            "accepted_pv": accepted_pv,
+        }
+
+    monkeypatch.setattr(
+        project_authority,
+        "_accepted_lane_history_reference",
+        historical_reference,
+    )
+    projection = project_authority._lane_population_projection(
+        tmp_path,
+        project_id="project-a",
+        accepted_pv="PV12",
+        current_lane_ids=list(CANONICAL_LANE_IDS),
+    )
+
+    assert projection["current_canonical_lane_count"] == 18
+    assert projection["current_materialized_lane_count"] == 18
+    assert projection["current_unmaterialized_lane_count"] == 0
+    assert projection["accepted_history_materialized_lane_count"] == 13
+    assert projection["accepted_history_schema_ready_unpopulated_lane_count"] == 5
+    assert projection["current_and_accepted_history_counts_are_separate"] is True
+    assert projection["accepted_archive_opened"] is False
+    assert projection["accepted_archive_queried"] is False
 
 
 def _relocate(service, source_repository: Path, target: Path) -> dict:
@@ -322,8 +415,77 @@ def test_root_nested_history_filter_runs_before_limit(tmp_path: Path) -> None:
     )
 
     assert result["excluded_current_path_count"] == 100
+    assert result["cas_storage_format"] == "COMPRESSED_CONTENT_ADDRESSED"
     assert len(result["rows"]) == 1
     assert result["rows"][0][1] == "historical-only.md"
+
+
+def test_root_nested_legacy_inline_cas_is_read_without_mutation(
+    tmp_path: Path,
+) -> None:
+    database = tmp_path / "legacy-root-nested-history.sqlite"
+    lane = project_authority.LANE_REGISTRY["docs"]
+    text = "legacy accepted history marker"
+    payload = text.encode("utf-8")
+    digest = sha256_bytes(payload)
+    connection = sqlite3.connect(database)
+    connection.executescript(
+        f"""
+        CREATE TABLE source_registry(
+            source_id INTEGER PRIMARY KEY,
+            path TEXT NOT NULL
+        );
+        CREATE TABLE chunk_index(
+            chunk_id INTEGER PRIMARY KEY,
+            source_id INTEGER NOT NULL,
+            locator TEXT NOT NULL,
+            sha256 TEXT NOT NULL
+        );
+        CREATE TABLE chunk_content_cas(
+            sha256 TEXT PRIMARY KEY,
+            size_bytes INTEGER NOT NULL,
+            text_content TEXT NOT NULL,
+            first_seen_at TEXT NOT NULL
+        );
+        CREATE VIRTUAL TABLE {lane.fts_table} USING fts5(
+            path UNINDEXED,
+            locator UNINDEXED,
+            text_content,
+            chunk_id UNINDEXED
+        );
+        """
+    )
+    connection.execute(
+        "INSERT INTO source_registry VALUES(?,?)", (1, "historical-only.md")
+    )
+    connection.execute(
+        "INSERT INTO chunk_content_cas VALUES(?,?,?,?)",
+        (digest, len(payload), text, "fixture"),
+    )
+    connection.execute(
+        "INSERT INTO chunk_index VALUES(?,?,?,?)",
+        (1, 1, "line:1", digest),
+    )
+    connection.execute(
+        f"INSERT INTO {lane.fts_table}(rowid,path,locator,text_content,chunk_id) "
+        "VALUES(?,?,?,?,?)",
+        (1, "historical-only.md", "line:1", text, 1),
+    )
+    connection.commit()
+    connection.close()
+    before = database.read_bytes()
+
+    result = project_authority._query_root_nested_pv_history(
+        database,
+        lane_id="docs",
+        fts_query='"legacy" OR "history"',
+        current_paths=set(),
+        limit=2,
+    )
+
+    assert result["cas_storage_format"] == "IMMUTABLE_LEGACY_INLINE_TEXT"
+    assert result["rows"][0][3] == text
+    assert database.read_bytes() == before
 
 
 def test_project_register_relocates_active_authority_without_shadow_payload(
@@ -336,7 +498,7 @@ def test_project_register_relocates_active_authority_without_shadow_payload(
     (legacy / "accepted" / "PV0" / "history.txt").write_text(
         "historical only\n", encoding="utf-8"
     )
-    target = tmp_path / "user-projects" / "book-faires"
+    target = tmp_path / "user-projects" / "Codex_Evidence_lane_Plugin"
 
     result = _relocate(service, source_repository, target)
 
@@ -364,13 +526,27 @@ def test_project_register_relocates_active_authority_without_shadow_payload(
         (target / "project_authority.json").read_text(encoding="utf-8")
     )
     assert layout["canonical_lane_count"] == len(CANONICAL_LANE_IDS) == 18
-    assert layout["materialized_sector_directory_count"] == 18
+    assert layout["materialized_sector_directory_count"] == 2
+    assert layout["materialized_sector_lane_ids"] == ["chat_lineage", "plan"]
+    assert layout["lane_population"]["current_materialized_lane_count"] == 2
+    assert (
+        layout["lane_population"]["accepted_history_materialized_lane_count"]
+        + layout["lane_population"][
+            "accepted_history_schema_ready_unpopulated_lane_count"
+        ]
+        == 18
+    )
+    assert (
+        layout["lane_population"]["current_and_accepted_history_counts_are_separate"]
+        is True
+    )
+    assert layout["unfired_sector_directories_created"] is False
     assert layout["study_brain"]["stored_lane_created"] is False
     assert not (target / "sectors" / "study_brain").exists()
     assert {
         path.name for path in (target / "sectors").iterdir() if path.is_dir()
-    } == set(CANONICAL_LANE_IDS)
-    for lane_id in CANONICAL_LANE_IDS:
+    } == {"plan", "chat_lineage"}
+    for lane_id in layout["materialized_sector_lane_ids"]:
         reference = json.loads(
             (target / "sectors" / lane_id / "authority.ref.json").read_text(
                 encoding="utf-8"
@@ -388,8 +564,115 @@ def test_project_register_relocates_active_authority_without_shadow_payload(
     )
     assert inspected["project_route"]["runtime_separated"] is True
     assert inspected["project_authority"]["layout_materialized"] is True
+    registration_proof = inspected["project_authority"]["registration_proof"]
+    assert registration_proof["idempotent_registration_proven"] is True
+    assert registration_proof["registered_project_root"] == str(target.resolve())
+    migration = result["migration"]
+    assert migration["registration_proof"]["idempotent_registration_proven"] is True
+    assert migration["recovery_relocation_evidence"][
+        "root_registry_route_verified"
+    ] is True
+    assert migration["recovery_relocation_evidence"][
+        "idempotent_registration_recoverable"
+    ] is True
+    assert migration["recovery_relocation_evidence"]["publish_operation"][
+        "operation"
+    ] == "PUBLISH_EXTERNAL_PROJECT_AUTHORITY"
     assert service.store.pointer("book-faires").accepted_pv == "PV1"
     assert service.store.pointer("book-faires").generation == 1
+
+
+def test_external_project_authority_accepts_user_selected_root_name_and_is_unique(
+    source_repository: Path, tmp_path: Path
+) -> None:
+    control_root = tmp_path / "runtime-control"
+    target = tmp_path / "user-projects" / "Codex_Evidence_lane_Plugin"
+    application = EvidenceLaneService(data_root=control_root)
+
+    registered = application.register_project(
+        project_id="book-faires",
+        display_name="Book Faires",
+        repository_path=str(source_repository),
+        expected_owner="example",
+        expected_name="book-faires",
+        allowed_branches=["main"],
+        sensitivity="PRIVATE",
+        project_authority_root=str(target),
+    )
+
+    assert registered["status"] == "PASS"
+    assert application.store.project_root("book-faires") == target.resolve()
+    assert application.store.pointer("book-faires").accepted_pv is None
+    assert application.store.pointer("book-faires").generation == 0
+    assert (target / "project.json").is_file()
+    assert (target / "accepted").is_dir()
+    assert not any((target / "accepted").iterdir())
+    skeleton = registered["project_authority_skeleton"]
+    assert skeleton["status"] == "PASS"
+    assert skeleton["canonical_lane_count"] == len(CANONICAL_LANE_IDS) == 18
+    assert skeleton["materialized_sector_directory_count"] == 2
+    assert {
+        path.name for path in (target / "sectors").iterdir() if path.is_dir()
+    } == {"plan", "chat_lineage"}
+    assert skeleton["unfired_sector_directories_created"] is False
+    assert all(
+        (target / authority).is_dir()
+        for authority in skeleton["mandatory_authority_directories"]
+    )
+    assert not (target / "task_backlog.json").exists()
+    assert not (target / "plan_runtime_projection.sqlite").exists()
+    assert not (target / "lineage").exists()
+    assert (target / "sectors" / "plan" / "task_backlog.json").is_file()
+    assert (
+        target / "sectors" / "plan" / "plan_runtime_projection.sqlite"
+    ).is_file()
+
+    second_repository = tmp_path / "second-source"
+    second_repository.mkdir()
+    git(second_repository, "init", "-b", "main")
+    git(second_repository, "config", "user.name", "Evidence Lane Test")
+    git(second_repository, "config", "user.email", "evidence-lane@example.invalid")
+    git(
+        second_repository,
+        "remote",
+        "add",
+        "origin",
+        "https://github.com/example/second-source.git",
+    )
+    (second_repository / "README.md").write_text(
+        "# Second source\n", encoding="utf-8"
+    )
+    git(second_repository, "add", ".")
+    git(second_repository, "commit", "-m", "Initial fixture")
+
+    with pytest.raises(EvidenceLaneError) as duplicate:
+        application.register_project(
+            project_id="second-project",
+            display_name="Second Project",
+            repository_path=str(second_repository),
+            expected_owner="example",
+            expected_name="second-source",
+            allowed_branches=["main"],
+            sensitivity="PRIVATE",
+            project_authority_root=str(target),
+        )
+    assert duplicate.value.code == "PROJECT_AUTHORITY_ROOT_BINDING_DUPLICATE"
+    assert sorted(application.store._load_root_registry()["projects"]) == [
+        "book-faires"
+    ]
+
+    with pytest.raises(EvidenceLaneError) as runtime_overlap:
+        application.register_project(
+            project_id="runtime-overlap",
+            display_name="Runtime Overlap",
+            repository_path=str(second_repository),
+            expected_owner="example",
+            expected_name="second-source",
+            allowed_branches=["main"],
+            sensitivity="PRIVATE",
+            project_authority_root=str(control_root / "nested-project-root"),
+        )
+    assert runtime_overlap.value.code == "PROJECT_AUTHORITY_ROOT_INVALID"
 
 
 def test_project_authority_relocation_fails_closed_on_wrong_confirmation(
@@ -435,6 +718,10 @@ def test_external_project_authority_registration_is_idempotent(
     assert repeated["pointer_moved"] is False
     assert repeated["candidate_created"] is False
     assert repeated["hil_inferred"] is False
+    assert repeated["registration_proof"]["idempotent_registration_proven"] is True
+    assert repeated["registration_proof"]["registered_project_root"] == str(
+        target.resolve()
+    )
 
 
 def test_external_empty_accepted_directory_uses_exact_continuity_reference(
@@ -798,12 +1085,62 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
         if path.is_file()
     }
     assert (target / "active_pointer.json").read_bytes() == pointer_before
+    working_manifest = json.loads(
+        (target / "sectors" / "manifest.json").read_text(encoding="utf-8")
+    )
+    emitted_lane_ids = working_manifest["emitted_lane_ids"]
+    working_receipt_path = (
+        target
+        / "receipts"
+        / "project-authority"
+        / "working-sector-migration.json"
+    )
+    working_receipt = json.loads(working_receipt_path.read_text(encoding="utf-8"))
+    lane_population = working_receipt["lane_population"]
+    assert lane_population["current_materialized_lane_count"] == len(emitted_lane_ids)
+    assert (
+        lane_population["accepted_history_materialized_lane_count"]
+        + lane_population["accepted_history_schema_ready_unpopulated_lane_count"]
+        == 18
+    )
+    assert working_receipt["historical_lane_reference_count"] == 18
+    receipt_ledger = sqlite3.connect(
+        target / "receipts" / "receipt-ledger.sqlite"
+    )
+    try:
+        ledgered_working_receipt = receipt_ledger.execute(
+            "SELECT logical_path,receipt_sha256 FROM receipt_record "
+            "WHERE receipt_kind='PROJECT_AUTHORITY_WORKING_SECTOR_MIGRATION' "
+            "ORDER BY sequence DESC LIMIT 1"
+        ).fetchone()
+    finally:
+        receipt_ledger.close()
+    assert ledgered_working_receipt is not None
+    assert ledgered_working_receipt[0].startswith(
+        "project-authority/operational/working-sector-migration/"
+    )
+    assert ledgered_working_receipt[1] == sha256_bytes(
+        working_receipt_path.read_bytes()
+    )
     assert {
         path.name for path in (target / "sectors").iterdir() if path.is_dir()
-    } >= set(CANONICAL_LANE_IDS)
+    } >= set(emitted_lane_ids)
+    assert {
+        lane_id
+        for lane_id in CANONICAL_LANE_IDS
+        if (target / "sectors" / lane_id).is_dir()
+    } == set(emitted_lane_ids)
+    assert {"plan", "chat_lineage", "artifacts", "local_code"} <= set(
+        emitted_lane_ids
+    )
     assert all(
         (target / "sectors" / lane_id / "study_brain.json").is_file()
+        for lane_id in emitted_lane_ids
+    )
+    assert all(
+        not (target / "sectors" / lane_id).exists()
         for lane_id in CANONICAL_LANE_IDS
+        if lane_id not in emitted_lane_ids
     )
     local_study = json.loads(
         (target / "sectors" / "local_code" / "study_brain.json").read_text(
@@ -1089,7 +1426,7 @@ def test_working_sector_migration_uses_accepted_parent_and_removes_duplicates(
             / lane_id
             / "historical_authority.ref.json"
         ).is_file()
-        for lane_id in CANONICAL_LANE_IDS
+        for lane_id in refreshed["emitted_lane_ids"]
     )
     sectors_before_idempotent = {
         path.relative_to(target / "sectors").as_posix(): path.read_bytes()
@@ -1457,6 +1794,15 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
         accepted_pv="PV1",
         pointer_generation=1,
     )
+    sealed_stage = target / ".sectors-working-SEALED.staging"
+    shutil.copytree(target / "sectors", sealed_stage)
+    recovered_over_active = migrate_working_project_sectors(
+        target,
+        repository_root=source_repository,
+        project_id="book-faires",
+        accepted_pv="PV1",
+        pointer_generation=1,
+    )
 
     assert first["state"] == "WORKING_SECTOR_AUTHORITY_COMMITTED"
     assert refreshed["state"] == "WORKING_SECTOR_AUTHORITY_REFRESHED"
@@ -1465,6 +1811,12 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
     assert recovered["interrupted_stage_recovery"]["status"] == "PASS"
     assert recovered["interrupted_stage_recovery"]["recovered_stage"] == (
         interrupted_stage.name
+    )
+    assert recovered_over_active["state"] == (
+        "WORKING_SECTOR_AUTHORITY_IDEMPOTENT_REUSE"
+    )
+    assert recovered_over_active["interrupted_stage_recovery"]["state"] == (
+        "SEALED_STAGE_PROMOTED_OVER_ACTIVE_AUTHORITY"
     )
     assert first["working_identity"]["working_identity_sha256"] != refreshed[
         "working_identity"
@@ -1482,6 +1834,7 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
     assert refreshed["pointer_moved"] is False
     assert refreshed["candidate_created"] is False
     assert refreshed["hil_inferred"] is False
+    assert refreshed["canonical_lane_refresh"]["include_git_history"] is False
     refreshed_manifest = json.loads(
         (target / "sectors" / "manifest.json").read_text(encoding="utf-8")
     )
@@ -1489,7 +1842,7 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
         (target / "sectors" / "routes.json").read_text(encoding="utf-8")
     )["routes"]
     observed_sources: dict[str, str] = {}
-    for lane_id in CANONICAL_LANE_IDS:
+    for lane_id in refreshed_manifest["emitted_lane_ids"]:
         lane = project_authority.LANE_REGISTRY[lane_id]
         connection = sqlite3.connect(
             target / "sectors" / lane_id / lane.sqlite_filename
@@ -1534,7 +1887,9 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
     )
     assert refreshed_manifest["summary"]["full_build_lanes"] == []
     assert refreshed_manifest["summary"]["full_validation_fallbacks"] == []
-    assert len(refreshed_manifest["reports"]) == len(CANONICAL_LANE_IDS)
+    assert len(refreshed_manifest["reports"]) == len(
+        refreshed_manifest["emitted_lane_ids"]
+    )
     assert all(
         row["build_mode"] in {"UNCHANGED_REUSE", "INCREMENTAL_REFRESH"}
         for row in refreshed_manifest["reports"]
@@ -1560,9 +1915,11 @@ def test_working_sector_migration_refreshes_when_dirty_identity_changes(
         == "CURRENT_VALIDATED_WORKING_SECTORS"
     )
     assert migration_receipt["canonical_lane_refresh"]["authority_scope"] == (
-        "ALL_18_CANONICAL_LANES"
+        "CURRENT_FIRED_CANONICAL_LANES"
     )
-    assert migration_receipt["canonical_lane_refresh"]["lane_report_count"] == 18
+    assert migration_receipt["canonical_lane_refresh"]["lane_report_count"] == len(
+        refreshed_manifest["emitted_lane_ids"]
+    )
     assert migration_receipt["complete_governed_source_replay"] is True
     assert migration_receipt["current_source_authority_scope"] == (
         "GIT_INDEX_CURRENT_WORKTREE_BYTES"

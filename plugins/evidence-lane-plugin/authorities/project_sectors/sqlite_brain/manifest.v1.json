@@ -25,7 +25,7 @@
     {
       "path": "authorities/project_sectors/sqlite_brain/lane-contract.v1.json",
       "bytes": 69615,
-      "sha256": "CF4F9A5EDB01656490F115BD1011A301E5D9BF2B94846D6E559775D876A7398F"
+      "sha256": "404F9155944DB24952B2DDE59AE127036F4941533FC11531EEDF5CF0F0BD0504"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/lane-pointer.schema.json",
@@ -84,13 +84,13 @@
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/sqlite_brain_sector_v001.sqlite",
-      "bytes": 565248,
-      "sha256": "A2945064751F3976BC4895E5091952997B0A1CC351FD143F30BC3CEBFF8831EA"
+      "bytes": 561152,
+      "sha256": "3B42A5564B5245134D25744B3695DA420651EA45330766251A293886DF175276"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/tools.json",
-      "bytes": 170812,
-      "sha256": "B8FB3DAFDB9BCDC8B6B632634A553F23036C2950D9405BC8BC60D0670BFDCFA8"
+      "bytes": 180477,
+      "sha256": "F76609E3919C9334A2557C8ABEA319032E8E388D9C56E069F92A83350EAD8B91"
     },
     {
       "path": "authorities/project_sectors/sqlite_brain/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "52296B5264F06AFEFCFD2DC903B39A7150FE622463BED3AF9BF7D6F3D5728773"
+  "receipt_sha256": "A0B6674A22CD3AA6012A75EDBAED4EC06C466F218B72B0D0700AB4549C7E1611"
 }

@@ -7,6 +7,7 @@ from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.host_plan_rehydration import (
     _exact_projection,
     _host_step_description_lines,
+    aligned_host_plan_window_task_ids,
     prepare_host_plan_rehydration,
     validate_host_plan_rehydration_receipt,
 )
@@ -244,6 +245,41 @@ def test_host_plan_rehydration_is_exact_replay_safe_and_non_promoting(
         ).stdout
         == git_before
     )
+
+
+def test_resume_rebinds_stale_fixed_window_to_the_active_plan_batch(service) -> None:
+    session_id, _, _ = _classified_host_plan(service)
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["host_plan_window"] = {
+        "schema": "evidence-lane.host-plan-window-state.v1",
+        "window_task_ids": ["host-plan-pending-row", "host-plan-final-hil"],
+        "binding_source": "STALE_TEST_WINDOW",
+    }
+    service.sessions._save(session)
+
+    resumed = service.resume_session(
+        project_id="book-faires",
+        host="CODEX_DESKTOP",
+        host_session_id="host-plan-restart-rebind",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"purpose": "rebind the active host Plan window"},
+    )
+
+    rehydration = resumed["host_plan_rehydration"]
+    assert rehydration["receipt"]["status"] == "PASS"
+    assert rehydration["receipt"]["projection"]["window_task_ids"] == [
+        "host-plan-active-row",
+        "host-plan-pending-row",
+        "host-plan-final-hil",
+    ]
+    stored = service.sessions.load("book-faires", session_id)
+    assert stored.metadata["host_plan_window"]["window_task_ids"] == [
+        "host-plan-active-row",
+        "host-plan-pending-row",
+        "host-plan-final-hil",
+    ]
 
 
 def test_host_plan_visibility_acceptance_capability_and_project_boundaries(
@@ -554,6 +590,10 @@ def test_host_plan_projects_the_active_row_as_step_two_with_next_eight_rows() ->
         "physically_final_task_id": "window-task-26",
         "physically_final_candidate": None,
         "physically_final_hil_scope": "FINAL_PROJECT_HIL_NOT_INTERMEDIATE",
+        "terminal_row": 26,
+        "terminal_task_id": "window-task-26",
+        "terminal_panel_role": "PHYSICALLY_FINAL_HIL",
+        "open_plan_continuation": False,
         "detailed_hil_queue_surface": "EVIDENCE_LANE_PROJECT_RENDERER",
         "hil_controls_in_step_task_list": False,
         "visible_text": (
@@ -634,6 +674,40 @@ def test_host_plan_final_window_contains_only_the_exact_remaining_rows() -> None
     assert final_step_lines[2] == "Do: Execute bounded"
     assert final_step_lines[3] == "   window task 26."
     assert projection["continuity_header"]["physically_final_row"] == 26
+
+
+def test_host_plan_allows_open_continuation_without_physical_final_hil() -> None:
+    goal = _window_goal(active_row=21)
+    rows = goal["rows"]
+    assert isinstance(rows, list)
+    rows[-2]["panel_role"] = "HIL_GATE"
+    rows[-1]["panel_role"] = "STANDARD"
+    projection = _exact_projection(
+        _BacklogOnlyStore(goal),  # type: ignore[arg-type]
+        project_id="window-project",
+        fixed_window_task_ids=[f"window-task-{number:02d}" for number in range(21, 27)],
+    )
+
+    assert projection["physically_final_hil_row"] is None
+    assert projection["physically_final_hil_task_id"] is None
+    assert projection["physically_final_hil_visible_in_window"] is False
+    assert projection["terminal_row"] == 26
+    assert projection["terminal_task_id"] == "window-task-26"
+    assert projection["open_plan_continuation"] is True
+    header = projection["continuity_header"]
+    assert header["next_hil_boundary_row"] == 25
+    assert header["physically_final_row"] is None
+    assert header["terminal_row"] == 26
+    assert header["open_plan_continuation"] is True
+    assert "NEXT_HIL R25 | FINAL_HIL NONE | PLAN_END R26" in header["visible_text"]
+
+
+def test_lifecycle_owner_derives_exact_aligned_window_for_binding() -> None:
+    store = _BacklogOnlyStore(_window_goal(active_row=21))
+    assert aligned_host_plan_window_task_ids(
+        store,  # type: ignore[arg-type]
+        project_id="window-project",
+    ) == [f"window-task-{number:02d}" for number in range(19, 27)]
 
 
 def test_host_plan_header_ignores_out_of_scope_future_pv_mentions() -> None:

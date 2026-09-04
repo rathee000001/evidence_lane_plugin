@@ -2,7 +2,7 @@
   "schema": "evidence-lane.remote-public-action-registry.v1",
   "status": "GENERATED_READ_ONLY_PROJECTION",
   "source_catalog_path": "schemas/public-action-schemas.v001.json",
-  "source_catalog_sha256": "158D028C792B941649B04A6693F56BD1143EF9AA59266C8D541970204A779D0F",
+  "source_catalog_sha256": "E080B86AD3881A658A04A648A1CC020382CCA6E786C1FA2B46A61E726660F60A",
   "tool_count": 91,
   "read_tool_count": 30,
   "write_tool_count": 61,
@@ -62,7 +62,7 @@
     "internal_support_bindings": {
       "schema": "evidence-lane.internal-sdk-support-bindings.v1",
       "status": "PASS",
-      "component_count": 6,
+      "component_count": 8,
       "components": [
         {
           "component": "env_uop_graph",
@@ -114,6 +114,17 @@
           "public_action": false
         },
         {
+          "component": "legacy_learning_normalization",
+          "owner_module": "agent_learning",
+          "functions": [
+            "migrate_legacy_learning_files"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.legacy_learning_normalization"
+          ],
+          "public_action": false
+        },
+        {
           "component": "live_root_normalization",
           "owner_module": "storage_connectors",
           "functions": [
@@ -122,6 +133,17 @@
           ],
           "function_modules": [
             "evidence_lane_plugin.live_root_normalization"
+          ],
+          "public_action": false
+        },
+        {
+          "component": "project_runtime_quarantine",
+          "owner_module": "storage_connectors",
+          "functions": [
+            "quarantine_project_runtime_history"
+          ],
+          "function_modules": [
+            "evidence_lane_plugin.project_runtime_quarantine"
           ],
           "public_action": false
         },
@@ -141,9 +163,9 @@
       ],
       "all_components_have_one_sdk_owner": true,
       "support_components_inflate_public_action_count": false,
-      "receipt_sha256": "991F7C7B40A28148EE9D0177AC695E620422C11C82485B1152CF7B4E2D857D11"
+      "receipt_sha256": "F045EB3E14A5E972024789F51A359F5D24E53F40F599C52A17D278A94241C226"
     },
-    "receipt_sha256": "D78955B5BB11E1442996090A9A38A961ED044DCA37D4F46791601153E27BB949"
+    "receipt_sha256": "C9EEE7B346F762DC3D17F7E786BC9AF9FD6C49772549B0F94EA928305CA04C34"
   },
   "public_action_and_env_uop_ai_action_planes_separate": true,
   "authority_support_systems": {
@@ -185,7 +207,7 @@
     "failed_event_only_disabled_during_repair": true,
     "passing_event_reenabled_after_installed_host_proof": true
   },
-  "current_implementation_registry_sha256": "CE4227131F8874568011B38B6A11EE578CECB709CA804E4E1BAF3A07060B1372",
+  "current_implementation_registry_sha256": "84A7854C142BFC246A7FF5230464415016DA15980F267786FF70B3159754B192",
   "actions": [
     {
       "name": "adaptive_delta_exit",
@@ -822,9 +844,9 @@
       "title": "Append visible Chat Lineage activity",
       "read_only": false,
       "owner_skill": "evidence-lane-code-lifecycle",
-      "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D"
+      "schema_sha256": "F92398CEBA02038F3970FC654AE53EC484A289E0AC99F5BC0B15B406E64163BB"
     }
   ],
   "execution_authority": false,
-  "projection_sha256": "B2401A3C1799B7E0EDEFCF43DC116CE73AD5ACC0D5772E23FC2D9712037F8E61"
+  "projection_sha256": "037D43AF8356856999D309CE1C5FDE7F5D0218580349AB3B69E868E65A2646B0"
 }

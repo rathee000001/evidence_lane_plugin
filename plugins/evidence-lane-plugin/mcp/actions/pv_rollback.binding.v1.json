@@ -194,11 +194,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/pv_rollback.action.v1.json",
-  "sdk_action_binding_sha256": "1314FA1913EB6F8363700D45CF2F4653DBA9A8ED1688A90FEDA0B4981E5126D1",
+  "sdk_action_binding_sha256": "AB5C055A27CAF02FE3E0CF8EF898C5287AA6192D63195B5F2132CF7C5DBC4EA8",
   "public_action_schema": "schemas/actions/pv_rollback.schema.json",
   "public_action_schema_sha256": "4D6EA09E631396E0889708382563DC0E805D9F2297B91BE1540B3F28DB11772F",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "46465CE68730BF4160F6EBD446CB11FCB693C59947083B090842B34A291388CE",
+  "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "E5966BCCDC8C61BA121140BF913559B8240509E48F3A7D18447158843E086812"
+  "receipt_sha256": "7A60FADCDF8DD0D811D2F79F85341F37B2FFEFE14981799415535151031DE60E"
 }

@@ -5,9 +5,7 @@ from __future__ import annotations
 import importlib.util
 import multiprocessing
 import threading
-from concurrent.futures import ProcessPoolExecutor
-from concurrent.futures import TimeoutError as FutureTimeoutError
-from concurrent.futures.process import BrokenProcessPool
+from bisect import bisect_left
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +45,7 @@ CODE_TOOLCHAIN_LANGUAGES: tuple[str, ...] = (
     "swift",
     "toml",
     "typescript",
+    "tsx",
     "vue",
     "xml",
     "yaml",
@@ -83,8 +82,15 @@ _CALL_NODE_TYPES = frozenset(
     {"call", "call_expression", "method_invocation", "invocation_expression"}
 )
 _TREE_SITTER_POOL_LOCK = threading.Lock()
-_TREE_SITTER_PROCESS_POOL: ProcessPoolExecutor | None = None
+_TREE_SITTER_EXECUTION_LOCK = threading.Lock()
+_TREE_SITTER_WORKER_PROCESS: Any | None = None
+_TREE_SITTER_REQUEST_CONNECTION: Any | None = None
+_TREE_SITTER_RESPONSE_CONNECTION: Any | None = None
+_TREE_SITTER_REQUEST_SEQUENCE = 0
+_TREE_SITTER_WORKER_STARTUP_TIMEOUT_SECONDS = 30
 _TREE_SITTER_WORKER_TIMEOUT_SECONDS = 120
+_TREE_SITTER_SHUTDOWN_GRACE_SECONDS = 2.0
+_TREE_SITTER_KILL_GRACE_SECONDS = 1.0
 
 
 class TreeSitterExtraction(BaseModel):
@@ -170,42 +176,39 @@ def _extract_tree_sitter_facts_in_process(path: str, text: str) -> TreeSitterExt
     runtime_cache = initialize_hidden_tree_sitter_runtime()
     from tree_sitter import Parser  # type: ignore[import-not-found]
     from tree_sitter_language_pack import (  # type: ignore[import-not-found]
-        available_languages,
+        DownloadError,
         detect_language,
         get_language,
     )
 
     detected = detect_language(path)
-    available = {str(item) for item in available_languages()}
-    if not detected or detected not in available:
-        status = (
-            "UNSUPPORTED_LANGUAGE"
-            if not detected
-            else (
-                "RUNTIME_NOT_PREWARMED"
-                if runtime_cache is None
-                else "RUNTIME_LANGUAGE_MISSING"
-            )
+    if not detected:
+        return _empty_extraction(status="UNSUPPORTED_LANGUAGE")
+    if runtime_cache is None:
+        return _empty_extraction(
+            status="RUNTIME_NOT_PREWARMED",
+            language=str(detected),
         )
-        core: dict[str, Any] = {
-            "status": status,
-            "parser": "tree-sitter-language-pack",
-            "language": str(detected) if detected else None,
-            "symbols": [],
-            "imports": [],
-            "calls": [],
-            "diagnostics": [],
-            "nodes_visited": 0,
-            "offline_only": True,
-            "auto_download_used": False,
-        }
-        return TreeSitterExtraction.model_validate(
-            {**core, "extraction_sha256": sha256_bytes(canonical_json_bytes(core))}
+    try:
+        language = get_language(detected)
+    except (DownloadError, KeyError, OSError, RuntimeError, ValueError):
+        return _empty_extraction(
+            status="RUNTIME_LANGUAGE_MISSING",
+            language=str(detected),
         )
-
-    language = get_language(detected)
     parser = Parser(language)
     source = text.encode("utf-8")
+    newline_offsets = [
+        index for index, value in enumerate(source) if value == ord("\n")
+    ]
+
+    def line_number(byte_offset: int) -> int:
+        # tree-sitter 0.25 Point wrappers can access-violate on Windows after
+        # thousands of repeated start_point/end_point allocations. Byte
+        # offsets are stable scalar fields, so derive the same one-based line
+        # coordinate without retaining native Point objects.
+        return bisect_left(newline_offsets, int(byte_offset)) + 1
+
     tree = parser.parse(source)
     if tree is None:
         raise ValueError("TREE_SITTER_PARSE_RETURNED_NONE")
@@ -221,8 +224,8 @@ def _extract_tree_sitter_facts_in_process(path: str, text: str) -> TreeSitterExt
         node = stack.pop()
         visited += 1
         node_type = str(node.type)
-        start_line = int(node.start_point.row) + 1
-        end_line = int(node.end_point.row) + 1
+        start_line = line_number(int(node.start_byte))
+        end_line = line_number(int(node.end_byte))
         if node_type in _SYMBOL_NODE_TYPES and len(symbols) < 20_000:
             name_node = node.child_by_field_name("name")
             name = _node_text(source, name_node) if name_node is not None else node_type
@@ -297,24 +300,145 @@ def _tree_sitter_worker(path: str, text: str) -> dict[str, Any]:
     return _extract_tree_sitter_facts_in_process(path, text).model_dump(mode="json")
 
 
-def _tree_sitter_pool() -> ProcessPoolExecutor:
-    global _TREE_SITTER_PROCESS_POOL
-    with _TREE_SITTER_POOL_LOCK:
-        if _TREE_SITTER_PROCESS_POOL is None:
-            _TREE_SITTER_PROCESS_POOL = ProcessPoolExecutor(
-                max_workers=1,
-                mp_context=multiprocessing.get_context("spawn"),
-            )
-        return _TREE_SITTER_PROCESS_POOL
+def _tree_sitter_worker_loop(
+    request_connection: Any,
+    response_connection: Any,
+) -> None:
+    """Serve parser requests without ProcessPoolExecutor management threads.
+
+    The Evidence Lane tunnel already runs below a supervised child process on
+    Windows.  A nested ProcessPoolExecutor can leave its management thread
+    waiting forever even after a parser child is terminated.  A dedicated
+    request/response pipe keeps the native grammar isolated while giving the
+    parent an independent, enforceable poll timeout.
+    """
+
+    try:
+        response_connection.send(("READY", None, None))
+        while True:
+            request = request_connection.recv()
+            if request is None:
+                return
+            request_id, path, text = request
+            try:
+                response_connection.send(
+                    ("PASS", request_id, _tree_sitter_worker(path, text))
+                )
+            except (OSError, RuntimeError, ValueError) as exc:
+                response_connection.send(
+                    (
+                        "ERROR",
+                        request_id,
+                        {"exception_type": type(exc).__name__},
+                    )
+                )
+    except (EOFError, BrokenPipeError, OSError):
+        return
+    finally:
+        request_connection.close()
+        response_connection.close()
 
 
-def _discard_tree_sitter_pool() -> None:
-    global _TREE_SITTER_PROCESS_POOL
+def _close_connection(connection: Any | None) -> None:
+    if connection is None:
+        return
+    try:
+        connection.close()
+    except OSError:
+        pass
+
+
+def _bounded_tree_sitter_worker_shutdown(
+    process: Any,
+    request_connection: Any | None,
+    response_connection: Any | None,
+) -> None:
+    """Stop the disposable parser worker without an unbounded Windows join."""
+
+    if process.is_alive() and request_connection is not None:
+        try:
+            request_connection.send(None)
+        except (BrokenPipeError, EOFError, OSError):
+            pass
+
+    process.join(timeout=_TREE_SITTER_SHUTDOWN_GRACE_SECONDS)
+    if process.is_alive():
+        process.terminate()
+        process.join(timeout=_TREE_SITTER_KILL_GRACE_SECONDS)
+    if process.is_alive():
+        kill = getattr(process, "kill", None)
+        if callable(kill):
+            kill()
+            process.join(timeout=_TREE_SITTER_KILL_GRACE_SECONDS)
+
+    _close_connection(request_connection)
+    _close_connection(response_connection)
+
+
+def _start_tree_sitter_worker() -> tuple[Any, Any, Any]:
+    context = multiprocessing.get_context("spawn")
+    child_request, parent_request = context.Pipe(duplex=False)
+    parent_response, child_response = context.Pipe(duplex=False)
+    process = context.Process(
+        target=_tree_sitter_worker_loop,
+        args=(child_request, child_response),
+        name="evidence-lane-tree-sitter",
+        daemon=True,
+    )
+    process.start()
+    child_request.close()
+    child_response.close()
+    if not parent_response.poll(_TREE_SITTER_WORKER_STARTUP_TIMEOUT_SECONDS):
+        _bounded_tree_sitter_worker_shutdown(process, parent_request, parent_response)
+        raise RuntimeError("TREE_SITTER_WORKER_STARTUP_TIMEOUT")
+    status, request_id, payload = parent_response.recv()
+    if status != "READY" or request_id is not None or payload is not None:
+        _bounded_tree_sitter_worker_shutdown(process, parent_request, parent_response)
+        raise RuntimeError("TREE_SITTER_WORKER_STARTUP_PROTOCOL_INVALID")
+    return process, parent_request, parent_response
+
+
+def _tree_sitter_runtime() -> tuple[Any, Any, Any]:
+    global _TREE_SITTER_REQUEST_CONNECTION
+    global _TREE_SITTER_RESPONSE_CONNECTION
+    global _TREE_SITTER_WORKER_PROCESS
     with _TREE_SITTER_POOL_LOCK:
-        pool = _TREE_SITTER_PROCESS_POOL
-        _TREE_SITTER_PROCESS_POOL = None
-    if pool is not None:
-        pool.shutdown(wait=False, cancel_futures=True)
+        if (
+            _TREE_SITTER_WORKER_PROCESS is None
+            or _TREE_SITTER_REQUEST_CONNECTION is None
+            or _TREE_SITTER_RESPONSE_CONNECTION is None
+            or not _TREE_SITTER_WORKER_PROCESS.is_alive()
+        ):
+            (
+                _TREE_SITTER_WORKER_PROCESS,
+                _TREE_SITTER_REQUEST_CONNECTION,
+                _TREE_SITTER_RESPONSE_CONNECTION,
+            ) = _start_tree_sitter_worker()
+        return (
+            _TREE_SITTER_WORKER_PROCESS,
+            _TREE_SITTER_REQUEST_CONNECTION,
+            _TREE_SITTER_RESPONSE_CONNECTION,
+        )
+
+
+def _discard_tree_sitter_worker() -> None:
+    global _TREE_SITTER_REQUEST_CONNECTION
+    global _TREE_SITTER_RESPONSE_CONNECTION
+    global _TREE_SITTER_WORKER_PROCESS
+    with _TREE_SITTER_POOL_LOCK:
+        process = _TREE_SITTER_WORKER_PROCESS
+        request_connection = _TREE_SITTER_REQUEST_CONNECTION
+        response_connection = _TREE_SITTER_RESPONSE_CONNECTION
+        _TREE_SITTER_WORKER_PROCESS = None
+        _TREE_SITTER_REQUEST_CONNECTION = None
+        _TREE_SITTER_RESPONSE_CONNECTION = None
+    if process is not None:
+        _bounded_tree_sitter_worker_shutdown(
+            process, request_connection, response_connection
+        )
+    else:
+        _close_connection(request_connection)
+        _close_connection(response_connection)
 
 
 def shutdown_tree_sitter_runtime() -> None:
@@ -326,12 +450,7 @@ def shutdown_tree_sitter_runtime() -> None:
     outstanding jobs at this boundary, so a deterministic close is safe.
     """
 
-    global _TREE_SITTER_PROCESS_POOL
-    with _TREE_SITTER_POOL_LOCK:
-        pool = _TREE_SITTER_PROCESS_POOL
-        _TREE_SITTER_PROCESS_POOL = None
-    if pool is not None:
-        pool.shutdown(wait=True, cancel_futures=True)
+    _discard_tree_sitter_worker()
 
 
 def extract_tree_sitter_facts(path: str, text: str) -> TreeSitterExtraction:
@@ -346,47 +465,54 @@ def extract_tree_sitter_facts(path: str, text: str) -> TreeSitterExtraction:
 
     if not tree_sitter_available():
         return _empty_extraction(status="UNAVAILABLE")
-    try:
-        payload = _tree_sitter_pool().submit(_tree_sitter_worker, path, text).result(
-            timeout=_TREE_SITTER_WORKER_TIMEOUT_SECONDS
-        )
-        return TreeSitterExtraction.model_validate(payload)
-    except FutureTimeoutError:
-        _discard_tree_sitter_pool()
-        return _empty_extraction(
-            status="NATIVE_PARSER_TIMEOUT_ISOLATED",
-            diagnostics=[
-                {
-                    "reason": "TREE_SITTER_WORKER_TIMEOUT",
-                    "timeout_seconds": _TREE_SITTER_WORKER_TIMEOUT_SECONDS,
-                    "host_process_preserved": True,
-                }
-            ],
-        )
-    except BrokenProcessPool as exc:
-        _discard_tree_sitter_pool()
-        return _empty_extraction(
-            status="NATIVE_PARSER_CRASH_ISOLATED",
-            diagnostics=[
-                {
-                    "reason": "TREE_SITTER_WORKER_PROCESS_TERMINATED",
-                    "exception_type": type(exc).__name__,
-                    "host_process_preserved": True,
-                }
-            ],
-        )
-    except (OSError, RuntimeError, ValueError) as exc:
-        _discard_tree_sitter_pool()
-        return _empty_extraction(
-            status="NATIVE_PARSER_FAILURE_ISOLATED",
-            diagnostics=[
-                {
-                    "reason": "TREE_SITTER_WORKER_FAILURE",
-                    "exception_type": type(exc).__name__,
-                    "host_process_preserved": True,
-                }
-            ],
-        )
+    global _TREE_SITTER_REQUEST_SEQUENCE
+    with _TREE_SITTER_EXECUTION_LOCK:
+        try:
+            process, request_connection, response_connection = (
+                _tree_sitter_runtime()
+            )
+            _TREE_SITTER_REQUEST_SEQUENCE += 1
+            request_id = _TREE_SITTER_REQUEST_SEQUENCE
+            request_connection.send((request_id, path, text))
+            if not response_connection.poll(_TREE_SITTER_WORKER_TIMEOUT_SECONDS):
+                _discard_tree_sitter_worker()
+                return _empty_extraction(
+                    status="NATIVE_PARSER_TIMEOUT_ISOLATED",
+                    diagnostics=[
+                        {
+                            "reason": "TREE_SITTER_WORKER_TIMEOUT",
+                            "timeout_seconds": _TREE_SITTER_WORKER_TIMEOUT_SECONDS,
+                            "host_process_preserved": True,
+                        }
+                    ],
+                )
+            status, response_request_id, payload = response_connection.recv()
+            if response_request_id != request_id:
+                raise RuntimeError("TREE_SITTER_WORKER_RESPONSE_ID_MISMATCH")
+            if status != "PASS":
+                exception_type = (
+                    str(payload.get("exception_type") or "UNKNOWN")
+                    if isinstance(payload, dict)
+                    else "UNKNOWN"
+                )
+                raise RuntimeError(
+                    f"TREE_SITTER_WORKER_REPORTED_FAILURE:{exception_type}"
+                )
+            if not process.is_alive():
+                raise RuntimeError("TREE_SITTER_WORKER_EXITED_AFTER_RESPONSE")
+            return TreeSitterExtraction.model_validate(payload)
+        except (BrokenPipeError, EOFError, OSError, RuntimeError, ValueError) as exc:
+            _discard_tree_sitter_worker()
+            return _empty_extraction(
+                status="NATIVE_PARSER_FAILURE_ISOLATED",
+                diagnostics=[
+                    {
+                        "reason": "TREE_SITTER_WORKER_FAILURE",
+                        "exception_type": type(exc).__name__,
+                        "host_process_preserved": True,
+                    }
+                ],
+            )
 
 
 __all__ = [

@@ -17,6 +17,18 @@ SCHEMA = "evidence-lane.codex-git-ci-vercel-release-authority.v2"
 BOUNDARY = "GOVERNED_GIT_MAIN_CLEAN_CI_VERCEL_PREVIEW_EXACT_COMMIT"
 _SHA1 = re.compile(r"^[0-9a-f]{40}$")
 _SHA256 = re.compile(r"^[A-F0-9]{64}$")
+_BOT_NAME = "evidence-lane[bot]"
+_BOT_EMAIL = "319574480+evidence-lane[bot]@users.noreply.github.com"
+_REQUIRED_MAIN_RULE_TYPES = frozenset(
+    {
+        "deletion",
+        "non_fast_forward",
+        "required_linear_history",
+        "required_status_checks",
+    }
+)
+_BRANCH_RULE_PAGE_SIZE = 100
+_MAX_BRANCH_RULE_PAGES = 100
 
 
 class ReleaseAuthorityError(RuntimeError):
@@ -62,6 +74,177 @@ def _load_self_sealed(
     ):
         raise ReleaseAuthorityError(f"Receipt body seal drifted: {path.name}")
     return value
+
+
+def _commit_actor_attestation(
+    remote: dict[str, Any],
+    *,
+    repository: str,
+    commit: str,
+) -> dict[str, Any]:
+    attestation = dict(remote.get("commit_actor_attestation") or {})
+    author = dict(attestation.get("author") or {})
+    committer = dict(attestation.get("committer") or {})
+    expected_actor = {
+        "login": _BOT_NAME,
+        "name": _BOT_NAME,
+        "email": _BOT_EMAIL,
+    }
+    expected_path = f"/repos/{repository}/commits/{commit}"
+    if (
+        attestation.get("provider") != "GITHUB_APP"
+        or attestation.get("method") != "GET"
+        or attestation.get("path") != expected_path
+        or attestation.get("status") != 200
+        or str(attestation.get("commit_sha") or "").lower() != commit
+        or author != expected_actor
+        or committer != expected_actor
+        or attestation.get("author_and_committer_match_exact_bot") is not True
+    ):
+        raise ReleaseAuthorityError(
+            "The GitHub App commit author/committer attestation is missing or mismatched."
+        )
+    return {
+        "provider": "GITHUB_APP",
+        "method": "GET",
+        "path": expected_path,
+        "status": 200,
+        "commit_sha": commit,
+        "author": expected_actor,
+        "committer": expected_actor,
+        "author_and_committer_match_exact_bot": True,
+    }
+
+
+def _branch_rule_snapshot(
+    value: object,
+    *,
+    endpoint: str,
+    expected_main_commit: str,
+) -> dict[str, Any]:
+    snapshot = dict(value) if isinstance(value, dict) else {}
+    raw_pages = snapshot.get("pages")
+    pages = list(raw_pages) if isinstance(raw_pages, list) else []
+    if (
+        str(snapshot.get("main_commit") or "").lower() != expected_main_commit
+        or not pages
+        or len(pages) > _MAX_BRANCH_RULE_PAGES
+    ):
+        raise ReleaseAuthorityError(
+            "The GitHub App main branch-rules pagination attestation is incomplete."
+        )
+    rules: list[dict[str, Any]] = []
+    page_paths: list[str] = []
+    for page_number, raw_page in enumerate(pages, start=1):
+        page = dict(raw_page) if isinstance(raw_page, dict) else {}
+        page_rules = page.get("rules")
+        exact_rules = list(page_rules) if isinstance(page_rules, list) else []
+        expected_path = (
+            f"{endpoint}?per_page={_BRANCH_RULE_PAGE_SIZE}&page={page_number}"
+        )
+        if (
+            page.get("provider") != "GITHUB_APP"
+            or page.get("method") != "GET"
+            or page.get("path") != expected_path
+            or page.get("status") != 200
+            or not isinstance(page_rules, list)
+            or len(exact_rules) > _BRANCH_RULE_PAGE_SIZE
+            or (page_number < len(pages) and len(exact_rules) != _BRANCH_RULE_PAGE_SIZE)
+        ):
+            raise ReleaseAuthorityError(
+                "The GitHub App main branch-rules pagination attestation is incomplete."
+            )
+        if any(not isinstance(rule, dict) for rule in exact_rules):
+            raise ReleaseAuthorityError(
+                "The GitHub App main branch-rules response is malformed."
+            )
+        rules.extend(dict(rule) for rule in exact_rules)
+        page_paths.append(expected_path)
+    if len(pages[-1].get("rules") or []) == _BRANCH_RULE_PAGE_SIZE:
+        raise ReleaseAuthorityError(
+            "The GitHub App main branch-rules pagination attestation is incomplete."
+        )
+
+    rule_types = {str(rule.get("type") or "") for rule in rules}
+    contexts: set[str] = set()
+    for rule in rules:
+        if rule.get("type") != "required_status_checks":
+            continue
+        parameters = dict(rule.get("parameters") or {})
+        raw_checks = parameters.get("required_status_checks")
+        checks = list(raw_checks) if isinstance(raw_checks, list) else []
+        for raw_check in checks:
+            check = dict(raw_check) if isinstance(raw_check, dict) else {}
+            context = str(check.get("context") or "").strip()
+            if context:
+                contexts.add(context)
+    protected_branch = _REQUIRED_MAIN_RULE_TYPES <= rule_types and bool(contexts)
+    return {
+        "main_commit": expected_main_commit,
+        "page_count": len(pages),
+        "page_paths": page_paths,
+        "pagination_complete": True,
+        "rule_count": len(rules),
+        "rule_types": sorted(rule_types),
+        "required_status_check_contexts": sorted(contexts),
+        "protected_branch": protected_branch,
+        "snapshot_sha256": hashlib.sha256(_json_bytes(snapshot)).hexdigest().upper(),
+    }
+
+
+def _branch_rules_attestation(
+    remote: dict[str, Any],
+    *,
+    repository: str,
+    commit: str,
+    target_before_commit: str,
+    required_check_names: list[str],
+) -> dict[str, Any]:
+    attestation = dict(remote.get("branch_rules_attestation") or {})
+    endpoint = f"/repos/{repository}/rules/branches/main"
+    if (
+        attestation.get("provider") != "GITHUB_APP"
+        or attestation.get("repository") != repository
+        or attestation.get("branch") != "main"
+        or attestation.get("endpoint") != endpoint
+        or attestation.get("per_page") != _BRANCH_RULE_PAGE_SIZE
+    ):
+        raise ReleaseAuthorityError(
+            "The GitHub App main branch-rules attestation is missing or mismatched."
+        )
+    before = _branch_rule_snapshot(
+        attestation.get("before"),
+        endpoint=endpoint,
+        expected_main_commit=target_before_commit,
+    )
+    after = _branch_rule_snapshot(
+        attestation.get("after"),
+        endpoint=endpoint,
+        expected_main_commit=commit,
+    )
+    required_contexts = set(required_check_names)
+    if (
+        before["protected_branch"] is not True
+        or after["protected_branch"] is not True
+        or not required_contexts
+        or not required_contexts <= set(before["required_status_check_contexts"])
+        or not required_contexts <= set(after["required_status_check_contexts"])
+    ):
+        raise ReleaseAuthorityError(
+            "The attested main branch rules do not enforce the required governance."
+        )
+    return {
+        "provider": "GITHUB_APP",
+        "repository": repository,
+        "branch": "main",
+        "endpoint": endpoint,
+        "per_page": _BRANCH_RULE_PAGE_SIZE,
+        "before": before,
+        "after": after,
+        "protected_branch": bool(
+            before["protected_branch"] and after["protected_branch"]
+        ),
+    }
 
 
 def seal_release_authority(
@@ -117,6 +300,20 @@ def seal_release_authority(
     checks = [dict(row) for row in ci.get("checks") or [] if isinstance(row, dict)]
     required_names = [str(name) for name in ci.get("required_check_names") or []]
     check_names = [str(row.get("name") or "") for row in checks]
+    ci_repository = str(ci.get("repository") or "")
+    target_before_commit = str(promotion.get("target_before_commit") or "").lower()
+    actor_attestation = _commit_actor_attestation(
+        remote,
+        repository=ci_repository,
+        commit=commit,
+    )
+    branch_rules = _branch_rules_attestation(
+        remote,
+        repository=ci_repository,
+        commit=commit,
+        target_before_commit=target_before_commit,
+        required_check_names=required_names,
+    )
     preview_source = dict(preview.get("source") or {})
     preview_deployment = dict(preview.get("deployment") or {})
     if (
@@ -148,6 +345,8 @@ def seal_release_authority(
         or str(promotion.get("main_tree") or "").lower() != tree
         or int(promotion.get("ahead_by") or 0) < 1
         or promotion.get("behind_by") != 0
+        or _SHA1.fullmatch(target_before_commit) is None
+        or str(remote.get("repository") or "") != ci_repository
         or str(remote_repository.get("branch") or "") != "main"
         or str(remote_repository.get("commit_sha") or "").lower() != commit
         or str(remote_repository.get("tree_sha") or "").lower() != tree
@@ -155,7 +354,7 @@ def seal_release_authority(
         or authorization.get("direct_main_implementation_authorized") is not False
         or authorization.get("fast_forward_authorized") is not True
         or authorization.get("merge_authorized") is not False
-        or remote.get("github_commit_author_login") != "evidence-lane[bot]"
+        or remote.get("github_commit_author_login") != _BOT_NAME
         or remote.get("source_tree_reused") is not True
         or int(remote.get("blob_reupload_count") or 0) != 0
         or remote.get("force_push") is not False
@@ -226,7 +425,9 @@ def seal_release_authority(
             "source_branch": source_branch,
             "target_branch": "main",
             "remote_branch_commit": commit,
-            "protected_branch": True,
+            "protected_branch": branch_rules["protected_branch"],
+            "commit_actor_attestation": actor_attestation,
+            "branch_rules_attestation": branch_rules,
             "force_push": False,
             "source_tree_reused": True,
             "blob_reupload_count": 0,

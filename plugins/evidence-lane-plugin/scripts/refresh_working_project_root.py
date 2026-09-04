@@ -23,6 +23,11 @@ from evidence_lane_plugin.hashing import (
     sha256_bytes,
     sha256_file,
 )
+from evidence_lane_plugin.native_toolchain import (
+    RUNTIME_ROOT_ENV,
+    configured_runtime_root,
+    validate_hidden_runtime_root,
+)
 from evidence_lane_plugin.project_authority import migrate_working_project_sectors
 from evidence_lane_plugin.timeutil import utc_now
 
@@ -39,6 +44,13 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--include-untracked-sources", action="store_true")
     parser.add_argument("--include-git-history", action="store_true")
     parser.add_argument("--quarantine-root")
+    parser.add_argument("--runtime-control-root")
+    parser.add_argument("--require-runtime-toolchain", action="store_true")
+    parser.add_argument(
+        "--host-profile",
+        choices=("CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"),
+        default="CODEX_DESKTOP",
+    )
     return parser
 
 
@@ -110,7 +122,7 @@ def _quarantine_partial_stages(
             "source_path": str(source_resolved),
             "quarantine_path": str(destination_resolved),
             "file_count": len(members),
-            "byte_count": sum(int(row["bytes"]) for row in members),
+            "byte_count": sum(int(str(row["bytes"])) for row in members),
             "members": members,
             "sealed_stage": False,
             "accepted_storage_changed": False,
@@ -156,9 +168,28 @@ def _quarantine_partial_stages(
 def main() -> int:
     args = _parser().parse_args()
     project_root = Path(args.project_root).resolve()
+    if args.runtime_control_root:
+        runtime_root = validate_hidden_runtime_root(args.runtime_control_root)
+        os.environ[RUNTIME_ROOT_ENV] = str(runtime_root)
+    configured_runtime = configured_runtime_root()
+    if args.require_runtime_toolchain and configured_runtime is None:
+        raise RuntimeError(
+            "A live project refresh requires --runtime-control-root or the "
+            f"{RUNTIME_ROOT_ENV} environment binding."
+        )
+    os.environ["EVIDENCE_LANE_HOST_PROFILE"] = args.host_profile
     quarantine_root = (
         Path(args.quarantine_root).resolve() if args.quarantine_root else None
     )
+    if quarantine_root is not None:
+        try:
+            quarantine_root.relative_to(project_root)
+        except ValueError:
+            pass
+        else:
+            raise RuntimeError(
+                "Recovery quarantine must be outside the canonical project root."
+            )
     quarantine = _quarantine_partial_stages(
         project_root,
         quarantine_root=quarantine_root,
@@ -176,7 +207,17 @@ def main() -> int:
     )
     print(
         json.dumps(
-            {"status": "PASS", "quarantine": quarantine, "migration": migration},
+            {
+                "status": "PASS",
+                "runtime_toolchain_required": bool(args.require_runtime_toolchain),
+                "runtime_control_root": (
+                    str(configured_runtime) if configured_runtime is not None else None
+                ),
+                "host_profile": args.host_profile,
+                "development_compatibility_used": configured_runtime is None,
+                "quarantine": quarantine,
+                "migration": migration,
+            },
             sort_keys=True,
         )
     )

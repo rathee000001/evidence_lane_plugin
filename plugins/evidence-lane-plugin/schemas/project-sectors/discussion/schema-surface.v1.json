@@ -3,7 +3,7 @@
   "status": "PASS",
   "lane_id": "discussion",
   "authority_root": "authorities/project_sectors/discussion",
-  "authority_manifest_sha256": "3B823CC3946A7A877E2DCA3AA06E2873FFC01C8F14CB5B976F18A01B066F96D3",
+  "authority_manifest_sha256": "1A9BDA9A0A99344341B396A842807E11814E3ED24CE51DAD061DC56161EC6C75",
   "schema_file_count": 10,
   "schema_files": [
     {
@@ -60,5 +60,5 @@
   "canonical_lane_contract": "schemas/lane-schema-registry.v001.json",
   "canonical_lane_contract_sha256": "42B8A2A2E2ADABB2FD467047CDA638C36A8C7157036B4AFC621C0C773E50A464",
   "schema_bytes_duplicated_here": false,
-  "receipt_sha256": "DA39D467977A2A475EC78FAC76CCD735636C7CE4E267A25F7605476090467F89"
+  "receipt_sha256": "579D645CB96CF03F3297A69B0B49D30F7F1132A8595F61469CA90B1D8FB20FA1"
 }

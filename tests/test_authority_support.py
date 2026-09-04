@@ -1,17 +1,20 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
 
 import pytest
 from evidence_lane_plugin.authority_support import (
     AUTHORITY_SUPPORT_PROFILES,
+    materialize_missing_authority_tools_contract,
     refresh_authority_support,
     refresh_delta_exit_authority_supports,
     validate_authority_support,
     validate_delta_exit_authority_supports,
 )
 from evidence_lane_plugin.errors import EvidenceLaneError
+from evidence_lane_plugin.hashing import sha256_file
 
 
 def _database(path: Path) -> None:
@@ -79,6 +82,43 @@ def test_authority_support_rebuilds_graph_from_sqlite_and_tracks_schema(
     repaired = validate_authority_support(tmp_path, "connector_brain")
     assert repaired["status"] == "PASS"
     assert "project_note" in (tmp_path / profile.mmd).read_text(encoding="utf-8")
+
+
+def test_missing_overlay_tools_contract_does_not_refresh_authority_content(
+    tmp_path: Path,
+) -> None:
+    profile = AUTHORITY_SUPPORT_PROFILES["project_overlay"]
+    database = tmp_path / profile.database
+    _database(database)
+    mmd_path = tmp_path / profile.mmd
+    dot_path = tmp_path / profile.dot
+    manifest_path = tmp_path / profile.manifest
+    mmd_path.parent.mkdir(parents=True, exist_ok=True)
+    mmd_path.write_text("flowchart LR\n  overlay\n", encoding="utf-8")
+    dot_path.write_text("digraph overlay { overlay; }\n", encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps({"schema": "project-overlay-test", "members": []}),
+        encoding="utf-8",
+    )
+    before = {
+        "database": sha256_file(database),
+        "mmd": sha256_file(mmd_path),
+        "dot": sha256_file(dot_path),
+    }
+
+    receipt = materialize_missing_authority_tools_contract(
+        tmp_path, "project_overlay"
+    )
+
+    assert receipt["status"] == "PASS"
+    assert receipt["authority_content_refreshed"] is False
+    assert receipt["content_sha256s"] == before
+    assert sha256_file(database) == before["database"]
+    assert sha256_file(mmd_path) == before["mmd"]
+    assert sha256_file(dot_path) == before["dot"]
+    assert (tmp_path / profile.tools).is_file()
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["missing_tools_contract_materialization"] == receipt
 
 
 def test_delta_exit_support_refresh_excludes_project_overlay(tmp_path: Path) -> None:

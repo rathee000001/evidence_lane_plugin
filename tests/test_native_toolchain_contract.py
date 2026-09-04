@@ -122,19 +122,16 @@ def test_native_zip_extraction_rejects_path_escape(tmp_path: Path) -> None:
         module.safe_extract(archive, tmp_path / "out", "prefix/")
 
 
-def test_drain_route_is_absent_and_restart_preparation_has_no_process_control() -> None:
+def test_drain_and_restart_helper_routes_are_absent() -> None:
     drain = PLUGIN / "scripts" / "codex_release" / "drain_codex_task_turns.py"
-    prepare = (
+    restart_helper = (
         PLUGIN
         / "scripts"
         / "codex_release"
         / "Prepare-EvidenceLaneCodexRestart.ps1"
-    ).read_text(encoding="utf-8")
+    )
     assert not drain.exists()
-    assert "drain_utility_allowed = $false" in prepare
-    assert "programmatic_process_stop_allowed = $false" in prepare
-    assert "Stop-Process" not in prepare
-    assert "ScheduledTask" not in prepare
+    assert not restart_helper.exists()
 
 
 def test_local_update_prewarm_installs_native_toolchain_before_probe() -> None:
@@ -160,7 +157,7 @@ def test_hidden_runtime_provisioning_pins_grammars_model_and_tunnel_prewarm() ->
         / "Install-EvidenceLaneTunnel.ps1"
     ).read_text(encoding="utf-8")
 
-    assert len(CODE_TOOLCHAIN_LANGUAGES) == 33
+    assert len(CODE_TOOLCHAIN_LANGUAGES) == 34
     assert "c_sharp" in CODE_TOOLCHAIN_LANGUAGES
     assert '"csharp" if language == "c_sharp" else language' in native_installer
     assert "TREE_SITTER_LANGUAGE_PREFETCH_NETWORK_GRANT_REQUIRED" in native_installer

@@ -1,6 +1,6 @@
 {
   "schema": "evidence-lane.sqlite-authority-schema-snapshot.v1",
-  "database_sha256": "70C67800C64618237689968493FC177B8DB6EBE71098CDA151DC8E067837CC81",
+  "database_sha256": "FF40216E676B1842AED6BB2D0EA20C38DE06D1E01AAD8A4416E4515C0DAB44E7",
   "objects": [
     {
       "type": "index",
@@ -172,6 +172,12 @@
     },
     {
       "type": "table",
+      "name": "source_exclusion_summary",
+      "tbl_name": "source_exclusion_summary",
+      "sql": "CREATE TABLE source_exclusion_summary(\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                policy_reason TEXT NOT NULL,\n                excluded_entry_count INTEGER NOT NULL,\n                excluded_bytes INTEGER,\n                descendant_members_enumerated INTEGER NOT NULL CHECK(descendant_members_enumerated IN (0, 1)),\n                member_paths_stored INTEGER NOT NULL CHECK(member_paths_stored = 0),\n                capture_mode TEXT NOT NULL,\n                PRIMARY KEY(object_id, policy_reason)\n            )"
+    },
+    {
+      "type": "table",
       "name": "source_git_changed_line",
       "tbl_name": "source_git_changed_line",
       "sql": "CREATE TABLE source_git_changed_line(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                change_ordinal INTEGER NOT NULL,\n                hunk_ordinal INTEGER NOT NULL,\n                line_ordinal INTEGER NOT NULL,\n                line_kind TEXT NOT NULL,\n                old_line_number INTEGER,\n                new_line_number INTEGER,\n                content_size_bytes INTEGER NOT NULL,\n                content_sha256 TEXT NOT NULL,\n                no_newline INTEGER NOT NULL CHECK(no_newline IN (0, 1)),\n                line_sha256 TEXT NOT NULL,\n                PRIMARY KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal,\n                    line_ordinal\n                ),\n                FOREIGN KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal\n                ) REFERENCES source_git_hunk(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal\n                )\n            )"
@@ -312,7 +318,7 @@
       "type": "table",
       "name": "source_object",
       "tbl_name": "source_object",
-      "sql": "CREATE TABLE source_object(\n                object_id TEXT PRIMARY KEY,\n                source_pointer TEXT NOT NULL,\n                resolved_pointer TEXT NOT NULL,\n                kind TEXT NOT NULL,\n                lane_id TEXT NOT NULL,\n                identity_sha256 TEXT NOT NULL,\n                byte_sha256 TEXT,\n                size_bytes INTEGER,\n                member_count INTEGER NOT NULL,\n                included_member_count INTEGER NOT NULL,\n                excluded_member_count INTEGER NOT NULL,\n                member_path_size_sha256 TEXT,\n                content_merkle_sha256 TEXT\n            )"
+      "sql": "CREATE TABLE source_object(\n                object_id TEXT PRIMARY KEY,\n                source_pointer TEXT NOT NULL,\n                resolved_pointer TEXT NOT NULL,\n                kind TEXT NOT NULL,\n                lane_id TEXT NOT NULL,\n                identity_sha256 TEXT NOT NULL,\n                byte_sha256 TEXT,\n                size_bytes INTEGER,\n                member_count INTEGER NOT NULL,\n                included_member_count INTEGER NOT NULL,\n                excluded_member_count INTEGER NOT NULL,\n                member_path_size_sha256 TEXT,\n                content_merkle_sha256 TEXT\n            , \"exclusion_summary_sha256\" TEXT)"
     },
     {
       "type": "table",
@@ -1467,6 +1473,68 @@
           "from": "schema_sha256",
           "table": "source_custom_schema",
           "to": "schema_sha256"
+        }
+      ]
+    },
+    {
+      "name": "source_exclusion_summary",
+      "virtual_fts5": false,
+      "columns": [
+        {
+          "cid": 0,
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "cid": 1,
+          "name": "policy_reason",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "cid": 2,
+          "name": "excluded_entry_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 3,
+          "name": "excluded_bytes",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "cid": 4,
+          "name": "descendant_members_enumerated",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 5,
+          "name": "member_paths_stored",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "cid": 6,
+          "name": "capture_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "foreign_keys": [
+        {
+          "from": "object_id",
+          "table": "source_object",
+          "to": "object_id"
         }
       ]
     },
@@ -3885,6 +3953,13 @@
           "type": "TEXT",
           "not_null": false,
           "primary_key": 0
+        },
+        {
+          "cid": 13,
+          "name": "exclusion_summary_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
         }
       ],
       "foreign_keys": []
@@ -4464,11 +4539,11 @@
       "foreign_keys": []
     }
   ],
-  "table_count": 56,
+  "table_count": 57,
   "fts5_tables": [
     "authority_index_fts",
     "source_authority_fts"
   ],
-  "schema_sha256": "86BC90BA4A6357CDD08C810767145DDF182B0B2B12A12ACAD58B5E5E62DF963C",
-  "receipt_sha256": "8DFB80606A9C3E2702FEE0B0E635B02F287B508D30825A68A51C9CD32A90460B"
+  "schema_sha256": "9568D285FD76EDFA3ACFCF17BB870FF1034997E33C289E64191D63EC1D132F92",
+  "receipt_sha256": "26F4A5B579BC19BB08CC9A4D2EEC019C566844528E84F62B07AB252C3EE25391"
 }

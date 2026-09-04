@@ -21,9 +21,10 @@ The selected skill narrows these rules; it never expands permission.
 - Counts are current registry snapshots, never ceilings. Add or remove a skill,
   action, hook, lane, authority, tool, or fallback only by changing its canonical
   registry and regenerating every dependent surface to exact set parity.
-- The current action catalog has 91 MCP actions: 30 reads and 61 writes. The
-  current conditional tool/tunnel capability matrix has 120 entries. These are
-  different inventories and must never be conflated.
+- The public-action and conditional tool/tunnel inventory counts are derived
+  from their separate canonical registries at audit time and must equal every
+  dependent surface. Neither inventory has a numeric ceiling, and the two
+  inventories must never be conflated.
 - Project Engulf is one current sector-lane identity inside the registry-derived
   sector set, not an extra lane added after the set.
 

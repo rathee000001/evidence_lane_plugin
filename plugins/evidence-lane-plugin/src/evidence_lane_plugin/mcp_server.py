@@ -3726,6 +3726,8 @@ def create_mcp_server(
         activity_type: str,
         visible_payload: dict[str, Any],
         event_id: str | None = None,
+        fixed_window_task_ids: list[str] | None = None,
+        reuse_previous_window: bool = True,
     ) -> dict[str, Any]:
         return application.invoke(
             "task_record_activity",
@@ -3735,6 +3737,8 @@ def create_mcp_server(
             activity_type=activity_type,
             visible_payload=visible_payload,
             event_id=event_id,
+            fixed_window_task_ids=fixed_window_task_ids,
+            reuse_previous_window=reuse_previous_window,
             lifecycle=True,
         )
 

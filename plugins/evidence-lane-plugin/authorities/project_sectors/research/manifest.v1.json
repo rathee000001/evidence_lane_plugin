@@ -25,7 +25,7 @@
     {
       "path": "authorities/project_sectors/research/lane-contract.v1.json",
       "bytes": 62252,
-      "sha256": "352EC7A8DF4B24943183D819C112742D54A09BCF35B4A10CE92E53894C774AAA"
+      "sha256": "5B2E1478BEB2ECB8E6E7DB62F0E3DD8D924219630D284A27A65AF81E9AE27337"
     },
     {
       "path": "authorities/project_sectors/research/lane-pointer.schema.json",
@@ -75,7 +75,7 @@
     {
       "path": "authorities/project_sectors/research/research_sector_v001.sqlite",
       "bytes": 548864,
-      "sha256": "8CFCC1366DFDD73D8CF531640A4BD01C4FB3C563703BD7B49BA970573AB87837"
+      "sha256": "F84861746A2AB1BF5C17A112043A9E0EB28C712279EB42EE8CDE63804E055955"
     },
     {
       "path": "authorities/project_sectors/research/schema.sql",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/research/tools.json",
-      "bytes": 167901,
-      "sha256": "B2D981DB4B10851D3D3D0B183509C4A659BCA3F6733B5FE16274A791F45672CB"
+      "bytes": 178143,
+      "sha256": "E52988D4265B0F99E8A7C69AA308DF0AE9648AB2C8AD2EEA88981FD0F1BB3F88"
     },
     {
       "path": "authorities/project_sectors/research/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "32257D1A9BC455B823B0363EF1E6642E8AE2D04A142A6BE42D3C1874BDC127D9"
+  "receipt_sha256": "6948548263E0BBFE884463C5F9B7843D0127CED4E8191741B0F2A476FE67C185"
 }

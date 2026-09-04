@@ -1639,6 +1639,88 @@ class ProjectStore:
         }
         atomic_write_json(registry_path, exact_registry)
 
+    def _project_authority_registration_proof(
+        self,
+        project_id: str,
+    ) -> dict[str, Any]:
+        registry = self._load_root_registry()
+        row = registry.get("projects", {}).get(project_id)
+        require(
+            isinstance(row, dict),
+            "PROJECT_AUTHORITY_REGISTRATION_PROOF_MISSING",
+            "The exact root registry has no project authority binding.",
+            status="MISMATCH",
+            project_id=project_id,
+        )
+        registered = cast(dict[str, Any], row)
+        root = self.project_root(project_id)
+        registered_root = str(registered.get("project_authority_root") or "").strip()
+        project_path = root / "project.json"
+        require(
+            bool(registered_root)
+            and self._filesystem_route_key(registered_root)
+            == self._filesystem_route_key(root)
+            and registered.get("project_authority_root_sha256")
+            == sha256_bytes(registered_root.encode("utf-8"))
+            and registered.get("project_authority_mode")
+            == "EXPLICIT_USER_PROJECT_ROOT"
+            and project_path.is_file(),
+            "PROJECT_AUTHORITY_REGISTRATION_PROOF_MISMATCH",
+            "The root registry and external Project/PV authority route differ.",
+            status="MISMATCH",
+            project_id=project_id,
+        )
+        project = json.loads(project_path.read_text(encoding="utf-8"))
+        require(
+            project.get("project_id") == project_id
+            and self._filesystem_route_key(
+                str(project.get("project_authority_root") or root)
+            )
+            == self._filesystem_route_key(root),
+            "PROJECT_AUTHORITY_REGISTRATION_PROJECT_MISMATCH",
+            "The routed project registry does not bind the same authority root.",
+            status="MISMATCH",
+            project_id=project_id,
+        )
+        layout_path = root / "project_authority.json"
+        layout_sha256: str | None = None
+        if layout_path.is_file():
+            layout = json.loads(layout_path.read_text(encoding="utf-8"))
+            claimed_layout_sha256 = str(layout.get("layout_sha256") or "")
+            layout_body = {
+                key: value for key, value in layout.items() if key != "layout_sha256"
+            }
+            require(
+                layout.get("project_id") == project_id
+                and claimed_layout_sha256
+                == sha256_bytes(canonical_json_bytes(layout_body)),
+                "PROJECT_AUTHORITY_REGISTRATION_LAYOUT_MISMATCH",
+                "The registered external layout failed its exact identity seal.",
+                status="MISMATCH",
+                project_id=project_id,
+            )
+            layout_sha256 = claimed_layout_sha256
+        body = {
+            "schema": "evidence-lane.project-authority-registration-proof.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "registered_project_root": str(root),
+            "registered_project_root_sha256": sha256_bytes(
+                str(root).encode("utf-8")
+            ),
+            "registry_file_sha256": sha256_file(self._registry_path()),
+            "registry_row_sha256": sha256_bytes(canonical_json_bytes(registered)),
+            "project_registry_sha256": sha256_file(project_path),
+            "layout_materialized": layout_sha256 is not None,
+            "layout_sha256": layout_sha256,
+            "route_recovered_from_registry": True,
+            "idempotent_registration_proven": True,
+            "candidate_created": False,
+            "pointer_moved": False,
+            "hil_inferred": False,
+        }
+        return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
+
     def project_authority_status(self, project_id: str) -> dict[str, Any]:
         """Return the bounded physical route and registry-derived layout state."""
 
@@ -1656,6 +1738,16 @@ class ProjectStore:
             if manifest_path.is_file()
             else None
         )
+        registration_proof = (
+            self._project_authority_registration_proof(project_id)
+            if self.uses_external_project_authority(project_id)
+            else None
+        )
+        lane_population = (
+            dict(layout.get("lane_population") or {})
+            if isinstance(layout, dict)
+            else {}
+        )
         return {
             "schema": "evidence-lane.project-authority-status.v1",
             "status": "PASS",
@@ -1670,6 +1762,22 @@ class ProjectStore:
                 if isinstance(layout, dict)
                 else 0
             ),
+            "current_materialized_lane_count": lane_population.get(
+                "current_materialized_lane_count"
+            ),
+            "accepted_history_materialized_lane_count": lane_population.get(
+                "accepted_history_materialized_lane_count"
+            ),
+            "accepted_history_schema_ready_unpopulated_lane_count": (
+                lane_population.get(
+                    "accepted_history_schema_ready_unpopulated_lane_count"
+                )
+            ),
+            "current_and_accepted_history_counts_are_separate": (
+                lane_population.get(
+                    "current_and_accepted_history_counts_are_separate"
+                )
+            ),
             "study_brain": (
                 layout.get("study_brain") if isinstance(layout, dict) else None
             ),
@@ -1679,6 +1787,7 @@ class ProjectStore:
             "manifest_sha256": (
                 manifest.get("manifest_sha256") if isinstance(manifest, dict) else None
             ),
+            "registration_proof": registration_proof,
             "candidate_created": False,
             "pointer_moved": False,
             "hil_inferred": False,
@@ -1746,10 +1855,17 @@ class ProjectStore:
         current = self.project_root(project_id)
         if current == target:
             status = self.project_authority_status(project_id)
+            pointer = self.pointer(project_id)
             require(
-                status.get("layout_materialized") is True,
+                status.get("layout_materialized") is True
+                and pointer.accepted_pv == expected_accepted_pv
+                and pointer.generation == expected_pointer_generation
+                and cast(dict[str, Any], status.get("registration_proof") or {}).get(
+                    "idempotent_registration_proven"
+                )
+                is True,
                 "PROJECT_AUTHORITY_MIGRATION_INCOMPLETE",
-                "The external route exists but its project authority layout is incomplete.",
+                "The external route exists but its layout, pointer, or registration proof is incomplete.",
                 status="MISMATCH",
             )
             return {**status, "state": "MIGRATED_IDEMPOTENT_REUSE"}
@@ -1886,6 +2002,7 @@ class ProjectStore:
                 legacy_marker,
             )
 
+        registration_proof = self._project_authority_registration_proof(project_id)
         receipt_body = {
             **migration_identity,
             "status": "PASS",
@@ -1902,6 +2019,14 @@ class ProjectStore:
             ],
             "legacy_history_root": str(legacy),
             "legacy_history_authoritative": False,
+            "registration_proof": registration_proof,
+            "recovery_relocation_evidence": {
+                "migration_journal": str(journal_path),
+                "staging_root": str(staging),
+                "publish_operation": publish_replace,
+                "root_registry_route_verified": True,
+                "idempotent_registration_recoverable": True,
+            },
             "pointer_moved": False,
             "candidate_created": False,
             "hil_inferred": False,

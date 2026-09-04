@@ -20,6 +20,7 @@ from evidence_lane_plugin.lane_reader import (
     MAX_PARALLEL_LANE_WORKERS,
     LaneReader,
 )
+from evidence_lane_plugin.lanes import LANE_REGISTRY
 
 from .conftest import build_and_approve_pv1
 
@@ -388,6 +389,30 @@ def test_implicit_fts5_prefers_current_working_sectors(service) -> None:
     assert result["pv_ref"] == manifest["proposed_pv"]
     assert result["freshness"]["authority"] == "WORKING_SECTORS"
     assert result["result_state"] == "HITS"
+
+
+def test_lane_fetch_error_releases_immutable_sqlite_handle(service) -> None:
+    build_and_approve_pv1(service)
+    _materialize_live_root(service)
+    lane = LANE_REGISTRY["local_code"]
+    database = (
+        service.store.project_root("book-faires")
+        / "sectors"
+        / "local_code"
+        / lane.sqlite_filename
+    )
+
+    with pytest.raises(EvidenceLaneError) as missing:
+        service.lane_reader.fetch_source(
+            "book-faires",
+            "local_code",
+            "missing/path.py",
+        )
+
+    assert missing.value.code == "LANE_SOURCE_NOT_FOUND"
+    probe = database.with_name(database.name + ".rename-probe")
+    database.replace(probe)
+    probe.replace(database)
 
 
 def test_parallel_query_applies_one_deterministic_aggregate_result_budget() -> None:

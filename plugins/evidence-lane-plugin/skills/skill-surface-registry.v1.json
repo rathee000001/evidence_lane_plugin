@@ -20,7 +20,7 @@
         {
           "path": "skills/evi/references/public-tool-conformance-release-gate.v1.json",
           "bytes": 3110,
-          "sha256": "F9907BBB8736BA5C2F744FB950081F8536CDA9BB52AE09673FB600CDADBEC912"
+          "sha256": "12B9CC5D057F4E8F6F3C60FC5E327CB5E6F32934D0BF6F125E58B247CEDA657F"
         },
         {
           "path": "skills/evi/SKILL.md",
@@ -1372,8 +1372,8 @@
         },
         {
           "path": "skills/evidence-lane-code-lifecycle/references/shared-boundaries.md",
-          "bytes": 4822,
-          "sha256": "6D0AB6EC61365D5B0D990DC914392471703C56F5571B09D478B1051A88400D34"
+          "bytes": 4881,
+          "sha256": "6FAC092C0DC4A472694D63B8FF111D0AA862039CC9610C74C99E9D84B328A987"
         },
         {
           "path": "skills/evidence-lane-code-lifecycle/SKILL.md",
@@ -1531,5 +1531,5 @@
   "mcp_server": "evidence-lane",
   "all_skill_members_hash_bound": true,
   "competing_workflow_implementations_allowed": false,
-  "receipt_sha256": "AA47B46B0546558523C65E0099B1AD54530EAF06AE429E23DB8460EA16F88BB5"
+  "receipt_sha256": "7BA9F207299C0FAE4C3D7AB59265F7460615C29ABAEA8DFBE683FB46E37C47EF"
 }

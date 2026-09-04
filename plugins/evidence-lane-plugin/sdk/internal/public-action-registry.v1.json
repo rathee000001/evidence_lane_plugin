@@ -8411,6 +8411,26 @@
             ],
             "default": null,
             "title": "Event Id"
+          },
+          "fixed_window_task_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fixed Window Task Ids"
+          },
+          "reuse_previous_window": {
+            "default": true,
+            "title": "Reuse Previous Window",
+            "type": "boolean"
           }
         },
         "required": [
@@ -8451,9 +8471,9 @@
         ],
         "executable": true
       },
-      "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D"
+      "schema_sha256": "F92398CEBA02038F3970FC654AE53EC484A289E0AC99F5BC0B15B406E64163BB"
     }
   ],
   "canonical_implementation": "src/evidence_lane_plugin/internal_sdk.py",
-  "receipt_sha256": "7725B2CA02E50C45A19FBB636FBA197D3B8F367D426B05BB28F6B6F610721EE4"
+  "receipt_sha256": "4A23462A33611A7243E49847382D6033EABE7EB34CF7FECF9514772FB23DED81"
 }

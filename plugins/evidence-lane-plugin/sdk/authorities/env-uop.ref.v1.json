@@ -4,10 +4,10 @@
   "scope": "INSTALLATION_SCOPED_EXECUTABLE_AI_ACTION_PLANE",
   "project_authority": false,
   "env_manifest": "env/authority-manifest.v1.json",
-  "env_manifest_sha256": "59BD460F4ED2431C2AAA45AFB54DFD3360079E43B5F096F6CDEA9A4278D61AF9",
+  "env_manifest_sha256": "4E5C019DE3B0C1E20394A875362C2F91E37926232FA1B6231D815D0D103750C6",
   "uop_manifest": "uop/authority-manifest.v1.json",
   "uop_manifest_sha256": "864132315889A8D308D8773F2D8C76905A4E88AEF1B8138B945ED3CB09199DCA",
   "runtime": "sdk/env_uop/runtime.py",
   "action_plane": "sdk/env_uop/action-plane.v1.json",
-  "receipt_sha256": "D17C46563EE307E16CD846FB45472B4BC1A505317645A45941D468F0D0254477"
+  "receipt_sha256": "24BD549BEFBBE3CF829C6FFB2430A6F06E87FBE13C8D16298B74DE1B188C068B"
 }

@@ -917,3 +917,80 @@ def test_linked_group_and_dependency_directives_survive_legacy_task_storage(
     assert row["git_commit_stage"] == "NO_COMMIT"
     assert "GROUP=canon-runtime; BATCH=canon-foundation" in row["visible_label"]
     assert "DEP=directive-root" in row["visible_label"]
+
+
+def test_host_plan_observation_replaces_one_stale_persisted_batch(service) -> None:
+    session_id, _ = build_and_approve_pv1(service)
+    tasks = [
+        _task(f"rehydrate-step-{number:02d}", f"Execute rehydrate row {number}.")
+        for number in range(1, 13)
+    ]
+    service.plan_tasks(
+        "book-faires",
+        tasks=tasks,
+        planned_by="human-test",
+        plan_id="stale-window-explicit-rehydration",
+    )
+    service.sessions.classify(
+        "book-faires",
+        session_id,
+        task_class=str(tasks[0]["task_class"]),
+        requested_outcome=str(tasks[0]["requested_outcome"]),
+        permitted_paths=list(tasks[0]["permitted_paths"]),
+        permitted_tools=list(tasks[0]["permitted_tools"]),
+        acceptance_checks=list(tasks[0]["acceptance_checks"]),
+        stop_condition=str(tasks[0]["stop_condition"]),
+        backlog_task_id=str(tasks[0]["task_id"]),
+    )
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["host_plan_window"] = {
+        "schema": "evidence-lane.host-plan-window-state.v1",
+        "projection_sha256": "A" * 64,
+        "executable_projection_sha256": "B" * 64,
+        "window_task_ids": [task["task_id"] for task in tasks[3:12]],
+        "binding_source": "STALE_TEST_FIXTURE",
+    }
+    service.sessions._save(session)
+
+    fixed_task_ids = [task["task_id"] for task in tasks[:9]]
+    result = service.sessions.record_activity(
+        "book-faires",
+        session_id,
+        activity_type="host.plan.observation",
+        visible_payload={
+            "trigger": "STALE_ARTIFACT",
+            "host_capability": "SUPPORTED",
+            "observed_artifact": {
+                "state": "STALE",
+                "project_id": "book-faires",
+                "host_task_id": "host-session-test",
+                "observation_event_id": "stale-window-observation-001",
+            },
+        },
+        event_id="stale-window-observation-001",
+        fixed_window_task_ids=fixed_task_ids,
+        reuse_previous_window=False,
+    )
+
+    rehydration = result["host_plan_rehydration"]
+    assert rehydration["receipt"]["status"] == "PASS"
+    assert rehydration["receipt"]["action"] == (
+        "REACTIVATE_EXISTING_HOST_PLAN_WINDOW"
+    )
+    assert rehydration["receipt"]["projection"]["window_task_ids"] == fixed_task_ids
+    rebound = service.sessions.load("book-faires", session_id)
+    assert rebound.metadata["host_plan_window"]["window_task_ids"] == fixed_task_ids
+
+    with pytest.raises(
+        EvidenceLaneError,
+        match="Only a host Plan observation may supply an exact replacement batch",
+    ):
+        service.sessions.record_activity(
+            "book-faires",
+            session_id,
+            activity_type="warning",
+            visible_payload={"message": "not a Plan observation"},
+            event_id="invalid-window-override-001",
+            fixed_window_task_ids=fixed_task_ids,
+            reuse_previous_window=False,
+        )

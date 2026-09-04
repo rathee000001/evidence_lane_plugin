@@ -45,6 +45,42 @@ def _self_seal(value: dict[str, object]) -> dict[str, object]:
     return value
 
 
+def _branch_rules_page(
+    *,
+    repository: str,
+    page: int,
+    contexts: tuple[str, ...],
+    omitted_rule_type: str | None = None,
+) -> dict[str, object]:
+    rules: list[dict[str, object]] = [
+        {"type": rule_type}
+        for rule_type in (
+            "deletion",
+            "non_fast_forward",
+            "required_linear_history",
+        )
+        if rule_type != omitted_rule_type
+    ]
+    if omitted_rule_type != "required_status_checks":
+        rules.append(
+            {
+                "type": "required_status_checks",
+                "parameters": {
+                    "required_status_checks": [
+                        {"context": context} for context in contexts
+                    ]
+                },
+            }
+        )
+    return {
+        "provider": "GITHUB_APP",
+        "method": "GET",
+        "path": (f"/repos/{repository}/rules/branches/main?per_page=100&page={page}"),
+        "status": 200,
+        "rules": rules,
+    }
+
+
 def _git(repository: Path, *arguments: str) -> str:
     completed = subprocess.run(
         ["git", "-C", str(repository), *arguments],
@@ -147,6 +183,13 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
     tree = "2" * 40
     branch = "main"
     source_branch = "agent/evi-v300-systemwide-release-hil-v3.0.0"
+    repository = "owner/repository"
+    bot_actor = {
+        "login": "evidence-lane[bot]",
+        "name": "evidence-lane[bot]",
+        "email": "319574480+evidence-lane[bot]@users.noreply.github.com",
+    }
+    rule_contexts = ("python-ci", "codeql")
     package = _self_seal(
         {
             "schema": "evidence-lane.codex-exact-commit-package.v1.receipt",
@@ -184,6 +227,7 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
             "route": "github_app_main_fast_forward_v3",
             "action": "FAST_FORWARD_MAIN",
             "status": "PASS",
+            "repository": repository,
             "promotion": {
                 "source_branch": source_branch,
                 "target_branch": "main",
@@ -207,6 +251,43 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
                 "merge_authorized": False,
             },
             "github_commit_author_login": "evidence-lane[bot]",
+            "commit_actor_attestation": {
+                "provider": "GITHUB_APP",
+                "method": "GET",
+                "path": f"/repos/{repository}/commits/{commit}",
+                "status": 200,
+                "commit_sha": commit,
+                "author": bot_actor,
+                "committer": bot_actor,
+                "author_and_committer_match_exact_bot": True,
+            },
+            "branch_rules_attestation": {
+                "provider": "GITHUB_APP",
+                "repository": repository,
+                "branch": "main",
+                "endpoint": f"/repos/{repository}/rules/branches/main",
+                "per_page": 100,
+                "before": {
+                    "main_commit": "0" * 40,
+                    "pages": [
+                        _branch_rules_page(
+                            repository=repository,
+                            page=1,
+                            contexts=rule_contexts,
+                        )
+                    ],
+                },
+                "after": {
+                    "main_commit": commit,
+                    "pages": [
+                        _branch_rules_page(
+                            repository=repository,
+                            page=1,
+                            contexts=rule_contexts,
+                        )
+                    ],
+                },
+            },
             "source_tree_reused": True,
             "blob_reupload_count": 0,
             "force_push": False,
@@ -235,7 +316,7 @@ def _authority_inputs(tmp_path: Path) -> dict[str, Path | str]:
         {
             "schema": "evidence-lane.github-ci-exact-head.v1",
             "status": "PASS",
-            "repository": "owner/repository",
+            "repository": repository,
             "branch": source_branch,
             "head_sha": commit,
             "clean_checkout": True,
@@ -302,6 +383,23 @@ def test_release_authority_joins_exact_package_native_push_and_clean_ci(
     assert result["remote_git"]["promotion_status"] == "FAST_FORWARDED"
     assert result["remote_git"]["target_branch"] == "main"
     assert result["remote_git"]["protected_branch"] is True
+    assert (
+        result["remote_git"]["commit_actor_attestation"]["author"]
+        == (result["remote_git"]["commit_actor_attestation"]["committer"])
+    )
+    rules = result["remote_git"]["branch_rules_attestation"]
+    assert rules["before"]["pagination_complete"] is True
+    assert rules["after"]["pagination_complete"] is True
+    assert set(rules["after"]["rule_types"]) >= {
+        "deletion",
+        "non_fast_forward",
+        "required_linear_history",
+        "required_status_checks",
+    }
+    assert rules["after"]["required_status_check_contexts"] == [
+        "codeql",
+        "python-ci",
+    ]
     assert result["github_ci"]["required_check_count"] == 2
     assert result["github_ci"]["successful_check_count"] == 2
     assert result["github_ci"]["failed_check_count"] == 0
@@ -340,6 +438,175 @@ def test_release_authority_rejects_a_production_vercel_deployment(
     arguments["vercel_preview_receipt_sha256"] = _sha256(preview_path)
 
     with pytest.raises(module.ReleaseAuthorityError, match="do not join"):
+        module.seal_release_authority(**arguments)
+
+
+@pytest.mark.parametrize("actor_role", ["author", "committer"])
+def test_release_authority_rejects_mismatched_exact_bot_actor(
+    tmp_path: Path,
+    actor_role: str,
+) -> None:
+    module = _module(AUTHORITY_BUILDER, f"release_authority_actor_{actor_role}")
+    arguments = _authority_inputs(tmp_path)
+    remote_path = Path(str(arguments["remote_git_receipt"]))
+    remote = json.loads(remote_path.read_text("utf-8"))
+    remote.pop("receipt_sha256")
+    remote["commit_actor_attestation"][actor_role]["email"] = "human@example.test"
+    _self_seal(remote)
+    _write_json(remote_path, remote)
+    arguments["remote_git_receipt_sha256"] = _sha256(remote_path)
+
+    with pytest.raises(module.ReleaseAuthorityError, match="author/committer"):
+        module.seal_release_authority(**arguments)
+
+
+@pytest.mark.parametrize(
+    "missing_attestation",
+    ["commit_actor_attestation", "branch_rules_attestation"],
+)
+def test_release_authority_rejects_missing_github_app_attestation(
+    tmp_path: Path,
+    missing_attestation: str,
+) -> None:
+    module = _module(
+        AUTHORITY_BUILDER,
+        f"release_authority_missing_{missing_attestation}",
+    )
+    arguments = _authority_inputs(tmp_path)
+    remote_path = Path(str(arguments["remote_git_receipt"]))
+    remote = json.loads(remote_path.read_text("utf-8"))
+    remote.pop("receipt_sha256")
+    remote.pop(missing_attestation)
+    _self_seal(remote)
+    _write_json(remote_path, remote)
+    arguments["remote_git_receipt_sha256"] = _sha256(remote_path)
+
+    with pytest.raises(module.ReleaseAuthorityError, match="attestation"):
+        module.seal_release_authority(**arguments)
+
+
+@pytest.mark.parametrize(
+    "missing_rule_type",
+    [
+        "deletion",
+        "non_fast_forward",
+        "required_linear_history",
+        "required_status_checks",
+    ],
+)
+def test_release_authority_rejects_missing_required_main_rule(
+    tmp_path: Path,
+    missing_rule_type: str,
+) -> None:
+    module = _module(
+        AUTHORITY_BUILDER,
+        f"release_authority_missing_rule_{missing_rule_type}",
+    )
+    arguments = _authority_inputs(tmp_path)
+    remote_path = Path(str(arguments["remote_git_receipt"]))
+    remote = json.loads(remote_path.read_text("utf-8"))
+    remote.pop("receipt_sha256")
+    repository = remote["repository"]
+    remote["branch_rules_attestation"]["after"]["pages"] = [
+        _branch_rules_page(
+            repository=repository,
+            page=1,
+            contexts=("python-ci", "codeql"),
+            omitted_rule_type=missing_rule_type,
+        )
+    ]
+    _self_seal(remote)
+    _write_json(remote_path, remote)
+    arguments["remote_git_receipt_sha256"] = _sha256(remote_path)
+
+    with pytest.raises(module.ReleaseAuthorityError, match="required governance"):
+        module.seal_release_authority(**arguments)
+
+
+def test_release_authority_rejects_incomplete_branch_rule_pagination(
+    tmp_path: Path,
+) -> None:
+    module = _module(AUTHORITY_BUILDER, "release_authority_incomplete_rules")
+    arguments = _authority_inputs(tmp_path)
+    remote_path = Path(str(arguments["remote_git_receipt"]))
+    remote = json.loads(remote_path.read_text("utf-8"))
+    remote.pop("receipt_sha256")
+    repository = remote["repository"]
+    full_page = _branch_rules_page(
+        repository=repository,
+        page=1,
+        contexts=("python-ci", "codeql"),
+    )
+    full_page["rules"] = [*full_page["rules"], *({"type": "update"} for _ in range(96))]
+    assert len(full_page["rules"]) == 100
+    remote["branch_rules_attestation"]["before"]["pages"] = [full_page]
+    _self_seal(remote)
+    _write_json(remote_path, remote)
+    arguments["remote_git_receipt_sha256"] = _sha256(remote_path)
+
+    with pytest.raises(module.ReleaseAuthorityError, match="pagination"):
+        module.seal_release_authority(**arguments)
+
+
+def test_release_authority_accepts_complete_multi_page_rule_attestation(
+    tmp_path: Path,
+) -> None:
+    module = _module(AUTHORITY_BUILDER, "release_authority_paginated_rules")
+    arguments = _authority_inputs(tmp_path)
+    remote_path = Path(str(arguments["remote_git_receipt"]))
+    remote = json.loads(remote_path.read_text("utf-8"))
+    remote.pop("receipt_sha256")
+    repository = remote["repository"]
+    for phase in ("before", "after"):
+        full_page = _branch_rules_page(
+            repository=repository,
+            page=1,
+            contexts=("python-ci", "codeql"),
+        )
+        full_page["rules"] = [
+            *full_page["rules"],
+            *({"type": "update"} for _ in range(96)),
+        ]
+        remote["branch_rules_attestation"][phase]["pages"] = [
+            full_page,
+            _branch_rules_page(
+                repository=repository,
+                page=2,
+                contexts=("python-ci", "codeql"),
+            ),
+        ]
+    _self_seal(remote)
+    _write_json(remote_path, remote)
+    arguments["remote_git_receipt_sha256"] = _sha256(remote_path)
+
+    result = module.seal_release_authority(**arguments)
+
+    attestation = result["remote_git"]["branch_rules_attestation"]
+    assert attestation["before"]["page_count"] == 2
+    assert attestation["after"]["page_paths"][-1].endswith("?per_page=100&page=2")
+
+
+def test_release_authority_rejects_unattested_required_status_context(
+    tmp_path: Path,
+) -> None:
+    module = _module(AUTHORITY_BUILDER, "release_authority_missing_context")
+    arguments = _authority_inputs(tmp_path)
+    remote_path = Path(str(arguments["remote_git_receipt"]))
+    remote = json.loads(remote_path.read_text("utf-8"))
+    remote.pop("receipt_sha256")
+    repository = remote["repository"]
+    remote["branch_rules_attestation"]["after"]["pages"] = [
+        _branch_rules_page(
+            repository=repository,
+            page=1,
+            contexts=("python-ci",),
+        )
+    ]
+    _self_seal(remote)
+    _write_json(remote_path, remote)
+    arguments["remote_git_receipt_sha256"] = _sha256(remote_path)
+
+    with pytest.raises(module.ReleaseAuthorityError, match="required governance"):
         module.seal_release_authority(**arguments)
 
 

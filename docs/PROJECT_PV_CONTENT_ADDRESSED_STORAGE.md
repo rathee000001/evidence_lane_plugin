@@ -66,7 +66,7 @@ flowchart TB
 | Source contract | Bytes | SHA-256 |
 | --- | ---: | --- |
 | `schemas/lane-artifact-contract.v001.json` | 5937 | `453CA9E6E2CFEFC9944FAC3F2969B638BD1E5A7DDD00484D5B3565374EFB6FC2` |
-| `src/evidence_lane_plugin/store.py` | 412255 | `CB9E657ED52938A40B5C3E60EC346A2007ED78CB62771B57100227E166551A17` |
+| `src/evidence_lane_plugin/store.py` | 419069 | `FBAA8E89943A49639290C405313734BD08315742E0C79E3C9AFD780E850AA2D0` |
 | `src/evidence_lane_plugin/project_overlay.py` | 54320 | `F9C2D4D6339DEA0EC413A28F16F03AB8D99CF083F796B5B73815974490EAEF86` |
 
 ## Cross-surface invariants

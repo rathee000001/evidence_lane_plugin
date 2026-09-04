@@ -34,6 +34,26 @@
         ],
         "default": null,
         "title": "Event Id"
+      },
+      "fixed_window_task_ids": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Fixed Window Task Ids"
+      },
+      "reuse_previous_window": {
+        "default": true,
+        "title": "Reuse Previous Window",
+        "type": "boolean"
       }
     },
     "required": [
@@ -74,8 +94,8 @@
     ],
     "executable": true
   },
-  "canonical_schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D",
+  "canonical_schema_sha256": "F92398CEBA02038F3970FC654AE53EC484A289E0AC99F5BC0B15B406E64163BB",
   "canonical_catalog": "schemas/public-action-schemas.v001.json",
   "canonical_implementation": "src/evidence_lane_plugin/mcp_server.py",
-  "receipt_sha256": "3156F0CA1CBAA4F533E1C13629B6E04D3035E9EFC3C49044BC5B9C95C0003C8A"
+  "receipt_sha256": "1F1F6A46856B4A6B8A7B076F571E2850AD845D4DF50A7BABEDA67FBE1945192C"
 }

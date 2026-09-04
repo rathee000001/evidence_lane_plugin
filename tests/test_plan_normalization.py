@@ -154,6 +154,21 @@ def test_plan_normalization_is_exact_idempotent_and_rebinds_current_goal(
     assert session.metadata["active_backlog_task_id"] == "normalized-active"
     assert session.task is not None
     assert session.task["task_id"] == "normalized-active"
+    normalized_goal_ids = [
+        row["task_id"] for row in normalized["goal_projection"]["rows"]
+    ]
+    normalized_start = normalized_goal_ids.index("normalized-active")
+    expected_host_window = normalized_goal_ids[normalized_start : normalized_start + 9]
+    assert session.metadata["host_plan_window"]["window_task_ids"] == (
+        expected_host_window
+    )
+    assert session.metadata["host_plan_window"]["binding_source"] == (
+        "CANONICAL_PLAN_NORMALIZATION"
+    )
+    assert receipt["host_plan_window_task_ids"] == expected_host_window
+    assert receipt["host_plan_window_binding_source"] == (
+        "CANONICAL_PLAN_NORMALIZATION"
+    )
     assert session.candidate_id is None
 
     event_count = normalized["event_count"]
@@ -215,6 +230,57 @@ def test_plan_normalization_recovers_after_plan_append_crash(
     assert [row["task_id"] for row in recovered["active"]] == ["normalized-active"]
     session = service.sessions.load("book-faires", session_id)
     assert session.metadata["active_backlog_task_id"] == "normalized-active"
+    assert session.metadata["host_plan_window"]["window_task_ids"][0] == (
+        "normalized-active"
+    )
+    assert session.metadata["host_plan_window"]["binding_source"] == (
+        "CANONICAL_PLAN_NORMALIZATION"
+    )
+
+
+def test_plan_normalization_recovers_host_window_after_session_rebind_crash(
+    service,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_id, tasks, transition = _prepared_normalization(service)
+    original = service.sessions._bind_normalization_host_plan_window
+
+    def interrupt_host_window(*_args, **_kwargs):
+        raise RuntimeError("simulated host-window rebind interruption")
+
+    monkeypatch.setattr(
+        service.sessions,
+        "_bind_normalization_host_plan_window",
+        interrupt_host_window,
+    )
+    with pytest.raises(RuntimeError, match="simulated host-window rebind interruption"):
+        _apply(service, tasks, transition)
+
+    journal_path = (
+        service.store.project_root("book-faires")
+        / "plan_normalization"
+        / "normalization-test-001.json"
+    )
+    journal = json.loads(journal_path.read_text(encoding="utf-8"))
+    assert journal["phase"] == "PLAN_ACTIVATED"
+    partial = service.sessions.load("book-faires", session_id)
+    assert partial.metadata["active_backlog_task_id"] == "normalized-active"
+    assert partial.metadata["host_plan_window"]["window_task_ids"][0] == "old-active"
+
+    monkeypatch.setattr(
+        service.sessions,
+        "_bind_normalization_host_plan_window",
+        original,
+    )
+    recovered = _apply(service, tasks, transition)
+    assert recovered["normalization_transition"]["journal_phase"] == "COMMITTED"
+    rebound = service.sessions.load("book-faires", session_id)
+    assert rebound.metadata["host_plan_window"]["window_task_ids"][0] == (
+        "normalized-active"
+    )
+    assert rebound.metadata["host_plan_window"]["binding_source"] == (
+        "CANONICAL_PLAN_NORMALIZATION"
+    )
 
 
 def test_plan_normalization_rejects_candidate_before_writing(service) -> None:
@@ -341,6 +407,17 @@ def test_plan_normalization_correction_restores_active_and_dynamic_rows(
     session = service.sessions.load("book-faires", session_id)
     assert session.metadata["active_backlog_task_id"] == "old-active"
     assert session.task is not None and session.task["task_id"] == "old-active"
+    assert session.metadata["host_plan_window"]["window_task_ids"][0] == "old-active"
+    assert session.metadata["host_plan_window"]["binding_source"] == (
+        "CANONICAL_PLAN_NORMALIZATION_CORRECTION"
+    )
+    assert (
+        receipt["host_plan_window_task_ids"]
+        == session.metadata["host_plan_window"]["window_task_ids"]
+    )
+    assert receipt["host_plan_window_binding_source"] == (
+        "CANONICAL_PLAN_NORMALIZATION_CORRECTION"
+    )
 
     event_count = corrected["event_count"]
     replayed = service.plan_tasks(
@@ -508,6 +585,13 @@ def test_plan_normalization_correction_recovers_after_plan_write(
     assert service.sessions.load("book-faires", session_id).metadata[
         "active_backlog_task_id"
     ] == "old-active"
+    recovered_session = service.sessions.load("book-faires", session_id)
+    assert recovered_session.metadata["host_plan_window"]["window_task_ids"][0] == (
+        "old-active"
+    )
+    assert recovered_session.metadata["host_plan_window"]["binding_source"] == (
+        "CANONICAL_PLAN_NORMALIZATION_CORRECTION"
+    )
     assert sha256_bytes(Path(original_receipt["journal_path"]).read_bytes()) == (
         original_sha
     )

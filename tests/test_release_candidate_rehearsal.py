@@ -445,11 +445,6 @@ def _plugin_fixture(tmp_path: Path) -> Path:
     )
     _write(
         plugin,
-        "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
-        "# fixture restart helper\n",
-    )
-    _write(
-        plugin,
         "scripts/codex_release/accept_codex_stable.py",
         "# fixture acceptance checker\n",
     )
@@ -740,7 +735,7 @@ def test_rehearsal_is_deterministic_posix_safe_and_non_lifecycle(
         assert "scripts/codex_release/install_codex_stable.py" in names
         assert "scripts/codex_release/build_codex_exact_commit_package.py" in names
         assert "scripts/codex_release/seal_codex_git_ci_release_authority.py" in names
-        assert "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1" in names
+        assert "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1" not in names
         assert "scripts/codex_release/Restart-EvidenceLaneCodex.ps1" not in names
         assert "scripts/codex_release/drain_codex_task_turns.py" not in names
         assert (

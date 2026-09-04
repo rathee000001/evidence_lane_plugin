@@ -78,7 +78,7 @@ flowchart TB
 | Hook events / handlers | 11 / 44 |
 | Sector lanes | 18 |
 | Named authorities | 11 |
-| Source modules | 144 |
+| Source modules | 145 |
 | Schemas | 170 |
 | Tool requirements | 119 |
 
@@ -204,9 +204,9 @@ flowchart TB
 
 | Source contract | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `toolchains/universal-plugin-architecture.v1.json` | 1802575 | `C06F59826A30C39C14B973AA043BABCB84FFF8758C73F0B8B6A1C847A38A3B29` |
-| `sdk/sdk-manifest.v1.json` | 76103 | `B97D608619CE2EFD385D96F17FC655F8FDD43782F3EC8715B2C91566BA696340` |
-| `authorities/authority-surface-registry.v1.json` | 5022 | `C10CCF0AD086D13F8D73FA627101CA2349D82D44404E0AC508E4FD51E2432B43` |
+| `toolchains/universal-plugin-architecture.v1.json` | 1802575 | `2A59A6C94031830F23CDD7B83136B3D7DAF0CADC9FFD0541350E76D97EA27104` |
+| `sdk/sdk-manifest.v1.json` | 76239 | `79276732E6406D68C6EA78738FE0AE80E00D644285AF95D9D7AC3F64E7BF99E4` |
+| `authorities/authority-surface-registry.v1.json` | 5022 | `64879B03D4FA6FF0248F508642BA67926C72C886506FB5EB47B705A7E5D1F3AB` |
 
 ## Cross-surface invariants
 

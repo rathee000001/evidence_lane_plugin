@@ -12,6 +12,10 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "evidence-lane.executable-fingerprint-refresh.v1"
+REGRESSION_PASS_STATUSES = {
+    "PASS_WITH_TARGETED_FAILURE_CLOSURE",
+    "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED",
+}
 
 
 def _json(path: Path) -> dict[str, Any]:
@@ -84,6 +88,17 @@ def main() -> int:
     source_impact = _json(source_impact_path)
     semantic = _json(semantic_path)
     targeted_closure = _json(targeted_closure_path)
+    targeted_closure_status = str(targeted_closure.get("status") or "")
+    deferred_publication = dict(targeted_closure.get("deferred_publication") or {})
+    scoped_publication_deferral = (
+        targeted_closure_status
+        == "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED"
+    )
+    semantic_publication = dict(semantic.get("deferred_publication") or {})
+    semantic_scoped_deferral = (
+        semantic.get("status")
+        == "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED"
+    )
     environment = dict(os.environ)
     environment["GIT_INDEX_FILE"] = str(alternate_index)
     alternate_tree = subprocess.run(
@@ -145,18 +160,30 @@ def main() -> int:
             and int(source_impact.get("orphaned_generated_member_count", -1)) == 0
         ),
         "semantic_currentness": (
-            semantic.get("status") == "PASS"
+            semantic.get("status")
+            in {"PASS", "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED"}
             and int(semantic.get("stale_path_count", -1)) == 0
             and semantic.get("every_index_blob_content_inspected") is True
             and semantic.get("unchanged_blob_skip_allowed") is False
             and semantic.get("alternate_tree") == alternate_tree
+            and (
+                not semantic_scoped_deferral
+                or (
+                    scoped_publication_deferral
+                    and semantic_publication.get("status") == "DEFERRED_NOT_PASSED"
+                    and semantic_publication.get("publication_authorized") is False
+                    and semantic_publication.get("documentation_generation_authorized")
+                    is False
+                    and semantic_publication.get("contract_file_sha256")
+                    == deferred_publication.get("contract_file_sha256")
+                )
+            )
         ),
         "same_epoch_path_set": path_sets_equal,
         "same_epoch_byte_semantic_join": byte_semantic_join,
         "executable_subset_join": executable_join,
         "targeted_closure_receipt": (
-            targeted_closure.get("status")
-            == "PASS_WITH_TARGETED_FAILURE_CLOSURE"
+            targeted_closure_status in REGRESSION_PASS_STATUSES
             and (targeted_closure.get("full_regression") or {}).get(
                 "full_suite_rerun"
             )
@@ -167,6 +194,17 @@ def main() -> int:
                 )
             )
             == 0
+            and (
+                not scoped_publication_deferral
+                or (
+                    targeted_closure.get("publication_authorized") is False
+                    and deferred_publication.get("status") == "DEFERRED_NOT_PASSED"
+                    and deferred_publication.get("publication_authorized") is False
+                    and deferred_publication.get("documentation_generation_authorized")
+                    is False
+                    and int(deferred_publication.get("selector_count", 0)) > 0
+                )
+            )
         ),
         "single_full_regression": args.full_passed > 0 and args.full_failed >= 0,
         "targeted_closure": args.targeted_passed > 0,
@@ -181,7 +219,7 @@ def main() -> int:
         "thread_id": args.thread_id,
         "checks": checks,
         "full_regression": {
-            "status": "PASS_WITH_TARGETED_FAILURE_CLOSURE",
+            "status": targeted_closure_status,
             "authorized_run_count": 1,
             "passed": args.full_passed,
             "failed": args.full_failed,
@@ -195,6 +233,24 @@ def main() -> int:
             "full_suite_rerun": False,
             "receipt_sha256": targeted_closure["receipt_sha256"],
             "file_sha256": _sha256(targeted_closure_path),
+        },
+        "publication_scope": {
+            "status": (
+                "DEFERRED_NOT_PASSED"
+                if scoped_publication_deferral
+                else "NOT_DEFERRED_BY_REGRESSION_CLOSURE"
+            ),
+            "publication_authorized": False if scoped_publication_deferral else None,
+            "deferred_selector_count": (
+                int(deferred_publication.get("selector_count", 0))
+                if scoped_publication_deferral
+                else 0
+            ),
+            "deferral_contract_file_sha256": (
+                deferred_publication.get("contract_file_sha256")
+                if scoped_publication_deferral
+                else None
+            ),
         },
         "executable_surface": {
             "status": "PASS",
@@ -214,7 +270,7 @@ def main() -> int:
             "pre_self_reference_tree": repository_fingerprints["source_tree_sha"],
         },
         "semantic_currentness": {
-            "status": "PASS",
+            "status": semantic["status"],
             "alternate_tree": alternate_tree,
             "current_index_path_count": semantic["current_index_path_count"],
             "purged_head_path_count": semantic["purged_head_path_count"],
@@ -232,6 +288,16 @@ def main() -> int:
             "every_repository_blob_joined_to_semantic_receipt": byte_semantic_join,
             "executable_members_joined_to_same_epoch_blobs": executable_join,
             "purged_paths": sorted(semantic_purged),
+            "publication_authorized": (
+                semantic_publication.get("publication_authorized")
+                if semantic_scoped_deferral
+                else None
+            ),
+            "deferred_publication_path_count": (
+                int(semantic_publication.get("deferred_path_count", 0))
+                if semantic_scoped_deferral
+                else 0
+            ),
         },
         "line_ending_normalization": {
             "policy": "EXACT_GIT_INDEX_BLOB_BYTES_AFTER_GIT_ATTRIBUTES_NORMALIZATION",

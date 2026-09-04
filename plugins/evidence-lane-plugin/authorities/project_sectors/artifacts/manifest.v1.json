@@ -20,7 +20,7 @@
     {
       "path": "authorities/project_sectors/artifacts/artifacts_sector_v001.sqlite",
       "bytes": 532480,
-      "sha256": "44B004E6B74345AFF674721543F21DCB61752F306E33D196CED27BFB4ECC68FD"
+      "sha256": "E1BE5390EFCEAACBEEA95F47BCF6B50328258EA3365CC6A93D3F6F72C21AC7A4"
     },
     {
       "path": "authorities/project_sectors/artifacts/builder-contract.schema.json",
@@ -40,7 +40,7 @@
     {
       "path": "authorities/project_sectors/artifacts/lane-contract.v1.json",
       "bytes": 53723,
-      "sha256": "7EAFBC443204D6AB4A7936F6989F50333A17E35C05681F26261BD22A49F7A28F"
+      "sha256": "BBE18D2B2DC56AEF48630FB2FEEB3C70B3F8ADE202A5BDA9C549224E36C62F72"
     },
     {
       "path": "authorities/project_sectors/artifacts/lane-pointer.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/artifacts/tools.json",
-      "bytes": 156106,
-      "sha256": "0844C7FCBA1E1100BD4C19858EB8F87C772B7532704DEE978C7DA8A7EF3A840E"
+      "bytes": 166035,
+      "sha256": "AF842C199213510A9F6987072BCA27A70646DAD3508E08EAEEBD0C037BE3F1D3"
     },
     {
       "path": "authorities/project_sectors/artifacts/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "C204A30E5170992B36D1A2D4AD5AE3BAD78B5CD5751F035412283FDE86089C66"
+  "receipt_sha256": "47D4D1F5FBCAA6CE7CB3E2AD23117B1B8BADF063134EEE1FFA7E3F579214BEFD"
 }

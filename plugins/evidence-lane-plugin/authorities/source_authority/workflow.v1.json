@@ -6,7 +6,7 @@
   "source_pairing": {
     "authority_id": "source_authority",
     "path": "authorities/source_authority",
-    "table_count": 56,
+    "table_count": 57,
     "linked_public_action_count": 18,
     "persistent_sqlite_authority": true,
     "eligible_tools": [
@@ -575,5 +575,5 @@
   "superseded_route_retained": false,
   "hil_inference_allowed": false,
   "workflow_or_count_ceiling": false,
-  "receipt_sha256": "418BF0E5932EFE40AAA0A1FE8987D3EC94F6F638FC2BF7AED38D0DD8A2B07C93"
+  "receipt_sha256": "01A5A9DB2A390637D3241533C193B4C09884C21709122E9BF8659075CCD9245A"
 }

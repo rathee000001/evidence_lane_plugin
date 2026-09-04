@@ -4981,7 +4981,7 @@
     {
       "authority_id": "source_authority",
       "path": "authorities/source_authority",
-      "table_count": 56,
+      "table_count": 57,
       "linked_public_action_count": 18,
       "persistent_sqlite_authority": true,
       "eligible_tools": [
@@ -5249,5 +5249,5 @@
   ],
   "counts_are_derived_not_fixed": true,
   "all_surfaces_use_same_registry_driven_pairing_law": true,
-  "receipt_sha256": "AA17E0947FCA8CDF3F8281CEE643ABB0FD9D85A04E67466621AE99DC40DBC7A0"
+  "receipt_sha256": "DE4E85D907F9AB551CB817AF0918F4DB489CE6D74C861404DA6449F33FC9DCDA"
 }

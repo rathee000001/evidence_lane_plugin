@@ -252,6 +252,38 @@ def test_same_version_schema_drift_fails_without_repair(tmp_path: Path) -> None:
     assert version == CANON_LEDGER_SCHEMA_VERSION
 
 
+def test_authority_support_index_schema_is_not_canon_owned(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    inspect_canon_authority(root, project_id=root.name)
+    ledger = root / "canon" / "canon-input.sqlite"
+    connection = sqlite3.connect(ledger)
+    try:
+        connection.execute(
+            "CREATE TABLE authority_index_probe(identity TEXT PRIMARY KEY) STRICT"
+        )
+        connection.execute(
+            "CREATE INDEX authority_index_probe_identity_idx "
+            "ON authority_index_probe(identity)"
+        )
+        connection.execute(
+            "INSERT INTO authority_index_probe(identity) VALUES('preserved')"
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+    inspected = inspect_canon_authority(root, project_id=root.name)
+    assert inspected["status"] == "PASS"
+    connection = sqlite3.connect(ledger)
+    try:
+        preserved = connection.execute(
+            "SELECT identity FROM authority_index_probe"
+        ).fetchone()
+    finally:
+        connection.close()
+    assert preserved == ("preserved",)
+
+
 def test_failed_v0_migration_rolls_back_every_schema_change(tmp_path: Path) -> None:
     root = _root(tmp_path)
     ledger = root / "canon" / "canon-input.sqlite"

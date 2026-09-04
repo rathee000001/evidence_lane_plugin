@@ -235,8 +235,9 @@ def test_helper_tunnel_rotation_is_plugin_maintainer_only_and_final_hil_gated() 
     }
     assert helper["user_stable_tunnel"]["release"] == "3.0.0"
     assert helper["user_stable_tunnel"]["release_token"] == "v300"
-    assert helper["user_stable_tunnel"]["scheduled_task_name"] == (
-        "EvidenceLane-Tunnel-v300-stable-build"
+    assert helper["user_stable_tunnel"]["scheduled_task_name_template"] == (
+        "EvidenceLane-Tunnel-{release_token}-{slot_role}-abi-"
+        "{tunnel_compatibility_digest}"
     )
     assert helper["user_stable_tunnel"]["at_logon"] is True
     assert helper["user_stable_tunnel"]["scheduled_task_transport_allowed"] is True
@@ -252,10 +253,10 @@ def test_helper_tunnel_rotation_is_plugin_maintainer_only_and_final_hil_gated() 
         "VERIFY_EXACTLY_TWO_SLOTS_AND_ONE_ACTIVE_RUNTIME"
     )
     assert rotation["stable_git_main_must_equal_exact_merged_release"] is True
-    assert rotation["helper_and_tunnel_release_must_match_owning_slot"] is True
-    assert rotation["prior_versioned_helpers_and_tunnels_retained"] is False
-    assert rotation["prior_versioned_helpers_and_tunnels_disabled"] is False
-    assert rotation["prior_versioned_helpers_and_tunnels_deleted"] is True
+    assert rotation["tunnel_release_must_match_owning_slot"] is True
+    assert rotation["prior_versioned_tunnels_retained"] is True
+    assert rotation["prior_versioned_tunnels_disabled"] is True
+    assert rotation["prior_versioned_tunnels_deleted"] is False
     assert rotation["repeat_for_each_later_plugin_release_cycle"] is True
     assert rotation["current_row_may_execute_rotation"] is False
 
@@ -387,7 +388,7 @@ def test_v300_remote_git_policy_supersedes_only_historical_flash_sentence() -> N
     }
 
 
-def test_tunnel_is_single_active_runtime_and_purges_prior_versions() -> None:
+def test_tunnel_is_single_active_runtime_and_retains_disabled_prior_versions() -> None:
     installer = (
         PLUGIN / "scripts" / "windows_tunnel" / "Install-EvidenceLaneTunnel.ps1"
     ).read_text("utf-8")
@@ -397,11 +398,12 @@ def test_tunnel_is_single_active_runtime_and_purges_prior_versions() -> None:
         / "windows_tunnel"
         / "Manage-EvidenceLaneTunnelVersions.ps1"
     ).exists()
-    assert "Remove-StoppedPriorTunnelRuntimes" in installer
-    assert "Remove-StoppedPriorTunnelTasks" in installer
-    assert "prior_versioned_runtimes_retained = $false" in installer
-    assert "prior_versioned_tasks_retained = $false" in installer
-    assert "prior_versioned_runtime_deletion_required = $true" in installer
+    assert "Stop-AndRetainPriorTunnelRuntimes" in installer
+    assert "Stop-DisableAndRetainPriorTunnelTasks" in installer
+    assert "prior_versioned_runtimes_retained = $true" in installer
+    assert "prior_versioned_tasks_retained = $true" in installer
+    assert "prior_versioned_tasks_disabled = $true" in installer
+    assert "prior_versioned_runtime_deletion_required = $false" in installer
 
 
 
@@ -416,14 +418,15 @@ def test_obsolete_failover_operator_is_physically_absent() -> None:
         / "codex_release"
         / "Switch-EvidenceLaneCodexSlot.ps1"
     ).exists()
-    restart = (
+    assert not (
         PLUGIN
         / "scripts"
         / "codex_release"
         / "Prepare-EvidenceLaneCodexRestart.ps1"
-    ).read_text("utf-8")
-    assert "TERMINAL_SAFE_RESTART_PREPARED_NOT_EXECUTED" in restart
-    assert "programmatic_process_stop_allowed = $false" in restart
+    ).exists()
+    boundary = contract["helper_distribution_policy"]["manual_restart_boundary"]
+    assert boundary["restart_helper_present"] is False
+    assert boundary["install_receipt_is_restart_boundary"] is True
 
 
 
@@ -674,9 +677,8 @@ def test_stable_activation_requires_git_ci_authority_and_runtime_prewarm() -> No
             "scripts/codex_release/seal_external_release_receipts.py"
         ),
         "stable_install_command": "scripts/codex_release/install_codex_stable.py",
-        "stable_update_helper": "scripts/codex_release/Prepare-EvidenceLaneCodexRestart.ps1",
-        "install_completed_before_restart_helper": True,
-        "restart_helper_installs_plugin": False,
+        "restart_helper_present": False,
+        "install_receipt_is_restart_boundary": True,
         "stable_update_reopens_same_bound_host_app": False,
         "stable_update_requires_user_restart_after_terminal_response": True,
         "stable_update_rebinds_exact_task_via_native_binding": True,

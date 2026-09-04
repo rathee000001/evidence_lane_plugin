@@ -24,6 +24,32 @@ def _canonical(value: Any) -> bytes:
     ).encode("utf-8")
 
 
+def _load_deferral_contract(path: Path | None) -> tuple[dict[str, Any] | None, set[str]]:
+    if path is None:
+        return None, set()
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise SystemExit("TARGETED_CLOSURE_DEFERRAL_CONTRACT_INVALID")
+    selectors = value.get("deferred_failure_selectors")
+    valid = (
+        value.get("schema") == "evidence-lane.regression-deferral-contract.v1"
+        and value.get("status") == "ACTIVE"
+        and value.get("publication_authorized") is False
+        and value.get("documentation_generation_authorized") is False
+        and value.get("exact_selector_set_required") is True
+        and value.get("non_deferred_failures_must_close") is True
+        and value.get("mixed_or_unknown_failure_policy") == "FAIL_CLOSED"
+        and isinstance(selectors, list)
+        and selectors
+        and all(isinstance(selector, str) and "::" in selector for selector in selectors)
+        and len(selectors) == len(set(selectors))
+    )
+    if not valid:
+        raise SystemExit("TARGETED_CLOSURE_DEFERRAL_CONTRACT_INVALID")
+    assert isinstance(selectors, list)
+    return value, {str(selector) for selector in selectors}
+
+
 def _junit(path: Path) -> tuple[dict[str, Any], list[str]]:
     root = ET.parse(path).getroot()
     suites = [root] if root.tag == "testsuite" else list(root.findall("testsuite"))
@@ -67,6 +93,7 @@ def main() -> int:
     parser.add_argument("--full-receipt", type=Path, required=True)
     parser.add_argument("--full-junit", type=Path, required=True)
     parser.add_argument("--targeted-junit", type=Path, required=True)
+    parser.add_argument("--deferred-contract", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--purged-path", action="append", default=[])
     parser.add_argument("--root-cause", action="append", default=[])
@@ -76,12 +103,20 @@ def main() -> int:
     full_receipt_path = arguments.full_receipt.resolve()
     full_junit_path = arguments.full_junit.resolve()
     targeted_junit_path = arguments.targeted_junit.resolve()
+    deferred_contract_path = (
+        arguments.deferred_contract.resolve()
+        if arguments.deferred_contract is not None
+        else None
+    )
     output = arguments.output.resolve()
     if output.exists():
         raise SystemExit("TARGETED_CLOSURE_OUTPUT_ALREADY_EXISTS")
     full = json.loads(full_receipt_path.read_text(encoding="utf-8"))
     full_counts, failed_selectors = _junit(full_junit_path)
     targeted_counts, targeted_selectors = _junit(targeted_junit_path)
+    deferred_contract, deferred_selector_set = _load_deferral_contract(
+        deferred_contract_path
+    )
     purged = sorted({str(value).replace("\\", "/") for value in arguments.purged_path})
     present = [path for path in purged if (repository / path).exists()]
     root_causes = sorted(
@@ -89,6 +124,8 @@ def main() -> int:
     )
     failed_selector_set = set(failed_selectors)
     targeted_selector_set = set(targeted_selectors)
+    unexpected_deferred = deferred_selector_set - failed_selector_set
+    required_targeted_selector_set = failed_selector_set - deferred_selector_set
     if not (
         full.get("status") == "FAIL_REQUIRES_TARGETED_CLOSURE"
         and full.get("full_run_count") == 1
@@ -96,17 +133,25 @@ def main() -> int:
         and full_counts["failures"] > 0
         and full_counts["errors"] == 0
         and len(failed_selectors) == full_counts["failures"]
-        and targeted_counts["tests"] >= full_counts["failures"]
+        and targeted_counts["tests"] >= len(required_targeted_selector_set)
         and targeted_counts["failures"] == 0
         and targeted_counts["errors"] == 0
-        and failed_selector_set.issubset(targeted_selector_set)
+        and required_targeted_selector_set.issubset(targeted_selector_set)
+        and not unexpected_deferred
         and root_causes
         and not present
     ):
         raise SystemExit("TARGETED_CLOSURE_EVIDENCE_INVALID")
+    scoped_deferral = deferred_contract is not None
+    status = (
+        "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED"
+        if scoped_deferral
+        else "PASS_WITH_TARGETED_FAILURE_CLOSURE"
+    )
     core = {
         "schema": SCHEMA,
-        "status": "PASS_WITH_TARGETED_FAILURE_CLOSURE",
+        "status": status,
+        "publication_authorized": False if scoped_deferral else None,
         "source_head": full["source_head"],
         "full_regression": {
             "receipt_sha256": full["receipt_sha256"],
@@ -114,6 +159,8 @@ def main() -> int:
             "junit_sha256": _sha256(full_junit_path),
             "counts": full_counts,
             "failed_selectors": failed_selectors,
+            "non_deferred_failed_selectors": sorted(required_targeted_selector_set),
+            "deferred_failed_selectors": sorted(deferred_selector_set),
             "full_run_count": 1,
             "full_suite_rerun": False,
         },
@@ -124,8 +171,25 @@ def main() -> int:
             "selectors": targeted_selectors,
             "purged_paths": purged,
             "purged_paths_present": present,
-            "failed_selector_set_fully_covered": True,
+            "failed_selector_set_fully_covered": not scoped_deferral,
+            "non_deferred_failure_set_fully_covered": True,
         },
+        "failed_selector_set_fully_dispositioned": True,
+        "deferred_publication": (
+            {
+                "status": "DEFERRED_NOT_PASSED",
+                "scope": deferred_contract["scope"],
+                "batch": deferred_contract["deferred_batch"],
+                "surfaces": deferred_contract["deferred_surfaces"],
+                "selectors": sorted(deferred_selector_set),
+                "selector_count": len(deferred_selector_set),
+                "publication_authorized": False,
+                "documentation_generation_authorized": False,
+                "contract_file_sha256": _sha256(deferred_contract_path),
+            }
+            if deferred_contract is not None and deferred_contract_path is not None
+            else None
+        ),
         "negative_proofs": {
             "full_suite_rerun": False,
             "git_index_mutated": False,
@@ -146,6 +210,7 @@ def main() -> int:
                 "status": receipt["status"],
                 "initial_failures": full_counts["failures"],
                 "targeted_tests": targeted_counts["tests"],
+                "deferred_failures": len(deferred_selector_set),
                 "purged_paths": len(purged),
                 "receipt_sha256": receipt["receipt_sha256"],
             },

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import evidence_lane_plugin.session as session_module
 import pytest
+from evidence_lane_plugin.constants import ENGINE_VERSION
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.hashing import canonical_json_bytes, sha256_bytes
 from evidence_lane_plugin.models import HostKind
@@ -27,6 +28,19 @@ def _legacy_runtime_continuity(current: dict) -> dict:
     return legacy
 
 
+def _base_only_namespace_runtime_continuity(current: dict) -> dict:
+    legacy = copy.deepcopy(current)
+    namespace = legacy["runtime_namespace"]
+    namespace["plugin_version"] = ENGINE_VERSION
+    namespace.pop("namespace_sha256")
+    namespace["namespace_sha256"] = sha256_bytes(canonical_json_bytes(namespace))
+    legacy.pop("continuity_receipt_sha256")
+    legacy["continuity_receipt_sha256"] = sha256_bytes(
+        canonical_json_bytes(legacy)
+    )
+    return legacy
+
+
 def test_legacy_reference_only_runtime_receipt_remains_valid(service) -> None:
     boot = boot_local(service)
     legacy = _legacy_runtime_continuity(boot["runtime_continuity"])
@@ -35,6 +49,24 @@ def test_legacy_reference_only_runtime_receipt_remains_valid(service) -> None:
 
     assert validated == legacy
     assert "invocation" not in validated
+
+
+def test_previous_invocation_hil_field_alias_remains_valid_until_resume(service) -> None:
+    boot = boot_local(service)
+    legacy = copy.deepcopy(boot["runtime_continuity"])
+    invocation = legacy["invocation"]
+    invocation["six_way_hil_preserved"] = invocation.pop(
+        "authority_hil_policy_preserved"
+    )
+    legacy.pop("continuity_receipt_sha256")
+    legacy["continuity_receipt_sha256"] = sha256_bytes(
+        canonical_json_bytes(legacy)
+    )
+
+    validated = validate_runtime_continuity(legacy)
+
+    assert validated == legacy
+    assert validated["invocation"]["six_way_hil_preserved"] is True
 
 
 def test_legacy_runtime_receipt_builds_exit_slip_without_rewriting_it(service) -> None:
@@ -111,6 +143,42 @@ def test_resume_upgrades_legacy_receipt_without_rewriting_it(service) -> None:
         "continuity_receipt_sha256"
     ]
     assert current["invocation"]["authority_hil_policy_preserved"] is True
+    stored = service.sessions.load("book-faires", session_id)
+    archived = stored.metadata["runtime_continuity_receipt_archive"]
+    assert archived[-1]["continuity_receipt_sha256"] == legacy[
+        "continuity_receipt_sha256"
+    ]
+    assert archived[-1]["receipt"] == legacy
+
+
+def test_resume_upgrades_base_only_namespace_without_weakening_current_validation(
+    service,
+) -> None:
+    boot = boot_local(service)
+    session_id = boot["session"]["session_id"]
+    legacy = _base_only_namespace_runtime_continuity(boot["runtime_continuity"])
+    with pytest.raises(EvidenceLaneError) as rejected_current:
+        validate_runtime_continuity(legacy)
+    assert rejected_current.value.code == "RUNTIME_NAMESPACE_RECEIPT_INVALID"
+
+    session = service.sessions.load("book-faires", session_id)
+    session.metadata["runtime_continuity"] = legacy
+    service.sessions._save(session)
+
+    resumed = service.resume_session(
+        project_id="book-faires",
+        host="CODEX_DESKTOP",
+        host_session_id="codex-base-only-namespace-upgrade",
+        ephemeral=False,
+        client_can_edit_source=True,
+        server_has_durable_filesystem=True,
+        runtime_context={"purpose": "upgrade base-only plugin namespace"},
+    )
+
+    current = validate_runtime_continuity(resumed["runtime_continuity"])
+    assert current["runtime_namespace"]["plugin_version"].startswith(
+        f"{ENGINE_VERSION}+codex."
+    )
     stored = service.sessions.load("book-faires", session_id)
     archived = stored.metadata["runtime_continuity_receipt_archive"]
     assert archived[-1]["continuity_receipt_sha256"] == legacy[

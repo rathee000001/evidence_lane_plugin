@@ -109,6 +109,58 @@ def test_sqlite_mermaid_dot_reconciliation_passes_for_agreeing_graphs(
     assert result["rendering_parity"]["status"] == "PASS"
 
 
+def test_fact_kind_counts_do_not_resolve_as_same_named_tables_and_samples_are_not_claims(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "fact-kind-and-sample"
+    _write_fixture(root)
+    database = root / "lane.sqlite"
+    connection = sqlite3.connect(database)
+    try:
+        connection.executescript(
+            """
+            CREATE TABLE code_symbol(record_id INTEGER PRIMARY KEY);
+            INSERT INTO code_symbol VALUES(1);
+            INSERT INTO code_symbol VALUES(2);
+            """
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+    mmd_path = root / "lane.mmd"
+    mmd = mmd_path.read_text(encoding="utf-8").replace("KIND", "FACT_KIND_0")
+    mmd = mmd.replace(
+        '        FACT_KIND_0["code_symbol<br/>rows=1"]:::root',
+        '        FACT_KIND_0["code_symbol<br/>rows=1"]:::root\n'
+        '        FACT_SAMPLE_0_0["SOURCE_REG [label=source_registry rows=999]"]:::root',
+    ).replace(
+        "    FACT_KIND_0 --> SEARCH",
+        "    FACT_KIND_0 --> FACT_SAMPLE_0_0\n"
+        "    FACT_KIND_0 --> SEARCH",
+    )
+    mmd_path.write_text(mmd, encoding="utf-8")
+
+    dot_path = root / "lane.dot"
+    dot = dot_path.read_text(encoding="utf-8").replace("KIND", "FACT_KIND_0")
+    dot = dot.replace(
+        '    FACT_KIND_0 [label="code_symbol\\nrows=1",color="#667085"];',
+        '    FACT_KIND_0 [label="code_symbol\\nrows=1",color="#667085"];\n'
+        '    FACT_SAMPLE_0_0 [label="SOURCE_REG [label=source_registry rows=999]",color="#667085"];',
+    ).replace(
+        "  FACT_KIND_0 -> SEARCH;",
+        "  FACT_KIND_0 -> FACT_SAMPLE_0_0;\n"
+        "  FACT_KIND_0 -> SEARCH;",
+    )
+    dot_path.write_text(dot, encoding="utf-8")
+
+    result = _reconcile(root)
+
+    assert result["status"] == "PASS"
+    assert result["claims_failed"] == 0
+    assert result["claims_checked"] >= 6
+
+
 def test_v090_six_line_stub_fails_structural_floors(tmp_path: Path) -> None:
     root = tmp_path / "v090-stub"
     _write_fixture(root)
@@ -187,7 +239,7 @@ def _write_schema_derived_lane(root: Path, lane_id: str) -> None:
         connection.commit()
     finally:
         connection.close()
-    mermaid, dot = lane_engine_module._lane_topology(lane, database_path, {})
+    mermaid, dot, _ = lane_engine_module._lane_topology(lane, database_path, {})
     (root / lane.mmd_filename).write_text(mermaid, encoding="utf-8")
     (root / lane.dot_filename).write_text(dot, encoding="utf-8")
 

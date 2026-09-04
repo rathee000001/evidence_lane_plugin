@@ -213,6 +213,9 @@ def test_local_action_exposes_visible_code_mode_contract() -> None:
     assert "plan -> sandbox build -> test -> hash -> package" in source
     assert "entry -> preflight -> sandbox -> patch -> test -> exit" in source
     assert "['CI/CD', 'PCM', 'MBA']" in source
+    assert "audit_repository_semantic_currentness.py" in source
+    assert "governed-quality-semantic-currentness.json" in source
+    assert "'--require-pass'" in source
     assert "function spawnGoverned(executable, args, options)" in source
     assert "['/d', '/c', executable, ...args]" in source
     assert "shell:" not in source

@@ -111,6 +111,7 @@ def test_tunnel_prewarm_and_runtime_bind_exact_hidden_root_and_host() -> None:
     assert '"--host-profile"' in runner
     assert 'os.environ["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"]' in runner
     assert 'os.environ["EVIDENCE_LANE_HOST_PROFILE"]' in runner
+    assert runner.count('"-B",') == 5
     assert "--runtime-control-root $ExactRuntimeControlRoot" in installer
     assert "--host-profile CODEX_DESKTOP" in installer
     assert "EVIDENCE_LANE_HOST_PROFILE = 'CODEX_DESKTOP'" in installer

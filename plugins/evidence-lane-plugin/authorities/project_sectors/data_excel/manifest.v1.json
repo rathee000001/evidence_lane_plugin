@@ -30,7 +30,7 @@
     {
       "path": "authorities/project_sectors/data_excel/data_excel_sector_v001.sqlite",
       "bytes": 618496,
-      "sha256": "E363ADD6BF81A2324D632C8CC9F47BF034593A60CEA5E32082008A9CF922E544"
+      "sha256": "04048404D81D64C7D1C473C01F10C06594029E740E2928CF8040315918E52DF9"
     },
     {
       "path": "authorities/project_sectors/data_excel/dot-artifact.schema.json",
@@ -40,7 +40,7 @@
     {
       "path": "authorities/project_sectors/data_excel/lane-contract.v1.json",
       "bytes": 94924,
-      "sha256": "2A82B0DBEE490C54FC4FAC170A3D9230C63C8B10D15B43D30A576950F7C0EFEA"
+      "sha256": "724928DE926F2EE5A4ADF9293CA09D5FAE4433837556F320741E5CD030DCCFDF"
     },
     {
       "path": "authorities/project_sectors/data_excel/lane-pointer.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.json",
-      "bytes": 206429,
-      "sha256": "6BC2C44117CA5283B384F2F45CA40BDE4182B9D02CB42847DBA09AF653BB4AE9"
+      "bytes": 216829,
+      "sha256": "7E4B4D1C35D75CB2B92CABA54B5390FDC3C84B37FD160D75870B8C19B60780DE"
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "D3EA44A796EB695DD30489DF0B8A9639C98CAC31DC70F58C3E83286B40B34AA2"
+  "receipt_sha256": "5D8485605BF0CAC82936237896EB23672CDB26B8C736F3BC27C0E04E21A7DE5B"
 }

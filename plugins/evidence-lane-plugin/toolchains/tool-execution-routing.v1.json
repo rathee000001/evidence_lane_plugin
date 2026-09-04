@@ -1568,7 +1568,7 @@
       },
       "implementation_owner": "install_native_toolchain.py non-elevated Tesseract extraction",
       "license_record": "toolchains/licenses/requirements/053-sevenzip-nsis-extractor/LICENSE-RECORD.json",
-      "license_record_sha256": "DE8D0B2FF705ADEB15E0B114D27CA43D6EC47F8DEBF258D9B1BC5F5674A6A299",
+      "license_record_sha256": "58682C9F120E88B7AEBEAE86C97C0C91C6445940A89EED0FFC1CAB090603B054",
       "runs_only_when_selected": true
     },
     {
@@ -3554,5 +3554,5 @@
       "runs_only_when_selected": true
     }
   ],
-  "receipt_sha256": "445750D20AF83219E2C34B396967A5DC6CE7FB39CD846BE131124D3791BC8EB4"
+  "receipt_sha256": "BFC053CD54DCB46472B67C7F616A35AB3C0DDAF2C7B3EF006E8C1FF427B403F1"
 }

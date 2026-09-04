@@ -1561,7 +1561,7 @@
       "eligible_lanes": [],
       "implementation_owner": "install_native_toolchain.py non-elevated Tesseract extraction",
       "license_record": "toolchains/licenses/requirements/053-sevenzip-nsis-extractor/LICENSE-RECORD.json",
-      "license_record_sha256": "DE8D0B2FF705ADEB15E0B114D27CA43D6EC47F8DEBF258D9B1BC5F5674A6A299"
+      "license_record_sha256": "58682C9F120E88B7AEBEAE86C97C0C91C6445940A89EED0FFC1CAB090603B054"
     },
     {
       "tool": "jq",
@@ -3554,7 +3554,7 @@
   "full_matrix": "toolchains/tool-requirement-matrix.v1.json",
   "full_matrix_sha256": "5F8B1604A59BB8B758AF995AE43A1502D89068B327E99A7C32125EFF1C19B10A",
   "execution_routing": "toolchains/tool-execution-routing.v1.json",
-  "execution_routing_sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182",
+  "execution_routing_sha256": "342B1FDB7A8502CA494F9FDF9709C294FDCE42DE5F419E99D974C94F65294988",
   "primary_and_fallback_order_explicit": true,
   "prewarm_owner": "INSTALLER_RUNTIME_PREWARM_BEFORE_TUNNEL_OR_TASK_REOPEN",
   "optional_unavailable_is_fail_visible": true,
@@ -3583,5 +3583,5 @@
   "shared_tunnel_supports_multiple_projects_and_tasks": true,
   "scheduled_task_owner": false,
   "prewarm_executes_tools": false,
-  "receipt_sha256": "297C0C6FCA93B45EE5EBBB02F6420C4624D63881B2620C849B99EFAD40988F12"
+  "receipt_sha256": "A36B0D6D9354B3E5254678C58CF89488310219F0885B52D08C60AAA90BADDF68"
 }

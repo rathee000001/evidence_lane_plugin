@@ -1,0 +1,23 @@
+{
+  "schema": "evidence-lane.regression-deferral-contract.v1",
+  "status": "ACTIVE",
+  "scope": "PV13_EXECUTABLE_PLUGIN_AND_GITHUB_APP",
+  "publication_authorized": false,
+  "documentation_generation_authorized": false,
+  "deferred_batch": "POST_PV13_NORMAL_EVI_PLAN_PAGE_BY_PAGE_PUBLICATION",
+  "exact_selector_set_required": true,
+  "deferred_failure_selectors": [
+    "tests.test_github_docs_generation::test_repository_markdown_matches_current_renderers",
+    "tests.test_github_docs_generation::test_root_readme_requires_current_linked_docs_and_is_reviewed_after_commit",
+    "tests.test_public_dummy_lane_packages::test_all_canonical_lane_dummy_packages_are_exact_and_downloadable",
+    "tests.test_publication_redesign_handoff::test_publication_handoff_is_route_complete_and_deferred",
+    "tests.test_site_operator_export::test_checked_in_site_projection_is_fresh"
+  ],
+  "deferred_surfaces": [
+    "GITHUB_DOCUMENTATION",
+    "GITHUB_PAGES",
+    "VERCEL_PUBLICATION"
+  ],
+  "non_deferred_failures_must_close": true,
+  "mixed_or_unknown_failure_policy": "FAIL_CLOSED"
+}

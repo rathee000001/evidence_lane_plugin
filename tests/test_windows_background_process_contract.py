@@ -5,12 +5,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
-RESTART = (
-    PLUGIN
-    / "scripts"
-    / "codex_release"
-    / "Prepare-EvidenceLaneCodexRestart.ps1"
-)
 TUNNEL_INSTALL = (
     PLUGIN / "scripts" / "windows_tunnel" / "Install-EvidenceLaneTunnel.ps1"
 )
@@ -59,7 +53,6 @@ def test_every_plugin_owned_python_child_process_has_no_console_flag() -> None:
 
 
 def test_background_routes_are_hidden_single_version_and_exact_task_only() -> None:
-    restart = RESTART.read_text(encoding="utf-8")
     tunnel = TUNNEL_INSTALL.read_text(encoding="utf-8")
 
     assert not (
@@ -84,25 +77,18 @@ def test_background_routes_are_hidden_single_version_and_exact_task_only() -> No
     assert not (
         PLUGIN / "scripts" / "codex_release" / "drain_codex_task_turns.py"
     ).exists()
-    assert "TERMINAL_SAFE_RESTART_PREPARED_NOT_EXECUTED" in restart
-    assert "current_turn_terminal_event_required_before_app_close = $true" in restart
-    assert "drain_utility_allowed = $false" in restart
-    assert "programmatic_process_stop_allowed = $false" in restart
-    assert '"turn/interrupt"' not in restart
-    assert "LocalTestCommitReceipt" not in restart
-    assert "TwoSlotRegistry" not in restart
-    assert "GoalRecovery" not in restart
-    assert "Start-Process" not in restart
-    assert "ActivateForProtocol" not in restart
-    assert "ShellExecuteEx" not in restart
-    assert "New-ScheduledTaskAction" not in restart
-    assert "Stop-Process" not in restart
+    assert not (
+        PLUGIN
+        / "scripts"
+        / "codex_release"
+        / "Prepare-EvidenceLaneCodexRestart.ps1"
+    ).exists()
 
-    assert "Remove-StoppedPriorTunnelRuntimes" in tunnel
-    assert "Remove-StoppedPriorTunnelTasks" in tunnel
-    assert "prior_versioned_runtimes_retained = $false" in tunnel
-    assert "prior_versioned_tasks_retained = $false" in tunnel
-    assert "prior_versioned_runtime_deletion_required = $true" in tunnel
+    assert "Stop-AndRetainPriorTunnelRuntimes" in tunnel
+    assert "Stop-DisableAndRetainPriorTunnelTasks" in tunnel
+    assert "prior_versioned_runtimes_retained = $true" in tunnel
+    assert "prior_versioned_tasks_retained = $true" in tunnel
+    assert "prior_versioned_runtime_deletion_required = $false" in tunnel
     assert "one_active_version_required = $true" in tunnel
     assert ".codex\\plugins\\runtime\\evidence-lane-plugin" in tunnel
     assert "project_authority_root_hardcoded = $false" in tunnel

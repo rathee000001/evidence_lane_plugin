@@ -5,6 +5,7 @@ import json
 import shutil
 from pathlib import Path
 
+import evidence_lane_plugin.service as service_module
 import pytest
 from evidence_lane_plugin.errors import EvidenceLaneError
 from evidence_lane_plugin.flash_authority import (
@@ -18,6 +19,61 @@ from evidence_lane_plugin.pv_package import validate_pv_package
 from evidence_lane_plugin.runtime_activation import RuntimeActivation
 
 from .conftest import boot_local
+
+
+def test_safe_session_detach_preflight_survives_projection_drift(
+    service,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    boot = boot_local(service)
+    session_id = str(boot["session"]["session_id"])
+
+    def changed_projection(_flash: dict[str, object]) -> dict[str, str]:
+        raise EvidenceLaneError(
+            code="SESSION_FLASH_PROJECTION_BUILD_CHANGED",
+            message="fixture projection drift",
+            status="BLOCKED",
+        )
+
+    monkeypatch.setattr(
+        service_module,
+        "derive_host_entry_env_uop",
+        changed_projection,
+    )
+    monkeypatch.setattr(
+        service,
+        "agent_configuration_authority",
+        lambda *args, **kwargs: {
+            "agent_configuration_authority_sha256": "A" * 64
+        },
+    )
+    monkeypatch.setattr(
+        service,
+        "conversation_memory_authority",
+        lambda *args, **kwargs: {
+            "conversation_memory_authority_sha256": "B" * 64
+        },
+    )
+
+    receipt = service._public_entry_binding_receipt(
+        tool_name="session_close",
+        lifecycle=True,
+        project_id="book-faires",
+        session_id=session_id,
+        invocation_arguments={
+            "project_id": "book-faires",
+            "session_id": session_id,
+            "reason": "release exact runtime handles",
+        },
+    )
+
+    assert receipt["binding"]["binding_mode"] == (
+        "EXACT_SAFE_SESSION_DETACH_ENTRY"
+    )
+    assert receipt["env_uop_entry_status"] == "DIAGNOSTICALLY_UNAVAILABLE"
+    assert receipt["safe_detach_projection_drift"] == (
+        "SESSION_FLASH_PROJECTION_BUILD_CHANGED"
+    )
 
 
 def _sealed_json_sha256(payload: dict[str, object]) -> str:

@@ -25,7 +25,7 @@
     {
       "path": "authorities/project_sectors/plan/lane-contract.v1.json",
       "bytes": 61869,
-      "sha256": "6FD90D6156F68750998A54BA703C3F9CB1C100BF4DADD2F69099659246C038E8"
+      "sha256": "8805798157F3551D2D0CF94B1F05EF200E809F2C6A7903443C2D535BFDCDC2F2"
     },
     {
       "path": "authorities/project_sectors/plan/lane-pointer.schema.json",
@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/plan/plan_sector_v001.sqlite",
       "bytes": 483328,
-      "sha256": "12978137BDD9FD5E1A255ED3BFB15347138ADC0E4BE77C38A20076B3AB4BBF11"
+      "sha256": "7C7CEC9D4CBFE09845B70DF1627736741B3552F35719B53AA56E349B64C52B97"
     },
     {
       "path": "authorities/project_sectors/plan/reader-contract.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/plan/tools.json",
-      "bytes": 157197,
-      "sha256": "FCEE0652EBCE0CB94F6B3C35BC301722913B0786F429D1DF652BD394AC84C62D"
+      "bytes": 166169,
+      "sha256": "810B53785F1DB27612EBB6F522C9A9FF2AF42E9F2B6CC5DD562C0FC6CFBD215B"
     },
     {
       "path": "authorities/project_sectors/plan/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "6B1583F435E5DD5A0C7585958FCCB792736968FFBC9886B50583D76E134FB928"
+  "receipt_sha256": "B837A20561E13569709770588F7C9FF5EDB18CA5DC6254D950E05220EAEA98FF"
 }

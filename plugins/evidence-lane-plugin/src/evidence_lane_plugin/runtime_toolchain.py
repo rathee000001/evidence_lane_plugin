@@ -280,9 +280,12 @@ def inspect_runtime_toolchain(
                 candidate = Path(imageio_ffmpeg.get_ffmpeg_exe()).resolve()
                 imageio_binary = str(candidate) if candidate.is_file() else None
             tree_sitter_languages: list[str] | None = None
+            tree_sitter_required_language_resolution: dict[str, bool] | None = None
             if tool == "TreeSitter_LanguagePack" and all(availability.values()):
                 from tree_sitter_language_pack import (
+                    DownloadError,
                     available_languages,  # type: ignore[import-not-found]
+                    get_language,
                 )
 
                 from .code_toolchain import (
@@ -293,9 +296,26 @@ def inspect_runtime_toolchain(
                 initialize_hidden_tree_sitter_runtime()
                 observed_languages = {str(value) for value in available_languages()}
                 tree_sitter_languages = sorted(observed_languages)
-                availability["all_required_languages"] = set(
-                    CODE_TOOLCHAIN_LANGUAGES
-                ).issubset(observed_languages)
+                required_language_resolution: dict[str, bool] = {}
+                for language_name in CODE_TOOLCHAIN_LANGUAGES:
+                    try:
+                        get_language(language_name)
+                    except (
+                        DownloadError,
+                        KeyError,
+                        OSError,
+                        RuntimeError,
+                        ValueError,
+                    ):
+                        required_language_resolution[language_name] = False
+                    else:
+                        required_language_resolution[language_name] = True
+                tree_sitter_required_language_resolution = (
+                    required_language_resolution
+                )
+                availability["all_required_languages"] = all(
+                    required_language_resolution.values()
+                )
             embedding_model: dict[str, Any] | None = None
             if tool in {
                 "SentenceTransformers",
@@ -331,6 +351,9 @@ def inspect_runtime_toolchain(
                     sha256_file(Path(imageio_binary)) if imageio_binary else None
                 ),
                 "tree_sitter_languages": tree_sitter_languages,
+                "tree_sitter_required_language_resolution": (
+                    tree_sitter_required_language_resolution
+                ),
                 "embedding_model": embedding_model,
             }
         elif tool in command_map:

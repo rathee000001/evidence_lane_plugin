@@ -434,6 +434,108 @@ class SessionManager:
             "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
         }
 
+    def _bind_normalization_host_plan_window(
+        self,
+        project_id: str,
+        *,
+        session_id: str,
+        active_task_id: str,
+        binding_source: str,
+    ) -> dict[str, Any]:
+        """Rebind one exact normalization session to its canonical active batch."""
+
+        require(
+            binding_source
+            in {
+                "CANONICAL_PLAN_NORMALIZATION",
+                "CANONICAL_PLAN_NORMALIZATION_CORRECTION",
+            },
+            "PLAN_NORMALIZATION_HOST_WINDOW_SOURCE_INVALID",
+            "A normalization host-window rebind requires one exact source.",
+            status="BLOCKED",
+            binding_source=binding_source,
+        )
+        exact_active_task_id = str(active_task_id).strip()
+        rows = cast(
+            list[dict[str, Any]],
+            self.store.backlog_status(project_id)
+            .get("goal_projection", {})
+            .get("rows", []),
+        )
+        active_indexes = [
+            index
+            for index, row in enumerate(rows)
+            if row.get("status") == "in_progress"
+            and row.get("lifecycle_status") == "ACTIVE"
+        ]
+        require(
+            bool(exact_active_task_id)
+            and len(active_indexes) == 1
+            and str(rows[active_indexes[0]].get("task_id") or "")
+            == exact_active_task_id,
+            "PLAN_NORMALIZATION_HOST_WINDOW_ACTIVE_MISMATCH",
+            "The normalization host window must start from the sole canonical ACTIVE row.",
+            status="MISMATCH",
+            expected_active_task_id=exact_active_task_id,
+            active_task_ids=[
+                str(rows[index].get("task_id") or "") for index in active_indexes
+            ],
+        )
+        start = active_indexes[0]
+        window_task_ids = [str(row["task_id"]) for row in rows[start : start + 9]]
+        require(
+            bool(window_task_ids)
+            and window_task_ids[0] == exact_active_task_id
+            and len(window_task_ids) == len(set(window_task_ids)),
+            "PLAN_NORMALIZATION_HOST_WINDOW_INVALID",
+            "The normalization host window must be one unique canonical slice from the active row.",
+            status="MISMATCH",
+        )
+
+        session = self.load(project_id, session_id)
+        require(
+            session.metadata.get("active_backlog_task_id") == exact_active_task_id
+            and isinstance(session.task, dict)
+            and session.task.get("task_id") == exact_active_task_id,
+            "PLAN_NORMALIZATION_HOST_WINDOW_SESSION_MISMATCH",
+            "The exact normalization session is not bound to the canonical ACTIVE row.",
+            status="MISMATCH",
+            session_id=session_id,
+            session_backlog_task_id=session.metadata.get("active_backlog_task_id"),
+            session_runtime_task_id=(
+                session.task.get("task_id") if isinstance(session.task, dict) else None
+            ),
+        )
+        previous = cast(dict[str, Any], session.metadata.get("host_plan_window") or {})
+        expected = {
+            **previous,
+            "schema": "evidence-lane.host-plan-window-state.v1",
+            "window_task_ids": window_task_ids,
+            "binding_source": binding_source,
+        }
+        if previous != expected:
+            session.metadata["host_plan_window"] = expected
+            self._save(session)
+
+        body = {
+            "schema": "evidence-lane.plan-normalization-host-window-rebind.v1",
+            "status": "PASS",
+            "project_id": project_id,
+            "session_id": session_id,
+            "active_task_id": exact_active_task_id,
+            "window_task_ids": window_task_ids,
+            "binding_source": binding_source,
+            "fallback_projector_used": False,
+            "sliding_window_derived": False,
+            "candidate_created": False,
+            "hil_inferred": False,
+            "pointer_moved": False,
+        }
+        return {
+            **body,
+            "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
+        }
+
     @staticmethod
     def _source_edit_authority(
         host: HostKind,
@@ -1353,11 +1455,18 @@ class SessionManager:
                     run_id=run_id,
                     event_id=f"{transition_id}__session_rebound",
                 )
+            host_plan_window_rebind = self._bind_normalization_host_plan_window(
+                project_id,
+                session_id=session_id,
+                active_task_id=restored_task_id,
+                binding_source="CANONICAL_PLAN_NORMALIZATION_CORRECTION",
+            )
             advance(
                 "SESSION_REBOUND",
                 rebound_session_sha256=self.session_snapshot_sha256(
                     self.load(project_id, session_id)
                 ),
+                host_plan_window_rebind=host_plan_window_rebind,
             )
 
         backlog = self.store.backlog_status(project_id)
@@ -1367,6 +1476,12 @@ class SessionManager:
         task_ids = [str(row["task_id"]) for row in backlog["tasks"]]
         tasks_after = {str(row["task_id"]): row for row in backlog["tasks"]}
         original_superseded = cast(list[str], original["superseded_task_ids"])
+        host_plan_window = cast(
+            dict[str, Any], session.metadata.get("host_plan_window") or {}
+        )
+        host_plan_window_rebind = cast(
+            dict[str, Any], journal.get("host_plan_window_rebind") or {}
+        )
         failed_checks = {
             "task_count_unchanged": isinstance(expected_total, int)
             and len(backlog["tasks"]) == expected_total,
@@ -1387,6 +1502,14 @@ class SessionManager:
             == restored_task_id,
             "session_runtime_binding": isinstance(session.task, dict)
             and session.task.get("task_id") == restored_task_id,
+            "host_plan_window_binding": (
+                host_plan_window.get("window_task_ids")
+                == host_plan_window_rebind.get("window_task_ids")
+                and host_plan_window.get("binding_source")
+                == "CANONICAL_PLAN_NORMALIZATION_CORRECTION"
+                and bool(host_plan_window.get("window_task_ids"))
+                and host_plan_window["window_task_ids"][0] == restored_task_id
+            ),
             "candidate_absent": session.candidate_id is None,
             "pending_hil_false": not bool(session.metadata.get("pending_hil")),
             "pointer_unchanged": pointer_sha256 == expected_pointer_sha256,
@@ -1444,6 +1567,10 @@ class SessionManager:
             "goal_row_offset": goal_row_offset,
             "goal_row_start": backlog["goal_projection"].get("row_start"),
             "goal_row_end": backlog["goal_projection"].get("row_end"),
+            "host_plan_window_task_ids": list(
+                host_plan_window.get("window_task_ids") or []
+            ),
+            "host_plan_window_binding_source": host_plan_window.get("binding_source"),
         }
         if journal["phase"] != "COMMITTED":
             advance(
@@ -1959,11 +2086,18 @@ class SessionManager:
                     run_id=run_id,
                     event_id=f"{transition_id}__session_rebound",
                 )
+            host_plan_window_rebind = self._bind_normalization_host_plan_window(
+                project_id,
+                session_id=session_id,
+                active_task_id=replacement_task_id,
+                binding_source="CANONICAL_PLAN_NORMALIZATION",
+            )
             advance(
                 "SESSION_REBOUND",
                 rebound_session_sha256=self.session_snapshot_sha256(
                     self.load(project_id, session_id)
                 ),
+                host_plan_window_rebind=host_plan_window_rebind,
             )
 
         backlog = self.store.backlog_status(project_id)
@@ -1981,6 +2115,12 @@ class SessionManager:
                 current=len(backlog["tasks"]),
             )
         tasks_after = {str(row["task_id"]): row for row in backlog["tasks"]}
+        host_plan_window = cast(
+            dict[str, Any], session.metadata.get("host_plan_window") or {}
+        )
+        host_plan_window_rebind = cast(
+            dict[str, Any], journal.get("host_plan_window_rebind") or {}
+        )
         failed_checks = {
             "sole_active_replacement": [
                 str(row["task_id"]) for row in backlog["active"]
@@ -1995,6 +2135,14 @@ class SessionManager:
             == replacement_task_id,
             "session_runtime_binding": isinstance(session.task, dict)
             and session.task.get("task_id") == replacement_task_id,
+            "host_plan_window_binding": (
+                host_plan_window.get("window_task_ids")
+                == host_plan_window_rebind.get("window_task_ids")
+                and host_plan_window.get("binding_source")
+                == "CANONICAL_PLAN_NORMALIZATION"
+                and bool(host_plan_window.get("window_task_ids"))
+                and host_plan_window["window_task_ids"][0] == replacement_task_id
+            ),
             "candidate_absent": session.candidate_id is None,
             "pending_hil_false": not bool(session.metadata.get("pending_hil")),
             "pointer_unchanged": pointer_sha256 == expected_pointer_sha256,
@@ -2034,6 +2182,10 @@ class SessionManager:
             "counts": backlog["counts"],
             "active_task_id": replacement_task_id,
             "physically_final_task_id": backlog["tasks"][-1]["task_id"],
+            "host_plan_window_task_ids": list(
+                host_plan_window.get("window_task_ids") or []
+            ),
+            "host_plan_window_binding_source": host_plan_window.get("binding_source"),
             "candidate_created": False,
             "pending_hil": False,
             "pointer_moved": False,
@@ -6047,6 +6199,8 @@ class SessionManager:
         activity_type: str,
         visible_payload: dict[str, Any],
         event_id: str | None = None,
+        fixed_window_task_ids: list[str] | None = None,
+        reuse_previous_window: bool = True,
     ) -> dict[str, Any]:
         session = self.load(project_id, session_id)
         require(
@@ -6097,6 +6251,18 @@ class SessionManager:
             "The activity type is not part of visible operational ChatLineage.",
             status="BLOCKED",
             supported=sorted(allowed),
+        )
+        exact_fixed_window_task_ids = [
+            str(task_id).strip()
+            for task_id in fixed_window_task_ids or []
+            if str(task_id).strip()
+        ]
+        require(
+            activity_type == "host.plan.observation"
+            or (not exact_fixed_window_task_ids and reuse_previous_window is True),
+            "HOST_PLAN_WINDOW_OVERRIDE_ACTIVITY_INVALID",
+            "Only a host Plan observation may supply an exact replacement batch.",
+            status="BLOCKED",
         )
         task_payload = cast(dict[str, Any], session.task)
         event_payload = dict(visible_payload)
@@ -6237,6 +6403,8 @@ class SessionManager:
                     if "host_goal_active" in visible_payload
                     else None
                 ),
+                fixed_window_task_ids=exact_fixed_window_task_ids,
+                reuse_previous_window=reuse_previous_window,
             )
             require(
                 host_plan_rehydration is not None,

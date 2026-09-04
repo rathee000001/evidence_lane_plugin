@@ -63,6 +63,15 @@ from .conftest import (
 )
 
 EXPECTED_TOOL_COUNT = NATIVE_TOOL_COUNT
+PLUGIN_VERSION = json.loads(
+    (
+        Path(__file__).resolve().parents[1]
+        / "plugins"
+        / "evidence-lane-plugin"
+        / ".codex-plugin"
+        / "plugin.json"
+    ).read_text(encoding="utf-8")
+)["version"]
 
 
 def test_public_envelope_separates_execution_from_domain_status(
@@ -1096,7 +1105,8 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
         public_site_url=public_site,
     )
     identity = server._mcp_server
-    assert identity.version == ENGINE_VERSION == "3.0.0"
+    assert identity.version == PLUGIN_VERSION
+    assert str(PLUGIN_VERSION).split("+", 1)[0] == ENGINE_VERSION == "3.0.0"
     assert str(identity.website_url) == public_site
     assert identity.icons is not None
     assert len(identity.icons) == 1
@@ -1106,7 +1116,7 @@ def test_mcp_server_advertises_exact_release_and_cube_icon(tmp_path: Path) -> No
     assert icon.sizes == ["256x256"]
     initialization = identity.create_initialization_options()
     assert initialization.server_name == "Evidence Lane"
-    assert initialization.server_version == ENGINE_VERSION
+    assert initialization.server_version == PLUGIN_VERSION
     assert str(initialization.website_url) == public_site
     assert initialization.icons is not None
     assert [
@@ -1152,9 +1162,16 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
         prompt == prompt.strip() and prompt
         for prompt in manifest["interface"]["defaultPrompt"]
     )
+    assert all(
+        len(prompt) <= 128 for prompt in manifest["interface"]["defaultPrompt"]
+    )
     assert any(
         "governed HIL" in prompt for prompt in manifest["interface"]["defaultPrompt"]
     )
+    mcp_manifest = json.loads((plugin / ".mcp.json").read_text(encoding="utf-8"))
+    mcp_server = mcp_manifest["mcpServers"]["evidence-lane"]
+    assert mcp_server["command"] == "python"
+    assert mcp_server["args"][:2] == ["-B", "./scripts/run_mcp.py"]
     hooks = json.loads((plugin / "hooks" / "hooks.json").read_text(encoding="utf-8"))
     assert set(hooks["hooks"]) == {
         "PostCompact",
@@ -1169,6 +1186,12 @@ def test_plugin_manifest_has_evidence_lane_identity_only() -> None:
         "SessionEnd",
         "Stop",
     }
+    assert all(
+        str(handler["command"]).startswith("python3 -B ")
+        for groups in hooks["hooks"].values()
+        for group in groups
+        for handler in group["hooks"]
+    )
     post_handler = hooks["hooks"]["PostToolUse"][0]["hooks"][0]
     assert "invoke_hook.py" in post_handler["command"]
     assert "--event PostToolUse" in post_handler["command"]
@@ -1808,7 +1831,7 @@ def test_server_start_installs_but_leaves_flash_and_runtime_detached(
     assert isinstance(first_flash, dict)
     assert isinstance(second_flash, dict)
     assert first_installation["state"] == "INSTALLED_UNTIL_USER_REMOVES_PLUGIN"
-    assert first_installation["version"] == ENGINE_VERSION
+    assert first_installation["version"] == PLUGIN_VERSION
     assert first_installation["hil_approval_inferred"] is False
     assert second_installation["installed_at"] == first_installation["installed_at"]
     assert first_flash["flash_state"] == "NOT_FLASHED"

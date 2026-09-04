@@ -419,7 +419,126 @@ def _load_index_json(path: str, rows: dict[str, dict[str, str]], blobs: dict[str
     return value
 
 
-def build_audit(repository: Path, index_file: Path) -> dict[str, Any]:
+def _ordered_tool_ids(value: object, *, field: str) -> tuple[str, ...]:
+    if not isinstance(value, dict):
+        return ()
+    raw_rows = value.get(field)
+    if not isinstance(raw_rows, list):
+        return ()
+    return tuple(
+        str(row.get("tool") or "") if isinstance(row, dict) else ""
+        for row in raw_rows
+    )
+
+
+def _declared_registry_count(value: object) -> int | None:
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+def _tool_requirement_registry_parity(
+    *,
+    tool_matrix: dict[str, Any],
+    toolchain_surface: dict[str, Any],
+    tunnel_toolchain: dict[str, Any],
+    license_inventory: dict[str, Any],
+    workflow_pairing: dict[str, Any],
+    mcp_manifest: dict[str, Any],
+) -> dict[str, Any]:
+    """Derive the current tool count and require exact dependent-set parity."""
+
+    matrix_tools = _ordered_tool_ids(tool_matrix, field="requirements")
+    tunnel_tools = _ordered_tool_ids(tunnel_toolchain, field="requirements")
+    license_tools = _ordered_tool_ids(license_inventory, field="rows")
+    pairing_tools = _ordered_tool_ids(workflow_pairing, field="rows")
+    current_count = len(matrix_tools)
+    surface_counts = {
+        "matrix_rows": current_count,
+        "toolchain_surface": _declared_registry_count(
+            toolchain_surface.get("requirement_count")
+        ),
+        "tunnel_declared": _declared_registry_count(
+            tunnel_toolchain.get("requirement_count")
+        ),
+        "tunnel_rows": len(tunnel_tools),
+        "tunnel_full_matrix": _declared_registry_count(
+            tunnel_toolchain.get("full_matrix_requirement_count")
+        ),
+        "license_declared": _declared_registry_count(
+            license_inventory.get("tool_requirement_count")
+        ),
+        "license_classifications": _declared_registry_count(
+            license_inventory.get("license_classification_count")
+        ),
+        "license_rows": len(license_tools),
+        "workflow_pairing_declared": _declared_registry_count(
+            workflow_pairing.get("tool_count")
+        ),
+        "workflow_pairing_rows": len(pairing_tools),
+        "mcp_manifest": _declared_registry_count(
+            mcp_manifest.get("tool_requirement_count")
+        ),
+    }
+    ordered_sets_equal = (
+        bool(matrix_tools)
+        and len(set(matrix_tools)) == current_count
+        and tunnel_tools == matrix_tools
+        and license_tools == matrix_tools
+        and pairing_tools == matrix_tools
+    )
+    counts_equal = all(count == current_count for count in surface_counts.values())
+    return {
+        "canonical_registry": "toolchains/tool-requirement-matrix.v1.json",
+        "current_count": current_count,
+        "surface_counts": surface_counts,
+        "ordered_tool_sets_equal": ordered_sets_equal,
+        "counts_equal": counts_equal,
+        "cross_surface_equal": ordered_sets_equal and counts_equal,
+        "count_is_registry_snapshot_not_ceiling": True,
+    }
+
+
+def _publication_deferral(path: Path | None) -> dict[str, Any] | None:
+    if path is None:
+        return None
+    value = json.loads(path.read_text(encoding="utf-8"))
+    selectors = value.get("deferred_failure_selectors") if isinstance(value, dict) else None
+    surfaces = value.get("deferred_surfaces") if isinstance(value, dict) else None
+    valid = (
+        isinstance(value, dict)
+        and value.get("schema") == "evidence-lane.regression-deferral-contract.v1"
+        and value.get("status") == "ACTIVE"
+        and value.get("publication_authorized") is False
+        and value.get("documentation_generation_authorized") is False
+        and value.get("exact_selector_set_required") is True
+        and value.get("non_deferred_failures_must_close") is True
+        and value.get("mixed_or_unknown_failure_policy") == "FAIL_CLOSED"
+        and isinstance(selectors, list)
+        and selectors
+        and len(selectors) == len(set(selectors))
+        and isinstance(surfaces, list)
+        and set(surfaces)
+        == {"GITHUB_DOCUMENTATION", "GITHUB_PAGES", "VERCEL_PUBLICATION"}
+    )
+    if not valid:
+        raise RuntimeError("SEMANTIC_AUDIT_PUBLICATION_DEFERRAL_CONTRACT_INVALID")
+    assert isinstance(selectors, list)
+    assert isinstance(surfaces, list)
+    return {
+        "status": "DEFERRED_NOT_PASSED",
+        "publication_authorized": False,
+        "documentation_generation_authorized": False,
+        "selectors": sorted(str(selector) for selector in selectors),
+        "surfaces": sorted(str(surface) for surface in surfaces),
+        "contract_file_sha256": _sha256(path.read_bytes()),
+    }
+
+
+def build_audit(
+    repository: Path,
+    index_file: Path,
+    *,
+    deferral_contract: Path | None = None,
+) -> dict[str, Any]:
     root = repository.resolve()
     selected_index = index_file.resolve()
     if not root.is_dir() or not (root / ".git").exists() or not selected_index.is_file():
@@ -486,11 +605,37 @@ def build_audit(repository: Path, index_file: Path) -> dict[str, Any]:
     lanes = _load_index_json(plugin_prefix + "authorities/project_sectors/lane-surface-registry.v1.json", current, blobs)
     authorities = _load_index_json(plugin_prefix + "authorities/authority-surface-registry.v1.json", current, blobs)
     tool_matrix = _load_index_json(plugin_prefix + "toolchains/tool-requirement-matrix.v1.json", current, blobs)
+    toolchain_surface = _load_index_json(
+        plugin_prefix + "toolchains/toolchain-surface.v1.json", current, blobs
+    )
+    tunnel_toolchain = _load_index_json(
+        plugin_prefix + "toolchains/tunnel-runtime-toolchain.v1.json", current, blobs
+    )
+    license_inventory = _load_index_json(
+        plugin_prefix + "toolchains/tool-license-inventory.v1.json", current, blobs
+    )
+    workflow_pairing = _load_index_json(
+        plugin_prefix + "toolchains/unified-tool-workflow-pairing.v1.json",
+        current,
+        blobs,
+    )
+    mcp_manifest = _load_index_json(
+        plugin_prefix + "mcp/mcp-manifest.v1.json", current, blobs
+    )
+    tool_requirement_registry = _tool_requirement_registry_parity(
+        tool_matrix=tool_matrix,
+        toolchain_surface=toolchain_surface,
+        tunnel_toolchain=tunnel_toolchain,
+        license_inventory=license_inventory,
+        workflow_pairing=workflow_pairing,
+        mcp_manifest=mcp_manifest,
+    )
     hook_handler_count = sum(
         len(group.get("hooks") or [])
         for groups in (hooks.get("hooks") or {}).values()
         for group in groups
     )
+    deferred_publication = _publication_deferral(deferral_contract)
     registry_checks = {
         "plugin_exact_version": (
             plugin_manifest.get("name") == "evidence-lane-plugin"
@@ -519,10 +664,19 @@ def build_audit(repository: Path, index_file: Path) -> dict[str, Any]:
         "hook_handler_count": hook_handler_count == 44,
         "lane_count": int(lanes.get("lane_count", -1)) == len(lanes.get("lanes") or []) == 18,
         "authority_count": int(authorities.get("authority_count", -1)) == len(authorities.get("authorities") or []) == 11,
-        "tool_requirement_count": len(tool_matrix.get("requirements") or []) == 119,
+        "tool_requirement_count": tool_requirement_registry["cross_surface_equal"],
     }
-    if not all(registry_checks.values()):
-        raise RuntimeError("SEMANTIC_AUDIT_CURRENT_REGISTRY_PARITY_FAILED")
+    required_registry_checks = dict(registry_checks)
+    if deferred_publication is not None:
+        required_registry_checks.pop("public_docs_plugin_identity")
+    if not all(required_registry_checks.values()):
+        failed_registry_checks = sorted(
+            name for name, passed in required_registry_checks.items() if not passed
+        )
+        raise RuntimeError(
+            "SEMANTIC_AUDIT_CURRENT_REGISTRY_PARITY_FAILED:"
+            + ",".join(failed_registry_checks)
+        )
 
     path_set = set(current)
     entries: list[dict[str, Any]] = []
@@ -620,7 +774,12 @@ def build_audit(repository: Path, index_file: Path) -> dict[str, Any]:
     final_classifications_only = all(
         row["semantic_status"] in FINAL_CLASSIFICATIONS for row in entries
     )
-    status = "PASS" if not stale_paths and final_classifications_only else "FAIL"
+    if stale_paths or not final_classifications_only:
+        status = "FAIL"
+    elif deferred_publication is not None:
+        status = "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED"
+    else:
+        status = "PASS"
     core = {
         "schema": SCHEMA,
         "status": status,
@@ -630,6 +789,19 @@ def build_audit(repository: Path, index_file: Path) -> dict[str, Any]:
         "alternate_tree": _run_git(root, ["write-tree"], index_file=selected_index).decode("ascii").strip(),
         "current_plugin_version": current_version,
         "registry_checks": registry_checks,
+        "deferred_publication": (
+            {
+                **deferred_publication,
+                "public_docs_plugin_identity_current": registry_checks[
+                    "public_docs_plugin_identity"
+                ],
+                "deferred_paths": [docs_binding_path],
+                "deferred_path_count": 1,
+            }
+            if deferred_publication is not None
+            else None
+        ),
+        "tool_requirement_registry": tool_requirement_registry,
         "entry_count": len(entries),
         "current_index_path_count": len(index_rows),
         "purged_head_path_count": len(set(head) - set(current)),
@@ -671,9 +843,14 @@ def main() -> int:
     parser.add_argument("--repository", type=Path, required=True)
     parser.add_argument("--index-file", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--deferred-contract", type=Path)
     parser.add_argument("--require-pass", action="store_true")
     arguments = parser.parse_args()
-    receipt = build_audit(arguments.repository, arguments.index_file)
+    receipt = build_audit(
+        arguments.repository,
+        arguments.index_file,
+        deferral_contract=arguments.deferred_contract,
+    )
     _write_json(arguments.output.resolve(), receipt)
     print(
         json.dumps(
@@ -687,7 +864,11 @@ def main() -> int:
             sort_keys=True,
         )
     )
-    return 0 if receipt["status"] == "PASS" or not arguments.require_pass else 1
+    passing_statuses = {
+        "PASS",
+        "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED",
+    }
+    return 0 if receipt["status"] in passing_statuses or not arguments.require_pass else 1
 
 
 if __name__ == "__main__":

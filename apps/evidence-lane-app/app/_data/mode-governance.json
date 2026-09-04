@@ -8,13 +8,13 @@
     "FAIL"
   ],
   "decision_count_is_behavior_ceiling": false,
-  "export_sha256": "BD9EB9B26AD3065A67DCEEE92BA1071E85F788411AB027A12D835487153F916F",
+  "export_sha256": "395BCB609A68DB89E6D0F9D79CC66150A29FA5C3EDCC048D5E6BF8B5B3C81EC3",
   "mode_count": 16,
   "modes": [
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "DISCUSSION_CLUSTER",
@@ -27,11 +27,11 @@
           "purpose": "discussion lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_recursive_policy_v7:LANE_DISCUSSION",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "D",
       "name": "discussion",
@@ -108,7 +108,7 @@
             "source_route_formula": "prompt -> package state -> UOP guidance -> answer -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=discussion | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> discuss -> delta/log -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=A6CF4B3F4EC858BCD7933882678EF4FC520F9A70484982BBE3DBE23C1263A8DA",
+          "formula_display": "Mode=discussion | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> discuss -> delta/log -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=467CCB9175C7D00389E579142748D526139B0AFCDF3EA63F6453FD269DD2766E",
           "hil": {
             "accepted_object": "visible discussion record and accepted delta/log",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -154,7 +154,7 @@
             "MATHS"
           ],
           "operator_law": "Relations/Functions + Mathematical Reasoning",
-          "operator_receipt_sha256": "A6CF4B3F4EC858BCD7933882678EF4FC520F9A70484982BBE3DBE23C1263A8DA",
+          "operator_receipt_sha256": "467CCB9175C7D00389E579142748D526139B0AFCDF3EA63F6453FD269DD2766E",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -263,7 +263,7 @@
             "source_route_formula": "prompt -> package state -> UOP guidance -> answer -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=discussion | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> discuss -> delta/log -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=F19D4F7C03870087D83344DA0F91B74EA5D8857CD70686CB7ABBE72BAA1BF532",
+          "formula_display": "Mode=discussion | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> discuss -> delta/log -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=E310510317FD3234E15E83C4D35E5C568C9F6947323D79074F5413426D337106",
           "hil": {
             "accepted_object": "visible discussion record and accepted delta/log",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -309,7 +309,7 @@
             "MATHS"
           ],
           "operator_law": "Relations/Functions + Mathematical Reasoning",
-          "operator_receipt_sha256": "F19D4F7C03870087D83344DA0F91B74EA5D8857CD70686CB7ABBE72BAA1BF532",
+          "operator_receipt_sha256": "E310510317FD3234E15E83C4D35E5C568C9F6947323D79074F5413426D337106",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -357,7 +357,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "ANALYSIS_CLUSTER",
@@ -370,11 +370,11 @@
           "purpose": "analysis lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_recursive_policy_v7:LANE_ANALYSIS",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "AL",
       "name": "analysis",
@@ -451,7 +451,7 @@
             "source_route_formula": "prompt -> sources -> relational map -> findings -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=analysis | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> inspect -> classify -> findings -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=B65F8A90A5BF684C1C3F2EFA94F1C1A86386B07AF0EAD1A243D16F58CCB8E16A",
+          "formula_display": "Mode=analysis | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> inspect -> classify -> findings -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=06A40E1FF5F85996DBF38B2E5639B8D8330B240A8515193F81807EB3D7314E1D",
           "hil": {
             "accepted_object": "source-backed findings and gate evaluation",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -497,7 +497,7 @@
             "MATHS"
           ],
           "operator_law": "Sets + Statistics + Probability",
-          "operator_receipt_sha256": "B65F8A90A5BF684C1C3F2EFA94F1C1A86386B07AF0EAD1A243D16F58CCB8E16A",
+          "operator_receipt_sha256": "06A40E1FF5F85996DBF38B2E5639B8D8330B240A8515193F81807EB3D7314E1D",
           "operators": [
             {
               "chapter": "Sets",
@@ -621,7 +621,7 @@
             "source_route_formula": "prompt -> sources -> relational map -> findings -> receipt",
             "visible_in_response": true
           },
-          "formula_display": "Mode=analysis | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> inspect -> classify -> findings -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=644C1C6D50F6077230177CDB7062828BC629B1A7B3FFA39C5CFC857BAD952612",
+          "formula_display": "Mode=analysis | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> inspect -> classify -> findings -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS | Receipt=E9DAA88FD25EE3A94C27167D1E6053EFF88E7A20B17366C6844A4294B43F8E1C",
           "hil": {
             "accepted_object": "source-backed findings and gate evaluation",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -667,7 +667,7 @@
             "MATHS"
           ],
           "operator_law": "Sets + Statistics + Probability",
-          "operator_receipt_sha256": "644C1C6D50F6077230177CDB7062828BC629B1A7B3FFA39C5CFC857BAD952612",
+          "operator_receipt_sha256": "E9DAA88FD25EE3A94C27167D1E6053EFF88E7A20B17366C6844A4294B43F8E1C",
           "operators": [
             {
               "chapter": "Sets",
@@ -730,7 +730,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "PLANNING_CLUSTER",
@@ -743,11 +743,11 @@
           "purpose": "planning lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_recursive_policy_v7:LANE_PLANNING",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "PL",
       "name": "planning",
@@ -824,7 +824,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=planning | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> plan -> simulate -> hold/open -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + SUPPLY | Receipt=0C2B4B712720B369C851F5157CFB9825292120252319DD89E45015BE0985C6B7",
+          "formula_display": "Mode=planning | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> plan -> simulate -> hold/open -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + SUPPLY | Receipt=5169D5E28EFB78DAEE3297292AD069222273B065F45BCAC4DAAD484AF2652A08",
           "hil": {
             "accepted_object": "plan and simulation state without code mutation",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -871,7 +871,7 @@
             "SUPPLY"
           ],
           "operator_law": "Linear Programming + Operations Strategy",
-          "operator_receipt_sha256": "0C2B4B712720B369C851F5157CFB9825292120252319DD89E45015BE0985C6B7",
+          "operator_receipt_sha256": "5169D5E28EFB78DAEE3297292AD069222273B065F45BCAC4DAAD484AF2652A08",
           "operators": [
             {
               "chapter": "Linear Programming",
@@ -981,7 +981,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=planning | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> plan -> simulate -> hold/open -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + SUPPLY | Receipt=31EA811E584309EC59CDE6AFD4D86C67001A8B419B3C2C84EAAA65674DDB2E8C",
+          "formula_display": "Mode=planning | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> plan -> simulate -> hold/open -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + SUPPLY | Receipt=934E296D550BE7ED3A831148963CB5C93FF245E72352FCFB913FF0E8078DC57F",
           "hil": {
             "accepted_object": "plan and simulation state without code mutation",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1028,7 +1028,7 @@
             "SUPPLY"
           ],
           "operator_law": "Linear Programming + Operations Strategy",
-          "operator_receipt_sha256": "31EA811E584309EC59CDE6AFD4D86C67001A8B419B3C2C84EAAA65674DDB2E8C",
+          "operator_receipt_sha256": "934E296D550BE7ED3A831148963CB5C93FF245E72352FCFB913FF0E8078DC57F",
           "operators": [
             {
               "chapter": "Linear Programming",
@@ -1077,7 +1077,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 1,
           "cluster_name": "CODE_CLUSTER",
@@ -1090,11 +1090,11 @@
           "purpose": "code/build lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_recursive_policy_v7:LANE_CODE",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "CD",
       "name": "code",
@@ -1171,7 +1171,7 @@
             "source_route_formula": "plan -> sandbox build -> test -> hash -> package",
             "visible_in_response": true
           },
-          "formula_display": "Mode=code | ENV formula: ALL_REQUIRED_GATES == PASS | Loop: entry -> preflight -> sandbox -> patch -> test -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: PCM + MBA + SUPPLY | Receipt=60C3E97FACAAC4131EA07E945EFBFE919AD3980AC51C11C0B08586864A8722A3",
+          "formula_display": "Mode=code | ENV formula: ALL_REQUIRED_GATES == PASS | Loop: entry -> preflight -> sandbox -> patch -> test -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: PCM + MBA + SUPPLY | Receipt=F845B6DA1E0CABD72A9CD78A5853743F7BB76DDE6D1D673124CDFCA12FA88111",
           "hil": {
             "accepted_object": "tested package hash and executable CI/CD receipts",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1221,7 +1221,7 @@
             "SUPPLY"
           ],
           "operator_law": "Redox + Organic reaction pathways + Environmental chemistry",
-          "operator_receipt_sha256": "60C3E97FACAAC4131EA07E945EFBFE919AD3980AC51C11C0B08586864A8722A3",
+          "operator_receipt_sha256": "F845B6DA1E0CABD72A9CD78A5853743F7BB76DDE6D1D673124CDFCA12FA88111",
           "operators": [
             {
               "chapter": "Laws of Motion",
@@ -1501,7 +1501,7 @@
             "source_route_formula": "plan -> sandbox build -> test -> hash -> package",
             "visible_in_response": true
           },
-          "formula_display": "Mode=code | ENV formula: ALL_REQUIRED_GATES == PASS | Loop: entry -> preflight -> sandbox -> patch -> test -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: PCM + MBA + SUPPLY | Receipt=F11925BC202B6B158FEB5DAD158BCDAD2007FD719060BEB0124C238FF126058B",
+          "formula_display": "Mode=code | ENV formula: ALL_REQUIRED_GATES == PASS | Loop: entry -> preflight -> sandbox -> patch -> test -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: PCM + MBA + SUPPLY | Receipt=4851D20121408AB8954888B77C18DF6E81D9CF5E69D5707DB1B366EBE8628D62",
           "hil": {
             "accepted_object": "tested package hash and executable CI/CD receipts",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1551,7 +1551,7 @@
             "SUPPLY"
           ],
           "operator_law": "Redox + Organic reaction pathways + Environmental chemistry",
-          "operator_receipt_sha256": "F11925BC202B6B158FEB5DAD158BCDAD2007FD719060BEB0124C238FF126058B",
+          "operator_receipt_sha256": "4851D20121408AB8954888B77C18DF6E81D9CF5E69D5707DB1B366EBE8628D62",
           "operators": [
             {
               "chapter": "Laws of Motion",
@@ -1770,7 +1770,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "OUTPUT_CLUSTER",
@@ -1783,11 +1783,11 @@
           "purpose": "artifact output lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "mode_cluster:output + mode_cluster_dependency:output",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "OP",
       "name": "output",
@@ -1864,7 +1864,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=output | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: gates pass -> artifact response -> lineage receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=DB09F535B89BC2CB4B2FD69BC6D0700FF7C7CAE3AD06A396A2EECB73D5EF909E",
+          "formula_display": "Mode=output | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: gates pass -> artifact response -> lineage receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=F5BA4952C012218ACB07F09E3C5819767FFE05BD55D1D6F3DF984A17356E2100",
           "hil": {
             "accepted_object": "source-bound artifact and render lineage",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -1911,7 +1911,7 @@
             "MBA"
           ],
           "operator_law": "Optics + Accounting",
-          "operator_receipt_sha256": "DB09F535B89BC2CB4B2FD69BC6D0700FF7C7CAE3AD06A396A2EECB73D5EF909E",
+          "operator_receipt_sha256": "F5BA4952C012218ACB07F09E3C5819767FFE05BD55D1D6F3DF984A17356E2100",
           "operators": [
             {
               "chapter": "Optics",
@@ -2018,7 +2018,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=output | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: gates pass -> artifact response -> lineage receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=C7511CD35657DFEB67282D00BECC83C64549ACDE51EBBF89B5F41E71CB588B21",
+          "formula_display": "Mode=output | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: gates pass -> artifact response -> lineage receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=1850E1F18FC4F97103E0472D319F73E5662D41F40A19D0E438D42B46727DDD9B",
           "hil": {
             "accepted_object": "source-bound artifact and render lineage",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2065,7 +2065,7 @@
             "MBA"
           ],
           "operator_law": "Optics + Accounting",
-          "operator_receipt_sha256": "C7511CD35657DFEB67282D00BECC83C64549ACDE51EBBF89B5F41E71CB588B21",
+          "operator_receipt_sha256": "1850E1F18FC4F97103E0472D319F73E5662D41F40A19D0E438D42B46727DDD9B",
           "operators": [
             {
               "chapter": "Optics",
@@ -2111,7 +2111,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "VALIDATION_CLUSTER",
@@ -2124,11 +2124,11 @@
           "purpose": "validation lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "mode_cluster:validation + mode_cluster_dependency:validation",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "VAL",
       "name": "validation",
@@ -2206,7 +2206,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=validation | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=C1B76703543F949AC3644086644FC647F215576AC5DC02FD0A34626A22FEA0D3",
+          "formula_display": "Mode=validation | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=037FB3B564FC5834E1759545E157A5FE0C00AA359FBAD2741FCB3BE58FC97CD8",
           "hil": {
             "accepted_object": "executable validation receipt set",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2253,7 +2253,7 @@
             "MBA"
           ],
           "operator_law": "Mathematical Reasoning + Statistics + Accounting",
-          "operator_receipt_sha256": "C1B76703543F949AC3644086644FC647F215576AC5DC02FD0A34626A22FEA0D3",
+          "operator_receipt_sha256": "037FB3B564FC5834E1759545E157A5FE0C00AA359FBAD2741FCB3BE58FC97CD8",
           "operators": [
             {
               "chapter": "Mathematical Reasoning",
@@ -2374,7 +2374,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=validation | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=1F086F8EB32D23E224DF4FC944147689A6588486434BC0587FED248872AEFC21",
+          "formula_display": "Mode=validation | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: inspect -> classify PASS/WARN/OPEN/BLOCKED/FAIL -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=4F4C474FCB43EC064A841AF85F3B76884C5375445C97BACB83143CC69CC7B601",
           "hil": {
             "accepted_object": "executable validation receipt set",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2421,7 +2421,7 @@
             "MBA"
           ],
           "operator_law": "Mathematical Reasoning + Statistics + Accounting",
-          "operator_receipt_sha256": "1F086F8EB32D23E224DF4FC944147689A6588486434BC0587FED248872AEFC21",
+          "operator_receipt_sha256": "4F4C474FCB43EC064A841AF85F3B76884C5375445C97BACB83143CC69CC7B601",
           "operators": [
             {
               "chapter": "Mathematical Reasoning",
@@ -2481,7 +2481,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "RESEARCH_CLUSTER",
@@ -2494,11 +2494,11 @@
           "purpose": "research lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_recursive_policy_v7:LANE_RESEARCH",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "RS",
       "name": "research",
@@ -2575,7 +2575,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=research | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> source rank -> external context -> conclusion -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=592CBB7688EE2A72CB9738083CA991D37ADE09A21338A1DD2DAE451D7E9422E9",
+          "formula_display": "Mode=research | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> source rank -> external context -> conclusion -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=D9EC4FC337D7D3766C2B5D379450C83F6E542EBD50E51F5AF771AE3C10F0AB40",
           "hil": {
             "accepted_object": "source-ranked conclusion and citation summary",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2622,7 +2622,7 @@
             "MBA"
           ],
           "operator_law": "Statistics + Source precedence",
-          "operator_receipt_sha256": "592CBB7688EE2A72CB9738083CA991D37ADE09A21338A1DD2DAE451D7E9422E9",
+          "operator_receipt_sha256": "D9EC4FC337D7D3766C2B5D379450C83F6E542EBD50E51F5AF771AE3C10F0AB40",
           "operators": [
             {
               "chapter": "Statistics",
@@ -2732,7 +2732,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=research | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> source rank -> external context -> conclusion -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=E11FA2BC20B4F9368E4EF067CE92508DABF6A0CD16DDA8A0F4E6FE5BE422AED7",
+          "formula_display": "Mode=research | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> source rank -> external context -> conclusion -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=63AC7C21AA22D0006BE86E11F36C681BCA8A74B6AFC24EDE56C5BE5E55431575",
           "hil": {
             "accepted_object": "source-ranked conclusion and citation summary",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2779,7 +2779,7 @@
             "MBA"
           ],
           "operator_law": "Statistics + Source precedence",
-          "operator_receipt_sha256": "E11FA2BC20B4F9368E4EF067CE92508DABF6A0CD16DDA8A0F4E6FE5BE422AED7",
+          "operator_receipt_sha256": "63AC7C21AA22D0006BE86E11F36C681BCA8A74B6AFC24EDE56C5BE5E55431575",
           "operators": [
             {
               "chapter": "Statistics",
@@ -2828,7 +2828,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "JD_CLUSTER",
@@ -2841,11 +2841,11 @@
           "purpose": "job/JD evidence lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_recursive_policy_v7:LANE_JD",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "JD",
       "name": "job/JD",
@@ -2923,7 +2923,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=job/JD | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=2965639E34E24D768DF9CAE56D1557861847434CE2D2B33CAF3643F07C93352E",
+          "formula_display": "Mode=job/JD | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=07BE3FEBE0F6176407F921E60332DE1E5452B6861B4B47F35C0D6CA45473314C",
           "hil": {
             "accepted_object": "requirement classifications and evidence proof cards",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -2970,7 +2970,7 @@
             "MBA"
           ],
           "operator_law": "Sets + Probability + Decision Support",
-          "operator_receipt_sha256": "2965639E34E24D768DF9CAE56D1557861847434CE2D2B33CAF3643F07C93352E",
+          "operator_receipt_sha256": "07BE3FEBE0F6176407F921E60332DE1E5452B6861B4B47F35C0D6CA45473314C",
           "operators": [
             {
               "chapter": "Sets",
@@ -3094,7 +3094,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=job/JD | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=0CC131BC0D8AB097B7885E00176B684F6D54F30F28490B554CC363659F3DB87E",
+          "formula_display": "Mode=job/JD | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> parse -> match -> classify direct/adjacent/ramp -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=F7CF8B24889FA82E0B87BB956C518FE6B199D17EA45C0AD8C2315962A93363E4",
           "hil": {
             "accepted_object": "requirement classifications and evidence proof cards",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -3141,7 +3141,7 @@
             "MBA"
           ],
           "operator_law": "Sets + Probability + Decision Support",
-          "operator_receipt_sha256": "0CC131BC0D8AB097B7885E00176B684F6D54F30F28490B554CC363659F3DB87E",
+          "operator_receipt_sha256": "F7CF8B24889FA82E0B87BB956C518FE6B199D17EA45C0AD8C2315962A93363E4",
           "operators": [
             {
               "chapter": "Sets",
@@ -3204,7 +3204,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 1,
           "cluster_name": "EXCEL_CLUSTER",
@@ -3217,11 +3217,11 @@
           "purpose": "sheet/formula workbook lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_recursive_policy_v7:LANE_EXCEL",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "XL",
       "name": "Excel",
@@ -3298,7 +3298,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=Excel | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> sheet plan -> formula build -> validate cells -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=6757DE139C324A3DB2BD9FA2FF56F8B42A31412AA665B1559A8B456128020F4F",
+          "formula_display": "Mode=Excel | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> sheet plan -> formula build -> validate cells -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=1D1D54407B5A0C766BC74AFC5D94BC0AFC7505EBC89AC064F58DEB8C9F6DE1A5",
           "hil": {
             "accepted_object": "workbook artifact, formula lineage, and cell validation",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -3345,7 +3345,7 @@
             "MBA"
           ],
           "operator_law": "Matrices + Relations + Accounting",
-          "operator_receipt_sha256": "6757DE139C324A3DB2BD9FA2FF56F8B42A31412AA665B1559A8B456128020F4F",
+          "operator_receipt_sha256": "1D1D54407B5A0C766BC74AFC5D94BC0AFC7505EBC89AC064F58DEB8C9F6DE1A5",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -3470,7 +3470,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=Excel | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> sheet plan -> formula build -> validate cells -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=E4F94E24B54633643D9A9035E018FB40DD61009F9E23C743BBF95F2CCB85BFF0",
+          "formula_display": "Mode=Excel | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> sheet plan -> formula build -> validate cells -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: MATHS + MBA | Receipt=7EDB039923B398D0B119389474AFFEB0FCE0D1C953EB5EB3DD9EDA7D0DA3ACFD",
           "hil": {
             "accepted_object": "workbook artifact, formula lineage, and cell validation",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -3517,7 +3517,7 @@
             "MBA"
           ],
           "operator_law": "Matrices + Relations + Accounting",
-          "operator_receipt_sha256": "E4F94E24B54633643D9A9035E018FB40DD61009F9E23C743BBF95F2CCB85BFF0",
+          "operator_receipt_sha256": "7EDB039923B398D0B119389474AFFEB0FCE0D1C953EB5EB3DD9EDA7D0DA3ACFD",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -3581,7 +3581,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "PPT_CLUSTER",
@@ -3594,11 +3594,11 @@
           "purpose": "slide/story lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_recursive_policy_v7:LANE_PPT",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "PPT",
       "name": "presentation",
@@ -3675,7 +3675,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=presentation | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> slide outline -> visual/source validation -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=8FE4C171B73F76D843C778D89ECF6B3E167074ED41A4E40C178E964F65D86B1C",
+          "formula_display": "Mode=presentation | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> slide outline -> visual/source validation -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=A111A653F2BACC7C31A56D9643F6B447EA86BE36F7545344E1C734FBAD9488F6",
           "hil": {
             "accepted_object": "deck, slide/source proof, and public-safe validation",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -3722,7 +3722,7 @@
             "MBA"
           ],
           "operator_law": "Optics + Marketing/Branding + OB",
-          "operator_receipt_sha256": "8FE4C171B73F76D843C778D89ECF6B3E167074ED41A4E40C178E964F65D86B1C",
+          "operator_receipt_sha256": "A111A653F2BACC7C31A56D9643F6B447EA86BE36F7545344E1C734FBAD9488F6",
           "operators": [
             {
               "chapter": "Optics",
@@ -3847,7 +3847,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=presentation | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> slide outline -> visual/source validation -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=B664312F2D3C3A7DAABCD818068BFA0E43ACFF009301279A9719143097BF9941",
+          "formula_display": "Mode=presentation | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> slide outline -> visual/source validation -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MBA | Receipt=E5BF127BFA7602980A202556E550F91DFA03A2BECDBE08F5865C9A41B15EE774",
           "hil": {
             "accepted_object": "deck, slide/source proof, and public-safe validation",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -3894,7 +3894,7 @@
             "MBA"
           ],
           "operator_law": "Optics + Marketing/Branding + OB",
-          "operator_receipt_sha256": "B664312F2D3C3A7DAABCD818068BFA0E43ACFF009301279A9719143097BF9941",
+          "operator_receipt_sha256": "E5BF127BFA7602980A202556E550F91DFA03A2BECDBE08F5865C9A41B15EE774",
           "operators": [
             {
               "chapter": "Optics",
@@ -3958,7 +3958,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "DOC_CLUSTER",
@@ -3971,11 +3971,11 @@
           "purpose": "document section/render lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_recursive_policy_v7:LANE_DOCX",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "DOC",
       "name": "document",
@@ -4052,7 +4052,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=document | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> section build -> render QA -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + CHEMISTRY | Receipt=2715FF75C3FA90DF602B847F7B69B1B8CE3331458CB40BBBE453F301B1CD753D",
+          "formula_display": "Mode=document | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> section build -> render QA -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + CHEMISTRY | Receipt=69C9ED7B9E6D842E41F9D44CA5DB03D7D9ADA9D3AE9D3E3FB602C818AB0058DB",
           "hil": {
             "accepted_object": "document artifact, source map, and render receipt",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -4099,7 +4099,7 @@
             "CHEMISTRY"
           ],
           "operator_law": "Surface chemistry + Communication systems",
-          "operator_receipt_sha256": "2715FF75C3FA90DF602B847F7B69B1B8CE3331458CB40BBBE453F301B1CD753D",
+          "operator_receipt_sha256": "69C9ED7B9E6D842E41F9D44CA5DB03D7D9ADA9D3AE9D3E3FB602C818AB0058DB",
           "operators": [
             {
               "chapter": "Communication Systems",
@@ -4210,7 +4210,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=document | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> section build -> render QA -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + CHEMISTRY | Receipt=6DE1A73A200661C4E63B46F5FF10E605F9E6E8C8FF184106ABC7CB9D27D44950",
+          "formula_display": "Mode=document | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> section build -> render QA -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + CHEMISTRY | Receipt=D6D8FD16D0946BB98ACC3646F176BC845586C862D5C192D5E695625E66A86E1A",
           "hil": {
             "accepted_object": "document artifact, source map, and render receipt",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -4257,7 +4257,7 @@
             "CHEMISTRY"
           ],
           "operator_law": "Surface chemistry + Communication systems",
-          "operator_receipt_sha256": "6DE1A73A200661C4E63B46F5FF10E605F9E6E8C8FF184106ABC7CB9D27D44950",
+          "operator_receipt_sha256": "D6D8FD16D0946BB98ACC3646F176BC845586C862D5C192D5E695625E66A86E1A",
           "operators": [
             {
               "chapter": "Communication Systems",
@@ -4307,7 +4307,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 1,
           "cluster_name": "PROJECT_BRAIN_BUILDER_CLUSTER",
@@ -4320,11 +4320,11 @@
           "purpose": "raw code or project corpus to brain lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_formula_execution_registry_v15:LANE_PB + lane_recursive_policy_v7:LANE_SQLITE",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "PB",
       "name": "project brain builder",
@@ -4402,7 +4402,7 @@
             "source_route_formula": "register source -> inventory -> index -> graph -> project sqlite -> project MMD",
             "visible_in_response": true
           },
-          "formula_display": "Mode=project brain builder | ENV formula: ALL_REQUIRED_GATES == PASS | Loop: entry -> schema preflight -> sandbox -> migrate -> hash -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: MATHS + MBA | Receipt=542640BD5CEEEA4CF99B76215E622EED484E5509B9C93B61ED81A63B9FD00C46",
+          "formula_display": "Mode=project brain builder | ENV formula: ALL_REQUIRED_GATES == PASS | Loop: entry -> schema preflight -> sandbox -> migrate -> hash -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: MATHS + MBA | Receipt=79F2F537E6D813A9CF27C1A725FE8A4B1A726468CD1FF1330DF97884622CB1C3",
           "hil": {
             "accepted_object": "project SQLite, project MMD, hashes, and build receipts",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -4449,7 +4449,7 @@
             "MBA"
           ],
           "operator_law": "Matrices + Determinants + Database/ERP",
-          "operator_receipt_sha256": "542640BD5CEEEA4CF99B76215E622EED484E5509B9C93B61ED81A63B9FD00C46",
+          "operator_receipt_sha256": "79F2F537E6D813A9CF27C1A725FE8A4B1A726468CD1FF1330DF97884622CB1C3",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -4602,7 +4602,7 @@
             "source_route_formula": "register source -> inventory -> index -> graph -> project sqlite -> project MMD",
             "visible_in_response": true
           },
-          "formula_display": "Mode=project brain builder | ENV formula: ALL_REQUIRED_GATES == PASS | Loop: entry -> schema preflight -> sandbox -> migrate -> hash -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: MATHS + MBA | Receipt=00C27BC8D81461E0A4F6AC2783789342D2CC3097CDCFB7C2F2EFCBC35C8A6FAC",
+          "formula_display": "Mode=project brain builder | ENV formula: ALL_REQUIRED_GATES == PASS | Loop: entry -> schema preflight -> sandbox -> migrate -> hash -> exit | CI/CD: CONTROLLED_REQUIRED | Operators: MATHS + MBA | Receipt=D378602AF14C04500B5D143BF45644B0ADA36F092F7712F94AC26293C27B5F75",
           "hil": {
             "accepted_object": "project SQLite, project MMD, hashes, and build receipts",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -4649,7 +4649,7 @@
             "MBA"
           ],
           "operator_law": "Matrices + Determinants + Database/ERP",
-          "operator_receipt_sha256": "00C27BC8D81461E0A4F6AC2783789342D2CC3097CDCFB7C2F2EFCBC35C8A6FAC",
+          "operator_receipt_sha256": "D378602AF14C04500B5D143BF45644B0ADA36F092F7712F94AC26293C27B5F75",
           "operators": [
             {
               "chapter": "Relations and Functions",
@@ -4741,7 +4741,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "PROJECT_ENGULF_CLUSTER",
@@ -4754,11 +4754,11 @@
           "purpose": "engulf project package into project section",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "env_mode_registry_v17:PROJECT_ENGULF + project_engulf sector law",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "ENG",
       "name": "project engulf",
@@ -4835,7 +4835,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=project engulf | ENV formula: ALL_SELECTED_SOURCES_HASH_BOUND | Loop: inspect -> explicit grant -> controlled fusion -> receipt/relock | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: CHEMISTRY + MBA | Receipt=B788F711D6342207D62F35D107E87C6453DDB730E3972938BE2950DE3DB3255A",
+          "formula_display": "Mode=project engulf | ENV formula: ALL_SELECTED_SOURCES_HASH_BOUND | Loop: inspect -> explicit grant -> controlled fusion -> receipt/relock | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: CHEMISTRY + MBA | Receipt=65B5672B528A4CFE546E04296AC68B724E0D5A5FC249BFD1C13A197CD2DC0E82",
           "hil": {
             "accepted_object": "registered project package and topology-growth receipt",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -4882,7 +4882,7 @@
             "MBA"
           ],
           "operator_law": "Redox + Organic pathway + Management Information Systems",
-          "operator_receipt_sha256": "B788F711D6342207D62F35D107E87C6453DDB730E3972938BE2950DE3DB3255A",
+          "operator_receipt_sha256": "65B5672B528A4CFE546E04296AC68B724E0D5A5FC249BFD1C13A197CD2DC0E82",
           "operators": [
             {
               "chapter": "Redox Reactions",
@@ -5020,7 +5020,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=project engulf | ENV formula: ALL_SELECTED_SOURCES_HASH_BOUND | Loop: inspect -> explicit grant -> controlled fusion -> receipt/relock | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: CHEMISTRY + MBA | Receipt=289E47F9E75DC02B6F5F2DEC1B460026E5AF4EE2DF64EDB2060E45A7545EFD90",
+          "formula_display": "Mode=project engulf | ENV formula: ALL_SELECTED_SOURCES_HASH_BOUND | Loop: inspect -> explicit grant -> controlled fusion -> receipt/relock | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: CHEMISTRY + MBA | Receipt=DD0C2A96EFBA6350731AF01CB83712E82924D29AC2A0DBDFB44FB692F70B80DD",
           "hil": {
             "accepted_object": "registered project package and topology-growth receipt",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -5067,7 +5067,7 @@
             "MBA"
           ],
           "operator_law": "Redox + Organic pathway + Management Information Systems",
-          "operator_receipt_sha256": "289E47F9E75DC02B6F5F2DEC1B460026E5AF4EE2DF64EDB2060E45A7545EFD90",
+          "operator_receipt_sha256": "DD0C2A96EFBA6350731AF01CB83712E82924D29AC2A0DBDFB44FB692F70B80DD",
           "operators": [
             {
               "chapter": "Redox Reactions",
@@ -5144,7 +5144,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "CLEAN_EXIT_CLUSTER",
@@ -5157,11 +5157,11 @@
           "purpose": "context pressure/exit package lane",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "env_workflow_event_v17:GOAL_OPTION_2_EXIT + STATE_TRAVEL_EXIT",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "CE",
       "name": "clean exit",
@@ -5237,7 +5237,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=clean exit | ENV formula: GOAL_METRICS_SEALED AND FINAL_BOUNDARY_VERIFIED | Loop: PREPARE -> visible response -> COMMIT -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + MBA | Receipt=E3EA1EB5DA489213707789317CF11079901E6F92F18E28F98BE19879E60E8DA7",
+          "formula_display": "Mode=clean exit | ENV formula: GOAL_METRICS_SEALED AND FINAL_BOUNDARY_VERIFIED | Loop: PREPARE -> visible response -> COMMIT -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + MBA | Receipt=ACDF9381A2B4459B4B29A2E8B4ADC8E4886C4EF660385807BF3E09D53BC8C5D4",
           "hil": {
             "accepted_object": "exact Exit Slip and continuity packet",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -5285,7 +5285,7 @@
             "MBA"
           ],
           "operator_law": "Communication Systems + Mathematical Reasoning + Human gates",
-          "operator_receipt_sha256": "E3EA1EB5DA489213707789317CF11079901E6F92F18E28F98BE19879E60E8DA7",
+          "operator_receipt_sha256": "ACDF9381A2B4459B4B29A2E8B4ADC8E4886C4EF660385807BF3E09D53BC8C5D4",
           "operators": [
             {
               "chapter": "Communication Systems",
@@ -5409,7 +5409,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=clean exit | ENV formula: GOAL_METRICS_SEALED AND FINAL_BOUNDARY_VERIFIED | Loop: PREPARE -> visible response -> COMMIT -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + MBA | Receipt=C122AE652626C51E17CD960C4D20142F876459BACED1103A2898129EE933F49F",
+          "formula_display": "Mode=clean exit | ENV formula: GOAL_METRICS_SEALED AND FINAL_BOUNDARY_VERIFIED | Loop: PREPARE -> visible response -> COMMIT -> receipt | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + MBA | Receipt=DA0CDA273C283D4FB0CEE529034BE7B2E3F49B18824147DD9A125FF52A9D5B75",
           "hil": {
             "accepted_object": "exact Exit Slip and continuity packet",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -5457,7 +5457,7 @@
             "MBA"
           ],
           "operator_law": "Communication Systems + Mathematical Reasoning + Human gates",
-          "operator_receipt_sha256": "C122AE652626C51E17CD960C4D20142F876459BACED1103A2898129EE933F49F",
+          "operator_receipt_sha256": "DA0CDA273C283D4FB0CEE529034BE7B2E3F49B18824147DD9A125FF52A9D5B75",
           "operators": [
             {
               "chapter": "Communication Systems",
@@ -5520,7 +5520,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 1,
           "cluster_name": "RECOVERY_CLUSTER",
@@ -5533,11 +5533,11 @@
           "purpose": "recover artifacts from previous build",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "env_mode_registry_v17:RUNTIME + STATE_TRAVEL_READY",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "RCV",
       "name": "recovery",
@@ -5614,7 +5614,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=recovery | ENV formula: DESTINATION_ATTESTED AND CONTINUITY_VERIFIED | Loop: resume preserved state -> verify receipts -> return to boundary | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + SUPPLY | Receipt=BA0C441B3B9676F53A981923C7B81EF3594B77E8FCBB53D3AD6D200B85424386",
+          "formula_display": "Mode=recovery | ENV formula: DESTINATION_ATTESTED AND CONTINUITY_VERIFIED | Loop: resume preserved state -> verify receipts -> return to boundary | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + SUPPLY | Receipt=37FB6611412C7F2B44D8040E5191EEC3F2850B3DA82560685F890287E803F072",
           "hil": {
             "accepted_object": "verified exact-resume boundary and recovery receipts",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -5662,7 +5662,7 @@
             "SUPPLY"
           ],
           "operator_law": "Continuity + fallback paths + Risk and Crisis Management",
-          "operator_receipt_sha256": "BA0C441B3B9676F53A981923C7B81EF3594B77E8FCBB53D3AD6D200B85424386",
+          "operator_receipt_sha256": "37FB6611412C7F2B44D8040E5191EEC3F2850B3DA82560685F890287E803F072",
           "operators": [
             {
               "chapter": "System of Particles and Rotational Motion",
@@ -5800,7 +5800,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=recovery | ENV formula: DESTINATION_ATTESTED AND CONTINUITY_VERIFIED | Loop: resume preserved state -> verify receipts -> return to boundary | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + SUPPLY | Receipt=84663F198FBBD38E8C6C23102423D416C88EDBD4428DDA36A98EFCB6899B03EA",
+          "formula_display": "Mode=recovery | ENV formula: DESTINATION_ATTESTED AND CONTINUITY_VERIFIED | Loop: resume preserved state -> verify receipts -> return to boundary | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: PHYSICS + MATHS + SUPPLY | Receipt=9A659785E4A4DA736EFFD4AECC00DCB9AAF76DF62059B68496F110EDEE275F2B",
           "hil": {
             "accepted_object": "verified exact-resume boundary and recovery receipts",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -5848,7 +5848,7 @@
             "SUPPLY"
           ],
           "operator_law": "Continuity + fallback paths + Risk and Crisis Management",
-          "operator_receipt_sha256": "84663F198FBBD38E8C6C23102423D416C88EDBD4428DDA36A98EFCB6899B03EA",
+          "operator_receipt_sha256": "9A659785E4A4DA736EFFD4AECC00DCB9AAF76DF62059B68496F110EDEE275F2B",
           "operators": [
             {
               "chapter": "System of Particles and Rotational Motion",
@@ -5925,7 +5925,7 @@
     {
       "env_authority": {
         "env_mmd_sha256": "9F564A8A5F9476B114DB7DDA91D09CDBFA7BDA2DCC97DD7047FEDD6286DE99CB",
-        "env_sqlite_sha256": "3A626D6F9564C1A10EA0EDBD686600884356523767944BC08F029705A3DDC50B",
+        "env_sqlite_sha256": "720AFC5CD991DADCA0E3BCA528C190B69E572CD84E18578907254FF34160F055",
         "mode_namespace_row": {
           "ci_applicable": 0,
           "cluster_name": "CUSTOM_CLUSTER",
@@ -5938,11 +5938,11 @@
           "purpose": "user-defined mode namespace",
           "status": "ACTIVE_ADAPTED"
         },
-        "mode_policy_projection_sha256": "9320EEFFB8FF12A61658AA821F71BA9FC7BB7859E1AB7E7742661F30343C3A5B",
+        "mode_policy_projection_sha256": "238A88E32792BC1F24A5FF938E924D9E27EFDC449563BB344C2BC8113B6CABF9",
         "policy_row": "lane_recursive_policy_v7:LANE_CUSTOM",
-        "runtime_authority_sha256": "0F7FB7FCF2E4FA83B2829AC57383128A5B1141C82850D205F2C88CD118A1B040",
+        "runtime_authority_sha256": "2028A7D226013C8E27D180CB1FDA574B29BC9A8BA615137C0883F83B075E3843",
         "uop_mmd_sha256": "71CA1C1DDBB0E3132295D4FDF6CAC8003DDEBAE94986A850CE921D145A9197F9",
-        "uop_sqlite_sha256": "987B0E313DC25D85361205468FF102E2946A6C6BDE347066D1B71E3EEC923A4E"
+        "uop_sqlite_sha256": "C4A250FC5B75962C0B3DDEB7690AEF71F511C812801BCA7100D4709AAC74330A"
       },
       "id": "X",
       "name": "evidence choreography",
@@ -6019,7 +6019,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=evidence choreography | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> create lane -> apply route -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: User-defined operator trigger | Receipt=4F85F8E0E3533DECB0274A3AAD8E29F828B48C7B0FEFE18A885F3A1DCE59FD70",
+          "formula_display": "Mode=evidence choreography | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> create lane -> apply route -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: User-defined operator trigger | Receipt=B04CD911D152E37C60DB4E3308E3AF71B16E64841AFB983D2BC46A211915F82C",
           "hil": {
             "accepted_object": "custom deliverable 'evidence choreography' under its dependency policy",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -6063,7 +6063,7 @@
           "lifecycle_effect": "NONE",
           "operator_families": [],
           "operator_law": "User-defined operator trigger",
-          "operator_receipt_sha256": "4F85F8E0E3533DECB0274A3AAD8E29F828B48C7B0FEFE18A885F3A1DCE59FD70",
+          "operator_receipt_sha256": "B04CD911D152E37C60DB4E3308E3AF71B16E64841AFB983D2BC46A211915F82C",
           "operators": [],
           "pointer_moved": false,
           "recursive_loop": "entry -> create lane -> apply route -> exit",
@@ -6144,7 +6144,7 @@
             "source_route_formula": null,
             "visible_in_response": true
           },
-          "formula_display": "Mode=evidence choreography | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> create lane -> apply route -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: User-defined operator trigger | Receipt=CE28720CC85EA259D78C7784AB8D2FC0356B14985EBED1B9CC597FD2102D4D1D",
+          "formula_display": "Mode=evidence choreography | ENV formula: TARGETED_RECEIPTS_PASS AND DIRECT_PURGE_COMPLETE | Loop: entry -> create lane -> apply route -> exit | CI/CD: NOT_GENERIC_TO_THIS_MODE | Operators: User-defined operator trigger | Receipt=F362B58935595AD89A2D1EF06BA48977BF1E90DA37A56BFFBC2B1CD44ED326AE",
           "hil": {
             "accepted_object": "custom deliverable 'evidence choreography' under its dependency policy",
             "authority": "PROJECT_AUTHORITY_POLICY_PLUS_ENV_LANE_GATE_LOOP_AND_EXIT_TARGET_DERIVATION",
@@ -6188,7 +6188,7 @@
           "lifecycle_effect": "NONE",
           "operator_families": [],
           "operator_law": "User-defined operator trigger",
-          "operator_receipt_sha256": "CE28720CC85EA259D78C7784AB8D2FC0356B14985EBED1B9CC597FD2102D4D1D",
+          "operator_receipt_sha256": "F362B58935595AD89A2D1EF06BA48977BF1E90DA37A56BFFBC2B1CD44ED326AE",
           "operators": [],
           "pointer_moved": false,
           "recursive_loop": "entry -> create lane -> apply route -> exit",
@@ -6212,7 +6212,7 @@
     "prompt"
   ],
   "source_files": {
-    "mode_governance.py": "F7C002439E5BA0F045EF8D2533A481CC377E3D53D49C0E3CE0F7211A91A17412",
+    "mode_governance.py": "648B5485F80CF44EDE823127A2CF7A3B330770615B953B899AE21FCE4F7B793C",
     "operating_modes.py": "383DED99353552D3526B9370DF35E24B9A65B39DDEC7548AC070AD04A71ECAF3"
   },
   "universal_boundary": "The current Project-authority tokens are exact for that authority; accepted objects, gates, rollback targets, and effects are mode-specific. Mode selection is never HIL approval."

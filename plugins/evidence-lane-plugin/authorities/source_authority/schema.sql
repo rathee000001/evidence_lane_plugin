@@ -154,6 +154,17 @@ CREATE TABLE source_custom_schema_receipt(
                 UNIQUE(schema_sha256, batch_id)
             );
 
+CREATE TABLE source_exclusion_summary(
+                object_id TEXT NOT NULL REFERENCES source_object(object_id),
+                policy_reason TEXT NOT NULL,
+                excluded_entry_count INTEGER NOT NULL,
+                excluded_bytes INTEGER,
+                descendant_members_enumerated INTEGER NOT NULL CHECK(descendant_members_enumerated IN (0, 1)),
+                member_paths_stored INTEGER NOT NULL CHECK(member_paths_stored = 0),
+                capture_mode TEXT NOT NULL,
+                PRIMARY KEY(object_id, policy_reason)
+            );
+
 CREATE TABLE source_git_changed_line(
                 snapshot_id TEXT NOT NULL,
                 commit_sha TEXT NOT NULL,
@@ -604,7 +615,7 @@ CREATE TABLE source_object(
                 excluded_member_count INTEGER NOT NULL,
                 member_path_size_sha256 TEXT,
                 content_merkle_sha256 TEXT
-            );
+            , "exclusion_summary_sha256" TEXT);
 
 CREATE TABLE source_occurrence(
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),

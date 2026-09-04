@@ -32,7 +32,7 @@ def test_all_lane_schema_assets_are_versioned_hash_bound_and_authorized() -> Non
         "asset_path": "schemas/lane-schema-registry.v001.json",
         "asset_sha256": LANE_SCHEMA_REGISTRY_SHA256,
         "lane_count": len(CANONICAL_LANE_IDS),
-        "base_schema_id": "evidence-lane.universal-lane.v4",
+        "base_schema_id": "evidence-lane.universal-lane.v5",
         "entity_table_template_id": "GENERIC_ENTITY_RECORD_V1",
         "extension_model": "PER_LANE_NAMESPACED_ADDITIVE_VERSIONING",
     }
@@ -47,7 +47,7 @@ def test_all_lane_schema_assets_are_versioned_hash_bound_and_authorized() -> Non
             f"{asset['schema_version']:03d}"
         )
         assert asset["schema_version"] == asset["migration_ledger"][-1]["to_version"]
-        assert asset["base_schema_id"] == "evidence-lane.universal-lane.v4"
+        assert asset["base_schema_id"] == "evidence-lane.universal-lane.v5"
         assert asset["fts_table"] == lane.fts_table
         assert asset["tables"] == list(lane.schema_contract)
         assert len(asset["contract_sha256"]) == 64
@@ -62,12 +62,10 @@ def test_all_lane_schema_assets_are_versioned_hash_bound_and_authorized() -> Non
             "BASELINE_BIND_EXISTING_SCHEMA"
         )
         expected_migration_id = (
-            f"{lane_id}.direct-purge-current-only."
+            f"{lane_id}.tool-route-execution-ledger."
             f"v{asset['schema_version']:03d}"
         )
-        expected_operation = (
-            "REBUILD_WITH_DIRECT_PURGE_CURRENT_ONLY"
-        )
+        expected_operation = "REBUILD_WITH_TOOL_ROUTE_AND_EXECUTION_LEDGER"
         assert asset["migration_ledger"][-1] == {
             "migration_id": expected_migration_id,
             "sequence": len(asset["migration_ledger"]),

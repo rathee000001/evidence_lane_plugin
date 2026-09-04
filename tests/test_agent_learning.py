@@ -46,7 +46,11 @@ def _root(tmp_path: Path, project_id: str = PROJECT_ID) -> Path:
     root.mkdir()
     atomic_write_json(
         root / "project.json",
-        {"schema": "fixture.project.v1", "project_id": project_id},
+        {
+            "schema": "evidence-lane.project-registry.v1",
+            "project_id": project_id,
+            "project_authority_root": str(root.resolve()),
+        },
     )
     atomic_write_json(
         root / "active_pointer.json",
@@ -313,8 +317,13 @@ def test_candidate_is_immutable_provenanced_and_idempotent(tmp_path: Path) -> No
     assert first["state"] == "PENDING_LEARNING_HIL"
     assert first["candidate"]["evidence"][0]["pv_ref"] == "PV12"
     assert first["private_reasoning_stored"] is False
+    assert first["candidate_locator"].startswith(
+        "sqlite://ai_learning/learning_candidate/"
+    )
     assert second["idempotent_reuse"] is True
     assert second["candidate"] == first["candidate"]
+    assert not (root / "ai_learning" / "candidates").exists()
+    assert not (root / "ai_learning" / "receipts").exists()
     assert (
         inspect_learning_authority(root, project_id=PROJECT_ID)["candidate_count"] == 1
     )
@@ -407,11 +416,16 @@ def test_only_woven_learning_candidate_is_human_decidable(tmp_path: Path) -> Non
         max_candidates=8,
     )
     member_id = bootstrapped["candidate_ids"][0]
-    member = json.loads(
-        (root / "ai_learning" / "candidates" / f"{member_id}.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    connection = sqlite3.connect(root / "ai_learning" / "agent-learning.sqlite")
+    try:
+        row = connection.execute(
+            "SELECT candidate_json FROM learning_candidate WHERE candidate_id=?",
+            (member_id,),
+        ).fetchone()
+    finally:
+        connection.close()
+    assert row is not None
+    member = json.loads(str(row[0]))
     with pytest.raises(EvidenceLaneError) as blocked:
         decide_learning_candidate(
             root,
@@ -689,13 +703,23 @@ def test_cross_project_secret_and_tamper_guards_fail_closed(tmp_path: Path) -> N
     assert secret.value.code == "LEARNING_CANDIDATE_SECRET_BLOCKED"
 
     sealed = _seal(root, statement="Tamper-evident lesson.")
-    candidate_path = Path(sealed["candidate_path"])
-    value = json.loads(candidate_path.read_text(encoding="utf-8"))
+    value = dict(sealed["candidate"])
     value["statement"] = "tampered"
-    atomic_write_json(candidate_path, value)
+    connection = sqlite3.connect(root / "ai_learning" / "agent-learning.sqlite")
+    try:
+        connection.execute(
+            "UPDATE learning_candidate SET candidate_json=? WHERE candidate_id=?",
+            (
+                json.dumps(value, sort_keys=True, separators=(",", ":")),
+                value["candidate_id"],
+            ),
+        )
+        connection.commit()
+    finally:
+        connection.close()
     with pytest.raises(EvidenceLaneError) as tampered:
         inspect_learning_authority(root, project_id=PROJECT_ID)
-    assert tampered.value.code == "LEARNING_CANDIDATE_FILE_LEDGER_MISMATCH"
+    assert tampered.value.code == "LEARNING_CANDIDATE_HASH_MISMATCH"
 
 
 def test_runtime_contract_has_six_learning_routes_and_first_class_memory_boundary() -> (
@@ -962,7 +986,7 @@ def test_v1_ledger_migrates_additively_to_cross_sector_memory_graph(
     connection.close()
 
     inspected = inspect_learning_authority(root, project_id=PROJECT_ID)
-    assert inspected["runtime_contract"]["ledger_schema_version"] == 2
+    assert inspected["runtime_contract"]["ledger_schema_version"] == 3
     assert inspected["memory_locator_count"] == 0
     assert inspected["memory_edge_count"] == 0
     assert inspected["indexed_memory_locator_count"] == 0

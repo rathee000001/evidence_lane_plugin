@@ -170,3 +170,27 @@ def test_git_history_enforces_commit_and_blob_byte_budgets(
         index_git_history(connection, root)
     assert blob.value.code == "GIT_HISTORY_SINGLE_BLOB_BUDGET_EXCEEDED"
     connection.close()
+
+
+def test_git_history_total_budget_counts_only_retained_safe_blobs(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "binary-heavy-history"
+    root.mkdir()
+    _init_repository(root)
+    (root / "safe.txt").write_text("safe\n", encoding="utf-8")
+    (root / "opaque.bin").write_bytes(b"SQLite format 3\x00" + (b"x" * 128))
+    _git(root, "add", "safe.txt", "opaque.bin")
+    _git(root, "commit", "-m", "safe text plus opaque payload")
+
+    monkeypatch.setattr(git_history, "MAX_HISTORY_TOTAL_BLOB_BYTES", 16)
+    connection = sqlite3.connect(":memory:")
+    connection.row_factory = sqlite3.Row
+    report = index_git_history(connection, root)
+
+    assert report["status"] == "PASS"
+    assert report["safe_new_blobs"] == 1
+    assert report["excluded_unsafe_or_opaque_blobs"] == 1
+    assert connection.execute("SELECT COUNT(*) FROM git_blob_cas").fetchone()[0] == 1
+    connection.close()

@@ -23,7 +23,11 @@ from typing import Any, cast
 
 from defusedxml import ElementTree
 
-from .ai_toolchain import resolve_lane_toolchain
+from .ai_toolchain import (
+    ACTION_CLASS_TOOL_ORDER,
+    ORCHESTRATION_ACTION_CLASS_ORDER,
+    resolve_lane_toolchain,
+)
 from .artifact_contract import (
     FOUR_FILE_CONTRACT_SCHEMA,
     TOOLS_ARTIFACT_AUTHORITY_SCHEMA,
@@ -447,6 +451,21 @@ def _tool_identity(
         },
         "parser_implementation": {
             "lane_engine_sha256": sha256_file(Path(__file__).resolve()),
+            "ai_toolchain_sha256": sha256_file(
+                Path(resolve_lane_toolchain.__code__.co_filename).resolve()
+            ),
+            "code_toolchain_sha256": sha256_file(
+                Path(__file__).resolve().with_name("code_toolchain.py")
+            ),
+            "runtime_toolchain_sha256": sha256_file(
+                Path(__file__).resolve().with_name("runtime_toolchain.py")
+            ),
+            "native_toolchain_sha256": sha256_file(
+                Path(__file__).resolve().with_name("native_toolchain.py")
+            ),
+            "graph_pipeline_sha256": sha256_file(
+                Path(SemanticGraph.render_pair.__code__.co_filename).resolve()
+            ),
             "tabular_toolchain_sha256": sha256_file(
                 Path(stage_tabular_source.__code__.co_filename).resolve()
             ),
@@ -644,7 +663,7 @@ def _source_conditioned_lane_toolchain(
         "all_18_project_sectors",
     }
     selected_rows = []
-    for row in routing["rows"]:
+    for registry_order, row in enumerate(routing["rows"], start=1):
         row_lanes = {str(value) for value in row["lanes"]}
         surfaces = {str(value) for value in row["surfaces"]}
         tool = str(row["tool"])
@@ -665,8 +684,32 @@ def _source_conditioned_lane_toolchain(
                     "surfaces": [str(value) for value in row["surfaces"]],
                     "implementation_owner": str(row["implementation_owner"]),
                     "runs_only_when_selected": bool(row["runs_only_when_selected"]),
+                    "registry_order": registry_order,
                 }
             )
+    action_class_order = {
+        name: position
+        for position, name in enumerate(ORCHESTRATION_ACTION_CLASS_ORDER, start=1)
+    }
+
+    def orchestration_key(row: dict[str, Any]) -> tuple[int, int, int]:
+        candidates: list[tuple[int, int]] = []
+        tool = str(row["tool"])
+        for action_class in row["action_classes"]:
+            class_position = action_class_order.get(str(action_class), 10_000)
+            tools_for_class = ACTION_CLASS_TOOL_ORDER.get(str(action_class), ())
+            tool_position = (
+                tools_for_class.index(tool) + 1
+                if tool in tools_for_class
+                else 10_000
+            )
+            candidates.append((class_position, tool_position))
+        class_position, tool_position = min(candidates or [(10_000, 10_000)])
+        return class_position, tool_position, int(row["registry_order"])
+
+    selected_rows.sort(key=orchestration_key)
+    for orchestration_order, row in enumerate(selected_rows, start=1):
+        row["orchestration_order"] = orchestration_order
     core = {
         "schema": "evidence-lane.source-conditioned-lane-toolchain.v1",
         "status": "PASS",
@@ -676,6 +719,10 @@ def _source_conditioned_lane_toolchain(
         "eligible_tools": [row["tool"] for row in selected_rows],
         "eligible_tool_count": len(selected_rows),
         "rows": selected_rows,
+        "orchestration_action_class_order": list(
+            ORCHESTRATION_ACTION_CLASS_ORDER
+        ),
+        "all_rows_in_exact_contract_order": True,
         "all_linked_required_steps_must_run_or_fail_visible": True,
         "all_registry_tools_run": False,
         "selection_is_source_shape_action_workflow_env_uop_dependent": True,
@@ -743,15 +790,32 @@ def _bind_runtime_toolchain_resolution(
         canonical_json_bytes(conditioned_core)
     )
     result["source_conditioned_toolchain"] = conditioned
+    source_conditioned_ordered_tools = [str(row["tool"]) for row in routed_rows]
+    if source_conditioned_ordered_tools != [
+        str(tool) for tool in conditioned["eligible_tools"]
+    ]:
+        raise ValueError("SOURCE_CONDITIONED_TOOLCHAIN_ORDER_MISMATCH")
+    if [int(row["orchestration_order"]) for row in routed_rows] != list(
+        range(1, len(routed_rows) + 1)
+    ):
+        raise ValueError("SOURCE_CONDITIONED_TOOLCHAIN_ORDINAL_MISMATCH")
+    lane_action_ordered_tools = [
+        str(tool) for tool in lane_resolution.get("ordered_tools") or []
+    ]
     result["runtime_toolchain_resolution"] = {
         "schema": lane_resolution.get("schema"),
         "status": lane_resolution.get("status"),
         "host_profile": lane_resolution.get("host_profile"),
         "lane_id": lane_resolution.get("lane_id"),
         "action_classes": lane_resolution.get("action_classes"),
-        "ordered_tools": lane_resolution.get("ordered_tools"),
+        "ordered_tools": source_conditioned_ordered_tools,
+        "ordered_tool_count": len(source_conditioned_ordered_tools),
+        "lane_action_ordered_tools": lane_action_ordered_tools,
+        "lane_action_ordered_tool_count": len(lane_action_ordered_tools),
         "runnable_tools": lane_resolution.get("runnable_tools"),
         "unavailable_tools": lane_resolution.get("unavailable_tools"),
+        "availability_scope": "LANE_ACTION_ORDERED_TOOLS",
+        "lane_action_resolution_sha256": lane_resolution.get("resolution_sha256"),
         "resolution_sha256": lane_resolution.get("resolution_sha256"),
     }
     identity_core = {
@@ -1093,6 +1157,8 @@ def _lane_tool_execution_evidence(
         rows.append(
             {
                 "tool": tool,
+                "orchestration_order": int(eligible["orchestration_order"]),
+                "registry_order": int(eligible["registry_order"]),
                 "role_class": role_class,
                 "phases": phases,
                 "eligibility_state": "ELIGIBLE",
@@ -1123,6 +1189,21 @@ def _lane_tool_execution_evidence(
         "status": "PASS" if valid else "FAIL",
         "lane_id": lane.canonical_lane_id,
         "rows": rows,
+        "selected_execution_sequence": [
+            {
+                "orchestration_order": int(
+                    cast(int, row["orchestration_order"])
+                ),
+                "tool": str(row["tool"]),
+                "phases": list(cast(list[str], row["phases"])),
+                "execution_state": str(row["execution_state"]),
+            }
+            for row in condition_true
+        ],
+        "all_rows_in_exact_contract_order": [
+            int(cast(int, row["orchestration_order"])) for row in rows
+        ]
+        == list(range(1, len(rows) + 1)),
         "eligible_tool_count": len(rows),
         "condition_true_tool_count": len(condition_true),
         "selected_tool_count": len(condition_true),
@@ -1164,6 +1245,8 @@ def _write_lane_tool_orchestration_ledger(
     for route in route_rows:
         route_core: dict[str, Any] = {
             "tool": str(route["tool"]),
+            "orchestration_order": int(route["orchestration_order"]),
+            "registry_order": int(route["registry_order"]),
             "role_class": str(route["role_class"]),
             "requirement": str(route["requirement"]),
             "action_classes": [str(value) for value in route["action_classes"]],
@@ -1204,6 +1287,7 @@ def _write_lane_tool_orchestration_ledger(
         execution_core: dict[str, Any] = (
             {
                 "tool": route_core["tool"],
+                "orchestration_order": route_core["orchestration_order"],
                 "phases": [str(value) for value in measured["phases"]],
                 "eligibility_state": str(measured["eligibility_state"]),
                 "selection_state": str(measured["selection_state"]),
@@ -1217,6 +1301,7 @@ def _write_lane_tool_orchestration_ledger(
             if measured is not None
             else {
                 "tool": route_core["tool"],
+                "orchestration_order": route_core["orchestration_order"],
                 "phases": [],
                 "eligibility_state": "ELIGIBLE",
                 "selection_state": "PENDING_RUNTIME_PROOF",

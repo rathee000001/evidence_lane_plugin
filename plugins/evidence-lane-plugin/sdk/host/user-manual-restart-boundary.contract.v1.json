@@ -4,10 +4,10 @@
   "contract": "user-manual-restart-boundary",
   "law": "SEALED_INSTALL_RECEIPT_THEN_USER_RESTARTS_AFTER_TERMINAL_RESPONSE",
   "owner": "scripts/codex_release/install_codex_stable.py",
-  "owner_sha256": "E90FA894EA85075CB7C628805F4538ACFA051EB64471D6C81FD9780F31398302",
+  "owner_sha256": "1C40E91383D29D2792508CAA1E8EE05F7A90B1AACB51617242D269BC831EC696",
   "hidden_runtime_root": "%USERPROFILE%/.codex/plugins/runtime/evidence-lane-plugin",
   "project_root_hardcoded": false,
   "workspace_hardcoded": false,
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "D071F506935C109516EC277137A6DAA790CD612D174A51828EFD8DD6132E55FE"
+  "receipt_sha256": "BAFC6C758A6A144134A7FF95080DD5F1E28F794F6AECEFFABDA9AF7AD0C3CC53"
 }

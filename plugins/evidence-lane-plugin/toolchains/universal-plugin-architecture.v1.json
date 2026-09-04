@@ -39328,7 +39328,7 @@
       {
         "authority_id": "source_authority",
         "path": "authorities/source_authority",
-        "table_count": 56,
+        "table_count": 57,
         "linked_public_action_count": 18,
         "persistent_sqlite_authority": true,
         "eligible_tools": [
@@ -52099,7 +52099,7 @@
         "action_class": [
           "GOVERNANCE"
         ],
-        "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D",
+        "schema_sha256": "F92398CEBA02038F3970FC654AE53EC484A289E0AC99F5BC0B15B406E64163BB",
         "schema_path": "schemas/actions/task_record_activity.schema.json",
         "sdk_binding": "sdk/actions/task_record_activity.action.v1.json",
         "mcp_binding": "mcp/actions/task_record_activity.binding.v1.json",
@@ -52223,7 +52223,7 @@
           {
             "path": "skills/evi/references/public-tool-conformance-release-gate.v1.json",
             "bytes": 3110,
-            "sha256": "F9907BBB8736BA5C2F744FB950081F8536CDA9BB52AE09673FB600CDADBEC912"
+            "sha256": "12B9CC5D057F4E8F6F3C60FC5E327CB5E6F32934D0BF6F125E58B247CEDA657F"
           },
           {
             "path": "skills/evi/SKILL.md",
@@ -53800,8 +53800,8 @@
           },
           {
             "path": "skills/evidence-lane-code-lifecycle/references/shared-boundaries.md",
-            "bytes": 4822,
-            "sha256": "6D0AB6EC61365D5B0D990DC914392471703C56F5571B09D478B1051A88400D34"
+            "bytes": 4881,
+            "sha256": "6FAC092C0DC4A472694D63B8FF111D0AA862039CC9610C74C99E9D84B328A987"
           },
           {
             "path": "skills/evidence-lane-code-lifecycle/SKILL.md",
@@ -54665,7 +54665,7 @@
   "source_registries": {
     "catalog": {
       "path": "schemas/public-action-schemas.v001.json",
-      "sha256": "6408DF34A1E61226E09D5BEC1620DEB845893EA969AE4D42660B86055ECB744F",
+      "sha256": "C18495E8E5233E3A38871737997262A108ADDE0995A9A7947479BBF7746CF9D7",
       "direct_hash_embedded": true
     },
     "mcp": {
@@ -54682,7 +54682,7 @@
     },
     "skills": {
       "path": "skills/skill-surface-registry.v1.json",
-      "sha256": "532DFAF8DC4EF2ADC31C0EC8D44B81F264644291EC431CBAA57A84B1996715C4",
+      "sha256": "8F212FE824B468BC506773F89B96CFCA21211BBCAD04C6A238ACBA83CDF352A1",
       "direct_hash_embedded": true
     },
     "hooks": {
@@ -54710,7 +54710,7 @@
     },
     "modules": {
       "path": "src/evidence_lane_plugin/module-registry.v1.json",
-      "sha256": "3873042A69C8566BDA680B3917B4CB8207E99359C54E4552C672F96A218C5941",
+      "sha256": "B13444554B2A0BE8784A0D33A0B442DD4B1DAC62EE4906031DA4469CF95261A0",
       "direct_hash_embedded": true
     },
     "tools": {
@@ -54720,12 +54720,12 @@
     },
     "routing": {
       "path": "toolchains/tool-execution-routing.v1.json",
-      "sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182",
+      "sha256": "342B1FDB7A8502CA494F9FDF9709C294FDCE42DE5F419E99D974C94F65294988",
       "direct_hash_embedded": true
     },
     "tunnel": {
       "path": "toolchains/tunnel-runtime-toolchain.v1.json",
-      "sha256": "23027693F389A79951194DE4BFA9A64A96F787DB52D302E39D98432679E0AFB1",
+      "sha256": "6FDE2FCAA308EAC28416CE456786952FF326EC2AD9736EB56F93E0E45B5D6759",
       "direct_hash_embedded": true
     },
     "current_routes": {
@@ -54739,5 +54739,5 @@
   "human_entrypoint_count_defines_backend_workflow_limit": false,
   "human_entrypoints_derive_from_registered_skill_routes": true,
   "historical_fallback_allowed": false,
-  "receipt_sha256": "6320A24B4EF19793992EC373A265BB560F74BA62B9E9B785CD4E8476B5CE4250"
+  "receipt_sha256": "5F0E41EBCA8D5CEE5B8DC9DF7AFC0033CA589DE34501820919ECCBC93ACD887E"
 }

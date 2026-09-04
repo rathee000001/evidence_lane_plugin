@@ -25,7 +25,7 @@
     {
       "path": "authorities/project_sectors/ppt/lane-contract.v1.json",
       "bytes": 63787,
-      "sha256": "6874CF1830AA36407D3568849E163D3A084DF9EA3E66854142A4265E61D2BFFF"
+      "sha256": "33AFC01DF1FD2BB5A362E756E11B9806A7B97411903B0DF883FC169C6739CFFE"
     },
     {
       "path": "authorities/project_sectors/ppt/lane-pointer.schema.json",
@@ -55,7 +55,7 @@
     {
       "path": "authorities/project_sectors/ppt/ppt_sector_v001.sqlite",
       "bytes": 528384,
-      "sha256": "3F76C4024496F6428A24E7EA03E643B6A3341960F64B8176BCD48DFE3D3AD9C5"
+      "sha256": "71C1596CDF95E7DDE92FE9AF46262EB6BFBD33202B1DAE868823A9101A3F53CD"
     },
     {
       "path": "authorities/project_sectors/ppt/reader-contract.schema.json",
@@ -89,8 +89,8 @@
     },
     {
       "path": "authorities/project_sectors/ppt/tools.json",
-      "bytes": 162107,
-      "sha256": "ABBD32BDBDFE1572376E129603BCE7FEB7DF134D7B2CB932CCD0CC68756BE8E7"
+      "bytes": 171581,
+      "sha256": "B9EBDAF0594D61F4606C3CBB981B14B15719E2C241C86A720CF62862EE154761"
     },
     {
       "path": "authorities/project_sectors/ppt/tools.schema.json",
@@ -118,5 +118,5 @@
   "separate_sqlite_authority": true,
   "live_project_bytes_in_template": false,
   "template_contains_identity_metadata_only": true,
-  "receipt_sha256": "8C78DE35B21BDCAB43966BA75F7D86C065A72318F6CCBF18EF698484DBDE7D85"
+  "receipt_sha256": "99535B0051776150F05A5930D7078C904EA0885CBF93E18200CAE67AF2B49F53"
 }

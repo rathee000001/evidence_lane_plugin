@@ -445,19 +445,28 @@ def test_ephemeral_interactive_tunnel_is_bound_to_one_vm_lifetime(service) -> No
         client_can_edit_source=True,
         server_has_durable_filesystem=True,
     )
-    runtime_root = service.store.root.parent / "vm-local-tunnel-runtime"
-
     context = _run_session_start(
         root,
         service.store.root,
         "host-session-ephemeral",
-        tunnel_runtime_root=runtime_root,
     )
     activation = _context_envelope(context, "HOST_ACTIVATION_ENVELOPE")
 
     assert activation["state"] == "FIRST_USE_TUNNEL_ONBOARDING_REQUIRED"
     assert activation["host_lifetime"] == "EPHEMERAL"
-    assert activation["runtime_root"] == str(runtime_root.resolve())
+    runtime_root = Path(str(activation["runtime_root"]))
+    runtime_control_root = (
+        Path.home()
+        / ".codex"
+        / "plugins"
+        / "runtime"
+        / "evidence-lane-plugin"
+    ).resolve()
+    assert runtime_root.parent == runtime_control_root
+    assert runtime_root.name == (
+        "tunnel-runtime-" + str(activation["tunnel_version_token"])
+    )
+    assert not runtime_root.is_relative_to(service.store.root)
     assert len(str(activation["vm_instance_id_sha256"])) == 64
     assert activation["raw_vm_instance_id_stored"] is False
     assert activation["durable_pv_storage_reused_for_tunnel_secret"] is False

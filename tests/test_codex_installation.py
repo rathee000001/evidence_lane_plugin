@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import importlib.util
 import json
@@ -14,7 +15,6 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
 SCRIPT = PLUGIN / "scripts" / "codex_release" / "install_codex_stable.py"
-RESTART = PLUGIN / "scripts" / "codex_release" / "Prepare-EvidenceLaneCodexRestart.ps1"
 PURGED_COMBINED_UPDATE = (
     PLUGIN / "scripts" / "codex_release" / "Update-EvidenceLaneCodexStableAndResume.ps1"
 )
@@ -31,6 +31,7 @@ HOOK_NOTICE_MARKERS = {
     "subagent_start.py": "EVIDENCE_LANE_OPTIONAL_EVENT_OBSERVATION=",
     "subagent_stop.py": "EVIDENCE_LANE_OPTIONAL_EVENT_OBSERVATION=",
 }
+TEST_TUNNEL_COMPATIBILITY_SHA256 = "A" * 64
 
 
 def _module():
@@ -49,9 +50,45 @@ def _acceptance_module():
     return module
 
 
+def test_mcp_server_identity_rejects_base_only_or_mismatched_build() -> None:
+    module = _module()
+    expected = "3.0.0+codex.fixture"
+
+    assert module._mcp_server_info_matches_exact_plugin(
+        {"name": "Evidence Lane", "version": expected},
+        expected_plugin_version=expected,
+    )
+    assert not module._mcp_server_info_matches_exact_plugin(
+        {"name": "Evidence Lane", "version": "3.0.0"},
+        expected_plugin_version=expected,
+    )
+    assert not module._mcp_server_info_matches_exact_plugin(
+        {"name": "Evidence Lane", "version": "3.0.0+codex.other"},
+        expected_plugin_version=expected,
+    )
+
+
 def _write(path: Path, value: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(value, encoding="utf-8")
+
+
+def _write_tunnel_compatibility_manifest(plugin_root: Path) -> None:
+    _write(
+        plugin_root / "tunnel" / "tunnel-manifest.v1.json",
+        json.dumps(
+            {
+                "schema": "evidence-lane.installed-tunnel-surface.v1",
+                "status": "PASS",
+                "tunnel_compatibility_schema": (
+                    "evidence-lane.tunnel-capability-compatibility.v1"
+                ),
+                "tunnel_compatibility_sha256": (
+                    TEST_TUNNEL_COMPATIBILITY_SHA256
+                ),
+            }
+        ),
+    )
 
 
 def test_local_update_never_attempts_historical_windows_root_rotation(
@@ -214,6 +251,7 @@ def test_plugin_creator_local_cache_boundary_seals_exact_task_restart(
             / target_version
         )
         target.mkdir(parents=True)
+        _write_tunnel_compatibility_manifest(target)
         return {
             "status": "PASS",
             "route": "CODEX_PLUGIN_ADD",
@@ -260,6 +298,35 @@ def test_plugin_creator_local_cache_boundary_seals_exact_task_restart(
             "policy_sha256": "9" * 64,
         },
     )
+    tunnel_calls: list[dict[str, object]] = []
+
+    def activate_tunnel(**kwargs: object) -> dict[str, object]:
+        tunnel_calls.append(kwargs)
+        pending = Path(str(kwargs["pending_receipt_path"]))
+        pending_body = json.loads(pending.read_text(encoding="utf-8"))
+        assert pending_body["activation"]["state"] == (
+            module.LOCAL_INSTALLED_STATIC_TUNNEL_PENDING_STATE
+        )
+        assert pending_body["restart_required"] is False
+        return {
+            "schema": module.LOCAL_TUNNEL_ACTIVATION_SCHEMA,
+            "status": "PASS",
+            "state": "VERSION_BOUND_LOCAL_TUNNEL_READY_BEFORE_APP_RESTART",
+            "plugin_version": target_version,
+            "receipt_path": "tunnel-activation.json",
+            "receipt_file_sha256": "1" * 64,
+            "remote_identity_mode": "REUSED_PRECREATED_REMOTE_TUNNEL",
+            "remote_version_history_retained": False,
+            "prior_remote_version_disabled": False,
+            "prior_local_runtime_retained_disabled": True,
+            "remote_crud_invoked": False,
+            "interactive_runtime_key_entry_required": True,
+            "runtime_key_reused_from_compatible_tunnel": False,
+        }
+
+    monkeypatch.setattr(
+        module, "_activate_version_bound_local_tunnel", activate_tunnel
+    )
 
     result = module._seal_plugin_creator_local_cache_restart(
         stage_receipt_path=stage_path,
@@ -294,6 +361,19 @@ def test_plugin_creator_local_cache_boundary_seals_exact_task_restart(
     assert result["state_travel_invoked"] is False
     assert result["activation"]["runtime_prewarm"]["status"] == "PASS"
     assert result["activation"]["hook_event_isolation"]["status"] == "PASS"
+    assert result["activation"]["tunnel"]["status"] == "PASS"
+    assert len(tunnel_calls) == 1
+    assert result["credential_requested_or_stored"] is True
+    assert result["credential_handling"] == {
+        "interactive_runtime_key_entry_required": True,
+        "entry_owner": "INSTALLED_TUNNEL_HELPER_VISIBLE_SECURESTRING_PROMPT",
+        "plaintext_received_by_installer_process": False,
+        "plaintext_written_to_arguments": False,
+        "plaintext_written_to_environment_output": False,
+        "plaintext_written_to_logs_or_receipts": False,
+        "capability_bound_dpapi_envelope_persisted": True,
+        "compatible_runtime_key_envelope_reused": False,
+    }
     assert (
         result["activation"]["hook_event_isolation"][
             "verified_before_install_activation"
@@ -334,6 +414,272 @@ def test_disabled_hook_state_counts_every_handler_and_event(tmp_path: Path) -> N
     assert result["all_enabled"] is False
 
 
+def test_local_tunnel_key_entry_uses_visible_terminal_without_key_transport(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    version = "3.0.0+codex.20260902183011"
+    target_cache = tmp_path / "cache" / version
+    installer = (
+        target_cache
+        / "scripts"
+        / "windows_tunnel"
+        / "Install-EvidenceLaneTunnel.ps1"
+    )
+    installer.parent.mkdir(parents=True)
+    installer.write_text("# fixture\n", encoding="utf-8")
+    _write_tunnel_compatibility_manifest(target_cache)
+    system_root = tmp_path / "Windows"
+    powershell = (
+        system_root / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe"
+    )
+    powershell.parent.mkdir(parents=True)
+    powershell.write_bytes(b"fixture")
+    data_root = tmp_path / "runtime"
+    pending = data_root / "installations" / "codex-v300" / "pending.json"
+    pending.parent.mkdir(parents=True)
+    pending.write_text("{}", encoding="utf-8")
+    calls: list[tuple[list[str], dict[str, object]]] = []
+
+    def fake_run(arguments: list[str], **kwargs: object):
+        calls.append((arguments, kwargs))
+        identity = module._versioned_local_tunnel_identity(
+            plugin_version=version,
+            plugin_root=target_cache,
+            data_root=data_root,
+        )
+        envelope = (
+            Path(identity["runtime_root"])
+            / "secrets"
+            / "control-plane-runtime-key.dpapi"
+        )
+        envelope.parent.mkdir(parents=True)
+        envelope.write_text("encrypted-fixture", encoding="ascii")
+        return subprocess.CompletedProcess(arguments, 0)
+
+    monkeypatch.setenv("SystemRoot", str(system_root))
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+    result = module._ensure_interactive_local_tunnel_runtime_key(
+        target_cache=target_cache,
+        target_version=version,
+        data_root=data_root,
+        pending_receipt_path=pending,
+        pending_receipt_sha256="A" * 64,
+        archive_sha256="B" * 64,
+    )
+
+    assert result["status"] == "PASS"
+    assert result["entry_terminal_visible"] is True
+    assert result["runtime_key_plaintext_written"] is False
+    assert len(calls) == 1
+    arguments, kwargs = calls[0]
+    assert arguments[-2] == "-EncodedCommand"
+    launcher = base64.b64decode(arguments[-1]).decode("utf-16-le")
+    assert "Start-Process" in launcher
+    assert "-CaptureRuntimeKeyOnly" in launcher
+    assert "-RuntimeRoot" in launcher
+    expected_runtime_root = Path(
+        module._versioned_local_tunnel_identity(
+            plugin_version=version,
+            plugin_root=target_cache,
+            data_root=data_root,
+        )["runtime_root"]
+    ).resolve()
+    assert str(expected_runtime_root) in launcher
+    assert "-WindowStyle" not in launcher
+    assert "-RotateRuntimeKey" not in launcher
+    assert "-RequirePreparedRuntimeKey" not in launcher
+    assert "API_KEY" not in launcher
+    assert kwargs.get("creationflags") == subprocess.CREATE_NO_WINDOW
+    assert kwargs.get("capture_output") is True
+    assert kwargs.get("stdin") is subprocess.DEVNULL
+    child_environment = kwargs.get("env")
+    assert isinstance(child_environment, dict)
+    module_path = str(child_environment["PSModulePath"])
+    assert "WindowsPowerShell" in module_path
+    assert "codex-primary-runtime" not in module_path
+    replay = module._ensure_interactive_local_tunnel_runtime_key(
+        target_cache=target_cache,
+        target_version=version,
+        data_root=data_root,
+        pending_receipt_path=pending,
+        pending_receipt_sha256="A" * 64,
+        archive_sha256="B" * 64,
+    )
+    assert replay["reused_for_same_materialized_version"] is True
+    assert len(calls) == 1
+
+
+def test_local_tunnel_marker_reader_accepts_windows_powershell_utf8_bom() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    assert text.count('marker_path.read_text(encoding="utf-8-sig")') == 3
+    assert 'marker_path.read_text(encoding="utf-8")' not in text
+
+
+def test_capability_bound_tunnel_reuses_verified_client_without_self_copy() -> None:
+    installer = (
+        PLUGIN / "scripts" / "windows_tunnel" / "Install-EvidenceLaneTunnel.ps1"
+    ).read_text(encoding="utf-8")
+
+    assert "$resolvedSourcePath.Equals($stableClientPath" in installer
+    assert '"REUSED_VERIFIED_IN_PLACE"' in installer
+    assert "Get-PathSha256 -Path $stableClientPath" in installer
+    assert (
+        "Copy-Item -LiteralPath $resolvedSourcePath -Destination $stableClientPath"
+        in installer
+    )
+    assert "$resolvedLicensePath.Equals($stableLicensePath" in installer
+    assert '"REUSED_VERIFIED_IN_PLACE"' in installer
+    assert "Get-PathSha256 -Path $stableLicensePath" in installer
+
+
+def test_new_tunnel_capability_reuses_valid_persistent_dpapi_envelope(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    version = "3.0.0+codex.20260903012034"
+    target_cache = tmp_path / "cache" / version
+    _write_tunnel_compatibility_manifest(target_cache)
+    data_root = tmp_path / "runtime"
+    pending = data_root / "installations" / "codex-v300" / "pending.json"
+    pending.parent.mkdir(parents=True)
+    pending.write_text("{}", encoding="utf-8")
+    prior_root = data_root / "tunnel-runtime-v300-prior-capability"
+    prior_envelope = prior_root / "secrets" / "control-plane-runtime-key.dpapi"
+    prior_envelope.parent.mkdir(parents=True)
+    prior_envelope.write_text("encrypted-fixture", encoding="ascii")
+    (prior_root / "evidence-lane-tunnel-installation.json").write_text(
+        json.dumps(
+            {
+                "schema": "evidence-lane.versioned-secure-mcp-tunnel-installation.v2",
+                "host_lifetime": "PERSISTENT",
+                "runtime_key_plaintext_written": False,
+                "reusable_without_reinstall": True,
+                "tunnel_key_retention": "CURRENT_WINDOWS_USER_DPAPI_PROFILE",
+                "host_wide_project_neutral": True,
+                "runtime_key": "D" * 64,
+            }
+        ),
+        encoding="utf-8-sig",
+    )
+
+    def forbidden_run(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("A valid persistent DPAPI envelope must suppress prompting.")
+
+    monkeypatch.setattr(module.subprocess, "run", forbidden_run)
+    result = module._ensure_interactive_local_tunnel_runtime_key(
+        target_cache=target_cache,
+        target_version=version,
+        data_root=data_root,
+        pending_receipt_path=pending,
+        pending_receipt_sha256="A" * 64,
+        archive_sha256="C" * 64,
+    )
+
+    assert result["state"] == "PRIOR_PERSISTENT_RUNTIME_KEY_REUSE_PENDING_ACTIVATION"
+    assert result["entry_terminal_visible"] is False
+    assert result["runtime_key_reused_from_prior_persistent_host"] is True
+    assert Path(result["runtime_key_envelope_source"]) == prior_envelope.resolve()
+
+
+def test_local_tunnel_activation_failure_has_no_restart_authority(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = _module()
+    version = "3.0.0+codex.20260902183011"
+    target_cache = tmp_path / "cache" / version
+    installer = (
+        target_cache
+        / "scripts"
+        / "windows_tunnel"
+        / "Install-EvidenceLaneTunnel.ps1"
+    )
+    installer.parent.mkdir(parents=True)
+    installer.write_text("# fixture\n", encoding="utf-8")
+    _write_tunnel_compatibility_manifest(target_cache)
+    system_root = tmp_path / "Windows"
+    powershell = (
+        system_root / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe"
+    )
+    powershell.parent.mkdir(parents=True)
+    powershell.write_bytes(b"fixture")
+    data_root = tmp_path / "runtime"
+    pending = data_root / "installations" / "codex-v300" / "pending.json"
+    pending.parent.mkdir(parents=True)
+    pending.write_text("{}", encoding="utf-8")
+    client = tmp_path / "tunnel-client.exe"
+    license_path = tmp_path / "LICENSE"
+    client.write_bytes(b"client")
+    license_path.write_text("license", encoding="utf-8")
+    monkeypatch.setenv("SystemRoot", str(system_root))
+    monkeypatch.setattr(
+        module,
+        "_ensure_interactive_local_tunnel_runtime_key",
+        lambda **_kwargs: {
+            "status": "PASS",
+            "receipt_path": "key.json",
+            "receipt_file_sha256": "C" * 64,
+            "entry_terminal_visible": True,
+            "runtime_key_reused_from_compatible_tunnel": False,
+        },
+    )
+    monkeypatch.setattr(
+        module,
+        "_resolve_local_tunnel_bootstrap_material",
+        lambda **_kwargs: {
+            "client_path": str(client),
+            "license_path": str(license_path),
+            "license_sha256": hashlib.sha256(license_path.read_bytes())
+            .hexdigest()
+            .upper(),
+            "tunnel_id": "tunnel_fixture",
+            "tunnel_id_source": "REUSED_PRIOR_PRECREATED_TUNNEL_ID",
+            "tunnel_id_sha256": "D" * 64,
+            "remote_identity_mode": "REUSED_PRECREATED_REMOTE_TUNNEL",
+        },
+    )
+    activation_calls: list[list[str]] = []
+
+    def fail_activation(arguments: list[str], **_kwargs: object):
+        activation_calls.append(arguments)
+        return subprocess.CompletedProcess(arguments, 31, b"", b"redacted failure")
+
+    monkeypatch.setattr(module.subprocess, "run", fail_activation)
+
+    with pytest.raises(module.InstallationError, match="no restart authority"):
+        module._activate_version_bound_local_tunnel(
+            target_cache=target_cache,
+            target_version=version,
+            selector=f"{module.PLUGIN_NAME}@{module.LOCAL_TESTING_MARKETPLACE_NAME}",
+            data_root=data_root,
+            pending_receipt_path=pending,
+            pending_receipt_sha256="A" * 64,
+            archive_sha256="B" * 64,
+            precreated_tunnel_id=None,
+        )
+    failure = (
+        data_root
+        / "installations"
+        / "codex-v300"
+        / "tunnel"
+        / f"LOCAL_TUNNEL_FAILURE_{'B' * 16}.json"
+    )
+    body = json.loads(failure.read_text(encoding="utf-8"))
+    assert body["restart_authority_created"] is False
+    assert body["remote_crud_invoked"] is False
+    assert "redacted failure" not in failure.read_text(encoding="utf-8")
+    assert len(activation_calls) == 1
+    assert "-RequirePreparedRuntimeKey" in activation_calls[0]
+    assert "-NonInteractive" in activation_calls[0]
+    assert "-WindowStyle" in activation_calls[0]
+    assert "-CaptureRuntimeKeyOnly" not in activation_calls[0]
+    assert "-RotateRuntimeKey" not in activation_calls[0]
+
+
 def test_native_hook_event_control_requires_proof_before_enablement(
     tmp_path: Path,
 ) -> None:
@@ -363,26 +709,50 @@ def test_native_hook_event_control_requires_proof_before_enablement(
     assert '"windows_ui_control_used": False' in source
 
 
-def test_restart_preparation_accepts_only_dedicated_plugin_creator_cache_state() -> (
-    None
-):
-    text = RESTART.read_text(encoding="utf-8")
+def test_install_receipt_is_the_only_manual_restart_boundary() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+    contract = json.loads(
+        (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
+    )
+    route = contract["helper_distribution_policy"]["manual_restart_boundary"][
+        "plugin_creator_local_update_route"
+    ]
+
     assert "PLUGIN_CREATOR_LOCAL_CACHE_MATERIALIZED_RESTART_REQUIRED" in text
-    assert "TERMINAL_SAFE_RESTART_PREPARED_NOT_EXECUTED" in text
-    assert "current_turn_terminal_event_required_before_app_close = $true" in text
-    assert "drain_utility_allowed = $false" in text
-    assert "programmatic_process_stop_allowed = $false" in text
-    assert "scheduled_restart_child_allowed = $false" in text
-    assert "machine_wide_protocol_handler_allowed = $false" in text
-    assert '"turn/interrupt"' not in text
-    assert "NATIVE_ACTIVE_GOAL_EXACT_TASK_BINDING" not in text
-    assert "Manage-EvidenceLaneCodexGoalRecovery" not in text
-    assert "Switch-EvidenceLaneCodexSlot" not in text
-    assert "LocalTestCommitReceipt" not in text
+    assert route["restart_authority_mode"] == "INSTALL_RECEIPT_THEN_USER_MANUAL_RESTART"
+    assert route["restart_helper_present"] is False
+    assert route["preparation_receipt_required"] is False
     assert "ActivateForProtocol" not in text
     assert "ShellExecuteEx" not in text
     assert "Stop-Process" not in text
     assert "New-ScheduledTaskAction" not in text
+
+
+def test_local_cache_tunnel_transaction_orders_pending_activation_and_final_receipt() -> (
+    None
+):
+    source = SCRIPT.read_text(encoding="utf-8")
+    start = source.index("def _seal_plugin_creator_local_cache_restart")
+    end = source.index("\ndef install(", start)
+    transaction = source[start:end]
+    pending = transaction.index("LOCAL_INSTALLED_STATIC_TUNNEL_PENDING_STATE")
+    activate = transaction.index("_activate_version_bound_local_tunnel(")
+    final_receipt = transaction.index("receipt = deepcopy(stage)", activate)
+    promote = transaction.index("_write_self_sealed_json(receipt_path, receipt)")
+    assert pending < activate < final_receipt < promote
+    assert "restart_required\"] = False" in transaction[:activate]
+    assert "receipt_path.unlink(missing_ok=True)" in transaction
+    assert "_rollback_version_bound_local_tunnel(" in transaction
+    assert "FINAL_RESTART_RECEIPT_PROMOTION_FAILED_NO_RESTART_AUTHORITY" in transaction
+    assert "_run_plugin_creator_local_cache_materialization(" in transaction
+    assert "if recovering_materialized_cache:" in transaction
+    assert transaction.count("_run_plugin_creator_local_cache_materialization(") == 1
+    assert "admin tunnels create" not in source
+    assert "admin tunnels update" not in source
+    assert '"remote_identity_mode": "REUSED_PRECREATED_REMOTE_TUNNEL"' in source
+    assert '"remote_version_history_retained": False' in source
+    assert '"prior_remote_version_disabled": False' in source
+    assert '"prior_local_runtime_retained_disabled": True' in source
 
 
 def test_plugin_creator_cache_materialization_classifies_loaded_old_cache(
@@ -554,10 +924,6 @@ def _fixture_archive(tmp_path: Path) -> tuple[Path, Path, str]:
     )
     _write(
         source / "scripts" / "codex_release" / "seal_github_app_production_delivery.py",
-        "# fixture\n",
-    )
-    _write(
-        source / "scripts" / "codex_release" / "Prepare-EvidenceLaneCodexRestart.ps1",
         "# fixture\n",
     )
     _write(
@@ -1736,6 +2102,13 @@ def _runtime_bootstrap_payload(
     runtime_root: Path,
     runtime_python: Path,
 ) -> dict[str, object]:
+    plugin_version = str(
+        json.loads(
+            (plugin_root / ".codex-plugin" / "plugin.json").read_text(
+                encoding="utf-8"
+            )
+        )["version"]
+    )
     return {
         "schema": "evidence-lane.codex-runtime-bootstrap.v1",
         "status": "PASS",
@@ -1770,8 +2143,8 @@ def _runtime_bootstrap_payload(
         "runtime_authority": {
             "schema": "evidence-lane.codex-installed-runtime-authority-prewarm.v1",
             "status": "PASS",
-            "installation_version": "3.0.0",
-            "flash_plugin_version": "3.0.0+codex.fixture",
+            "installation_version": plugin_version,
+            "flash_plugin_version": plugin_version,
             "flash_action": "BUILD_IDENTITY_MIGRATED",
             "flash_receipt_sha256": "F" * 64,
             "flash_build_migration_receipt_sha256": "9" * 64,
@@ -1811,6 +2184,15 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
 ) -> None:
     module = _module()
     plugin_root = tmp_path / "installed"
+    _write(
+        plugin_root / ".codex-plugin" / "plugin.json",
+        json.dumps(
+            {
+                "name": "evidence-lane-plugin",
+                "version": "3.0.0+codex.fixture",
+            }
+        ),
+    )
     _write(plugin_root / "scripts" / "run_mcp.py", "# fixture\n")
     _write(plugin_root / "requirements.lock.txt", "fixture lock\n")
     _write(
@@ -1896,7 +2278,15 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
                     "result": {
                         "serverInfo": {
                             "name": "Evidence Lane",
-                            "version": "3.0.0",
+                            "version": str(
+                                json.loads(
+                                    (
+                                        plugin_root
+                                        / ".codex-plugin"
+                                        / "plugin.json"
+                                    ).read_text(encoding="utf-8")
+                                )["version"]
+                            ),
                         }
                     },
                 },
@@ -1941,6 +2331,12 @@ def test_installed_runtime_is_prewarmed_before_task_reopen(
     assert receipt["runtime_authority"]["flash_plugin_version"] == (
         "3.0.0+codex.fixture"
     )
+    assert receipt["runtime_authority"]["installation_version"] == (
+        "3.0.0+codex.fixture"
+    )
+    assert receipt["mcp_stdio_readiness"]["server_version"] == (
+        "3.0.0+codex.fixture"
+    )
     assert receipt["runtime_authority"]["project_state_mutated"] is False
     assert not (stale_license_root / "stale-license.txt").exists()
     assert len(receipt["receipt_sha256"]) == 64
@@ -1963,6 +2359,15 @@ def test_installed_runtime_bootstrap_does_not_retry_same_sealed_bytes(
 ) -> None:
     module = _module()
     plugin_root = tmp_path / "installed"
+    _write(
+        plugin_root / ".codex-plugin" / "plugin.json",
+        json.dumps(
+            {
+                "name": "evidence-lane-plugin",
+                "version": "3.0.0+codex.fixture",
+            }
+        ),
+    )
     _write(plugin_root / "scripts" / "run_mcp.py", "# fixture\n")
     _write(plugin_root / "requirements.lock.txt", "fixture lock\n")
     _write(
@@ -2016,6 +2421,15 @@ def test_installed_runtime_rejects_projection_outside_durable_authority(
 ) -> None:
     module = _module()
     plugin_root = tmp_path / "installed"
+    _write(
+        plugin_root / ".codex-plugin" / "plugin.json",
+        json.dumps(
+            {
+                "name": "evidence-lane-plugin",
+                "version": "3.0.0+codex.fixture",
+            }
+        ),
+    )
     _write(plugin_root / "scripts" / "run_mcp.py", "# fixture\n")
     _write(plugin_root / "requirements.lock.txt", "fixture lock\n")
     _write(
@@ -2648,26 +3062,20 @@ def test_local_testing_marketplace_has_distinct_stable_slot_identity() -> None:
     assert manifest["interface"]["displayName"] == "Local Testing Slot"
 
 
-def test_restart_preparation_is_exact_process_and_same_task_only() -> None:
-    text = RESTART.read_text(encoding="utf-8")
+def test_restart_helper_is_purged_and_install_receipt_is_boundary() -> None:
+    helper = (
+        PLUGIN / "scripts" / "codex_release" / "Prepare-EvidenceLaneCodexRestart.ps1"
+    )
+    contract = json.loads(
+        (PLUGIN / "scripts" / "codex-release-channel.json").read_text("utf-8")
+    )
 
-    assert '[ValidateSet("Prepare")]' in text
-    assert "[int]$TargetProcessId" in text
-    assert "Get-CimInstance Win32_Process" in text
-    assert "Stop-Process" not in text
-    assert "ScheduledTask" not in text
-    assert "Start-Process" not in text
-    assert "ActivateForProtocol" not in text
-    assert 'schema = "evidence-lane.codex-task-binding.v1"' in text
-    assert 'state = "EXACT_TASK_TERMINAL_SAFE_RESTART_PREPARED"' in text
-    assert "Write-SealedJson -Path $taskBindingPath" in text
-    assert "post_restart_native_proof_required = $true" in text
-    assert "LocalTestCommitReceipt" not in text
-    assert "TwoSlotRegistry" not in text
-    assert "GoalRecovery" not in text
-    assert "global_plugin_update_rehydration" not in text
-    assert "native_workspace_binding_mutated = $false" in text
-    assert "state_travel_replayed = $false" in text
+    assert not helper.exists()
+    boundary = contract["helper_distribution_policy"]["manual_restart_boundary"]
+    assert boundary["restart_helper_present"] is False
+    assert boundary["user_performs_app_restart"] is True
+    assert boundary["install_receipt_is_restart_boundary"] is True
+    assert boundary["programmatic_process_stop_allowed"] is False
 
 
 def test_combined_same_slot_update_helper_is_purged() -> None:
@@ -2710,28 +3118,11 @@ def test_git_marketplace_fetch_has_a_longer_bounded_timeout(
     assert observed == [480, 120]
 
 
-def test_restart_helper_parses_as_powershell() -> None:
-    command = (
-        "$errors=$null; "
-        f"[System.Management.Automation.Language.Parser]::ParseFile('{RESTART}',"
-        "[ref]$null,[ref]$errors) | Out-Null; "
-        "if ($errors.Count) { $errors | ForEach-Object { $_.Message }; exit 1 }"
+def test_restart_helper_and_child_command_line_route_are_absent() -> None:
+    helper = (
+        PLUGIN / "scripts" / "codex_release" / "Prepare-EvidenceLaneCodexRestart.ps1"
     )
-    completed = subprocess.run(
-        ["powershell.exe", "-NoProfile", "-Command", command],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        check=False,
-    )
-    assert completed.returncode == 0, completed.stdout + completed.stderr
-
-
-def test_restart_preparation_has_no_child_command_line_route() -> None:
-    text = RESTART.read_text(encoding="utf-8")
-    assert "ConvertTo-WindowsCommandLineArgument" not in text
-    assert "Relaunch" not in text
-    assert "Register-ScheduledTask" not in text
+    assert not helper.exists()
 
 
 def test_installed_acceptance_checker_declares_read_only_final_hil_boundary() -> None:

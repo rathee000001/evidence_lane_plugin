@@ -7,7 +7,7 @@ import re
 from itertools import pairwise
 from pathlib import Path
 
-from evidence_lane_plugin.constants import GOVERNED_SKILL_COUNT
+from evidence_lane_plugin.constants import ENGINE_VERSION, GOVERNED_SKILL_COUNT
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "evidence-lane-plugin"
@@ -89,7 +89,10 @@ def test_current_codex_package_has_no_active_chatgpt_host_surface() -> None:
     skill_files = sorted((PLUGIN / "skills").glob("*/SKILL.md"))
 
     assert manifest["interface"]["displayName"] == "Evidence Lane"
-    assert manifest["version"] == "3.0.0"
+    version_prefix = f"{ENGINE_VERSION}+codex."
+    assert manifest["version"].startswith(version_prefix)
+    version_stamp = manifest["version"].removeprefix(version_prefix)
+    assert len(version_stamp) == 14 and version_stamp.isdecimal()
     assert manifest["skills"] == "./skills/"
     assert manifest["mcpServers"] == "./.mcp.json"
     assert "apps" not in manifest
@@ -99,6 +102,8 @@ def test_current_codex_package_has_no_active_chatgpt_host_surface() -> None:
     assert not (PLUGIN / "chatgpt-app-submission.json").exists()
     assert not (ROOT / "apps" / "evidence-lane-app" / "api" / "index.py").exists()
     assert not (ROOT / "apps" / "evidence-lane-app" / "requirements.txt").exists()
+
+
 def test_threejs_site_remains_and_meshy_is_not_a_runtime_dependency() -> None:
     package = json.loads(_read(ADAPTER / "package.json"))
     combined_dependencies = {

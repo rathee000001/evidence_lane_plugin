@@ -326,6 +326,179 @@ def _parser_states(database: Path) -> list[str]:
         connection.close()
 
 
+def _write_legacy_inline_lane_database(database: Path, lane_id: str) -> None:
+    lane = LANE_REGISTRY[lane_id]
+    data = f"legacy evidence for {lane_id}\n".encode()
+    digest = sha256_bytes(data)
+    connection = sqlite3.connect(database)
+    try:
+        connection.executescript(
+            f"""
+            CREATE TABLE lane_meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
+            CREATE TABLE lane_pointer(
+                pointer_kind TEXT PRIMARY KEY,pointer_value TEXT,
+                generation INTEGER NOT NULL,recorded_at TEXT NOT NULL
+            );
+            CREATE TABLE source_registry(
+                source_id INTEGER PRIMARY KEY,path TEXT NOT NULL UNIQUE,
+                size_bytes INTEGER NOT NULL,sha256 TEXT NOT NULL,
+                mime_type TEXT NOT NULL,extension TEXT NOT NULL,encoding TEXT,
+                parser_state TEXT NOT NULL,exact_bytes BLOB NOT NULL,
+                registered_at TEXT NOT NULL
+            );
+            CREATE TABLE chunk_index(
+                chunk_id INTEGER PRIMARY KEY,source_id INTEGER NOT NULL,
+                locator TEXT NOT NULL,ordinal INTEGER NOT NULL,
+                char_start INTEGER NOT NULL,char_end INTEGER NOT NULL,
+                text_content TEXT NOT NULL,sha256 TEXT NOT NULL,
+                metadata_json TEXT NOT NULL
+            );
+            CREATE TABLE chunk_content_cas(
+                sha256 TEXT PRIMARY KEY,size_bytes INTEGER NOT NULL,
+                text_content TEXT NOT NULL,first_seen_at TEXT NOT NULL
+            );
+            CREATE TABLE chunk_history(
+                history_id INTEGER PRIMARY KEY,source_path TEXT NOT NULL,
+                source_sha256 TEXT NOT NULL,locator TEXT NOT NULL,
+                ordinal INTEGER NOT NULL,chunk_sha256 TEXT NOT NULL,
+                snapshot_ref TEXT NOT NULL,observed_at TEXT NOT NULL,
+                content_reused INTEGER NOT NULL
+            );
+            CREATE TABLE structured_fact(
+                fact_id INTEGER PRIMARY KEY,source_id INTEGER,
+                kind TEXT NOT NULL,locator TEXT NOT NULL,payload_json TEXT NOT NULL
+            );
+            CREATE TABLE parser_capability(
+                capability TEXT PRIMARY KEY,state TEXT NOT NULL,
+                tool TEXT NOT NULL,detail TEXT NOT NULL
+            );
+            CREATE TABLE refresh_receipt(
+                receipt_id INTEGER PRIMARY KEY,build_mode TEXT NOT NULL,
+                parent_pv TEXT,proposed_pv TEXT NOT NULL,
+                unchanged_reuse INTEGER NOT NULL,changed_rebuild INTEGER NOT NULL,
+                new_register INTEGER NOT NULL,removed_tombstone INTEGER NOT NULL,
+                blocked_unsupported INTEGER NOT NULL,details_json TEXT NOT NULL,
+                recorded_at TEXT NOT NULL
+            );
+            CREATE TABLE mutation_receipt(
+                mutation_id INTEGER PRIMARY KEY,mutation_kind TEXT NOT NULL,
+                source_path TEXT,prior_sha256 TEXT,current_sha256 TEXT,
+                recorded_at TEXT NOT NULL
+            );
+            CREATE VIRTUAL TABLE {lane.fts_table} USING fts5(
+                path,locator,text_content,chunk_id
+            );
+            """
+        )
+        connection.execute(
+            "INSERT INTO lane_meta VALUES('lane_id',?)", (lane_id,)
+        )
+        connection.execute(
+            "INSERT INTO lane_meta VALUES('schema_version','legacy-inline-v1')"
+        )
+        connection.execute(
+            "INSERT INTO lane_pointer VALUES('entered_from','PV12',12,'2026-09-01T00:00:00Z')"
+        )
+        connection.execute(
+            "INSERT INTO source_registry VALUES(1,?,?,?,?,?,?,?,?,?)",
+            (
+                f"legacy/{lane_id}.txt",
+                len(data),
+                digest,
+                "text/plain",
+                ".txt",
+                "utf-8",
+                "PARSED_TEXT",
+                data,
+                "2026-09-01T00:00:00Z",
+            ),
+        )
+        text = data.decode()
+        connection.execute(
+            "INSERT INTO chunk_index VALUES(1,1,?,0,0,?,?,?,?)",
+            (
+                f"legacy/{lane_id}.txt#L1",
+                len(text),
+                text,
+                digest,
+                "{}",
+            ),
+        )
+        connection.execute(
+            "INSERT INTO chunk_content_cas VALUES(?,?,?,?)",
+            (digest, len(data), text, "2026-09-01T00:00:00Z"),
+        )
+        connection.execute(
+            "INSERT INTO chunk_history VALUES(1,?,?,?,?,?,?,?,0)",
+            (
+                f"legacy/{lane_id}.txt",
+                digest,
+                f"legacy/{lane_id}.txt#L1",
+                0,
+                digest,
+                "PV12",
+                "2026-09-01T00:00:00Z",
+            ),
+        )
+        connection.execute(
+            "INSERT INTO refresh_receipt VALUES(1,'FULL_PV','PV11','PV12',0,0,1,0,0,'{}','2026-09-01T00:00:00Z')"
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+
+@pytest.mark.parametrize("lane_id", CANONICAL_LANE_IDS)
+def test_legacy_inline_lane_migrates_losslessly_to_current_cas(
+    tmp_path: Path,
+    lane_id: str,
+) -> None:
+    source = tmp_path / f"{lane_id}-legacy.sqlite"
+    target = tmp_path / f"{lane_id}-current.sqlite"
+    _write_legacy_inline_lane_database(source, lane_id)
+
+    before = lane_engine_module._validate_lane_database(
+        source, LANE_REGISTRY[lane_id]
+    )
+    assert before["migration_eligible"] is True
+    assert before["valid"] is False
+
+    receipt = lane_engine_module._migrate_legacy_inline_lane_database(
+        source,
+        target,
+        LANE_REGISTRY[lane_id],
+        recorded_at="2026-09-01T00:00:00Z",
+    )
+
+    assert receipt["status"] == "PASS"
+    assert receipt["source_database_mutated"] is False
+    assert sha256_file(source) == receipt["source_database_sha256"]
+    after = lane_engine_module._validate_lane_database(
+        target, LANE_REGISTRY[lane_id]
+    )
+    assert after["valid"] is True
+    connection = sqlite3.connect(target)
+    try:
+        source_columns = {
+            str(row[1])
+            for row in connection.execute("PRAGMA table_info(source_registry)")
+        }
+        chunk_columns = {
+            str(row[1])
+            for row in connection.execute("PRAGMA table_info(chunk_index)")
+        }
+        assert "exact_bytes" not in source_columns
+        assert "text_content" not in chunk_columns
+        assert connection.execute(
+            "SELECT COUNT(*) FROM source_content_cas"
+        ).fetchone()[0] == 1
+        assert connection.execute(
+            "SELECT COUNT(*) FROM chunk_content_cas"
+        ).fetchone()[0] == 1
+    finally:
+        connection.close()
+
+
 def _retrieval_rows(
     database: Path,
     fts_table: str,
@@ -848,6 +1021,81 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         assert conditioned["eligible_tool_count"] == len(
             conditioned["eligible_tools"]
         )
+        conditioned_ordered_tools = [row["tool"] for row in conditioned["rows"]]
+        runtime_resolution = tools["runtime_toolchain_resolution"]
+        assert conditioned["eligible_tools"] == conditioned_ordered_tools
+        assert runtime_resolution["ordered_tools"] == conditioned_ordered_tools
+        assert runtime_resolution["ordered_tool_count"] == len(
+            conditioned_ordered_tools
+        )
+        if lane_id == "local_code":
+            assert runtime_resolution["ordered_tools"] == [
+                "Pydantic",
+                "SQLite_CAS",
+                "OpenAI_Agents_SDK",
+                "hashlib_pathlib",
+                "Secret_redactor",
+                "Git",
+                "Python",
+                "NodeJS_TypeScript",
+                "GitPython",
+                "PyGithub",
+                "TreeSitter_LanguagePack",
+                "Python_structural_parser",
+                "GitHub_MCP_Server",
+                "Filesystem_MCP_Server",
+                "APSW_SQLite_engine",
+                "LlamaIndex_SQLite_indexer",
+                "SQLite_FTS5_BM25",
+                "sqlite_vec",
+                "rank_bm25",
+                "SentenceTransformers",
+                "FAISS_CPU",
+                "Pinecone",
+                "Weaviate",
+                "Milvus",
+                "OpenSearch",
+                "deterministic_TFIDF",
+                "LangGraph_Mermaid_engine",
+                "rustworkx",
+                "Python_Graphviz_DOT_engine",
+                "Graphviz_dot",
+                "Mermaid_CLI_mmdc",
+                "FastMCP",
+                "MCP_Python_SDK",
+                "LangSmith",
+                "OpenTelemetry",
+                "Langfuse",
+                "Docker",
+                "Kubernetes",
+                "pytest",
+                "Ruff",
+                "MyPy",
+            ]
+            assert runtime_resolution["lane_action_ordered_tool_count"] == 32
+        assert runtime_resolution["lane_action_ordered_tool_count"] == len(
+            runtime_resolution["lane_action_ordered_tools"]
+        )
+        assert set(runtime_resolution["lane_action_ordered_tools"]) <= set(
+            conditioned_ordered_tools
+        )
+        assert runtime_resolution["availability_scope"] == "LANE_ACTION_ORDERED_TOOLS"
+        assert runtime_resolution["lane_action_resolution_sha256"] == (
+            runtime_resolution["resolution_sha256"]
+        )
+        assert runtime_resolution["runnable_tools"] == [
+            tool
+            for tool in runtime_resolution["lane_action_ordered_tools"]
+            if tool in runtime_resolution["runnable_tools"]
+        ]
+        assert runtime_resolution["unavailable_tools"] == [
+            tool
+            for tool in runtime_resolution["lane_action_ordered_tools"]
+            if tool in runtime_resolution["unavailable_tools"]
+        ]
+        assert set(runtime_resolution["runnable_tools"]) | set(
+            runtime_resolution["unavailable_tools"]
+        ) == set(runtime_resolution["lane_action_ordered_tools"])
         execution = tools["tool_execution_evidence"]
         assert execution["status"] == "PASS"
         assert execution[
@@ -855,6 +1103,17 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
         ] is True
         assert execution["presence_or_eligibility_is_execution_proof"] is False
         assert execution["eligible_tool_count"] == len(execution["rows"])
+        assert [
+            row["orchestration_order"] for row in execution["rows"]
+        ] == list(range(1, execution["eligible_tool_count"] + 1))
+        assert execution["all_rows_in_exact_contract_order"] is True
+        assert [
+            row["orchestration_order"]
+            for row in execution["selected_execution_sequence"]
+        ] == sorted(
+            row["orchestration_order"]
+            for row in execution["selected_execution_sequence"]
+        )
         assert execution["eligible_tool_count"] == (
             execution["condition_true_tool_count"]
             + execution["condition_false_tool_count"]
@@ -873,6 +1132,24 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
                 assert tool_row["execution_state"] == "NOT_EXECUTED"
             assert tool_row["network_call_performed"] is False
             assert tool_row["credential_value_read"] is False
+        with sqlite3.connect(lane_root / lane.sqlite_filename) as lane_connection:
+            source_count = int(
+                lane_connection.execute(
+                    "SELECT COUNT(*) FROM source_registry"
+                ).fetchone()[0]
+            )
+        if source_count == 0:
+            execution_by_tool = {
+                row["tool"]: row for row in execution["rows"]
+            }
+            for source_primitive in ("hashlib_pathlib", "SQLite_CAS"):
+                if source_primitive in execution_by_tool:
+                    assert execution_by_tool[source_primitive][
+                        "condition_state"
+                    ] == "CONDITION_FALSE"
+                    assert execution_by_tool[source_primitive][
+                        "execution_state"
+                    ] == "NOT_EXECUTED"
         empty_tables = tools["empty_table_classification"]
         assert empty_tables["status"] == "PASS"
         assert empty_tables["defect_table_count"] == 0
@@ -1172,7 +1449,11 @@ def test_all_eighteen_lanes_emit_full_contract_and_fixture_facts(
     )
     if importlib.util.find_spec("pypdf") is not None:
         assert "pdf_page" in pdf_kinds
-        assert {"PARSED_PYPDF", "PARSED_OCR_LOCAL"} & set(pdf_states)
+        assert {
+            "PARSED_PYPDF",
+            "PARSED_PYMUPDF",
+            "PARSED_OCR_LOCAL",
+        } & set(pdf_states)
     if (
         scanned_pdf
         and importlib.util.find_spec("rapidocr") is not None

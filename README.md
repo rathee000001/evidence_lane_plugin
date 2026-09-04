@@ -89,7 +89,7 @@ These values are derived from the current executable registries. They are a rele
 | Project-sector lanes | **18** | Each lane owns a distinct schema, SQLite template, workflow, MMD, DOT, tools, and manifest |
 | Named root authorities | **11** | Separate from the sector-lane count |
 | Declared AI/toolchain capabilities | **119** | Conditional primary/fallback selection; presence is not execution |
-| Internal SDK modules | **144** | Internal execution ownership |
+| Internal SDK modules | **145** | Internal execution ownership |
 | Registered skill workflow steps | **127** | Current workflow registry, not a ceiling |
 
 The 30-row `SPECIALIZED_NATIVE_ACTIONS` tuple in the server source is an explicit specialized subset (9 reads / 21 writes), not the canonical total. The complete native catalog remains the source-derived 91-action registry above.

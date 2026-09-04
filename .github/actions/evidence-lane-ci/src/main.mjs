@@ -56,8 +56,37 @@ function commandPlan(profile, pythonExecutable, pnpmExecutable) {
       [
         pythonExecutable,
         [
+          '-m',
+          'pytest',
+          '-q',
+          'tests/test_plugin_build_identity.py',
+          'tests/test_release_version_consistency.py',
+          'tests/test_repository_semantic_currentness.py',
+          'tests/test_release_channels.py',
+          'tests/test_windows_tunnel_persistence.py',
+          'tests/test_release_candidate_rehearsal.py',
+          'plugins/evidence-lane-plugin/tests/test_governed_skill_quality.py',
+          'plugins/evidence-lane-plugin/tests/test_installed_package_surface_smoke.py'
+        ]
+      ],
+      [
+        pythonExecutable,
+        [
           'plugins/evidence-lane-plugin/scripts/sync_website_plan_projection.py',
           '--check'
+        ]
+      ],
+      [
+        pythonExecutable,
+        [
+          'plugins/evidence-lane-plugin/scripts/audit_repository_semantic_currentness.py',
+          '--repository',
+          '.',
+          '--index-file',
+          '.git/index',
+          '--output',
+          '.runtime/ci/governed-quality-semantic-currentness.json',
+          '--require-pass'
         ]
       ],
       [

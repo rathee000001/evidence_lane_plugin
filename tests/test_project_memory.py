@@ -67,6 +67,13 @@ def _locator(
 def _root(tmp_path: Path) -> tuple[Path, str]:
     root = tmp_path / PROJECT_ID
     root.mkdir()
+    atomic_write_json(
+        root / "project.json",
+        {
+            "schema": "evidence-lane.project-registry.v1",
+            "project_id": PROJECT_ID,
+        },
+    )
     accepted_manifest = _hash("accepted-manifest")
     layout = {
         "schema": "evidence-lane.project-authority-layout.v1",

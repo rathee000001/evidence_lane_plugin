@@ -162,14 +162,20 @@ def test_internal_support_modules_are_bound_to_exact_sdk_owners() -> None:
         "env_uop_tool_routing",
         "evaluation_toolchain",
         "github_toolchain",
+        "legacy_learning_normalization",
         "live_root_normalization",
+        "project_runtime_quarantine",
         "runtime_api",
     }
     assert rows["env_uop_graph"]["owner_module"] == "env_uop_operator_runtime"
     assert rows["env_uop_tool_routing"]["owner_module"] == ("env_uop_operator_runtime")
     assert rows["evaluation_toolchain"]["owner_module"] == "first_class_workflows"
     assert rows["github_toolchain"]["owner_module"] == "first_class_workflows"
+    assert rows["legacy_learning_normalization"]["owner_module"] == "agent_learning"
     assert rows["live_root_normalization"]["owner_module"] == "storage_connectors"
+    assert rows["project_runtime_quarantine"]["owner_module"] == (
+        "storage_connectors"
+    )
     assert rows["runtime_api"]["owner_module"] == "provider_host_adapters"
     assert receipt["support_components_inflate_public_action_count"] is False
 
@@ -440,6 +446,40 @@ def test_stateless_restart_and_cache_loss_replay_from_sqlite(tmp_path: Path) -> 
     assert replay["replay"] == "IDEMPOTENT_REUSE"
     assert replay["receipt_sha256"] == first["receipt_sha256"]
     assert calls["count"] == 1
+
+
+def test_sdk_accepts_explicit_user_named_project_authority_root(tmp_path: Path) -> None:
+    binding = _binding()
+    root = tmp_path / "Codex_Evidence_lane_Plugin"
+    root.mkdir()
+    (root / "project.json").write_text(
+        json.dumps(
+            {
+                "project_id": binding.project_id,
+                "project_authority_root": str(root.resolve()),
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    def status(bound, payload, context):
+        context.checkpoint()
+        return {"status": "PASS", "accepted_pv": bound.accepted_pv}
+
+    sdk = InternalEvidenceLaneSDK(
+        root,
+        _adapter(binding, {("project_truth", "status"): status}),
+    )
+    result = sdk.invoke(
+        module_id="project_truth",
+        operation="status",
+        binding=binding,
+        payload={},
+        request_id="sdk-explicit-project-root-001",
+    )
+
+    assert result["status"] == "PASS"
+    assert result["replay"] == "RECORDED"
 
 
 def test_sdk_public_response_withholds_authority_blob_and_replays_receipt(

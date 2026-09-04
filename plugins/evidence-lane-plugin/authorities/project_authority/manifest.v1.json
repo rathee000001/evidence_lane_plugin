@@ -75,7 +75,7 @@
     {
       "path": "authorities/project_authority/project_authority.tools.json",
       "bytes": 125035,
-      "sha256": "AF7CE582D81D591BDEB6376EC285E481D47292669FE920B2A723B1A2CFA3CFB9"
+      "sha256": "4FFBD4121C1F580C9616842D855A8785144A20014BC32D58F691C8F9D380995E"
     },
     {
       "path": "authorities/project_authority/reader-contract.schema.json",
@@ -100,7 +100,7 @@
     {
       "path": "authorities/project_authority/runtime-binding.schema.json",
       "bytes": 605,
-      "sha256": "BF8FA3E4CC87C41EF32EAA45F8F0A59651DE0B1DCB32A703C42D7C6B8319296B"
+      "sha256": "745A4065C2E16FBF94416404CC0D1D599A812E43A22A5D8AE51E8A0555A1FE88"
     },
     {
       "path": "authorities/project_authority/runtime.py",
@@ -144,9 +144,9 @@
     }
   ],
   "canonical_source_hashes": {
-    "src/evidence_lane_plugin/project_authority.py": "F472B8EB433A536D2D741E7DAD5FC4CD0CEF851724E6DB9AC526363C360236FC",
+    "src/evidence_lane_plugin/project_authority.py": "9ECBFCFD05C420FE340E8409B670CBFDE408522039AF16B7C185A65737BCD2CA",
     "src/evidence_lane_plugin/project_pv_storage.py": "E35B608C0C8EF0A6E97789AF75D35B4EAD8AAC3EC612FC6C7B61FE432A253B73",
-    "src/evidence_lane_plugin/store.py": "41C2A3237AB401E886DE59DFB7CBC01934E86F84C7311B4424796939E05A0755",
+    "src/evidence_lane_plugin/store.py": "7B72725015A3DC64440A5A1AA1D80DAE1DAD5DCE3BB45375249C630EADD65DBC",
     "src/evidence_lane_plugin/authority_support.py": "277EA6E2B9B0111A658E1AE00C727F14A7B041C94CD4C09FB71DDE214B79EB4B"
   },
   "linked_subauthorities": [],
@@ -355,5 +355,5 @@
   },
   "live_project_bytes_in_template": false,
   "authority_merged_with_sector_or_peer": false,
-  "receipt_sha256": "B2ACE3320F355DE943075E4C3AE9E6435E7A5A2A5AF7D2CEA6DBE83D47F77A86"
+  "receipt_sha256": "F997E76CD4CE68312232907FF74F83079D2179871FAA641310CB88F5E0A8954E"
 }

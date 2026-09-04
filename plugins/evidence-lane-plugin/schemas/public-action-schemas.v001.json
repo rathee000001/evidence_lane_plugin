@@ -11717,6 +11717,26 @@
             ],
             "default": null,
             "title": "Event Id"
+          },
+          "fixed_window_task_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fixed Window Task Ids"
+          },
+          "reuse_previous_window": {
+            "default": true,
+            "title": "Reuse Previous Window",
+            "type": "boolean"
           }
         },
         "required": [
@@ -11757,8 +11777,8 @@
         ],
         "executable": true
       },
-      "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D"
+      "schema_sha256": "F92398CEBA02038F3970FC654AE53EC484A289E0AC99F5BC0B15B406E64163BB"
     }
   ],
-  "catalog_sha256": "18BE3FEECBCE8028F97D850EE1B367D7354E588CEA178718A296B82CD2B19A2B"
+  "catalog_sha256": "E080B86AD3881A658A04A648A1CC020382CCA6E786C1FA2B46A61E726660F60A"
 }

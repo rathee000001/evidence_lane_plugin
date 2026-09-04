@@ -475,7 +475,7 @@
       "action": "task_record_activity",
       "action_class": "['GOVERNANCE']",
       "schema_path": "schemas/actions/task_record_activity.schema.json",
-      "schema_sha256": "F5DEC7B072FFE420FDF55ADAB2C1F91037E2E4FCA64E755FD0C65D4E35E3880D",
+      "schema_sha256": "F92398CEBA02038F3970FC654AE53EC484A289E0AC99F5BC0B15B406E64163BB",
       "sdk_binding": "sdk/actions/task_record_activity.action.v1.json",
       "mcp_binding": "mcp/actions/task_record_activity.binding.v1.json",
       "current_route": {
@@ -2074,5 +2074,5 @@
   "authority_and_lane_resolve_per_action_and_state": true,
   "every_condition_true_step_runs_or_fails_visible": true,
   "workflow_or_count_ceiling": false,
-  "receipt_sha256": "30EBC19900EC9A1CB4B2C3EBA22799CC25B4257AED82E63B2C018EAAF412ABA6"
+  "receipt_sha256": "A20780424837D252B02A7CF61D762563955C954111E7D605C8B552D1A2106CCB"
 }

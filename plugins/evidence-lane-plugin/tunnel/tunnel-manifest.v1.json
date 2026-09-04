@@ -11,7 +11,7 @@
   "routes_by_project_id": true,
   "one_active_tunnel": true,
   "tunnel_compatibility_schema": "evidence-lane.tunnel-capability-compatibility.v1",
-  "tunnel_compatibility_sha256": "33820399C6FFA53FC46E3AE09840137EF61ED036BF47FDA59875B479A41B9290",
+  "tunnel_compatibility_sha256": "9DF943CA2A290D68A48B5B09A2C56DECB5CBC21F2451CF2E526AEEA80B801E03",
   "tunnel_compatibility_inputs": [
     {
       "path": ".mcp.json",
@@ -55,13 +55,13 @@
     },
     {
       "path": "schemas/public-action-schemas.v001.json",
-      "bytes": 361683,
-      "sha256": "6408DF34A1E61226E09D5BEC1620DEB845893EA969AE4D42660B86055ECB744F"
+      "bytes": 362209,
+      "sha256": "C18495E8E5233E3A38871737997262A108ADDE0995A9A7947479BBF7746CF9D7"
     },
     {
       "path": "scripts/run_mcp.py",
-      "bytes": 14954,
-      "sha256": "71FEF3053624C54AD959B5CD12AE03D83B8A6C453734BFF93FAFF59220ED6C93"
+      "bytes": 15060,
+      "sha256": "F22AA0DE47D7E08B5C98035E09942DA1CB276D8103E81AB3EC71B68DDE75285F"
     },
     {
       "path": "scripts/windows_tunnel/EvidenceLaneTunnel.Boot.ps1",
@@ -91,7 +91,7 @@
     {
       "path": "skills/skill-surface-registry.v1.json",
       "bytes": 46886,
-      "sha256": "532DFAF8DC4EF2ADC31C0EC8D44B81F264644291EC431CBAA57A84B1996715C4"
+      "sha256": "8F212FE824B468BC506773F89B96CFCA21211BBCAD04C6A238ACBA83CDF352A1"
     },
     {
       "path": "src/evidence_lane_plugin/ecosystem_toolchain.py",
@@ -100,13 +100,13 @@
     },
     {
       "path": "src/evidence_lane_plugin/lane_engine.py",
-      "bytes": 394722,
-      "sha256": "E4A3773B3EB281B4527D193074954E450E36C2F3927AAF29A122C10F2F38301D"
+      "bytes": 398718,
+      "sha256": "B13F641F64DFB499589AA02AF0994847EE82ACD2164D32F5389D4DE668FF094D"
     },
     {
       "path": "src/evidence_lane_plugin/mcp_server.py",
-      "bytes": 179622,
-      "sha256": "46465CE68730BF4160F6EBD446CB11FCB693C59947083B090842B34A291388CE"
+      "bytes": 179836,
+      "sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60"
     },
     {
       "path": "src/evidence_lane_plugin/mcp_stdio_compat.py",
@@ -115,8 +115,8 @@
     },
     {
       "path": "src/evidence_lane_plugin/runtime_toolchain.py",
-      "bytes": 15865,
-      "sha256": "EBAAF0157F7F66D1E1237F6038DCDBA8F00DAEE424632EC61789AE9D489090F5"
+      "bytes": 16888,
+      "sha256": "17A967D65F46A423932DE06510B7BD19280427C3FDAD5F0B8B0A92444369EE6E"
     },
     {
       "path": "src/evidence_lane_plugin/tunnel_identity_routing.py",
@@ -131,7 +131,7 @@
     {
       "path": "toolchains/tool-execution-routing.v1.json",
       "bytes": 103225,
-      "sha256": "F6186D5B8307C48C44D9B377EB8AB7C5F13BCBCA07DA78C1298009F49730B3D9"
+      "sha256": "E32D04EF4A25141E5B465D265CC2F931B12C96829D427D07F597B127B5667B2D"
     },
     {
       "path": "toolchains/tool-requirement-matrix.v1.json",
@@ -141,7 +141,7 @@
     {
       "path": "toolchains/tunnel-runtime-toolchain.v1.json",
       "bytes": 109554,
-      "sha256": "23027693F389A79951194DE4BFA9A64A96F787DB52D302E39D98432679E0AFB1"
+      "sha256": "6FDE2FCAA308EAC28416CE456786952FF326EC2AD9736EB56F93E0E45B5D6759"
     }
   ],
   "tunnel_rebuild_trigger": "CAPABILITY_FINGERPRINT_CHANGED_ONLY",
@@ -176,7 +176,7 @@
     }
   ],
   "runtime_toolchain": "toolchains/tunnel-runtime-toolchain.v1.json",
-  "runtime_toolchain_sha256": "23027693F389A79951194DE4BFA9A64A96F787DB52D302E39D98432679E0AFB1",
+  "runtime_toolchain_sha256": "6FDE2FCAA308EAC28416CE456786952FF326EC2AD9736EB56F93E0E45B5D6759",
   "license_policy": "toolchains/license-policy.v1.json",
   "license_policy_sha256": "8D2C437B3FADEADE99B26A1AB0348D049844C927AA7AEF63B3FD3101ADC2D9CF",
   "installed_runtime_license_bundle_required": true,
@@ -192,5 +192,5 @@
   "user_manual_restart_required": true,
   "programmatic_app_stop_allowed": false,
   "turn_drain_utility_present": false,
-  "receipt_sha256": "29F01AC8A43F4B908FA4994746D03ABE739704C2B28E508A68E650193250F545"
+  "receipt_sha256": "3F2DC4AAE18133902F224020A6E4B6FBF2A7078A1B125E5C82B23B39EFE51143"
 }

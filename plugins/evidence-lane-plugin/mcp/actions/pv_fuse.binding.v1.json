@@ -84,11 +84,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/pv_fuse.action.v1.json",
-  "sdk_action_binding_sha256": "22E05F27520D187390871EA35DA2A3D97EC0281F70DEC156D2A4EFA42FA7B23E",
+  "sdk_action_binding_sha256": "E6DF3383033607224FDC95298C89354992588E324C38DB9B8A2D9A8291257AB3",
   "public_action_schema": "schemas/actions/pv_fuse.schema.json",
   "public_action_schema_sha256": "0622DC1702C9CAF3DCF4F6E127625F90C9E8B1D1BD5D73CCB0B38A6B5EEE775A",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
-  "canonical_server_sha256": "46465CE68730BF4160F6EBD446CB11FCB693C59947083B090842B34A291388CE",
+  "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "61BAAC879FD9465E30BE887CB9B67D2B9570C8C11290BC2FE74FF27823DD52AF"
+  "receipt_sha256": "88B41C1D4DFFB1CE68FF6DC2D4141664810B9FB66311AEADCB710D8FCC98FD5D"
 }

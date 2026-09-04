@@ -1,9 +1,10 @@
 """Deterministic, read-only source authority registry.
 
 The registry records what Source Intake inspected without copying source payloads into
-the project store.  File content is hashed by streaming reads, directory members are
-hashed independently, excluded secret/runtime members remain counted without content
-capture, and every ordered occurrence is preserved.
+the project store. File content is hashed by streaming reads and approved directory
+members are hashed independently. Excluded secret/runtime entries are aggregated by
+reason without persisting their paths or traversing excluded runtime subtrees, and
+every ordered occurrence is preserved.
 """
 
 from __future__ import annotations
@@ -106,6 +107,7 @@ class FrozenSourceObject:
     member_path_size_sha256: str | None
     content_merkle_sha256: str | None
     members: tuple[dict[str, Any], ...] = ()
+    exclusion_summary: tuple[dict[str, Any], ...] = ()
 
     def as_dict(self, *, include_members: bool = True) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -125,6 +127,7 @@ class FrozenSourceObject:
         }
         if include_members:
             payload["members"] = list(self.members)
+            payload["exclusion_summary"] = list(self.exclusion_summary)
         return payload
 
 
@@ -223,6 +226,16 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 excluded_member_count INTEGER NOT NULL,
                 receipt_json TEXT NOT NULL,
                 receipt_sha256 TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS source_exclusion_summary(
+                object_id TEXT NOT NULL REFERENCES source_object(object_id),
+                policy_reason TEXT NOT NULL,
+                excluded_entry_count INTEGER NOT NULL,
+                excluded_bytes INTEGER,
+                descendant_members_enumerated INTEGER NOT NULL CHECK(descendant_members_enumerated IN (0, 1)),
+                member_paths_stored INTEGER NOT NULL CHECK(member_paths_stored = 0),
+                capture_mode TEXT NOT NULL,
+                PRIMARY KEY(object_id, policy_reason)
             );
             CREATE TABLE IF NOT EXISTS source_archive_receipt(
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
@@ -780,6 +793,12 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
         )
         _ensure_column(
             connection,
+            "source_object",
+            "exclusion_summary_sha256",
+            "TEXT",
+        )
+        _ensure_column(
+            connection,
             "source_sqlite_asset",
             "byte_sha256",
             "TEXT",
@@ -814,6 +833,42 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 status="BLOCKED",
                 details={"error": str(error)},
             ) from error
+        legacy_excluded_count = int(
+            connection.execute(
+                "SELECT COUNT(*) FROM source_member WHERE policy_state='EXCLUDED'"
+            ).fetchone()[0]
+        )
+        if legacy_excluded_count:
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO source_exclusion_summary(
+                    object_id,policy_reason,excluded_entry_count,excluded_bytes,
+                    descendant_members_enumerated,member_paths_stored,capture_mode
+                )
+                SELECT object_id,policy_reason,COUNT(*),
+                       CASE WHEN COUNT(*)=COUNT(size_bytes)
+                            THEN SUM(size_bytes) ELSE NULL END,
+                       1,0,'LEGACY_PER_MEMBER_ROWS_PURGED'
+                FROM source_member
+                WHERE policy_state='EXCLUDED'
+                GROUP BY object_id,policy_reason
+                """
+            )
+            connection.execute(
+                "DELETE FROM source_member WHERE policy_state='EXCLUDED'"
+            )
+            connection.execute("DELETE FROM source_authority_fts")
+            connection.execute(
+                """
+                INSERT INTO source_authority_fts(
+                    object_id,source_pointer,member_path
+                )
+                SELECT member.object_id,object.source_pointer,member.member_path
+                FROM source_member AS member
+                JOIN source_object AS object USING(object_id)
+                WHERE member.policy_state='INCLUDED'
+                """
+            )
         connection.execute(
             "INSERT OR REPLACE INTO registry_meta(key, value) VALUES (?, ?)",
             ("schema", REGISTRY_SCHEMA),
@@ -1076,51 +1131,136 @@ def _stable_file_identity(path: Path) -> tuple[int, str]:
     return after.st_size, digest
 
 
+def _record_exclusion(
+    accumulator: dict[str, dict[str, Any]],
+    *,
+    reason: str,
+    size_bytes: int | None,
+    descendant_members_enumerated: bool,
+) -> None:
+    row = accumulator.setdefault(
+        reason,
+        {
+            "policy_reason": reason,
+            "excluded_entry_count": 0,
+            "excluded_bytes": 0,
+            "excluded_bytes_complete": True,
+            "descendant_members_enumerated": True,
+            "member_paths_stored": False,
+        },
+    )
+    row["excluded_entry_count"] = int(row["excluded_entry_count"]) + 1
+    if size_bytes is None:
+        row["excluded_bytes_complete"] = False
+    else:
+        row["excluded_bytes"] = int(row["excluded_bytes"]) + int(size_bytes)
+    row["descendant_members_enumerated"] = bool(
+        row["descendant_members_enumerated"]
+    ) and bool(descendant_members_enumerated)
+
+
+def _finalize_exclusions(
+    accumulator: Mapping[str, Mapping[str, Any]],
+) -> tuple[dict[str, Any], ...]:
+    rows: list[dict[str, Any]] = []
+    for reason in sorted(accumulator):
+        source = accumulator[reason]
+        rows.append(
+            {
+                "policy_reason": reason,
+                "excluded_entry_count": int(source["excluded_entry_count"]),
+                "excluded_bytes": (
+                    int(source["excluded_bytes"])
+                    if source["excluded_bytes_complete"]
+                    else None
+                ),
+                "descendant_members_enumerated": bool(
+                    source["descendant_members_enumerated"]
+                ),
+                "member_paths_stored": False,
+            }
+        )
+    return tuple(rows)
+
+
 def _directory_members(
     root: Path, policy: Mapping[str, Any]
-) -> tuple[dict[str, Any], ...]:
+) -> tuple[tuple[dict[str, Any], ...], tuple[dict[str, Any], ...]]:
     members: list[dict[str, Any]] = []
+    exclusions: dict[str, dict[str, Any]] = {}
     max_members = int(policy.get("max_members", 250_000))
-    for candidate in sorted(
-        root.rglob("*"), key=lambda item: item.as_posix().casefold()
+    excluded_dirs = {
+        str(value).casefold()
+        for value in policy.get("excluded_directory_names", _RUNTIME_DIRECTORY_NAMES)
+    }
+    for current_root, directory_names, file_names in os.walk(
+        root, topdown=True, followlinks=False
     ):
-        relative = candidate.relative_to(root).as_posix()
-        if candidate.is_symlink():
-            members.append(
-                {
-                    "member_path": relative,
-                    "member_kind": "symlink",
-                    "size_bytes": None,
-                    "sha256": None,
-                    "policy_state": "EXCLUDED",
-                    "policy_reason": "SYMLINK_NOT_FOLLOWED",
-                }
-            )
-        elif candidate.is_file():
+        current = Path(current_root)
+        retained_directories: list[str] = []
+        for name in sorted(directory_names, key=str.casefold):
+            candidate = current / name
+            if candidate.is_symlink():
+                _record_exclusion(
+                    exclusions,
+                    reason="SYMLINK_NOT_FOLLOWED",
+                    size_bytes=None,
+                    descendant_members_enumerated=False,
+                )
+            elif name.casefold() in excluded_dirs:
+                _record_exclusion(
+                    exclusions,
+                    reason="RUNTIME_DIRECTORY",
+                    size_bytes=None,
+                    descendant_members_enumerated=False,
+                )
+            else:
+                retained_directories.append(name)
+        directory_names[:] = retained_directories
+
+        for name in sorted(file_names, key=str.casefold):
+            candidate = current / name
+            relative = candidate.relative_to(root).as_posix()
+            if candidate.is_symlink():
+                _record_exclusion(
+                    exclusions,
+                    reason="SYMLINK_NOT_FOLLOWED",
+                    size_bytes=None,
+                    descendant_members_enumerated=True,
+                )
+                continue
             policy_state, reason = _policy_reason(relative, policy)
             if policy_state == "INCLUDED":
                 size_bytes, digest = _stable_file_identity(candidate)
             else:
-                size_bytes = candidate.stat().st_size
-                digest = None
+                _record_exclusion(
+                    exclusions,
+                    reason=reason,
+                    size_bytes=candidate.stat().st_size,
+                    descendant_members_enumerated=True,
+                )
+                continue
             members.append(
                 {
                     "member_path": relative,
                     "member_kind": "file",
                     "size_bytes": size_bytes,
                     "sha256": digest,
-                    "policy_state": policy_state,
-                    "policy_reason": reason,
+                    "policy_state": "INCLUDED",
+                    "policy_reason": "POLICY_APPROVED",
                 }
             )
-        if len(members) > max_members:
+        excluded_entries = sum(
+            int(row["excluded_entry_count"]) for row in exclusions.values()
+        )
+        if len(members) + excluded_entries > max_members:
             raise EvidenceLaneError(
                 "SOURCE_AUTHORITY_MEMBER_LIMIT_EXCEEDED",
                 "A source directory exceeded the governed member limit.",
                 status="BLOCKED",
                 details={"source": str(root), "max_members": max_members},
             )
-    return tuple(members)
+    return tuple(members), _finalize_exclusions(exclusions)
 
 
 def _normalize_archive_name(name: str) -> str | None:
@@ -1319,6 +1459,28 @@ def _archive_members(
     return tuple(members)
 
 
+def _partition_archive_members(
+    members: Iterable[Mapping[str, Any]],
+) -> tuple[tuple[dict[str, Any], ...], tuple[dict[str, Any], ...]]:
+    included: list[dict[str, Any]] = []
+    exclusions: dict[str, dict[str, Any]] = {}
+    for member in members:
+        if member.get("policy_state") == "INCLUDED":
+            included.append(dict(member))
+            continue
+        _record_exclusion(
+            exclusions,
+            reason=str(member.get("policy_reason") or "POLICY_EXCLUDED"),
+            size_bytes=(
+                int(member["size_bytes"])
+                if member.get("size_bytes") is not None
+                else None
+            ),
+            descendant_members_enumerated=True,
+        )
+    return tuple(included), _finalize_exclusions(exclusions)
+
+
 def _member_merkle(members: Iterable[Mapping[str, Any]]) -> str:
     approved = [
         {
@@ -1366,7 +1528,10 @@ def freeze_source_authority(
         size_bytes, byte_sha256 = _stable_file_identity(path)
         kind = "zip" if path.suffix.casefold() == ".zip" else "file"
         before_archive_scan = path.stat() if kind == "zip" else None
-        members = _archive_members(path, exact_policy) if kind == "zip" else ()
+        raw_members = _archive_members(path, exact_policy) if kind == "zip" else ()
+        members, exclusion_summary = (
+            _partition_archive_members(raw_members) if raw_members else ((), ())
+        )
         if before_archive_scan is not None:
             after_archive_scan = path.stat()
             require(
@@ -1382,7 +1547,7 @@ def freeze_source_authority(
         resolved = str(path.resolve())
     elif path.exists() and path.is_dir():
         kind = "directory"
-        members = _directory_members(path, exact_policy)
+        members, exclusion_summary = _directory_members(path, exact_policy)
         merkle = _member_merkle(members)
         path_size_identity = _member_path_size_identity(members)
         size_bytes = sum(
@@ -1395,13 +1560,21 @@ def freeze_source_authority(
     else:
         kind = "remote_or_declared"
         members = ()
+        exclusion_summary = ()
         merkle = None
         path_size_identity = None
         size_bytes = None
         byte_sha256 = None
         resolved = source
-    included = sum(member["policy_state"] == "INCLUDED" for member in members)
-    excluded = len(members) - included
+    included = len(members)
+    excluded = sum(
+        int(row["excluded_entry_count"]) for row in exclusion_summary
+    )
+    exclusion_summary_sha256 = (
+        sha256_bytes(canonical_json_bytes(list(exclusion_summary)))
+        if exclusion_summary
+        else None
+    )
     identity_body = {
         "schema": "evidence-lane.frozen-source-object.v1",
         "source": source,
@@ -1415,6 +1588,7 @@ def freeze_source_authority(
         "excluded_member_count": excluded,
         "member_path_size_sha256": path_size_identity,
         "content_merkle_sha256": merkle,
+        "exclusion_summary_sha256": exclusion_summary_sha256,
     }
     identity_sha256 = sha256_bytes(canonical_json_bytes(identity_body))
     return FrozenSourceObject(
@@ -1432,6 +1606,7 @@ def freeze_source_authority(
         member_path_size_sha256=path_size_identity,
         content_merkle_sha256=merkle,
         members=members,
+        exclusion_summary=exclusion_summary,
     )
 
 
@@ -1702,8 +1877,9 @@ def register_source_batch(
                         object_id, source_pointer, resolved_pointer, kind, lane_id,
                         identity_sha256, byte_sha256, size_bytes, member_count,
                         included_member_count, excluded_member_count,
-                        member_path_size_sha256, content_merkle_sha256
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        member_path_size_sha256, content_merkle_sha256,
+                        exclusion_summary_sha256
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (
                         source.object_id,
                         source.source,
@@ -1718,6 +1894,13 @@ def register_source_batch(
                         source.excluded_member_count,
                         source.member_path_size_sha256,
                         source.content_merkle_sha256,
+                        (
+                            sha256_bytes(
+                                canonical_json_bytes(list(source.exclusion_summary))
+                            )
+                            if source.exclusion_summary
+                            else None
+                        ),
                     ),
                 )
                 connection.execute(
@@ -1731,6 +1914,13 @@ def register_source_batch(
                     ),
                 )
                 for member in source.members:
+                    require(
+                        member["policy_state"] == "INCLUDED"
+                        and bool(member.get("sha256")),
+                        "SOURCE_AUTHORITY_EXCLUDED_MEMBER_PERSISTENCE_FORBIDDEN",
+                        "Excluded source members must be aggregated without paths.",
+                        status="FAIL",
+                    )
                     connection.execute(
                         "INSERT OR IGNORE INTO source_member VALUES (?, ?, ?, ?, ?, ?, ?)",
                         (
@@ -1747,12 +1937,31 @@ def register_source_batch(
                         "INSERT INTO source_authority_fts(object_id, source_pointer, member_path) VALUES (?, ?, ?)",
                         (source.object_id, source.source, member["member_path"]),
                     )
+                for exclusion in source.exclusion_summary:
+                    connection.execute(
+                        """
+                        INSERT OR IGNORE INTO source_exclusion_summary(
+                            object_id,policy_reason,excluded_entry_count,
+                            excluded_bytes,descendant_members_enumerated,
+                            member_paths_stored,capture_mode
+                        ) VALUES (?, ?, ?, ?, ?, 0, 'AGGREGATE_NO_PATHS')
+                        """,
+                        (
+                            source.object_id,
+                            exclusion["policy_reason"],
+                            exclusion["excluded_entry_count"],
+                            exclusion["excluded_bytes"],
+                            int(bool(exclusion["descendant_members_enumerated"])),
+                        ),
+                    )
                 policy_receipt = {
                     "schema": "evidence-lane.source-policy.receipt.v1",
                     "object_id": source.object_id,
                     "included_member_count": source.included_member_count,
                     "excluded_member_count": source.excluded_member_count,
                     "excluded_content_stored": False,
+                    "excluded_member_paths_stored": False,
+                    "exclusion_summary": list(source.exclusion_summary),
                 }
                 policy_sha = sha256_bytes(canonical_json_bytes(policy_receipt))
                 connection.execute(
@@ -1831,6 +2040,22 @@ def _load_registry_frozen_sources(
                     (row["object_id"],),
                 )
             )
+            exclusion_summary = tuple(
+                {
+                    "policy_reason": str(summary["policy_reason"]),
+                    "excluded_entry_count": int(summary["excluded_entry_count"]),
+                    "excluded_bytes": summary["excluded_bytes"],
+                    "descendant_members_enumerated": bool(
+                        summary["descendant_members_enumerated"]
+                    ),
+                    "member_paths_stored": False,
+                }
+                for summary in connection.execute(
+                    "SELECT * FROM source_exclusion_summary WHERE object_id=? "
+                    "ORDER BY policy_reason",
+                    (row["object_id"],),
+                )
+            )
             frozen.append(
                 FrozenSourceObject(
                     object_id=str(row["object_id"]),
@@ -1847,6 +2072,7 @@ def _load_registry_frozen_sources(
                     member_path_size_sha256=row["member_path_size_sha256"],
                     content_merkle_sha256=row["content_merkle_sha256"],
                     members=members,
+                    exclusion_summary=exclusion_summary,
                 )
             )
     return frozen
@@ -1876,20 +2102,19 @@ def reconcile_archive_counterparts(
     receipts: list[dict[str, Any]] = []
     for archive in archives:
         unsafe_reasons = sorted(
-            {
-                str(member["policy_reason"])
-                for member in archive.members
-                if member["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
-            }
+            str(row["policy_reason"])
+            for row in archive.exclusion_summary
+            if row["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
         )
         unsafe_member_count = sum(
-            member["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
-            for member in archive.members
+            int(row["excluded_entry_count"])
+            for row in archive.exclusion_summary
+            if row["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
         )
         policy_excluded_member_count = sum(
-            member["policy_state"] == "EXCLUDED"
-            and member["policy_reason"] not in _UNSAFE_ARCHIVE_REASONS
-            for member in archive.members
+            int(row["excluded_entry_count"])
+            for row in archive.exclusion_summary
+            if row["policy_reason"] not in _UNSAFE_ARCHIVE_REASONS
         )
         relation = relation_by_archive.get(archive.object_id)
         if unsafe_member_count:

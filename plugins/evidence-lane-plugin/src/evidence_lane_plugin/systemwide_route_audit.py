@@ -246,6 +246,7 @@ def _systemwide_regression_receipt(path: str | Path | None) -> dict[str, Any]:
     receipt = _json(exact)
     full = dict(receipt.get("full_regression") or {})
     closure = dict(receipt.get("targeted_closure") or {})
+    publication = dict(receipt.get("publication_scope") or {})
     skips = list(receipt.get("skips") or [])
     failure_rows = list(receipt.get("failures") or [])
     failure_test_count = sum(
@@ -254,9 +255,8 @@ def _systemwide_regression_receipt(path: str | Path | None) -> dict[str, Any]:
         else 1
         for row in failure_rows
     )
-    valid = (
+    common_valid = (
         receipt.get("schema") == "evidence-lane.systemwide-regression-receipt.v1"
-        and receipt.get("status") == "PASS_WITH_TARGETED_FAILURE_CLOSURE"
         and full.get("authorized_run_count") == 1
         and full.get("full_rerun_count") == 0
         and int(full.get("passed") or 0) > 0
@@ -274,19 +274,55 @@ def _systemwide_regression_receipt(path: str | Path | None) -> dict[str, Any]:
         and (receipt.get("boundaries") or {}).get("pointer_moved") is False
         and (receipt.get("boundaries") or {}).get("git_or_main_mutated") is False
     )
-    if not valid:
+    legacy_valid = receipt.get("status") == "PASS_WITH_TARGETED_FAILURE_CLOSURE"
+    scoped_publication_deferral = (
+        receipt.get("status") == "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED"
+    )
+    deferred_selector_count = publication.get("deferred_selector_count")
+    deferral_contract_file_sha256 = str(
+        publication.get("deferral_contract_file_sha256") or ""
+    )
+    scoped_valid = (
+        scoped_publication_deferral
+        and receipt.get("publication_authorized") is False
+        and publication.get("status") == "DEFERRED_NOT_PASSED"
+        and publication.get("publication_authorized") is False
+        and isinstance(deferred_selector_count, int)
+        and not isinstance(deferred_selector_count, bool)
+        and deferred_selector_count > 0
+        and deferred_selector_count <= failure_test_count
+        and len(deferral_contract_file_sha256) == 64
+        and all(
+            character in "0123456789ABCDEF"
+            for character in deferral_contract_file_sha256
+        )
+    )
+    if not common_valid or not (legacy_valid or scoped_valid):
         raise RuntimeError("SYSTEMWIDE_REGRESSION_RECEIPT_INVALID")
-    return {
+    base = {
         "status": "PASS",
         "schema": receipt["schema"],
         "file_sha256": sha256_file(exact),
         "full_run_count": full["authorized_run_count"],
         "full_rerun_count": full["full_rerun_count"],
         "full_passed": full["passed"],
-        "full_failed_then_targeted_closed": full["failed"],
         "full_skipped": full["skipped"],
         "targeted_closure_passed": closure["passed"],
         "post_install_targeted_proof_required": True,
+    }
+    if legacy_valid:
+        return {
+            **base,
+            "full_failed_then_targeted_closed": full["failed"],
+        }
+    return {
+        **base,
+        "scope_status": "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED",
+        "full_failed": full["failed"],
+        "publication_scope_status": "DEFERRED_NOT_PASSED",
+        "publication_authorized": False,
+        "deferred_publication_selector_count": deferred_selector_count,
+        "deferral_contract_file_sha256": deferral_contract_file_sha256,
     }
 
 

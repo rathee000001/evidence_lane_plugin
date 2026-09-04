@@ -23,18 +23,15 @@ def test_obsolete_script_routes_are_purged_and_pocs_are_repository_only() -> Non
         assert (ROOT / "tests" / "tools" / name).is_file()
 
 
-def test_local_update_uses_terminal_safe_restart_preparation_only() -> None:
+def test_local_update_uses_manual_user_restart_without_helper() -> None:
     assert not (RELEASE / "drain_codex_task_turns.py").exists()
     assert not (RELEASE / "Restart-EvidenceLaneCodex.ps1").exists()
-    prepare = (RELEASE / "Prepare-EvidenceLaneCodexRestart.ps1").read_text(
+    assert not (RELEASE / "Prepare-EvidenceLaneCodexRestart.ps1").exists()
+    contract = (PLUGIN / "scripts" / "codex-release-channel.json").read_text(
         encoding="utf-8"
     )
-    assert 'current_turn_terminal_event_required_before_app_close = $true' in prepare
-    assert 'drain_utility_allowed = $false' in prepare
-    assert 'programmatic_process_stop_allowed = $false' in prepare
-    assert 'scheduled_restart_child_allowed = $false' in prepare
-    assert '"turn/interrupt"' not in prepare
-    assert "Stop-Process" not in prepare
+    assert '"restart_helper_present": false' in contract
+    assert '"install_receipt_is_restart_boundary": true' in contract
 
 
 def test_package_builder_excludes_binary_caches_and_maintainer_tools() -> None:

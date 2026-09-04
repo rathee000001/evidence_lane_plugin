@@ -52,6 +52,7 @@ def test_lane_toolchain_is_codex_only_and_conditional() -> None:
     assert receipt["conditional_execution"] is True
     assert receipt["run_every_tool"] is False
     assert receipt["chatgpt_plane_mixed"] is False
+    assert receipt["action_classes"][:2] == ["GOVERNANCE", "SOURCE_ROUTING"]
     assert receipt["runnable_tools"][:3] == [
         "DuckDB",
         "APSW_SQLite_engine",

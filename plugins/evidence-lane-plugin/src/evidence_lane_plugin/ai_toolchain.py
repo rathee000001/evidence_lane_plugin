@@ -258,6 +258,23 @@ ACTION_CLASS_TOOL_ORDER: dict[str, tuple[str, ...]] = {
     ),
 }
 
+ORCHESTRATION_ACTION_CLASS_ORDER: tuple[str, ...] = (
+    "GOVERNANCE",
+    "SOURCE_ROUTING",
+    "CODE",
+    "DOCUMENT",
+    "OCR_MEDIA",
+    "DATA",
+    "WEB_RESEARCH",
+    "RETRIEVAL",
+    "GRAPH",
+    "RUNTIME_API",
+    "MCP_COMPOSITION",
+    "EVALUATION",
+    "OBSERVABILITY",
+    "DEPLOYMENT",
+)
+
 LANE_ACTION_CLASSES: dict[str, tuple[str, ...]] = {
     "github_code": (
         "CODE",
@@ -429,7 +446,13 @@ def resolve_lane_toolchain(
         if exact_host in FORBIDDEN_TOOLCHAIN_HOST_PROFILES:
             raise ValueError("CHATGPT_TOOLCHAIN_PLANE_NOT_IMPLEMENTED")
         raise ValueError(f"Unsupported Codex host profile: {host_profile}")
-    action_classes = LANE_ACTION_CLASSES[exact_lane]
+    lane_action_classes = set(LANE_ACTION_CLASSES[exact_lane])
+    lane_action_classes.update({"GOVERNANCE", "SOURCE_ROUTING"})
+    action_classes = tuple(
+        action_class
+        for action_class in ORCHESTRATION_ACTION_CLASS_ORDER
+        if action_class in lane_action_classes
+    )
     matrix = _runtime_tool_matrix()
     ordered = list(
         dict.fromkeys(
@@ -527,5 +550,6 @@ __all__ = [
     "CODEX_HOST_PROFILES",
     "FORBIDDEN_TOOLCHAIN_HOST_PROFILES",
     "LANE_ACTION_CLASSES",
+    "ORCHESTRATION_ACTION_CLASS_ORDER",
     "resolve_lane_toolchain",
 ]

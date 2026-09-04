@@ -133,6 +133,10 @@ def test_release_identity_urls_and_proprietary_boundary_are_consistent() -> None
     assert adapter_package["version"] == RELEASE
     assert ENGINE_VERSION == RELEASE
     assert codex_manifest["version"] == CODEX_RELEASE
+    codex_release_prefix = f"{RELEASE}+codex."
+    assert CODEX_RELEASE.startswith(codex_release_prefix)
+    codex_release_stamp = CODEX_RELEASE.removeprefix(codex_release_prefix)
+    assert len(codex_release_stamp) == 14 and codex_release_stamp.isdecimal()
     assert public_metadata["version"] == PUBLIC_SITE_SNAPSHOT_RELEASE
     assert (
         f'export const releaseVersion = "{PUBLIC_SITE_SNAPSHOT_RELEASE}"'
@@ -263,6 +267,7 @@ def test_all_skill_manifests_are_unique_complete_and_package_owned() -> None:
     codex_mcp = json.loads(_read(PLUGIN / ".mcp.json"))
     assert codex_mcp["mcpServers"]["evidence-lane"]["command"] == "python"
     assert codex_mcp["mcpServers"]["evidence-lane"]["args"] == [
+        "-B",
         "./scripts/run_mcp.py",
         "--transport",
         "stdio",

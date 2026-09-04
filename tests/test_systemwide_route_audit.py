@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
+import pytest
 from evidence_lane_plugin.constants import NATIVE_TOOL_COUNT
 from evidence_lane_plugin.current_route_registry import (
     current_implementation_registry,
@@ -9,6 +11,7 @@ from evidence_lane_plugin.current_route_registry import (
 from evidence_lane_plugin.mcp_server import create_mcp_server
 from evidence_lane_plugin.service import EvidenceLaneService
 from evidence_lane_plugin.systemwide_route_audit import (
+    _systemwide_regression_receipt,
     audit_plan_supersession,
     build_systemwide_route_audit,
 )
@@ -19,6 +22,128 @@ PLAN = Path(
     r"F:\EvidenceLaneProjects\test-codex-evidence-lane-plugin"
     r"\sectors\plan\plan_runtime_projection.sqlite"
 )
+SCOPED_STATUS = "EXECUTABLE_SCOPE_VALIDATED_PUBLICATION_DEFERRED"
+
+
+def _regression_receipt(*, status: str = SCOPED_STATUS) -> dict:
+    receipt = {
+        "schema": "evidence-lane.systemwide-regression-receipt.v1",
+        "status": status,
+        "publication_authorized": False,
+        "full_regression": {
+            "authorized_run_count": 1,
+            "full_rerun_count": 0,
+            "passed": 100,
+            "failed": 2,
+            "skipped": 1,
+        },
+        "targeted_closure": {
+            "status": "PASS",
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0,
+            "full_suite_rerun": False,
+        },
+        "publication_scope": {
+            "status": "DEFERRED_NOT_PASSED",
+            "publication_authorized": False,
+            "deferred_selector_count": 2,
+            "deferral_contract_file_sha256": "A" * 64,
+        },
+        "skips": [{"disposition": "REQUIRED_POST_LOCAL_INSTALL_R265_TARGETED_PROOF"}],
+        "failures": [{"tests": ["tests.test_one::test_a", "tests.test_two::test_b"]}],
+        "boundaries": {
+            "accepted_archive_queried": False,
+            "pointer_moved": False,
+            "git_or_main_mutated": False,
+        },
+    }
+    if status == "PASS_WITH_TARGETED_FAILURE_CLOSURE":
+        receipt.pop("publication_authorized")
+        receipt.pop("publication_scope")
+    return receipt
+
+
+def _write_regression_receipt(path: Path, receipt: dict) -> Path:
+    path.write_text(json.dumps(receipt), encoding="utf-8")
+    return path
+
+
+def test_systemwide_regression_preserves_legacy_targeted_closure(
+    tmp_path: Path,
+) -> None:
+    path = _write_regression_receipt(
+        tmp_path / "legacy.json",
+        _regression_receipt(status="PASS_WITH_TARGETED_FAILURE_CLOSURE"),
+    )
+
+    result = _systemwide_regression_receipt(path)
+
+    assert result["status"] == "PASS"
+    assert result["full_failed_then_targeted_closed"] == 2
+    assert "scope_status" not in result
+    assert "publication_authorized" not in result
+
+
+def test_systemwide_regression_accepts_scoped_local_executable_deferral(
+    tmp_path: Path,
+) -> None:
+    path = _write_regression_receipt(
+        tmp_path / "scoped.json",
+        _regression_receipt(),
+    )
+
+    result = _systemwide_regression_receipt(path)
+
+    assert result["status"] == "PASS"
+    assert result["scope_status"] == SCOPED_STATUS
+    assert result["full_failed"] == 2
+    assert result["publication_scope_status"] == "DEFERRED_NOT_PASSED"
+    assert result["publication_authorized"] is False
+    assert result["deferred_publication_selector_count"] == 2
+    assert result["deferral_contract_file_sha256"] == "A" * 64
+    assert "full_failed_then_targeted_closed" not in result
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "missing_publication_scope",
+        "top_level_publication_authorized",
+        "publication_scope_passed",
+        "publication_scope_authorized",
+        "missing_selector_count",
+        "boolean_selector_count",
+        "selector_count_exceeds_failures",
+        "invalid_contract_hash",
+    ],
+)
+def test_systemwide_regression_rejects_missing_or_mixed_scoped_evidence(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    receipt = _regression_receipt()
+    publication = receipt["publication_scope"]
+    if mutation == "missing_publication_scope":
+        receipt.pop("publication_scope")
+    elif mutation == "top_level_publication_authorized":
+        receipt["publication_authorized"] = True
+    elif mutation == "publication_scope_passed":
+        publication["status"] = "PASS"
+    elif mutation == "publication_scope_authorized":
+        publication["publication_authorized"] = True
+    elif mutation == "missing_selector_count":
+        publication.pop("deferred_selector_count")
+    elif mutation == "boolean_selector_count":
+        publication["deferred_selector_count"] = True
+    elif mutation == "selector_count_exceeds_failures":
+        publication["deferred_selector_count"] = 3
+    elif mutation == "invalid_contract_hash":
+        publication["deferral_contract_file_sha256"] = "not-a-sha256"
+    path = _write_regression_receipt(tmp_path / f"{mutation}.json", receipt)
+
+    with pytest.raises(RuntimeError, match="SYSTEMWIDE_REGRESSION_RECEIPT_INVALID"):
+        _systemwide_regression_receipt(path)
 
 
 def test_current_registry_assigns_every_live_tool_to_one_route() -> None:

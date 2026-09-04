@@ -21,6 +21,26 @@ from .timeutil import utc_now
 
 RECEIPT_LEDGER_SCHEMA = "evidence-lane.receipt-ledger.v1"
 RECEIPT_LEDGER_MIGRATION_SCHEMA = "evidence-lane.receipt-ledger-migration.v1"
+PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_SPECS: dict[
+    str, tuple[str, str]
+] = {
+    "source-scaffold-retirement.json": (
+        "evidence-lane.source-scaffold-retirement.v1",
+        "PROJECT_AUTHORITY_SOURCE_SCAFFOLD_RETIREMENT",
+    ),
+    "working-sector-migration.json": (
+        "evidence-lane.working-sector-migration.v1",
+        "PROJECT_AUTHORITY_WORKING_SECTOR_MIGRATION",
+    ),
+    "working-sector-promotion-block.json": (
+        "evidence-lane.working-sector-promotion-block.v1",
+        "PROJECT_AUTHORITY_WORKING_SECTOR_PROMOTION_BLOCK",
+    ),
+    "working-sector-recovery.json": (
+        "evidence-lane.working-sector-recovery.v1",
+        "PROJECT_AUTHORITY_WORKING_SECTOR_RECOVERY",
+    ),
+}
 
 
 def initialize_receipt_ledger(database: str | Path) -> None:
@@ -380,6 +400,270 @@ def append_receipt(
         connection.close()
 
 
+def _validated_project_authority_operational_receipt(
+    project_root: Path,
+    *,
+    project_id: str,
+    filename: str,
+) -> dict[str, Any]:
+    """Validate one exact current operational projection before ledger admission."""
+
+    specification = PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_SPECS.get(filename)
+    if specification is None or Path(filename).name != filename:
+        raise ValueError("PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_NOT_ALLOWLISTED")
+    receipt_root = (project_root / "receipts" / "project-authority").resolve()
+    source = (receipt_root / filename).resolve()
+    try:
+        source.relative_to(receipt_root)
+    except ValueError as exc:
+        raise ValueError(
+            "PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_PATH_ESCAPE"
+        ) from exc
+    if not source.is_file():
+        raise FileNotFoundError(source)
+    data = source.read_bytes()
+    try:
+        payload = json.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(
+            "PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_JSON_INVALID"
+        ) from exc
+    if not isinstance(payload, dict):
+        raise TypeError("PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_JSON_INVALID")
+    schema_id, receipt_kind = specification
+    body = {key: value for key, value in payload.items() if key != "receipt_sha256"}
+    payload_project_id = payload.get("project_id")
+    if (
+        payload.get("schema") != schema_id
+        or payload.get("receipt_sha256")
+        != sha256_bytes(canonical_json_bytes(body))
+        or data != canonical_json_bytes(payload)
+        or (
+            payload_project_id is not None
+            and str(payload_project_id) != project_id
+        )
+    ):
+        raise ValueError("PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_SEAL_MISMATCH")
+    content_sha256 = sha256_bytes(data)
+    role = filename.removesuffix(".json")
+    return {
+        "filename": filename,
+        "source": source,
+        "data": data,
+        "payload": payload,
+        "schema_id": schema_id,
+        "receipt_kind": receipt_kind,
+        "content_sha256": content_sha256,
+        "logical_path": (
+            f"project-authority/operational/{role}/"
+            f"{content_sha256.lower()}.json"
+        ),
+        "recorded_at": (
+            str(payload.get("recorded_at") or payload.get("completed_at") or "")
+            or None
+        ),
+    }
+
+
+def _append_validated_project_authority_operational_receipt(
+    connection: sqlite3.Connection,
+    *,
+    project_id: str,
+    validated: dict[str, Any],
+) -> dict[str, Any]:
+    previous = connection.execute(
+        "SELECT receipt_sha256 FROM receipt_record "
+        "WHERE receipt_kind=? AND project_id=? "
+        "ORDER BY sequence DESC LIMIT 1",
+        (validated["receipt_kind"], project_id),
+    ).fetchone()
+    previous_sha256 = str(previous[0]) if previous is not None else None
+    if previous_sha256 == validated["content_sha256"]:
+        previous_sha256 = None
+    result = append_receipt_bytes(
+        connection,
+        logical_path=str(validated["logical_path"]),
+        data=bytes(validated["data"]),
+        receipt_kind=str(validated["receipt_kind"]),
+        media_type="application/json",
+        project_id=project_id,
+        prior_receipt_sha256=previous_sha256,
+        supersedes_receipt_sha256=previous_sha256,
+        recorded_at=validated["recorded_at"],
+    )
+    row = connection.execute(
+        "SELECT r.logical_path,r.receipt_kind,r.byte_count,c.compression,"
+        "c.compressed_bytes FROM receipt_record AS r "
+        "JOIN receipt_content_cas AS c ON c.receipt_sha256=r.receipt_sha256 "
+        "WHERE r.receipt_sha256=?",
+        (validated["content_sha256"],),
+    ).fetchone()
+    if row is None:
+        raise RuntimeError("PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_READBACK_MISSING")
+    exact_bytes = decompress_exact_bytes(
+        compression=str(row[3]),
+        payload=bytes(row[4]),
+        expected_size=int(row[2]),
+        expected_sha256=str(validated["content_sha256"]),
+    )
+    if (
+        exact_bytes != validated["data"]
+        or str(row[0]) != validated["logical_path"]
+        or str(row[1]) != validated["receipt_kind"]
+    ):
+        raise RuntimeError("PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_READBACK_MISMATCH")
+    return {
+        **result,
+        "filename": validated["filename"],
+        "payload_receipt_sha256": validated["payload"]["receipt_sha256"],
+        "prior_operational_receipt_sha256": previous_sha256,
+        "source_file_mutated": False,
+    }
+
+
+def append_project_authority_operational_receipt(
+    project_root: str | Path,
+    *,
+    project_id: str,
+    filename: str,
+) -> dict[str, Any]:
+    """Admit one allowlisted mutable projection as immutable exact receipt bytes."""
+
+    root = Path(project_root).resolve()
+    validated = _validated_project_authority_operational_receipt(
+        root,
+        project_id=project_id,
+        filename=filename,
+    )
+    database = root / "receipts" / "receipt-ledger.sqlite"
+    initialize_receipt_ledger(database)
+    connection = sqlite3.connect(database, timeout=30)
+    try:
+        connection.execute("PRAGMA foreign_keys=ON")
+        connection.execute("BEGIN IMMEDIATE")
+        result = _append_validated_project_authority_operational_receipt(
+            connection,
+            project_id=project_id,
+            validated=validated,
+        )
+        changed = result.get("state") == "APPENDED" or any(
+            bool(result.get(field))
+            for field in (
+                "logical_alias_recorded",
+                "project_identity_correction_recorded",
+            )
+        )
+        if changed:
+            rebuild_connection_authority_index(
+                connection,
+                authority_id="receipt_ledger",
+                table_names=("receipt_record", "receipt_link"),
+            )
+        connection.commit()
+        return result
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+
+
+def backfill_project_authority_operational_receipts(
+    project_root: str | Path,
+    *,
+    project_id: str,
+) -> dict[str, Any]:
+    """Idempotently admit only the four fixed project-authority projections."""
+
+    root = Path(project_root).resolve()
+    receipt_root = root / "receipts" / "project-authority"
+    present_filenames = [
+        filename
+        for filename in PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_SPECS
+        if (receipt_root / filename).is_file()
+    ]
+    validated_rows = [
+        _validated_project_authority_operational_receipt(
+            root,
+            project_id=project_id,
+            filename=filename,
+        )
+        for filename in present_filenames
+    ]
+    database = root / "receipts" / "receipt-ledger.sqlite"
+    initialize_receipt_ledger(database)
+    connection = sqlite3.connect(database, timeout=30)
+    try:
+        connection.execute("PRAGMA foreign_keys=ON")
+        connection.execute("BEGIN IMMEDIATE")
+        before_count = int(
+            connection.execute("SELECT COUNT(*) FROM receipt_record").fetchone()[0]
+        )
+        results = [
+            _append_validated_project_authority_operational_receipt(
+                connection,
+                project_id=project_id,
+                validated=validated,
+            )
+            for validated in validated_rows
+        ]
+        changed = any(
+            result.get("state") == "APPENDED"
+            or any(
+                bool(result.get(field))
+                for field in (
+                    "logical_alias_recorded",
+                    "project_identity_correction_recorded",
+                )
+            )
+            for result in results
+        )
+        if changed:
+            rebuild_connection_authority_index(
+                connection,
+                authority_id="receipt_ledger",
+                table_names=("receipt_record", "receipt_link"),
+            )
+        after_count = int(
+            connection.execute("SELECT COUNT(*) FROM receipt_record").fetchone()[0]
+        )
+        integrity = [
+            str(row[0]) for row in connection.execute("PRAGMA integrity_check")
+        ]
+        foreign_keys = list(connection.execute("PRAGMA foreign_key_check"))
+        if integrity != ["ok"] or foreign_keys:
+            raise RuntimeError("PROJECT_AUTHORITY_OPERATIONAL_BACKFILL_INTEGRITY_FAILED")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+    body = {
+        "schema": "evidence-lane.project-authority-operational-backfill.v1",
+        "status": "PASS",
+        "project_id": project_id,
+        "allowlisted_filename_count": len(
+            PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_SPECS
+        ),
+        "present_filename_count": len(present_filenames),
+        "present_filenames": present_filenames,
+        "missing_filenames": [
+            filename
+            for filename in PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_SPECS
+            if filename not in present_filenames
+        ],
+        "receipt_record_count_before": before_count,
+        "receipt_record_count_after": after_count,
+        "new_receipt_record_count": after_count - before_count,
+        "logical_paths": [str(row["logical_path"]) for row in validated_rows],
+        "content_sha256s": [str(row["content_sha256"]) for row in validated_rows],
+        "source_files_mutated": False,
+        "recursive_scan_used": False,
+    }
+    return {**body, "receipt_sha256": sha256_bytes(canonical_json_bytes(body))}
+
+
 def read_receipt(
     database: str | Path,
     *,
@@ -571,10 +855,13 @@ def migrate_receipt_tree(
 
 
 __all__ = [
+    "PROJECT_AUTHORITY_OPERATIONAL_RECEIPT_SPECS",
     "RECEIPT_LEDGER_MIGRATION_SCHEMA",
     "RECEIPT_LEDGER_SCHEMA",
+    "append_project_authority_operational_receipt",
     "append_receipt",
     "append_receipt_bytes",
+    "backfill_project_authority_operational_receipts",
     "initialize_receipt_ledger",
     "migrate_receipt_tree",
     "read_receipt",
