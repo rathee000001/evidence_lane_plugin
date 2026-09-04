@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - agent/evi-v300-systemwide-release-hil-v3.0.0
     paths:
       - README.md
       - CONTRIBUTING.md
@@ -16,7 +15,6 @@ on:
       - github-pages/**
       - scripts/prepare_github_pages.py
       - scripts/generate_repository_source_fingerprints.py
-      - .github/evidence-lane-repository-fingerprints.v1.json
       - .github/workflows/evidence-lane-github-pages.yml
 
 permissions:

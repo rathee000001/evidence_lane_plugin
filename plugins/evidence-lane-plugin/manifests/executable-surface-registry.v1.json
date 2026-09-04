@@ -1,14 +1,14 @@
 {
   "schema": "evidence-lane.executable-package-surface-registry.v1",
   "status": "PASS",
-  "plugin_version": "3.0.0+codex.20260904111537",
+  "plugin_version": "3.0.0+codex.20260904163649",
   "installed_directory_count": 16,
   "installed_directories": [
     {
       "path": ".codex-plugin",
       "role": "HOST_DISCOVERY_MANIFEST",
       "member_count": 1,
-      "members_sha256": "523BAC7B2A8505799EFA95F6594DA570E98E9C569299E664272CA4CC79DEC05B"
+      "members_sha256": "CA49E95697074444022E98B408ACDB1471343994DF3E04756A81547677AD7567"
     },
     {
       "path": "assets",
@@ -119,7 +119,7 @@
     {
       "path": ".codex-plugin/plugin.json",
       "bytes": 2952,
-      "sha256": "AC4A715787F890AD2F6F08159245617088D6175338A927067AB45279A083EA52"
+      "sha256": "062EAE896112C06AA03F6992333602D2809C8744A42645A0ADAC297A66FDE503"
     },
     {
       "path": ".mcp.json",
@@ -10299,5 +10299,5 @@
   "local_cache_or_output_included": false,
   "historical_fallback_used": false,
   "all_installed_members_hash_bound": true,
-  "receipt_sha256": "DADBB6DD1412E2745EF19B02C8929120735467A9B919CF191A05FFA373CEFE3E"
+  "receipt_sha256": "6B9316DAC7A5697BD81CA0B5104894FED85B49D19F0CDEB43E704873C624A807"
 }

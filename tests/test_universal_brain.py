@@ -393,7 +393,10 @@ def test_public_hil_api_cannot_promote_and_vercel_adapter_fails_closed(
     adapter_root = adapter_path.parents[1]
     vercel = json.loads((adapter_root / "vercel.json").read_text(encoding="utf-8"))
     assert not adapter_path.exists()
-    assert vercel == {"$schema": "https://openapi.vercel.sh/vercel.json"}
+    assert vercel == {
+        "$schema": "https://openapi.vercel.sh/vercel.json",
+        "git": {"deploymentEnabled": False},
+    }
     landing = (adapter_root / "app" / "page.tsx").read_text(encoding="utf-8")
     release = (adapter_root / "app" / "_components" / "release-status.tsx").read_text(
         encoding="utf-8"

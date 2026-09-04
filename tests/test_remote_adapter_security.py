@@ -18,7 +18,10 @@ def test_v2_has_no_active_chatgpt_remote_mcp_adapter() -> None:
 
 def test_public_site_is_not_an_mcp_transport() -> None:
     vercel = json.loads((PUBLIC_SITE / "vercel.json").read_text(encoding="utf-8"))
-    assert vercel == {"$schema": "https://openapi.vercel.sh/vercel.json"}
+    assert vercel == {
+        "$schema": "https://openapi.vercel.sh/vercel.json",
+        "git": {"deploymentEnabled": False},
+    }
     connect = (PUBLIC_SITE / "app" / "connect" / "page.tsx").read_text(
         encoding="utf-8"
     )

@@ -118,7 +118,7 @@ def test_workflow_branch_boundaries_and_preview_does_not_deploy() -> None:
         if "push:" in text:
             if path.name == "evidence-lane-github-pages.yml":
                 assert "      - main" in text
-                assert "      - agent/evi-v300-systemwide-release-hil-v3.0.0" in text
+                assert "      - agent/evi-v300-systemwide-release-hil-v3.0.0" not in text
             else:
                 assert '- "agent/**"' in text
                 assert "branches:\n      - main" not in text
@@ -142,6 +142,7 @@ def test_workflow_branch_boundaries_and_preview_does_not_deploy() -> None:
         encoding="utf-8"
     )
     assert "  deploy:\n    if: github.ref == 'refs/heads/main'" in pages
+    assert ".github/evidence-lane-repository-fingerprints.v1.json" not in pages
 
 
 def test_codeql_is_pinned_and_preserves_local_evidence_without_api_upload() -> None:
