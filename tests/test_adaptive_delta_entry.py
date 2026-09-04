@@ -118,7 +118,11 @@ class _Sessions:
 
 
 class _SDK:
+    def __init__(self) -> None:
+        self.calls: list[dict[str, Any]] = []
+
     def invoke(self, **kwargs: Any) -> dict[str, Any]:
+        self.calls.append(dict(kwargs))
         operation = str(kwargs.get("operation") or "")
         payload = dict(kwargs.get("payload") or {})
         if operation == "classify_mode":
@@ -247,10 +251,11 @@ def test_adaptive_delta_entry_consumes_all_authorities_and_preserves_state(
     monkeypatch.setattr(
         entry, "query_live_authorities", lambda *_a, **_k: _live_result()
     )
+    sdk = _SDK()
     monkeypatch.setattr(
         entry,
         "build_live_local_sdk_context",
-        lambda *_a, **_k: (_SDK(), SimpleNamespace()),
+        lambda *_a, **_k: (sdk, SimpleNamespace()),
     )
 
     result = entry.run_adaptive_delta_entry(
@@ -274,6 +279,10 @@ def test_adaptive_delta_entry_consumes_all_authorities_and_preserves_state(
     assert set(receipt["authorities_consumed"]) == set(_live_result()["authorities"])
     assert receipt["learning"]["auto_accepted_delta_count"] == 151
     assert receipt["learning"]["pending_weave_count"] == 1
+    learning_call = next(
+        call for call in sdk.calls if call.get("operation") == "inspect"
+    )
+    assert learning_call["payload"] == {"summary_only": True}
     assert receipt["normalized_steer_contract"]["steer_count"] == 1
     assert receipt["normalized_steer_contract"]["verification_scope"] == (
         "ONCE_PER_NORMALIZED_DELTA_ROW"

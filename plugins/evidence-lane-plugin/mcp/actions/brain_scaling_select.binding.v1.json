@@ -85,11 +85,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/brain_scaling_select.action.v1.json",
-  "sdk_action_binding_sha256": "59C5C69A036F437980DDC319CD91280ACCDFF3C8EFD8992B611A4F738BEC0A5A",
+  "sdk_action_binding_sha256": "D9EAF7A67538BA19DA9CBF304060DD86C6B2279A0BFC7E64BBC19145E27FC465",
   "public_action_schema": "schemas/actions/brain_scaling_select.schema.json",
   "public_action_schema_sha256": "071B2648DE1FF5F892D28A040E715AD37BE004C0B09C0145A04E937C09777BD4",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "903D40B769AA0F8E3F913CBDB05D9F50C124DBEDC2D288D762D24AF84A50E5E8"
+  "receipt_sha256": "379DC0B93F62D8CE2DBA1D2A2E417551B27E6F36DF1DEF8A389C1DD8D595475E"
 }

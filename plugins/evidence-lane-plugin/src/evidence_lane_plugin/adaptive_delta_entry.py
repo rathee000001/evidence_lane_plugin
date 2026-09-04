@@ -320,7 +320,7 @@ def _learning_inspection(
         module_id="agent_learning",
         operation="inspect",
         binding=binding,
-        payload={},
+        payload={"summary_only": True},
         request_id=f"delta-entry:{request_seed}:learning-inspect",
         timeout_ms=30_000,
     )

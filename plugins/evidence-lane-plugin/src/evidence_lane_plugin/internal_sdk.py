@@ -2814,10 +2814,34 @@ def build_local_service_adapter(
         binding: SDKBinding, payload: dict[str, Any], context: SDKInvocationContext
     ) -> dict[str, Any]:
         context.checkpoint()
-        return inspect_learning_authority(
+        require(
+            set(payload) <= {"summary_only"}
+            and isinstance(payload.get("summary_only", False), bool),
+            "SDK_LEARNING_INSPECT_PAYLOAD_INVALID",
+            "Learning inspection accepts only one optional summary_only boolean.",
+            status="BLOCKED",
+        )
+        result = inspect_learning_authority(
             service.store.project_root(binding.project_id),
             project_id=binding.project_id,
         )
+        if payload.get("summary_only") is not True:
+            return result
+        return {
+            key: result.get(key)
+            for key in (
+                "schema",
+                "status",
+                "project_id",
+                "candidate_count",
+                "auto_accepted_delta_count",
+                "pending_weave_count",
+                "current_pointer",
+                "integrity",
+                "foreign_key_errors",
+                "authority_effects",
+            )
+        } | {"learning_weaves": list(result.get("learning_weaves") or [])[:4]}
 
     def _learning_payload(
         binding: SDKBinding, payload: dict[str, Any]

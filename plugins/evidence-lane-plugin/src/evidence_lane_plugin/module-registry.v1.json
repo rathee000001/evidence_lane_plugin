@@ -22,8 +22,8 @@
     {
       "module": "evidence_lane_plugin.adaptive_delta_entry",
       "path": "src/evidence_lane_plugin/adaptive_delta_entry.py",
-      "bytes": 41652,
-      "sha256": "4D79B0F8F07FC2BDB993749F522E66D01B794EFD6258A70F9E75A4C06BC11853",
+      "bytes": 41672,
+      "sha256": "E6003B47E88F37679282D3514A8192679511FC3D4843150D8DC1CA30752B0F20",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -484,8 +484,8 @@
     {
       "module": "evidence_lane_plugin.internal_sdk",
       "path": "src/evidence_lane_plugin/internal_sdk.py",
-      "bytes": 141095,
-      "sha256": "E3ACCECBB4F44B8A2762AA7707A4ED91A8CC2C34FBC231AA07CE28592BC51BE4",
+      "bytes": 141990,
+      "sha256": "0F29F99E749F2B91E84EA175D938B85AC8AC47C3B52E0998AF810FCFBB4A550C",
       "role": "SDK_AND_ROUTING"
     },
     {
@@ -1068,5 +1068,5 @@
   ],
   "root_surfaces_duplicated_inside_python_namespace": false,
   "loose_python_modules_directly_under_src_allowed": false,
-  "receipt_sha256": "439F3D9D72394B1E7C951F2C1E6B0D0D3BFA41B3A4C3EE16AFB3C3BCDFAE83FA"
+  "receipt_sha256": "00DBDAACF161DAC9DD6BA47E2938993AB8A1ECA7184A39DB04C88EBC3741EED2"
 }
