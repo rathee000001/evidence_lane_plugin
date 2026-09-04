@@ -107,11 +107,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/pv_plan_steer_delta.action.v1.json",
-  "sdk_action_binding_sha256": "DD353B4113C6C7FD1F17A5C68FFCA6011AF1D6A88D64C396FEC0E15321EE5B13",
+  "sdk_action_binding_sha256": "FEA915137BDDCBAD554008A51DA5B2C114D5B8795F08399E00D8395685AC903B",
   "public_action_schema": "schemas/actions/pv_plan_steer_delta.schema.json",
   "public_action_schema_sha256": "E92408AB250A5621B9529235E35BD964C92A6EDA345DD0D6C6C54C8F6774D344",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "7B109D377EF7BD4B21BB0571F591CBA26846A3F46694465F1FE2D7B721DB0D52"
+  "receipt_sha256": "114511CA9E1CEB76495277C7A93A5E953B1C64F34866E5E83AE8EE112796D8DE"
 }

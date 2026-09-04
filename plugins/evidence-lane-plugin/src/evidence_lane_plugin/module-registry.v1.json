@@ -435,8 +435,8 @@
     {
       "module": "evidence_lane_plugin.host_plan_reconciliation",
       "path": "src/evidence_lane_plugin/host_plan_reconciliation.py",
-      "bytes": 87438,
-      "sha256": "A5CB82EA5DC20624681E19E1204C55B849A43AE58350DE34F929EBF3EE7391BA",
+      "bytes": 87693,
+      "sha256": "CE756F87F408D97EEC88CF5DF95A3F487581863F735096C3C939AC95720C15F3",
       "role": "CANONICAL_PLUGIN_IMPLEMENTATION"
     },
     {
@@ -1068,5 +1068,5 @@
   ],
   "root_surfaces_duplicated_inside_python_namespace": false,
   "loose_python_modules_directly_under_src_allowed": false,
-  "receipt_sha256": "5F7269294BFDC316C262AEAF1F17D444539EE39C5837F0776BA15B8766D90548"
+  "receipt_sha256": "D3D2E047E3030368D18BB48C2FAA6B48A576D978FD826B504554B3A55C4686B9"
 }

@@ -14,7 +14,7 @@ import re
 import sqlite3
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from .errors import EvidenceLaneError, require
 from .hashing import (
@@ -1710,7 +1710,14 @@ def _require_atomic_replace_ready(paths: Iterable[Path]) -> None:
         return
     import ctypes
 
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    win_dll = getattr(ctypes, "WinDLL", None)
+    require(
+        callable(win_dll),
+        "HOST_PLAN_WINDOWS_DLL_UNAVAILABLE",
+        "Windows atomic-replace preflight requires the native kernel32 loader.",
+        status="BLOCKED",
+    )
+    kernel32 = cast(Any, win_dll)("kernel32", use_last_error=True)
     create_file = kernel32.CreateFileW
     create_file.argtypes = [
         ctypes.c_wchar_p,

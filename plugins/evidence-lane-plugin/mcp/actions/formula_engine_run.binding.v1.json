@@ -86,11 +86,11 @@
     "executable": true
   },
   "sdk_action_binding": "sdk/actions/formula_engine_run.action.v1.json",
-  "sdk_action_binding_sha256": "FC946D8D318713AF66810A9EBDCE9519872BE840BE4EE89A906C7F10DAFD3984",
+  "sdk_action_binding_sha256": "D686E4AD98321A31A890E68EC52F44EBDB6556AF208624C19F48C6B90A3E2E28",
   "public_action_schema": "schemas/actions/formula_engine_run.schema.json",
   "public_action_schema_sha256": "59A8A61DE166DE55307B5661C602D4B4E832723C661F6B15E7983F8829531646",
   "canonical_server": "src/evidence_lane_plugin/mcp_server.py",
   "canonical_server_sha256": "38EF962BBD423364F54925D47845DD718F126E4A2F60077949BE0970A1515F60",
   "execution_logic_duplicated_in_binding": false,
-  "receipt_sha256": "E10E22769D420629C026E6735D5BA3F522F4FFE4712DE59D1BAE45EF93A070F4"
+  "receipt_sha256": "B9FE9EEB7CF8CBA298274BB49D159A2ECA58C502D33B3131ABF32ABDC2835153"
 }
