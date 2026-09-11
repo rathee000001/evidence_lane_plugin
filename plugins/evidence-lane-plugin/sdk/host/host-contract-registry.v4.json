@@ -13,7 +13,7 @@
     {
       "bytes": 696,
       "path": "sdk/host/github-app-connection.contract.v4.json",
-      "sha256": "95a10a98908a0fb7e11d38adb300625315710c62af717817b308c5882d5041c9"
+      "sha256": "7cea51854450ef2341ae27ccbc2216f3ee37c73f5868b0519b1148df7025ea05"
     },
     {
       "bytes": 654,
@@ -33,7 +33,7 @@
     {
       "bytes": 1004,
       "path": "sdk/host/mcp-startup-isolation.contract.v4.json",
-      "sha256": "987be6e8dd632207aa3c11f16f41f5778ebc2dd764cd9e0aaa1040436c28d1f6"
+      "sha256": "31dbc8c85cf1252fee761386cf35ccaff5cd3c1490588ae4c8b7e8243693e71d"
     },
     {
       "bytes": 717,
@@ -43,7 +43,7 @@
     {
       "bytes": 847,
       "path": "sdk/host/public-backend-readiness.v4.json",
-      "sha256": "f730e0283de90a6d88c9f98cad8f642a3d1aac1416de7e45a86ddde79f14c414"
+      "sha256": "eabc9ae8aaaec9ba042794e5075d8c174f6e98c3aca36c6cedf78c979d601964"
     },
     {
       "bytes": 1019,
@@ -53,7 +53,7 @@
     {
       "bytes": 868,
       "path": "sdk/host/studio-window.contract.v4.json",
-      "sha256": "acc9380475419c976ddb7eeb4628a8099e84d61f65df426c588f2bdb2c24cd64"
+      "sha256": "60c49828ee7658abdfc45ace02dff118d757d630fe1ccaadad261cde3c26ad7a"
     },
     {
       "bytes": 689,

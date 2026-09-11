@@ -7,7 +7,7 @@
     {
       "bytes": 905,
       "path": "sdk/delta/entry.workflow.v4.json",
-      "sha256": "83d252a70351db20bfc2787a00f69c8d46d44f2a53b1f31320d0a0d11009bd11"
+      "sha256": "ee271fecf4bd694a4676930c6045a491035175d80e803e21b89a5c1ffb0848d9"
     },
     {
       "bytes": 859,
@@ -22,7 +22,7 @@
     {
       "bytes": 900,
       "path": "sdk/delta/mid-query.workflow.v4.json",
-      "sha256": "d13b8e5f66d79ebeb8d5dffdbe18255850ffba2ac67affecf45042441c2dea30"
+      "sha256": "ab8ad2f58272f288ec1067bfd56687515b3dd07e334baf851d2e8293972434c3"
     },
     {
       "bytes": 919,

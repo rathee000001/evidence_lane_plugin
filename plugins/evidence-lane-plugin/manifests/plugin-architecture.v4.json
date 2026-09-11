@@ -62376,7 +62376,7 @@
     }
   ],
   "authority": "current_executable_registry_and_lane_contracts",
-  "contract_sha256": "EC123B049CEA599B7ED646AF8C3E50306D51C81AD28C3954B6FCD1934654FF06",
+  "contract_sha256": "BDA035ED63CC19D337F104F7456D92E2F50C06960A3396843846BDA61B386C57",
   "hooks": {
     "ambient_python_required": false,
     "behavior_handoff_owner": "src/evidence_lane_plugin/hook_behavior_handoff.py",
@@ -92218,7 +92218,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/github_code/manifest.v4.json",
-        "sha256": "665956A26858C7927EC579B32048BF4889FBFE8E0CC1EEFD8B6A8BA497CB1D50"
+        "sha256": "C37F9F5078F85D41D2536D1FC060DA15E060A96F0F75891A0D65B0E524062345"
       },
       "runtime": "evidence_lane_plugin.code_profile",
       "schema": {
@@ -95370,7 +95370,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/local_code/manifest.v4.json",
-        "sha256": "25D50E6073D81B1C26958016FFD6A6553D6DEDCFDA032A1F0DAF8254E3E405FF"
+        "sha256": "48B38A15E3D47EEAB6129E671A84A25593BAA96B7A03ECC70B05C55DEEB5C88D"
       },
       "runtime": "evidence_lane_plugin.code_profile",
       "schema": {
@@ -103623,7 +103623,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/ppt/manifest.v4.json",
-        "sha256": "554D44728CF12875EC6BABFC43C09B22264C3EBAAF9F7ADD9D1D3EBB8E1DB6A1"
+        "sha256": "11D0B2FF2059F504E26719B2C1FDD7B5585A911E29E9793921892CA6E96B54F3"
       },
       "runtime": "evidence_lane_plugin.presentation_profile",
       "schema": {
@@ -111987,7 +111987,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/artifacts/manifest.v4.json",
-        "sha256": "EF0001E76F9DC0459E72348756B4DB84AE103B98EF1FBFCE9D4D434F7A4610C8"
+        "sha256": "6DDEF803D0020C5A1A10180DEE542236AE23C5A033F0D2A7023E8B7A3A70ABE6"
       },
       "runtime": "evidence_lane_plugin.sector_evidence_profile",
       "schema": {
@@ -114076,7 +114076,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/custom/manifest.v4.json",
-        "sha256": "3C05F49027A33074DAB76A3F9AB5EBE2D4F9F3991817ED3085B657FD2F0CBF8E"
+        "sha256": "3D03CC6B1C09BB9FCF4D33CF29491D7FF3FE554C507D4CCFE7935D3E854B386E"
       },
       "runtime": "evidence_lane_plugin.sector_evidence_profile",
       "schema": {
@@ -116915,7 +116915,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/research/manifest.v4.json",
-        "sha256": "5DBCEA331BD41786ADD6ECCFF031E99A0893EFC5F2A20E26539F1D814A291437"
+        "sha256": "C9D50165028DE87BE610BE9B6A027E1A9841566EDD37EE78AAF4350C23EC4BF5"
       },
       "runtime": "evidence_lane_plugin.sector_evidence_profile",
       "schema": {

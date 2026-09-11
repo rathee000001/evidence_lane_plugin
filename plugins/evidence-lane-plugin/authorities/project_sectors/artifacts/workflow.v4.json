@@ -852,7 +852,7 @@
       "version": 1,
       "meaning": "Artifact bytes, extracted evidence, archive directory entries and explicit review state; no execution or release approval.",
       "consumer": "artifact_export",
-      "implementation_digest": "f9bf195999ecacb6f34737f14f96e1e5b9b01b0feb9afb42e9c853afa6888e37",
+      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
       "files": {
         "mmd": "artifacts.mmd",
         "dot": "artifacts.dot",

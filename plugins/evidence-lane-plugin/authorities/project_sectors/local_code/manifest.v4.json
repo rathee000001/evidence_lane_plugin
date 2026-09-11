@@ -3207,11 +3207,11 @@
     },
     {
       "path": "authorities/project_sectors/local_code/workflow.v4.json",
-      "sha256": "300628a4a881cd1926e0d5029ae9e4900e10857abe7423b5fb7c1b981a8504e8"
+      "sha256": "4aa80b4bd9b0eb30ad828d274af15721b075b36ae77a993894140d295991c24b"
     },
     {
       "path": "authorities/project_sectors/local_code/tools.json",
-      "sha256": "3759733b5cab58e06b9b4825d1de2794f6247a27cba231232b79ba7718fed8e7"
+      "sha256": "ab924f66b6ec31625be22324c870ca6b8f92a767e3a2405825b401ed2fce3e79"
     },
     {
       "path": "authorities/project_sectors/local_code/tools.schema.json",

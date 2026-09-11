@@ -1256,7 +1256,7 @@
     },
     {
       "path": "schemas/consumers/consumers-family.v4.json",
-      "sha256": "b104b567c2368f543f5dab1bed827db9f70f87dfd4ff6faf57df02164332371b"
+      "sha256": "53dbbfcc8887076da0a33c369bf4ef380ad70f69ce759241829d2ec84078501c"
     },
     {
       "path": "schemas/env/env-family.v4.json",
@@ -1264,7 +1264,7 @@
     },
     {
       "path": "schemas/governance/governance-family.v4.json",
-      "sha256": "67a7221ebe124d1d5f29d5a93c07eeb17ea2e9024b674d800ebb84769de6e365"
+      "sha256": "cf5d4baf880c4eeebe889bc3f6bb5a32d3389dd297e66ca1dee4f1070c88559f"
     },
     {
       "path": "schemas/hooks/Interrupt.v4.schema.json",
@@ -1344,7 +1344,7 @@
     },
     {
       "path": "schemas/install/first-detection-release-binding.v4.schema.json",
-      "sha256": "3ed8c857b5048ccfec50cd5b012a369f873e99f37641b212aacb5bde3aa5f223"
+      "sha256": "10490e471cb93a56cfab43549dee512fbcc32f55890eadb3707936b33cb3e384"
     },
     {
       "path": "schemas/install/first-detection-source-manifest.v4.schema.json",
@@ -1384,7 +1384,7 @@
     },
     {
       "path": "schemas/lane-workflows.v4.json",
-      "sha256": "1b4c76fba35172372a9b44b2d24e7bbc44252a0833986ece67b144dcbc4b0482"
+      "sha256": "ff582677fc1503379bb83dc39bdc93e5edf4a39798d56aaa5637c5e99d788d4f"
     },
     {
       "path": "schemas/lifecycle/lifecycle-family.v4.json",
@@ -1392,11 +1392,11 @@
     },
     {
       "path": "schemas/mcp/mcp-family.v4.json",
-      "sha256": "65007f336098e6095c864277c7e26dc7272a0ed06d6641676a614488271cd78a"
+      "sha256": "345e25601c601758b6382a52535b83c6367b51f9be90e472b5dd852b9c802a57"
     },
     {
       "path": "schemas/package/package-family.v4.json",
-      "sha256": "04e6799545382a4f23ca6dfd0c57c9180c74f3b1ff569cd7b3ca0a427836c486"
+      "sha256": "531e36991ef14145c0f476d49f884272b2fe8d6af0286577e1554c14ab54287d"
     },
     {
       "path": "schemas/plan/plan-family.v4.json",
@@ -1412,11 +1412,11 @@
     },
     {
       "path": "schemas/project-sectors/artifacts.v4.json",
-      "sha256": "bf8c6a0049fb2d2969abe3466fd9b622e7779f957fa1f253c7c991480627e4a2"
+      "sha256": "1c2c5fdf837aa181bbd64340e54ead19c2e4b623b195d453abe0b3f11a675fc1"
     },
     {
       "path": "schemas/project-sectors/custom.v4.json",
-      "sha256": "c968326f7d34cf48173f6cfc905087808163138b9d17d898da96bc9bb33bd0a2"
+      "sha256": "8485b77565d9d1324d9804bea9ba41e756687e9e2787d569738a6d25df11f00e"
     },
     {
       "path": "schemas/project-sectors/data.v4.json",
@@ -1432,7 +1432,7 @@
     },
     {
       "path": "schemas/project-sectors/github_code.v4.json",
-      "sha256": "972734e686f5677a303bb5154d796eaae58143905896bf8d5f8bd2e4556cf223"
+      "sha256": "22167f14331978db8f70eb0b7d033129c4f941c4fc525ea13eaacbac881dc631"
     },
     {
       "path": "schemas/project-sectors/images_ocr.v4.json",
@@ -1440,7 +1440,7 @@
     },
     {
       "path": "schemas/project-sectors/local_code.v4.json",
-      "sha256": "e545960ae6cf57d4447344c137de02208c40d09b14cfc8dd4d9f979d3e653ce2"
+      "sha256": "639306587f1c5d08086faf0ceba693dba3e77e573c0efc4cc39b2fc98774a008"
     },
     {
       "path": "schemas/project-sectors/pdf_ocr.v4.json",
@@ -1452,11 +1452,11 @@
     },
     {
       "path": "schemas/project-sectors/ppt.v4.json",
-      "sha256": "6e0a243ac96022be3ed9da79c499694c96a5e2b285ba2806c44aa9761b04e7e4"
+      "sha256": "604a42d48c685202279f398f3492ea4282843ff011405f0d008836369f626288"
     },
     {
       "path": "schemas/project-sectors/research.v4.json",
-      "sha256": "9f7eedc3a52a2c333e319db9ed91992510baf58064a3321bb51c4e3a06dde45d"
+      "sha256": "f92907ddc8faf614f472df14b3de48b4a2b7d41c6305788a60988bf0d7151de7"
     },
     {
       "path": "schemas/project-sectors/tableau.v4.json",
@@ -1484,7 +1484,7 @@
     },
     {
       "path": "schemas/schema-family-registry.v4.json",
-      "sha256": "cd1e34ef03185f794ba8a199ef2f777f61f55d2c13fbdb1ac34289dbf058629c"
+      "sha256": "fdcd705154923054f8ab7ecbac25b659922dff4bebf3c7ff9e1d1d026270dede"
     },
     {
       "path": "schemas/sdk/sdk-family.v4.json",

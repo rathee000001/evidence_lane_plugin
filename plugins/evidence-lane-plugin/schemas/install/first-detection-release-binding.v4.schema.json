@@ -104,13 +104,13 @@
       "const": "evidence-lane-plugin"
     },
     "plugin_version": {
-      "const": "4.0.2"
+      "const": "4.0.3"
     },
     "receipt_sha256": {
       "$ref": "#/$defs/sha256"
     },
     "release_ref": {
-      "pattern": "^refs/tags/evidence-lane-v4\\.0\\.2-bundle-[0-9a-f]{16}$",
+      "pattern": "^refs/tags/evidence-lane-v4\\.0\\.3-bundle-[0-9a-f]{16}$",
       "type": [
         "string",
         "null"

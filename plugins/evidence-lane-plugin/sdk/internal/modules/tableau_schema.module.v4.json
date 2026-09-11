@@ -9,9 +9,9 @@
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "schema": "evidence-lane.sdk-internal-module-binding.v4",
   "source": {
-    "bytes": 2655,
+    "bytes": 2623,
     "path": "src/evidence_lane_plugin/tableau_schema.py",
-    "sha256": "4a52ed19f57c8edbda3037ea258c6e606dd615cf273e09b9d1d84d4f2b85cba0"
+    "sha256": "a3655b661574a89e80837e934ab67f62e8feb071c8485eec94bbcc28aa9b12bb"
   },
   "status": "PASS",
   "workflow_registry": "sdk/internal/workflow-registry.v4.json"

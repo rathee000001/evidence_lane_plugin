@@ -7,12 +7,12 @@
     {
       "bytes": 570,
       "path": "sdk/authorities/project-sectors/artifacts.sector.v4.json",
-      "sha256": "122d2e10844237d538290bb19b53b3377e91a640ad8c9cbd59b8e31644c1424d"
+      "sha256": "8808d153f742a2ee1a61efa040755763a8d7380af28cd05f71a82bab3f2ebe0e"
     },
     {
       "bytes": 564,
       "path": "sdk/authorities/project-sectors/custom.sector.v4.json",
-      "sha256": "85dfd2fca143b087a1b9029fb0e7c142f020e4882b5fa5ef77852526cc3221d7"
+      "sha256": "af3f3a73b2f5c93c43941f100c03b92dedcac68f6bd6914cd9650f7256c8165c"
     },
     {
       "bytes": 560,
@@ -32,7 +32,7 @@
     {
       "bytes": 574,
       "path": "sdk/authorities/project-sectors/github_code.sector.v4.json",
-      "sha256": "417a3cfe5d5c55cb288b4324fa70ed3ac7eaf20424a7047db0eb281a0a6cd8c0"
+      "sha256": "a3be6fe4b285979f70538f1c9b2e565ed8c29b5edb1b358812b74eabb302621a"
     },
     {
       "bytes": 572,
@@ -42,7 +42,7 @@
     {
       "bytes": 572,
       "path": "sdk/authorities/project-sectors/local_code.sector.v4.json",
-      "sha256": "ef358e60a269dc7351b708e64916be9bcea66f3f70ab639d53f9c1a16bbca123"
+      "sha256": "1d711496ee934320a733abad1b6065f3914e1e348544c7b5841c1c1b06df65a7"
     },
     {
       "bytes": 567,
@@ -57,12 +57,12 @@
     {
       "bytes": 558,
       "path": "sdk/authorities/project-sectors/ppt.sector.v4.json",
-      "sha256": "946448241c7dbb31653f3d9435de9dfbc8ffed30f439ba4f33b42478a199a8c1"
+      "sha256": "09574e138d5966c7ab6d1558c3877ca1156d39f61a72210ee0c439dbc6c86eea"
     },
     {
       "bytes": 568,
       "path": "sdk/authorities/project-sectors/research.sector.v4.json",
-      "sha256": "457ffca28167c7b538a5bb24f25f740b6322bad4744499ce3b11fe6e74422e6a"
+      "sha256": "0ce8e1f6ba410c2ecf28994047f637c48e013c9e013f2df3aa9d89476a745bda"
     },
     {
       "bytes": 566,

@@ -2739,11 +2739,11 @@
     },
     {
       "path": "authorities/project_sectors/ppt/workflow.v4.json",
-      "sha256": "2f4c5c779ddebc7114c6434d90ceeac84de2210a55e1b893bbb1655b42b879ce"
+      "sha256": "15c28f2fd1e007122a7e0cee8db410ebd207b7fad33cf80d5deda8ef7113413a"
     },
     {
       "path": "authorities/project_sectors/ppt/tools.json",
-      "sha256": "ad73d47eb32fa752dc0573a53745fb8767c3f8fea58fe1a4fd9d5f6a1d8320e0"
+      "sha256": "c1c710f9872fef6cb5fd0188166bf3fc12e13f1ed43246ceaaec65828bbf460a"
     },
     {
       "path": "authorities/project_sectors/ppt/tools.schema.json",

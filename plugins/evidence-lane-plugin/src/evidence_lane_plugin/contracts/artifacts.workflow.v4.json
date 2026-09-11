@@ -1354,7 +1354,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "f9bf195999ecacb6f34737f14f96e1e5b9b01b0feb9afb42e9c853afa6888e37",
+      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
       "lane_id": "artifacts",
       "meaning": "Artifact bytes, extracted evidence, archive directory entries and explicit review state; no execution or release approval.",
       "node_kinds": [
@@ -1617,7 +1617,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "f9bf195999ecacb6f34737f14f96e1e5b9b01b0feb9afb42e9c853afa6888e37",
+      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
       "lane_id": "custom",
       "meaning": "Custom source assertions and selected SQLite table, foreign-key and row locators; no Plan mutation or imported SQL execution.",
       "node_kinds": [
@@ -1931,7 +1931,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "head",
-      "implementation_digest": "9eb0c44f0e180b656b63fccbc77c214164555df69a09400e8cb260ae9217910c",
+      "implementation_digest": "fb6f82efe591bbcbb1a55cfdb585d61ed195c48237479611b300ea0cb1954642",
       "lane_id": "github_code",
       "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
       "node_kinds": [
@@ -2173,7 +2173,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "head",
-      "implementation_digest": "9eb0c44f0e180b656b63fccbc77c214164555df69a09400e8cb260ae9217910c",
+      "implementation_digest": "fb6f82efe591bbcbb1a55cfdb585d61ed195c48237479611b300ea0cb1954642",
       "lane_id": "local_code",
       "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
       "node_kinds": [
@@ -2625,7 +2625,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "c9969651745a31df27d21d193066c3186c4d6c075c38b6facb9bef748d8cf328",
+      "implementation_digest": "eba9bfb662bf635f1ee41e3cec2cbdcbd10c2ab0ec8c45a99113528febb09987",
       "lane_id": "ppt",
       "meaning": "Exact presentation versions and declared slide order, notes, editable tables, images and chart locators; independent of page rendering.",
       "node_kinds": [
@@ -2705,7 +2705,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "f9bf195999ecacb6f34737f14f96e1e5b9b01b0feb9afb42e9c853afa6888e37",
+      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
       "lane_id": "research",
       "meaning": "Exact local sources, captured responses and unvisited provider results with attributed Research assertions and citations.",
       "node_kinds": [

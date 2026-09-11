@@ -9,9 +9,9 @@
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "schema": "evidence-lane.sdk-internal-module-binding.v4",
   "source": {
-    "bytes": 6349,
+    "bytes": 6169,
     "path": "src/evidence_lane_plugin/powerbi_workers.py",
-    "sha256": "b06ace108862a72db7ebb390461b51fdf06e1c1b04f1d5374c871098b6a3f24c"
+    "sha256": "df84e11f75f0cdc86d6a8da7a894494f1c71d3d53122ffafb73fdf95d8f6011c"
   },
   "status": "PASS",
   "workflow_registry": "sdk/internal/workflow-registry.v4.json"

@@ -17,9 +17,9 @@
       "sha256": "7f8e10787f5c2897ea867770e23fe646df25ebccca982d6c91f3e18e1f4107e6"
     },
     {
-      "bytes": 794,
+      "bytes": 786,
       "path": ".mcp.json",
-      "sha256": "d9d76ce0ae58e5d3d3bdb5e24c3e5c2a965cf6707ce6c8abcf3934e5a391e984"
+      "sha256": "b84cca8132921ca5973a51eecb498b63112552e02518400c31fbc1f36b87e916"
     }
   ],
   "status": "PASS",

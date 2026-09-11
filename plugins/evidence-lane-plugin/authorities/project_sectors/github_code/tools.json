@@ -998,7 +998,7 @@
       "version": 1,
       "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
       "consumer": "artifact_export",
-      "implementation_digest": "9eb0c44f0e180b656b63fccbc77c214164555df69a09400e8cb260ae9217910c",
+      "implementation_digest": "fb6f82efe591bbcbb1a55cfdb585d61ed195c48237479611b300ea0cb1954642",
       "files": {
         "mmd": "github_code.mmd",
         "dot": "github_code.dot",

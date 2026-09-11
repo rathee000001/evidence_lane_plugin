@@ -2180,7 +2180,7 @@
       "version": 1,
       "meaning": "Custom source assertions and selected SQLite table, foreign-key and row locators; no Plan mutation or imported SQL execution.",
       "consumer": "artifact_export",
-      "implementation_digest": "f9bf195999ecacb6f34737f14f96e1e5b9b01b0feb9afb42e9c853afa6888e37",
+      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
       "files": {
         "mmd": "custom.mmd",
         "dot": "custom.dot",
@@ -2333,11 +2333,11 @@
     },
     {
       "path": "authorities/project_sectors/custom/workflow.v4.json",
-      "sha256": "f9b1af49850eeef1850b17f1d1d8f6838571b5b39ce0980b7193aab2b3a3a02d"
+      "sha256": "aa22a3e406a62a84409f9f1a3b0de65b9b623e368399e55789aeb61a52fa2e46"
     },
     {
       "path": "authorities/project_sectors/custom/tools.json",
-      "sha256": "b4700376b05fbde5eb0c4ef4243a1dde4d57fe3fab2765f97c4aa30f138eb8c8"
+      "sha256": "c6d7d88afaef2271f64f387c0f3a6545af215bba1222d2d754c04d9c6b9c0eb0"
     },
     {
       "path": "authorities/project_sectors/custom/tools.schema.json",

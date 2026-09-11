@@ -52,7 +52,7 @@ def test_corrected_imported_cli_runs_native_mcp_to_same_engine(tmp_path):
         async with (stdio_client(parameters) as (read, write),
                     ClientSession(read, write, read_timeout_seconds=timedelta(seconds=15)) as session):
             initialized = await session.initialize()
-            assert initialized.serverInfo.version == "4.0.2"
+            assert initialized.serverInfo.version == "4.0.3"
             catalog = await session.list_tools()
             assert [tool.name for tool in catalog.tools] == [item["name"] for item in engine.registry.schemas()]
             result = await session.call_tool("engine_health", {"arguments": {}})
@@ -71,9 +71,16 @@ def test_bound_package_launcher_owns_installed_reentry() -> None:
     binding = json.loads(
         (plugin / "provisioning/release-binding.v4.json").read_text(encoding="utf-8")
     )
-    assert manifest["args"][:3] == ["-I", "-B", "./scripts/run_mcp.py"]
-    assert binding["plugin_version"] == "4.0.2"
+    assert manifest["command"] == "node"
+    assert manifest["args"] == [
+        "./mcp/server.mjs",
+        "--transport",
+        "stdio",
+        "--local-project-administration",
+    ]
+    assert manifest["required"] is False
+    assert binding["plugin_version"] == "4.0.3"
     assert binding["release_ref"] == (
-        "refs/tags/evidence-lane-v4.0.1-bundle-977fb5ec2702ff9d"
+        "refs/tags/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d"
     )
     assert binding["installation_enabled"] is True

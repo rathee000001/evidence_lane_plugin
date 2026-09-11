@@ -3,15 +3,15 @@
   "status": "RELEASE_BOUND",
   "installation_enabled": true,
   "plugin_id": "evidence-lane-plugin",
-  "plugin_version": "4.0.2",
-  "plugin_manifest_sha256": "b36830808772293b1d054dc63e1d3aace1d62ed64d75bf8bb0e97f987f5d3798",
+  "plugin_version": "4.0.3",
+  "plugin_manifest_sha256": "853217277adeaa25fae6ea859d948f044610715640775dae7b086a1a62c1f041",
   "repository": "https://github.com/rathee000001/evidence_lane_plugin",
   "sparse_root": "plugins/evidence-lane-plugin",
-  "release_ref": "refs/tags/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d",
+  "release_ref": "refs/tags/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d",
   "bundle_plan": "provisioning/full-bundle-plan.v4.json",
-  "bundle_plan_sha256": "8d1fd7b58a14adfd18d9d9670dc2d8e0c16421cf6f32d76b8b28ab0f981e65f3",
+  "bundle_plan_sha256": "9a90e0c0be0e580c0856cc900a5c09719772db2ace6343b6e28e8ff2d6d567c3",
   "source_manifest": "provisioning/source-manifest.v4.json",
-  "source_manifest_sha256": "c364ec8985b9ce3f347ba9cbaeadea0ff7a98704e4b9f52e5f61618624acf10f",
+  "source_manifest_sha256": "fda16cfa4ad6e7296cee6456eac66b90ca9caf46d679c84dfe6703fcdee30693",
   "assets_sha256": "977fb5ec2702ff9dcc0c804cc4d17881f2c90400dbbbf9597f73980d370389cd",
   "assets": [
     {
@@ -26,7 +26,7 @@
       "component_manifest_sha256": "fb67b526ec3a87921427b6fee461115540d6a19356656eb7e26bc7b9ee2de613",
       "file_count": 2962,
       "payload_bytes": 776266961,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-core-engine-studio-part-001-of-001.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-core-engine-studio-part-001-of-001.zip"
     },
     {
       "component_id": "ghostscript-runtime",
@@ -40,7 +40,7 @@
       "component_manifest_sha256": "875c7869a2001f0a3bea90cbe70b5378e70e926c80c306ee18905b4cc976de2e",
       "file_count": 657,
       "payload_bytes": 92736462,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-ghostscript-runtime-part-001-of-001.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-ghostscript-runtime-part-001-of-001.zip"
     },
     {
       "component_id": "model-assets",
@@ -54,7 +54,7 @@
       "component_manifest_sha256": "3a653fc90f2b442b7ff9448cee57cbd99857cb63557a0865c4832272cb2ac22e",
       "file_count": 57,
       "payload_bytes": 609233627,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-model-assets-part-001-of-001.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-model-assets-part-001-of-001.zip"
     },
     {
       "component_id": "native-tools",
@@ -68,7 +68,7 @@
       "component_manifest_sha256": "335b80b774a1937f25e3317dba5a0149e7c799712ec69e16b83853d774d9bd47",
       "file_count": 29661,
       "payload_bytes": 2099784985,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-native-tools-part-001-of-002.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-native-tools-part-001-of-002.zip"
     },
     {
       "component_id": "native-tools",
@@ -82,7 +82,7 @@
       "component_manifest_sha256": "d5eb5ef83500dd30c97c230e7f309a9dd794244edcbe0a23647414a7e059236c",
       "file_count": 122,
       "payload_bytes": 100608248,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-native-tools-part-002-of-002.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-native-tools-part-002-of-002.zip"
     },
     {
       "component_id": "node-runtime",
@@ -96,7 +96,7 @@
       "component_manifest_sha256": "a66dc961501293f7d3d2fc8edbe05c452531f6e0492ee94c29ae4da14cfcf930",
       "file_count": 32657,
       "payload_bytes": 788454441,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-node-runtime-part-001-of-001.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-node-runtime-part-001-of-001.zip"
     },
     {
       "component_id": "powerbi-runtime",
@@ -110,7 +110,7 @@
       "component_manifest_sha256": "3ce15a73b9692a7aad9a805db74a15fb4fb16a24ecbec008f68ef2e2a30224f9",
       "file_count": 3784,
       "payload_bytes": 258860365,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-powerbi-runtime-part-001-of-001.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-powerbi-runtime-part-001-of-001.zip"
     },
     {
       "component_id": "provider-cpu",
@@ -124,7 +124,7 @@
       "component_manifest_sha256": "2df0c8643a1514aa8cfd45b3446d724c4db6600f1271a35c0a511d227d70d008",
       "file_count": 46,
       "payload_bytes": 229117584,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-provider-cpu-part-001-of-001.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-provider-cpu-part-001-of-001.zip"
     },
     {
       "component_id": "provider-cuda",
@@ -138,7 +138,7 @@
       "component_manifest_sha256": "b26dfe8746b81d91b79ae8aa59063e029060e335e6f42358b573cc0d9f4f4cd5",
       "file_count": 46,
       "payload_bytes": 2032862543,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-provider-cuda-part-001-of-001.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-provider-cuda-part-001-of-001.zip"
     },
     {
       "component_id": "provider-directml",
@@ -152,7 +152,7 @@
       "component_manifest_sha256": "17066c3a596e5c44207c1c1fab806bc398b33feb1e18548ac12f43f2c988c8a2",
       "file_count": 28,
       "payload_bytes": 144002051,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-provider-directml-part-001-of-001.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-provider-directml-part-001-of-001.zip"
     },
     {
       "component_id": "provider-rocm",
@@ -166,7 +166,7 @@
       "component_manifest_sha256": "29b327db79196f07f80c98f99f0314381a4e9f4571fc268aca8ed964a4cb0d6d",
       "file_count": 44,
       "payload_bytes": 1455006804,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-provider-rocm-part-001-of-002.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-provider-rocm-part-001-of-002.zip"
     },
     {
       "component_id": "provider-rocm",
@@ -180,9 +180,9 @@
       "component_manifest_sha256": "df4c381025984dd2e14e243eb6677fd0fb409ecdd210853a4015cb98f0ba00f2",
       "file_count": 6,
       "payload_bytes": 835258696,
-      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.2-bundle-977fb5ec2702ff9d/evidence-lane-provider-rocm-part-002-of-002.zip"
+      "url": "https://github.com/rathee000001/evidence_lane_plugin/releases/download/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d/evidence-lane-provider-rocm-part-002-of-002.zip"
     }
   ],
   "installed_native_execution_claimed": false,
-  "receipt_sha256": "05104ab931e4d7367c6ec148e06c721450d6bb263784685f1475f262ea47aa3d"
+  "receipt_sha256": "1fa4362120dc510f90cf100f3f3b58173632e112221a9778412e75f5e62c6120"
 }

@@ -14,9 +14,9 @@
       "sha256": "41156baa47dccf8b401fee5fb41acce0511bc9944aac8e5c7ae2d4a882793cab"
     },
     {
-      "bytes": 21014,
+      "bytes": 20738,
       "path": "src/evidence_lane_plugin/coordination.py",
-      "sha256": "aafe1a88bb969f5858d60054a3298a3fbb1eeff1335fb04b4ddecbce6cdf1170"
+      "sha256": "f91acbe7aa7f4fe2c31cc9ece4b99a64ac62cb03f2c074b40c38b1ab3cd18808"
     }
   ],
   "plan_owned": true,

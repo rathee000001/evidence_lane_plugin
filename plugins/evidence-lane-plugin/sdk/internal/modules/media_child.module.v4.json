@@ -9,9 +9,9 @@
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "schema": "evidence-lane.sdk-internal-module-binding.v4",
   "source": {
-    "bytes": 1564,
+    "bytes": 1520,
     "path": "src/evidence_lane_plugin/media_child.py",
-    "sha256": "faa29846dd0c69bd62f9e6cbb686b1918f5dc3c3cd05f8300ee75ea32490f4ee"
+    "sha256": "1e87d72b828359ee0ccf98d8f4dca5fc0ccee37132ff6bbd48027ceb0496207b"
   },
   "status": "PASS",
   "workflow_registry": "sdk/internal/workflow-registry.v4.json"

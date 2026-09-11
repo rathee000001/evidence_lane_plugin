@@ -222,7 +222,7 @@ def test_local_connection_and_studio_commands_are_rejected_during_drain(tmp_path
 def committed_package(tmp_path):
     source = tmp_path / "package"
     (source / ".codex-plugin").mkdir(parents=True)
-    (source / ".codex-plugin/plugin.json").write_text(json.dumps({"name": "evidence-lane-plugin", "version": "4.0.2"}))
+    (source / ".codex-plugin/plugin.json").write_text(json.dumps({"name": "evidence-lane-plugin", "version": "4.0.3"}))
     (source / "src").mkdir()
     (source / "src/main.py").write_text("x = 1\n")
     for arguments in (("init", "--quiet"), ("add", "."), ("-c", "user.name=Test", "-c", "user.email=test@example.invalid",

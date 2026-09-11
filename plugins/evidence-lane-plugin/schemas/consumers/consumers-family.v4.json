@@ -4,11 +4,11 @@
   "members": [
     {
       "path": "manifests/plugin-architecture.v4.json",
-      "sha256": "bee6fa114c9f7dc625a257328c0684791b2c5fcd13ccd79f4e963256b370b090"
+      "sha256": "35551d5475b396704ecdef2c808fdb8e68736d8243e29911d70ad0a47f6374ec"
     },
     {
       "path": "src/evidence_lane_plugin/studio_gateway.py",
-      "sha256": "11a1b3c12fd8d216acd401bff89f2285dcc960f22249cac384e03433031bb29d"
+      "sha256": "5c376d5252200a453ca07a410ae7cb25a9bc1b1f455e2768be1b6574a2907920"
     }
   ],
   "purpose": "Studio and inspectable package architecture consumers",

@@ -7,6 +7,7 @@ import importlib.util
 import json
 import os
 import shutil
+import subprocess
 import zipfile
 from pathlib import Path
 
@@ -482,8 +483,8 @@ def test_production_plan_accounts_for_every_retained_tool_and_install_input() ->
         assert binding["assets"] == []
     else:
         assert binding["installation_enabled"] is True
-        assert binding["plugin_version"] == "4.0.2"
-        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.2-bundle-")
+        assert binding["plugin_version"] == "4.0.3"
+        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.3-bundle-")
         assert len(binding["assets_sha256"]) == 64
         assert len(binding["assets"]) == 12
     assert binding["bundle_plan_sha256"] == hashlib.sha256(plan_path.read_bytes()).hexdigest()
@@ -1105,6 +1106,42 @@ def test_release_source_manifest_rejects_credential_shaped_files(tmp_path: Path)
     plugin, _ = fixture_plugin(tmp_path)
     write(plugin / ".env", "API_KEY=not-a-real-fixture-secret\n")
     with pytest.raises(builder.ReleaseBuildError, match="Credential-shaped"):
+        builder.build_source_manifest(plugin)
+
+
+def test_release_source_manifest_rejects_git_materialization_drift(
+    tmp_path: Path,
+) -> None:
+    repository = tmp_path / "repository"
+    plugin = repository / "plugins/evidence-lane-plugin"
+    write(repository / ".gitattributes", "* text=auto eol=lf\n")
+    write(plugin / ".codex-plugin/plugin.json", '{"name":"evidence-lane-plugin"}\n')
+    write(plugin / "source.py", "first\nsecond\n")
+    subprocess.run(["git", "init", "-b", "main"], cwd=repository, check=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Evidence Lane Test"],
+        cwd=repository,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "evidence-lane@example.invalid"],
+        cwd=repository,
+        check=True,
+    )
+    subprocess.run(["git", "add", "."], cwd=repository, check=True)
+    subprocess.run(
+        ["git", "commit", "-m", "fixture"],
+        cwd=repository,
+        check=True,
+        capture_output=True,
+    )
+    (plugin / "source.py").write_bytes(b"first\r\nsecond\r\n")
+
+    with pytest.raises(builder.ReleaseBuildError, match="Git would transform"):
+        builder.build_source_manifest(plugin)
+
+    (plugin / "source.py").write_bytes(b"first\nchanged\n")
+    with pytest.raises(builder.ReleaseBuildError, match="must be staged"):
         builder.build_source_manifest(plugin)
 
 

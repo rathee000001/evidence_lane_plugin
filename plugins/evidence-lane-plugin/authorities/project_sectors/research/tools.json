@@ -1198,7 +1198,7 @@
       "version": 1,
       "meaning": "Exact local sources, captured responses and unvisited provider results with attributed Research assertions and citations.",
       "consumer": "artifact_export",
-      "implementation_digest": "f9bf195999ecacb6f34737f14f96e1e5b9b01b0feb9afb42e9c853afa6888e37",
+      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
       "files": {
         "mmd": "research.mmd",
         "dot": "research.dot",

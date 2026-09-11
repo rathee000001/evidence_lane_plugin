@@ -2,7 +2,7 @@
   "bundle_plan": {
     "bytes": 540817,
     "path": "provisioning/full-bundle-plan.v4.json",
-    "sha256": "8d1fd7b58a14adfd18d9d9670dc2d8e0c16421cf6f32d76b8b28ab0f981e65f3"
+    "sha256": "9a90e0c0be0e580c0856cc900a5c09719772db2ace6343b6e28e8ff2d6d567c3"
   },
   "canonical_installer": {
     "bytes": 95463,

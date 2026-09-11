@@ -4,7 +4,7 @@
   "members": [
     {
       "path": "env/orchestration.policy.v4.json",
-      "sha256": "10b28b6c5c67680b9ea839973c67be63c582b4ff7373e2d89198aad5b1ce6317"
+      "sha256": "ee34d664b1a310a5b7915bd984c3b55eb57d2504d7f515a46104cdad99c91c3d"
     },
     {
       "path": "src/evidence_lane_plugin/state_law.py",

@@ -6,7 +6,7 @@
   "manifest": {
     "bytes": 80950,
     "path": "authorities/project_sectors/github_code/manifest.v4.json",
-    "sha256": "665956a26858c7927ec579b32048bf4889fbfe8e0cc1eefd8b6a8ba497cb1d50"
+    "sha256": "c37f9f5078f85d41d2536d1fc060da15e060a96f0f75891a0d65b0e524062345"
   },
   "project_state": "separate_lane_sqlite_and_files",
   "runtime_execution_inferred": false,

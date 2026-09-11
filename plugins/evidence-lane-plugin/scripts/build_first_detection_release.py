@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import tarfile
 import zipfile
 from collections.abc import Mapping, Sequence
@@ -742,6 +743,7 @@ def build_source_manifest(plugin_root: Path = PLUGIN) -> dict[str, Any]:
             raise ReleaseBuildError("Plugin source exceeds its package budget")
     if not rows:
         raise ReleaseBuildError("Plugin source manifest cannot be empty")
+    _verify_git_materialization(root, [row["path"] for row in rows])
     return sealed(
         {
             "schema": "evidence-lane.first-detection-source-manifest.v4",
@@ -755,6 +757,90 @@ def build_source_manifest(plugin_root: Path = PLUGIN) -> dict[str, Any]:
             "files": rows,
         }
     )
+
+
+def _verify_git_materialization(root: Path, source_paths: Sequence[str]) -> None:
+    """Reject bytes that the repository's Git attributes would transform."""
+
+    discovered = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    if discovered.returncode != 0:
+        return
+    repository = Path(discovered.stdout.strip()).resolve(strict=True)
+    try:
+        plugin_relative = root.relative_to(repository).as_posix()
+    except ValueError as error:
+        raise ReleaseBuildError(
+            "The plugin source is outside its discovered Git repository."
+        ) from error
+    if plugin_relative != SPARSE_ROOT:
+        return
+    inspected = subprocess.run(
+        ["git", "-C", str(repository), "ls-files", "--eol", "--", plugin_relative],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    metadata_by_path: dict[str, list[str]] = {}
+    for line in inspected.stdout.splitlines():
+        metadata, separator, path = line.partition("\t")
+        if not separator:
+            raise ReleaseBuildError("Git returned an invalid materialization record.")
+        metadata_by_path[path] = metadata.split()
+    expected = {
+        (PurePosixPath(plugin_relative) / relative).as_posix()
+        for relative in source_paths
+    }
+    untracked = sorted(expected - metadata_by_path.keys())
+    if untracked:
+        raise ReleaseBuildError(
+            "Every release source member must be staged or committed before sealing: "
+            + ", ".join(untracked[:20])
+        )
+    transformed = []
+    for path in sorted(expected):
+        metadata = metadata_by_path[path]
+        index = next((value for value in metadata if value.startswith("i/")), None)
+        worktree = next((value for value in metadata if value.startswith("w/")), None)
+        if index == "i/lf" and worktree != "w/lf" and "eol=lf" in metadata:
+            transformed.append(path)
+    if transformed:
+        raise ReleaseBuildError(
+            "Git would transform release source bytes during marketplace materialization: "
+            + ", ".join(transformed[:20])
+        )
+    unstaged_result = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repository),
+            "diff-files",
+            "--name-only",
+            "-z",
+            "--",
+            plugin_relative,
+        ],
+        check=True,
+        capture_output=True,
+    )
+    unstaged = sorted(
+        expected.intersection(
+            path.decode("utf-8")
+            for path in unstaged_result.stdout.split(b"\0")
+            if path
+        )
+    )
+    if unstaged:
+        raise ReleaseBuildError(
+            "Every changed release source member must be staged before sealing: "
+            + ", ".join(unstaged[:20])
+        )
 
 
 def _document(path: Path) -> dict[str, Any]:

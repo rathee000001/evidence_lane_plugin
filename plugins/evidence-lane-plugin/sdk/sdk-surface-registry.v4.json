@@ -41,7 +41,7 @@
       "path": "sdk/delta/runtime.py",
       "registry": {
         "path": "sdk/delta/delta-workflow-registry.v4.json",
-        "sha256": "efee95e74e1595dffe13022b925f3aba20ecb8da7cfcae574cf02bfefb79b6ae"
+        "sha256": "68df43ba41c6cb638e3ee7ef7f7f33190b8fe84cd30a114b601cc4a8c3a92272"
       },
       "runtime": {
         "path": "sdk/delta/runtime.py",
@@ -86,7 +86,7 @@
       "path": "sdk/host/runtime.py",
       "registry": {
         "path": "sdk/host/host-contract-registry.v4.json",
-        "sha256": "69a6e0853b74ccefc8cdc5dd7539b5858eacc2ecac7da6960649684cdce5b17b"
+        "sha256": "9dce521e6117c6f3116992158503072c7f164b3a0e63072f1117afee960867a9"
       },
       "runtime": {
         "path": "sdk/host/runtime.py",
@@ -101,7 +101,7 @@
       "path": "sdk/internal/runtime.py",
       "registry": {
         "path": "sdk/internal/module-registry.v4.json",
-        "sha256": "beeb168074586e5a2c236cc215976f00a5af8ab90d955c57d3ec758a2d56c220"
+        "sha256": "19212390061ca2d54256d50a598e7e1ac5d7941af0e0a565d222ceb58b4b44f7"
       },
       "runtime": {
         "path": "sdk/internal/runtime.py",
@@ -176,7 +176,7 @@
       "path": "sdk/transports/runtime.py",
       "registry": {
         "path": "sdk/transports/transport-registry.v4.json",
-        "sha256": "a7e98c8c68949b49923f78678f1cd26b5a79c2b76c8b4c9acbe054c672b1da86"
+        "sha256": "d80556a8467433a0fa2bbd8ead027846d9c6e732fd62829d0284b3dad9843617"
       },
       "runtime": {
         "path": "sdk/transports/runtime.py",

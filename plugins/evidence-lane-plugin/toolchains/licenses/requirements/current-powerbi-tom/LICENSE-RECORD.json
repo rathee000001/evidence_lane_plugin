@@ -34,7 +34,7 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "license_evidence": "Exact packaged license/source evidence is bound to the Studio release component; installed verification remains pending.",
   "current_toolchain_entry_sha256": "446d64ca681cf499f93e4703f92fbd5fc228a3987b4bec02237cd6405acf7f09",
-  "shared_toolchain_sha256": "29282d31d15b00f0464ece9ba0817492805b303b307c86f755e23a63983a5205",
+  "shared_toolchain_sha256": "34f9a2a5300424498083f30ab3d2c1bfe7833f63e7b8fb6107ccf027fa59d542",
   "tool_catalog_sha256": "8c8836423a1c7d5eca29e7050b3e5e85477eeaaab3b468e4ee92e9095b2b0c8b",
-  "receipt_sha256": "434b06e210c4ab3236b5bd6ada05e94c732bf93ab19d0ce49123589c3acf92de"
+  "receipt_sha256": "fd189f8c0879a89d8e4fed57373cab03ba41871400d58127cbd67fbda7b60741"
 }

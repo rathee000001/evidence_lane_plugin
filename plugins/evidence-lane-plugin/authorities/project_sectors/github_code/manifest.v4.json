@@ -2700,11 +2700,11 @@
     },
     {
       "path": "authorities/project_sectors/github_code/workflow.v4.json",
-      "sha256": "9c00a8ef8f5d31e9290f803a82cc635e3cb3a732cc2db620211af182ed64c6fb"
+      "sha256": "a1ea4bdddc85b6f8629e8815876acc9957e5835a6058f6c765d7c2ded82d4bac"
     },
     {
       "path": "authorities/project_sectors/github_code/tools.json",
-      "sha256": "867a43691edd4d5cb3a1971eacc87878ac799335caccc8069596747290ddfcc0"
+      "sha256": "c6ff0405e14ece5ad9ac077993caad605caf3218e1ed83476ffb710ab54fb1d9"
     },
     {
       "path": "authorities/project_sectors/github_code/tools.schema.json",

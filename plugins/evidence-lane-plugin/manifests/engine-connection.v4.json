@@ -66,7 +66,7 @@
   "source_members": [
     {
       "path": ".mcp.json",
-      "sha256": "D9D76CE0AE58E5D3D3BDB5E24C3E5C2A965CF6707CE6C8ABCF3934E5A391E984"
+      "sha256": "B84CCA8132921CA5973A51EECB498B63112552E02518400C31FBC1F36B87E916"
     },
     {
       "path": "scripts/run_mcp.py",
